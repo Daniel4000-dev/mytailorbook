@@ -15,18 +15,29 @@ interface BottomSheetProps {
 
 export default function BottomSheet({ isOpen, onClose, title, children, footer }: BottomSheetProps) {
   const [direction, setDirection] = useState<'bottom' | 'right'>('bottom');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
       setDirection(window.innerWidth >= 1024 ? 'right' : 'bottom');
     };
     handleResize();
+    setMounted(true);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Don't render until client-side so direction and vaul styles never mismatch SSR
+  if (!mounted) return null;
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} direction={direction} dismissible={false}>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
+      direction={direction}
+      dismissible={false}
+      noBodyStyles
+    >
       <Drawer.Portal>
         <Drawer.Overlay className={styles.overlay} />
         <Drawer.Content className={styles.content}>

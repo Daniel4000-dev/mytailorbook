@@ -152,7 +152,7 @@
     opacity: 1 !important;
     pointer-events: auto !important;
     position: fixed;
-    background-color: #FDF4E8; /* Premium warm cream panel */
+    background-color: #FFFFFF; /* Premium white sidebar */
     border-right: 1px solid var(--sf-border);
     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 100 !important;
@@ -196,7 +196,7 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background-color: rgba(253, 244, 232, 0.8);
+    background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border: 1px solid var(--sf-border);
     box-shadow: 0 2px 8px rgba(40, 25, 11, 0.08);

@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   title: `${APP_CONFIG.name} — Fashion Studio Workspace`,
   description:
     'Premium workspace for managing orders, production, and clients in your fashion design studio.',
-  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: APP_CONFIG.name,
   },
 };
+
 
 export const viewport: Viewport = {
   width: 'device-width',
