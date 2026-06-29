@@ -19,10 +19,13 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
 
   useEffect(() => {
+    const color = isMenuOpen ? '#FAF2E8' : '#FFFFFF';
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute('content', isMenuOpen ? '#FAF2E8' : '#FFFFFF');
+      meta.setAttribute('content', color);
     }
+    document.documentElement.style.backgroundColor = color;
+    document.body.style.backgroundColor = color;
   }, [isMenuOpen]);
 
   return (

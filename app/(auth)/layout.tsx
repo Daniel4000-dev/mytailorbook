@@ -15,10 +15,15 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     if (meta) {
       meta.setAttribute('content', '#FAF2E8');
     }
+    document.documentElement.style.backgroundColor = '#FAF2E8';
+    document.body.style.backgroundColor = '#FAF2E8';
+    
     return () => {
       if (meta) {
         meta.setAttribute('content', '#FFFFFF');
       }
+      document.documentElement.style.backgroundColor = '#FFFFFF';
+      document.body.style.backgroundColor = '#FFFFFF';
     };
   }, []);
 
