@@ -20,10 +20,13 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const color = isMenuOpen ? '#FAF2E8' : '#FFFFFF';
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute('content', color);
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
     }
+    meta.setAttribute('content', color);
     document.documentElement.style.backgroundColor = color;
     document.body.style.backgroundColor = color;
   }, [isMenuOpen]);

@@ -11,16 +11,20 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const isSignup = pathname === '/signup';
 
   useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute('content', '#FAF2E8');
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
     }
+    meta.setAttribute('content', '#FAF2E8');
     document.documentElement.style.backgroundColor = '#FAF2E8';
     document.body.style.backgroundColor = '#FAF2E8';
     
     return () => {
-      if (meta) {
-        meta.setAttribute('content', '#FFFFFF');
+      let cleanupMeta = document.querySelector('meta[name="theme-color"]');
+      if (cleanupMeta) {
+        cleanupMeta.setAttribute('content', '#FFFFFF');
       }
       document.documentElement.style.backgroundColor = '#FFFFFF';
       document.body.style.backgroundColor = '#FFFFFF';
