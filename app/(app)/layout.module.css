@@ -7,7 +7,7 @@
   max-width: var(--sf-max-width-desktop);
   margin: 0 auto;
   height: 100dvh;
-  background-color: #FFFFFF; /* Premium white page background */
+  background-color: #FAF2E8; /* Soft beige page background from mockup for mobile menu */
   overflow: hidden;
 }
 
@@ -117,6 +117,7 @@
   .outerWrapper {
     display: flex;
     max-width: 100%;
+    background-color: #FFFFFF;
   }
 
   .depthLayer {
