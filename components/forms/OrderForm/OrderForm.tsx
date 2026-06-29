@@ -183,26 +183,24 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         required
       />
 
-      <div className={styles.row}>
-        <Input
-          label="Total Bill (₦)"
-          placeholder="0"
-          icon={<FaMoneyBill />}
-          value={totalBill}
-          onChange={(e) => setTotalBill(e.target.value.replace(/[^0-9,]/g, ''))}
-          onBlur={() => formatOnBlur(totalBill, setTotalBill)}
-          inputMode="numeric"
-        />
-        <Input
-          label="Deposit (₦)"
-          placeholder="0"
-          icon={<FaHandHoldingDollar />}
-          value={depositPaid}
-          onChange={(e) => setDepositPaid(e.target.value.replace(/[^0-9,]/g, ''))}
-          onBlur={() => formatOnBlur(depositPaid, setDepositPaid)}
-          inputMode="numeric"
-        />
-      </div>
+      <Input
+        label="Total Bill (₦)"
+        placeholder="0"
+        icon={<FaMoneyBill />}
+        value={totalBill}
+        onChange={(e) => setTotalBill(e.target.value.replace(/[^0-9,]/g, ''))}
+        onBlur={() => formatOnBlur(totalBill, setTotalBill)}
+        inputMode="numeric"
+      />
+      <Input
+        label="Deposit (₦)"
+        placeholder="0"
+        icon={<FaHandHoldingDollar />}
+        value={depositPaid}
+        onChange={(e) => setDepositPaid(e.target.value.replace(/[^0-9,]/g, ''))}
+        onBlur={() => formatOnBlur(depositPaid, setDepositPaid)}
+        inputMode="numeric"
+      />
 
       {total > 0 && (
         <div className={styles.balancePreview}>
