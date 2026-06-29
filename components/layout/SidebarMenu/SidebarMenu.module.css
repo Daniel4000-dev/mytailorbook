@@ -21,6 +21,12 @@
   pointer-events: auto;
 }
 
+.mobileLogo {
+  width: 64px;
+  height: 64px;
+  opacity: 1;
+}
+
 .topRow {
   display: flex;
   align-items: center;
@@ -164,25 +170,26 @@
 
   .desktopBranding {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 12px;
-    padding-left: 24px;
     width: 100%;
     overflow: hidden;
   }
 
   .desktopLogo {
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
     flex-shrink: 0;
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .desktopTitle {
     font-family: var(--font-cinzel), Georgia, serif;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: #7A6952;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     white-space: nowrap;
   }
 
@@ -228,7 +235,6 @@
     padding-left: 0;
     margin-bottom: 16px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--sf-border-light);
     transition: padding 0.3s ease;
   }
 
@@ -257,14 +263,13 @@
   }
 
   .menuItem.active {
-    background-color: #FFFFFF;
-    color: var(--sf-text-primary) !important;
-    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.05);
+    background-color: var(--sf-accent-emerald-glow);
+    color: var(--sf-accent-emerald) !important;
     font-weight: 600;
   }
 
   .menuItem.active .menuIcon {
-    color: var(--sf-text-primary) !important;
+    color: var(--sf-accent-emerald) !important;
   }
 
   .logoutBtn {
@@ -295,6 +300,11 @@
   .sidebar.collapsed .menuText,
   .sidebar.collapsed .logoutText {
     display: none;
+  }
+
+  .sidebar.collapsed .desktopLogo {
+    width: 32px;
+    height: 32px;
   }
 
   .sidebar.collapsed .desktopBranding {

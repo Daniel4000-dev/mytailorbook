@@ -14,8 +14,8 @@
 
 @media (min-width: 1024px) {
   .pageGrid {
-    display: grid;
-    grid-template-columns: 340px 1fr;
+    display: grid !important;
+    grid-template-columns: 340px 1fr !important;
     gap: var(--sf-space-xl);
     align-items: start;
   }

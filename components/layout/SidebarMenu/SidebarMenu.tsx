@@ -63,10 +63,10 @@ export default function SidebarMenu() {
             onClick={() => setShowProfile(true)} 
             ariaLabel="Profile Settings"
           />
-          <CircleIconButton 
-            icon={<FaXmark className={styles.iconClose} />} 
-            onClick={() => setMenuOpen(false)} 
-            ariaLabel="Close Menu"
+          <img 
+            src="/images/sewing-machine.svg" 
+            alt="MyTailorBook Logo" 
+            className={styles.mobileLogo}
           />
         </div>
 
