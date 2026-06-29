@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { FaPlus } from 'react-icons/fa6';
 import { DataProvider } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
@@ -17,6 +17,13 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
+
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute('content', isMenuOpen ? '#FAF2E8' : '#FFFFFF');
+    }
+  }, [isMenuOpen]);
 
   return (
     <div className={`${styles.outerWrapper} ${isCollapsed ? styles.sidebarCollapsed : ''}`}>

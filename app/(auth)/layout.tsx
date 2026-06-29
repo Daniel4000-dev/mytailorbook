@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './layout.module.css';
@@ -9,6 +9,18 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isCustomAuth = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password';
   const isSignup = pathname === '/signup';
+
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute('content', '#FAF2E8');
+    }
+    return () => {
+      if (meta) {
+        meta.setAttribute('content', '#FFFFFF');
+      }
+    };
+  }, []);
 
   return (
     <div className={`${styles.authLayout} ${isCustomAuth ? styles.loginLayout : ''} ${isSignup ? styles.signupLayout : ''}`}>
