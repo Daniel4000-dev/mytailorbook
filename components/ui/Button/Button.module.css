@@ -51,11 +51,6 @@
 .primary {
   background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
   color: var(--sf-text-on-accent);
-  box-shadow: var(--sf-shadow-emerald);
-}
-
-.primary:hover:not(:disabled) {
-  box-shadow: 0 6px 24px rgba(0, 121, 107, 0.45);
 }
 
 .secondary {
@@ -64,28 +59,15 @@
   border: 1px solid var(--sf-border);
 }
 
-.secondary:hover:not(:disabled) {
-  background: var(--sf-bg-surface-hover);
-}
-
 .ghost {
   background: transparent;
   color: var(--sf-text-secondary);
-}
-
-.ghost:hover:not(:disabled) {
-  background: var(--sf-bg-surface-elevated);
-  color: var(--sf-text-primary);
 }
 
 .danger {
   background: var(--sf-error-bg);
   color: var(--sf-error);
   border: 1px solid rgba(207, 102, 121, 0.25);
-}
-
-.danger:hover:not(:disabled) {
-  background: rgba(207, 102, 121, 0.2);
 }
 
 .fullWidth {

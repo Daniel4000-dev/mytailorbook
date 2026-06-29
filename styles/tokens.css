@@ -91,9 +91,9 @@
 
   /* ── Border Radius ───────────────────────────────────── */
   --sf-radius-xs: 6px;
-  --sf-radius-sm: 10px;
-  --sf-radius-md: 16px;
-  --sf-radius-lg: 20px;
+  --sf-radius-sm: 6px;
+  --sf-radius-md: 6px;
+  --sf-radius-lg: 6px;
   --sf-radius-xl: 24px;
   --sf-radius-2xl: 32px;
   --sf-radius-full: 9999px;

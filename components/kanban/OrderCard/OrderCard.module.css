@@ -8,16 +8,13 @@
   transition: all var(--sf-transition-fast);
   animation: fadeInUp 0.4s ease both;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   padding: 7px;
   position: relative;
   overflow: hidden;
 }
 
 .card:hover {
-  box-shadow: var(--sf-shadow-md);
   border-color: #FDF4E8;
-  transform: translateY(-2px);
 }
 
 .card:active {
