@@ -100,7 +100,7 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
     <div
       ref={setNodeRef}
       style={mergedStyle}
-      className={`${styles.card} ${overdue ? styles.overdue : ''} ${isSwiping ? styles.swiping : ''}`}
+      className={`${styles.card} ${isSwiping ? styles.swiping : ''}`}
       onClick={onClick}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

@@ -111,7 +111,7 @@
 }
 
 .overdueText {
-  color: var(--sf-error);
+  color: #C85A5A; /* Muted premium crimson red */
   font-weight: 600;
 }
 
