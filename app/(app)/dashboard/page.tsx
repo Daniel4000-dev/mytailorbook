@@ -78,7 +78,7 @@ export default function DashboardPage() {
         />
       }
     >
-      {/* Rest of the homepage content removed per request */}
+      <></>
     </PageLayout>
   );
 }
