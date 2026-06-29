@@ -1,0 +1,280 @@
+.pageGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: 0 var(--sf-space-md) var(--sf-space-2xl) var(--sf-space-md);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
+/* ── Animations ── */
+@keyframes fluidReveal {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pulseMesh {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+  50% { transform: scale(1.1) translate(2%, -2%); opacity: 1; }
+  100% { transform: scale(1) translate(0, 0); opacity: 0.8; }
+}
+
+/* ── Bento Grid ── */
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-md);
+}
+
+.bentoCard {
+  background: var(--sf-bg-surface);
+  border-radius: 28px;
+  padding: var(--sf-space-xl);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: fluidReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bentoCard:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.colSpan2 {
+  grid-column: span 2;
+}
+
+/* ── Hero / Balance Card (Hero Bento) ── */
+.heroBento {
+  background: #ffffff;
+  color: var(--sf-text-primary);
+  /* Mesh gradient background effect */
+}
+
+.heroBento::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 0%, var(--sf-accent-emerald-soft) 0%, transparent 40%),
+              radial-gradient(circle at 80% 100%, var(--sf-accent-gold-soft) 0%, transparent 40%);
+  opacity: 0.5;
+  pointer-events: none;
+  animation: pulseMesh 15s ease-in-out infinite;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.heroGreeting {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.heroBalanceLabel {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+  margin-top: var(--sf-space-md);
+  font-weight: 500;
+}
+
+.heroBalance {
+  font-family: var(--sf-font-heading);
+  font-size: 3.2rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  background: linear-gradient(135deg, var(--sf-text-primary) 0%, #4a5568 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--sf-space-xs);
+}
+
+/* ── Dynamic Island Alert ── */
+.dynamicIsland {
+  background: #111111;
+  border-radius: 999px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #ffffff;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  animation: fluidReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 0.1s;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  margin: 0 var(--sf-space-xs) var(--sf-space-sm) var(--sf-space-xs);
+}
+
+.dynamicIsland:active {
+  transform: scale(0.97);
+}
+
+.islandLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.islandIconWrapper {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 59, 48, 0.2);
+  color: #ff3b30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.islandText {
+  display: flex;
+  flex-direction: column;
+}
+
+.islandTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.islandSubtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.islandAction {
+  font-size: 12px;
+  font-weight: 600;
+  color: #34c759;
+  background: rgba(52, 199, 89, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+/* ── Standard Bento Cards ── */
+.bentoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: var(--sf-space-md);
+}
+
+.iconBlue { 
+  background: var(--sf-accent-emerald-glow); 
+  color: var(--sf-accent-emerald); 
+}
+.iconGreen { 
+  background: var(--sf-accent-gold-soft); 
+  color: var(--sf-text-gold); 
+}
+.iconPurple { 
+  background: var(--sf-accent-emerald-glow); 
+  color: var(--sf-accent-emerald); 
+}
+.iconOrange { 
+  background: var(--sf-accent-gold-soft); 
+  color: var(--sf-text-gold); 
+}
+
+.bentoValue {
+  font-family: var(--sf-font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--sf-text-primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.bentoLabel {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  font-weight: 500;
+}
+
+/* ── Pipeline Progress Card ── */
+.pipelineCard {
+  animation-delay: 0.2s;
+}
+
+.pipelineHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sf-space-md);
+}
+
+.pipelineTitle {
+  font-weight: 700;
+  font-size: var(--sf-text-lg);
+  color: var(--sf-text-primary);
+  letter-spacing: -0.3px;
+}
+
+.pipelineTrack {
+  width: 100%;
+  height: 8px;
+  background: var(--sf-border-light);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: var(--sf-space-sm);
+}
+
+.pipeCut { background: var(--sf-text-tertiary); }
+.pipeSew { background: var(--sf-accent-emerald); }
+.pipeReady { background: var(--sf-accent-gold); }
+
+.pipelineLegend {
+  display: flex;
+  justify-content: space-between;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  font-weight: 600;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dotCut { background: var(--sf-text-tertiary); }
+.dotSew { background: var(--sf-accent-emerald); }
+.dotReady { background: var(--sf-accent-gold); }

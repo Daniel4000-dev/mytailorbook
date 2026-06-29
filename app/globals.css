@@ -1,26 +1,206 @@
-@import "tailwindcss";
+/* ============================================================
+   MyTailorBook Global Styles
+   ============================================================
+   CSS reset, base typography, and global defaults.
+   Imports the design tokens from styles/tokens.css.
+   ============================================================ */
+
+@import '../styles/tokens.css';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-outfit: 'Outfit', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-cinzel: 'Cinzel', Georgia, serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Reset ─────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  line-height: var(--sf-leading-normal);
+  color: var(--sf-text-primary);
+  background-color: var(--sf-bg-primary);
+  min-height: 100%;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* ── Typography ────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--sf-font-heading);
+  font-weight: var(--sf-weight-semibold);
+  line-height: var(--sf-leading-tight);
+  color: var(--sf-text-primary);
+}
+
+h1 { font-size: var(--sf-text-3xl); }
+h2 { font-size: var(--sf-text-2xl); }
+h3 { font-size: var(--sf-text-xl); }
+h4 { font-size: var(--sf-text-lg); }
+
+p {
+  color: var(--sf-text-secondary);
+  line-height: var(--sf-leading-relaxed);
+}
+
+a {
+  color: var(--sf-accent-emerald-light);
+  text-decoration: none;
+  transition: color var(--sf-transition-fast);
+}
+
+a:hover {
+  color: var(--sf-accent-emerald);
+}
+
+/* ── Form Elements ─────────────────────────────────────────── */
+button {
+  font-family: var(--sf-font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+/* ── Lists ─────────────────────────────────────────────────── */
+ul, ol {
+  list-style: none;
+}
+
+/* ── Images ────────────────────────────────────────────────── */
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ── Scrollbar (WebKit) ────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sf-border);
+  border-radius: var(--sf-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sf-text-tertiary);
+}
+
+/* ── Selection ─────────────────────────────────────────────── */
+::selection {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+}
+
+/* ── Focus Visible ─────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--sf-accent-emerald);
+  outline-offset: 2px;
+}
+
+/* ── Utility: Prevent body scroll when sheet/modal open ───── */
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Responsive Container ──────────────────────────────────── */
+/* Removed center alignment to allow full-width desktop layout */
+

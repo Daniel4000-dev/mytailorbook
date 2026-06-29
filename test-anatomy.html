@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { background: #eee; padding: 20px; display: flex; gap: 20px; font-family: sans-serif; }
+  .container { width: 400px; height: 400px; position: relative; background: #fff; border: 1px solid #ccc; }
+  svg { width: 100%; height: 100%; position: absolute; inset: 0; pointer-events: none; }
+  .bodyPart { fill: #f0f0f0; stroke: #ccc; stroke-width: 1; opacity: 1; }
+  .dot { position: absolute; width: 6px; height: 6px; background: red; border-radius: 50%; transform: translate(-50%, -50%); }
+  .label { position: absolute; font-size: 10px; transform: translate(10px, -50%); pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="container" id="female">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <ellipse cx="50" cy="9" rx="7" ry="9" class="bodyPart" />
+    <polygon points="46,17 46,21 32,23 38,35 41,45 34,58 37,78 39,96 45,96 47,78 50,62 53,78 55,96 61,96 63,78 66,58 59,45 62,35 68,23 54,21 54,17" class="bodyPart" />
+    <polygon points="32,23 26,42 20,62 26,62 31,42 38,35" class="bodyPart" />
+    <polygon points="68,23 74,42 80,62 74,62 69,42 62,35" class="bodyPart" />
+  </svg>
+</div>
+
+<div class="container" id="male">
+  <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <ellipse cx="50" cy="9" rx="7" ry="9" class="bodyPart" />
+    <polygon points="45,17 45,21 28,22 34,35 37,48 36,58 38,78 39,96 45,96 46,78 50,63 54,78 55,96 61,96 62,78 64,58 63,48 66,35 72,22 55,21 55,17" class="bodyPart" />
+    <polygon points="28,22 23,43 17,64 24,64 29,43 34,35" class="bodyPart" />
+    <polygon points="72,22 77,43 83,64 76,64 71,43 66,35" class="bodyPart" />
+  </svg>
+</div>
+
+<script>
+const FEMALE_POINTS = [
+  { name: 'Neck', x: 50, y: 19 },
+  { name: 'Shoulder', x: 34, y: 24 },
+  { name: 'Cross Front', x: 50, y: 28 },
+  { name: 'Bust', x: 50, y: 34 },
+  { name: 'Under Bust', x: 50, y: 39 },
+  { name: 'Waist', x: 50, y: 45 },
+  { name: 'Hips', x: 50, y: 58 },
+  { name: 'Armhole', x: 35, y: 29 },
+  { name: 'Bicep', x: 33, y: 34 },
+  { name: 'Sleeve', x: 23, y: 62 },
+  { name: 'Nape', x: 50, y: 45 },
+  { name: 'Front', x: 50, y: 65 },
+  { name: 'Dress', x: 50, y: 75 },
+  { name: 'Trouser', x: 42, y: 96 },
+  { name: 'Thigh', x: 42, y: 68 },
+  { name: 'Knee', x: 42, y: 78 },
+  { name: 'Calf', x: 42, y: 87 },
+  { name: 'Ankle', x: 42, y: 96 },
+  { name: 'Inseam', x: 47.5, y: 79 },
+  { name: 'Outseam', x: 36.5, y: 77 },
+];
+
+const MALE_POINTS = [
+  { name: 'Neck', x: 50, y: 19 },
+  { name: 'Shoulder', x: 31, y: 23 },
+  { name: 'Chest', x: 50, y: 33 },
+  { name: 'Stomach', x: 50, y: 42 },
+  { name: 'Waist', x: 50, y: 48 },
+  { name: 'Hips', x: 50, y: 58 },
+  { name: 'Crotch', x: 50, y: 63 },
+  { name: 'Armhole', x: 31, y: 28.5 },
+  { name: 'Bicep', x: 29, y: 34 },
+  { name: 'Sleeve', x: 20.5, y: 64 },
+  { name: 'Back', x: 50, y: 48 },
+  { name: 'Shirt', x: 50, y: 60 },
+  { name: 'Trouser', x: 42, y: 96 },
+  { name: 'Thigh', x: 43, y: 70 },
+  { name: 'Knee', x: 42, y: 78 },
+  { name: 'Calf', x: 42, y: 87 },
+  { name: 'Ankle', x: 42, y: 96 },
+  { name: 'Inseam', x: 47.5, y: 79.5 },
+  { name: 'Outseam', x: 37.5, y: 77 },
+];
+
+function renderPoints(containerId, points) {
+  const container = document.getElementById(containerId);
+  points.forEach(p => {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.style.left = p.x + '%';
+    dot.style.top = p.y + '%';
+    
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.style.left = p.x + '%';
+    label.style.top = p.y + '%';
+    label.innerText = p.name;
+    
+    container.appendChild(dot);
+    container.appendChild(label);
+  });
+}
+
+renderPoints('female', FEMALE_POINTS);
+renderPoints('male', MALE_POINTS);
+</script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+.open {}
+.collapsed {}
+
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%; /* Spans the full width of the screen */
+  height: 100dvh;
+  padding: 40px 0; /* Control horizontal padding per section */
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.sidebar.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 80px; /* Large gap from top bar to menu list */
+  width: 100%;
+}
+
+.mobileTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.desktopBranding {
+  display: none;
+}
+
+.collapseToggle {
+  display: none;
+}
+
+.iconUser {
+  font-size: 18px;
+}
+
+.iconClose {
+  font-size: 20px;
+}
+
+.navMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 28px; /* Space between menu items */
+  flex: 1;
+  padding-left: 24px;
+}
+
+.mainNav {
+  display: none;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  color: #28190B;
+  font-family: var(--sf-font-body), sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  width: max-content;
+}
+
+.menuItem:hover {
+  color: #7A6952;
+  transform: translateX(4px);
+}
+
+.menuItem.active {
+  color: var(--sf-accent-emerald);
+  font-weight: 600;
+}
+
+.menuIcon {
+  font-size: 20px;
+  color: #28190B;
+  flex-shrink: 0;
+  transition: color var(--sf-transition-fast);
+}
+
+.menuItem:hover .menuIcon {
+  color: #7A6952;
+}
+
+.menuItem.active .menuIcon {
+  color: var(--sf-accent-emerald);
+}
+
+.footer {
+  position: absolute;
+  top: 76vh;
+  transform: translateY(-100%);
+  padding-left: 24px;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  color: #28190B;
+  font-family: var(--sf-font-body), sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  width: max-content;
+}
+
+.logoutBtn:hover {
+  color: #DE3B3B; /* Red highlight on logout */
+  transform: translateX(4px);
+}
+
+.logoutIcon {
+  font-size: 20px;
+  color: #28190B;
+  transition: color var(--sf-transition-fast);
+}
+
+.logoutBtn:hover .logoutIcon {
+  color: #DE3B3B;
+}
+
+/* ── Desktop Layout ────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .sidebar {
+    width: 280px;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    position: fixed;
+    background-color: #FDF4E8; /* Premium warm cream panel */
+    border-right: 1px solid var(--sf-border);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100 !important;
+  }
+
+  .mobileTopRow {
+    display: none;
+  }
+
+  .desktopBranding {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 24px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .desktopLogo {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .desktopTitle {
+    font-family: var(--font-cinzel), Georgia, serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #7A6952;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+
+  .collapseToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 44px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(253, 244, 232, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--sf-border);
+    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.08);
+    color: var(--sf-text-secondary);
+    cursor: pointer;
+    z-index: 100;
+    transition: all var(--sf-transition-fast);
+  }
+
+  .collapseToggle:hover {
+    background-color: #FFFFFF;
+    color: var(--sf-text-primary);
+    transform: scale(1.05);
+  }
+
+  .footer {
+    position: relative;
+    top: auto;
+    transform: none;
+    margin-top: auto;
+    padding-bottom: 24px;
+    transition: padding 0.3s ease;
+  }
+
+  .mainNav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Tight gap for premium pill layout */
+    padding-left: 0;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--sf-border-light);
+    transition: padding 0.3s ease;
+  }
+
+  .navMenu {
+    padding-left: 0;
+    transition: padding 0.3s ease;
+  }
+
+  /* Premium Pill Navigation styling overrides for desktop */
+  .menuItem {
+    width: calc(100% - 32px) !important;
+    padding: 10px 16px !important;
+    margin: 0 16px;
+    border-radius: 10px;
+    transition: all var(--sf-transition-fast);
+  }
+
+  .menuItem:hover {
+    background-color: rgba(40, 25, 11, 0.03);
+    color: var(--sf-text-primary);
+    transform: none !important;
+  }
+
+  .menuItem:hover .menuIcon {
+    color: var(--sf-text-primary);
+  }
+
+  .menuItem.active {
+    background-color: #FFFFFF;
+    color: var(--sf-text-primary) !important;
+    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.05);
+    font-weight: 600;
+  }
+
+  .menuItem.active .menuIcon {
+    color: var(--sf-text-primary) !important;
+  }
+
+  .logoutBtn {
+    width: calc(100% - 32px) !important;
+    padding: 10px 16px !important;
+    margin: 0 16px;
+    border-radius: 10px;
+    transition: all var(--sf-transition-fast);
+  }
+
+  .logoutBtn:hover {
+    background-color: rgba(222, 59, 59, 0.05);
+    color: #DE3B3B !important;
+    transform: none !important;
+  }
+
+  .logoutBtn:hover .logoutIcon {
+    color: #DE3B3B !important;
+  }
+
+  /* Collapsed Sidebar State */
+  .sidebar.collapsed {
+    width: 80px;
+    align-items: center;
+  }
+
+  .sidebar.collapsed .desktopTitle,
+  .sidebar.collapsed .menuText,
+  .sidebar.collapsed .logoutText {
+    display: none;
+  }
+
+  .sidebar.collapsed .desktopBranding {
+    padding-left: 0;
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .mainNav {
+    padding-left: 0;
+    align-items: center;
+    width: 100%;
+  }
+
+  .sidebar.collapsed .navMenu {
+    padding-left: 0;
+    align-items: center;
+    width: 100%;
+  }
+
+  .sidebar.collapsed .menuItem {
+    justify-content: center;
+    width: 44px !important;
+    height: 44px;
+    padding: 0 !important;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar.collapsed .footer {
+    padding-left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .logoutBtn {
+    justify-content: center;
+    width: 44px !important;
+    height: 44px;
+    padding: 0 !important;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+  }
+}

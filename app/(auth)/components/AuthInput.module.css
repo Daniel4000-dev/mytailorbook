@@ -1,0 +1,81 @@
+.fieldGroup {
+  position: relative;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1.2px solid #C2B5A3;
+  border-radius: 5px;
+  padding: 0 16px;
+  height: 52px;
+  transition: border-color var(--sf-transition-fast);
+  box-shadow: none;
+}
+
+.inputWrapper:focus-within {
+  border-color: #7A6952;
+}
+
+.input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  font-family: var(--sf-font-body), sans-serif;
+  color: #28190B;
+  padding-top: 2px;
+  z-index: 2;
+}
+
+.label {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 500;
+  color: #AD9C85;
+  font-family: var(--sf-font-body), sans-serif;
+  padding: 0 6px;
+  background: transparent;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input:focus ~ .label,
+.input:not(:placeholder-shown) ~ .label {
+  top: 0;
+  transform: translateY(-50%) scale(0.85);
+  font-size: 13.5px;
+  color: #7A6952;
+  background-color: #FDF4E8 !important;
+  font-weight: 700;
+  z-index: 3;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7A6952;
+  cursor: pointer;
+  outline: none;
+  transition: opacity var(--sf-transition-fast);
+  position: relative;
+  z-index: 4;
+}
+
+.iconButton:hover {
+  opacity: 0.8;
+}

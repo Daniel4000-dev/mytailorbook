@@ -1,0 +1,136 @@
+/* ============================================================
+   MyTailorBook Design Tokens
+   ============================================================
+   Single source of truth for the entire design system.
+   Change any value here → it propagates everywhere.
+   ============================================================ */
+
+:root {
+  /* ── Colors: Backgrounds ─────────────────────────────── */
+  --sf-bg-primary: #FAF2E8;
+  --sf-bg-surface: #FFFFFF;
+  --sf-bg-surface-elevated: #FFFFFF;
+  --sf-bg-surface-hover: #FDF9F3;
+  --sf-bg-input: #FFFFFF;
+  --sf-bg-overlay: rgba(0, 0, 0, 0.3);
+
+  /* ── Colors: Brand ───────────────────────────────────── */
+  --sf-accent-emerald: #7A6952;
+  --sf-accent-emerald-dark: #28190B;
+  --sf-accent-emerald-light: #AD9C85;
+  --sf-accent-emerald-glow: rgba(122, 105, 82, 0.12);
+  --sf-accent-gold: #F59E0B;
+  --sf-accent-gold-soft: rgba(245, 158, 11, 0.1);
+  --sf-accent-gold-glow: rgba(245, 158, 11, 0.2);
+
+  /* ── Colors: Text ────────────────────────────────────── */
+  --sf-text-primary: #28190B;
+  --sf-text-secondary: #7A6952;
+  --sf-text-tertiary: #C2B5A3;
+  --sf-text-on-accent: #FFFFFF;
+  --sf-text-gold: #D97706;
+
+  /* ── Colors: Borders ─────────────────────────────────── */
+  --sf-border: #E2D7C7;
+  --sf-border-light: #FAF4EB;
+  --sf-border-focus: #7A6952;
+
+  /* ── Colors: Semantic ────────────────────────────────── */
+  --sf-error: #EF4444;
+  --sf-error-bg: rgba(239, 68, 68, 0.1);
+  --sf-success: #10B981;
+  --sf-success-bg: rgba(16, 185, 129, 0.1);
+  --sf-warning: #F59E0B;
+  --sf-warning-bg: rgba(245, 158, 11, 0.1);
+  --sf-info: #3B82F6;
+  --sf-info-bg: rgba(59, 130, 246, 0.1);
+
+  /* ── Colors: Kanban Stages (Monochromatic / Premium) ─── */
+  /* ── Colors: Kanban Stages (Monochromatic / Premium) ─── */
+  --sf-stage-cutting: #E2D7C7;
+  --sf-stage-cutting-bg: #FAF6F0;
+  --sf-stage-sewing: #E2D7C7;
+  --sf-stage-sewing-bg: #FAF6F0;
+  --sf-stage-ready: #E2D7C7;
+  --sf-stage-ready-bg: #FAF6F0;
+  --sf-stage-completed: #E2D7C7;
+  --sf-stage-completed-bg: #FAF6F0;
+
+  /* ── Spacing (4px base unit) ─────────────────────────── */
+  --sf-space-2xs: 2px;
+  --sf-space-xs: 4px;
+  --sf-space-sm: 8px;
+  --sf-space-md: 16px;
+  --sf-space-lg: 24px;
+  --sf-space-xl: 32px;
+  --sf-space-2xl: 48px;
+  --sf-space-3xl: 64px;
+
+  /* ── Typography ──────────────────────────────────────── */
+  --sf-font-heading: var(--font-outfit), 'Outfit', sans-serif;
+  --sf-font-body: var(--font-inter), 'Inter', sans-serif;
+
+  --sf-text-2xs: 0.625rem;   /* 10px */
+  --sf-text-xs: 0.75rem;     /* 12px */
+  --sf-text-sm: 0.875rem;    /* 14px */
+  --sf-text-base: 1rem;      /* 16px */
+  --sf-text-lg: 1.125rem;    /* 18px */
+  --sf-text-xl: 1.25rem;     /* 20px */
+  --sf-text-2xl: 1.5rem;     /* 24px */
+  --sf-text-3xl: 1.875rem;   /* 30px */
+  --sf-text-4xl: 2.25rem;    /* 36px */
+
+  --sf-leading-tight: 1.2;
+  --sf-leading-normal: 1.5;
+  --sf-leading-relaxed: 1.65;
+
+  --sf-weight-regular: 400;
+  --sf-weight-medium: 500;
+  --sf-weight-semibold: 600;
+  --sf-weight-bold: 700;
+
+  /* ── Border Radius ───────────────────────────────────── */
+  --sf-radius-xs: 6px;
+  --sf-radius-sm: 10px;
+  --sf-radius-md: 16px;
+  --sf-radius-lg: 20px;
+  --sf-radius-xl: 24px;
+  --sf-radius-2xl: 32px;
+  --sf-radius-full: 9999px;
+
+  /* ── Shadows (Softer, Apple-like) ────────────────────── */
+  /* ── Shadows (Soft & Clean, like Mockup) ─────────────── */
+  --sf-shadow-xs: 0 2px 4px rgba(15, 23, 42, 0.02);
+  --sf-shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+  --sf-shadow-md: 0 10px 24px rgba(15, 23, 42, 0.06);
+  --sf-shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --sf-shadow-xl: 0 24px 56px rgba(15, 23, 42, 0.1);
+  --sf-shadow-emerald: 0 8px 32px rgba(59, 107, 136, 0.2);
+  --sf-shadow-gold: 0 8px 32px rgba(245, 158, 11, 0.15);
+
+  /* ── Transitions ─────────────────────────────────────── */
+  --sf-transition-fast: 150ms ease;
+  --sf-transition-normal: 250ms ease;
+  --sf-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sf-transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --sf-transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ── Z-Index Scale ───────────────────────────────────── */
+  --sf-z-base: 1;
+  --sf-z-dropdown: 100;
+  --sf-z-sticky: 200;
+  --sf-z-modal: 300;
+  --sf-z-sheet: 400;
+  --sf-z-fab: 500;
+  --sf-z-toast: 600;
+  --sf-z-overlay: 700;
+
+  /* ── Layout ──────────────────────────────────────────── */
+  --sf-max-width: 480px;
+  --sf-max-width-tablet: 768px;
+  --sf-max-width-desktop: 1200px;
+  --sf-bottom-nav-height: 72px;
+  --sf-top-bar-height: 56px;
+  --sf-fab-size: 56px;
+  --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}

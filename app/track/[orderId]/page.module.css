@@ -1,0 +1,185 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sf-space-lg);
+  background: var(--sf-bg-primary);
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-2xl);
+  padding: var(--sf-space-xl);
+  box-shadow: var(--sf-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  animation: fadeIn 0.6s ease both;
+}
+
+.brand {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-accent-emerald);
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+  margin-top: -12px;
+}
+
+.notFound {
+  text-align: center;
+  color: var(--sf-text-secondary);
+  padding: var(--sf-space-xl) 0;
+}
+
+.customerInfo {
+  text-align: center;
+}
+
+.greeting {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-lg);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.message {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  margin-top: 4px;
+  line-height: var(--sf-leading-relaxed);
+}
+
+.orderInfo {
+  background: var(--sf-bg-surface-hover);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+}
+
+.orderLabel {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--sf-weight-medium);
+}
+
+.orderDetails {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  margin-top: 4px;
+  line-height: var(--sf-leading-relaxed);
+}
+
+/* ── Progress tracker ─────────────────────────────────── */
+
+.tracker {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: flex;
+  gap: var(--sf-space-md);
+}
+
+.stepIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.stepCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  z-index: 1;
+  transition: all var(--sf-transition-normal);
+}
+
+.stepLine {
+  width: 2px;
+  height: 24px;
+  transition: background var(--sf-transition-normal);
+}
+
+/* Pending */
+.pending .stepCircle {
+  background: var(--sf-bg-surface);
+  border: 2px solid var(--sf-border);
+  color: var(--sf-text-tertiary);
+}
+.pending .stepLine { background: var(--sf-border); }
+.pending .stepLabel { color: var(--sf-text-tertiary); }
+
+/* Active */
+.active .stepCircle {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  box-shadow: 0 0 0 4px var(--sf-accent-emerald-glow);
+  animation: pulse 2s ease infinite;
+}
+.active .stepLine { background: var(--sf-border); }
+.active .stepLabel { color: var(--sf-text-primary); font-weight: var(--sf-weight-bold); }
+
+/* Complete */
+.complete .stepCircle {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+}
+.complete .stepLine { background: var(--sf-accent-emerald); }
+.complete .stepLabel { color: var(--sf-text-secondary); }
+
+.stepContent {
+  padding-bottom: var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.stepLabel {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+}
+
+.stepDate {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+}
+
+.footer {
+  text-align: center;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  padding-top: var(--sf-space-sm);
+  border-top: 1px solid var(--sf-border);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--sf-accent-emerald-glow); }
+  50% { box-shadow: 0 0 0 8px var(--sf-accent-emerald-glow); }
+}

@@ -1,0 +1,64 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  gap: var(--sf-space-md);
+  min-height: 40px;
+}
+
+.dotLine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-border);
+  border: 2px solid var(--sf-bg-surface);
+  box-shadow: 0 0 0 1px var(--sf-border);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.dotActive {
+  background: var(--sf-accent-emerald);
+  box-shadow: 0 0 0 2px var(--sf-accent-emerald-glow);
+}
+
+.line {
+  width: 1px;
+  flex: 1;
+  background: var(--sf-border);
+  margin: 2px 0;
+}
+
+.content {
+  padding-bottom: var(--sf-space-md);
+  flex: 1;
+  min-width: 0;
+}
+
+.action {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.3;
+}
+
+.action strong {
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.meta {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}

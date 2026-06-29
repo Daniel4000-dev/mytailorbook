@@ -1,0 +1,238 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  animation: fadeInUp 0.4s ease both;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  padding: 7px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--sf-shadow-md);
+  border-color: #FDF4E8;
+  transform: translateY(-2px);
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.overdue {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+}
+
+.customerName {
+  font-family: var(--sf-font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--sf-text-primary);
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.menuBtn, .dragHandle {
+  background: none;
+  border: none;
+  color: var(--sf-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--sf-radius-full);
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+  font-size: 14px;
+}
+
+.dragHandle {
+  cursor: grab;
+}
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.menuBtn:hover, .dragHandle:hover {
+  background-color: var(--sf-bg-surface-elevated);
+  color: var(--sf-text-primary);
+}
+
+.details {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  line-height: 1.3;
+  margin-top: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dueDateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.dueDate {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  font-weight: 500;
+}
+
+.overdueText {
+  color: var(--sf-error);
+  font-weight: 600;
+}
+
+.dueSoonText {
+  color: var(--sf-warning);
+  font-weight: 600;
+}
+
+.folderIcon {
+  color: var(--sf-text-tertiary);
+  font-size: 14px;
+}
+
+.cardDivider {
+  display: block;
+  height: 1px;
+  background-color: var(--sf-border);
+  margin: 4px 0;
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.assigneePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--sf-space-sm) 4px 4px;
+  background-color: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-full);
+  transition: border-color var(--sf-transition-fast);
+}
+
+.assigneePill:hover {
+  border-color: var(--sf-text-tertiary);
+}
+
+.avatarCircle {
+  width: 20px;
+  height: 20px;
+  border-radius: 20%;
+  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fallbackUserIcon {
+  font-size: 8px;
+}
+
+.assigneeName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sf-text-primary);
+}
+
+.pencilIcon {
+  font-size: 9px;
+  color: var(--sf-text-tertiary);
+}
+
+.garmentTag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-accent-emerald);
+  letter-spacing: 0.3px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.swiping {
+  box-shadow: var(--sf-shadow-lg) !important;
+  cursor: grabbing !important;
+}
+
+.advanceBtnMobile {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--sf-radius-sm);
+  transition: all var(--sf-transition-fast);
+  font-size: 12px;
+}
+.advanceBtnMobile:active {
+  background: var(--sf-bg-surface-elevated);
+}
+
+@media (max-width: 1023px) {
+  .dragHandle {
+    display: none;
+  }
+}
+
+/* ── Desktop Layout ────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .advanceBtnMobile {
+    display: none;
+  }
+}

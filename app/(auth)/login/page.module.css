@@ -1,0 +1,181 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.logoWrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 18px;
+}
+
+.sewingMachineSvg {
+  width: 165px;
+  height: auto;
+}
+
+.brandTitle {
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 25px;
+  font-weight: 700;
+  color: #7A6952;
+  text-align: center;
+  letter-spacing: 0.8px;
+  margin-top: 0;
+  margin-bottom: 32px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+.forgotPasswordWrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+  margin-bottom: 24px;
+}
+
+.forgotPasswordLink {
+  font-size: 14px;
+  font-weight: 700;
+  color: #7A6952;
+  text-decoration: none;
+  font-family: var(--sf-font-body), sans-serif;
+}
+
+.forgotPasswordLink:hover {
+  text-decoration: underline;
+}
+
+.loginButton {
+  width: 100%;
+  height: 52px;
+  background-color: #28190B;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sf-font-body), sans-serif;
+  transition: background-color var(--sf-transition-fast);
+}
+
+.loginButton:hover {
+  background-color: #1e1208;
+}
+
+.loginButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.footerLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #7A6952;
+  text-align: center;
+  margin-top: 36px;
+  margin-bottom: 18px;
+  font-family: var(--sf-font-body), sans-serif;
+}
+
+.registerButton {
+  width: 100%;
+  height: 52px;
+  background-color: #FCE7CF;
+  color: #7A6952;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sf-font-body), sans-serif;
+  transition: background-color var(--sf-transition-fast);
+}
+
+.registerButton:hover {
+  background-color: #f7dac1;
+}
+
+.errorBanner {
+  background: #FDF2F2;
+  color: #DE3B3B;
+  border: 1px solid #F8B4B4;
+  padding: 12px 14px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-family: var(--sf-font-body), sans-serif;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0;
+  gap: 12px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1.2px;
+  background-color: #C2B5A3;
+  opacity: 0.5;
+}
+
+.dividerText {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7A6952;
+  font-family: var(--sf-font-body), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.googleButton {
+  width: 100%;
+  height: 52px;
+  background-color: #FFFFFF;
+  color: #7A6952;
+  border: 1.2px solid #C2B5A3;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: var(--sf-font-body), sans-serif;
+  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast);
+  box-sizing: border-box;
+}
+
+.googleButton:hover {
+  background-color: #FAF4EB;
+  border-color: #7A6952;
+}
+
+.googleButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.googleIcon {
+  flex-shrink: 0;
+}

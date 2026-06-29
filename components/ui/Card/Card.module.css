@@ -1,0 +1,40 @@
+/* ============================================================
+   Card Component Styles
+   ============================================================ */
+
+.card {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-md);
+  transition:
+    transform var(--sf-transition-fast),
+    box-shadow var(--sf-transition-fast),
+    background var(--sf-transition-fast),
+    border-color var(--sf-transition-fast);
+}
+
+/* ── Elevated Variant ───────────────────────────────────── */
+
+.elevated {
+  background: var(--sf-bg-surface-elevated);
+  box-shadow: var(--sf-shadow-sm);
+}
+
+/* ── Interactive (has onClick) ──────────────────────────── */
+
+.interactive {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sf-shadow-md);
+  border-color: var(--sf-border-light);
+}
+
+.interactive:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--sf-shadow-xs);
+}

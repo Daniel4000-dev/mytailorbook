@@ -1,0 +1,39 @@
+.layoutWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+}
+
+.headerContainer {
+  position: sticky;
+  top: 0;
+  z-index: var(--sf-z-sticky);
+  width: 100%;
+}
+
+.contentContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  width: 100%;
+}
+
+/* Mobile padding variations */
+.normal {
+  padding: var(--sf-space-md);
+}
+
+.none {
+  padding: 0;
+}
+
+/* Desktop layout padding & overrides */
+@media (min-width: 1024px) {
+  .normal, .none {
+    padding: var(--sf-space-xl) var(--sf-space-lg);
+    max-width: 100%;
+    margin: 0;
+  }
+}

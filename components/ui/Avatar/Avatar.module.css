@@ -1,0 +1,36 @@
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sf-radius-full);
+  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
+  color: var(--sf-text-on-accent);
+  font-family: var(--sf-font-heading);
+  font-weight: var(--sf-weight-bold);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--sf-text-xs);
+}
+
+.md {
+  width: 40px;
+  height: 40px;
+  font-size: var(--sf-text-sm);
+}
+
+.lg {
+  width: 56px;
+  height: 56px;
+  font-size: var(--sf-text-xl);
+}
+
+.xl {
+  width: 80px;
+  height: 80px;
+  font-size: var(--sf-text-2xl);
+}
