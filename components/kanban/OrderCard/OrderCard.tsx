@@ -158,7 +158,13 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
         {/* Bottom row: Assignee pill and Category tag */}
         <div className={styles.bottomRow}>
           <div className={styles.assigneePill}>
-            <div className={styles.avatarCircle}>
+            <div 
+              className={styles.avatarCircle}
+              style={order.assignedToName ? {
+                background: getAssigneeBadgeColors(order.assignedToName).background,
+                color: getAssigneeBadgeColors(order.assignedToName).color,
+              } : undefined}
+            >
               {order.assignedToName ? order.assignedToName[0] : <FaUser className={styles.fallbackUserIcon} />}
             </div>
             <span className={styles.assigneeName}>
@@ -174,4 +180,35 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
       </div>
     </div>
   );
+}
+
+interface BadgeColors {
+  background: string;
+  color: string;
+}
+
+function getAssigneeBadgeColors(name?: string): BadgeColors {
+  if (!name) return { background: '#F5F5F5', color: '#616161' };
+  const lower = name.toLowerCase();
+  if (lower.includes('chioma')) {
+    return { background: '#E0F2F1', color: '#00796B' }; // Soft Teal
+  }
+  if (lower.includes('tunde')) {
+    return { background: '#F3E5F5', color: '#7B1FA2' }; // Soft Purple
+  }
+  if (lower.includes('adebayo')) {
+    return { background: '#FEF3C7', color: '#B45309' }; // Soft Bronze/Gold
+  }
+  
+  // Hash function fallback
+  const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const colorSchemes = [
+    { background: '#E0F2F1', color: '#00796B' }, // Teal
+    { background: '#F3E5F5', color: '#7B1FA2' }, // Purple
+    { background: '#FEF3C7', color: '#B45309' }, // Bronze
+    { background: '#E0F2FE', color: '#0369A1' }, // Blue
+    { background: '#FEE2E2', color: '#B91C1C' }, // Red
+    { background: '#ECFDF5', color: '#047857' }, // Emerald
+  ];
+  return colorSchemes[sum % colorSchemes.length];
 }

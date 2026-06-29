@@ -14,7 +14,7 @@
 
 @media (min-width: 1024px) {
   .column {
-    background-color: #FFFFFF;
+    background-color: #F8F9FA;
     border: 1px solid rgba(226, 215, 199, 0.55);
     border-radius: 6px;
     padding: 6px;
@@ -36,7 +36,7 @@
 
 @media (min-width: 1024px) {
   .header {
-    background: #FFFFFF;
+    background: #F8F9FA;
     padding: var(--sf-space-sm) var(--sf-space-sm) var(--sf-space-xs) var(--sf-space-sm);
   }
 }

@@ -103,17 +103,17 @@
 
 .dueDate {
   font-size: 12px;
-  color: var(--sf-text-secondary);
+  color: #555555; /* Neutral dark grey for future dates */
   font-weight: 500;
 }
 
 .overdueText {
-  color: #C85A5A; /* Muted premium crimson red */
+  color: #DC2626; /* Clear warning red for late orders */
   font-weight: 600;
 }
 
 .dueSoonText {
-  color: var(--sf-warning);
+  color: #D97706; /* Warning amber for items due today/tomorrow */
   font-weight: 600;
 }
 

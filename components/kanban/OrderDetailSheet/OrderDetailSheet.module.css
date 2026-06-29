@@ -103,7 +103,7 @@
 }
 
 .overdueText {
-  color: var(--sf-error);
+  color: #DC2626;
   font-weight: var(--sf-weight-bold);
 }
 
