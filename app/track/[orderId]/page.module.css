@@ -1,141 +1,174 @@
+/* ── Tracker Page ──────────────────────────────────────────── */
 .page {
   min-height: 100dvh;
-  background-color: #FAF2E8; /* Warm brand cream background */
-  padding: var(--sf-space-md) var(--sf-space-md) var(--sf-space-2xl) var(--sf-space-md);
-  display: flex;
-  justify-content: center;
-}
-
-.trackerWrapper {
-  width: 100%;
-  max-width: 540px;
+  background: #FAF2E8;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
 }
 
-.brandHeader {
+/* ── Sticky Header ────────────────────────────────────────── */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sf-space-sm) 0;
+  padding: 14px 20px;
+  background: rgba(250, 242, 232, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 215, 199, 0.5);
 }
 
-.brandLogo {
-  font-family: var(--sf-font-heading);
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--sf-text-primary);
-  letter-spacing: 1px;
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-.badge {
-  font-family: var(--sf-font-heading);
+.brandName {
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #7A6952;
+  letter-spacing: 1.2px;
+}
+
+.brandDomain {
+  font-size: 10px;
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(37, 211, 102, 0.1);
   color: #25D366;
+  background: rgba(37, 211, 102, 0.1);
   padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
+  border-radius: 100px;
 }
 
-/* Hero Section */
-.heroSection {
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #25D366;
+  animation: blink 1.5s infinite;
+}
+
+/* ── Scrollable Content ───────────────────────────────────── */
+.scrollContent {
+  flex: 1;
+  padding: 16px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Hero Card ────────────────────────────────────────────── */
+.heroCard {
   background: #FFFFFF;
   border: 1px solid var(--sf-border-light);
   border-radius: 12px;
-  padding: var(--sf-space-lg);
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
+  align-items: center;
+  gap: 20px;
   animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.heroHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.illustrationWrapper {
+  width: 220px;
+  height: 220px;
+  position: relative;
+  animation: floatIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 0.2s;
 }
 
-.customerName {
+.illustration {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.heroText {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.heroGreeting {
   font-family: var(--sf-font-heading);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--sf-text-primary);
   margin: 0;
 }
 
-.heroSubText {
-  font-size: 14px;
-  color: var(--sf-text-secondary);
-}
-
-.statusDisplay {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--sf-space-md);
-  background: #FAF8F5;
-  border: 1px solid var(--sf-border-light);
-  border-radius: 6px;
-}
-
-.statusBadge {
-  font-family: var(--sf-font-heading);
-  font-size: 14px;
+.heroHeadline {
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  font-size: 24px;
   font-weight: 700;
-  color: var(--sf-text-primary);
-  text-transform: uppercase;
+  color: #7A6952;
+  margin: 0;
+  letter-spacing: 0.5px;
 }
 
-.dueDateText {
-  font-size: 13px;
+.heroMessage {
+  font-size: 14px;
   color: var(--sf-text-secondary);
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  line-height: 1.6;
+  margin: 4px 0 0;
+  max-width: 360px;
 }
 
-.clockIcon {
-  color: var(--sf-text-tertiary);
-}
-
-/* Progress Bar */
-.progressBarWrapper {
+/* ── Progress Bar ─────────────────────────────────────────── */
+.progressWrapper {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.progressBarTrack {
+.progressTrack {
   width: 100%;
   height: 8px;
-  background: #FAF4EB;
-  border-radius: var(--sf-radius-full);
+  background: #F0EBE3;
+  border-radius: 100px;
   overflow: hidden;
-  position: relative;
 }
 
-.progressBarFill {
+.progressFill {
   height: 100%;
-  background: var(--sf-text-secondary);
-  border-radius: var(--sf-radius-full);
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #7A6952, #28190B);
+  border-radius: 100px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
 
-.progressBarFill::after {
+.progressFill::after {
   content: '';
   position: absolute;
   top: 0; left: 0; bottom: 0; right: 0;
   background: linear-gradient(
     90deg,
     rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.3) 50%,
+    rgba(255,255,255,0.35) 50%,
     rgba(255,255,255,0) 100%
   );
-  animation: shine 1.5s infinite;
+  animation: shimmer 2s infinite;
 }
 
 .progressLabels {
@@ -147,38 +180,78 @@
   text-transform: uppercase;
 }
 
-/* Standard Cards */
-.card {
+/* ── Due Date Card ────────────────────────────────────────── */
+.dueCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   background: #FFFFFF;
   border: 1px solid var(--sf-border-light);
   border-radius: 12px;
-  padding: var(--sf-space-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
+  padding: 16px 20px;
   animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   animation-delay: 0.1s;
 }
 
+.dueIcon {
+  font-size: 20px;
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+}
+
+.dueInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dueLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dueDate {
+  font-family: var(--sf-font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+.card {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 0.15s;
+}
+
 .sectionTitle {
   font-family: var(--sf-font-heading);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--sf-text-primary);
   margin: 0;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--sf-border-light);
-  padding-bottom: var(--sf-space-xs);
 }
 
-/* Timeline Layout */
-.trackerTimeline {
+/* ── Timeline ─────────────────────────────────────────────── */
+.timeline {
   display: flex;
   flex-direction: column;
 }
 
 .timelineNode {
   display: flex;
-  gap: var(--sf-space-md);
+  gap: 14px;
 }
 
 .nodeLeft {
@@ -192,54 +265,50 @@
 .nodeCircle {
   width: 32px;
   height: 32px;
-  border-radius: 20%; /* Styled in alignment with ordercard icons */
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  transition: all var(--sf-transition-normal);
+  font-size: 13px;
   background: #FFFFFF;
-  border: 1px solid var(--sf-border);
+  border: 1.5px solid var(--sf-border);
   color: var(--sf-text-tertiary);
+  transition: all 0.3s ease;
 }
 
 .nodeLine {
   width: 2px;
   flex: 1;
-  min-height: 36px;
+  min-height: 28px;
   background: var(--sf-border-light);
   margin: 4px 0;
-  transition: background var(--sf-transition-normal);
+  transition: background 0.3s ease;
 }
 
 .nodeRight {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-bottom: var(--sf-space-lg);
-  padding-top: 6px;
+  padding: 6px 0 20px;
 }
 
 .nodeTitle {
   font-family: var(--sf-font-heading);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--sf-text-tertiary);
-  margin: 0;
 }
 
-.nodeDesc {
-  font-size: 13px;
+.nodeSubtext {
+  font-size: 12px;
   color: var(--sf-text-tertiary);
-  margin: 0;
-  line-height: 1.5;
 }
 
-/* nodeCompleted */
+/* Node States */
 .nodeCompleted .nodeCircle {
   background: var(--sf-text-secondary);
-  color: #FFFFFF;
   border-color: var(--sf-text-secondary);
+  color: #FFFFFF;
 }
 
 .nodeCompleted .nodeLine {
@@ -250,12 +319,16 @@
   color: var(--sf-text-primary);
 }
 
-/* nodeCurrent */
+.nodeCompleted .nodeSubtext {
+  color: var(--sf-success);
+  font-weight: 600;
+}
+
 .nodeCurrent .nodeCircle {
   background: var(--sf-text-primary);
-  color: #FFFFFF;
   border-color: var(--sf-text-primary);
-  box-shadow: 0 0 0 4px rgba(40, 25, 11, 0.1);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(40, 25, 11, 0.12);
   animation: pulseNode 2s infinite;
 }
 
@@ -264,12 +337,12 @@
   font-weight: 800;
 }
 
-.nodeCurrent .nodeDesc {
-  color: var(--sf-text-secondary);
-  font-weight: 500;
+.nodeCurrent .nodeSubtext {
+  color: var(--sf-accent-emerald);
+  font-weight: 600;
 }
 
-/* Garment Details & Financials */
+/* ── Order Info ────────────────────────────────────────────── */
 .infoBlock {
   display: flex;
   flex-direction: column;
@@ -284,10 +357,11 @@
   letter-spacing: 0.5px;
 }
 
-.infoValueText {
+.infoValue {
   font-size: 14px;
   color: var(--sf-text-primary);
   line-height: 1.6;
+  margin: 0;
 }
 
 .divider {
@@ -295,31 +369,37 @@
   background: var(--sf-border-light);
 }
 
-.billBreakdown {
+.billGrid {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-sm);
+  gap: 10px;
 }
 
 .billItem {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.billLabel {
   font-size: 13px;
   color: var(--sf-text-secondary);
 }
 
 .billVal {
+  font-size: 13px;
   font-weight: 600;
   color: var(--sf-text-primary);
 }
 
 .balanceItem {
   border-top: 1px solid var(--sf-border-light);
-  padding-top: var(--sf-space-sm);
+  padding-top: 10px;
   margin-top: 4px;
 }
 
 .balanceLabel {
+  font-size: 14px;
   font-weight: 700;
   color: var(--sf-text-primary);
 }
@@ -331,53 +411,71 @@
   color: var(--sf-text-gold);
 }
 
-/* Footer */
+/* ── Footer ───────────────────────────────────────────────── */
 .trackerFooter {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: var(--sf-space-md) 0;
+  padding: 16px 0 8px;
   font-size: 11px;
   color: var(--sf-text-tertiary);
 }
 
-.lockInfo {
+.lockBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-weight: 600;
   color: var(--sf-text-secondary);
-  font-weight: 600;
 }
 
-.notFound {
+/* ── Error State ──────────────────────────────────────────── */
+.errorCard {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 48px 24px;
   text-align: center;
-  padding: var(--sf-space-xl) 0;
+  max-width: 400px;
+  margin: auto;
 }
 
-.backLink {
-  display: inline-block;
-  margin-top: var(--sf-space-md);
-  padding: 8px 16px;
-  background: var(--sf-text-primary);
-  color: #FFFFFF;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
+.errorTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0 0 8px;
 }
 
-/* Animations */
+.errorText {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+}
+
+/* ── Animations ───────────────────────────────────────────── */
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(15px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseNode {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(40, 25, 11, 0.1); }
-  50% { box-shadow: 0 0 0 8px rgba(40, 25, 11, 0.15); }
+@keyframes floatIn {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@keyframes shine {
+@keyframes pulseNode {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(40, 25, 11, 0.12); }
+  50% { box-shadow: 0 0 0 8px rgba(40, 25, 11, 0.08); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes shimmer {
   from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
+  to { transform: translateX(200%); }
 }

@@ -420,3 +420,125 @@
   border-color: var(--sf-accent-emerald);
   color: var(--sf-accent-emerald);
 }
+
+/* ── Intake Queue ──────────────────────────────────────────── */
+.intakeQueue {
+  background: var(--sf-bg-surface-hover);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 6px;
+  margin-bottom: var(--sf-space-md);
+  overflow: hidden;
+}
+
+.intakeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sf-font-heading);
+  color: var(--sf-text-primary);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.intakeTitle {
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intakeCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-accent-emerald);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.intakeChevron {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+.intakeList {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.intakeCard {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.intakeCardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.intakeCardName {
+  font-family: var(--sf-font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.intakeCardDetails {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.intakeCardDue {
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.startBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--sf-text-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.startBtn:hover {
+  background: var(--sf-accent-emerald);
+}
+

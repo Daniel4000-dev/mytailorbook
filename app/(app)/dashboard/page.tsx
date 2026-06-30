@@ -40,8 +40,8 @@ export default function DashboardPage() {
     const inProgress = cutting + sewing;
     const ready = orders.filter((o) => o.status === 'Ready').length;
     const completed = orders.filter((o) => o.status === 'Completed').length;
-    const overdueCount = orders.filter((o) => isOverdue(o)).length;
-    const rushCount = orders.filter((o) => o.priority === 'rush' && o.status !== 'Completed').length;
+    const overdueCount = orders.filter((o) => o.status !== 'Documented' && isOverdue(o)).length;
+    const rushCount = orders.filter((o) => o.priority === 'rush' && o.status !== 'Completed' && o.status !== 'Documented').length;
     const outstanding = orders
       .filter((o) => o.status !== 'Completed')
       .reduce((sum, o) => sum + getBalanceOwed(o), 0);
@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
   const urgentCount = useMemo(() => {
     return orders.filter((o) => {
-      if (o.status === 'Completed') return false;
+      if (o.status === 'Completed' || o.status === 'Documented') return false;
       return isOverdue(o) || o.priority === 'rush' || o.priority === 'urgent';
     }).length;
   }, [orders]);
@@ -78,7 +78,7 @@ export default function DashboardPage() {
   const dueTodayCount = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
     return orders.filter((o) => {
-      if (!o.dueDate || o.status === 'Completed') return false;
+      if (!o.dueDate || o.status === 'Completed' || o.status === 'Documented') return false;
       const dueStr = new Date(o.dueDate).toISOString().split('T')[0];
       return dueStr === todayStr;
     }).length;

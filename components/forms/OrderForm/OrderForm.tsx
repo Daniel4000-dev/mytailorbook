@@ -9,7 +9,7 @@ import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import Button from '@/components/ui/Button/Button';
 import { formatCurrency, isValidPhone, formatPhone } from '@/lib/formatters';
-import type { Priority, Customer } from '@/lib/types';
+import type { Priority, Customer, OrderStatus } from '@/lib/types';
 import styles from './OrderForm.module.css';
 
 interface OrderFormProps {
@@ -28,6 +28,7 @@ export default function OrderForm({ onClose }: OrderFormProps) {
   const [assignedTo, setAssignedTo] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<Priority>('normal');
+  const [startingStage, setStartingStage] = useState<OrderStatus>('Documented');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -44,6 +45,13 @@ export default function OrderForm({ onClose }: OrderFormProps) {
     { value: 'normal', label: 'Normal' },
     { value: 'urgent', label: '⚡ Urgent' },
     { value: 'rush', label: '🔥 Rush' },
+  ];
+
+  const stageOptions: { value: OrderStatus; label: string }[] = [
+    { value: 'Documented', label: '📋 Documented' },
+    { value: 'Cutting', label: '✂️ Cutting' },
+    { value: 'Sewing', label: '🧵 Sewing' },
+    { value: 'Ready', label: '👔 Ready' },
   ];
 
   const suggestions = customerName.trim()
@@ -88,7 +96,7 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         orderDetails: details,
         totalBill: total,
         depositPaid: deposit,
-        status: 'Cutting',
+        status: startingStage,
         assignedTo: assignedTo || undefined,
         assignedToName: selectedStaff?.name,
         dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
@@ -96,7 +104,7 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         images: [],
         statusHistory: [{
           from: null,
-          to: 'Cutting',
+          to: startingStage,
           changedBy: user?.uid || 'unknown',
           changedByName: user?.name || 'Unknown',
           timestamp: new Date().toISOString(),
@@ -214,6 +222,13 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         options={[{ value: '', label: 'Unassigned' }, ...staffOptions]}
         value={assignedTo}
         onChange={(e) => setAssignedTo(e.target.value)}
+      />
+
+      <Select
+        label="Starting Stage"
+        options={stageOptions}
+        value={startingStage}
+        onChange={(e) => setStartingStage(e.target.value as OrderStatus)}
       />
 
       <div className={styles.row}>

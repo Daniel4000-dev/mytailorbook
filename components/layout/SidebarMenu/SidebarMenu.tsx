@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { 
@@ -40,11 +41,6 @@ export default function SidebarMenu() {
   const [showProfile, setShowProfile] = useState(false);
 
   const visibleNavItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
-
-  const handleNavigation = (path: string) => {
-    setMenuOpen(false);
-    router.push(path);
-  };
 
   const handleLogout = async () => {
     setMenuOpen(false);
@@ -95,15 +91,16 @@ export default function SidebarMenu() {
         {visibleNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
-            <button 
+            <Link 
+              href={item.href}
               key={item.href} 
               className={`${styles.menuItem} ${isActive ? styles.active : ''}`} 
-              onClick={() => handleNavigation(item.href)}
+              onClick={() => setMenuOpen(false)}
               title={isCollapsed ? item.label : undefined}
             >
               {ICON_MAP[item.icon]}
               <span className={styles.menuText}>{item.label}</span>
-            </button>
+            </Link>
           );
         })}
       </nav>
