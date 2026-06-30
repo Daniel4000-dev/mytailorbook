@@ -1,0 +1,178 @@
+.pageGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: 0 var(--sf-space-md) var(--sf-space-2xl) var(--sf-space-md);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+  margin-top: var(--sf-space-md);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.sectionTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin: 0;
+}
+
+.sectionIcon {
+  color: var(--sf-accent-emerald);
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md); /* 6px */
+  padding: var(--sf-space-lg);
+}
+
+/* Profile Section */
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-lg);
+}
+
+.avatarLarge {
+  width: 56px;
+  height: 56px;
+  border-radius: 20%;
+  background: #FEF3C7; /* Soft gold for owner */
+  color: #B45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileName {
+  font-family: var(--sf-font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.profileRole {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.profileEmail {
+  font-size: 13px;
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+/* Staff Directory */
+.staffList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.staffItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+  padding-bottom: var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.staffItem:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.avatarCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 20%;
+  background: #E0F2F1; /* Soft teal for directory defaults */
+  color: #00796B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.staffInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.staffName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.staffRole {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+/* Form Group */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.submitBtn {
+  margin-top: var(--sf-space-sm);
+}
+
+.successText {
+  color: var(--sf-accent-emerald);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.errorText {
+  color: var(--sf-error);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}

@@ -11,7 +11,7 @@ import {
 } from 'react';
 import type { User, Role } from '@/lib/types';
 import { MOCK_USERS } from '@/lib/mockData';
-import { loginAction, logoutAction, getSessionAction } from '@/app/actions';
+import { loginAction, logoutAction, getSessionAction, getDatabase, addStaffAction } from '@/app/actions';
 
 interface AuthContextValue {
   user: User | null;
@@ -34,12 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     getSessionAction().then((savedUid) => {
       if (savedUid) {
-        const found = MOCK_USERS.find(u => u.uid === savedUid);
-        if (found) {
-          setUser(found);
-        }
+        getDatabase().then((db) => {
+          const found = db.users?.find(u => u.uid === savedUid) || MOCK_USERS.find(u => u.uid === savedUid);
+          if (found) {
+            setUser(found);
+          }
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
   }, []);
 
@@ -48,8 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Simulate network delay
     await new Promise((r) => setTimeout(r, 800));
 
-    // Mock: match by email, fallback to Owner
-    const found = MOCK_USERS.find(
+    const db = await getDatabase();
+    const found = db.users?.find(
+      (u) => u.email.toLowerCase() === email.toLowerCase()
+    ) || MOCK_USERS.find(
       (u) => u.email.toLowerCase() === email.toLowerCase()
     );
     const authedUser = found ?? MOCK_USERS[0];
@@ -65,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       await new Promise((r) => setTimeout(r, 800));
 
-      // Mock: create new Staff user
       const newUser: User = {
         uid: `user-${Date.now()}`,
         name,
@@ -73,7 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: 'Owner' as Role,
         createdAt: new Date().toISOString(),
       };
-      // In a real app we'd save this to MOCK_USERS/DB. For MVP, just log them in locally.
+      
+      await addStaffAction(newUser);
       setUser(newUser);
       
       await loginAction(newUser.uid);

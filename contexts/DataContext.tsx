@@ -9,7 +9,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import type { Order, Customer, OrderStatus, StatusChange, Measurements } from '@/lib/types';
+import type { Order, Customer, OrderStatus, StatusChange, Measurements, User } from '@/lib/types';
 import { MOCK_USERS } from '@/lib/mockData';
 import { normalizePhone } from '@/lib/formatters';
 import {
@@ -18,13 +18,14 @@ import {
   updateOrderStatusAction,
   updateOrderAction,
   addCustomerAction,
-  updateCustomerMeasurementsAction
+  updateCustomerMeasurementsAction,
+  addStaffAction
 } from '@/app/actions';
 
 interface DataContextValue {
   orders: Order[];
   customers: Customer[];
-  staffMembers: typeof MOCK_USERS;
+  staffMembers: User[];
   isLoaded: boolean;
   addOrder: (order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => Promise<void>;
@@ -35,6 +36,7 @@ interface DataContextValue {
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
   findOrCreateCustomer: (fullName: string, whatsappNumber: string) => Promise<Customer>;
+  addStaff: (name: string, email: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -42,12 +44,14 @@ const DataContext = createContext<DataContextValue | null>(null);
 export function DataProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [staffMembers, setStaffMembers] = useState<User[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     getDatabase().then(db => {
       setOrders(db.orders);
       setCustomers(db.customers);
+      setStaffMembers(db.users || MOCK_USERS);
       setIsLoaded(true);
     });
   }, []);
@@ -179,11 +183,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [orders]
   );
 
+  const addStaff = useCallback(
+    async (name: string, email: string) => {
+      const newStaff: User = {
+        uid: `user-${Date.now()}`,
+        name,
+        email,
+        role: 'Staff',
+        createdAt: new Date().toISOString(),
+      };
+      
+      setStaffMembers(prev => [...prev, newStaff]);
+      
+      const updatedDb = await addStaffAction(newStaff);
+      setStaffMembers(updatedDb.users || []);
+    },
+    []
+  );
+
   const value = useMemo<DataContextValue>(
     () => ({
       orders,
       customers,
-      staffMembers: MOCK_USERS,
+      staffMembers,
       isLoaded,
       addOrder,
       updateOrderStatus,
@@ -194,8 +216,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       getOrdersByStatus,
       getOrdersByStaff,
       findOrCreateCustomer,
+      addStaff,
     }),
-    [orders, customers, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer]
+    [orders, customers, staffMembers, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

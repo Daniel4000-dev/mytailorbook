@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Order, Customer, OrderStatus, Measurements } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User } from '@/lib/types';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_USERS } from '@/lib/mockData';
 
 const DB_PATH = path.join(process.cwd(), 'db.json');
@@ -11,17 +11,24 @@ const DB_PATH = path.join(process.cwd(), 'db.json');
 interface DatabaseSchema {
   orders: Order[];
   customers: Customer[];
+  users: User[];
 }
 
 // Ensure the DB exists
 async function ensureDb(): Promise<DatabaseSchema> {
   try {
     const data = await fs.readFile(DB_PATH, 'utf-8');
-    return JSON.parse(data) as DatabaseSchema;
+    const parsed = JSON.parse(data) as DatabaseSchema;
+    if (!parsed.users) {
+      parsed.users = MOCK_USERS;
+      await fs.writeFile(DB_PATH, JSON.stringify(parsed, null, 2));
+    }
+    return parsed;
   } catch (error) {
     const initialDb: DatabaseSchema = {
       orders: MOCK_ORDERS,
       customers: MOCK_CUSTOMERS,
+      users: MOCK_USERS,
     };
     await fs.writeFile(DB_PATH, JSON.stringify(initialDb, null, 2));
     return initialDb;
@@ -91,6 +98,13 @@ export async function updateCustomerMeasurementsAction(customerId: string, measu
     db.customers[index].measurements = measurements;
     await saveDatabase(db);
   }
+  return db;
+}
+
+export async function addStaffAction(user: User) {
+  const db = await ensureDb();
+  db.users.push(user);
+  await saveDatabase(db);
   return db;
 }
 

@@ -675,5 +675,28 @@
       },
       "createdAt": "2024-09-18T15:30:00Z"
     }
+  ],
+  "users": [
+    {
+      "uid": "user-owner-001",
+      "name": "Adebayo Fashola",
+      "email": "adebayo@mytailorbook.com",
+      "role": "Owner",
+      "createdAt": "2024-01-15T09:00:00Z"
+    },
+    {
+      "uid": "user-staff-001",
+      "name": "Chioma Eze",
+      "email": "chioma@mytailorbook.com",
+      "role": "Staff",
+      "createdAt": "2024-03-10T11:00:00Z"
+    },
+    {
+      "uid": "user-staff-002",
+      "name": "Tunde Bakare",
+      "email": "tunde@mytailorbook.com",
+      "role": "Staff",
+      "createdAt": "2024-06-01T08:30:00Z"
+    }
   ]
 }

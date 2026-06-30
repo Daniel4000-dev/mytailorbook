@@ -395,3 +395,28 @@
     overflow-x: auto;
   }
 }
+
+.filterToggleRow {
+  display: flex;
+  gap: var(--sf-space-xs);
+  margin-bottom: var(--sf-space-md);
+  padding: 0 4px;
+}
+
+.toggleBtn {
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.toggleBtnActive {
+  background: rgba(37, 211, 102, 0.1);
+  border-color: var(--sf-accent-emerald);
+  color: var(--sf-accent-emerald);
+}

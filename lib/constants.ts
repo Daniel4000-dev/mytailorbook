@@ -108,4 +108,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'FaHouse' },
   { label: 'Production', href: '/production', icon: 'FaTableColumns' },
   { label: 'Customers', href: '/customers', icon: 'FaUsers', ownerOnly: true },
+  { label: 'Settings', href: '/settings', icon: 'FaGear', ownerOnly: true },
 ];

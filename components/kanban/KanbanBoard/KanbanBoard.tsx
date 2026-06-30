@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { FaFilter, FaListCheck, FaTimeline, FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +26,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [copied, setCopied] = useState(false);
   const [mobileActiveTab, setMobileActiveTab] = useState<OrderStatus>(ORDER_STATUSES[0]);
+  const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
 
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
   const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
@@ -56,8 +57,15 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     if (prev) await updateOrderStatus(orderId, prev, user?.uid || '', user?.name || '');
   }, [orders, updateOrderStatus, user]);
 
+  const filteredOrders = useMemo(() => {
+    if (filterMyTasks && user?.uid) {
+      return orders.filter(o => o.assignedTo === user.uid);
+    }
+    return orders;
+  }, [orders, filterMyTasks, user]);
+
   const getOrdersByStatus = (status: OrderStatus) =>
-    orders.filter((o) => o.status === status);
+    filteredOrders.filter((o) => o.status === status);
 
   // Sync selected order with latest state
   const currentOrder = selectedOrder
@@ -77,7 +85,24 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
 
   return (
     <>
-
+      {userRole === 'Staff' && (
+        <div className={styles.filterToggleRow}>
+          <button
+            type="button"
+            className={`${styles.toggleBtn} ${filterMyTasks ? styles.toggleBtnActive : ''}`}
+            onClick={() => setFilterMyTasks(true)}
+          >
+            My Tasks
+          </button>
+          <button
+            type="button"
+            className={`${styles.toggleBtn} ${!filterMyTasks ? styles.toggleBtnActive : ''}`}
+            onClick={() => setFilterMyTasks(false)}
+          >
+            All Tasks
+          </button>
+        </div>
+      )}
 
       <div className={styles.mobileTabs}>
         {ORDER_STATUSES.map((status) => (

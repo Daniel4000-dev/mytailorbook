@@ -173,3 +173,81 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── View Mode Tabs ── */
+.viewModeTabs {
+  display: flex;
+  gap: var(--sf-space-xs);
+  margin-bottom: var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border-light);
+  padding-bottom: var(--sf-space-sm);
+}
+
+.viewModeBtn {
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.viewModeBtnActive {
+  background: rgba(37, 211, 102, 0.1);
+  border-color: var(--sf-accent-emerald);
+  color: var(--sf-accent-emerald);
+}
+
+/* ── List View Input Grid ── */
+.listView {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sf-space-sm);
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: var(--sf-space-xs);
+}
+
+@media (min-width: 600px) {
+  .listView {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sf-space-md);
+  }
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  padding: 6px 12px;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 6px;
+}
+
+.listLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.listInput {
+  width: 90px;
+  padding: 4px 8px;
+  border: 1px solid var(--sf-border);
+  border-radius: 4px;
+  background: #FFFFFF;
+  font-size: 13px;
+  color: var(--sf-text-primary);
+  text-align: right;
+  outline: none;
+  transition: border-color var(--sf-transition-fast);
+}
+
+.listInput:focus {
+  border-color: var(--sf-accent-emerald);
+}

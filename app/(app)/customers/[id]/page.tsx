@@ -78,6 +78,34 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     setCurrentValue(measurements[point.id] || '');
   };
 
+  const handleMeasurementChange = (pointId: string, val: string) => {
+    setMeasurements(prev => ({
+      ...prev,
+      [pointId]: val
+    }));
+    
+    const updatedMeasurements: Measurements = {
+      ...customer.measurements,
+      notes: notes || undefined
+    };
+    
+    const updatedRecord = { ...measurements, [pointId]: val };
+    
+    Object.entries(updatedRecord).forEach(([key, value]) => {
+      const num = parseFloat(value);
+      if (!isNaN(num)) {
+        (updatedMeasurements as any)[key] = num;
+      }
+    });
+    
+    const num = parseFloat(val);
+    if (isNaN(num)) {
+      delete (updatedMeasurements as any)[pointId];
+    }
+    
+    updateCustomerMeasurements(customer.id, updatedMeasurements);
+  };
+
   const handleSaveNotes = () => {
     const updatedMeasurements: Measurements = {
       ...customer.measurements,
@@ -212,6 +240,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
               measurements={measurements} 
               selectedPointId={selectedPoint?.id} 
               onPointSelect={handlePointSelect} 
+              onValueChange={handleMeasurementChange}
             />
           </div>
 

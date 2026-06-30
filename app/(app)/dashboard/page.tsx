@@ -56,6 +56,16 @@ export default function DashboardPage() {
   const sewPct = (stats.sewing / totalActive) * 100;
   const readyPct = (stats.ready / totalActive) * 100;
 
+  const collected = useMemo(() => {
+    return orders.reduce((sum, o) => sum + o.depositPaid, 0);
+  }, [orders]);
+
+  const projected = useMemo(() => {
+    return orders
+      .filter((o) => o.status !== 'Completed')
+      .reduce((sum, o) => sum + getBalanceOwed(o), 0);
+  }, [orders]);
+
   return (
     <PageLayout 
       className={styles.pageGrid}
@@ -78,7 +88,16 @@ export default function DashboardPage() {
         />
       }
     >
-      <></>
+      <div className={styles.financeGrid}>
+        <div className={styles.financeCard}>
+          <span className={styles.cardLabel}>Total Collected</span>
+          <span className={styles.cardValue}>{formatCurrency(collected)}</span>
+        </div>
+        <div className={styles.financeCard}>
+          <span className={styles.cardLabel}>Projected Earnings</span>
+          <span className={styles.cardValue}>{formatCurrency(projected)}</span>
+        </div>
+      </div>
     </PageLayout>
   );
 }

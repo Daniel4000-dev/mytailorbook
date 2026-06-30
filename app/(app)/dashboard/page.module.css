@@ -278,3 +278,42 @@
 .dotCut { background: var(--sf-text-tertiary); }
 .dotSew { background: var(--sf-accent-emerald); }
 .dotReady { background: var(--sf-accent-gold); }
+
+/* ── Financial Overview Cards ── */
+.financeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sf-space-md);
+  margin-top: var(--sf-space-md);
+}
+
+@media (min-width: 768px) {
+  .financeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.financeCard {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.cardLabel {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardValue {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
