@@ -8,6 +8,15 @@ import type { OrderStatus, Role, NavItem, Priority } from './types';
 import { APP_CONFIG } from './config';
 
 export const ORDER_STATUSES: readonly OrderStatus[] = [
+  'Documented',
+  'Cutting',
+  'Sewing',
+  'Ready',
+  'Completed',
+] as const;
+
+/** Production pipeline statuses (excludes Documented intake stage) */
+export const PRODUCTION_STATUSES: readonly OrderStatus[] = [
   'Cutting',
   'Sewing',
   'Ready',
@@ -23,6 +32,12 @@ export const STATUS_CONFIG: Record<
   OrderStatus,
   { color: string; bgColor: string; icon: string; label: string }
 > = {
+  Documented: {
+    color: 'var(--sf-stage-documented)',
+    bgColor: 'var(--sf-stage-documented-bg)',
+    icon: 'FaClipboardList',
+    label: 'Documented',
+  },
   Cutting: {
     color: 'var(--sf-stage-cutting)',
     bgColor: 'var(--sf-stage-cutting-bg)',

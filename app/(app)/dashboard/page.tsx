@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   FaTriangleExclamation, 
@@ -9,7 +9,9 @@ import {
   FaScissors,
   FaCheck,
   FaCircleCheck,
-  FaArrowRight
+  FaArrowRight,
+  FaEye,
+  FaEyeSlash
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -66,6 +68,25 @@ export default function DashboardPage() {
       .reduce((sum, o) => sum + getBalanceOwed(o), 0);
   }, [orders]);
 
+  const urgentCount = useMemo(() => {
+    return orders.filter((o) => {
+      if (o.status === 'Completed') return false;
+      return isOverdue(o) || o.priority === 'rush' || o.priority === 'urgent';
+    }).length;
+  }, [orders]);
+
+  const dueTodayCount = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    return orders.filter((o) => {
+      if (!o.dueDate || o.status === 'Completed') return false;
+      const dueStr = new Date(o.dueDate).toISOString().split('T')[0];
+      return dueStr === todayStr;
+    }).length;
+  }, [orders]);
+
+  const [hideCollected, setHideCollected] = useState(false);
+  const [hideProjected, setHideProjected] = useState(false);
+
   return (
     <PageLayout 
       className={styles.pageGrid}
@@ -88,14 +109,52 @@ export default function DashboardPage() {
         />
       }
     >
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>Overview Analytics</span>
+      </div>
+
       <div className={styles.financeGrid}>
         <div className={styles.financeCard}>
-          <span className={styles.cardLabel}>Total Collected</span>
-          <span className={styles.cardValue}>{formatCurrency(collected)}</span>
+          <div className={styles.cardHeaderRow}>
+            <span className={styles.cardLabel}>Total Collected</span>
+            <button 
+              type="button"
+              onClick={() => setHideCollected(!hideCollected)} 
+              className={styles.cardPrivacyBtn}
+              title={hideCollected ? "Show Balance" : "Hide Balance"}
+            >
+              {hideCollected ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          <span className={`${styles.cardValue} ${hideCollected ? styles.blurredValue : ''}`}>
+            {formatCurrency(collected)}
+          </span>
         </div>
+        
         <div className={styles.financeCard}>
-          <span className={styles.cardLabel}>Projected Earnings</span>
-          <span className={styles.cardValue}>{formatCurrency(projected)}</span>
+          <div className={styles.cardHeaderRow}>
+            <span className={styles.cardLabel}>Projected Earnings</span>
+            <button 
+              type="button"
+              onClick={() => setHideProjected(!hideProjected)} 
+              className={styles.cardPrivacyBtn}
+              title={hideProjected ? "Show Balance" : "Hide Balance"}
+            >
+              {hideProjected ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          <span className={`${styles.cardValue} ${hideProjected ? styles.blurredValue : ''}`}>
+            {formatCurrency(projected)}
+          </span>
+        </div>
+
+        <div className={`${styles.financeCard} ${urgentCount > 0 ? styles.alertCard : ''}`}>
+          <span className={styles.cardLabel}>Overdue & Urgent</span>
+          <span className={styles.cardValue}>{urgentCount}</span>
+        </div>
+        <div className={`${styles.financeCard} ${dueTodayCount > 0 ? styles.dueCard : ''}`}>
+          <span className={styles.cardLabel}>Due Today</span>
+          <span className={styles.cardValue}>{dueTodayCount}</span>
         </div>
       </div>
     </PageLayout>

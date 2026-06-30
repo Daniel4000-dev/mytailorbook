@@ -47,6 +47,8 @@
 
   /* ── Colors: Kanban Stages (Monochromatic / Premium) ─── */
   /* ── Colors: Kanban Stages (Monochromatic / Premium) ─── */
+  --sf-stage-documented: #AD9C85;
+  --sf-stage-documented-bg: #FDF9F3;
   --sf-stage-cutting: #E2D7C7;
   --sf-stage-cutting-bg: #FAF6F0;
   --sf-stage-sewing: #E2D7C7;

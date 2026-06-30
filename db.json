@@ -20,10 +20,17 @@
           "changedBy": "user-owner-001",
           "changedByName": "Adebayo Fashola",
           "timestamp": "2025-06-18T09:00:00Z"
+        },
+        {
+          "from": "Cutting",
+          "to": "Cutting",
+          "changedBy": "user-owner-001",
+          "changedByName": "Adebayo Fashola",
+          "timestamp": "2026-06-30T12:44:09.709Z"
         }
       ],
       "createdAt": "2025-06-18T09:00:00Z",
-      "updatedAt": "2026-06-27T00:15:19.643Z"
+      "updatedAt": "2026-06-30T12:44:09.709Z"
     },
     {
       "id": "ord-002",

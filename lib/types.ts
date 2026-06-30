@@ -6,7 +6,7 @@
 
 export type Role = 'Owner' | 'Staff';
 
-export type OrderStatus = 'Cutting' | 'Sewing' | 'Ready' | 'Completed';
+export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';
 
 export type Priority = 'normal' | 'urgent' | 'rush';
 
