@@ -71,6 +71,11 @@
   display: none;
 }
 
+.mobileOnlyNav {
+  display: block;
+  padding-left: 24px;
+}
+
 .menuItem {
   display: flex;
   align-items: center;
@@ -118,6 +123,41 @@
   top: 76vh;
   transform: translateY(-100%);
   padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settingsBtn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  color: #28190B;
+  font-family: var(--sf-font-body), sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  width: max-content;
+  text-decoration: none;
+}
+
+.settingsBtn:hover {
+  color: #7A6952;
+  transform: translateX(4px);
+}
+
+.settingsIcon {
+  font-size: 20px;
+  color: #28190B;
+  transition: color var(--sf-transition-fast);
+}
+
+.settingsBtn:hover .settingsIcon {
+  color: #7A6952;
 }
 
 .logoutBtn {
@@ -165,6 +205,10 @@
   }
 
   .mobileTopRow {
+    display: none;
+  }
+
+  .mobileOnlyNav {
     display: none;
   }
 
@@ -272,6 +316,27 @@
     color: var(--sf-accent-emerald) !important;
   }
 
+  .settingsBtn {
+    width: calc(100% - 32px) !important;
+    padding: 10px 16px !important;
+    margin: 0 16px;
+    border-radius: 10px;
+    transition: all var(--sf-transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .settingsBtn:hover {
+    background-color: rgba(40, 25, 11, 0.03);
+    color: var(--sf-text-primary) !important;
+    transform: none !important;
+  }
+
+  .settingsBtn:hover .settingsIcon {
+    color: var(--sf-text-primary) !important;
+  }
+
   .logoutBtn {
     width: calc(100% - 32px) !important;
     padding: 10px 16px !important;
@@ -339,6 +404,16 @@
     width: 100%;
     display: flex;
     justify-content: center;
+  }
+
+  .sidebar.collapsed .settingsBtn {
+    justify-content: center;
+    width: 44px !important;
+    height: 44px;
+    padding: 0 !important;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
   }
 
   .sidebar.collapsed .logoutBtn {

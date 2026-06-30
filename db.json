@@ -1,6 +1,59 @@
 {
   "orders": [
     {
+      "customerId": "cust-003",
+      "customerName": "Alhaji Musa Ibrahim",
+      "orderDetails": "kgvj",
+      "totalBill": 26,
+      "depositPaid": 19,
+      "status": "Cutting",
+      "dueDate": "2026-07-08T00:00:00.000Z",
+      "priority": "normal",
+      "images": [],
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "Documented",
+          "changedBy": "user-owner-001",
+          "changedByName": "Adebayo Fashola",
+          "timestamp": "2026-06-30T22:12:24.762Z"
+        },
+        {
+          "from": "Documented",
+          "to": "Cutting",
+          "changedBy": "user-owner-001",
+          "changedByName": "Adebayo Fashola",
+          "timestamp": "2026-06-30T22:13:04.102Z"
+        }
+      ],
+      "id": "ord-1782857544762",
+      "createdAt": "2026-06-30T22:12:24.762Z",
+      "updatedAt": "2026-06-30T22:13:04.102Z"
+    },
+    {
+      "customerId": "cust-002",
+      "customerName": "Mrs. Folake Adeyemi",
+      "orderDetails": "fg",
+      "totalBill": 5,
+      "depositPaid": 2,
+      "status": "Documented",
+      "dueDate": "2026-06-30T00:00:00.000Z",
+      "priority": "normal",
+      "images": [],
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "Documented",
+          "changedBy": "user-owner-001",
+          "changedByName": "Adebayo Fashola",
+          "timestamp": "2026-06-30T21:54:14.127Z"
+        }
+      ],
+      "id": "ord-1782856454127",
+      "createdAt": "2026-06-30T21:54:14.127Z",
+      "updatedAt": "2026-06-30T21:54:14.127Z"
+    },
+    {
       "id": "ord-001",
       "customerId": "cust-001",
       "customerName": "Chief Emeka Okafor",

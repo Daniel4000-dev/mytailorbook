@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaTimeline, FaCircleCheck } from 'react-icons/fa6';
+import { FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaTimeline, FaCircleCheck, FaScissors } from 'react-icons/fa6';
+import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import Badge from '@/components/ui/Badge/Badge';
 import Button from '@/components/ui/Button/Button';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
@@ -20,6 +22,9 @@ interface OrderDetailSheetProps {
 export default function OrderDetailSheet({ order, customer, userRole, onUpdatePayment }: OrderDetailSheetProps) {
   const [copied, setCopied] = useState(false);
   const [markingPaid, setMarkingPaid] = useState(false);
+  const [startingProd, setStartingProd] = useState(false);
+  const { user } = useAuth();
+  const { updateOrderStatus } = useData();
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/track/${order.id}`;
@@ -39,8 +44,32 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     }
   };
 
+  const handleStartProduction = async () => {
+    setStartingProd(true);
+    try {
+      await updateOrderStatus(order.id, 'Cutting', user?.uid || '', user?.name || '');
+    } finally {
+      setStartingProd(false);
+    }
+  };
+
   return (
     <div className={styles.orderDetail}>
+      {/* Send to Production Button (for Documented orders) */}
+      {order.status === 'Documented' && (
+        <div style={{ marginBottom: '16px' }}>
+          <Button 
+            variant="primary" 
+            fullWidth 
+            loading={startingProd}
+            onClick={handleStartProduction}
+            icon={<FaScissors />}
+          >
+            Send to Production (Cutting)
+          </Button>
+        </div>
+      )}
+
       {/* Overview Card */}
       <div className={styles.premiumCard}>
         <div className={styles.customerRow}>

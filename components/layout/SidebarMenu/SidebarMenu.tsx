@@ -86,6 +86,20 @@ export default function SidebarMenu() {
         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
 
+      {/* Mobile-only Settings Link */}
+      {isOwner && (
+        <div className={styles.mobileOnlyNav}>
+          <Link 
+            href="/settings"
+            className={styles.menuItem} 
+            onClick={() => setMenuOpen(false)}
+          >
+            <FaGear className={styles.menuIcon} />
+            <span className={styles.menuText}>Settings</span>
+          </Link>
+        </div>
+      )}
+
       {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) */}
       <nav className={styles.mainNav}>
         {visibleNavItems.map((item) => {
@@ -105,9 +119,7 @@ export default function SidebarMenu() {
         })}
       </nav>
 
-
-
-      {/* Footer Logout Button */}
+      {/* Footer Navigation (Logout only) */}
       <div className={styles.footer}>
         <button 
           className={styles.logoutBtn} 

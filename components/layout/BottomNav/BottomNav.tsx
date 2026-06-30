@@ -18,7 +18,7 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { isOwner } = useAuth();
 
-  const visibleItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
+  const visibleItems = NAV_ITEMS.filter((item) => (!item.ownerOnly || isOwner) && item.href !== '/settings');
 
   return (
     <nav className={styles.nav}>

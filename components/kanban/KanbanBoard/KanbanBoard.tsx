@@ -27,7 +27,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const [copied, setCopied] = useState(false);
   const [mobileActiveTab, setMobileActiveTab] = useState<OrderStatus>(PRODUCTION_STATUSES[0]);
   const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
-  const [intakeExpanded, setIntakeExpanded] = useState(true);
+  const [intakeExpanded, setIntakeExpanded] = useState(false);
 
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
   const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
@@ -78,6 +78,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const documentedOrders = useMemo(() => {
     return filteredOrders.filter(o => o.status === 'Documented');
   }, [filteredOrders]);
+
 
   const getOrdersByStatus = (status: OrderStatus) =>
     filteredOrders.filter((o) => o.status === status);
