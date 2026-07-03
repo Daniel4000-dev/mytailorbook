@@ -58,6 +58,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
     );
   }
 
+  const shop = db.shops?.find((s) => s.id === order.shopId);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
   const progressPercent = ((currentStepIndex + 1) / STATUS_ORDER.length) * 100;
   const currentIllustration = STATUS_ILLUSTRATIONS[order.status];
@@ -66,7 +67,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   return (
     <div className={styles.page}>
-      {/* Sticky Brand Header */}
+      {/* Sticky Brand Header — kept as MyTailorBook branding on purpose: this page is
+          seen repeatedly by every shop's customers, so it's the app's main visibility channel. */}
       <header className={styles.stickyHeader}>
         <div className={styles.brandBlock}>
           <span className={styles.brandName}>{APP_CONFIG.name.toUpperCase()}</span>
@@ -96,6 +98,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             <h1 className={styles.heroGreeting}>
               Hello, {order.customerName.split(' ')[0]} 👋
             </h1>
+            {shop && <p className={styles.shopContext}>Your order with {shop.name}</p>}
             <h2 className={styles.heroHeadline}>{currentHeadline}</h2>
             <p className={styles.heroMessage}>{currentMessage}</p>
           </div>
@@ -195,7 +198,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
         {/* Footer */}
         <footer className={styles.trackerFooter}>
-          <p>© {new Date().getFullYear()} {APP_CONFIG.name}</p>
+          <p>© {new Date().getFullYear()} {shop?.name || APP_CONFIG.name}</p>
           <span className={styles.lockBadge}>
             <FaLock /> Secure Client Portal
           </span>

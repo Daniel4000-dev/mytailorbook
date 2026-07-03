@@ -38,7 +38,7 @@ export default function OrderForm({ onClose }: OrderFormProps) {
   const balance = Math.max(0, total - deposit);
 
   const staffOptions = staffMembers
-    .filter((u) => u.role === 'Staff')
+    .filter((u) => u.role === 'Staff' && u.active !== false)
     .map((u) => ({ value: u.uid, label: u.name }));
 
   const priorityOptions: { value: Priority; label: string }[] = [

@@ -6,6 +6,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   font-family: var(--sf-font-body);
   font-weight: var(--sf-weight-semibold);
   border-radius: var(--sf-radius-full);

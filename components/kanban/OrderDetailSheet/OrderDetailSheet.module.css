@@ -240,6 +240,172 @@
   font-family: monospace;
 }
 
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.iconBtn {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.iconBtn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface-hover);
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.editRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sf-space-sm);
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sf-space-sm);
+}
+
+.photoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-sm);
+}
+
+.photoThumb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--sf-border-light);
+}
+
+.photoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoRemoveBtn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.photoUploadBtn {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--sf-radius-md);
+  border: 1px dashed var(--sf-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-lg);
+  cursor: pointer;
+  background: var(--sf-bg-surface);
+}
+
+.photoUploadBtn:hover {
+  color: var(--sf-text-secondary);
+}
+
+.recordPaymentRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-md);
+}
+
+.recordPaymentRow > div:first-child {
+  flex: 1;
+}
+
+.paymentHistory {
+  margin-top: var(--sf-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+  border-top: 1px solid var(--sf-border-light);
+  padding-top: var(--sf-space-md);
+}
+
+.paymentHistoryLabel {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--sf-weight-semibold);
+  margin-bottom: 2px;
+}
+
+.paymentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--sf-text-sm);
+}
+
+.paymentAmount {
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.paymentMeta {
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-xs);
+}
+
+.receiptLinkRow {
+  margin-top: var(--sf-space-md);
+  border-top: 1px solid var(--sf-border-light);
+  padding-top: var(--sf-space-md);
+}
+
+.receiptLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  color: var(--sf-text-secondary);
+  text-decoration: none;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+}
+
+.receiptLink:hover {
+  color: var(--sf-text-primary);
+}
+
 .premiumTimelineSection {
   margin-top: var(--sf-space-md);
   display: flex;

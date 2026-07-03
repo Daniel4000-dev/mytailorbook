@@ -3,8 +3,8 @@
 import { cookies } from 'next/headers';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Order, Customer, OrderStatus, Measurements, User } from '@/lib/types';
-import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_USERS } from '@/lib/mockData';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
+import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_USERS, MOCK_SHOPS, MOCK_SHOP_ID } from '@/lib/mockData';
 
 const DB_PATH = path.join(process.cwd(), 'db.json');
 
@@ -12,6 +12,7 @@ interface DatabaseSchema {
   orders: Order[];
   customers: Customer[];
   users: User[];
+  shops: Shop[];
 }
 
 // Ensure the DB exists
@@ -19,8 +20,20 @@ async function ensureDb(): Promise<DatabaseSchema> {
   try {
     const data = await fs.readFile(DB_PATH, 'utf-8');
     const parsed = JSON.parse(data) as DatabaseSchema;
+    let dirty = false;
     if (!parsed.users) {
       parsed.users = MOCK_USERS;
+      dirty = true;
+    }
+    if (!parsed.shops) {
+      // Migrating a pre-multi-tenant db: back-fill one shop and tag existing records with it.
+      parsed.shops = MOCK_SHOPS;
+      parsed.users = parsed.users.map((u) => (u.shopId ? u : { ...u, shopId: MOCK_SHOP_ID }));
+      parsed.customers = parsed.customers.map((c) => (c.shopId ? c : { ...c, shopId: MOCK_SHOP_ID }));
+      parsed.orders = parsed.orders.map((o) => (o.shopId ? o : { ...o, shopId: MOCK_SHOP_ID }));
+      dirty = true;
+    }
+    if (dirty) {
       await fs.writeFile(DB_PATH, JSON.stringify(parsed, null, 2));
     }
     return parsed;
@@ -29,6 +42,7 @@ async function ensureDb(): Promise<DatabaseSchema> {
       orders: MOCK_ORDERS,
       customers: MOCK_CUSTOMERS,
       users: MOCK_USERS,
+      shops: MOCK_SHOPS,
     };
     await fs.writeFile(DB_PATH, JSON.stringify(initialDb, null, 2));
     return initialDb;
@@ -105,6 +119,33 @@ export async function addStaffAction(user: User) {
   const db = await ensureDb();
   db.users.push(user);
   await saveDatabase(db);
+  return db;
+}
+
+export async function updateStaffAction(uid: string, updates: Partial<User>) {
+  const db = await ensureDb();
+  const index = db.users.findIndex(u => u.uid === uid);
+  if (index !== -1) {
+    db.users[index] = { ...db.users[index], ...updates };
+    await saveDatabase(db);
+  }
+  return db;
+}
+
+export async function addShopAction(shop: Shop) {
+  const db = await ensureDb();
+  db.shops.push(shop);
+  await saveDatabase(db);
+  return db;
+}
+
+export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
+  const db = await ensureDb();
+  const index = db.shops.findIndex(s => s.id === shopId);
+  if (index !== -1) {
+    db.shops[index] = { ...db.shops[index], ...updates };
+    await saveDatabase(db);
+  }
   return db;
 }
 

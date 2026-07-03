@@ -11,6 +11,7 @@ export default function SignupPage() {
   const router = useRouter();
   const { signup, loading } = useAuth();
   const [name, setName] = useState('');
+  const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -19,7 +20,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!name || !email || !password || !confirmPw) {
+    if (!name || !shopName || !email || !password || !confirmPw) {
       setError('Please fill in all fields');
       return;
     }
@@ -32,7 +33,7 @@ export default function SignupPage() {
       return;
     }
     try {
-      await signup(name, email, password);
+      await signup(name, email, password, shopName);
       router.push('/dashboard');
     } catch {
       setError('Could not create account');
@@ -42,7 +43,7 @@ export default function SignupPage() {
   const handleGoogleAuth = async () => {
     setError('');
     try {
-      await signup('Google User', 'google.user@masterfit.ng', 'google');
+      await signup('Google User', 'google.user@masterfit.ng', 'google', shopName || 'My Fashion Studio');
       router.push('/dashboard');
     } catch {
       setError('Could not connect with Google');
@@ -73,6 +74,16 @@ export default function SignupPage() {
           label="Full Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          required
+        />
+
+        {/* Shop Name Field */}
+        <AuthInput
+          id="shopName"
+          type="text"
+          label="Shop / Studio Name"
+          value={shopName}
+          onChange={(e) => setShopName(e.target.value)}
           required
         />
 

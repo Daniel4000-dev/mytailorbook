@@ -2,16 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FaTriangleExclamation, 
-  FaFireFlameCurved, 
+import {
   FaBars,
-  FaScissors,
-  FaCheck,
-  FaCircleCheck,
-  FaArrowRight,
   FaEye,
-  FaEyeSlash
+  FaEyeSlash,
+  FaUserGroup,
+  FaTriangleExclamation,
+  FaFireFlameCurved,
+  FaCircleCheck,
+  FaScissors,
+  FaClipboardList,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -19,54 +19,73 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
+import Badge from '@/components/ui/Badge/Badge';
 import { formatCurrency } from '@/lib/formatters';
-import { getBalanceOwed, isOverdue } from '@/lib/types';
+import { getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
+import type { Order } from '@/lib/types';
 
 import styles from './page.module.css';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { orders } = useData();
+  const { orders, staffMembers } = useData();
   const { toggleMenu } = useSidebar();
 
   const firstName = user?.name?.split(' ')[0] || 'there';
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  const stats = useMemo(() => {
-    const cutting = orders.filter((o) => o.status === 'Cutting').length;
-    const sewing = orders.filter((o) => o.status === 'Sewing').length;
-    const inProgress = cutting + sewing;
-    const ready = orders.filter((o) => o.status === 'Ready').length;
-    const completed = orders.filter((o) => o.status === 'Completed').length;
-    const overdueCount = orders.filter((o) => o.status !== 'Documented' && isOverdue(o)).length;
-    const rushCount = orders.filter((o) => o.priority === 'rush' && o.status !== 'Completed' && o.status !== 'Documented').length;
-    const outstanding = orders
-      .filter((o) => o.status !== 'Completed')
-      .reduce((sum, o) => sum + getBalanceOwed(o), 0);
-      
-    return { cutting, sewing, inProgress, ready, completed, overdueCount, rushCount, outstanding };
-  }, [orders]);
+  const topBar = (
+    <TopBar
+      profileMode={{
+        greeting: 'Overview',
+        name: firstName,
+        avatarInitials: firstName[0],
+      }}
+      leftAction={
+        <div className={styles.mobileOnly}>
+          <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
+        </div>
+      }
+    />
+  );
 
-  const activeOrdersCount = stats.inProgress + stats.ready;
-  const hasUrgentAlerts = stats.rushCount > 0 || stats.overdueCount > 0;
+  if (user?.role === 'Owner') {
+    return (
+      <PageLayout className={styles.pageGrid} header={topBar}>
+        <OwnerDashboard orders={orders} staffMembers={staffMembers} onNavigate={router.push} />
+      </PageLayout>
+    );
+  }
 
-  // Calculate widths for the progress bar
-  const totalActive = Math.max(1, activeOrdersCount);
-  const cutPct = (stats.cutting / totalActive) * 100;
-  const sewPct = (stats.sewing / totalActive) * 100;
-  const readyPct = (stats.ready / totalActive) * 100;
+  return (
+    <PageLayout className={styles.pageGrid} header={topBar}>
+      <StaffDashboard orders={orders} userUid={user?.uid} onNavigate={router.push} />
+    </PageLayout>
+  );
+}
 
-  const collected = useMemo(() => {
-    return orders.reduce((sum, o) => sum + o.depositPaid, 0);
-  }, [orders]);
+// ============================================================
+// Owner Dashboard
+// ============================================================
 
-  const projected = useMemo(() => {
-    return orders
-      .filter((o) => o.status !== 'Completed')
-      .reduce((sum, o) => sum + getBalanceOwed(o), 0);
-  }, [orders]);
+function OwnerDashboard({
+  orders,
+  staffMembers,
+  onNavigate,
+}: {
+  orders: Order[];
+  staffMembers: ReturnType<typeof useData>['staffMembers'];
+  onNavigate: (href: string) => void;
+}) {
+  const [hideCollected, setHideCollected] = useState(false);
+  const [hideProjected, setHideProjected] = useState(false);
+
+  const collected = useMemo(() => orders.reduce((sum, o) => sum + o.depositPaid, 0), [orders]);
+
+  const projected = useMemo(
+    () => orders.filter((o) => o.status !== 'Completed').reduce((sum, o) => sum + getBalanceOwed(o), 0),
+    [orders]
+  );
 
   const urgentCount = useMemo(() => {
     return orders.filter((o) => {
@@ -84,31 +103,32 @@ export default function DashboardPage() {
     }).length;
   }, [orders]);
 
-  const [hideCollected, setHideCollected] = useState(false);
-  const [hideProjected, setHideProjected] = useState(false);
+  const teamSnapshot = useMemo(() => {
+    return staffMembers
+      .filter((s) => s.role === 'Staff')
+      .map((staff) => {
+        const assigned = orders.filter((o) => o.assignedTo === staff.uid);
+        const active = assigned.filter((o) => o.status === 'Cutting' || o.status === 'Sewing' || o.status === 'Ready').length;
+        const overdue = assigned.filter((o) => o.status !== 'Completed' && isOverdue(o)).length;
+        const completed = assigned.filter((o) => o.status === 'Completed').length;
+        return { staff, active, overdue, completed };
+      });
+  }, [orders, staffMembers]);
+
+  const needsAttention = useMemo(() => {
+    return orders
+      .filter((o) => o.status !== 'Completed' && o.status !== 'Documented' && (isOverdue(o) || o.priority === 'rush'))
+      .sort((a, b) => {
+        const aOverdue = isOverdue(a) ? 1 : 0;
+        const bOverdue = isOverdue(b) ? 1 : 0;
+        if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+        return (a.dueDate || '').localeCompare(b.dueDate || '');
+      })
+      .slice(0, 5);
+  }, [orders]);
 
   return (
-    <PageLayout 
-      className={styles.pageGrid}
-      header={
-        <TopBar 
-          profileMode={{
-            greeting: "Overview",
-            name: firstName,
-            avatarInitials: firstName[0]
-          }}
-          leftAction={
-            <div className={styles.mobileOnly}>
-              <CircleIconButton 
-                icon={<FaBars />} 
-                onClick={toggleMenu} 
-                ariaLabel="Open menu"
-              />
-            </div>
-          }
-        />
-      }
-    >
+    <>
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Overview Analytics</span>
       </div>
@@ -117,11 +137,11 @@ export default function DashboardPage() {
         <div className={styles.financeCard}>
           <div className={styles.cardHeaderRow}>
             <span className={styles.cardLabel}>Total Collected</span>
-            <button 
+            <button
               type="button"
-              onClick={() => setHideCollected(!hideCollected)} 
+              onClick={() => setHideCollected(!hideCollected)}
               className={styles.cardPrivacyBtn}
-              title={hideCollected ? "Show Balance" : "Hide Balance"}
+              title={hideCollected ? 'Show Balance' : 'Hide Balance'}
             >
               {hideCollected ? <FaEyeSlash /> : <FaEye />}
             </button>
@@ -130,15 +150,15 @@ export default function DashboardPage() {
             {formatCurrency(collected)}
           </span>
         </div>
-        
+
         <div className={styles.financeCard}>
           <div className={styles.cardHeaderRow}>
             <span className={styles.cardLabel}>Projected Earnings</span>
-            <button 
+            <button
               type="button"
-              onClick={() => setHideProjected(!hideProjected)} 
+              onClick={() => setHideProjected(!hideProjected)}
               className={styles.cardPrivacyBtn}
-              title={hideProjected ? "Show Balance" : "Hide Balance"}
+              title={hideProjected ? 'Show Balance' : 'Hide Balance'}
             >
               {hideProjected ? <FaEyeSlash /> : <FaEye />}
             </button>
@@ -157,6 +177,174 @@ export default function DashboardPage() {
           <span className={styles.cardValue}>{dueTodayCount}</span>
         </div>
       </div>
-    </PageLayout>
+
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>
+          <FaUserGroup style={{ marginRight: 6 }} />
+          Team Snapshot
+        </span>
+      </div>
+
+      <div className={styles.teamGrid}>
+        {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+          <button
+            key={staff.uid}
+            className={styles.teamCard}
+            onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
+            type="button"
+          >
+            <div className={styles.teamCardHeader}>
+              <div className={styles.teamAvatar}>{staff.name[0]}</div>
+              <div className={styles.teamName}>{staff.name}</div>
+            </div>
+            <div className={styles.teamStatsRow}>
+              <div className={styles.teamStat}>
+                <span className={styles.teamStatValue}>{active}</span>
+                <span className={styles.teamStatLabel}>Active</span>
+              </div>
+              <div className={styles.teamStat}>
+                <span className={`${styles.teamStatValue} ${overdue > 0 ? styles.teamStatAlert : ''}`}>{overdue}</span>
+                <span className={styles.teamStatLabel}>Overdue</span>
+              </div>
+              <div className={styles.teamStat}>
+                <span className={styles.teamStatValue}>{completed}</span>
+                <span className={styles.teamStatLabel}>Done</span>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>
+          <FaTriangleExclamation style={{ marginRight: 6 }} />
+          Needs Attention
+        </span>
+      </div>
+
+      {needsAttention.length === 0 ? (
+        <div className={styles.emptyState}>Nothing overdue or rushed — production is on track.</div>
+      ) : (
+        <div className={styles.attentionList}>
+          {needsAttention.map((order) => (
+            <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
+              <div className={styles.attentionInfo}>
+                <span className={styles.attentionCustomer}>{order.customerName}</span>
+                <span className={styles.attentionDetails}>{order.orderDetails}</span>
+              </div>
+              <div className={styles.attentionMeta}>
+                {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
+                {order.priority === 'rush' && <Badge variant="gold"><FaFireFlameCurved /> Rush</Badge>}
+                {order.assignedToName && <span className={styles.attentionAssignee}>{order.assignedToName}</span>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ============================================================
+// Staff Dashboard
+// ============================================================
+
+function StaffDashboard({
+  orders,
+  userUid,
+  onNavigate,
+}: {
+  orders: Order[];
+  userUid?: string;
+  onNavigate: (href: string) => void;
+}) {
+  const myOrders = useMemo(() => orders.filter((o) => o.assignedTo === userUid), [orders, userUid]);
+
+  const active = useMemo(
+    () => myOrders.filter((o) => o.status === 'Cutting' || o.status === 'Sewing' || o.status === 'Ready').length,
+    [myOrders]
+  );
+
+  const overdueCount = useMemo(() => myOrders.filter((o) => o.status !== 'Completed' && isOverdue(o)).length, [myOrders]);
+
+  const dueTodayCount = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    return myOrders.filter((o) => {
+      if (!o.dueDate || o.status === 'Completed') return false;
+      return new Date(o.dueDate).toISOString().split('T')[0] === todayStr;
+    }).length;
+  }, [myOrders]);
+
+  const completedCount = useMemo(() => myOrders.filter((o) => o.status === 'Completed').length, [myOrders]);
+
+  const myTasks = useMemo(() => {
+    return myOrders
+      .filter((o) => o.status !== 'Completed')
+      .sort((a, b) => {
+        const aOverdue = isOverdue(a) ? 1 : 0;
+        const bOverdue = isOverdue(b) ? 1 : 0;
+        if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+        const aRush = a.priority === 'rush' ? 1 : 0;
+        const bRush = b.priority === 'rush' ? 1 : 0;
+        if (aRush !== bRush) return bRush - aRush;
+        return (a.dueDate || '9999').localeCompare(b.dueDate || '9999');
+      });
+  }, [myOrders]);
+
+  return (
+    <>
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>My Workload</span>
+      </div>
+
+      <div className={styles.financeGrid}>
+        <div className={styles.financeCard}>
+          <span className={styles.cardLabel}>Active Orders</span>
+          <span className={styles.cardValue}>{active}</span>
+        </div>
+        <div className={`${styles.financeCard} ${dueTodayCount > 0 ? styles.dueCard : ''}`}>
+          <span className={styles.cardLabel}>Due Today</span>
+          <span className={styles.cardValue}>{dueTodayCount}</span>
+        </div>
+        <div className={`${styles.financeCard} ${overdueCount > 0 ? styles.alertCard : ''}`}>
+          <span className={styles.cardLabel}>Overdue</span>
+          <span className={styles.cardValue}>{overdueCount}</span>
+        </div>
+        <div className={styles.financeCard}>
+          <span className={styles.cardLabel}>Completed</span>
+          <span className={styles.cardValue}>{completedCount}</span>
+        </div>
+      </div>
+
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>
+          <FaClipboardList style={{ marginRight: 6 }} />
+          My Tasks
+        </span>
+      </div>
+
+      {myTasks.length === 0 ? (
+        <div className={styles.emptyState}>No orders assigned to you right now.</div>
+      ) : (
+        <div className={styles.attentionList}>
+          {myTasks.map((order) => (
+            <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
+              <div className={styles.attentionInfo}>
+                <span className={styles.attentionCustomer}>{order.customerName}</span>
+                <span className={styles.attentionDetails}>{order.orderDetails}</span>
+              </div>
+              <div className={styles.attentionMeta}>
+                <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'}>
+                  {order.status === 'Cutting' ? <FaScissors /> : order.status === 'Ready' ? <FaCircleCheck /> : null}
+                  {' '}{order.status}
+                </Badge>
+                {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
+                {!isOverdue(order) && isDueSoon(order) && <Badge variant="gold">Due Soon</Badge>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

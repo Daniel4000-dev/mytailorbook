@@ -4,8 +4,25 @@
  * For demonstration purposes. Provides initial state for the context providers.
  */
 
-import type { User, Customer, Order, ActivityItem } from './types';
+import type { User, Customer, Order, ActivityItem, Shop } from './types';
 import { APP_CONFIG } from './config';
+
+// ----------------------------------------------------------------------
+// SHOP (Tenant)
+// ----------------------------------------------------------------------
+
+export const MOCK_SHOP_ID = 'shop-001';
+
+export const MOCK_SHOP: Shop = {
+  id: MOCK_SHOP_ID,
+  name: 'Adebayo Fashion Studio',
+  phone: '2348012345678',
+  address: 'Lagos, Nigeria',
+  ownerUid: 'user-owner-001',
+  createdAt: '2024-01-15T09:00:00Z',
+};
+
+export const MOCK_SHOPS: Shop[] = [MOCK_SHOP];
 
 // ----------------------------------------------------------------------
 // USERS (Auth)
@@ -14,7 +31,7 @@ import { APP_CONFIG } from './config';
 //   STAFF:  tunde@masterfit.ng    / password123
 // ----------------------------------------------------------------------
 
-export const MOCK_USERS: User[] = [
+const RAW_MOCK_USERS: Omit<User, 'shopId'>[] = [
   {
     uid: 'user-owner-001',
     name: 'Adebayo Fashola',
@@ -38,7 +55,9 @@ export const MOCK_USERS: User[] = [
   },
 ];
 
-export const MOCK_CUSTOMERS: Customer[] = [
+export const MOCK_USERS: User[] = RAW_MOCK_USERS.map((u) => ({ ...u, shopId: MOCK_SHOP_ID }));
+
+const RAW_MOCK_CUSTOMERS: Omit<Customer, 'shopId'>[] = [
   {
     id: 'cust-001',
     fullName: 'Chief Emeka Okafor',
@@ -133,7 +152,9 @@ export const MOCK_CUSTOMERS: Customer[] = [
   },
 ];
 
-export const MOCK_ORDERS: Order[] = [
+export const MOCK_CUSTOMERS: Customer[] = RAW_MOCK_CUSTOMERS.map((c) => ({ ...c, shopId: MOCK_SHOP_ID }));
+
+const RAW_MOCK_ORDERS: Omit<Order, 'shopId'>[] = [
   // ── Cutting stage ──────────────────────────────────────
   {
     id: 'ord-001',
@@ -447,6 +468,8 @@ export const MOCK_ORDERS: Order[] = [
     updatedAt: '2025-05-10T09:00:00Z',
   },
 ];
+
+export const MOCK_ORDERS: Order[] = RAW_MOCK_ORDERS.map((o) => ({ ...o, shopId: MOCK_SHOP_ID }));
 
 export const MOCK_ACTIVITIES: ActivityItem[] = [
   {

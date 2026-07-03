@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { FaFilter, FaListCheck, FaTimeline, FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaChevronDown, FaChevronUp, FaArrowRight } from 'react-icons/fa6';
+import { FaFilter, FaListCheck, FaTimeline, FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaChevronDown, FaChevronUp, FaArrowRight, FaXmark, FaMagnifyingGlass } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import KanbanColumn from '@/components/kanban/KanbanColumn/KanbanColumn';
@@ -22,12 +23,48 @@ interface KanbanBoardProps {
 
 export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const { user } = useAuth();
-  const { orders, customers, staffMembers, updateOrderStatus, updateOrder } = useData();
+  const { orders, customers, staffMembers, isLoaded, updateOrderStatus, updateOrder } = useData();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [copied, setCopied] = useState(false);
   const [mobileActiveTab, setMobileActiveTab] = useState<OrderStatus>(PRODUCTION_STATUSES[0]);
   const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
   const [intakeExpanded, setIntakeExpanded] = useState(false);
+  const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // userRole falls back to 'Staff' for one tick while auth session loads; re-sync
+  // once the real role is known so the Owner doesn't get stuck on "My Orders".
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    setFilterMyTasks(userRole === 'Staff');
+  }, [userRole]);
+
+  // Deep-link support: /production?order=<id> opens a specific order,
+  // /production?staff=<uid> filters the board to that staff member's orders.
+  // One-time hydration from the URL once data has loaded, so setState-in-effect is intentional here.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const orderId = searchParams.get('order');
+    const staffId = searchParams.get('staff');
+
+    if (orderId) {
+      const found = orders.find((o) => o.id === orderId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (found) setSelectedOrder(found);
+    }
+    if (staffId && userRole === 'Owner') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStaffFilterId(staffId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFilterMyTasks(false);
+    }
+    if (orderId || staffId) {
+      router.replace('/production');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded]);
 
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
   const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
@@ -64,15 +101,27 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
 
   // Filter orders based on role and toggle
   const filteredOrders = useMemo(() => {
+    let result = orders;
     if (userRole === 'Staff' && user?.uid) {
       // Staff always see only their own tasks
-      return orders.filter(o => o.assignedTo === user.uid);
+      result = result.filter(o => o.assignedTo === user.uid);
+    } else if (staffFilterId) {
+      result = result.filter(o => o.assignedTo === staffFilterId);
+    } else if (filterMyTasks && user?.uid) {
+      result = result.filter(o => o.assignedTo === user.uid);
     }
-    if (filterMyTasks && user?.uid) {
-      return orders.filter(o => o.assignedTo === user.uid);
+
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      result = result.filter(
+        (o) => o.customerName.toLowerCase().includes(query) || o.orderDetails.toLowerCase().includes(query)
+      );
     }
-    return orders;
-  }, [orders, filterMyTasks, user, userRole]);
+
+    return result;
+  }, [orders, filterMyTasks, staffFilterId, searchQuery, user, userRole]);
+
+  const staffFilterName = staffFilterId ? staffMembers.find((s) => s.uid === staffFilterId)?.name : null;
 
   // Documented orders for intake queue
   const documentedOrders = useMemo(() => {
@@ -101,8 +150,25 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
 
   return (
     <>
+      {/* Search */}
+      <div className={styles.searchBar}>
+        <FaMagnifyingGlass className={styles.searchIcon} />
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Search by customer or garment…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button type="button" className={styles.searchClearBtn} onClick={() => setSearchQuery('')} aria-label="Clear search">
+            <FaXmark />
+          </button>
+        )}
+      </div>
+
       {/* Owner Filter Toggle */}
-      {userRole === 'Owner' && (
+      {userRole === 'Owner' && !staffFilterId && (
         <div className={styles.filterToggleRow}>
           <button
             type="button"
@@ -121,6 +187,15 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
         </div>
       )}
 
+      {staffFilterId && (
+        <div className={styles.staffFilterChip}>
+          <span>Viewing orders assigned to <strong>{staffFilterName || 'staff member'}</strong></span>
+          <button type="button" onClick={() => setStaffFilterId(null)} aria-label="Clear filter">
+            <FaXmark />
+          </button>
+        </div>
+      )}
+
       {/* Intake Queue for Documented Orders */}
       {documentedOrders.length > 0 && (
         <div className={styles.intakeQueue}>
@@ -130,7 +205,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
             onClick={() => setIntakeExpanded(!intakeExpanded)}
           >
             <span className={styles.intakeTitle}>
-              📋 Intake Queue <span className={styles.intakeCount}>{documentedOrders.length}</span>
+              <FaListCheck /> Intake Queue <span className={styles.intakeCount}>{documentedOrders.length}</span>
             </span>
             {intakeExpanded ? <FaChevronUp className={styles.intakeChevron} /> : <FaChevronDown className={styles.intakeChevron} />}
           </button>
@@ -221,7 +296,20 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
             customer={currentCustomer || null}
             userRole={userRole}
             onUpdatePayment={async (orderId, amount) => {
-              await updateOrder(orderId, { depositPaid: amount });
+              const target = orders.find((o) => o.id === orderId);
+              if (!target) return;
+              const newDeposit = Math.min(target.totalBill, target.depositPaid + amount);
+              const paymentRecord = {
+                id: `pay-${Date.now()}`,
+                amount,
+                recordedBy: user?.uid || '',
+                recordedByName: user?.name || 'Unknown',
+                timestamp: new Date().toISOString(),
+              };
+              await updateOrder(orderId, {
+                depositPaid: newDeposit,
+                payments: [...(target.payments || []), paymentRecord],
+              });
             }}
           />
         )}

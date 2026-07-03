@@ -44,7 +44,7 @@
   max-width: var(--sf-max-width-desktop);
   margin: 0 auto;
   position: relative;
-  background-color: #FFFFFF; /* Main white page card */
+  background-color: var(--sf-bg-primary); /* Main page canvas */
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   transform: none;
   border-radius: 0;
@@ -117,7 +117,7 @@
   .outerWrapper {
     display: flex;
     max-width: 100%;
-    background-color: #FFFFFF;
+    background-color: var(--sf-bg-primary);
   }
 
   .depthLayer {

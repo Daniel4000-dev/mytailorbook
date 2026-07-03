@@ -9,9 +9,10 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import type { Order, Customer, OrderStatus, StatusChange, Measurements, User } from '@/lib/types';
-import { MOCK_USERS } from '@/lib/mockData';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
+import { MOCK_USERS, MOCK_SHOPS } from '@/lib/mockData';
 import { normalizePhone } from '@/lib/formatters';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   getDatabase,
   addOrderAction,
@@ -19,72 +20,89 @@ import {
   updateOrderAction,
   addCustomerAction,
   updateCustomerMeasurementsAction,
-  addStaffAction
+  addStaffAction,
+  updateStaffAction,
+  updateShopAction,
 } from '@/app/actions';
 
 interface DataContextValue {
   orders: Order[];
   customers: Customer[];
   staffMembers: User[];
+  shops: Shop[];
+  currentShop: Shop | null;
   isLoaded: boolean;
-  addOrder: (order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => Promise<void>;
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
-  addCustomer: (customer: Omit<Customer, 'id' | 'createdAt'>) => Promise<Customer>;
+  addCustomer: (customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) => Promise<Customer>;
   updateCustomerMeasurements: (customerId: string, measurements: Measurements) => Promise<void>;
   getCustomerOrders: (customerId: string) => Order[];
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
   findOrCreateCustomer: (fullName: string, whatsappNumber: string) => Promise<Customer>;
   addStaff: (name: string, email: string) => Promise<void>;
+  updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
+  updateShop: (updates: Partial<Shop>) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [staffMembers, setStaffMembers] = useState<User[]>([]);
+  const { user } = useAuth();
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
+  const [allStaff, setAllStaff] = useState<User[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     getDatabase().then(db => {
-      setOrders(db.orders);
-      setCustomers(db.customers);
-      setStaffMembers(db.users || MOCK_USERS);
+      setAllOrders(db.orders);
+      setAllCustomers(db.customers);
+      setAllStaff(db.users || MOCK_USERS);
+      setShops(db.shops || MOCK_SHOPS);
       setIsLoaded(true);
     });
   }, []);
 
+  // Every read is scoped to the logged-in user's shop — this is the client-side
+  // stand-in for what Supabase row-level security will enforce per tenant.
+  const shopId = user?.shopId;
+  const orders = useMemo(() => allOrders.filter(o => o.shopId === shopId), [allOrders, shopId]);
+  const customers = useMemo(() => allCustomers.filter(c => c.shopId === shopId), [allCustomers, shopId]);
+  const staffMembers = useMemo(() => allStaff.filter(s => s.shopId === shopId), [allStaff, shopId]);
+  const currentShop = useMemo(() => shops.find(s => s.id === shopId) || null, [shops, shopId]);
 
   const addOrder = useCallback(
-    async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
+    async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
+      if (!shopId) return;
       const now = new Date().toISOString();
       const newOrder: Order = {
         ...orderData,
         id: `ord-${Date.now()}`,
+        shopId,
         statusHistory: orderData.statusHistory || [],
         createdAt: now,
         updatedAt: now,
       };
-      
+
       // Optimistic update
-      setOrders(prev => [newOrder, ...prev]);
-      
+      setAllOrders(prev => [newOrder, ...prev]);
+
       const updatedDb = await addOrderAction(newOrder);
-      setOrders(updatedDb.orders);
+      setAllOrders(updatedDb.orders);
     },
-    []
+    [shopId]
   );
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
-      const order = orders.find(o => o.id === orderId);
+      const order = allOrders.find(o => o.id === orderId);
       if (!order) return;
-      const customer = customers.find(c => c.id === order.customerId);
-      
+
       // Optimistic update
-      setOrders(prev => prev.map(o => {
+      setAllOrders(prev => prev.map(o => {
         if (o.id !== orderId) return o;
         return {
           ...o,
@@ -102,51 +120,53 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
       // Persist
       const updatedDb = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName);
-      setOrders(updatedDb.orders);
+      setAllOrders(updatedDb.orders);
     },
-    [orders, customers]
+    [allOrders]
   );
 
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
       // Optimistic update
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates, updatedAt: new Date().toISOString() } : o));
-      
+      setAllOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates, updatedAt: new Date().toISOString() } : o));
+
       // Persist
       const updatedDb = await updateOrderAction(orderId, updates);
-      setOrders(updatedDb.orders);
+      setAllOrders(updatedDb.orders);
     },
     []
   );
 
   const addCustomer = useCallback(
-    async (customerData: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer> => {
+    async (customerData: Omit<Customer, 'id' | 'shopId' | 'createdAt'>): Promise<Customer> => {
+      if (!shopId) throw new Error('No active shop for the current user');
       const newCustomer: Customer = {
         ...customerData,
         whatsappNumber: normalizePhone(customerData.whatsappNumber),
         id: `cust-${Date.now()}`,
+        shopId,
         createdAt: new Date().toISOString(),
       };
-      
+
       // Optimistic
-      setCustomers(prev => [newCustomer, ...prev]);
-      
+      setAllCustomers(prev => [newCustomer, ...prev]);
+
       // Persist
       const updatedDb = await addCustomerAction(newCustomer);
-      setCustomers(updatedDb.customers);
+      setAllCustomers(updatedDb.customers);
       return newCustomer;
     },
-    []
+    [shopId]
   );
 
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
       // Optimistic
-      setCustomers(prev => prev.map(c => c.id === customerId ? { ...c, measurements } : c));
-      
+      setAllCustomers(prev => prev.map(c => c.id === customerId ? { ...c, measurements } : c));
+
       // Persist
       const updatedDb = await updateCustomerMeasurementsAction(customerId, measurements);
-      setCustomers(updatedDb.customers);
+      setAllCustomers(updatedDb.customers);
     },
     []
   );
@@ -185,20 +205,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addStaff = useCallback(
     async (name: string, email: string) => {
+      if (!shopId) return;
       const newStaff: User = {
         uid: `user-${Date.now()}`,
         name,
         email,
         role: 'Staff',
+        shopId,
         createdAt: new Date().toISOString(),
       };
-      
-      setStaffMembers(prev => [...prev, newStaff]);
-      
+
+      setAllStaff(prev => [...prev, newStaff]);
+
       const updatedDb = await addStaffAction(newStaff);
-      setStaffMembers(updatedDb.users || []);
+      setAllStaff(updatedDb.users || []);
+    },
+    [shopId]
+  );
+
+  const updateStaff = useCallback(
+    async (uid: string, updates: Partial<User>) => {
+      setAllStaff(prev => prev.map(s => s.uid === uid ? { ...s, ...updates } : s));
+
+      const updatedDb = await updateStaffAction(uid, updates);
+      setAllStaff(updatedDb.users || []);
     },
     []
+  );
+
+  const updateShop = useCallback(
+    async (updates: Partial<Shop>) => {
+      if (!shopId) return;
+      setShops(prev => prev.map(s => s.id === shopId ? { ...s, ...updates } : s));
+
+      const updatedDb = await updateShopAction(shopId, updates);
+      setShops(updatedDb.shops || []);
+    },
+    [shopId]
   );
 
   const value = useMemo<DataContextValue>(
@@ -206,6 +249,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       orders,
       customers,
       staffMembers,
+      shops,
+      currentShop,
       isLoaded,
       addOrder,
       updateOrderStatus,
@@ -217,8 +262,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       getOrdersByStaff,
       findOrCreateCustomer,
       addStaff,
+      updateStaff,
+      updateShop,
     }),
-    [orders, customers, staffMembers, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff]
+    [orders, customers, staffMembers, shops, currentShop, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

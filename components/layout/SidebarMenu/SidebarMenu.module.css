@@ -235,6 +235,9 @@
     color: #7A6952;
     letter-spacing: 1px;
     white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .collapseToggle {
@@ -310,6 +313,7 @@
     background-color: var(--sf-accent-emerald-glow);
     color: var(--sf-accent-emerald) !important;
     font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
   }
 
   .menuItem.active .menuIcon {

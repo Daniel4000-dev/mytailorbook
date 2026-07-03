@@ -1,0 +1,184 @@
+.page {
+  min-height: 100vh;
+  background: #F5F5F0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--sf-space-xl) var(--sf-space-md);
+}
+
+.actionsBar {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--sf-space-md);
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border-radius: var(--sf-radius-lg);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  padding: var(--sf-space-2xl);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.brand {
+  font-family: var(--sf-font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--sf-text-primary);
+}
+
+.brandSub {
+  display: block;
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+.receiptMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.receiptLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--sf-text-tertiary);
+}
+
+.receiptId {
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+  font-weight: 700;
+}
+
+.receiptDate {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--sf-border-light);
+  margin: var(--sf-space-lg) 0;
+}
+
+.sectionLabel {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: var(--sf-text-tertiary);
+  margin-bottom: var(--sf-space-xs);
+}
+
+.billTo {
+  display: flex;
+  flex-direction: column;
+}
+
+.customerName {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.customerPhone {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+}
+
+.itemSection {
+  margin-top: var(--sf-space-lg);
+}
+
+.orderDetails {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 var(--sf-space-xs) 0;
+}
+
+.orderStatus {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+.billTable, .paymentTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.billTable td {
+  padding: 6px 0;
+  color: var(--sf-text-secondary);
+}
+
+.balanceRow td {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--sf-text-primary);
+  border-top: 1px solid var(--sf-border-light);
+  padding-top: var(--sf-space-sm);
+}
+
+.amountCol {
+  text-align: right;
+}
+
+.paymentTable th {
+  text-align: left;
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.paymentTable td {
+  padding: 6px 0;
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+}
+
+.footer {
+  margin-top: var(--sf-space-2xl);
+  text-align: center;
+  color: var(--sf-text-tertiary);
+  font-size: 13px;
+}
+
+.poweredBy {
+  margin-top: var(--sf-space-xs);
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+@media print {
+  .page {
+    background: #fff;
+    padding: 0;
+  }
+  .card {
+    box-shadow: none;
+    max-width: 100%;
+  }
+  :global(.noPrint) {
+    display: none !important;
+  }
+}

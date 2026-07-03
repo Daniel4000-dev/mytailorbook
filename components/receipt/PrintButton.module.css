@@ -1,0 +1,17 @@
+.printBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-sm) var(--sf-space-lg);
+  background: var(--sf-accent-emerald);
+  color: #fff;
+  border: none;
+  border-radius: var(--sf-radius-md);
+  font-size: var(--sf-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.printBtn:hover {
+  filter: brightness(1.05);
+}

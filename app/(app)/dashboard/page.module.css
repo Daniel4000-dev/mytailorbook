@@ -387,3 +387,170 @@
 .cardPrivacyBtn:hover {
   color: var(--sf-text-secondary);
 }
+
+/* ── Team Snapshot ── */
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-md);
+}
+
+@media (min-width: 1024px) {
+  .teamGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.teamCard {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.teamCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.teamCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.teamAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--sf-text-sm);
+  flex-shrink: 0;
+}
+
+.teamName {
+  font-weight: 600;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamStatsRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.teamStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.teamStatValue {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-lg);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.teamStatAlert {
+  color: #DC2626;
+}
+
+.teamStatLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
+}
+
+/* ── Attention / Task List ── */
+.emptyState {
+  background: #FFFFFF;
+  border: 1px dashed var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-xl);
+  text-align: center;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+}
+
+.attentionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.attentionRow {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md) var(--sf-space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.attentionRow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.attentionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.attentionCustomer {
+  font-weight: 600;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+}
+
+.attentionDetails {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
+}
+
+.attentionMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  flex-shrink: 0;
+}
+
+.attentionAssignee {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
+}

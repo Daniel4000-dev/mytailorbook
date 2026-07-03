@@ -1,63 +1,10 @@
 {
   "orders": [
     {
-      "customerId": "cust-003",
-      "customerName": "Alhaji Musa Ibrahim",
-      "orderDetails": "kgvj",
-      "totalBill": 26,
-      "depositPaid": 19,
-      "status": "Cutting",
-      "dueDate": "2026-07-08T00:00:00.000Z",
-      "priority": "normal",
-      "images": [],
-      "statusHistory": [
-        {
-          "from": null,
-          "to": "Documented",
-          "changedBy": "user-owner-001",
-          "changedByName": "Adebayo Fashola",
-          "timestamp": "2026-06-30T22:12:24.762Z"
-        },
-        {
-          "from": "Documented",
-          "to": "Cutting",
-          "changedBy": "user-owner-001",
-          "changedByName": "Adebayo Fashola",
-          "timestamp": "2026-06-30T22:13:04.102Z"
-        }
-      ],
-      "id": "ord-1782857544762",
-      "createdAt": "2026-06-30T22:12:24.762Z",
-      "updatedAt": "2026-06-30T22:13:04.102Z"
-    },
-    {
-      "customerId": "cust-002",
-      "customerName": "Mrs. Folake Adeyemi",
-      "orderDetails": "fg",
-      "totalBill": 5,
-      "depositPaid": 2,
-      "status": "Documented",
-      "dueDate": "2026-06-30T00:00:00.000Z",
-      "priority": "normal",
-      "images": [],
-      "statusHistory": [
-        {
-          "from": null,
-          "to": "Documented",
-          "changedBy": "user-owner-001",
-          "changedByName": "Adebayo Fashola",
-          "timestamp": "2026-06-30T21:54:14.127Z"
-        }
-      ],
-      "id": "ord-1782856454127",
-      "createdAt": "2026-06-30T21:54:14.127Z",
-      "updatedAt": "2026-06-30T21:54:14.127Z"
-    },
-    {
       "id": "ord-001",
       "customerId": "cust-001",
       "customerName": "Chief Emeka Okafor",
-      "orderDetails": "3-piece Agbada set — Royal blue Senator fabric, gold embroidery on collar and sleeves. Cap included.",
+      "orderDetails": "3-piece Agbada set \u2014 Royal blue Senator fabric, gold embroidery on collar and sleeves. Cap included.",
       "totalBill": 185000,
       "depositPaid": 185000,
       "status": "Cutting",
@@ -83,13 +30,14 @@
         }
       ],
       "createdAt": "2025-06-18T09:00:00Z",
-      "updatedAt": "2026-06-30T12:44:09.709Z"
+      "updatedAt": "2026-06-30T12:44:09.709Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-002",
       "customerId": "cust-004",
       "customerName": "Dr. Ngozi Ibe",
-      "orderDetails": "Ankara skirt & blouse — Flared skirt with peplum blouse, Vlisco Holland print.",
+      "orderDetails": "Ankara skirt & blouse \u2014 Flared skirt with peplum blouse, Vlisco Holland print.",
       "totalBill": 75000,
       "depositPaid": 40000,
       "status": "Cutting",
@@ -108,13 +56,14 @@
         }
       ],
       "createdAt": "2025-06-19T10:30:00Z",
-      "updatedAt": "2025-06-19T10:30:00Z"
+      "updatedAt": "2025-06-19T10:30:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-003",
       "customerId": "cust-006",
       "customerName": "Aisha Bello",
-      "orderDetails": "Kaftan dress — Chiffon with lace overlay, dusty pink, full-length with bell sleeves.",
+      "orderDetails": "Kaftan dress \u2014 Chiffon with lace overlay, dusty pink, full-length with bell sleeves.",
       "totalBill": 95000,
       "depositPaid": 50000,
       "status": "Cutting",
@@ -133,13 +82,14 @@
         }
       ],
       "createdAt": "2025-06-20T08:15:00Z",
-      "updatedAt": "2025-06-20T08:15:00Z"
+      "updatedAt": "2025-06-20T08:15:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-004",
       "customerId": "cust-002",
       "customerName": "Mrs. Folake Adeyemi",
-      "orderDetails": "Aso-oke set for wedding — Burgundy and gold, Iro & Buba with Gele. Matching Fila for husband.",
+      "orderDetails": "Aso-oke set for wedding \u2014 Burgundy and gold, Iro & Buba with Gele. Matching Fila for husband.",
       "totalBill": 350000,
       "depositPaid": 200000,
       "status": "Sewing",
@@ -165,13 +115,14 @@
         }
       ],
       "createdAt": "2025-06-12T14:00:00Z",
-      "updatedAt": "2025-06-16T11:00:00Z"
+      "updatedAt": "2025-06-16T11:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-005",
       "customerId": "cust-003",
       "customerName": "Alhaji Musa Ibrahim",
-      "orderDetails": "Babariga — White jacquard fabric with silver embroidery. Matching trousers and cap.",
+      "orderDetails": "Babariga \u2014 White jacquard fabric with silver embroidery. Matching trousers and cap.",
       "totalBill": 120000,
       "depositPaid": 120000,
       "status": "Sewing",
@@ -197,13 +148,14 @@
         }
       ],
       "createdAt": "2025-06-14T09:45:00Z",
-      "updatedAt": "2025-06-17T10:00:00Z"
+      "updatedAt": "2025-06-17T10:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-006",
       "customerId": "cust-005",
       "customerName": "Pastor David Okonkwo",
-      "orderDetails": "English suit — Navy blue Italian wool, slim fit, 2-button. Matching waistcoat included.",
+      "orderDetails": "English suit \u2014 Navy blue Italian wool, slim fit, 2-button. Matching waistcoat included.",
       "totalBill": 250000,
       "depositPaid": 150000,
       "status": "Sewing",
@@ -229,13 +181,14 @@
         }
       ],
       "createdAt": "2025-06-10T11:30:00Z",
-      "updatedAt": "2025-06-15T16:00:00Z"
+      "updatedAt": "2025-06-15T16:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-007",
       "customerId": "cust-008",
       "customerName": "Iyabo Ogundimu",
-      "orderDetails": "Lace Iro & Buba — French lace, emerald green with gold gele and ipele.",
+      "orderDetails": "Lace Iro & Buba \u2014 French lace, emerald green with gold gele and ipele.",
       "totalBill": 280000,
       "depositPaid": 150000,
       "status": "Sewing",
@@ -261,13 +214,14 @@
         }
       ],
       "createdAt": "2025-06-08T13:00:00Z",
-      "updatedAt": "2025-06-14T09:30:00Z"
+      "updatedAt": "2025-06-14T09:30:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-008",
       "customerId": "cust-007",
       "customerName": "Barr. Chidi Nwankwo",
-      "orderDetails": "Isiagu top — Traditional Igbo lion-head pattern with plain black trousers.",
+      "orderDetails": "Isiagu top \u2014 Traditional Igbo lion-head pattern with plain black trousers.",
       "totalBill": 85000,
       "depositPaid": 85000,
       "status": "Ready",
@@ -300,13 +254,14 @@
         }
       ],
       "createdAt": "2025-06-05T10:00:00Z",
-      "updatedAt": "2025-06-18T14:00:00Z"
+      "updatedAt": "2025-06-18T14:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-009",
       "customerId": "cust-001",
       "customerName": "Chief Emeka Okafor",
-      "orderDetails": "Dashiki shirt — Cotton, earth-tone print, relaxed fit for casual wear.",
+      "orderDetails": "Dashiki shirt \u2014 Cotton, earth-tone print, relaxed fit for casual wear.",
       "totalBill": 35000,
       "depositPaid": 35000,
       "status": "Ready",
@@ -339,13 +294,14 @@
         }
       ],
       "createdAt": "2025-06-06T09:00:00Z",
-      "updatedAt": "2025-06-19T11:30:00Z"
+      "updatedAt": "2025-06-19T11:30:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-010",
       "customerId": "cust-004",
       "customerName": "Dr. Ngozi Ibe",
-      "orderDetails": "Corporate dress — Fitted sheath dress, navy blue crepe fabric with peplum detail.",
+      "orderDetails": "Corporate dress \u2014 Fitted sheath dress, navy blue crepe fabric with peplum detail.",
       "totalBill": 65000,
       "depositPaid": 30000,
       "status": "Ready",
@@ -378,13 +334,14 @@
         }
       ],
       "createdAt": "2025-06-03T15:20:00Z",
-      "updatedAt": "2025-06-18T16:45:00Z"
+      "updatedAt": "2025-06-18T16:45:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-011",
       "customerId": "cust-002",
       "customerName": "Mrs. Folake Adeyemi",
-      "orderDetails": "Sunday dress — Chiffon gown, coral pink, A-line with lace sleeves.",
+      "orderDetails": "Sunday dress \u2014 Chiffon gown, coral pink, A-line with lace sleeves.",
       "totalBill": 55000,
       "depositPaid": 55000,
       "status": "Completed",
@@ -423,13 +380,14 @@
         }
       ],
       "createdAt": "2025-05-20T10:00:00Z",
-      "updatedAt": "2025-06-01T12:00:00Z"
+      "updatedAt": "2025-06-01T12:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-012",
       "customerId": "cust-003",
       "customerName": "Alhaji Musa Ibrahim",
-      "orderDetails": "Casual Senator — Light grey linen, short-sleeve, with matching trousers.",
+      "orderDetails": "Casual Senator \u2014 Light grey linen, short-sleeve, with matching trousers.",
       "totalBill": 65000,
       "depositPaid": 65000,
       "status": "Completed",
@@ -468,13 +426,14 @@
         }
       ],
       "createdAt": "2025-05-15T09:30:00Z",
-      "updatedAt": "2025-05-28T14:00:00Z"
+      "updatedAt": "2025-05-28T14:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-013",
       "customerId": "cust-006",
       "customerName": "Aisha Bello",
-      "orderDetails": "Abaya set — Black with silver stone embellishments, matching hijab and undercap.",
+      "orderDetails": "Abaya set \u2014 Black with silver stone embellishments, matching hijab and undercap.",
       "totalBill": 45000,
       "depositPaid": 45000,
       "status": "Completed",
@@ -513,13 +472,14 @@
         }
       ],
       "createdAt": "2025-05-10T12:00:00Z",
-      "updatedAt": "2025-05-22T10:00:00Z"
+      "updatedAt": "2025-05-22T10:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-014",
       "customerId": "cust-005",
       "customerName": "Pastor David Okonkwo",
-      "orderDetails": "Choir robe — White polyester with gold sash and cross embroidery on back.",
+      "orderDetails": "Choir robe \u2014 White polyester with gold sash and cross embroidery on back.",
       "totalBill": 40000,
       "depositPaid": 40000,
       "status": "Completed",
@@ -558,13 +518,14 @@
         }
       ],
       "createdAt": "2025-05-05T11:00:00Z",
-      "updatedAt": "2025-05-18T15:30:00Z"
+      "updatedAt": "2025-05-18T15:30:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "ord-015",
       "customerId": "cust-008",
       "customerName": "Iyabo Ogundimu",
-      "orderDetails": "Casual Ankara top — Off-shoulder crop with puff sleeves, multi-color wax print.",
+      "orderDetails": "Casual Ankara top \u2014 Off-shoulder crop with puff sleeves, multi-color wax print.",
       "totalBill": 25000,
       "depositPaid": 25000,
       "status": "Completed",
@@ -603,7 +564,8 @@
         }
       ],
       "createdAt": "2025-04-28T14:15:00Z",
-      "updatedAt": "2025-05-10T09:00:00Z"
+      "updatedAt": "2025-05-10T09:00:00Z",
+      "shopId": "shop-001"
     }
   ],
   "customers": [
@@ -622,7 +584,8 @@
         "trouserLength": 42,
         "notes": "Prefers slightly loose fit on agbada"
       },
-      "createdAt": "2024-02-10T10:00:00Z"
+      "createdAt": "2024-02-10T10:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-002",
@@ -638,7 +601,8 @@
         "dressLength": 45,
         "notes": "Allergic to certain synthetic fabrics"
       },
-      "createdAt": "2024-03-15T14:30:00Z"
+      "createdAt": "2024-03-15T14:30:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-003",
@@ -654,7 +618,8 @@
         "neck": 17,
         "trouserLength": 43
       },
-      "createdAt": "2024-04-02T09:15:00Z"
+      "createdAt": "2024-04-02T09:15:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-004",
@@ -669,7 +634,8 @@
         "sleeveLength": 21,
         "dressLength": 40
       },
-      "createdAt": "2024-05-20T11:45:00Z"
+      "createdAt": "2024-05-20T11:45:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-005",
@@ -685,7 +651,8 @@
         "neck": 16,
         "trouserLength": 41
       },
-      "createdAt": "2024-06-01T16:00:00Z"
+      "createdAt": "2024-06-01T16:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-006",
@@ -701,7 +668,8 @@
         "dressLength": 52,
         "notes": "Full length preferred for kaftans"
       },
-      "createdAt": "2024-07-12T13:20:00Z"
+      "createdAt": "2024-07-12T13:20:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-007",
@@ -717,7 +685,8 @@
         "neck": 15.5,
         "trouserLength": 40
       },
-      "createdAt": "2024-08-05T10:10:00Z"
+      "createdAt": "2024-08-05T10:10:00Z",
+      "shopId": "shop-001"
     },
     {
       "id": "cust-008",
@@ -733,7 +702,8 @@
         "dressLength": 44,
         "notes": "Prefers peplum styles"
       },
-      "createdAt": "2024-09-18T15:30:00Z"
+      "createdAt": "2024-09-18T15:30:00Z",
+      "shopId": "shop-001"
     }
   ],
   "users": [
@@ -742,21 +712,34 @@
       "name": "Adebayo Fashola",
       "email": "adebayo@mytailorbook.com",
       "role": "Owner",
-      "createdAt": "2024-01-15T09:00:00Z"
+      "createdAt": "2024-01-15T09:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "uid": "user-staff-001",
       "name": "Chioma Eze",
       "email": "chioma@mytailorbook.com",
       "role": "Staff",
-      "createdAt": "2024-03-10T11:00:00Z"
+      "createdAt": "2024-03-10T11:00:00Z",
+      "shopId": "shop-001"
     },
     {
       "uid": "user-staff-002",
       "name": "Tunde Bakare",
       "email": "tunde@mytailorbook.com",
       "role": "Staff",
-      "createdAt": "2024-06-01T08:30:00Z"
+      "createdAt": "2024-06-01T08:30:00Z",
+      "shopId": "shop-001"
+    }
+  ],
+  "shops": [
+    {
+      "id": "shop-001",
+      "name": "Adebayo Fashion Studio",
+      "phone": "2348012345678",
+      "address": "Lagos, Nigeria",
+      "ownerUid": "user-owner-001",
+      "createdAt": "2024-01-15T09:00:00Z"
     }
   ]
 }

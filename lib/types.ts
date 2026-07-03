@@ -6,6 +6,15 @@
 
 export type Role = 'Owner' | 'Staff';
 
+export interface Shop {
+  id: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  ownerUid: string;
+  createdAt: string;
+}
+
 export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';
 
 export type Priority = 'normal' | 'urgent' | 'rush';
@@ -15,6 +24,8 @@ export interface User {
   name: string;
   email: string;
   role: Role;
+  shopId: string;
+  active?: boolean; // undefined/true = active, false = deactivated
   createdAt: string;
 }
 
@@ -52,6 +63,7 @@ export interface Measurements {
 
 export interface Customer {
   id: string;
+  shopId: string;
   fullName: string;
   whatsappNumber: string;
   gender: 'male' | 'female';
@@ -67,8 +79,18 @@ export interface StatusChange {
   timestamp: string;
 }
 
+export interface PaymentRecord {
+  id: string;
+  amount: number;
+  note?: string;
+  recordedBy: string;      // User uid
+  recordedByName: string;  // User display name
+  timestamp: string;
+}
+
 export interface Order {
   id: string;
+  shopId: string;
   customerId: string;
   customerName: string;
   orderDetails: string;
@@ -80,6 +102,7 @@ export interface Order {
   dueDate?: string;          // ISO date string
   priority: Priority;
   images?: string[];         // URLs or base64 data URIs
+  payments?: PaymentRecord[];
   statusHistory: StatusChange[];
   createdAt: string;
   updatedAt: string;

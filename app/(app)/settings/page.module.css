@@ -152,6 +152,60 @@
   color: var(--sf-text-tertiary);
 }
 
+.staffItemInactive {
+  opacity: 0.55;
+}
+
+.inactiveBadge {
+  margin-left: var(--sf-space-sm);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-full);
+}
+
+.staffActions {
+  display: flex;
+  gap: var(--sf-space-xs);
+  margin-left: auto;
+}
+
+.staffActionBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border-light);
+  background: #fff;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.staffActionBtn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface-hover);
+}
+
+.staffEditForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  flex: 1;
+}
+
+.staffEditActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sf-space-sm);
+}
+
 /* Form Group */
 .form {
   display: flex;

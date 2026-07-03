@@ -8,13 +8,14 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
-import { FaBars, FaUserPlus, FaUsers, FaArrowRight, FaGear } from 'react-icons/fa6';
+import { FaBars, FaUserPlus, FaUsers, FaArrowRight, FaGear, FaPen, FaUserSlash, FaUserCheck, FaStore } from 'react-icons/fa6';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { formatPhone } from '@/lib/formatters';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
   const { user, isOwner } = useAuth();
-  const { staffMembers, addStaff } = useData();
+  const { staffMembers, addStaff, updateStaff, currentShop, updateShop } = useData();
   const { toggleMenu } = useSidebar();
 
   const [name, setName] = useState('');
@@ -22,6 +23,17 @@ export default function SettingsPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const [editingUid, setEditingUid] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const [editingShop, setEditingShop] = useState(false);
+  const [shopName, setShopName] = useState('');
+  const [shopPhone, setShopPhone] = useState('');
+  const [shopAddress, setShopAddress] = useState('');
+  const [savingShop, setSavingShop] = useState(false);
 
   if (!isOwner) {
     return (
@@ -33,6 +45,43 @@ export default function SettingsPage() {
       </PageLayout>
     );
   }
+
+  const startEditStaff = (staff: { uid: string; name: string; email: string }) => {
+    setEditingUid(staff.uid);
+    setEditName(staff.name);
+    setEditEmail(staff.email);
+  };
+
+  const handleSaveStaffEdit = async (uid: string) => {
+    setSavingEdit(true);
+    try {
+      await updateStaff(uid, { name: editName, email: editEmail });
+      setEditingUid(null);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleToggleActive = async (uid: string, currentlyActive: boolean) => {
+    await updateStaff(uid, { active: !currentlyActive });
+  };
+
+  const startEditShop = () => {
+    setShopName(currentShop?.name || '');
+    setShopPhone(currentShop?.phone || '');
+    setShopAddress(currentShop?.address || '');
+    setEditingShop(true);
+  };
+
+  const handleSaveShop = async () => {
+    setSavingShop(true);
+    try {
+      await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined });
+      setEditingShop(false);
+    } finally {
+      setSavingShop(false);
+    }
+  };
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +143,41 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Studio / Shop Profile Card — this is what appears on receipts and the customer tracking page */}
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>
+            <FaStore className={styles.sectionIcon} /> Studio Profile
+          </h3>
+          <div className={styles.card}>
+            {editingShop ? (
+              <div className={styles.form}>
+                <Input label="Shop / Studio Name" value={shopName} onChange={(e) => setShopName(e.target.value)} required />
+                <Input label="Phone (shown on receipts)" value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="08012345678" />
+                <Input label="Address" value={shopAddress} onChange={(e) => setShopAddress(e.target.value)} placeholder="Shop address" />
+                <div className={styles.staffEditActions}>
+                  <Button variant="ghost" size="sm" onClick={() => setEditingShop(false)}>Cancel</Button>
+                  <Button variant="primary" size="sm" loading={savingShop} onClick={handleSaveShop}>Save</Button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.profileRow}>
+                <div className={styles.avatarLarge}>
+                  <FaStore />
+                </div>
+                <div className={styles.profileInfo}>
+                  <h4 className={styles.profileName}>{currentShop?.name || 'Unnamed Studio'}</h4>
+                  {currentShop?.phone && <p className={styles.profileEmail}>{formatPhone(currentShop.phone)}</p>}
+                  {currentShop?.address && <p className={styles.profileEmail}>{currentShop.address}</p>}
+                  <p className={styles.profileRole}>This name appears on customer receipts &amp; tracking pages</p>
+                </div>
+                <button type="button" className={styles.staffActionBtn} style={{ marginLeft: 'auto', flexShrink: 0 }} onClick={startEditShop} aria-label="Edit studio profile">
+                  <FaPen />
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* Staff Directory Card */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>
@@ -101,17 +185,53 @@ export default function SettingsPage() {
           </h3>
           <div className={styles.card}>
             <div className={styles.staffList}>
-              {staffMembers.map((staff) => (
-                <div key={staff.uid} className={styles.staffItem}>
-                  <div className={styles.avatarCircle}>
-                    {staff.name[0]}
+              {staffMembers.map((staff) => {
+                const isActive = staff.active !== false;
+                const isEditing = editingUid === staff.uid;
+                return (
+                  <div key={staff.uid} className={`${styles.staffItem} ${!isActive ? styles.staffItemInactive : ''}`}>
+                    <div className={styles.avatarCircle}>
+                      {staff.name[0]}
+                    </div>
+                    {isEditing ? (
+                      <div className={styles.staffEditForm}>
+                        <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Full name" />
+                        <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email" type="email" />
+                        <div className={styles.staffEditActions}>
+                          <Button variant="ghost" size="sm" onClick={() => setEditingUid(null)}>Cancel</Button>
+                          <Button variant="primary" size="sm" loading={savingEdit} onClick={() => handleSaveStaffEdit(staff.uid)}>Save</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className={styles.staffInfo}>
+                          <span className={styles.staffName}>
+                            {staff.name}
+                            {!isActive && <span className={styles.inactiveBadge}>Inactive</span>}
+                          </span>
+                          <span className={styles.staffRole}>{staff.role} ({staff.email})</span>
+                        </div>
+                        {staff.role === 'Staff' && (
+                          <div className={styles.staffActions}>
+                            <button type="button" className={styles.staffActionBtn} onClick={() => startEditStaff(staff)} aria-label="Edit staff">
+                              <FaPen />
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.staffActionBtn}
+                              onClick={() => handleToggleActive(staff.uid, isActive)}
+                              aria-label={isActive ? 'Deactivate staff' : 'Reactivate staff'}
+                              title={isActive ? 'Deactivate' : 'Reactivate'}
+                            >
+                              {isActive ? <FaUserSlash /> : <FaUserCheck />}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                  <div className={styles.staffInfo}>
-                    <span className={styles.staffName}>{staff.name}</span>
-                    <span className={styles.staffRole}>{staff.role} ({staff.email})</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

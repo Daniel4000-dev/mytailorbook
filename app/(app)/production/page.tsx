@@ -1,12 +1,13 @@
 'use client';
 
-
+import { Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import KanbanBoard from '@/components/kanban/KanbanBoard/KanbanBoard';
-import { FaBell, FaBars } from 'react-icons/fa6';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
+import { FaBars } from 'react-icons/fa6';
 import styles from './page.module.css';
 
 export default function ProductionPage() {
@@ -28,18 +29,16 @@ export default function ProductionPage() {
           }
           rightAction={
             <div className={styles.headerActions}>
-              {/* Notification Button */}
-              <div className={styles.notificationBtn} title="Notifications">
-                <span className={styles.badgeCount}>0</span>
-                <FaBell className={styles.bellIcon} />
-              </div>
+              <NotificationBell />
             </div>
           }
         />
       }
     >
       <div className={styles.boardWrapper}>
-        <KanbanBoard userRole={user?.role || 'Staff'} />
+        <Suspense fallback={null}>
+          <KanbanBoard userRole={user?.role || 'Staff'} />
+        </Suspense>
       </div>
     </PageLayout>
   );

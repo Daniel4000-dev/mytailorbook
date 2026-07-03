@@ -1,30 +1,61 @@
 'use client';
 
 import { useState } from 'react';
-import { FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaTimeline, FaCircleCheck, FaScissors } from 'react-icons/fa6';
+import {
+  FaUser,
+  FaCalendarDays,
+  FaClock,
+  FaRegCommentDots,
+  FaLink,
+  FaWhatsapp,
+  FaCreditCard,
+  FaTimeline,
+  FaCircleCheck,
+  FaScissors,
+  FaPen,
+  FaPrint,
+  FaCamera,
+  FaXmark,
+  FaTriangleExclamation,
+  FaFireFlameCurved,
+  FaBolt,
+} from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import Badge from '@/components/ui/Badge/Badge';
 import Button from '@/components/ui/Button/Button';
+import Input from '@/components/ui/Input/Input';
+import TextArea from '@/components/ui/TextArea/TextArea';
+import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
 import { formatCurrency, formatDate, getWhatsAppLink } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue } from '@/lib/types';
-import type { Order, Role, Customer } from '@/lib/types';
+import type { Order, Role, Customer, Priority } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
 
 interface OrderDetailSheetProps {
   order: Order;
   customer: Customer | null;
   userRole: Role;
-  onUpdatePayment: (orderId: string, amount: number) => Promise<void>;
+  onUpdatePayment: (orderId: string, amount: number, note?: string) => Promise<void>;
 }
 
 export default function OrderDetailSheet({ order, customer, userRole, onUpdatePayment }: OrderDetailSheetProps) {
   const [copied, setCopied] = useState(false);
-  const [markingPaid, setMarkingPaid] = useState(false);
+  const [recordingPayment, setRecordingPayment] = useState(false);
   const [startingProd, setStartingProd] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDetails, setEditDetails] = useState(order.orderDetails);
+  const [editDueDate, setEditDueDate] = useState(order.dueDate ? order.dueDate.slice(0, 10) : '');
+  const [editPriority, setEditPriority] = useState<Priority>(order.priority);
+  const [editAssignedTo, setEditAssignedTo] = useState(order.assignedTo || '');
+  const [editTotalBill, setEditTotalBill] = useState(String(order.totalBill));
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
   const { user } = useAuth();
-  const { updateOrderStatus } = useData();
+  const { updateOrderStatus, updateOrder, staffMembers } = useData();
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/track/${order.id}`;
@@ -35,12 +66,14 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
 
   const balanceOwed = getBalanceOwed(order);
 
-  const handleMarkAsPaid = async () => {
-    setMarkingPaid(true);
+  const handleRecordPayment = async (amount: number) => {
+    if (amount <= 0) return;
+    setRecordingPayment(true);
     try {
-      await onUpdatePayment(order.id, order.totalBill);
+      await onUpdatePayment(order.id, amount);
+      setPaymentAmount('');
     } finally {
-      setMarkingPaid(false);
+      setRecordingPayment(false);
     }
   };
 
@@ -53,14 +86,86 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     }
   };
 
+  const staffOptions = [
+    { value: '', label: 'Unassigned' },
+    ...staffMembers
+      .filter((s) => s.role === 'Staff' && (s.active !== false || s.uid === order.assignedTo))
+      .map((s) => ({ value: s.uid, label: s.name })),
+  ];
+
+  const priorityOptions: { value: Priority; label: string }[] = [
+    { value: 'normal', label: 'Normal' },
+    { value: 'urgent', label: '⚡ Urgent' },
+    { value: 'rush', label: '🔥 Rush' },
+  ];
+
+  const startEditing = () => {
+    setEditDetails(order.orderDetails);
+    setEditDueDate(order.dueDate ? order.dueDate.slice(0, 10) : '');
+    setEditPriority(order.priority);
+    setEditAssignedTo(order.assignedTo || '');
+    setEditTotalBill(String(order.totalBill));
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    setSavingEdit(true);
+    try {
+      const assignee = staffMembers.find((s) => s.uid === editAssignedTo);
+      const updates: Partial<Order> =
+        userRole === 'Owner'
+          ? {
+              orderDetails: editDetails,
+              dueDate: editDueDate ? new Date(editDueDate).toISOString() : undefined,
+              priority: editPriority,
+              assignedTo: editAssignedTo || undefined,
+              assignedToName: assignee?.name,
+              totalBill: parseInt(editTotalBill.replace(/,/g, '')) || 0,
+            }
+          : { orderDetails: editDetails };
+      await updateOrder(order.id, updates);
+      setIsEditing(false);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingPhoto(true);
+    const readers = Array.from(files).map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+    );
+    Promise.all(readers)
+      .then(async (dataUrls) => {
+        await updateOrder(order.id, { images: [...(order.images || []), ...dataUrls] });
+      })
+      .finally(() => {
+        setUploadingPhoto(false);
+        e.target.value = '';
+      });
+  };
+
+  const handleRemovePhoto = async (index: number) => {
+    const next = (order.images || []).filter((_, i) => i !== index);
+    await updateOrder(order.id, { images: next });
+  };
+
   return (
     <div className={styles.orderDetail}>
       {/* Send to Production Button (for Documented orders) */}
       {order.status === 'Documented' && (
         <div style={{ marginBottom: '16px' }}>
-          <Button 
-            variant="primary" 
-            fullWidth 
+          <Button
+            variant="primary"
+            fullWidth
             loading={startingProd}
             onClick={handleStartProduction}
             icon={<FaScissors />}
@@ -79,11 +184,16 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
           <div className={styles.customerInfo}>
             <h3 className={styles.customerHeaderName}>{order.customerName}</h3>
             <div className={styles.detailFlex}>
-              <Badge variant={order.status.toLowerCase() as any}>
+              <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'}>
                 {order.status}
               </Badge>
               {isOverdue(order) && (
-                <Badge variant="default">⚠ Overdue</Badge>
+                <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>
+              )}
+              {order.priority !== 'normal' && (
+                <Badge variant="gold">
+                  {order.priority === 'rush' ? <FaFireFlameCurved /> : <FaBolt />} {order.priority === 'rush' ? 'Rush' : 'Urgent'}
+                </Badge>
               )}
             </div>
           </div>
@@ -99,7 +209,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               </div>
             </div>
           )}
-          
+
           {order.dueDate && (
             <div className={styles.metaItem}>
               <FaCalendarDays className={styles.metaIcon} />
@@ -124,10 +234,90 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
 
       {/* Details Card */}
       <div className={styles.premiumCard}>
+        <div className={styles.cardHeaderRow}>
+          <span className={styles.cardSectionTitle}>
+            <FaRegCommentDots /> Order Details & Notes
+          </span>
+          {!isEditing && (
+            <button type="button" className={styles.iconBtn} onClick={startEditing} aria-label="Edit order">
+              <FaPen />
+            </button>
+          )}
+        </div>
+
+        {isEditing ? (
+          <div className={styles.editForm}>
+            <TextArea
+              label="Order Details"
+              value={editDetails}
+              onChange={(e) => setEditDetails(e.target.value)}
+              rows={3}
+            />
+            {userRole === 'Owner' && (
+              <>
+                <div className={styles.editRow}>
+                  <Input
+                    label="Due Date"
+                    type="date"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                  />
+                  <Select
+                    label="Priority"
+                    options={priorityOptions}
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value as Priority)}
+                  />
+                </div>
+                <div className={styles.editRow}>
+                  <Select
+                    label="Assign To"
+                    options={staffOptions}
+                    value={editAssignedTo}
+                    onChange={(e) => setEditAssignedTo(e.target.value)}
+                  />
+                  <Input
+                    label="Total Bill (₦)"
+                    value={editTotalBill}
+                    onChange={(e) => setEditTotalBill(e.target.value.replace(/[^0-9,]/g, ''))}
+                    inputMode="numeric"
+                  />
+                </div>
+              </>
+            )}
+            <div className={styles.editActions}>
+              <Button variant="ghost" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className={styles.premiumDetailText}>{order.orderDetails}</p>
+        )}
+      </div>
+
+      {/* Photos Card */}
+      <div className={styles.premiumCard}>
         <span className={styles.cardSectionTitle}>
-          <FaRegCommentDots /> Order Details & Notes
+          <FaCamera /> Garment Photos
         </span>
-        <p className={styles.premiumDetailText}>{order.orderDetails}</p>
+        <div className={styles.photoGrid}>
+          {(order.images || []).map((src, i) => (
+            <div key={i} className={styles.photoThumb}>
+              <img src={src} alt={`Order photo ${i + 1}`} />
+              <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
+                <FaXmark />
+              </button>
+            </div>
+          ))}
+          <label className={styles.photoUploadBtn}>
+            <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+            {uploadingPhoto ? '…' : <FaCamera />}
+          </label>
+        </div>
       </div>
 
       {/* Financial Summary Card (Owner Only) */}
@@ -150,27 +340,63 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               <span className={styles.finGoldValue}>{formatCurrency(balanceOwed)}</span>
             </div>
           </div>
-          
+
           {balanceOwed > 0 && (
-            <div className={styles.markPaidBtn}>
-              <Button 
-                variant="primary" 
-                fullWidth 
-                loading={markingPaid}
-                onClick={handleMarkAsPaid}
+            <div className={styles.recordPaymentRow}>
+              <Input
+                placeholder="Amount"
+                prefix="₦"
+                inputMode="numeric"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value.replace(/[^0-9]/g, ''))}
+              />
+              <Button variant="ghost" size="sm" onClick={() => setPaymentAmount(String(balanceOwed))}>
+                Full Balance
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                loading={recordingPayment}
                 icon={<FaCircleCheck />}
+                onClick={() => handleRecordPayment(parseInt(paymentAmount) || 0)}
               >
-                Mark as Paid in Full
+                Record Payment
               </Button>
             </div>
           )}
+
+          {order.payments && order.payments.length > 0 && (
+            <div className={styles.paymentHistory}>
+              <span className={styles.paymentHistoryLabel}>Payment History</span>
+              {order.payments
+                .slice()
+                .reverse()
+                .map((p) => (
+                  <div key={p.id} className={styles.paymentRow}>
+                    <span className={styles.paymentAmount}>{formatCurrency(p.amount)}</span>
+                    <span className={styles.paymentMeta}>{formatDate(p.timestamp)} · {p.recordedByName}</span>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          <div className={styles.receiptLinkRow}>
+            <a
+              href={`/receipt/${order.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.receiptLink}
+            >
+              <FaPrint /> View / Print Receipt
+            </a>
+          </div>
         </div>
       )}
 
       {/* Communication Card */}
       <div className={styles.premiumCard}>
         <span className={styles.cardSectionTitle}>Share & Communicate</span>
-        
+
         {customer && (
           <div className={styles.actionRow}>
             <span className={styles.actionRowLabel}>Customer Updates</span>

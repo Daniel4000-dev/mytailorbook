@@ -3,7 +3,9 @@
 import { useState } from 'react';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { APP_CONFIG } from '@/lib/config';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
@@ -35,6 +37,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function SidebarMenu() {
   const { logout, isOwner } = useAuth();
+  const { currentShop } = useData();
+  const shopName = currentShop?.name || APP_CONFIG.name;
   const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
@@ -59,21 +63,21 @@ export default function SidebarMenu() {
             onClick={() => setShowProfile(true)} 
             ariaLabel="Profile Settings"
           />
-          <img 
-            src="/images/sewing-machine.svg" 
-            alt="MyTailorBook Logo" 
+          <img
+            src="/images/sewing-machine.svg"
+            alt={shopName}
             className={styles.mobileLogo}
           />
         </div>
 
-        {/* Desktop Branding (Logo & App Name) */}
+        {/* Desktop Branding (Logo & Shop Name) */}
         <div className={styles.desktopBranding}>
           <img
             src="/images/sewing-machine.svg"
-            alt="MyTailorBook Logo"
+            alt={shopName}
             className={styles.desktopLogo}
           />
-          <span className={styles.desktopTitle}>MYTAILORBOOK</span>
+          <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
         </div>
       </div>
 

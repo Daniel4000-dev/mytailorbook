@@ -11,7 +11,7 @@ import {
 } from 'react';
 import type { User, Role } from '@/lib/types';
 import { MOCK_USERS } from '@/lib/mockData';
-import { loginAction, logoutAction, getSessionAction, getDatabase, addStaffAction } from '@/app/actions';
+import { loginAction, logoutAction, getSessionAction, getDatabase, addStaffAction, addShopAction } from '@/app/actions';
 
 interface AuthContextValue {
   user: User | null;
@@ -19,7 +19,7 @@ interface AuthContextValue {
   isOwner: boolean;
   isStaff: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, shopName: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
 }
@@ -67,21 +67,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signup = useCallback(
-    async (name: string, email: string, _password: string) => {
+    async (name: string, email: string, _password: string, shopName: string) => {
       setLoading(true);
       await new Promise((r) => setTimeout(r, 800));
 
+      const now = new Date().toISOString();
+      const shopId = `shop-${Date.now()}`;
       const newUser: User = {
         uid: `user-${Date.now()}`,
         name,
         email,
         role: 'Owner' as Role,
-        createdAt: new Date().toISOString(),
+        shopId,
+        createdAt: now,
       };
-      
+
+      // New signup = new tenant: every Owner gets their own shop, staff they add inherit it.
+      await addShopAction({
+        id: shopId,
+        name: shopName,
+        ownerUid: newUser.uid,
+        createdAt: now,
+      });
       await addStaffAction(newUser);
       setUser(newUser);
-      
+
       await loginAction(newUser.uid);
       setLoading(false);
     },

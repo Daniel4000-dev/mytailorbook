@@ -30,7 +30,7 @@ interface Point {
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const router = useRouter();
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
   const { customers, orders, updateCustomerMeasurements, updateOrder } = useData();
 
   const customer = customers.find((c) => c.id === id);
@@ -324,7 +324,20 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
             customer={customer}
             userRole={isOwner ? 'Owner' : 'Staff'}
             onUpdatePayment={async (orderId, amount) => {
-              await updateOrder(orderId, { depositPaid: amount });
+              const target = orders.find((o) => o.id === orderId);
+              if (!target) return;
+              const newDeposit = Math.min(target.totalBill, target.depositPaid + amount);
+              const paymentRecord = {
+                id: `pay-${Date.now()}`,
+                amount,
+                recordedBy: user?.uid || '',
+                recordedByName: user?.name || 'Unknown',
+                timestamp: new Date().toISOString(),
+              };
+              await updateOrder(orderId, {
+                depositPaid: newDeposit,
+                payments: [...(target.payments || []), paymentRecord],
+              });
             }}
           />
         )}

@@ -6,10 +6,16 @@
   justify-content: space-between;
   height: var(--sf-top-bar-height);
   padding: 0 var(--sf-space-md);
-  background: #FFFFFF;
+  background: var(--sf-bg-primary);
   border-bottom: 1px solid var(--sf-border-light);
   z-index: var(--sf-z-sticky);
   width: 100%;
+}
+
+/* Profile mode's banner is taller than the standard bar — let the bar grow to fit it. */
+.topBar:has(.profileHeaderContent) {
+  height: auto;
+  padding: var(--sf-space-sm) var(--sf-space-md);
 }
 
 .left, .right {
@@ -77,12 +83,18 @@
   margin-top: 2px;
 }
 
-/* Profile Mode Styles */
+/* Profile Mode Styles — a warm banner echoing the auth screens' hero panel */
 .profileHeaderContent {
   display: flex;
   width: 100%;
   align-items: center;
   justify-content: space-between;
+  background: linear-gradient(135deg, #FFFFFF 0%, var(--sf-accent-gold-soft) 100%);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  margin: var(--sf-space-sm) 0;
+  box-shadow: var(--sf-shadow-xs);
 }
 
 .greetingWrapper {
@@ -94,6 +106,7 @@
 .greetingText {
   font-size: var(--sf-text-xs);
   color: var(--sf-text-tertiary);
+  letter-spacing: 0.2px;
 }
 
 .profileName {
@@ -104,10 +117,10 @@
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--sf-radius-full);
-  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
+  background: linear-gradient(135deg, var(--sf-accent-emerald-light), var(--sf-accent-emerald-dark));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,6 +129,8 @@
   font-weight: var(--sf-weight-bold);
   font-size: var(--sf-text-base);
   text-transform: uppercase;
+  box-shadow: var(--sf-shadow-sm);
+  border: 2px solid #FFFFFF;
 }
 
 /* Desktop Styles */

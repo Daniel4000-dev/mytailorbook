@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { FaPlus } from 'react-icons/fa6';
 import { DataProvider } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
@@ -17,6 +18,10 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
+  const pathname = usePathname();
+  // The FAB creates orders/customers — not a relevant action on Settings,
+  // where it would otherwise float over the Register Employee form.
+  const showFab = !pathname.startsWith('/settings');
 
   useEffect(() => {
     const color = isMenuOpen ? '#FAF2E8' : '#FFFFFF';
@@ -45,11 +50,13 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
         onClick={isMenuOpen ? () => setMenuOpen(false) : undefined}
       >
         <main className={styles.main}>{children}</main>
-        <FAB
-          onClick={() => setShowActionMenu(true)}
-          icon={<FaPlus />}
-          label="Create action"
-        />
+        {showFab && (
+          <FAB
+            onClick={() => setShowActionMenu(true)}
+            icon={<FaPlus />}
+            label="Create action"
+          />
+        )}
         <BottomNav />
         
         {/* Create Action Menu */}
