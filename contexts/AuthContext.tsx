@@ -9,9 +9,9 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import type { User, Role } from '@/lib/types';
-import { MOCK_USERS } from '@/lib/mockData';
-import { loginAction, logoutAction, getSessionAction, getDatabase, addStaffAction, addShopAction } from '@/app/actions';
+import type { User } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
+import { signupOwner } from '@/app/auth-actions';
 
 interface AuthContextValue {
   user: User | null;
@@ -26,87 +26,90 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Fetches the `profiles` row for a logged-in auth user and shapes it into our `User` type. */
+async function loadUserProfile(supabase: ReturnType<typeof createClient>, authUserId: string, email: string): Promise<User | null> {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, shop_id, name, role, active, created_at')
+    .eq('id', authUserId)
+    .single();
+
+  if (error || !profile) return null;
+
+  return {
+    uid: profile.id,
+    name: profile.name,
+    email,
+    role: profile.role,
+    shopId: profile.shop_id,
+    active: profile.active,
+    createdAt: profile.created_at,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const supabase = useMemo(() => createClient(), []);
 
-  // Load from session cookie on mount
+  // On mount, and whenever Supabase's own auth state changes (login/logout
+  // in another tab, token refresh, etc.), sync our `user` to match.
   useEffect(() => {
-    getSessionAction().then((savedUid) => {
-      if (savedUid) {
-        getDatabase().then((db) => {
-          const found = db.users?.find(u => u.uid === savedUid) || MOCK_USERS.find(u => u.uid === savedUid);
-          if (found) {
-            setUser(found);
-          }
-          setLoading(false);
-        });
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await loadUserProfile(supabase, session.user.id, session.user.email!);
+        setUser(profile);
+      }
+      setLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const profile = await loadUserProfile(supabase, session.user.id, session.user.email!);
+        setUser(profile);
       } else {
-        setLoading(false);
+        setUser(null);
       }
     });
-  }, []);
 
-  const login = useCallback(async (email: string, _password: string) => {
+    return () => listener.subscription.unsubscribe();
+  }, [supabase]);
+
+  const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 800));
-
-    const db = await getDatabase();
-    const found = db.users?.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    ) || MOCK_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
-    const authedUser = found ?? MOCK_USERS[0];
-    setUser(authedUser);
-    
-    // Set cookie via server action
-    await loginAction(authedUser.uid);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+      throw new Error(error.message);
+    }
+    // onAuthStateChange above picks up the new session and sets `user`.
     setLoading(false);
-  }, []);
+  }, [supabase]);
 
   const signup = useCallback(
-    async (name: string, email: string, _password: string, shopName: string) => {
+    async (name: string, email: string, password: string, shopName: string) => {
       setLoading(true);
-      await new Promise((r) => setTimeout(r, 800));
-
-      const now = new Date().toISOString();
-      const shopId = `shop-${Date.now()}`;
-      const newUser: User = {
-        uid: `user-${Date.now()}`,
-        name,
-        email,
-        role: 'Owner' as Role,
-        shopId,
-        createdAt: now,
-      };
-
-      // New signup = new tenant: every Owner gets their own shop, staff they add inherit it.
-      await addShopAction({
-        id: shopId,
-        name: shopName,
-        ownerUid: newUser.uid,
-        createdAt: now,
-      });
-      await addStaffAction(newUser);
-      setUser(newUser);
-
-      await loginAction(newUser.uid);
-      setLoading(false);
+      try {
+        // Admin-created (server action) so the account is pre-confirmed —
+        // then we sign in normally to establish this browser's session.
+        await signupOwner(name, email, password, shopName);
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw new Error(error.message);
+      } finally {
+        setLoading(false);
+      }
     },
-    []
+    [supabase]
   );
 
   const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    await logoutAction();
-  }, []);
+  }, [supabase]);
 
-  const resetPassword = useCallback(async (_email: string) => {
-    await new Promise((r) => setTimeout(r, 800));
-    // Mock: just resolves
-  }, []);
+  const resetPassword = useCallback(async (email: string) => {
+    await supabase.auth.resetPasswordForEmail(email);
+  }, [supabase]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

@@ -1,176 +1,247 @@
 'use server';
 
-import { cookies } from 'next/headers';
-import fs from 'fs/promises';
-import path from 'path';
+import { createClient } from '@/lib/supabase/server';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
-import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_USERS, MOCK_SHOPS, MOCK_SHOP_ID } from '@/lib/mockData';
 
-const DB_PATH = path.join(process.cwd(), 'db.json');
+// ----------------------------------------------------------------------
+// Row <-> App-type mappers
+// ----------------------------------------------------------------------
+// The database uses snake_case columns; the app's TypeScript types use
+// camelCase. These functions are the single place that translates between
+// the two, so the rest of the app never has to think about column names.
 
-interface DatabaseSchema {
-  orders: Order[];
-  customers: Customer[];
-  users: User[];
-  shops: Shop[];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function orderFromRow(row: any): Order {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    customerId: row.customer_id,
+    customerName: row.customer_name,
+    orderDetails: row.order_details,
+    totalBill: row.total_bill,
+    depositPaid: row.deposit_paid,
+    status: row.status,
+    assignedTo: row.assigned_to || undefined,
+    assignedToName: row.assigned_to_name || undefined,
+    dueDate: row.due_date || undefined,
+    priority: row.priority,
+    images: row.images || [],
+    statusHistory: row.status_history || [],
+    payments: row.payments || [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-// Ensure the DB exists
-async function ensureDb(): Promise<DatabaseSchema> {
-  try {
-    const data = await fs.readFile(DB_PATH, 'utf-8');
-    const parsed = JSON.parse(data) as DatabaseSchema;
-    let dirty = false;
-    if (!parsed.users) {
-      parsed.users = MOCK_USERS;
-      dirty = true;
-    }
-    if (!parsed.shops) {
-      // Migrating a pre-multi-tenant db: back-fill one shop and tag existing records with it.
-      parsed.shops = MOCK_SHOPS;
-      parsed.users = parsed.users.map((u) => (u.shopId ? u : { ...u, shopId: MOCK_SHOP_ID }));
-      parsed.customers = parsed.customers.map((c) => (c.shopId ? c : { ...c, shopId: MOCK_SHOP_ID }));
-      parsed.orders = parsed.orders.map((o) => (o.shopId ? o : { ...o, shopId: MOCK_SHOP_ID }));
-      dirty = true;
-    }
-    if (dirty) {
-      await fs.writeFile(DB_PATH, JSON.stringify(parsed, null, 2));
-    }
-    return parsed;
-  } catch (error) {
-    const initialDb: DatabaseSchema = {
-      orders: MOCK_ORDERS,
-      customers: MOCK_CUSTOMERS,
-      users: MOCK_USERS,
-      shops: MOCK_SHOPS,
-    };
-    await fs.writeFile(DB_PATH, JSON.stringify(initialDb, null, 2));
-    return initialDb;
-  }
+function orderToRow(shopId: string, o: Partial<Order>) {
+  const row: Record<string, unknown> = {};
+  if (shopId) row.shop_id = shopId;
+  if (o.customerId !== undefined) row.customer_id = o.customerId;
+  if (o.customerName !== undefined) row.customer_name = o.customerName;
+  if (o.orderDetails !== undefined) row.order_details = o.orderDetails;
+  if (o.totalBill !== undefined) row.total_bill = o.totalBill;
+  if (o.depositPaid !== undefined) row.deposit_paid = o.depositPaid;
+  if (o.status !== undefined) row.status = o.status;
+  if (o.assignedTo !== undefined) row.assigned_to = o.assignedTo || null;
+  if (o.assignedToName !== undefined) row.assigned_to_name = o.assignedToName || null;
+  if (o.dueDate !== undefined) row.due_date = o.dueDate || null;
+  if (o.priority !== undefined) row.priority = o.priority;
+  if (o.images !== undefined) row.images = o.images;
+  if (o.statusHistory !== undefined) row.status_history = o.statusHistory;
+  if (o.payments !== undefined) row.payments = o.payments;
+  return row;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function customerFromRow(row: any): Customer {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    fullName: row.full_name,
+    whatsappNumber: row.whatsapp_number,
+    gender: row.gender,
+    measurements: row.measurements || undefined,
+    createdAt: row.created_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function userFromRow(row: any): User {
+  return {
+    uid: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    shopId: row.shop_id,
+    active: row.active,
+    createdAt: row.created_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function shopFromRow(row: any): Shop {
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone || undefined,
+    address: row.address || undefined,
+    ownerUid: row.owner_id,
+    createdAt: row.created_at,
+  };
 }
 
 // ----------------------------------------------------------------------
-// DATA ACTIONS
+// Reads
 // ----------------------------------------------------------------------
 
-export async function getDatabase() {
-  return await ensureDb();
+export async function getShopBundle(shopId: string) {
+  const supabase = await createClient();
+  const [shopRes, customersRes, ordersRes, profilesRes] = await Promise.all([
+    supabase.from('shops').select('*').eq('id', shopId).single(),
+    supabase.from('customers').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }),
+    supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }),
+    supabase.from('profiles').select('*').eq('shop_id', shopId),
+  ]);
+
+  return {
+    shop: shopRes.data ? shopFromRow(shopRes.data) : null,
+    customers: (customersRes.data || []).map(customerFromRow),
+    orders: (ordersRes.data || []).map(orderFromRow),
+    staffMembers: (profilesRes.data || []).map(userFromRow),
+  };
 }
 
-export async function saveDatabase(data: DatabaseSchema) {
-  await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2));
+async function getOrders(shopId: string): Promise<Order[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(orderFromRow);
 }
 
-export async function addOrderAction(order: Order) {
-  const db = await ensureDb();
-  db.orders.unshift(order); // Add to top
-  await saveDatabase(db);
-  return db;
+async function getCustomers(shopId: string): Promise<Customer[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(customerFromRow);
 }
 
-export async function updateOrderStatusAction(orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) {
-  const db = await ensureDb();
-  const orderIndex = db.orders.findIndex(o => o.id === orderId);
-  if (orderIndex === -1) return db;
-
-  const order = db.orders[orderIndex];
-  order.statusHistory.push({
-    from: order.status,
-    to: newStatus,
-    changedBy,
-    changedByName,
-    timestamp: new Date().toISOString(),
-  });
-  order.status = newStatus;
-  order.updatedAt = new Date().toISOString();
-  
-  await saveDatabase(db);
-  return db;
+export async function getStaff(shopId: string): Promise<User[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('profiles').select('*').eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
+  return (data || []).map(userFromRow);
 }
 
-export async function updateOrderAction(orderId: string, updates: Partial<Order>) {
-  const db = await ensureDb();
-  const orderIndex = db.orders.findIndex(o => o.id === orderId);
-  if (orderIndex === -1) return db;
+// ----------------------------------------------------------------------
+// Orders
+// ----------------------------------------------------------------------
 
-  db.orders[orderIndex] = { ...db.orders[orderIndex], ...updates, updatedAt: new Date().toISOString() };
-  await saveDatabase(db);
-  return db;
+export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('orders').insert(orderToRow(shopId, order));
+  if (error) throw new Error(error.message);
+  return getOrders(shopId);
 }
 
-export async function addCustomerAction(customer: Customer) {
-  const db = await ensureDb();
-  db.customers.unshift(customer);
-  await saveDatabase(db);
-  return db;
+export async function updateOrderStatusAction(
+  orderId: string,
+  newStatus: OrderStatus,
+  changedBy: string,
+  changedByName: string,
+  shopId: string
+) {
+  const supabase = await createClient();
+
+  const { data: current, error: fetchError } = await supabase
+    .from('orders')
+    .select('status, status_history')
+    .eq('id', orderId)
+    .single();
+  if (fetchError) throw new Error(fetchError.message);
+
+  const newHistory = [
+    ...(current.status_history || []),
+    { from: current.status, to: newStatus, changedBy, changedByName, timestamp: new Date().toISOString() },
+  ];
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ status: newStatus, status_history: newHistory, updated_at: new Date().toISOString() })
+    .eq('id', orderId);
+  if (error) throw new Error(error.message);
+
+  return getOrders(shopId);
 }
 
-export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements) {
-  const db = await ensureDb();
-  const index = db.customers.findIndex(c => c.id === customerId);
-  if (index !== -1) {
-    db.customers[index].measurements = measurements;
-    await saveDatabase(db);
-  }
-  return db;
+export async function updateOrderAction(orderId: string, updates: Partial<Order>, shopId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('orders')
+    .update({ ...orderToRow('', updates), updated_at: new Date().toISOString() })
+    .eq('id', orderId);
+  if (error) throw new Error(error.message);
+  return getOrders(shopId);
 }
 
-export async function addStaffAction(user: User) {
-  const db = await ensureDb();
-  db.users.push(user);
-  await saveDatabase(db);
-  return db;
+// ----------------------------------------------------------------------
+// Customers
+// ----------------------------------------------------------------------
+
+export async function addCustomerAction(shopId: string, customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('customers')
+    .insert({
+      shop_id: shopId,
+      full_name: customer.fullName,
+      whatsapp_number: customer.whatsappNumber,
+      gender: customer.gender,
+      measurements: customer.measurements || null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+
+  const customers = await getCustomers(shopId);
+  return { newCustomer: customerFromRow(data), customers };
 }
 
-export async function updateStaffAction(uid: string, updates: Partial<User>) {
-  const db = await ensureDb();
-  const index = db.users.findIndex(u => u.uid === uid);
-  if (index !== -1) {
-    db.users[index] = { ...db.users[index], ...updates };
-    await saveDatabase(db);
-  }
-  return db;
+export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, shopId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
+  if (error) throw new Error(error.message);
+  return getCustomers(shopId);
 }
 
-export async function addShopAction(shop: Shop) {
-  const db = await ensureDb();
-  db.shops.push(shop);
-  await saveDatabase(db);
-  return db;
+// ----------------------------------------------------------------------
+// Staff / Shop
+// ----------------------------------------------------------------------
+
+export async function updateStaffAction(uid: string, updates: Partial<User>, shopId: string) {
+  const supabase = await createClient();
+  const row: Record<string, unknown> = {};
+  if (updates.name !== undefined) row.name = updates.name;
+  if (updates.active !== undefined) row.active = updates.active;
+  const { error } = await supabase.from('profiles').update(row).eq('id', uid);
+  if (error) throw new Error(error.message);
+  return getStaff(shopId);
 }
 
 export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
-  const db = await ensureDb();
-  const index = db.shops.findIndex(s => s.id === shopId);
-  if (index !== -1) {
-    db.shops[index] = { ...db.shops[index], ...updates };
-    await saveDatabase(db);
-  }
-  return db;
-}
-
-
-
-// ----------------------------------------------------------------------
-// AUTH ACTIONS (Using Cookies)
-// ----------------------------------------------------------------------
-
-export async function loginAction(uid: string) {
-  const cookieStore = await cookies();
-  cookieStore.set('sf_session', uid, { 
-    path: '/', 
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-    httpOnly: true,
-    sameSite: 'lax',
-  });
-}
-
-export async function logoutAction() {
-  const cookieStore = await cookies();
-  cookieStore.delete('sf_session');
-}
-
-export async function getSessionAction() {
-  const cookieStore = await cookies();
-  return cookieStore.get('sf_session')?.value || null;
+  const supabase = await createClient();
+  const row: Record<string, unknown> = {};
+  if (updates.name !== undefined) row.name = updates.name;
+  if (updates.phone !== undefined) row.phone = updates.phone;
+  if (updates.address !== undefined) row.address = updates.address;
+  const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
+  if (error) throw new Error(error.message);
+  return shopFromRow(data);
 }

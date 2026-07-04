@@ -1,4 +1,4 @@
-import { getDatabase } from '@/app/actions';
+import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
@@ -7,10 +7,9 @@ import styles from './page.module.css';
 
 export default async function ReceiptPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
-  const db = await getDatabase();
-  const order = db.orders.find((o) => o.id === orderId);
+  const view = await getPublicOrderView(orderId);
 
-  if (!order) {
+  if (!view) {
     return (
       <div className={styles.page}>
         <div className={styles.card}>
@@ -21,8 +20,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
     );
   }
 
-  const customer = db.customers.find((c) => c.id === order.customerId);
-  const shop = db.shops?.find((s) => s.id === order.shopId);
+  const { order, customer, shop } = view;
   const balanceOwed = getBalanceOwed(order);
   const issuedDate = new Date().toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
 

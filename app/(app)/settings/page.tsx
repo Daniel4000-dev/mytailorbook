@@ -26,7 +26,6 @@ export default function SettingsPage() {
 
   const [editingUid, setEditingUid] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [editEmail, setEditEmail] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
   const [editingShop, setEditingShop] = useState(false);
@@ -46,16 +45,15 @@ export default function SettingsPage() {
     );
   }
 
-  const startEditStaff = (staff: { uid: string; name: string; email: string }) => {
+  const startEditStaff = (staff: { uid: string; name: string }) => {
     setEditingUid(staff.uid);
     setEditName(staff.name);
-    setEditEmail(staff.email);
   };
 
   const handleSaveStaffEdit = async (uid: string) => {
     setSavingEdit(true);
     try {
-      await updateStaff(uid, { name: editName, email: editEmail });
+      await updateStaff(uid, { name: editName });
       setEditingUid(null);
     } finally {
       setSavingEdit(false);
@@ -85,19 +83,23 @@ export default function SettingsPage() {
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
+    if (!name || !email || !password) return;
+    if (password.length < 6) {
+      setMessage('Password must be at least 6 characters.');
+      return;
+    }
 
     setLoading(true);
     setMessage('');
     try {
-      await addStaff(name, email);
+      await addStaff(name, email, password);
       setName('');
       setEmail('');
       setPassword('');
       setMessage('Staff member added successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (err) {
-      setMessage('Failed to add staff member.');
+      setMessage(err instanceof Error ? err.message : 'Failed to add staff member.');
     } finally {
       setLoading(false);
     }
@@ -196,7 +198,6 @@ export default function SettingsPage() {
                     {isEditing ? (
                       <div className={styles.staffEditForm}>
                         <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Full name" />
-                        <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email" type="email" />
                         <div className={styles.staffEditActions}>
                           <Button variant="ghost" size="sm" onClick={() => setEditingUid(null)}>Cancel</Button>
                           <Button variant="primary" size="sm" loading={savingEdit} onClick={() => handleSaveStaffEdit(staff.uid)}>Save</Button>
@@ -261,9 +262,10 @@ export default function SettingsPage() {
               <Input
                 label="Temporary Password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               
               {message && (

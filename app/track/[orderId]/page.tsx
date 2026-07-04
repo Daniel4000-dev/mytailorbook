@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { FaScissors, FaGears, FaBagShopping, FaCircleCheck, FaClipboardList, FaClock, FaLock } from 'react-icons/fa6';
-import { getDatabase } from '@/app/actions';
+import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
@@ -44,10 +44,9 @@ const STATUS_MESSAGES: Record<OrderStatus, string> = {
 
 export default async function TrackOrderPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
-  const db = await getDatabase();
-  const order = db.orders.find((o) => o.id === orderId);
+  const view = await getPublicOrderView(orderId);
 
-  if (!order) {
+  if (!view) {
     return (
       <div className={styles.page}>
         <div className={styles.errorCard}>
@@ -58,7 +57,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
     );
   }
 
-  const shop = db.shops?.find((s) => s.id === order.shopId);
+  const { order, shop } = view;
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
   const progressPercent = ((currentStepIndex + 1) / STATUS_ORDER.length) * 100;
   const currentIllustration = STATUS_ILLUSTRATIONS[order.status];
