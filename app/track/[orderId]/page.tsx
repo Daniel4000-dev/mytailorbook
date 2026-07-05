@@ -1,9 +1,9 @@
 import React from 'react';
 import Image from 'next/image';
-import { FaScissors, FaGears, FaBagShopping, FaCircleCheck, FaClipboardList, FaClock, FaLock } from 'react-icons/fa6';
+import { FaScissors, FaGears, FaBagShopping, FaCircleCheck, FaClipboardList, FaClock, FaLock, FaWhatsapp, FaUser, FaImages } from 'react-icons/fa6';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus } from '@/lib/types';
 import styles from './page.module.css';
@@ -63,6 +63,21 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   const currentIllustration = STATUS_ILLUSTRATIONS[order.status];
   const currentHeadline = STATUS_HEADLINES[order.status];
   const currentMessage = STATUS_MESSAGES[order.status];
+  const isActiveWork = order.status === 'Cutting' || order.status === 'Sewing';
+
+  const daysRemaining = order.dueDate
+    ? Math.ceil((new Date(order.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const daysRemainingLabel =
+    daysRemaining === null
+      ? null
+      : daysRemaining > 1
+        ? `${daysRemaining} days to go`
+        : daysRemaining === 1
+          ? 'Due tomorrow'
+          : daysRemaining === 0
+            ? 'Due today'
+            : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) === 1 ? '' : 's'} overdue`;
 
   return (
     <div className={styles.page}>
@@ -100,6 +115,11 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             {shop && <p className={styles.shopContext}>Your order with {shop.name}</p>}
             <h2 className={styles.heroHeadline}>{currentHeadline}</h2>
             <p className={styles.heroMessage}>{currentMessage}</p>
+            {isActiveWork && order.assignedToName && (
+              <p className={styles.craftsmanNote}>
+                <FaUser /> {order.assignedToName} is personally working on your garment
+              </p>
+            )}
           </div>
 
           {/* Progress Bar */}
@@ -132,6 +152,11 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                 })}
               </span>
             </div>
+            {daysRemainingLabel && (
+              <span className={`${styles.daysBadge} ${daysRemaining !== null && daysRemaining < 0 ? styles.daysBadgeOverdue : ''}`}>
+                {daysRemainingLabel}
+              </span>
+            )}
           </section>
         )}
 
@@ -171,6 +196,21 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           </div>
         </section>
 
+        {/* Progress Photos — real photos the tailor has attached, when available */}
+        {order.images && order.images.length > 0 && (
+          <section className={styles.card}>
+            <h3 className={styles.sectionTitle}>
+              <FaImages style={{ marginRight: 6 }} /> Progress Photos
+            </h3>
+            <div className={styles.photoGrid}>
+              {order.images.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={i} src={src} alt={`Your garment, photo ${i + 1}`} className={styles.photoThumb} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Order Details & Financials */}
         <section className={styles.card}>
           <h3 className={styles.sectionTitle}>Order Summary</h3>
@@ -194,6 +234,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             </div>
           </div>
         </section>
+
+        {/* Contact the Shop */}
+        {shop?.phone && (
+          <a href={getWhatsAppLink(shop.phone)} target="_blank" rel="noopener noreferrer" className={styles.contactBtn}>
+            <FaWhatsapp /> Message {shop.name} on WhatsApp
+          </a>
+        )}
 
         {/* Footer */}
         <footer className={styles.trackerFooter}>

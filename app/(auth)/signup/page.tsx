@@ -9,13 +9,28 @@ import styles from './page.module.css';
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, loading } = useAuth();
+  const { signup, signInWithGoogle, loading } = useAuth();
   const [name, setName] = useState('');
   const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogle = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      // Browser redirects to Google here; first-time sign-ins land on
+      // /onboarding afterward to collect their shop name.
+    } catch {
+      setError('Could not connect with Google');
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,22 +48,43 @@ export default function SignupPage() {
       return;
     }
     try {
-      await signup(name, email, password, shopName);
-      router.push('/dashboard');
-    } catch {
-      setError('Could not create account');
+      const { needsEmailConfirmation } = await signup(name, email, password, shopName);
+      if (needsEmailConfirmation) {
+        setSubmitted(true);
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not create account');
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setError('');
-    try {
-      await signup('Google User', 'google.user@masterfit.ng', 'google', shopName || 'My Fashion Studio');
-      router.push('/dashboard');
-    } catch {
-      setError('Could not connect with Google');
-    }
-  };
+  if (submitted) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.logoWrapper}>
+          <img src="/images/sewing-machine.svg" alt="Sewing Machine" className={styles.sewingMachineSvg} />
+        </div>
+        <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
+        <div className={styles.successWrapper}>
+          <div className={styles.successIconWrapper}>
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h2 className={styles.successHeading}>Check your email</h2>
+          <p className={styles.successText}>
+            We&apos;ve sent a confirmation link to <br /><strong>{email}</strong><br />
+            Click it to activate {shopName}&apos;s workspace.
+          </p>
+          <Link href="/login" className={styles.registerButton} style={{ marginTop: '24px' }}>
+            Back to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -135,8 +171,8 @@ export default function SignupPage() {
         <button
           type="button"
           className={styles.googleButton}
-          onClick={handleGoogleAuth}
-          disabled={loading}
+          onClick={handleGoogle}
+          disabled={googleLoading}
         >
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
             <path
@@ -156,7 +192,7 @@ export default function SignupPage() {
               fill="#EA4335"
             />
           </svg>
-          Sign up with Google
+          {googleLoading ? 'Connecting...' : 'Sign up with Google'}
         </button>
 
         {/* Footer label */}

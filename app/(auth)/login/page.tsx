@@ -9,10 +9,11 @@ import styles from './page.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loading } = useAuth();
+  const { login, signInWithGoogle, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -29,13 +30,15 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleGoogle = async () => {
     setError('');
+    setGoogleLoading(true);
     try {
-      await login('owner@masterfit.ng', 'google');
-      router.push('/dashboard');
+      await signInWithGoogle();
+      // Browser redirects to Google here; nothing else to do.
     } catch {
       setError('Could not connect with Google');
+      setGoogleLoading(false);
     }
   };
 
@@ -100,8 +103,8 @@ export default function LoginPage() {
         <button
           type="button"
           className={styles.googleButton}
-          onClick={handleGoogleAuth}
-          disabled={loading}
+          onClick={handleGoogle}
+          disabled={googleLoading}
         >
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
             <path
@@ -121,7 +124,7 @@ export default function LoginPage() {
               fill="#EA4335"
             />
           </svg>
-          Sign in with Google
+          {googleLoading ? 'Connecting...' : 'Sign in with Google'}
         </button>
 
         {/* Footer separator text */}

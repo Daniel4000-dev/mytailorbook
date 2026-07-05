@@ -140,6 +140,20 @@
   max-width: 360px;
 }
 
+.craftsmanNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-accent-emerald, #7A6952);
+  background: var(--sf-accent-gold-soft, rgba(122, 105, 82, 0.08));
+  padding: 6px 12px;
+  border-radius: 100px;
+}
+
 /* ── Progress Bar ─────────────────────────────────────────── */
 .progressWrapper {
   width: 100%;
@@ -224,6 +238,23 @@
   font-size: 15px;
   font-weight: 700;
   color: var(--sf-text-primary);
+}
+
+.daysBadge {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #047857;
+  background: #ECFDF5;
+  padding: 5px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.daysBadgeOverdue {
+  color: #DC2626;
+  background: #FEE2E2;
 }
 
 /* ── Cards ────────────────────────────────────────────────── */
@@ -415,6 +446,42 @@
   font-size: 16px;
   font-weight: 800;
   color: var(--sf-text-gold);
+}
+
+/* ── Progress Photos ──────────────────────────────────────── */
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.photoThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--sf-border-light);
+}
+
+/* ── Contact Shop ─────────────────────────────────────────── */
+.contactBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #25D366;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: transform 0.15s ease;
+}
+
+.contactBtn:hover {
+  transform: translateY(-1px);
 }
 
 /* ── Footer ───────────────────────────────────────────────── */

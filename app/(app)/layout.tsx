@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FaPlus } from 'react-icons/fa6';
+import { useAuth } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
@@ -19,9 +20,19 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
   const pathname = usePathname();
+  const router = useRouter();
+  const { needsOnboarding, loading: authLoading } = useAuth();
   // The FAB creates orders/customers — not a relevant action on Settings,
   // where it would otherwise float over the Register Employee form.
   const showFab = !pathname.startsWith('/settings');
+
+  // First-time Google sign-in: a real Supabase session exists but no shop/
+  // profile yet (OAuth gave no chance to ask for a shop name up front).
+  useEffect(() => {
+    if (!authLoading && needsOnboarding) {
+      router.replace('/onboarding');
+    }
+  }, [authLoading, needsOnboarding, router]);
 
   useEffect(() => {
     const color = isMenuOpen ? '#FAF2E8' : '#FFFFFF';

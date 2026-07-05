@@ -7,7 +7,7 @@ import styles from './layout.module.css';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isCustomAuth = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password';
+  const isCustomAuth = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
   const isSignup = pathname === '/signup';
 
   useEffect(() => {
