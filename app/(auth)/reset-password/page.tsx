@@ -37,7 +37,12 @@ export default function ResetPasswordPage() {
       // link (handled by /auth/confirm) — if that's missing or expired,
       // this fails with a clear error rather than silently doing nothing.
       const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) throw new Error(updateError.message);
+      if (updateError) {
+        if (updateError.message.toLowerCase().includes('session')) {
+          throw new Error('This link has expired or is invalid. Please request a new password reset.');
+        }
+        throw new Error(updateError.message);
+      }
       setDone(true);
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err) {

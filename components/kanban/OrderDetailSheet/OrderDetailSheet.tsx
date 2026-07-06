@@ -116,10 +116,13 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
         userRole === 'Owner'
           ? {
               orderDetails: editDetails,
-              dueDate: editDueDate ? new Date(editDueDate).toISOString() : undefined,
+              // Pass '' rather than undefined for "cleared" fields — the update
+              // mapper treats undefined as "leave unchanged", so undefined here
+              // would silently fail to actually clear the due date/assignee.
+              dueDate: editDueDate ? new Date(editDueDate).toISOString() : '',
               priority: editPriority,
-              assignedTo: editAssignedTo || undefined,
-              assignedToName: assignee?.name,
+              assignedTo: editAssignedTo,
+              assignedToName: assignee?.name || '',
               totalBill: parseInt(editTotalBill.replace(/,/g, '')) || 0,
             }
           : { orderDetails: editDetails };
@@ -342,20 +345,22 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
           </div>
 
           {balanceOwed > 0 && (
-            <div className={styles.recordPaymentRow}>
-              <Input
-                placeholder="Amount"
-                prefix="₦"
-                inputMode="numeric"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value.replace(/[^0-9]/g, ''))}
-              />
-              <Button variant="ghost" size="sm" onClick={() => setPaymentAmount(String(balanceOwed))}>
-                Full Balance
-              </Button>
+            <div className={styles.recordPaymentSection}>
+              <div className={styles.recordPaymentRow}>
+                <Input
+                  placeholder="Amount"
+                  prefix="₦"
+                  inputMode="numeric"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value.replace(/[^0-9]/g, ''))}
+                />
+                <Button variant="ghost" size="sm" onClick={() => setPaymentAmount(String(balanceOwed))}>
+                  Full Balance
+                </Button>
+              </div>
               <Button
                 variant="primary"
-                size="sm"
+                fullWidth
                 loading={recordingPayment}
                 icon={<FaCircleCheck />}
                 onClick={() => handleRecordPayment(parseInt(paymentAmount) || 0)}

@@ -73,6 +73,12 @@
   margin-top: var(--sf-space-xs);
 }
 
+.memberSince {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin-top: var(--sf-space-xs);
+}
+
 .whatsapp:hover {
   background: rgba(37, 211, 102, 0.2);
 }

@@ -88,6 +88,15 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     if (next) await updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
   }, [orders, updateOrderStatus, user]);
 
+  const handleReassign = useCallback(async (orderId: string, staffUid: string, staffName: string) => {
+    // '' rather than undefined for unassigning — the update mapper treats
+    // undefined as "leave unchanged", so undefined would silently no-op.
+    await updateOrder(orderId, {
+      assignedTo: staffUid,
+      assignedToName: staffUid ? staffName : '',
+    });
+  }, [updateOrder]);
+
   const handleRevert = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
@@ -267,6 +276,8 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
                 onCardClick={(order) => setSelectedOrder(order)}
                 onAdvance={(orderId) => handleAdvance(orderId)}
                 onRevert={(orderId) => handleRevert(orderId)}
+                staffMembers={staffMembers}
+                onReassign={handleReassign}
               />
             </div>
           ))}

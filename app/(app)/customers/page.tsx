@@ -10,7 +10,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import { formatPhone, formatCurrency } from '@/lib/formatters';
+import { formatPhone, formatCurrency, formatShortMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -90,6 +90,7 @@ export default function CustomersPage() {
                       <div className={styles.cardInfo}>
                         <span className={styles.name}>{c.fullName}</span>
                         <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
+                        <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
                       </div>
                       <div className={styles.cardActionIcon}>
                         <FaChevronRight />
@@ -142,6 +143,7 @@ export default function CustomersPage() {
                         </td>
                         <td>
                           <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
+                          <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
                         </td>
                         <td>
                           <span className={styles.orderBadge}>

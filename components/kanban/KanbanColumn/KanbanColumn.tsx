@@ -4,7 +4,7 @@ import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { FaInbox } from 'react-icons/fa6';
 import OrderCard from '@/components/kanban/OrderCard/OrderCard';
 import { STATUS_CONFIG } from '@/lib/constants';
-import type { Order, OrderStatus, Role } from '@/lib/types';
+import type { Order, OrderStatus, Role, User } from '@/lib/types';
 import styles from './KanbanColumn.module.css';
 
 interface KanbanColumnProps {
@@ -14,9 +14,11 @@ interface KanbanColumnProps {
   onCardClick: (order: Order) => void;
   onAdvance: (orderId: string) => void;
   onRevert?: (orderId: string) => void;
+  staffMembers?: User[];
+  onReassign?: (orderId: string, staffUid: string, staffName: string) => void;
 }
 
-export default function KanbanColumn({ status, orders, userRole, onCardClick, onAdvance, onRevert }: KanbanColumnProps) {
+export default function KanbanColumn({ status, orders, userRole, onCardClick, onAdvance, onRevert, staffMembers, onReassign }: KanbanColumnProps) {
   const config = STATUS_CONFIG[status];
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const { active } = useDndContext();
@@ -59,6 +61,8 @@ export default function KanbanColumn({ status, orders, userRole, onCardClick, on
                 onAdvance={() => onAdvance(order.id)}
                 onRevert={onRevert ? () => onRevert(order.id) : undefined}
                 index={i + (showPlaceholder ? 1 : 0)}
+                staffMembers={staffMembers}
+                onReassign={onReassign}
               />
             ))}
           </>

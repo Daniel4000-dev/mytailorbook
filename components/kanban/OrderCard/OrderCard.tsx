@@ -6,7 +6,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { truncateText } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
-import type { Order, Role } from '@/lib/types';
+import type { Order, Role, User } from '@/lib/types';
 import styles from './OrderCard.module.css';
 
 interface OrderCardProps {
@@ -16,9 +16,11 @@ interface OrderCardProps {
   onAdvance?: () => void;
   onRevert?: () => void;
   index?: number;
+  staffMembers?: User[];
+  onReassign?: (orderId: string, staffUid: string, staffName: string) => void;
 }
 
-export default function OrderCard({ order, userRole, onClick, onAdvance, onRevert, index = 0 }: OrderCardProps) {
+export default function OrderCard({ order, userRole, onClick, onAdvance, onRevert, index = 0, staffMembers, onReassign }: OrderCardProps) {
   const overdue = isOverdue(order);
   const dueSoon = isDueSoon(order);
 
@@ -158,7 +160,7 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
         {/* Bottom row: Assignee pill and Category tag */}
         <div className={styles.bottomRow}>
           <div className={styles.assigneePill}>
-            <div 
+            <div
               className={styles.avatarCircle}
               style={order.assignedToName ? {
                 background: getAssigneeBadgeColors(order.assignedToName).background,
@@ -170,7 +172,33 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
             <span className={styles.assigneeName}>
               {order.assignedToName ? order.assignedToName.split(' ')[0] : 'Unassigned'}
             </span>
-            {order.assignedToName && <FaPen className={styles.pencilIcon} />}
+            {userRole === 'Owner' && onReassign && staffMembers ? (
+              <span className={styles.reassignWrapper}>
+                <FaPen className={styles.pencilIcon} />
+                <select
+                  className={styles.reassignSelect}
+                  value={order.assignedTo || ''}
+                  aria-label="Reassign order"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const uid = e.target.value;
+                    const staff = staffMembers.find((s) => s.uid === uid);
+                    onReassign(order.id, uid, staff?.name || '');
+                  }}
+                >
+                  <option value="">Unassigned</option>
+                  {staffMembers
+                    .filter((s) => s.role === 'Staff' && (s.active !== false || s.uid === order.assignedTo))
+                    .map((s) => (
+                      <option key={s.uid} value={s.uid}>{s.name}</option>
+                    ))}
+                </select>
+              </span>
+            ) : (
+              order.assignedToName && <FaPen className={styles.pencilIcon} />
+            )}
           </div>
 
           <span className={styles.garmentTag}>

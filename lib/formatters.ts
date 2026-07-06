@@ -108,6 +108,23 @@ export function formatDate(dateString: string): string {
 }
 
 /**
+ * Formats a date as "Month Year" — used for "added on" / "customer since"
+ * style displays where the exact day doesn't matter.
+ * Example: "2024-03-15T14:30:00Z" → "March 2024"
+ */
+export function formatMonthYear(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-NG', { month: 'long', year: 'numeric' });
+}
+
+/**
+ * Compact "Mon YYYY" form for tight spaces like table rows.
+ * Example: "2024-03-15T14:30:00Z" → "Mar 2024"
+ */
+export function formatShortMonthYear(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' });
+}
+
+/**
  * Generates a WhatsApp link for a phone number.
  */
 export function getWhatsAppLink(phone: string): string {

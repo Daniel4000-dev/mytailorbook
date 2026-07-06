@@ -15,7 +15,7 @@ import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
 import MeasurementAnatomy from '@/components/customers/MeasurementAnatomy/MeasurementAnatomy';
 import OrderDetailSheet from '@/components/kanban/OrderDetailSheet/OrderDetailSheet';
-import { formatCurrency, formatPhone, getWhatsAppLink, truncateText } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements } from '@/lib/types';
 import styles from './page.module.css';
@@ -198,6 +198,9 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
             <a href={getWhatsAppLink(customer.whatsappNumber)} target="_blank" rel="noopener noreferrer" className={styles.whatsapp}>
               <FaWhatsapp size={16} /> {formatPhone(customer.whatsappNumber)}
             </a>
+            <span className={styles.memberSince}>
+              Customer since {formatMonthYear(customer.createdAt)}
+            </span>
           </div>
 
           <div className={`${styles.card} ${styles.statsGrid}`}>

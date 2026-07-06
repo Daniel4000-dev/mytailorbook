@@ -10,6 +10,10 @@ interface MeasurementPoint {
   y: number;
 }
 
+// Note: every point below must have a unique (x, y) — two points sharing the
+// same spot means one silently sits on top of the other, making the covered
+// one invisible and unclickable in the visual view (still editable via Quick
+// List, which is why a value could be entered but never seen here).
 const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 34, y: 24 },
@@ -20,12 +24,12 @@ const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'hips', name: 'Hips', x: 50, y: 58 },
   { id: 'armhole', name: 'Armhole', x: 35, y: 29 },
   { id: 'bicep', name: 'Bicep', x: 33, y: 34 },
-  { id: 'sleeveLength', name: 'Sleeve Length', x: 23, y: 62 },
-  { id: 'wrist', name: 'Wrist', x: 23, y: 62 },
-  { id: 'napeToWaist', name: 'Nape to Waist', x: 50, y: 45 },
+  { id: 'sleeveLength', name: 'Sleeve Length', x: 25, y: 50 },
+  { id: 'wrist', name: 'Wrist', x: 21, y: 66 },
+  { id: 'napeToWaist', name: 'Nape to Waist', x: 58, y: 45 },
   { id: 'frontLength', name: 'Front Length', x: 50, y: 65 },
   { id: 'dressLength', name: 'Dress Length', x: 50, y: 75 },
-  { id: 'trouserLength', name: 'Trouser Length', x: 42, y: 96 },
+  { id: 'trouserLength', name: 'Trouser Length', x: 37, y: 90 },
   { id: 'thigh', name: 'Thigh', x: 42, y: 68 },
   { id: 'knee', name: 'Knee', x: 42, y: 78 },
   { id: 'calf', name: 'Calf', x: 42, y: 87 },
@@ -44,11 +48,11 @@ const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'crotch', name: 'Crotch', x: 50, y: 63 },
   { id: 'armhole', name: 'Armhole', x: 31, y: 28.5 },
   { id: 'bicep', name: 'Bicep', x: 29, y: 34 },
-  { id: 'sleeveLength', name: 'Sleeve Length', x: 20.5, y: 64 },
-  { id: 'wrist', name: 'Wrist', x: 20.5, y: 64 },
-  { id: 'backLength', name: 'Back Length', x: 50, y: 48 },
-  { id: 'shirtLength', name: 'Shirt Length', x: 50, y: 60 },
-  { id: 'trouserLength', name: 'Trouser Length', x: 42, y: 96 },
+  { id: 'sleeveLength', name: 'Sleeve Length', x: 22, y: 50 },
+  { id: 'wrist', name: 'Wrist', x: 19, y: 65 },
+  { id: 'backLength', name: 'Back Length', x: 58, y: 48 },
+  { id: 'shirtLength', name: 'Shirt Length', x: 58, y: 60 },
+  { id: 'trouserLength', name: 'Trouser Length', x: 37, y: 90 },
   { id: 'thigh', name: 'Thigh', x: 43, y: 70 },
   { id: 'knee', name: 'Knee', x: 42, y: 78 },
   { id: 'calf', name: 'Calf', x: 42, y: 87 },

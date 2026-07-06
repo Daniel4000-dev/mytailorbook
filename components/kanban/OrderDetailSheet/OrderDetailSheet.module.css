@@ -339,15 +339,22 @@
   color: var(--sf-text-secondary);
 }
 
-.recordPaymentRow {
+.recordPaymentSection {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: var(--sf-space-sm);
   margin-top: var(--sf-space-md);
 }
 
+.recordPaymentRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sf-space-sm);
+}
+
 .recordPaymentRow > div:first-child {
   flex: 1;
+  min-width: 0;
 }
 
 .paymentHistory {

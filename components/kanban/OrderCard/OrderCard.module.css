@@ -180,6 +180,22 @@
   color: var(--sf-text-tertiary);
 }
 
+.reassignWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.reassignSelect {
+  position: absolute;
+  inset: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  opacity: 0;
+  cursor: pointer;
+  font-size: 12px;
+}
+
 .garmentTag {
   font-size: 12px;
   font-weight: 600;

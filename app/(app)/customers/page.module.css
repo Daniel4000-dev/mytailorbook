@@ -96,6 +96,14 @@
   color: var(--sf-text-tertiary);
 }
 
+.addedDate {
+  display: block;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  opacity: 0.75;
+  margin-top: 2px;
+}
+
 .cardActionIcon {
   color: var(--sf-text-tertiary);
   display: flex;

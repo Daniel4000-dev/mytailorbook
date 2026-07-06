@@ -165,8 +165,10 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <h3 className={styles.sectionTitle}>Production Timeline</h3>
           <div className={styles.timeline}>
             {STATUS_ORDER.map((status, index) => {
-              const isCompleted = index < currentStepIndex;
-              const isCurrent = index === currentStepIndex;
+              // The final stage, once reached, is done — not "in progress" —
+              // otherwise "Delivered!" would confusingly read as still ongoing.
+              const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Completed');
+              const isCurrent = index === currentStepIndex && status !== 'Completed';
 
               let nodeClass = styles.nodePending;
               if (isCompleted) nodeClass = styles.nodeCompleted;
