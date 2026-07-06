@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   const handleGoogle = async () => {
     setError('');
@@ -155,8 +156,25 @@ export default function SignupPage() {
           required
         />
 
+        <label className={styles.agreeRow}>
+          <input
+            type="checkbox"
+            checked={agreedToPolicy}
+            onChange={(e) => setAgreedToPolicy(e.target.checked)}
+          />
+          <span>
+            I agree to the{' '}
+            <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+          </span>
+        </label>
+
         {/* Primary Submit Button */}
-        <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
+        <button
+          type="submit"
+          className={styles.loginButton}
+          disabled={loading || !agreedToPolicy}
+          style={{ marginTop: '12px' }}
+        >
           {loading ? 'Creating Account...' : 'Create Account'}
         </button>
 
@@ -172,7 +190,7 @@ export default function SignupPage() {
           type="button"
           className={styles.googleButton}
           onClick={handleGoogle}
-          disabled={googleLoading}
+          disabled={googleLoading || !agreedToPolicy}
         >
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
             <path

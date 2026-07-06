@@ -97,6 +97,36 @@
   cursor: not-allowed;
 }
 
+.agreeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #7A6952;
+  font-family: var(--sf-font-body), sans-serif;
+}
+
+.agreeRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #28190B;
+  cursor: pointer;
+}
+
+.agreeRow span {
+  line-height: 1.4;
+}
+
+.agreeRow a {
+  color: #7A6952;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .footerLabel {
   font-size: 14px;
   font-weight: 700;
