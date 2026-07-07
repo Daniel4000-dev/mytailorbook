@@ -62,7 +62,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       <div className={`${styles.depthLayer} ${isMenuOpen ? styles.menuOpen : ''}`} />
 
       {/* 3. Main app Shell (scales down and pushes right when menu is open) */}
-      <div 
+      <div
         className={`${styles.appShell} ${isMenuOpen ? styles.menuOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
         onClick={isMenuOpen ? () => setMenuOpen(false) : undefined}
       >
@@ -71,55 +71,64 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
             {children}
           </div>
         </main>
-        {showFab && (
-          <FAB
-            onClick={() => setShowActionMenu(true)}
-            icon={<FaPlus />}
-            label="Create action"
-          />
-        )}
-        <BottomNav />
-        <InstallPrompt />
-
-        {/* Create Action Menu */}
-        <BottomSheet
-          isOpen={showActionMenu}
-          onClose={() => setShowActionMenu(false)}
-          title="Create New"
-        >
-          <div className={styles.actionMenu}>
-            <button 
-              className={styles.actionMenuItem} 
-              onClick={() => { setShowActionMenu(false); setShowOrderForm(true); }}
-            >
-              New Order
-            </button>
-            <button 
-              className={styles.actionMenuItem} 
-              onClick={() => { setShowActionMenu(false); setShowCustomerForm(true); }}
-            >
-              New Customer
-            </button>
-          </div>
-        </BottomSheet>
-
-        {/* Forms */}
-        <BottomSheet
-          isOpen={showOrderForm}
-          onClose={() => setShowOrderForm(false)}
-          title="New Order"
-        >
-          <OrderForm onClose={() => setShowOrderForm(false)} />
-        </BottomSheet>
-
-        <BottomSheet
-          isOpen={showCustomerForm}
-          onClose={() => setShowCustomerForm(false)}
-          title="New Customer"
-        >
-          <CustomerForm onClose={() => setShowCustomerForm(false)} />
-        </BottomSheet>
       </div>
+
+      {/* Fixed UI lives outside .appShell on purpose — .appShell gets a real
+          `transform` whenever the sidebar opens (the scale/translate "depth
+          card" effect), and once a `position: fixed` element has ever sat
+          inside a transformed ancestor, some mobile browsers permanently
+          mis-associate its containing block — it can stop tracking the
+          real viewport during scroll until something forces a reflow
+          (e.g. reopening the sidebar), which is exactly the "bottom nav
+          disappears until I open the sidebar again" bug this fixes. */}
+      {!isMenuOpen && showFab && (
+        <FAB
+          onClick={() => setShowActionMenu(true)}
+          icon={<FaPlus />}
+          label="Create action"
+        />
+      )}
+      {!isMenuOpen && <BottomNav />}
+      {!isMenuOpen && <InstallPrompt />}
+
+      {/* Create Action Menu */}
+      <BottomSheet
+        isOpen={showActionMenu}
+        onClose={() => setShowActionMenu(false)}
+        title="Create New"
+      >
+        <div className={styles.actionMenu}>
+          <button
+            className={styles.actionMenuItem}
+            onClick={() => { setShowActionMenu(false); setShowOrderForm(true); }}
+          >
+            New Order
+          </button>
+          <button
+            className={styles.actionMenuItem}
+            onClick={() => { setShowActionMenu(false); setShowCustomerForm(true); }}
+          >
+            New Customer
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* Forms */}
+      <BottomSheet
+        isOpen={showOrderForm}
+        onClose={() => setShowOrderForm(false)}
+        title="New Order"
+      >
+        <OrderForm onClose={() => setShowOrderForm(false)} />
+      </BottomSheet>
+
+      <BottomSheet
+        isOpen={showCustomerForm}
+        onClose={() => setShowCustomerForm(false)}
+        title="New Customer"
+      >
+        <CustomerForm onClose={() => setShowCustomerForm(false)} />
+      </BottomSheet>
     </div>
   );
 }
