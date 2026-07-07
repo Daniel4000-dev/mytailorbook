@@ -5,6 +5,7 @@
    ============================================================ */
 
 import { PHONE_PREFIX } from './constants';
+import type { OrderStatus } from './types';
 
 /**
  * Formats a number as Nigerian Naira with commas.
@@ -125,9 +126,38 @@ export function formatShortMonthYear(dateString: string): string {
 }
 
 /**
- * Generates a WhatsApp link for a phone number.
+ * Generates a WhatsApp link for a phone number. When `message` is given, it's
+ * pre-filled into the chat's text box via wa.me's `text` param — the customer
+ * still has to hit send themselves, this just saves the tailor from typing
+ * the same update out by hand for every order.
  */
-export function getWhatsAppLink(phone: string): string {
+export function getWhatsAppLink(phone: string, message?: string): string {
   const normalized = normalizePhone(phone);
-  return `https://wa.me/${normalized}`;
+  const base = `https://wa.me/${normalized}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}
+
+/**
+ * The stage-specific WhatsApp update a tailor sends a customer from the
+ * order detail sheet — worded around whatever stage the order is actually
+ * in right now, always closing with the tracking link.
+ */
+export function getOrderProgressMessage(params: {
+  customerName: string;
+  shopName: string;
+  status: OrderStatus;
+  trackingUrl: string;
+}): string {
+  const { customerName, shopName, status, trackingUrl } = params;
+  const firstName = customerName.trim().split(' ')[0] || customerName;
+
+  const stageMessages: Record<OrderStatus, string> = {
+    Documented: `Hi ${firstName}, thank you for choosing ${shopName}! We've logged your order and it's queued up to begin production soon.`,
+    Cutting: `Hi ${firstName}, good news from ${shopName}! We've started working on your outfit — it's currently in the cutting stage.`,
+    Sewing: `Hi ${firstName}, quick update from ${shopName} — your outfit is now being sewn together.`,
+    Ready: `Hi ${firstName}, exciting news from ${shopName}! Your outfit is ready, just some final touches away from being set for you.`,
+    Completed: `Hi ${firstName}, your outfit is complete and ready for you from ${shopName}! Thank you for your patience.`,
+  };
+
+  return `${stageMessages[status]} You can monitor its progress anytime here: ${trackingUrl}`;
 }

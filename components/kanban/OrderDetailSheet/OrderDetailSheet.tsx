@@ -30,7 +30,7 @@ import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
-import { formatCurrency, formatDate, getWhatsAppLink } from '@/lib/formatters';
+import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue } from '@/lib/types';
 import type { Order, Role, Customer, Priority } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
@@ -57,12 +57,22 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const { user } = useAuth();
-  const { updateOrderStatus, updateOrder, staffMembers } = useData();
+  const { updateOrderStatus, updateOrder, staffMembers, currentShop } = useData();
   const { showToast } = useToast();
 
+  const trackingUrl = `${window.location.origin}/track/${order.id}`;
+
+  const whatsAppMessage = customer
+    ? getOrderProgressMessage({
+        customerName: customer.fullName,
+        shopName: currentShop?.name || 'us',
+        status: order.status,
+        trackingUrl,
+      })
+    : undefined;
+
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/track/${order.id}`;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(trackingUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -432,12 +442,12 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
             <span className={styles.actionRowLabel}>Customer Updates</span>
             <div className={styles.contactActions}>
               <a
-                href={getWhatsAppLink(customer.whatsappNumber)}
+                href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.premiumContactLink}
               >
-                <FaWhatsapp /> Chat on WhatsApp
+                <FaWhatsapp /> Send {order.status} Update
               </a>
             </div>
           </div>
@@ -451,7 +461,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               <input
                 type="text"
                 readOnly
-                value={`${window.location.origin}/track/${order.id}`}
+                value={trackingUrl}
                 className={styles.premiumLinkInput}
                 onClick={(e) => (e.target as HTMLInputElement).select()}
               />
