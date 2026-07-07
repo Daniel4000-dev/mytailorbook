@@ -60,11 +60,11 @@ export const config = {
     /*
      * Match all request paths except:
      * - _next/static, _next/image (build assets)
-     * - favicon, manifest, images folder
+     * - favicon, manifest, images/icons folders, apple-touch-icon
      * - api/ (API routes handle their own auth — e.g. the cron keep-alive
      *   endpoint is called by Vercel's scheduler with no browser session,
      *   and would otherwise get redirected to /login before it ever ran)
      */
-    '/((?!_next/static|_next/image|favicon.ico|images/|manifest.webmanifest|api/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|apple-touch-icon.png|images/|icons/|manifest.webmanifest|api/).*)',
   ],
 };

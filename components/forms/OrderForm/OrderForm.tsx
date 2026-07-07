@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { FaUser, FaPhone, FaMoneyBill, FaHandHoldingDollar, FaCalendarDay } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
 import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
@@ -19,6 +20,7 @@ interface OrderFormProps {
 export default function OrderForm({ onClose }: OrderFormProps) {
   const { user } = useAuth();
   const { customers, findOrCreateCustomer, addOrder, staffMembers } = useData();
+  const { showToast } = useToast();
   const [customerName, setCustomerName] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [phone, setPhone] = useState('');
@@ -38,8 +40,8 @@ export default function OrderForm({ onClose }: OrderFormProps) {
   const balance = Math.max(0, total - deposit);
 
   const staffOptions = staffMembers
-    .filter((u) => u.role === 'Staff' && u.active !== false)
-    .map((u) => ({ value: u.uid, label: u.name }));
+    .filter((u) => u.active !== false)
+    .map((u) => ({ value: u.uid, label: u.uid === user?.uid ? `${u.name} (You)` : u.name }));
 
   const priorityOptions: { value: Priority; label: string }[] = [
     { value: 'normal', label: 'Normal' },
@@ -111,6 +113,7 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         }],
       });
 
+      showToast(`Order created for ${customer.fullName}`, 'success');
       onClose();
     } catch (err) {
       setError('Failed to create order');

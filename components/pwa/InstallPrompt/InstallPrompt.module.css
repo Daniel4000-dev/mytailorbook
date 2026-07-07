@@ -1,0 +1,126 @@
+.banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  /* Clears the FAB (56px, sits var(--sf-space-md) above the bottom nav) with
+     room to spare, so the two floating elements never overlap. */
+  bottom: calc(var(--sf-bottom-nav-height) + var(--sf-safe-area-bottom) + var(--sf-fab-size) + var(--sf-space-md) + 12px);
+  z-index: var(--sf-z-modal);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #FFFFFF;
+  border-radius: var(--sf-radius-xl);
+  box-shadow: var(--sf-shadow-lg);
+  border: 1px solid var(--sf-border-light);
+  animation: slideUpIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--sf-bg-secondary, #F5EFE6);
+  color: var(--sf-text-tertiary);
+  font-size: 11px;
+  border: none;
+  cursor: pointer;
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.appIcon {
+  width: 32px;
+  height: auto;
+}
+
+.textWrapper {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-family: var(--sf-font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.subtitle {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--sf-text-secondary);
+}
+
+.inlineIcon {
+  display: inline;
+  vertical-align: -1px;
+  margin: 0 2px;
+  font-size: 11px;
+}
+
+.installBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: #28190B;
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sf-radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--sf-transition-fast), transform 120ms ease;
+}
+
+.installBtn:hover {
+  background: #1e1208;
+}
+
+.installBtn:active {
+  transform: scale(0.95);
+}
+
+.installBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (min-width: 1024px) {
+  .banner {
+    display: none;
+  }
+}

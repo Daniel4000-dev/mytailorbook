@@ -33,17 +33,40 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
   const [isSwiping, setIsSwiping] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const touchStartTime = useRef<number | null>(null);
+  const gestureDisqualified = useRef(false);
+
+  // A held-then-drag gesture, mirroring the desktop board's own drag delay —
+  // a quick brush or scroll attempt within this window disqualifies the
+  // whole gesture rather than being treated as a (possibly accidental)
+  // status-changing swipe.
+  const SWIPE_HOLD_DELAY_MS = 150;
+  const SWIPE_HOLD_TOLERANCE_PX = 6;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
+    gestureDisqualified.current = false;
     setIsSwiping(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
+    if (touchStartX.current === null || touchStartY.current === null || touchStartTime.current === null) return;
+    if (gestureDisqualified.current) return;
+
     const dx = e.touches[0].clientX - touchStartX.current;
     const dy = e.touches[0].clientY - touchStartY.current;
+    const elapsed = Date.now() - touchStartTime.current;
+
+    if (elapsed < SWIPE_HOLD_DELAY_MS) {
+      // Still within the hold window — any real movement here means this is
+      // a scroll, not a deliberate swipe. Rule it out for the rest of the touch.
+      if (Math.abs(dx) > SWIPE_HOLD_TOLERANCE_PX || Math.abs(dy) > SWIPE_HOLD_TOLERANCE_PX) {
+        gestureDisqualified.current = true;
+      }
+      return;
+    }
 
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
       setIsSwiping(true);
@@ -52,16 +75,18 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
   };
 
   const handleTouchEnd = () => {
+    gestureDisqualified.current = false;
+    touchStartTime.current = null;
     if (!isSwiping) return;
-    
+
     const SWIPE_THRESHOLD = 80;
-    
+
     if (swipeOffset > SWIPE_THRESHOLD && onAdvance) {
       onAdvance();
     } else if (swipeOffset < -SWIPE_THRESHOLD && onRevert) {
       onRevert();
     }
-    
+
     setSwipeOffset(0);
     setIsSwiping(false);
     touchStartX.current = null;
@@ -190,7 +215,7 @@ export default function OrderCard({ order, userRole, onClick, onAdvance, onRever
                 >
                   <option value="">Unassigned</option>
                   {staffMembers
-                    .filter((s) => s.role === 'Staff' && (s.active !== false || s.uid === order.assignedTo))
+                    .filter((s) => s.active !== false || s.uid === order.assignedTo)
                     .map((s) => (
                       <option key={s.uid} value={s.uid}>{s.name}</option>
                     ))}

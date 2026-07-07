@@ -8,6 +8,19 @@ interface MeasurementPoint {
   name: string;
   x: number;
   y: number;
+  /** When set, this measurement spans two landmarks (e.g. nipple to nipple)
+   *  rather than a single spot — (x,y) and (endX,endY) are drawn as a
+   *  connecting line, with the tap target at their midpoint. A single dot
+   *  can't communicate "from here to there," so these get a line instead. */
+  endX?: number;
+  endY?: number;
+  /** Override for where the tap target sits — the anatomically correct line
+   *  sometimes has its true geometric midpoint on top of an unrelated point
+   *  (e.g. a nipple-to-nipple line crosses right through the Bust point at
+   *  its center); this nudges just the clickable marker/label clear of it
+   *  without moving the line itself. */
+  midX?: number;
+  midY?: number;
 }
 
 // Note: every point below must have a unique (x, y) — two points sharing the
@@ -17,7 +30,8 @@ interface MeasurementPoint {
 const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 34, y: 24 },
-  { id: 'crossFront', name: 'Cross Front', x: 50, y: 28 },
+  { id: 'crossFront', name: 'Across Front', x: 50, y: 28 },
+  { id: 'crossBack', name: 'Across Back', x: 58, y: 28 },
   { id: 'bust', name: 'Bust', x: 50, y: 34 },
   { id: 'underBust', name: 'Under Bust', x: 50, y: 39 },
   { id: 'waist', name: 'Waist', x: 50, y: 45 },
@@ -29,6 +43,7 @@ const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'napeToWaist', name: 'Nape to Waist', x: 58, y: 45 },
   { id: 'frontLength', name: 'Front Length', x: 50, y: 65 },
   { id: 'dressLength', name: 'Dress Length', x: 50, y: 75 },
+  { id: 'gownLength', name: 'Gown Length', x: 50, y: 92 },
   { id: 'trouserLength', name: 'Trouser Length', x: 37, y: 90 },
   { id: 'thigh', name: 'Thigh', x: 42, y: 68 },
   { id: 'knee', name: 'Knee', x: 42, y: 78 },
@@ -36,11 +51,22 @@ const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'ankle', name: 'Ankle', x: 42, y: 96 },
   { id: 'inseam', name: 'Inseam', x: 47.5, y: 79 },
   { id: 'outseam', name: 'Outseam', x: 36.5, y: 77 },
+  { id: 'crotch', name: 'Crotch', x: 44, y: 63 },
+  { id: 'halfLength', name: 'Half Length', x: 30, y: 72 },
+  // Spans — two landmarks connected by a line, not a single spot. Some
+  // need a `mid` override: their true geometric midpoint would otherwise
+  // land exactly on an unrelated point (see the field comment above).
+  { id: 'shoulderToBustPoint', name: 'Shoulder to Bust Point', x: 37, y: 24, endX: 43, endY: 34, midX: 44, midY: 25 },
+  { id: 'nippleToNipple', name: 'Nipple to Nipple', x: 43, y: 34, endX: 57, endY: 34, midX: 44, midY: 31 },
+  { id: 'shoulderToWaist', name: 'Shoulder to Waist', x: 64, y: 24, endX: 63, endY: 45, midX: 70, midY: 34 },
+  { id: 'shoulderToHips', name: 'Shoulder to Hips', x: 64, y: 24, endX: 66, endY: 58, midX: 72, midY: 45 },
 ];
 
 const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 31, y: 23 },
+  { id: 'crossFront', name: 'Across Front', x: 50, y: 28 },
+  { id: 'crossBack', name: 'Across Back', x: 58, y: 28 },
   { id: 'chest', name: 'Chest', x: 50, y: 33 },
   { id: 'stomach', name: 'Stomach', x: 50, y: 42 },
   { id: 'waist', name: 'Waist', x: 50, y: 48 },
@@ -144,16 +170,35 @@ export default function MeasurementAnatomy({
               </svg>
             )}
 
+            {/* Span lines — drawn first so the point markers sit on top */}
+            <svg viewBox="0 0 100 100" className={styles.spanSvg} preserveAspectRatio="xMidYMid meet">
+              {points
+                .filter((p) => p.endX !== undefined && p.endY !== undefined)
+                .map((p) => (
+                  <line
+                    key={`${p.id}-span`}
+                    x1={p.x}
+                    y1={p.y}
+                    x2={p.endX}
+                    y2={p.endY}
+                    className={`${styles.spanLine} ${measurements[p.id] ? styles.spanLineFilled : ''}`}
+                  />
+                ))}
+            </svg>
+
             {/* Interactive measurement points */}
             {points.map((point) => {
               const hasMeasurement = !!measurements[point.id];
               const isSelected = selectedPointId === point.id;
+              const isSpan = point.endX !== undefined && point.endY !== undefined;
+              const tapX = point.midX ?? (isSpan ? (point.x + point.endX!) / 2 : point.x);
+              const tapY = point.midY ?? (isSpan ? (point.y + point.endY!) / 2 : point.y);
 
               return (
                 <button
                   key={point.id}
-                  className={`${styles.point} ${hasMeasurement ? styles.filled : ''} ${isSelected ? styles.selected : ''}`}
-                  style={{ left: `${point.x}%`, top: `${point.y}%` }}
+                  className={`${styles.point} ${hasMeasurement ? styles.filled : ''} ${isSelected ? styles.selected : ''} ${isSpan ? styles.spanPoint : ''}`}
+                  style={{ left: `${tapX}%`, top: `${tapY}%` }}
                   onClick={() => onPointSelect(point)}
                   aria-label={`${point.name}${hasMeasurement ? `: ${measurements[point.id]}` : ''}`}
                 >

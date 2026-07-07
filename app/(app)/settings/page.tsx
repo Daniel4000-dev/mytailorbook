@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
@@ -11,12 +12,14 @@ import Input from '@/components/ui/Input/Input';
 import { FaBars, FaUserPlus, FaUsers, FaArrowRight, FaGear, FaPen, FaUserSlash, FaUserCheck, FaStore } from 'react-icons/fa6';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { formatPhone } from '@/lib/formatters';
+import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
   const { user, isOwner } = useAuth();
-  const { staffMembers, addStaff, updateStaff, currentShop, updateShop } = useData();
+  const { staffMembers, addStaff, updateStaff, currentShop, updateShop, isLoaded } = useData();
   const { toggleMenu } = useSidebar();
+  const { showToast } = useToast();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -45,6 +48,30 @@ export default function SettingsPage() {
     );
   }
 
+  if (!isLoaded) {
+    return (
+      <PageLayout
+        className={styles.pageGrid}
+        header={
+          <TopBar
+            profileMode={{
+              greeting: 'Studio Settings',
+              name: user?.name || 'Owner',
+              avatarInitials: user?.name ? user.name[0] : 'O',
+            }}
+            leftAction={
+              <div className={styles.mobileOnly}>
+                <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
+              </div>
+            }
+          />
+        }
+      >
+        <SettingsSkeleton />
+      </PageLayout>
+    );
+  }
+
   const startEditStaff = (staff: { uid: string; name: string }) => {
     setEditingUid(staff.uid);
     setEditName(staff.name);
@@ -55,6 +82,7 @@ export default function SettingsPage() {
     try {
       await updateStaff(uid, { name: editName });
       setEditingUid(null);
+      showToast('Staff member updated', 'success');
     } finally {
       setSavingEdit(false);
     }
@@ -62,6 +90,7 @@ export default function SettingsPage() {
 
   const handleToggleActive = async (uid: string, currentlyActive: boolean) => {
     await updateStaff(uid, { active: !currentlyActive });
+    showToast(currentlyActive ? 'Staff member deactivated' : 'Staff member reactivated', 'success');
   };
 
   const startEditShop = () => {
@@ -76,6 +105,7 @@ export default function SettingsPage() {
     try {
       await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined });
       setEditingShop(false);
+      showToast('Studio profile updated', 'success');
     } finally {
       setSavingShop(false);
     }
@@ -96,10 +126,9 @@ export default function SettingsPage() {
       setName('');
       setEmail('');
       setPassword('');
-      setMessage('Staff member added successfully!');
-      setTimeout(() => setMessage(''), 3000);
+      showToast(`${name} added as staff`, 'success');
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Failed to add staff member.');
+      showToast(err instanceof Error ? err.message : 'Failed to add staff member.', 'error');
     } finally {
       setLoading(false);
     }
@@ -268,11 +297,7 @@ export default function SettingsPage() {
                 required
               />
               
-              {message && (
-                <p className={message.includes('successfully') ? styles.successText : styles.errorText}>
-                  {message}
-                </p>
-              )}
+              {message && <p className={styles.errorText}>{message}</p>}
 
               <Button
                 type="submit"

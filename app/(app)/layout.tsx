@@ -12,6 +12,8 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import OrderForm from '@/components/forms/OrderForm/OrderForm';
 import CustomerForm from '@/components/forms/CustomerForm/CustomerForm';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
+import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
+import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
 import styles from './layout.module.css';
 
 function AppLayoutContent({ children }: { children: ReactNode }) {
@@ -21,7 +23,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
-  const { needsOnboarding, loading: authLoading } = useAuth();
+  const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
   // The FAB creates orders/customers — not a relevant action on Settings,
   // where it would otherwise float over the Register Employee form.
   const showFab = !pathname.startsWith('/settings');
@@ -47,6 +49,10 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     document.body.style.backgroundColor = color;
   }, [isMenuOpen]);
 
+  if (isLoggingOut) {
+    return <LogoutOverlay />;
+  }
+
   return (
     <div className={`${styles.outerWrapper} ${isCollapsed ? styles.sidebarCollapsed : ''}`}>
       {/* 1. Fixed sidebar menu sitting behind the appShell */}
@@ -60,7 +66,11 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
         className={`${styles.appShell} ${isMenuOpen ? styles.menuOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
         onClick={isMenuOpen ? () => setMenuOpen(false) : undefined}
       >
-        <main className={styles.main}>{children}</main>
+        <main className={styles.main}>
+          <div key={pathname} className={styles.pageEnter}>
+            {children}
+          </div>
+        </main>
         {showFab && (
           <FAB
             onClick={() => setShowActionMenu(true)}
@@ -69,7 +79,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           />
         )}
         <BottomNav />
-        
+        <InstallPrompt />
+
         {/* Create Action Menu */}
         <BottomSheet
           isOpen={showActionMenu}

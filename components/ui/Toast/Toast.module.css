@@ -1,0 +1,125 @@
+.viewport {
+  position: fixed;
+  z-index: var(--sf-z-modal, 300);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+
+  /* Mobile: bottom snackbar, clearing the bottom nav + FAB where present.
+     On pages without a bottom nav (auth, public) this just leaves a bit of
+     extra breathing room above the edge — harmless. */
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--sf-bottom-nav-height, 0px) + var(--sf-safe-area-bottom, 0px) + 16px);
+  align-items: stretch;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  background: #28190B;
+  color: #FFFFFF;
+  border-radius: var(--sf-radius-lg);
+  box-shadow: var(--sf-shadow-lg);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sf-font-body), sans-serif;
+  animation: toastIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  display: flex;
+}
+
+.success .icon {
+  color: #4ADE80;
+}
+
+.error .icon {
+  color: #F87171;
+}
+
+.info .icon {
+  color: #93C5FD;
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.actionBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #FCD34D;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.actionBtn:hover {
+  text-decoration: underline;
+}
+
+.dismissBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  border: none;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Desktop: classic top-right stacked corner notifications */
+@media (min-width: 1024px) {
+  .viewport {
+    left: auto;
+    right: 20px;
+    bottom: auto;
+    top: 20px;
+    width: 340px;
+  }
+
+  .toast {
+    animation: toastInDesktop 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes toastInDesktop {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}

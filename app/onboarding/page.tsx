@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeGoogleOnboarding } from '@/app/auth-actions';
@@ -20,9 +20,16 @@ export default function OnboardingPage() {
   }, [googleUserInfo]);
 
   // If someone lands here without an in-progress Google sign-in, send them
-  // back to login rather than showing a dead-end form.
+  // back to login rather than showing a dead-end form. This must only ever
+  // check once, on the initial load — otherwise a *successful* submission
+  // (which also flips `needsOnboarding` to false, via refreshProfile) races
+  // this same effect against the handler's own `router.push('/dashboard')`,
+  // intermittently bouncing a freshly-onboarded user back to /login instead.
+  const initialCheckDone = useRef(false);
   useEffect(() => {
-    if (!loading && !needsOnboarding) {
+    if (loading || initialCheckDone.current) return;
+    initialCheckDone.current = true;
+    if (!needsOnboarding) {
       router.replace('/login');
     }
   }, [loading, needsOnboarding, router]);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaWhatsapp, FaUserSlash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
@@ -17,7 +18,8 @@ import MeasurementAnatomy from '@/components/customers/MeasurementAnatomy/Measur
 import OrderDetailSheet from '@/components/kanban/OrderDetailSheet/OrderDetailSheet';
 import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import type { Measurements } from '@/lib/types';
+import type { Measurements, Customer, Order, User } from '@/lib/types';
+import CustomerDetailSkeleton from './CustomerDetailSkeleton';
 import styles from './page.module.css';
 
 interface Point {
@@ -29,29 +31,8 @@ interface Point {
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  const router = useRouter();
   const { isOwner, user } = useAuth();
-  const { customers, orders, updateCustomerMeasurements, updateOrder } = useData();
-
-  const customer = customers.find((c) => c.id === id);
-
-  // Initialize from customer measurements
-  const [measurements, setMeasurements] = useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {};
-    if (customer?.measurements) {
-      Object.entries(customer.measurements).forEach(([key, val]) => {
-        if (val !== undefined && val !== null && key !== 'notes') {
-          initial[key] = String(val);
-        }
-      });
-    }
-    return initial;
-  });
-
-  const [notes, setNotes] = useState(customer?.measurements?.notes || '');
-  const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
-  const [currentValue, setCurrentValue] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const { customers, orders, isLoaded, updateCustomerMeasurements, updateOrder } = useData();
 
   if (!isOwner) {
     return (
@@ -61,6 +42,16 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
+  if (!isLoaded) {
+    return (
+      <PageLayout className={styles.pageGrid} header={<TopBar title="Customer Details" showBack />}>
+        <CustomerDetailSkeleton />
+      </PageLayout>
+    );
+  }
+
+  const customer = customers.find((c) => c.id === id);
+
   if (!customer) {
     return (
       <PageLayout header={<TopBar title="Customer" showBack />}>
@@ -69,6 +60,55 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
+  return (
+    <CustomerProfileContent
+      customer={customer}
+      orders={orders}
+      isOwner={isOwner}
+      user={user}
+      updateCustomerMeasurements={updateCustomerMeasurements}
+      updateOrder={updateOrder}
+    />
+  );
+}
+
+function CustomerProfileContent({
+  customer,
+  orders,
+  isOwner,
+  user,
+  updateCustomerMeasurements,
+  updateOrder,
+}: {
+  customer: Customer;
+  orders: Order[];
+  isOwner: boolean;
+  user: User | null;
+  updateCustomerMeasurements: ReturnType<typeof useData>['updateCustomerMeasurements'];
+  updateOrder: ReturnType<typeof useData>['updateOrder'];
+}) {
+  const { showToast } = useToast();
+
+  // Initialize from customer measurements — this component only mounts once
+  // real customer data is available, so these initializers see real values.
+  const [measurements, setMeasurements] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    if (customer.measurements) {
+      Object.entries(customer.measurements).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && key !== 'notes') {
+          initial[key] = String(val);
+        }
+      });
+    }
+    return initial;
+  });
+
+  const [notes, setNotes] = useState(customer.measurements?.notes || '');
+  const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
+  const [currentValue, setCurrentValue] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+
+  const id = customer.id;
   const custOrders = orders.filter((o) => o.customerId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const totalSpend = custOrders.reduce((s, o) => s + o.totalBill, 0);
   const totalOwed = custOrders.reduce((s, o) => s + getBalanceOwed(o), 0);
@@ -120,6 +160,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     });
 
     updateCustomerMeasurements(customer.id, updatedMeasurements);
+    showToast('Notes saved', 'success');
   };
 
   const handleSaveMeasurement = () => {
@@ -150,6 +191,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
       }
       
       updateCustomerMeasurements(customer.id, updatedMeasurements);
+      showToast(`${selectedPoint.name} measurement saved`, 'success');
       setSelectedPoint(null);
     }
   };
@@ -177,8 +219,9 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
       });
       
       delete (updatedMeasurements as any)[selectedPoint.id];
-      
+
       updateCustomerMeasurements(customer.id, updatedMeasurements);
+      showToast(`${selectedPoint.name} measurement cleared`, 'success');
       setSelectedPoint(null);
     }
   };

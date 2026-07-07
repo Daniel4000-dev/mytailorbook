@@ -22,6 +22,8 @@ import {
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
+import { createClient } from '@/lib/supabase/client';
 import Badge from '@/components/ui/Badge/Badge';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
@@ -56,6 +58,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
 
   const { user } = useAuth();
   const { updateOrderStatus, updateOrder, staffMembers } = useData();
+  const { showToast } = useToast();
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/track/${order.id}`;
@@ -72,6 +75,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     try {
       await onUpdatePayment(order.id, amount);
       setPaymentAmount('');
+      showToast(`Payment of ${formatCurrency(amount)} recorded`, 'success');
     } finally {
       setRecordingPayment(false);
     }
@@ -81,6 +85,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     setStartingProd(true);
     try {
       await updateOrderStatus(order.id, 'Cutting', user?.uid || '', user?.name || '');
+      showToast('Order sent to production', 'success');
     } finally {
       setStartingProd(false);
     }
@@ -89,8 +94,8 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   const staffOptions = [
     { value: '', label: 'Unassigned' },
     ...staffMembers
-      .filter((s) => s.role === 'Staff' && (s.active !== false || s.uid === order.assignedTo))
-      .map((s) => ({ value: s.uid, label: s.name })),
+      .filter((s) => s.active !== false || s.uid === order.assignedTo)
+      .map((s) => ({ value: s.uid, label: s.uid === user?.uid ? `${s.name} (You)` : s.name })),
   ];
 
   const priorityOptions: { value: Priority; label: string }[] = [
@@ -128,37 +133,57 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
           : { orderDetails: editDetails };
       await updateOrder(order.id, updates);
       setIsEditing(false);
+      showToast('Order updated', 'success');
     } finally {
       setSavingEdit(false);
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setUploadingPhoto(true);
-    const readers = Array.from(files).map(
-      (file) =>
-        new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        })
-    );
-    Promise.all(readers)
-      .then(async (dataUrls) => {
-        await updateOrder(order.id, { images: [...(order.images || []), ...dataUrls] });
-      })
-      .finally(() => {
-        setUploadingPhoto(false);
-        e.target.value = '';
-      });
+    try {
+      // Uploaded straight to Supabase Storage from the browser — bypassing
+      // the Next.js Server Action that `updateOrder` goes through, which
+      // caps request bodies at 1MB by default. A real phone photo, base64-
+      // encoded, almost always exceeded that, so uploads used to silently
+      // fail. Only the resulting (short) public URL gets saved to the order.
+      const supabase = createClient();
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop() || 'jpg';
+        const path = `${order.shopId}/${order.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('order-photos').upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+        if (uploadError) throw new Error(uploadError.message);
+        const { data } = supabase.storage.from('order-photos').getPublicUrl(path);
+        uploadedUrls.push(data.publicUrl);
+      }
+      await updateOrder(order.id, { images: [...(order.images || []), ...uploadedUrls] });
+      showToast(uploadedUrls.length > 1 ? `${uploadedUrls.length} photos added` : 'Photo added', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
   };
 
   const handleRemovePhoto = async (index: number) => {
+    const removedUrl = (order.images || [])[index];
     const next = (order.images || []).filter((_, i) => i !== index);
     await updateOrder(order.id, { images: next });
+
+    const marker = '/order-photos/';
+    const markerIndex = removedUrl?.indexOf(marker) ?? -1;
+    if (markerIndex !== -1) {
+      const path = removedUrl.slice(markerIndex + marker.length);
+      const supabase = createClient();
+      await supabase.storage.from('order-photos').remove([path]);
+    }
   };
 
   return (

@@ -12,12 +12,13 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { formatPhone, formatCurrency, formatShortMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
+import CustomersSkeleton from './CustomersSkeleton';
 import styles from './page.module.css';
 
 export default function CustomersPage() {
   const router = useRouter();
   const { isOwner } = useAuth();
-  const { customers, orders } = useData();
+  const { customers, orders, isLoaded } = useData();
   const [search, setSearch] = useState('');
 
   // Calculate order stats per customer
@@ -45,6 +46,14 @@ export default function CustomersPage() {
     return (
       <PageLayout header={<TopBar title="Customers" />}>
         <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
+      </PageLayout>
+    );
+  }
+
+  if (!isLoaded) {
+    return (
+      <PageLayout header={<TopBar title="Customers" />}>
+        <CustomersSkeleton />
       </PageLayout>
     );
   }

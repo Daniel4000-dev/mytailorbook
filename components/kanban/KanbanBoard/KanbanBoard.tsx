@@ -6,6 +6,8 @@ import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, type Dra
 import { FaFilter, FaListCheck, FaTimeline, FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaChevronDown, FaChevronUp, FaArrowRight, FaXmark, FaMagnifyingGlass } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
+import { STATUS_CONFIG } from '@/lib/constants';
 import KanbanColumn from '@/components/kanban/KanbanColumn/KanbanColumn';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Badge from '@/components/ui/Badge/Badge';
@@ -14,6 +16,7 @@ import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimel
 import OrderDetailSheet from '@/components/kanban/OrderDetailSheet/OrderDetailSheet';
 import { PRODUCTION_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
 import type { Order, OrderStatus, Role } from '@/lib/types';
+import KanbanBoardSkeleton from './KanbanBoardSkeleton';
 import styles from './KanbanBoard.module.css';
 
 
@@ -24,6 +27,7 @@ interface KanbanBoardProps {
 export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const { user } = useAuth();
   const { orders, customers, staffMembers, isLoaded, updateOrderStatus, updateOrder } = useData();
+  const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -76,10 +80,28 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     if (!over) return;
     const orderId = active.id as string;
     const newStatus = over.id as OrderStatus;
-    if ((PRODUCTION_STATUSES as readonly string[]).includes(newStatus)) {
+    const draggedOrder = active.data.current?.order as Order | undefined;
+    const previousStatus = draggedOrder?.status;
+
+    if ((PRODUCTION_STATUSES as readonly string[]).includes(newStatus) && newStatus !== previousStatus) {
       await updateOrderStatus(orderId, newStatus, user?.uid || '', user?.name || '');
+
+      // Undo is only offered for mouse-driven drags — a mouse drag-and-drop
+      // is easy to mis-drop (a shaky click-drag near a column boundary);
+      // the mobile swipe gesture instead gets its own hold-delay protection
+      // against accidental triggers, so it doesn't need this safety net.
+      const activatorEvent = event.activatorEvent;
+      const isMouseDrag = 'pointerType' in activatorEvent && (activatorEvent as PointerEvent).pointerType === 'mouse';
+      if (isMouseDrag && previousStatus) {
+        showToast(`Moved to ${STATUS_CONFIG[newStatus].label}`, 'success', {
+          label: 'Undo',
+          onClick: () => {
+            updateOrderStatus(orderId, previousStatus, user?.uid || '', user?.name || '');
+          },
+        });
+      }
     }
-  }, [updateOrderStatus, user]);
+  }, [updateOrderStatus, user, showToast]);
 
   const handleAdvance = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
@@ -95,7 +117,8 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       assignedTo: staffUid,
       assignedToName: staffUid ? staffName : '',
     });
-  }, [updateOrder]);
+    showToast(staffUid ? `Reassigned to ${staffName}` : 'Order unassigned', 'success');
+  }, [updateOrder, showToast]);
 
   const handleRevert = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
@@ -156,6 +179,10 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   };
 
   const currentCustomer = currentOrder ? customers.find(c => c.id === currentOrder.customerId) : null;
+
+  if (!isLoaded) {
+    return <KanbanBoardSkeleton />;
+  }
 
   return (
     <>

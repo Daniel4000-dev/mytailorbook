@@ -98,6 +98,11 @@
   transform: translateX(4px);
 }
 
+.menuItem:active {
+  opacity: 0.6;
+  transform: scale(0.97);
+}
+
 .menuItem.active {
   color: var(--sf-accent-emerald);
   font-weight: 600;
@@ -179,6 +184,11 @@
 .logoutBtn:hover {
   color: #DE3B3B; /* Red highlight on logout */
   transform: translateX(4px);
+}
+
+.logoutBtn:active {
+  opacity: 0.6;
+  transform: scale(0.97);
 }
 
 .logoutIcon {

@@ -39,6 +39,7 @@ body {
   background-color: var(--sf-bg-primary);
   min-height: 100%;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: transparent;
 }
 

@@ -60,6 +60,29 @@
   opacity: 0.4;
 }
 
+/* ── Span measurements (two landmarks, connected by a line) ─── */
+
+.spanSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.spanLine {
+  stroke: var(--sf-text-tertiary);
+  stroke-width: 0.6;
+  stroke-dasharray: 2 1.5;
+  opacity: 0.6;
+}
+
+.spanLineFilled {
+  stroke: var(--sf-accent-emerald);
+  opacity: 0.9;
+}
+
 /* ── Measurement Points ───────────────────────────────── */
 
 .point {
@@ -135,6 +158,14 @@
 .selected .pointLabel {
   color: var(--sf-accent-gold);
   font-weight: var(--sf-weight-bold);
+}
+
+/* Span tap-target — a short bar instead of a dot, signaling "this represents
+   a line between two points," not a single spot. */
+.spanPoint .pointDot {
+  width: 14px;
+  height: 6px;
+  border-radius: var(--sf-radius-xs);
 }
 
 /* ── Legend ────────────────────────────────────────────── */

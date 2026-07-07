@@ -9,14 +9,32 @@ export default function manifest(): MetadataRoute.Manifest {
       'Premium workspace for managing orders, production, and clients in your fashion design studio.',
     start_url: '/dashboard',
     display: 'standalone',
-    background_color: '#FFFFFF',
-    theme_color: '#121212',
+    background_color: '#FAF2E8',
+    theme_color: '#FAF2E8',
     orientation: 'portrait',
     icons: [
       {
         src: '/favicon.ico',
         sizes: 'any',
         type: 'image/x-icon',
+      },
+      {
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-maskable-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
       },
     ],
   };

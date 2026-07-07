@@ -3,12 +3,11 @@
 import {
   createContext,
   useContext,
-  useState,
   useCallback,
   useMemo,
-  useEffect,
   type ReactNode,
 } from 'react';
+import useSWR from 'swr';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +23,15 @@ import {
   updateShopAction,
   getStaff,
 } from '@/app/actions';
+
+interface ShopBundle {
+  orders: Order[];
+  customers: Customer[];
+  staffMembers: User[];
+  shop: Shop | null;
+}
+
+const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null };
 
 interface DataContextValue {
   orders: Order[];
@@ -50,61 +58,53 @@ const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const shopId = user?.shopId;
+  const shopId = user?.shopId ?? null;
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [staffMembers, setStaffMembers] = useState<User[]>([]);
-  const [currentShop, setCurrentShop] = useState<Shop | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Every read is now pre-scoped by the shopId column + Row Level Security —
-  // Supabase itself refuses to hand back another shop's rows, so there's no
-  // client-side filtering left to do (unlike the old db.json version).
-  useEffect(() => {
-    if (!shopId) {
-      setOrders([]);
-      setCustomers([]);
-      setStaffMembers([]);
-      setCurrentShop(null);
-      setIsLoaded(false);
-      return;
+  // SWR keeps this shop's bundle in an in-memory cache keyed by shopId, so
+  // switching pages within the app never re-fetches — the cached value is
+  // returned instantly. It revalidates in the background on reconnect/focus,
+  // but not more often than `dedupingInterval`, which is our "cache time."
+  const { data, mutate } = useSWR(
+    shopId ? (['shop-bundle', shopId] as const) : null,
+    ([, id]) => getShopBundle(id),
+    {
+      dedupingInterval: 60_000,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
     }
-    getShopBundle(shopId).then((bundle) => {
-      setOrders(bundle.orders);
-      setCustomers(bundle.customers);
-      setStaffMembers(bundle.staffMembers);
-      setCurrentShop(bundle.shop);
-      setIsLoaded(true);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shopId]);
+  );
+
+  const bundle = data ?? EMPTY_BUNDLE;
+  const { orders, customers, staffMembers, shop: currentShop } = bundle;
+  // Only true once we've never had data for this shop — a background
+  // revalidation (isValidating) keeps showing the last-known-good data.
+  const isLoaded = !!data;
 
   const addOrder = useCallback(
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
       if (!shopId) return;
       const updated = await addOrderAction(shopId, orderData);
-      setOrders(updated);
+      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
       if (!shopId) return;
       const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, shopId);
-      setOrders(updated);
+      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
       if (!shopId) return;
       const updated = await updateOrderAction(orderId, updates, shopId);
-      setOrders(updated);
+      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const addCustomer = useCallback(
@@ -114,19 +114,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
         ...customerData,
         whatsappNumber: normalizePhone(customerData.whatsappNumber),
       });
-      setCustomers(updated);
+      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
       return newCustomer;
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
       if (!shopId) return;
       const updated = await updateCustomerMeasurementsAction(customerId, measurements, shopId);
-      setCustomers(updated);
+      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const findOrCreateCustomer = useCallback(
@@ -159,27 +159,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (!shopId) return;
       await createStaffAccount(shopId, name, email, password);
       const updated = await getStaff(shopId);
-      setStaffMembers(updated);
+      mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const updateStaff = useCallback(
     async (uid: string, updates: Partial<User>) => {
       if (!shopId) return;
       const updated = await updateStaffAction(uid, updates, shopId);
-      setStaffMembers(updated);
+      mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const updateShop = useCallback(
     async (updates: Partial<Shop>) => {
       if (!shopId) return;
       const updated = await updateShopAction(shopId, updates);
-      setCurrentShop(updated);
+      mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
     },
-    [shopId]
+    [shopId, mutate]
   );
 
   const value = useMemo<DataContextValue>(

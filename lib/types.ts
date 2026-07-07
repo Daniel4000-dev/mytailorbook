@@ -46,10 +46,16 @@ export interface Measurements {
   crossFront?: number;
   crossBack?: number;
   napeToWaist?: number;
+  shoulderToBustPoint?: number;
+  nippleToNipple?: number;
+  shoulderToWaist?: number;
+  shoulderToHips?: number;
+  halfLength?: number;
   frontLength?: number;
   backLength?: number;
   shirtLength?: number;
   dressLength?: number;
+  gownLength?: number;
   trouserLength?: number;
   inseam?: number;
   outseam?: number;

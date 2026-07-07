@@ -78,6 +78,39 @@
   padding-bottom: calc(var(--sf-bottom-nav-height) + var(--sf-safe-area-bottom));
   overflow-y: auto;
   overflow-x: clip;
+  overscroll-behavior-y: contain;
+}
+
+/* ── Page transition ──────────────────────────────────────────
+   Keyed on pathname in layout.tsx so React fully recreates this div
+   on every route change, restarting the animation every time —
+   a plain fade + rise, not direction-aware. (A forward/back-aware
+   slide was tried and dropped: Next's router-cache/prefetch timing
+   made reliably detecting direction from userland too fragile —
+   not worth shipping an animation that's occasionally backwards.) */
+.pageEnter {
+  display: block;
+  min-height: 100%;
+  width: 100%;
+  will-change: transform, opacity;
+  animation: pageEnter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageEnter {
+    animation: none;
+  }
 }
 
 /* ── FAB Action Menu ── */

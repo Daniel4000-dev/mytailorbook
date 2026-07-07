@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { FaUser, FaPhone } from 'react-icons/fa6';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
 import Input from '@/components/ui/Input/Input';
 import Select from '@/components/ui/Select/Select';
 import Button from '@/components/ui/Button/Button';
@@ -16,6 +17,7 @@ interface CustomerFormProps {
 
 export default function CustomerForm({ onClose, onSuccess }: CustomerFormProps) {
   const { addCustomer } = useData();
+  const { showToast } = useToast();
   const [fullName, setFullName] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('female');
@@ -44,6 +46,7 @@ export default function CustomerForm({ onClose, onSuccess }: CustomerFormProps) 
         measurements: {},
       });
       
+      showToast(`${newCustomer.fullName} added to customers`, 'success');
       onSuccess?.(newCustomer.id);
       onClose();
     } catch (err) {

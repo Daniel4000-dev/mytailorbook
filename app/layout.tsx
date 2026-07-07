@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { APP_CONFIG } from '@/lib/config';
 import './globals.css';
 
@@ -9,8 +10,12 @@ export const metadata: Metadata = {
     'Premium workspace for managing orders, production, and clients in your fashion design studio.',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: APP_CONFIG.name,
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
 };
 
@@ -20,7 +25,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#FFFFFF',
+  themeColor: '#FAF2E8',
 };
 
 export default function RootLayout({
@@ -36,9 +41,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&family=Cinzel:wght@400..900&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

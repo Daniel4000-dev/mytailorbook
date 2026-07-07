@@ -22,6 +22,10 @@ interface AuthContextValue {
    *  us no chance to ask for a shop name before the account is created. */
   needsOnboarding: boolean;
   googleUserInfo: { name: string; email: string } | null;
+  /** True from the moment logout is triggered until the redirect to /login
+   *  completes — lets the UI show a full-screen overlay instead of a frame
+   *  of empty/placeholder data as `user` and shop data clear out. */
+  isLoggingOut: boolean;
   login: (email: string, password: string) => Promise<void>;
   /** Returns whether Supabase actually requires clicking an email link before
    *  login works — this depends on the project's "Confirm email" setting,
@@ -61,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [googleUserInfo, setGoogleUserInfo] = useState<{ name: string; email: string } | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const supabase = useMemo(() => createClient(), []);
 
   const syncFromSession = useCallback(
@@ -76,6 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(profile);
         setNeedsOnboarding(false);
         setGoogleUserInfo(null);
+        // A real session with a profile means we're logged in, not logging
+        // out — clears the overlay for the next time this user lands in (app).
+        setIsLoggingOut(false);
       } else {
         // Authenticated with Supabase, but no shop/profile exists yet.
         setUser(null);
@@ -150,6 +158,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const logout = useCallback(async () => {
+    // Flip this first — the layout swaps to a full-screen overlay the
+    // instant this is set, so the frame where `user`/shop data clears to
+    // empty is never actually painted.
+    setIsLoggingOut(true);
     await supabase.auth.signOut();
     setUser(null);
     setNeedsOnboarding(false);
@@ -176,6 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isStaff: user?.role === 'Staff',
       needsOnboarding,
       googleUserInfo,
+      isLoggingOut,
       login,
       signup,
       signInWithGoogle,
@@ -183,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resetPassword,
       refreshProfile,
     }),
-    [user, loading, needsOnboarding, googleUserInfo, login, signup, signInWithGoogle, logout, resetPassword, refreshProfile]
+    [user, loading, needsOnboarding, googleUserInfo, isLoggingOut, login, signup, signInWithGoogle, logout, resetPassword, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -23,13 +23,14 @@ import Badge from '@/components/ui/Badge/Badge';
 import { formatCurrency } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
 import type { Order } from '@/lib/types';
+import DashboardSkeleton from './DashboardSkeleton';
 
 import styles from './page.module.css';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { orders, staffMembers } = useData();
+  const { orders, staffMembers, isLoaded } = useData();
   const { toggleMenu } = useSidebar();
 
   const firstName = user?.name?.split(' ')[0] || 'there';
@@ -48,6 +49,14 @@ export default function DashboardPage() {
       }
     />
   );
+
+  if (!isLoaded) {
+    return (
+      <PageLayout className={styles.pageGrid} header={topBar}>
+        <DashboardSkeleton />
+      </PageLayout>
+    );
+  }
 
   if (user?.role === 'Owner') {
     return (
