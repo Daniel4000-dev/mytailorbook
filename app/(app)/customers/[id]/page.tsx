@@ -28,9 +28,12 @@ import {
   getLoyaltyTier,
   getDaysUntilAnnualDate,
   getDaysSince,
+  formatMeasurementLabel,
+  formatDate,
 } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import type { Measurements, Customer, Order, User } from '@/lib/types';
+import type { Measurements, Customer, Order, User, MeasurementHistoryEntry } from '@/lib/types';
+import { getMeasurementHistoryAction } from '@/app/actions';
 import CustomerDetailSkeleton from './CustomerDetailSkeleton';
 import styles from './page.module.css';
 
@@ -134,6 +137,9 @@ function CustomerProfileContent({
   const [birthdayInput, setBirthdayInput] = useState(customer.dateOfBirth || '');
   const [editingReferrer, setEditingReferrer] = useState(false);
   const [referrerInput, setReferrerInput] = useState(customer.referredBy || '');
+  const [showMeasurementHistory, setShowMeasurementHistory] = useState(false);
+  const [measurementHistory, setMeasurementHistory] = useState<MeasurementHistoryEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const id = customer.id;
   const custOrders = orders.filter((o) => o.customerId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -164,6 +170,17 @@ function CustomerProfileContent({
     await updateCustomer(customer.id, { referredBy: referrerInput || undefined });
     setEditingReferrer(false);
     showToast('Referral saved', 'success');
+  };
+
+  const handleOpenMeasurementHistory = async () => {
+    setShowMeasurementHistory(true);
+    setLoadingHistory(true);
+    try {
+      const history = await getMeasurementHistoryAction(customer.id);
+      setMeasurementHistory(history);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handlePointSelect = (point: Point) => {
@@ -419,8 +436,13 @@ function CustomerProfileContent({
         <div className={styles.rightColumn}>
           
           <div className={styles.card}>
-            <h3 className={styles.sectionTitle}>Measurements</h3>
-            <MeasurementAnatomy 
+            <div className={styles.measurementHeaderRow}>
+              <h3 className={styles.sectionTitle}>Measurements</h3>
+              <button type="button" className={styles.historyLinkBtn} onClick={handleOpenMeasurementHistory}>
+                History
+              </button>
+            </div>
+            <MeasurementAnatomy
               gender={customer.gender || 'female'}
               measurements={measurements} 
               selectedPointId={selectedPoint?.id} 
@@ -525,6 +547,33 @@ function CustomerProfileContent({
               });
             }}
           />
+        )}
+      </BottomSheet>
+
+      {/* Measurement History */}
+      <BottomSheet isOpen={showMeasurementHistory} onClose={() => setShowMeasurementHistory(false)} title="Measurement History">
+        {loadingHistory ? (
+          <p className={styles.historyEmptyText}>Loading…</p>
+        ) : measurementHistory.length === 0 ? (
+          <p className={styles.historyEmptyText}>No past measurements on file yet — history is kept from the next edit onward.</p>
+        ) : (
+          <div className={styles.historyList}>
+            {measurementHistory.map((entry) => (
+              <div key={entry.id} className={styles.historyEntry}>
+                <span className={styles.historyDate}>{formatDate(entry.recordedAt)}</span>
+                <div className={styles.historyGrid}>
+                  {Object.entries(entry.measurements)
+                    .filter(([key, val]) => key !== 'notes' && val !== undefined && val !== '')
+                    .map(([key, val]) => (
+                      <div key={key} className={styles.historyItem}>
+                        <span className={styles.historyLabel}>{formatMeasurementLabel(key)}</span>
+                        <span className={styles.historyValue}>{val}&Prime;</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </BottomSheet>
     </PageLayout>

@@ -128,6 +128,86 @@
   justify-content: space-between;
 }
 
+.measurementHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sf-space-md);
+}
+
+.measurementHeaderRow .sectionTitle {
+  margin-bottom: 0;
+}
+
+.historyLinkBtn {
+  background: none;
+  border: none;
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.historyLinkBtn:hover {
+  text-decoration: underline;
+}
+
+.historyEmptyText {
+  padding: var(--sf-space-lg);
+  text-align: center;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-sm);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-md);
+}
+
+.historyEntry {
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+}
+
+.historyDate {
+  display: block;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: var(--sf-space-sm);
+}
+
+.historyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-sm) var(--sf-space-md);
+}
+
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.historyLabel {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.historyValue {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
 /* Relationship Section */
 .relationshipSection {
   display: flex;
