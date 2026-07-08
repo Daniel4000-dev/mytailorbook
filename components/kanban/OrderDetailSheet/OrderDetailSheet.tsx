@@ -32,7 +32,7 @@ import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
 import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue } from '@/lib/types';
-import type { Order, Role, Customer, Priority } from '@/lib/types';
+import type { Order, Role, Customer, Priority, OrderPhoto } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
 
 interface OrderDetailSheetProps {
@@ -160,7 +160,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
       // encoded, almost always exceeded that, so uploads used to silently
       // fail. Only the resulting (short) public URL gets saved to the order.
       const supabase = createClient();
-      const uploadedUrls: string[] = [];
+      const uploadedPhotos: OrderPhoto[] = [];
       for (const file of Array.from(files)) {
         const ext = file.name.split('.').pop() || 'jpg';
         const path = `${order.shopId}/${order.id}/${crypto.randomUUID()}.${ext}`;
@@ -170,10 +170,12 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
         });
         if (uploadError) throw new Error(uploadError.message);
         const { data } = supabase.storage.from('order-photos').getPublicUrl(path);
-        uploadedUrls.push(data.publicUrl);
+        // Tagged with the order's CURRENT stage — this is what lets the
+        // tracking page show a real cutting -> sewing -> ready photo story.
+        uploadedPhotos.push({ url: data.publicUrl, stage: order.status, uploadedAt: new Date().toISOString() });
       }
-      await updateOrder(order.id, { images: [...(order.images || []), ...uploadedUrls] });
-      showToast(uploadedUrls.length > 1 ? `${uploadedUrls.length} photos added` : 'Photo added', 'success');
+      await updateOrder(order.id, { images: [...(order.images || []), ...uploadedPhotos] });
+      showToast(uploadedPhotos.length > 1 ? `${uploadedPhotos.length} photos added` : 'Photo added', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
     } finally {
@@ -183,14 +185,14 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   };
 
   const handleRemovePhoto = async (index: number) => {
-    const removedUrl = (order.images || [])[index];
+    const removedPhoto = (order.images || [])[index];
     const next = (order.images || []).filter((_, i) => i !== index);
     await updateOrder(order.id, { images: next });
 
     const marker = '/order-photos/';
-    const markerIndex = removedUrl?.indexOf(marker) ?? -1;
+    const markerIndex = removedPhoto?.url.indexOf(marker) ?? -1;
     if (markerIndex !== -1) {
-      const path = removedUrl.slice(markerIndex + marker.length);
+      const path = removedPhoto.url.slice(markerIndex + marker.length);
       const supabase = createClient();
       await supabase.storage.from('order-photos').remove([path]);
     }
@@ -343,9 +345,10 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
           <FaCamera /> Garment Photos
         </span>
         <div className={styles.photoGrid}>
-          {(order.images || []).map((src, i) => (
+          {(order.images || []).map((photo, i) => (
             <div key={i} className={styles.photoThumb}>
-              <img src={src} alt={`Order photo ${i + 1}`} />
+              <img src={photo.url} alt={`Order photo ${i + 1}`} />
+              <span className={styles.photoStageTag}>{photo.stage}</span>
               <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
                 <FaXmark />
               </button>

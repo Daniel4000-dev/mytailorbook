@@ -304,6 +304,21 @@
   object-fit: cover;
 }
 
+.photoStageTag {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-align: center;
+  padding: 2px 0;
+}
+
 .photoRemoveBtn {
   position: absolute;
   top: 2px;

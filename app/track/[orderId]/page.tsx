@@ -198,17 +198,36 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           </div>
         </section>
 
-        {/* Progress Photos — real photos the tailor has attached, when available */}
+        {/* Progress Photos — grouped by production stage so this reads as a
+            visual story (cutting -> sewing -> ready), not one flat gallery. */}
         {order.images && order.images.length > 0 && (
           <section className={styles.card}>
             <h3 className={styles.sectionTitle}>
               <FaImages style={{ marginRight: 6 }} /> Progress Photos
             </h3>
-            <div className={styles.photoGrid}>
-              {order.images.map((src, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={src} alt={`Your garment, photo ${i + 1}`} className={styles.photoThumb} />
-              ))}
+            <div className={styles.photoTimeline}>
+              {STATUS_ORDER.map((status) => {
+                const photosForStage = order.images!.filter((photo) => photo.stage === status);
+                if (photosForStage.length === 0) return null;
+                return (
+                  <div key={status} className={styles.photoStageGroup}>
+                    <span className={styles.photoStageLabel}>
+                      {STATUS_ICONS[status]} {STATUS_HEADLINES[status]}
+                    </span>
+                    <div className={styles.photoGrid}>
+                      {photosForStage.map((photo, i) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          key={i}
+                          src={photo.url}
+                          alt={`Your garment during ${status}, photo ${i + 1}`}
+                          className={styles.photoThumb}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}

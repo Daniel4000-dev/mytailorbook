@@ -449,6 +449,29 @@
 }
 
 /* ── Progress Photos ──────────────────────────────────────── */
+.photoTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.photoStageGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.photoStageLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sf-text-tertiary);
+}
+
 .photoGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));

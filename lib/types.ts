@@ -17,6 +17,14 @@ export interface Shop {
 
 export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';
 
+/** A garment photo tagged with the production stage it was taken at —
+ *  lets the tracking page show an actual visual story, not one flat gallery. */
+export interface OrderPhoto {
+  url: string;
+  stage: OrderStatus;
+  uploadedAt: string;
+}
+
 export type Priority = 'normal' | 'urgent' | 'rush';
 
 export interface User {
@@ -111,7 +119,7 @@ export interface Order {
   assignedToName?: string;   // Staff display name
   dueDate?: string;          // ISO date string
   priority: Priority;
-  images?: string[];         // URLs or base64 data URIs
+  images?: OrderPhoto[];     // garment photos, each tagged with its production stage
   payments?: PaymentRecord[];
   statusHistory: StatusChange[];
   createdAt: string;
