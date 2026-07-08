@@ -173,6 +173,10 @@ export interface Order {
    *  the source of truth for orders that don't use this. */
   items?: OrderItem[];
   totalBill: number;
+  /** Optional — what materials actually cost for this order, e.g. fabric.
+   *  Independent from the fabric inventory list; lets the Dashboard show
+   *  real profit (revenue minus cost) without requiring per-yard tracking. */
+  materialCost?: number;
   depositPaid: number;
   status: OrderStatus;
   assignedTo?: string;       // Staff uid

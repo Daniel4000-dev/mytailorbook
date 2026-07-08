@@ -180,6 +180,15 @@
   padding-left: var(--sf-space-sm);
 }
 
+.profitRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-sm);
+  padding-top: var(--sf-space-sm);
+  border-top: 1px dashed var(--sf-border);
+}
+
 .finLabel {
   font-size: var(--sf-text-xs);
   color: var(--sf-text-tertiary);

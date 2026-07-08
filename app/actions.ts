@@ -20,6 +20,7 @@ function orderFromRow(row: any): Order {
     orderDetails: row.order_details,
     items: row.items && row.items.length > 0 ? row.items : undefined,
     totalBill: row.total_bill,
+    materialCost: row.material_cost ?? undefined,
     depositPaid: row.deposit_paid,
     status: row.status,
     assignedTo: row.assigned_to || undefined,
@@ -45,6 +46,7 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.orderDetails !== undefined) row.order_details = o.orderDetails;
   if (o.items !== undefined) row.items = o.items;
   if (o.totalBill !== undefined) row.total_bill = o.totalBill;
+  if (o.materialCost !== undefined) row.material_cost = o.materialCost ?? null;
   if (o.depositPaid !== undefined) row.deposit_paid = o.depositPaid;
   if (o.status !== undefined) row.status = o.status;
   if (o.assignedTo !== undefined) row.assigned_to = o.assignedTo || null;

@@ -57,6 +57,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   const [editPriority, setEditPriority] = useState<Priority>(order.priority);
   const [editAssignedTo, setEditAssignedTo] = useState(order.assignedTo || '');
   const [editTotalBill, setEditTotalBill] = useState(String(order.totalBill));
+  const [editMaterialCost, setEditMaterialCost] = useState(order.materialCost !== undefined ? String(order.materialCost) : '');
   const [savingEdit, setSavingEdit] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -142,6 +143,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     setEditPriority(order.priority);
     setEditAssignedTo(order.assignedTo || '');
     setEditTotalBill(String(order.totalBill));
+    setEditMaterialCost(order.materialCost !== undefined ? String(order.materialCost) : '');
     setIsEditing(true);
   };
 
@@ -161,6 +163,7 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               assignedTo: editAssignedTo,
               assignedToName: assignee?.name || '',
               totalBill: parseInt(editTotalBill.replace(/,/g, '')) || 0,
+              materialCost: editMaterialCost ? parseInt(editMaterialCost.replace(/,/g, '')) || 0 : undefined,
             }
           : { orderDetails: editDetails };
       await updateOrder(order.id, updates);
@@ -376,6 +379,13 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
                     inputMode="numeric"
                   />
                 </div>
+                <Input
+                  label="Material Cost (₦) — optional, for profit tracking"
+                  placeholder="e.g. fabric cost for this job"
+                  value={editMaterialCost}
+                  onChange={(e) => setEditMaterialCost(e.target.value.replace(/[^0-9,]/g, ''))}
+                  inputMode="numeric"
+                />
               </>
             )}
             <div className={styles.editActions}>
@@ -446,6 +456,15 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               <span className={styles.finGoldValue}>{formatCurrency(balanceOwed)}</span>
             </div>
           </div>
+
+          {order.materialCost !== undefined && (
+            <div className={styles.profitRow}>
+              <span className={styles.finLabel}>Material Cost</span>
+              <span className={styles.finValue}>{formatCurrency(order.materialCost)}</span>
+              <span className={styles.finLabel} style={{ marginLeft: 'auto' }}>Est. Profit</span>
+              <span className={styles.finValue}>{formatCurrency(order.totalBill - order.materialCost)}</span>
+            </div>
+          )}
 
           {balanceOwed > 0 && (
             <div className={styles.recordPaymentSection}>

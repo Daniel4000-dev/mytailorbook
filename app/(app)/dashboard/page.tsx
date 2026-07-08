@@ -95,6 +95,12 @@ function OwnerDashboard({
 
   const collected = useMemo(() => orders.reduce((sum, o) => sum + o.depositPaid, 0), [orders]);
 
+  const profitData = useMemo(() => {
+    const ordersWithCost = orders.filter((o) => o.materialCost !== undefined);
+    const profit = ordersWithCost.reduce((sum, o) => sum + (o.totalBill - (o.materialCost || 0)), 0);
+    return { profit, coveredCount: ordersWithCost.length, totalCount: orders.length };
+  }, [orders]);
+
   const projected = useMemo(
     () => orders.filter((o) => o.status !== 'Completed').reduce((sum, o) => sum + getBalanceOwed(o), 0),
     [orders]
@@ -226,6 +232,18 @@ function OwnerDashboard({
           <span className={styles.cardValue}>{dueTodayCount}</span>
         </div>
       </div>
+
+      {profitData.coveredCount > 0 && (
+        <div className={styles.profitBanner}>
+          <span className={styles.profitLabel}>Est. Profit (revenue minus material cost)</span>
+          <span className={styles.profitValue}>{formatCurrency(profitData.profit)}</span>
+          {profitData.coveredCount < profitData.totalCount && (
+            <span className={styles.profitCoverage}>
+              Based on {profitData.coveredCount} of {profitData.totalCount} orders with cost recorded
+            </span>
+          )}
+        </div>
+      )}
 
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>

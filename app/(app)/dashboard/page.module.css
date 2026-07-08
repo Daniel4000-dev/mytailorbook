@@ -319,6 +319,37 @@
   transition: filter var(--sf-transition-normal);
 }
 
+.profitBanner {
+  margin-top: var(--sf-space-md);
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md) var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profitLabel {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profitValue {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-xl);
+  font-weight: 700;
+  color: var(--sf-accent-emerald);
+}
+
+.profitCoverage {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+}
+
 .blurredValue {
   filter: blur(6px);
   user-select: none;
