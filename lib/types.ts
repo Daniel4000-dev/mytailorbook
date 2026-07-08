@@ -47,6 +47,18 @@ export interface OrderItem {
   price: number;
 }
 
+/** A fabric stock entry — manually tracked, not auto-deducted from orders. */
+export interface FabricItem {
+  id: string;
+  shopId: string;
+  name: string;
+  costPerYard: number;
+  yardsInStock: number;
+  lowStockThreshold: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** A saved, reusable order shape — description/items + price — so common
  *  order types don't need retyping every time. */
 export interface OrderTemplate {

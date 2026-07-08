@@ -133,5 +133,6 @@ export const NAV_ITEMS: NavItem[] = [
 // secondary group in the desktop sidebar. Never shown in the bottom nav.
 export const SECONDARY_NAV_ITEMS: NavItem[] = [
   { label: 'Public Portfolio', href: '/portfolio', icon: 'FaImage', ownerOnly: true },
+  { label: 'Fabric Inventory', href: '/inventory', icon: 'FaBoxesStacked', ownerOnly: true },
   { label: 'Settings', href: '/settings', icon: 'FaGear', ownerOnly: true },
 ];

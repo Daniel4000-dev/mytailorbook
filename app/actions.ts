@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate, FabricItem } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -430,5 +430,76 @@ export async function addOrderTemplateAction(
 export async function deleteOrderTemplateAction(templateId: string, shopId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('order_templates').delete().eq('id', templateId).eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
+}
+
+// ----------------------------------------------------------------------
+// Fabric inventory
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function fabricItemFromRow(row: any): FabricItem {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    name: row.name,
+    costPerYard: row.cost_per_yard,
+    yardsInStock: row.yards_in_stock,
+    lowStockThreshold: row.low_stock_threshold,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function getFabricItemsAction(shopId: string): Promise<FabricItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('fabric_items')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('name', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data || []).map(fabricItemFromRow);
+}
+
+export async function addFabricItemAction(
+  shopId: string,
+  item: Omit<FabricItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>
+): Promise<FabricItem> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('fabric_items')
+    .insert({
+      shop_id: shopId,
+      name: item.name,
+      cost_per_yard: item.costPerYard,
+      yards_in_stock: item.yardsInStock,
+      low_stock_threshold: item.lowStockThreshold,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return fabricItemFromRow(data);
+}
+
+export async function updateFabricItemAction(
+  itemId: string,
+  updates: Partial<FabricItem>,
+  shopId: string
+): Promise<FabricItem> {
+  const supabase = await createClient();
+  const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (updates.name !== undefined) row.name = updates.name;
+  if (updates.costPerYard !== undefined) row.cost_per_yard = updates.costPerYard;
+  if (updates.yardsInStock !== undefined) row.yards_in_stock = updates.yardsInStock;
+  if (updates.lowStockThreshold !== undefined) row.low_stock_threshold = updates.lowStockThreshold;
+  const { data, error } = await supabase.from('fabric_items').update(row).eq('id', itemId).eq('shop_id', shopId).select().single();
+  if (error) throw new Error(error.message);
+  return fabricItemFromRow(data);
+}
+
+export async function deleteFabricItemAction(itemId: string, shopId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('fabric_items').delete().eq('id', itemId).eq('shop_id', shopId);
   if (error) throw new Error(error.message);
 }

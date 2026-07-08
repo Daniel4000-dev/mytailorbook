@@ -1,0 +1,151 @@
+.pageGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: 0 var(--sf-space-md) var(--sf-space-2xl) var(--sf-space-md);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+  margin-top: var(--sf-space-md);
+}
+
+.introText {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding-bottom: var(--sf-space-sm);
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemName {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+.lowStockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-full);
+}
+
+.itemActions {
+  display: flex;
+  gap: var(--sf-space-xs);
+  flex-shrink: 0;
+}
+
+.itemActionBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border-light);
+  background: #fff;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.itemActionBtn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface-hover);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding-top: var(--sf-space-sm);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sf-space-md);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sf-space-sm);
+}
+
+.addBtn {
+  align-self: flex-start;
+}
