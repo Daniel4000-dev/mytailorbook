@@ -205,3 +205,11 @@ export function getDaysSince(dateString: string): number {
   const now = new Date();
   return Math.max(0, Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24)));
 }
+
+/** camelCase measurement key -> readable label, e.g. "shoulderToBustPoint" -> "Shoulder To Bust Point" */
+export function formatMeasurementLabel(key: string): string {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}

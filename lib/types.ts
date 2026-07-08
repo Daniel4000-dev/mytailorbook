@@ -104,6 +104,15 @@ export interface Customer {
   createdAt: string;
 }
 
+/** A previous measurement set for a customer, kept when measurements are
+ *  edited instead of being silently overwritten. */
+export interface MeasurementHistoryEntry {
+  id: string;
+  customerId: string;
+  measurements: Measurements;
+  recordedAt: string;
+}
+
 export interface StatusChange {
   from: OrderStatus | null;
   to: OrderStatus;
@@ -137,6 +146,10 @@ export interface Order {
   images?: OrderPhoto[];     // garment photos, each tagged with its production stage
   rating?: number;           // 1-5, set once by the customer after delivery
   ratingSubmittedAt?: string;
+  /** Frozen copy of the customer's measurements at the moment this order was created —
+   *  immune to later edits to the customer's profile, so a completed order always
+   *  reflects what it was actually cut/sewn against. */
+  measurementsSnapshot?: Measurements;
   payments?: PaymentRecord[];
   statusHistory: StatusChange[];
   createdAt: string;

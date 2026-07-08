@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -28,6 +28,7 @@ function orderFromRow(row: any): Order {
     images: row.images || [],
     rating: row.rating ?? undefined,
     ratingSubmittedAt: row.rating_submitted_at || undefined,
+    measurementsSnapshot: row.measurements_snapshot || undefined,
     statusHistory: row.status_history || [],
     payments: row.payments || [],
     createdAt: row.created_at,
@@ -49,9 +50,20 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.dueDate !== undefined) row.due_date = o.dueDate || null;
   if (o.priority !== undefined) row.priority = o.priority;
   if (o.images !== undefined) row.images = o.images;
+  if (o.measurementsSnapshot !== undefined) row.measurements_snapshot = o.measurementsSnapshot;
   if (o.statusHistory !== undefined) row.status_history = o.statusHistory;
   if (o.payments !== undefined) row.payments = o.payments;
   return row;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function measurementHistoryFromRow(row: any): MeasurementHistoryEntry {
+  return {
+    id: row.id,
+    customerId: row.customer_id,
+    measurements: row.measurements,
+    recordedAt: row.recorded_at,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -175,7 +187,20 @@ export async function getStaff(shopId: string): Promise<User[]> {
 
 export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) {
   const supabase = await createClient();
-  const { error } = await supabase.from('orders').insert(orderToRow(shopId, order));
+
+  // Freeze the customer's CURRENT measurements onto this order — server-derived,
+  // never client-supplied, so it can't be stale and always reflects what was
+  // actually on file the moment the order was placed.
+  const { data: customerRow } = await supabase
+    .from('customers')
+    .select('measurements')
+    .eq('id', order.customerId)
+    .single();
+
+  const row = orderToRow(shopId, order);
+  if (customerRow?.measurements) row.measurements_snapshot = customerRow.measurements;
+
+  const { error } = await supabase.from('orders').insert(row);
   if (error) throw new Error(error.message);
   return getOrders(shopId);
 }
@@ -247,9 +272,32 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
 
 export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, shopId: string) {
   const supabase = await createClient();
+
+  // Keep the previous set instead of silently overwriting it — lets a tailor
+  // see how a recurring customer's measurements have changed over time.
+  const { data: existing } = await supabase.from('customers').select('measurements').eq('id', customerId).single();
+  if (existing?.measurements) {
+    await supabase.from('customer_measurement_history').insert({
+      customer_id: customerId,
+      shop_id: shopId,
+      measurements: existing.measurements,
+    });
+  }
+
   const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
   if (error) throw new Error(error.message);
   return getCustomers(shopId);
+}
+
+export async function getMeasurementHistoryAction(customerId: string): Promise<MeasurementHistoryEntry[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('customer_measurement_history')
+    .select('*')
+    .eq('customer_id', customerId)
+    .order('recorded_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(measurementHistoryFromRow);
 }
 
 export async function updateCustomerAction(customerId: string, updates: Partial<Customer>, shopId: string) {

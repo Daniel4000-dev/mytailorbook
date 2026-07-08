@@ -451,6 +451,40 @@
   text-align: center;
 }
 
+.measurementGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-sm) var(--sf-space-md);
+}
+
+.measurementItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.measurementLabel {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.measurementValue {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.measurementChangedNote {
+  font-size: var(--sf-text-xs);
+  color: #B45309;
+  background: #FEF3C7;
+  border-radius: var(--sf-radius-sm);
+  padding: var(--sf-space-sm);
+  margin: 0;
+}
+
 .premiumTimelineSection {
   margin-top: var(--sf-space-md);
   display: flex;

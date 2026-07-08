@@ -21,6 +21,7 @@ import {
   FaBolt,
   FaQrcode,
   FaStar,
+  FaRegFileLines,
 } from 'react-icons/fa6';
 import QRCode from 'qrcode';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,7 +34,7 @@ import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
-import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
+import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage, formatMeasurementLabel } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue } from '@/lib/types';
 import type { Order, Role, Customer, Priority, OrderPhoto } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
@@ -66,6 +67,18 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   const { showToast } = useToast();
 
   const trackingUrl = `${window.location.origin}/track/${order.id}`;
+
+  const measurementsChanged = (() => {
+    if (!order.measurementsSnapshot || !customer?.measurements) return false;
+    const keys = new Set([...Object.keys(order.measurementsSnapshot), ...Object.keys(customer.measurements)]);
+    for (const key of keys) {
+      if (key === 'notes') continue;
+      const snapshotVal = (order.measurementsSnapshot as Record<string, unknown>)[key];
+      const currentVal = (customer.measurements as Record<string, unknown>)[key];
+      if (snapshotVal !== currentVal) return true;
+    }
+    return false;
+  })();
 
   const whatsAppMessage = customer
     ? getOrderProgressMessage({
@@ -285,6 +298,32 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
           </div>
         </div>
       </div>
+
+      {/* Measurements Used — frozen at order creation, immune to later
+          edits to the customer's profile, so this always reflects what
+          the garment was actually cut/sewn against. */}
+      {order.measurementsSnapshot && (
+        <div className={styles.premiumCard}>
+          <span className={styles.cardSectionTitle}>
+            <FaRegFileLines /> Measurements Used
+          </span>
+          <div className={styles.measurementGrid}>
+            {Object.entries(order.measurementsSnapshot)
+              .filter(([key, val]) => key !== 'notes' && val !== undefined && val !== '')
+              .map(([key, val]) => (
+                <div key={key} className={styles.measurementItem}>
+                  <span className={styles.measurementLabel}>{formatMeasurementLabel(key)}</span>
+                  <span className={styles.measurementValue}>{val}&Prime;</span>
+                </div>
+              ))}
+          </div>
+          {measurementsChanged && (
+            <p className={styles.measurementChangedNote}>
+              This customer&apos;s measurements have been updated since this order was placed.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Details Card */}
       <div className={styles.premiumCard}>
