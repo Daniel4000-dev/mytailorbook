@@ -388,7 +388,19 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
             </div>
           </div>
         ) : (
-          <p className={styles.premiumDetailText}>{order.orderDetails}</p>
+          <>
+            <p className={styles.premiumDetailText}>{order.orderDetails}</p>
+            {order.items && order.items.length > 0 && (
+              <div className={styles.itemsList}>
+                {order.items.map((item) => (
+                  <div key={item.id} className={styles.itemRow}>
+                    <span className={styles.itemDescription}>{item.description}</span>
+                    <span className={styles.itemPrice}>{formatCurrency(item.price)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

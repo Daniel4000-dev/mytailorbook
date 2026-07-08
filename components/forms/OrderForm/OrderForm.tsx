@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { FaUser, FaPhone, FaMoneyBill, FaHandHoldingDollar, FaCalendarDay } from 'react-icons/fa6';
+import { FaUser, FaPhone, FaMoneyBill, FaHandHoldingDollar, FaCalendarDay, FaPlus, FaXmark } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -10,8 +10,14 @@ import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import Button from '@/components/ui/Button/Button';
 import { formatCurrency, isValidPhone, formatPhone } from '@/lib/formatters';
-import type { Priority, Customer, OrderStatus } from '@/lib/types';
+import type { Priority, Customer, OrderStatus, OrderItem } from '@/lib/types';
 import styles from './OrderForm.module.css';
+
+interface ItemRow {
+  id: string;
+  description: string;
+  price: string;
+}
 
 interface OrderFormProps {
   onClose: () => void;
@@ -34,10 +40,28 @@ export default function OrderForm({ onClose }: OrderFormProps) {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [itemized, setItemized] = useState(false);
+  const [itemRows, setItemRows] = useState<ItemRow[]>([
+    { id: crypto.randomUUID(), description: '', price: '' },
+    { id: crypto.randomUUID(), description: '', price: '' },
+  ]);
 
-  const total = parseInt(totalBill.replace(/,/g, '')) || 0;
+  const itemsTotal = itemRows.reduce((sum, r) => sum + (parseInt(r.price.replace(/,/g, '')) || 0), 0);
+  const total = itemized ? itemsTotal : parseInt(totalBill.replace(/,/g, '')) || 0;
   const deposit = parseInt(depositPaid.replace(/,/g, '')) || 0;
   const balance = Math.max(0, total - deposit);
+
+  const handleItemChange = (id: string, field: 'description' | 'price', value: string) => {
+    setItemRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: field === 'price' ? value.replace(/[^0-9,]/g, '') : value } : r)));
+  };
+
+  const handleAddItemRow = () => {
+    setItemRows((prev) => [...prev, { id: crypto.randomUUID(), description: '', price: '' }]);
+  };
+
+  const handleRemoveItemRow = (id: string) => {
+    setItemRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
+  };
 
   const staffOptions = staffMembers
     .filter((u) => u.active !== false)
@@ -70,12 +94,18 @@ export default function OrderForm({ onClose }: OrderFormProps) {
     setShowSuggestions(false);
   };
 
+  const validItemRows = itemRows.filter((r) => r.description.trim() && (parseInt(r.price.replace(/,/g, '')) || 0) > 0);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!customerName || !phone || !details || !totalBill) {
+    if (!customerName || !phone) {
       setError('Please fill in all required fields');
+      return;
+    }
+    if (itemized ? validItemRows.length === 0 : !details || !totalBill) {
+      setError(itemized ? 'Add at least one item with a description and price' : 'Please fill in all required fields');
       return;
     }
     if (!isValidPhone(phone)) {
@@ -92,10 +122,15 @@ export default function OrderForm({ onClose }: OrderFormProps) {
       const customer = await findOrCreateCustomer(customerName, phone);
       const selectedStaff = staffMembers.find((u) => u.uid === assignedTo);
 
+      const items: OrderItem[] | undefined = itemized
+        ? validItemRows.map((r) => ({ id: r.id, description: r.description.trim(), price: parseInt(r.price.replace(/,/g, '')) || 0 }))
+        : undefined;
+
       await addOrder({
         customerId: customer.id,
         customerName: customer.fullName,
-        orderDetails: details,
+        orderDetails: itemized ? validItemRows.map((r) => r.description.trim()).join('; ') : details,
+        items,
         totalBill: total,
         depositPaid: deposit,
         status: startingStage,
@@ -185,23 +220,63 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         required
       />
 
-      <TextArea
-        label="Order Details"
-        placeholder="Describe the garment — fabric, style, measurements..."
-        value={details}
-        onChange={(e) => setDetails(e.target.value)}
-        rows={3}
-        required
-      />
+      {!itemized ? (
+        <>
+          <TextArea
+            label="Order Details"
+            placeholder="Describe the garment — fabric, style, measurements..."
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            rows={3}
+            required
+          />
+          <button type="button" className={styles.itemizeToggle} onClick={() => setItemized(true)}>
+            <FaPlus /> This order has multiple garments — itemize it
+          </button>
+        </>
+      ) : (
+        <div className={styles.itemsSection}>
+          <div className={styles.itemsSectionHeader}>
+            <span className={styles.itemsSectionLabel}>Garments in this order</span>
+            <button type="button" className={styles.itemizeToggle} onClick={() => setItemized(false)}>
+              Switch to single description
+            </button>
+          </div>
+          {itemRows.map((row, i) => (
+            <div key={row.id} className={styles.itemRow}>
+              <Input
+                placeholder={`Garment ${i + 1}, e.g. Agbada`}
+                value={row.description}
+                onChange={(e) => handleItemChange(row.id, 'description', e.target.value)}
+              />
+              <Input
+                placeholder="Price (₦)"
+                value={row.price}
+                onChange={(e) => handleItemChange(row.id, 'price', e.target.value)}
+                inputMode="numeric"
+              />
+              {itemRows.length > 1 && (
+                <button type="button" className={styles.itemRemoveBtn} onClick={() => handleRemoveItemRow(row.id)} aria-label="Remove item">
+                  <FaXmark />
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" className={styles.addItemBtn} onClick={handleAddItemRow}>
+            <FaPlus /> Add Another Garment
+          </button>
+        </div>
+      )}
 
       <Input
         label="Total Bill (₦)"
         placeholder="0"
         icon={<FaMoneyBill />}
-        value={totalBill}
+        value={itemized ? itemsTotal.toLocaleString('en-NG') : totalBill}
         onChange={(e) => setTotalBill(e.target.value.replace(/[^0-9,]/g, ''))}
         onBlur={() => formatOnBlur(totalBill, setTotalBill)}
         inputMode="numeric"
+        disabled={itemized}
       />
       <Input
         label="Deposit (₦)"

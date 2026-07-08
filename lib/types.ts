@@ -40,6 +40,13 @@ export interface OrderPhoto {
   uploadedAt: string;
 }
 
+/** One line item within an order's itemized breakdown, e.g. "Agbada — ₦25,000". */
+export interface OrderItem {
+  id: string;
+  description: string;
+  price: number;
+}
+
 export type Priority = 'normal' | 'urgent' | 'rush';
 
 export interface User {
@@ -138,6 +145,9 @@ export interface Order {
   customerId: string;
   customerName: string;
   orderDetails: string;
+  /** Optional itemized breakdown — additive; orderDetails/totalBill remain
+   *  the source of truth for orders that don't use this. */
+  items?: OrderItem[];
   totalBill: number;
   depositPaid: number;
   status: OrderStatus;

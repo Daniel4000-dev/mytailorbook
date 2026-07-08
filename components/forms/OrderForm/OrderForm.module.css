@@ -9,6 +9,77 @@
   position: relative;
 }
 
+.itemizeToggle {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-start;
+}
+
+.itemsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  background: var(--sf-bg-surface);
+  border: 1px dashed var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+}
+
+.itemsSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.itemsSectionLabel {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.itemRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: var(--sf-space-sm);
+  align-items: center;
+}
+
+.itemRemoveBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border-light);
+  background: #fff;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.addItemBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: 1px dashed var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-sm);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+}
+
 .suggestionsList {
   position: absolute;
   top: 100%;

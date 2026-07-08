@@ -243,7 +243,18 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <h3 className={styles.sectionTitle}>Order Summary</h3>
           <div className={styles.infoBlock}>
             <span className={styles.infoLabel}>Outfit Details</span>
-            <p className={styles.infoValue}>{order.orderDetails}</p>
+            {order.items && order.items.length > 0 ? (
+              <div className={styles.itemsBreakdown}>
+                {order.items.map((item) => (
+                  <div key={item.id} className={styles.itemBreakdownRow}>
+                    <span>{item.description}</span>
+                    <span>{formatCurrency(item.price)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.infoValue}>{order.orderDetails}</p>
+            )}
           </div>
           <div className={styles.divider} />
           <div className={styles.billGrid}>

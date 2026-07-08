@@ -401,6 +401,20 @@
   margin: 0;
 }
 
+.itemsBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemBreakdownRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+}
+
 .divider {
   height: 1px;
   background: var(--sf-border-light);

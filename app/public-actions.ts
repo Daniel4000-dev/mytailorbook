@@ -28,6 +28,7 @@ export async function getPublicOrderView(orderId: string): Promise<{
     customerId: row.customer_id,
     customerName: row.customer_name,
     orderDetails: row.order_details,
+    items: row.items && row.items.length > 0 ? row.items : undefined,
     totalBill: row.total_bill,
     depositPaid: row.deposit_paid,
     status: row.status,

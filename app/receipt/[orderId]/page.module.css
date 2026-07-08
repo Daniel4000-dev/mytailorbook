@@ -118,6 +118,18 @@
   color: var(--sf-text-tertiary);
 }
 
+.itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin: var(--sf-space-sm) 0;
+}
+
+.itemsTable td {
+  padding: 4px 0;
+  color: var(--sf-text-secondary);
+}
+
 .billTable, .paymentTable {
   width: 100%;
   border-collapse: collapse;

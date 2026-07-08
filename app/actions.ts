@@ -18,6 +18,7 @@ function orderFromRow(row: any): Order {
     customerId: row.customer_id,
     customerName: row.customer_name,
     orderDetails: row.order_details,
+    items: row.items && row.items.length > 0 ? row.items : undefined,
     totalBill: row.total_bill,
     depositPaid: row.deposit_paid,
     status: row.status,
@@ -42,6 +43,7 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.customerId !== undefined) row.customer_id = o.customerId;
   if (o.customerName !== undefined) row.customer_name = o.customerName;
   if (o.orderDetails !== undefined) row.order_details = o.orderDetails;
+  if (o.items !== undefined) row.items = o.items;
   if (o.totalBill !== undefined) row.total_bill = o.totalBill;
   if (o.depositPaid !== undefined) row.deposit_paid = o.depositPaid;
   if (o.status !== undefined) row.status = o.status;

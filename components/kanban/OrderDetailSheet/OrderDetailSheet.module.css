@@ -131,6 +131,32 @@
   border: 1px dashed var(--sf-border);
 }
 
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-sm);
+}
+
+.itemDescription {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+}
+
+.itemPrice {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
 .financialCard {
   background: linear-gradient(145deg, var(--sf-bg-surface-elevated), var(--sf-bg-surface-hover));
   border-color: var(--sf-border);

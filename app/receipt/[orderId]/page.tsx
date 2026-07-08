@@ -62,7 +62,20 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
         <section className={styles.itemSection}>
           <span className={styles.sectionLabel}>Order Details</span>
-          <p className={styles.orderDetails}>{order.orderDetails}</p>
+          {order.items && order.items.length > 0 ? (
+            <table className={styles.itemsTable}>
+              <tbody>
+                {order.items.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.description}</td>
+                    <td className={styles.amountCol}>{formatCurrency(item.price)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className={styles.orderDetails}>{order.orderDetails}</p>
+          )}
           <span className={styles.orderStatus}>Status: {order.status}</span>
         </section>
 
