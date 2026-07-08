@@ -12,6 +12,8 @@ import {
   FaCircleCheck,
   FaScissors,
   FaClipboardList,
+  FaGift,
+  FaClock,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -20,9 +22,9 @@ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton'
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Badge from '@/components/ui/Badge/Badge';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getDaysUntilAnnualDate, getDaysSince } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
-import type { Order } from '@/lib/types';
+import type { Order, Customer } from '@/lib/types';
 import DashboardSkeleton from './DashboardSkeleton';
 
 import styles from './page.module.css';
@@ -30,7 +32,7 @@ import styles from './page.module.css';
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { orders, staffMembers, isLoaded } = useData();
+  const { orders, customers, staffMembers, isLoaded } = useData();
   const { toggleMenu } = useSidebar();
 
   const firstName = user?.name?.split(' ')[0] || 'there';
@@ -61,7 +63,7 @@ export default function DashboardPage() {
   if (user?.role === 'Owner') {
     return (
       <PageLayout className={styles.pageGrid} header={topBar}>
-        <OwnerDashboard orders={orders} staffMembers={staffMembers} onNavigate={router.push} />
+        <OwnerDashboard orders={orders} customers={customers} staffMembers={staffMembers} onNavigate={router.push} />
       </PageLayout>
     );
   }
@@ -79,10 +81,12 @@ export default function DashboardPage() {
 
 function OwnerDashboard({
   orders,
+  customers,
   staffMembers,
   onNavigate,
 }: {
   orders: Order[];
+  customers: Customer[];
   staffMembers: ReturnType<typeof useData>['staffMembers'];
   onNavigate: (href: string) => void;
 }) {
@@ -124,7 +128,7 @@ function OwnerDashboard({
       });
   }, [orders, staffMembers]);
 
-  const needsAttention = useMemo(() => {
+  const needsAttentionOrders = useMemo(() => {
     return orders
       .filter((o) => o.status !== 'Completed' && o.status !== 'Documented' && (isOverdue(o) || o.priority === 'rush'))
       .sort((a, b) => {
@@ -135,6 +139,42 @@ function OwnerDashboard({
       })
       .slice(0, 5);
   }, [orders]);
+
+  // Relationship nudges — surfaced here so an owner sees "who needs a
+  // WhatsApp message" without opening every customer profile individually.
+  const lastOrderByCustomer = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const o of orders) {
+      const existing = map.get(o.customerId);
+      if (!existing || new Date(o.createdAt).getTime() > new Date(existing).getTime()) {
+        map.set(o.customerId, o.createdAt);
+      }
+    }
+    return map;
+  }, [orders]);
+
+  const birthdayNudges = useMemo(() => {
+    return customers
+      .map((c) => ({ customer: c, daysUntil: c.dateOfBirth ? getDaysUntilAnnualDate(c.dateOfBirth) : null }))
+      .filter((x): x is { customer: Customer; daysUntil: number } => x.daysUntil !== null && x.daysUntil <= 7)
+      .sort((a, b) => a.daysUntil - b.daysUntil)
+      .slice(0, 3);
+  }, [customers]);
+
+  const staleNudges = useMemo(() => {
+    return customers
+      .map((c) => {
+        const lastOrderAt = lastOrderByCustomer.get(c.id);
+        const daysSince = lastOrderAt ? getDaysSince(lastOrderAt) : getDaysSince(c.createdAt);
+        const threshold = lastOrderAt ? 90 : 30;
+        return { customer: c, daysSince, isStale: daysSince >= threshold };
+      })
+      .filter((x) => x.isStale)
+      .sort((a, b) => b.daysSince - a.daysSince)
+      .slice(0, 3);
+  }, [customers, lastOrderByCustomer]);
+
+  const hasAnyAttention = needsAttentionOrders.length > 0 || birthdayNudges.length > 0 || staleNudges.length > 0;
 
   return (
     <>
@@ -231,11 +271,11 @@ function OwnerDashboard({
         </span>
       </div>
 
-      {needsAttention.length === 0 ? (
-        <div className={styles.emptyState}>Nothing overdue or rushed — production is on track.</div>
+      {!hasAnyAttention ? (
+        <div className={styles.emptyState}>Nothing overdue, rushed, or waiting on a customer nudge — you&apos;re all caught up.</div>
       ) : (
         <div className={styles.attentionList}>
-          {needsAttention.map((order) => (
+          {needsAttentionOrders.map((order) => (
             <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
               <div className={styles.attentionInfo}>
                 <span className={styles.attentionCustomer}>{order.customerName}</span>
@@ -245,6 +285,42 @@ function OwnerDashboard({
                 {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
                 {order.priority === 'rush' && <Badge variant="gold"><FaFireFlameCurved /> Rush</Badge>}
                 {order.assignedToName && <span className={styles.attentionAssignee}>{order.assignedToName}</span>}
+              </div>
+            </button>
+          ))}
+
+          {birthdayNudges.map(({ customer, daysUntil }) => (
+            <button
+              key={`birthday-${customer.id}`}
+              className={styles.attentionRow}
+              onClick={() => onNavigate(`/customers/${customer.id}`)}
+              type="button"
+            >
+              <div className={styles.attentionInfo}>
+                <span className={styles.attentionCustomer}>{customer.fullName}</span>
+                <span className={styles.attentionDetails}>
+                  {daysUntil === 0 ? "Birthday today!" : `Birthday in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`}
+                </span>
+              </div>
+              <div className={styles.attentionMeta}>
+                <Badge variant="gold"><FaGift /> Birthday</Badge>
+              </div>
+            </button>
+          ))}
+
+          {staleNudges.map(({ customer, daysSince }) => (
+            <button
+              key={`stale-${customer.id}`}
+              className={styles.attentionRow}
+              onClick={() => onNavigate(`/customers/${customer.id}`)}
+              type="button"
+            >
+              <div className={styles.attentionInfo}>
+                <span className={styles.attentionCustomer}>{customer.fullName}</span>
+                <span className={styles.attentionDetails}>Hasn&apos;t ordered in {daysSince} days</span>
+              </div>
+              <div className={styles.attentionMeta}>
+                <Badge variant="default"><FaClock /> Re-engage</Badge>
               </div>
             </button>
           ))}
