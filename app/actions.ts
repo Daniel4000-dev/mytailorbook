@@ -26,6 +26,8 @@ function orderFromRow(row: any): Order {
     dueDate: row.due_date || undefined,
     priority: row.priority,
     images: row.images || [],
+    rating: row.rating ?? undefined,
+    ratingSubmittedAt: row.rating_submitted_at || undefined,
     statusHistory: row.status_history || [],
     payments: row.payments || [],
     createdAt: row.created_at,

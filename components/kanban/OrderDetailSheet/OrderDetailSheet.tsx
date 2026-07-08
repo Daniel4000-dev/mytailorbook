@@ -20,6 +20,7 @@ import {
   FaFireFlameCurved,
   FaBolt,
   FaQrcode,
+  FaStar,
 } from 'react-icons/fa6';
 import QRCode from 'qrcode';
 import { useAuth } from '@/contexts/AuthContext';
@@ -241,6 +242,11 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               {order.priority !== 'normal' && (
                 <Badge variant="gold">
                   {order.priority === 'rush' ? <FaFireFlameCurved /> : <FaBolt />} {order.priority === 'rush' ? 'Rush' : 'Urgent'}
+                </Badge>
+              )}
+              {order.rating && (
+                <Badge variant="gold">
+                  <FaStar /> {order.rating}/5
                 </Badge>
               )}
             </div>

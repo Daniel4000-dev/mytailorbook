@@ -36,6 +36,8 @@ export async function getPublicOrderView(orderId: string): Promise<{
     dueDate: row.due_date || undefined,
     priority: row.priority,
     images: row.images || [],
+    rating: row.rating ?? undefined,
+    ratingSubmittedAt: row.rating_submitted_at || undefined,
     statusHistory: row.status_history || [],
     payments: row.payments || [],
     createdAt: row.created_at,
@@ -71,4 +73,37 @@ export async function getPublicOrderView(orderId: string): Promise<{
     : null;
 
   return { order, customer, shop };
+}
+
+/**
+ * Records a customer's post-delivery star rating from the public tracking
+ * page. No auth — anyone with the tracking link can call this, so it's
+ * deliberately narrow: only accepts 1-5, only applies to a Completed order,
+ * and only once (a rating can never be overwritten once set). This keeps
+ * it a trust signal rather than something a link-holder could spam or flip.
+ */
+export async function submitOrderRating(orderId: string, rating: number): Promise<{ success: boolean; error?: string }> {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { success: false, error: 'Invalid rating.' };
+  }
+
+  const admin = createAdminClient();
+
+  const { data: row, error: fetchError } = await admin
+    .from('orders')
+    .select('status, rating')
+    .eq('id', orderId)
+    .single();
+
+  if (fetchError || !row) return { success: false, error: 'Order not found.' };
+  if (row.status !== 'Completed') return { success: false, error: 'Order is not yet completed.' };
+  if (row.rating != null) return { success: false, error: 'This order has already been rated.' };
+
+  const { error: updateError } = await admin
+    .from('orders')
+    .update({ rating, rating_submitted_at: new Date().toISOString() })
+    .eq('id', orderId);
+
+  if (updateError) return { success: false, error: updateError.message };
+  return { success: true };
 }

@@ -6,6 +6,7 @@ import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus } from '@/lib/types';
+import RatingWidget from '@/components/track/RatingWidget/RatingWidget';
 import styles from './page.module.css';
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Completed'];
@@ -197,6 +198,11 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             })}
           </div>
         </section>
+
+        {/* Post-delivery rating — only makes sense once the garment is actually delivered */}
+        {order.status === 'Completed' && (
+          <RatingWidget orderId={order.id} shopName={shop?.name || APP_CONFIG.name} initialRating={order.rating} />
+        )}
 
         {/* Progress Photos — grouped by production stage so this reads as a
             visual story (cutting -> sewing -> ready), not one flat gallery. */}

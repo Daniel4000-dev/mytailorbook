@@ -120,6 +120,8 @@ export interface Order {
   dueDate?: string;          // ISO date string
   priority: Priority;
   images?: OrderPhoto[];     // garment photos, each tagged with its production stage
+  rating?: number;           // 1-5, set once by the customer after delivery
+  ratingSubmittedAt?: string;
   payments?: PaymentRecord[];
   statusHistory: StatusChange[];
   createdAt: string;
