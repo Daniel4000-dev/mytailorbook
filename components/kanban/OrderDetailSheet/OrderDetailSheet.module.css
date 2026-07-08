@@ -428,6 +428,29 @@
   color: var(--sf-text-primary);
 }
 
+.qrWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sf-space-xs);
+  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+}
+
+.qrImage {
+  width: 140px;
+  height: 140px;
+  border-radius: var(--sf-radius-sm);
+}
+
+.qrHint {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  text-align: center;
+}
+
 .premiumTimelineSection {
   margin-top: var(--sf-space-md);
   display: flex;

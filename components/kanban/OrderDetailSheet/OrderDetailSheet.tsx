@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FaUser,
   FaCalendarDays,
@@ -19,7 +19,9 @@ import {
   FaTriangleExclamation,
   FaFireFlameCurved,
   FaBolt,
+  FaQrcode,
 } from 'react-icons/fa6';
+import QRCode from 'qrcode';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -55,6 +57,8 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   const [editTotalBill, setEditTotalBill] = useState(String(order.totalBill));
   const [savingEdit, setSavingEdit] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const { user } = useAuth();
   const { updateOrderStatus, updateOrder, staffMembers, currentShop } = useData();
@@ -76,6 +80,10 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  useEffect(() => {
+    QRCode.toDataURL(trackingUrl, { width: 160, margin: 1 }).then(setQrDataUrl).catch(() => {});
+  }, [trackingUrl]);
 
   const balanceOwed = getBalanceOwed(order);
 
@@ -472,7 +480,22 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
             <Button variant="secondary" size="sm" onClick={handleCopyLink}>
               {copied ? 'Copied!' : 'Copy'}
             </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowQr((v) => !v)}
+              aria-label="Show QR code"
+            >
+              <FaQrcode />
+            </Button>
           </div>
+          {showQr && qrDataUrl && (
+            <div className={styles.qrWrapper}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrDataUrl} alt="Scan to track this order" className={styles.qrImage} />
+              <span className={styles.qrHint}>Let the customer scan this to open their tracking page</span>
+            </div>
+          )}
         </div>
       </div>
 

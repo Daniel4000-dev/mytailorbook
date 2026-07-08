@@ -1,3 +1,5 @@
+import { headers } from 'next/headers';
+import QRCode from 'qrcode';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
@@ -23,6 +25,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
   const { order, customer, shop } = view;
   const balanceOwed = getBalanceOwed(order);
   const issuedDate = new Date().toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const headersList = await headers();
+  const host = headersList.get('host');
+  const protocol = host?.startsWith('localhost') || host?.startsWith('127.0.0.1') ? 'http' : 'https';
+  const trackingUrl = `${protocol}://${host}/track/${order.id}`;
+  const trackingQrDataUrl = await QRCode.toDataURL(trackingUrl, { width: 120, margin: 1 });
 
   return (
     <div className={styles.page}>
@@ -103,6 +111,17 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
             </section>
           </>
         )}
+
+        <div className={styles.divider} />
+
+        <section className={styles.trackingSection}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={trackingQrDataUrl} alt="Scan to track your order" className={styles.trackingQr} />
+          <div className={styles.trackingInfo}>
+            <span className={styles.sectionLabel}>Track Your Order</span>
+            <p className={styles.trackingUrl}>{trackingUrl}</p>
+          </div>
+        </section>
 
         <footer className={styles.footer}>
           <p>Thank you for choosing {shop?.name || APP_CONFIG.name}.</p>
