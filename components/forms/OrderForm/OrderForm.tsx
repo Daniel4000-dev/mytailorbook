@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
-import { FaUser, FaPhone, FaMoneyBill, FaHandHoldingDollar, FaCalendarDay, FaPlus, FaXmark } from 'react-icons/fa6';
+import { useState, useEffect, type FormEvent } from 'react';
+import { FaUser, FaPhone, FaMoneyBill, FaHandHoldingDollar, FaCalendarDay, FaPlus, FaXmark, FaBookmark } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -10,7 +10,8 @@ import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import Button from '@/components/ui/Button/Button';
 import { formatCurrency, isValidPhone, formatPhone } from '@/lib/formatters';
-import type { Priority, Customer, OrderStatus, OrderItem } from '@/lib/types';
+import { getOrderTemplatesAction, addOrderTemplateAction } from '@/app/actions';
+import type { Priority, Customer, OrderStatus, OrderItem, OrderTemplate } from '@/lib/types';
 import styles from './OrderForm.module.css';
 
 interface ItemRow {
@@ -25,8 +26,12 @@ interface OrderFormProps {
 
 export default function OrderForm({ onClose }: OrderFormProps) {
   const { user } = useAuth();
-  const { customers, findOrCreateCustomer, addOrder, staffMembers } = useData();
+  const { customers, findOrCreateCustomer, addOrder, staffMembers, currentShop } = useData();
   const { showToast } = useToast();
+  const [templates, setTemplates] = useState<OrderTemplate[]>([]);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [phone, setPhone] = useState('');
@@ -63,6 +68,51 @@ export default function OrderForm({ onClose }: OrderFormProps) {
     setItemRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
   };
 
+  const validItemRows = itemRows.filter((r) => r.description.trim() && (parseInt(r.price.replace(/,/g, '')) || 0) > 0);
+
+  useEffect(() => {
+    if (currentShop) {
+      getOrderTemplatesAction(currentShop.id).then(setTemplates).catch(() => {});
+    }
+  }, [currentShop]);
+
+  const handleApplyTemplate = (templateId: string) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (!template) return;
+    if (template.items && template.items.length > 0) {
+      setItemized(true);
+      setItemRows(template.items.map((i) => ({ id: crypto.randomUUID(), description: i.description, price: String(i.price) })));
+    } else {
+      setItemized(false);
+      setDetails(template.orderDetails);
+      setTotalBill(template.totalBill.toLocaleString('en-NG'));
+    }
+  };
+
+  const canSaveTemplate = itemized ? validItemRows.length > 0 : Boolean(details && totalBill);
+
+  const handleSaveTemplate = async () => {
+    if (!currentShop || !templateName.trim()) return;
+    setSavingTemplate(true);
+    try {
+      const items = itemized
+        ? validItemRows.map((r) => ({ id: r.id, description: r.description.trim(), price: parseInt(r.price.replace(/,/g, '')) || 0 }))
+        : undefined;
+      const template = await addOrderTemplateAction(currentShop.id, {
+        name: templateName.trim(),
+        orderDetails: itemized ? validItemRows.map((r) => r.description.trim()).join('; ') : details,
+        items,
+        totalBill: total,
+      });
+      setTemplates((prev) => [template, ...prev]);
+      setShowSaveTemplate(false);
+      setTemplateName('');
+      showToast('Template saved', 'success');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
   const staffOptions = staffMembers
     .filter((u) => u.active !== false)
     .map((u) => ({ value: u.uid, label: u.uid === user?.uid ? `${u.name} (You)` : u.name }));
@@ -93,8 +143,6 @@ export default function OrderForm({ onClose }: OrderFormProps) {
     setSelectedCustomerId(c.id);
     setShowSuggestions(false);
   };
-
-  const validItemRows = itemRows.filter((r) => r.description.trim() && (parseInt(r.price.replace(/,/g, '')) || 0) > 0);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -164,6 +212,15 @@ export default function OrderForm({ onClose }: OrderFormProps) {
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       {error && <div className={styles.errorBanner}>{error}</div>}
+
+      {templates.length > 0 && (
+        <Select
+          label="Start from Template"
+          options={[{ value: '', label: 'None — start blank' }, ...templates.map((t) => ({ value: t.id, label: t.name }))]}
+          value=""
+          onChange={(e) => e.target.value && handleApplyTemplate(e.target.value)}
+        />
+      )}
 
       <div className={styles.inputWrapper}>
         <Input
@@ -278,6 +335,25 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         inputMode="numeric"
         disabled={itemized}
       />
+
+      {canSaveTemplate && !showSaveTemplate && (
+        <button type="button" className={styles.itemizeToggle} onClick={() => setShowSaveTemplate(true)}>
+          <FaBookmark /> Save this as a template for future orders
+        </button>
+      )}
+      {showSaveTemplate && (
+        <div className={styles.templateSaveRow}>
+          <Input
+            placeholder="Template name, e.g. 2-piece native attire"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+          />
+          <Button type="button" variant="secondary" size="sm" loading={savingTemplate} onClick={handleSaveTemplate}>
+            Save
+          </Button>
+        </div>
+      )}
+
       <Input
         label="Deposit (₦)"
         placeholder="0"

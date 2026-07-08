@@ -47,6 +47,18 @@ export interface OrderItem {
   price: number;
 }
 
+/** A saved, reusable order shape — description/items + price — so common
+ *  order types don't need retyping every time. */
+export interface OrderTemplate {
+  id: string;
+  shopId: string;
+  name: string;
+  orderDetails: string;
+  items?: OrderItem[];
+  totalBill: number;
+  createdAt: string;
+}
+
 export type Priority = 'normal' | 'urgent' | 'rush';
 
 export interface User {

@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -376,5 +376,59 @@ export async function addPortfolioPhotoAction(shopId: string, url: string, capti
 export async function deletePortfolioPhotoAction(photoId: string, shopId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('portfolio_photos').delete().eq('id', photoId).eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
+}
+
+// ----------------------------------------------------------------------
+// Order templates
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function orderTemplateFromRow(row: any): OrderTemplate {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    name: row.name,
+    orderDetails: row.order_details,
+    items: row.items && row.items.length > 0 ? row.items : undefined,
+    totalBill: row.total_bill,
+    createdAt: row.created_at,
+  };
+}
+
+export async function getOrderTemplatesAction(shopId: string): Promise<OrderTemplate[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_templates')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(orderTemplateFromRow);
+}
+
+export async function addOrderTemplateAction(
+  shopId: string,
+  template: Omit<OrderTemplate, 'id' | 'shopId' | 'createdAt'>
+): Promise<OrderTemplate> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_templates')
+    .insert({
+      shop_id: shopId,
+      name: template.name,
+      order_details: template.orderDetails,
+      items: template.items || [],
+      total_bill: template.totalBill,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return orderTemplateFromRow(data);
+}
+
+export async function deleteOrderTemplateAction(templateId: string, shopId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('order_templates').delete().eq('id', templateId).eq('shop_id', shopId);
   if (error) throw new Error(error.message);
 }

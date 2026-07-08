@@ -9,6 +9,16 @@
   position: relative;
 }
 
+.templateSaveRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.templateSaveRow > div:first-child {
+  flex: 1;
+}
+
 .itemizeToggle {
   background: none;
   border: none;
