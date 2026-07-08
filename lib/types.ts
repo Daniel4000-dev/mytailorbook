@@ -101,6 +101,8 @@ export interface Customer {
   dateOfBirth?: string;
   /** Another customer's id — who referred this customer to the shop. */
   referredBy?: string;
+  /** Fit/style preferences that persist across orders, e.g. "prefers loose sleeves". */
+  styleNotes?: string;
   createdAt: string;
 }
 

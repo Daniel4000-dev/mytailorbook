@@ -77,6 +77,7 @@ function customerFromRow(row: any): Customer {
     measurements: row.measurements || undefined,
     dateOfBirth: row.date_of_birth || undefined,
     referredBy: row.referred_by || undefined,
+    styleNotes: row.style_notes || undefined,
     createdAt: row.created_at,
   };
 }
@@ -89,6 +90,7 @@ function customerToRow(updates: Partial<Customer>) {
   if (updates.measurements !== undefined) row.measurements = updates.measurements;
   if (updates.dateOfBirth !== undefined) row.date_of_birth = updates.dateOfBirth || null;
   if (updates.referredBy !== undefined) row.referred_by = updates.referredBy || null;
+  if (updates.styleNotes !== undefined) row.style_notes = updates.styleNotes || null;
   return row;
 }
 

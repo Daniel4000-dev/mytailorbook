@@ -129,7 +129,7 @@ function CustomerProfileContent({
     return initial;
   });
 
-  const [notes, setNotes] = useState(customer.measurements?.notes || '');
+  const [styleNotes, setStyleNotes] = useState(customer.styleNotes || '');
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
   const [currentValue, setCurrentValue] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -193,12 +193,12 @@ function CustomerProfileContent({
       ...prev,
       [pointId]: val
     }));
-    
-    const updatedMeasurements: Measurements = {
-      ...customer.measurements,
-      notes: notes || undefined
-    };
-    
+
+    // Style notes moved to their own Customer field — measurements here
+    // should only ever carry numbers, never the old nested `notes` string.
+    const updatedMeasurements: Measurements = { ...customer.measurements };
+    delete (updatedMeasurements as Record<string, unknown>).notes;
+
     const updatedRecord = { ...measurements, [pointId]: val };
     
     Object.entries(updatedRecord).forEach(([key, value]) => {
@@ -216,20 +216,8 @@ function CustomerProfileContent({
     updateCustomerMeasurements(customer.id, updatedMeasurements);
   };
 
-  const handleSaveNotes = () => {
-    const updatedMeasurements: Measurements = {
-      ...customer.measurements,
-      notes: notes || undefined
-    };
-    
-    Object.entries(measurements).forEach(([key, val]) => {
-      const num = parseFloat(val);
-      if (!isNaN(num)) {
-        (updatedMeasurements as any)[key] = num;
-      }
-    });
-
-    updateCustomerMeasurements(customer.id, updatedMeasurements);
+  const handleSaveNotes = async () => {
+    await updateCustomer(customer.id, { styleNotes: styleNotes || undefined });
     showToast('Notes saved', 'success');
   };
 
@@ -241,18 +229,16 @@ function CustomerProfileContent({
         [selectedPoint.id]: newVal
       }));
       
-      const updatedMeasurements: Measurements = {
-        ...customer.measurements,
-        notes: notes || undefined
-      };
-      
+      const updatedMeasurements: Measurements = { ...customer.measurements };
+      delete (updatedMeasurements as Record<string, unknown>).notes;
+
       Object.entries(measurements).forEach(([key, val]) => {
         const num = parseFloat(val);
         if (!isNaN(num)) {
           (updatedMeasurements as any)[key] = num;
         }
       });
-      
+
       const newNum = parseFloat(newVal);
       if (!isNaN(newNum)) {
         (updatedMeasurements as any)[selectedPoint.id] = newNum;
@@ -274,11 +260,9 @@ function CustomerProfileContent({
         return copy;
       });
       
-      const updatedMeasurements: Measurements = {
-        ...customer.measurements,
-        notes: notes || undefined
-      };
-      
+      const updatedMeasurements: Measurements = { ...customer.measurements };
+      delete (updatedMeasurements as Record<string, unknown>).notes;
+
       Object.entries(measurements).forEach(([key, val]) => {
         if (key !== selectedPoint.id) {
           const num = parseFloat(val);
@@ -420,12 +404,12 @@ function CustomerProfileContent({
           </div>
 
           <div className={`${styles.card} ${styles.notesSection}`}>
-            <h3 className={styles.sectionTitle}>Customer Notes</h3>
+            <h3 className={styles.sectionTitle}>Style &amp; Fit Notes</h3>
             <textarea
               className={styles.notesTextarea}
-              placeholder="Add special requests, preferences, or fabric details here..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Persistent preferences, e.g. prefers loose sleeves, left shoulder slightly lower..."
+              value={styleNotes}
+              onChange={(e) => setStyleNotes(e.target.value)}
               onBlur={handleSaveNotes}
             />
           </div>
