@@ -11,7 +11,22 @@ export interface Shop {
   name: string;
   phone?: string;
   address?: string;
+  /** Short line shown at the top of the public portfolio page, e.g. "Bespoke agbada & senator wear since 2015" */
+  tagline?: string;
+  /** Longer free-text description shown on the public portfolio page. */
+  bio?: string;
   ownerUid: string;
+  createdAt: string;
+}
+
+/** A photo the owner has chosen to feature on the public portfolio page —
+ *  independent of any specific order, so it never implicitly identifies a customer. */
+export interface PortfolioPhoto {
+  id: string;
+  shopId: string;
+  url: string;
+  caption?: string;
+  sortOrder: number;
   createdAt: string;
 }
 

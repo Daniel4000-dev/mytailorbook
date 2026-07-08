@@ -72,8 +72,18 @@
 }
 
 .mobileOnlyNav {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding-left: 24px;
+}
+
+.moreLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #A89685;
+  margin: 12px 0 4px 0;
 }
 
 .menuItem {

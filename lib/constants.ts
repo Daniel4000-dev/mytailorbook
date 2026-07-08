@@ -119,9 +119,19 @@ export function getPreviousStatus(current: OrderStatus): OrderStatus | null {
   return ORDER_STATUSES[index - 1];
 }
 
+// Daily workflow — lives in the bottom nav (mobile) and the top nav group
+// (desktop sidebar). Keep this short; it's for the things a tailor touches
+// every single day.
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'FaHouse' },
   { label: 'Production', href: '/production', icon: 'FaTableColumns' },
   { label: 'Customers', href: '/customers', icon: 'FaUsers', ownerOnly: true },
+];
+
+// Occasional-use destinations — real standalone pages, but not a daily
+// habit. Lives in the sidebar drawer's "More" section (mobile) and a
+// secondary group in the desktop sidebar. Never shown in the bottom nav.
+export const SECONDARY_NAV_ITEMS: NavItem[] = [
+  { label: 'Public Portfolio', href: '/portfolio', icon: 'FaImage', ownerOnly: true },
   { label: 'Settings', href: '/settings', icon: 'FaGear', ownerOnly: true },
 ];

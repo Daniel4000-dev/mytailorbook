@@ -1,7 +1,7 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { Order, Customer, Shop } from '@/lib/types';
+import type { Order, Customer, Shop, PortfolioPhoto } from '@/lib/types';
 
 /**
  * Fetches a single order (+ its customer and shop) for the public,
@@ -67,12 +67,63 @@ export async function getPublicOrderView(orderId: string): Promise<{
         name: shopRow.name,
         phone: shopRow.phone || undefined,
         address: shopRow.address || undefined,
+        tagline: shopRow.tagline || undefined,
+        bio: shopRow.bio || undefined,
         ownerUid: shopRow.owner_id,
         createdAt: shopRow.created_at,
       }
     : null;
 
   return { order, customer, shop };
+}
+
+/**
+ * Fetches everything the public portfolio page (/studio/[shopId]) needs:
+ * the shop's profile, its featured photos, and an aggregate rating computed
+ * on the fly from completed orders. No auth, single-shop lookup only —
+ * same admin-bypass pattern as getPublicOrderView.
+ */
+export async function getPublicPortfolioView(shopId: string): Promise<{
+  shop: Shop;
+  photos: PortfolioPhoto[];
+  ratingAverage: number | null;
+  ratingCount: number;
+} | null> {
+  const admin = createAdminClient();
+
+  const { data: shopRow, error } = await admin.from('shops').select('*').eq('id', shopId).single();
+  if (error || !shopRow) return null;
+
+  const shop: Shop = {
+    id: shopRow.id,
+    name: shopRow.name,
+    phone: shopRow.phone || undefined,
+    address: shopRow.address || undefined,
+    tagline: shopRow.tagline || undefined,
+    bio: shopRow.bio || undefined,
+    ownerUid: shopRow.owner_id,
+    createdAt: shopRow.created_at,
+  };
+
+  const [{ data: photoRows }, { data: ratingRows }] = await Promise.all([
+    admin.from('portfolio_photos').select('*').eq('shop_id', shopId).order('sort_order', { ascending: true }),
+    admin.from('orders').select('rating').eq('shop_id', shopId).not('rating', 'is', null),
+  ]);
+
+  const photos: PortfolioPhoto[] = (photoRows || []).map((row) => ({
+    id: row.id,
+    shopId: row.shop_id,
+    url: row.url,
+    caption: row.caption || undefined,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+  }));
+
+  const ratings = (ratingRows || []).map((r) => r.rating as number);
+  const ratingCount = ratings.length;
+  const ratingAverage = ratingCount > 0 ? ratings.reduce((sum, r) => sum + r, 0) / ratingCount : null;
+
+  return { shop, photos, ratingAverage, ratingCount };
 }
 
 /**

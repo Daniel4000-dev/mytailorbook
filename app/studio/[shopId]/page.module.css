@@ -1,0 +1,202 @@
+.page {
+  min-height: 100dvh;
+  background: #FAF2E8;
+  display: flex;
+  flex-direction: column;
+}
+
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(250, 242, 232, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 215, 199, 0.5);
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.brandName {
+  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #7A6952;
+  letter-spacing: 1.2px;
+}
+
+.brandDomain {
+  font-size: 10px;
+  color: var(--sf-text-tertiary);
+}
+
+.scrollContent {
+  flex: 1;
+  padding: 20px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.heroCard, .card {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shopName {
+  font-family: var(--sf-font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.tagline {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ratingPill, .addressPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.ratingPill svg {
+  color: #F5A623;
+}
+
+.ratingCount {
+  font-weight: 400;
+  color: var(--sf-text-tertiary);
+}
+
+.bio {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.contactBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background: #25D366;
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.photoThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--sf-border-light);
+}
+
+.footerContact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.footerLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-text-tertiary);
+}
+
+.footerPhone {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.trackerFooter {
+  text-align: center;
+  color: var(--sf-text-tertiary);
+  font-size: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.lockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.errorCard {
+  background: #fff;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 32px;
+  margin: 40px auto;
+  max-width: 400px;
+  text-align: center;
+}
+
+.errorTitle {
+  color: var(--sf-text-primary);
+  margin: 0 0 8px 0;
+}
+
+.errorText {
+  color: var(--sf-text-secondary);
+  margin: 0;
+}

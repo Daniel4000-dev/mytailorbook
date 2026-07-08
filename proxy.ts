@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy'];
-const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/auth/'];
+const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/auth/', '/studio/'];
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;

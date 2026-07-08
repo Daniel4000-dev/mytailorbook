@@ -1,0 +1,159 @@
+.pageGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: 0 var(--sf-space-md) var(--sf-space-2xl) var(--sf-space-md);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+  margin-top: var(--sf-space-md);
+}
+
+.introText {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.sectionTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin: 0;
+}
+
+.sectionIcon {
+  color: var(--sf-accent-emerald);
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.linkQr {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--sf-radius-sm);
+}
+
+.linkInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  min-width: 0;
+}
+
+.linkUrl {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  word-break: break-all;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.submitBtn {
+  align-self: flex-start;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--sf-text-tertiary);
+  margin: 0 0 var(--sf-space-md) 0;
+}
+
+.photoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-sm);
+}
+
+.photoThumb {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--sf-border-light);
+}
+
+.photoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoRemoveBtn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.photoUploadBtn {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--sf-radius-md);
+  border: 1px dashed var(--sf-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-tertiary);
+  font-size: 24px;
+  cursor: pointer;
+  background: var(--sf-bg-surface);
+}
+
+.photoUploadBtn:hover {
+  color: var(--sf-text-secondary);
+}

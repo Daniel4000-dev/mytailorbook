@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -100,7 +100,21 @@ function shopFromRow(row: any): Shop {
     name: row.name,
     phone: row.phone || undefined,
     address: row.address || undefined,
+    tagline: row.tagline || undefined,
+    bio: row.bio || undefined,
     ownerUid: row.owner_id,
+    createdAt: row.created_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function portfolioPhotoFromRow(row: any): PortfolioPhoto {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    url: row.url,
+    caption: row.caption || undefined,
+    sortOrder: row.sort_order,
     createdAt: row.created_at,
   };
 }
@@ -265,7 +279,50 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.name !== undefined) row.name = updates.name;
   if (updates.phone !== undefined) row.phone = updates.phone;
   if (updates.address !== undefined) row.address = updates.address;
+  if (updates.tagline !== undefined) row.tagline = updates.tagline || null;
+  if (updates.bio !== undefined) row.bio = updates.bio || null;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);
+}
+
+// ----------------------------------------------------------------------
+// Portfolio photos — fetched separately from getShopBundle since the
+// management screen is an occasional-use page, not part of the app's
+// always-loaded data.
+// ----------------------------------------------------------------------
+
+export async function getPortfolioPhotosAction(shopId: string): Promise<PortfolioPhoto[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('portfolio_photos')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('sort_order', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data || []).map(portfolioPhotoFromRow);
+}
+
+export async function addPortfolioPhotoAction(shopId: string, url: string, caption?: string): Promise<PortfolioPhoto> {
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from('portfolio_photos')
+    .select('sort_order')
+    .eq('shop_id', shopId)
+    .order('sort_order', { ascending: false })
+    .limit(1);
+  const nextSortOrder = existing && existing.length > 0 ? existing[0].sort_order + 1 : 0;
+  const { data, error } = await supabase
+    .from('portfolio_photos')
+    .insert({ shop_id: shopId, url, caption: caption || null, sort_order: nextSortOrder })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return portfolioPhotoFromRow(data);
+}
+
+export async function deletePortfolioPhotoAction(photoId: string, shopId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('portfolio_photos').delete().eq('id', photoId).eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
 }
