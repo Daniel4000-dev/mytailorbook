@@ -19,6 +19,7 @@ import {
   updateOrderAction,
   addCustomerAction,
   updateCustomerMeasurementsAction,
+  updateCustomerAction,
   updateStaffAction,
   updateShopAction,
   getStaff,
@@ -45,6 +46,7 @@ interface DataContextValue {
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) => Promise<Customer>;
   updateCustomerMeasurements: (customerId: string, measurements: Measurements) => Promise<void>;
+  updateCustomer: (customerId: string, updates: Partial<Customer>) => Promise<void>;
   getCustomerOrders: (customerId: string) => Order[];
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
@@ -129,6 +131,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [shopId, mutate]
   );
 
+  const updateCustomer = useCallback(
+    async (customerId: string, updates: Partial<Customer>) => {
+      if (!shopId) return;
+      const updated = await updateCustomerAction(customerId, updates, shopId);
+      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+    },
+    [shopId, mutate]
+  );
+
   const findOrCreateCustomer = useCallback(
     async (fullName: string, whatsappNumber: string): Promise<Customer> => {
       const normalized = normalizePhone(whatsappNumber);
@@ -195,6 +206,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateOrder,
       addCustomer,
       updateCustomerMeasurements,
+      updateCustomer,
       getCustomerOrders,
       getOrdersByStatus,
       getOrdersByStaff,
@@ -203,7 +215,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateStaff,
       updateShop,
     }),
-    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop]
+    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

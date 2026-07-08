@@ -89,6 +89,14 @@
   font-size: var(--sf-text-base);
   font-weight: var(--sf-weight-semibold);
   color: var(--sf-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.birthdaySoonIcon {
+  font-size: 0.75em;
+  color: var(--sf-color-warning, #F59E0B);
 }
 
 .phone {

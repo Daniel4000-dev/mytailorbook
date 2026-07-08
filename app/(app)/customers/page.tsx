@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp } from 'react-icons/fa6';
+import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp, FaGift } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -10,14 +10,14 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import { formatPhone, formatCurrency, formatShortMonthYear } from '@/lib/formatters';
+import { formatPhone, formatCurrency, formatShortMonthYear, getDaysUntilAnnualDate } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import CustomersSkeleton from './CustomersSkeleton';
 import styles from './page.module.css';
 
 export default function CustomersPage() {
   const router = useRouter();
-  const { isOwner } = useAuth();
+  const { isOwner, loading: authLoading } = useAuth();
   const { customers, orders, isLoaded } = useData();
   const [search, setSearch] = useState('');
 
@@ -42,18 +42,22 @@ export default function CustomersPage() {
     return stats;
   }, [customers, orders]);
 
-  if (!isOwner) {
+  // Auth still resolving (e.g. right after a hard reload) — show the
+  // skeleton, not "Access Denied". `isOwner` is derived from `user`, which
+  // starts null before the session check finishes, so checking it first
+  // would incorrectly deny a real owner for a brief instant on every load.
+  if (authLoading || !isLoaded) {
     return (
       <PageLayout header={<TopBar title="Customers" />}>
-        <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
+        <CustomersSkeleton />
       </PageLayout>
     );
   }
 
-  if (!isLoaded) {
+  if (!isOwner) {
     return (
       <PageLayout header={<TopBar title="Customers" />}>
-        <CustomersSkeleton />
+        <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
       </PageLayout>
     );
   }
@@ -65,6 +69,12 @@ export default function CustomersPage() {
 
   const totalCustomers = customers.length;
   const activeCustomers = customers.filter(c => customerStats[c.id]?.activeOrders > 0).length;
+
+  const isBirthdaySoon = (dateOfBirth?: string) => {
+    if (!dateOfBirth) return false;
+    const days = getDaysUntilAnnualDate(dateOfBirth);
+    return days !== null && days <= 14;
+  };
 
   return (
     <PageLayout header={<TopBar title="Customers" />}>
@@ -97,7 +107,12 @@ export default function CustomersPage() {
                     <div className={styles.cardHeader}>
                       <Avatar name={c.fullName} size="md" />
                       <div className={styles.cardInfo}>
-                        <span className={styles.name}>{c.fullName}</span>
+                        <span className={styles.name}>
+                          {c.fullName}
+                          {isBirthdaySoon(c.dateOfBirth) && (
+                            <FaGift className={styles.birthdaySoonIcon} title="Birthday coming up" />
+                          )}
+                        </span>
                         <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
                         <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
                       </div>
@@ -147,7 +162,12 @@ export default function CustomersPage() {
                         <td>
                           <div className={styles.customerCell}>
                             <Avatar name={c.fullName} size="sm" />
-                            <span className={styles.name}>{c.fullName}</span>
+                            <span className={styles.name}>
+                              {c.fullName}
+                              {isBirthdaySoon(c.dateOfBirth) && (
+                                <FaGift className={styles.birthdaySoonIcon} title="Birthday coming up" />
+                              )}
+                            </span>
                           </div>
                         </td>
                         <td>

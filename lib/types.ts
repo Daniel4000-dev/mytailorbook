@@ -74,6 +74,10 @@ export interface Customer {
   whatsappNumber: string;
   gender: 'male' | 'female';
   measurements?: Measurements;
+  /** ISO date string (YYYY-MM-DD) — optional, powers the birthday nudge. */
+  dateOfBirth?: string;
+  /** Another customer's id — who referred this customer to the shop. */
+  referredBy?: string;
   createdAt: string;
 }
 

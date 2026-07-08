@@ -128,6 +128,105 @@
   justify-content: space-between;
 }
 
+/* Relationship Section */
+.relationshipSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.relationshipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+  padding: 6px 0;
+}
+
+.relationshipLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  font-weight: var(--sf-weight-medium);
+}
+
+.relationshipValueBtn {
+  background: none;
+  border: none;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--sf-radius-sm);
+  transition: background-color var(--sf-transition-fast);
+}
+
+.relationshipValueBtn:hover {
+  background: var(--sf-bg-surface-elevated);
+}
+
+.relationshipEditRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.relationshipDateInput {
+  border: 1px solid var(--sf-border-light);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  font-family: var(--sf-font-body);
+}
+
+.relationshipSaveBtn {
+  background: var(--sf-text-primary);
+  color: var(--sf-bg-primary);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.relationshipNudge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sf-accent-gold-soft, rgba(245, 158, 11, 0.1));
+  border: 1px solid var(--sf-border-light);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  text-decoration: none;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.relationshipNudge:hover {
+  opacity: 0.85;
+}
+
+.relationshipReferredList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.relationshipReferredNames {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+}
+
 /* Notes Textarea */
 .notesSection {
   animation-delay: 0.2s;

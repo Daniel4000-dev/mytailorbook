@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaWhatsapp, FaUserSlash } from 'react-icons/fa6';
+import { FaWhatsapp, FaUserSlash, FaGift, FaUserGroup, FaCrown, FaStar, FaCircleUser } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -14,9 +14,21 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
+import Select from '@/components/ui/Select/Select';
 import MeasurementAnatomy from '@/components/customers/MeasurementAnatomy/MeasurementAnatomy';
 import OrderDetailSheet from '@/components/kanban/OrderDetailSheet/OrderDetailSheet';
-import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
+import {
+  formatCurrency,
+  formatPhone,
+  getWhatsAppLink,
+  truncateText,
+  formatMonthYear,
+  getBirthdayMessage,
+  getReEngagementMessage,
+  getLoyaltyTier,
+  getDaysUntilAnnualDate,
+  getDaysSince,
+} from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements, Customer, Order, User } from '@/lib/types';
 import CustomerDetailSkeleton from './CustomerDetailSkeleton';
@@ -31,21 +43,25 @@ interface Point {
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  const { isOwner, user } = useAuth();
-  const { customers, orders, isLoaded, updateCustomerMeasurements, updateOrder } = useData();
+  const { isOwner, user, loading: authLoading } = useAuth();
+  const { customers, orders, isLoaded, updateCustomerMeasurements, updateOrder, updateCustomer } = useData();
+
+  // Auth still resolving — show the skeleton, not "Access Denied". `isOwner`
+  // is derived from `user`, which starts null before the session check
+  // finishes, so checking it first would incorrectly deny a real owner for
+  // a brief instant on every load (this reproduced consistently on staging).
+  if (authLoading || !isLoaded) {
+    return (
+      <PageLayout className={styles.pageGrid} header={<TopBar title="Customer Details" showBack />}>
+        <CustomerDetailSkeleton />
+      </PageLayout>
+    );
+  }
 
   if (!isOwner) {
     return (
       <PageLayout header={<TopBar title="Customer" showBack />}>
         <EmptyState icon={<FaUserSlash />} title="Access Denied" />
-      </PageLayout>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <PageLayout className={styles.pageGrid} header={<TopBar title="Customer Details" showBack />}>
-        <CustomerDetailSkeleton />
       </PageLayout>
     );
   }
@@ -63,31 +79,38 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   return (
     <CustomerProfileContent
       customer={customer}
+      customers={customers}
       orders={orders}
       isOwner={isOwner}
       user={user}
       updateCustomerMeasurements={updateCustomerMeasurements}
       updateOrder={updateOrder}
+      updateCustomer={updateCustomer}
     />
   );
 }
 
 function CustomerProfileContent({
   customer,
+  customers,
   orders,
   isOwner,
   user,
   updateCustomerMeasurements,
   updateOrder,
+  updateCustomer,
 }: {
   customer: Customer;
+  customers: Customer[];
   orders: Order[];
   isOwner: boolean;
   user: User | null;
   updateCustomerMeasurements: ReturnType<typeof useData>['updateCustomerMeasurements'];
   updateOrder: ReturnType<typeof useData>['updateOrder'];
+  updateCustomer: ReturnType<typeof useData>['updateCustomer'];
 }) {
   const { showToast } = useToast();
+  const { currentShop } = useData();
 
   // Initialize from customer measurements — this component only mounts once
   // real customer data is available, so these initializers see real values.
@@ -107,11 +130,41 @@ function CustomerProfileContent({
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
   const [currentValue, setCurrentValue] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [editingBirthday, setEditingBirthday] = useState(false);
+  const [birthdayInput, setBirthdayInput] = useState(customer.dateOfBirth || '');
+  const [editingReferrer, setEditingReferrer] = useState(false);
+  const [referrerInput, setReferrerInput] = useState(customer.referredBy || '');
 
   const id = customer.id;
   const custOrders = orders.filter((o) => o.customerId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const totalSpend = custOrders.reduce((s, o) => s + o.totalBill, 0);
   const totalOwed = custOrders.reduce((s, o) => s + getBalanceOwed(o), 0);
+
+  const shopName = currentShop?.name || 'us';
+  const loyalty = getLoyaltyTier(custOrders.length);
+  const daysUntilBirthday = customer.dateOfBirth ? getDaysUntilAnnualDate(customer.dateOfBirth) : null;
+  const birthdaySoon = daysUntilBirthday !== null && daysUntilBirthday <= 14;
+  const mostRecentOrder = custOrders[0];
+  const daysSinceLastOrder = mostRecentOrder ? getDaysSince(mostRecentOrder.createdAt) : getDaysSince(customer.createdAt);
+  const isStale = custOrders.length > 0 ? daysSinceLastOrder >= 90 : daysSinceLastOrder >= 30;
+  const referredByCustomer = customer.referredBy ? customers.find((c) => c.id === customer.referredBy) : null;
+  const referredCustomers = customers.filter((c) => c.referredBy === customer.id);
+  const referrerOptions = [
+    { value: '', label: 'None' },
+    ...customers.filter((c) => c.id !== customer.id).map((c) => ({ value: c.id, label: c.fullName })),
+  ];
+
+  const handleSaveBirthday = async () => {
+    await updateCustomer(customer.id, { dateOfBirth: birthdayInput || undefined });
+    setEditingBirthday(false);
+    showToast('Birthday saved', 'success');
+  };
+
+  const handleSaveReferrer = async () => {
+    await updateCustomer(customer.id, { referredBy: referrerInput || undefined });
+    setEditingReferrer(false);
+    showToast('Referral saved', 'success');
+  };
 
   const handlePointSelect = (point: Point) => {
     setSelectedPoint(point);
@@ -261,6 +314,92 @@ function CustomerProfileContent({
               </span>
               <span className={styles.statLabel}>Owed</span>
             </div>
+          </div>
+
+          <div className={`${styles.card} ${styles.relationshipSection}`}>
+            <h3 className={styles.sectionTitle}>Relationship</h3>
+
+            <div className={styles.relationshipRow}>
+              <span className={styles.relationshipLabel}>
+                {loyalty.tier === 'vip' ? <FaCrown /> : loyalty.tier === 'regular' ? <FaStar /> : <FaCircleUser />}
+                Loyalty
+              </span>
+              <Badge variant={loyalty.tier === 'vip' ? 'gold' : 'default'}>{loyalty.label}</Badge>
+            </div>
+
+            <div className={styles.relationshipRow}>
+              <span className={styles.relationshipLabel}><FaGift /> Birthday</span>
+              {editingBirthday ? (
+                <div className={styles.relationshipEditRow}>
+                  <input
+                    type="date"
+                    value={birthdayInput}
+                    onChange={(e) => setBirthdayInput(e.target.value)}
+                    className={styles.relationshipDateInput}
+                  />
+                  <button type="button" onClick={handleSaveBirthday} className={styles.relationshipSaveBtn}>Save</button>
+                </div>
+              ) : (
+                <button type="button" className={styles.relationshipValueBtn} onClick={() => setEditingBirthday(true)}>
+                  {customer.dateOfBirth
+                    ? new Date(customer.dateOfBirth).toLocaleDateString('en-NG', { month: 'long', day: 'numeric' })
+                    : 'Add birthday'}
+                </button>
+              )}
+            </div>
+
+            {birthdaySoon && (
+              <a
+                href={getWhatsAppLink(customer.whatsappNumber, getBirthdayMessage(customer.fullName, shopName))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.relationshipNudge}
+              >
+                <FaGift />
+                {daysUntilBirthday === 0 ? "It's their birthday today!" : `Birthday in ${daysUntilBirthday} day${daysUntilBirthday === 1 ? '' : 's'}`} — Send wishes
+              </a>
+            )}
+
+            <div className={styles.relationshipRow}>
+              <span className={styles.relationshipLabel}><FaUserGroup /> Referred by</span>
+              {editingReferrer ? (
+                <div className={styles.relationshipEditRow}>
+                  <Select
+                    value={referrerInput}
+                    onChange={(e) => setReferrerInput(e.target.value)}
+                    options={referrerOptions}
+                  />
+                  <button type="button" onClick={handleSaveReferrer} className={styles.relationshipSaveBtn}>Save</button>
+                </div>
+              ) : (
+                <button type="button" className={styles.relationshipValueBtn} onClick={() => setEditingReferrer(true)}>
+                  {referredByCustomer ? referredByCustomer.fullName : 'Not set'}
+                </button>
+              )}
+            </div>
+
+            {referredCustomers.length > 0 && (
+              <div className={styles.relationshipReferredList}>
+                <span className={styles.relationshipLabel}>
+                  Referred {referredCustomers.length} customer{referredCustomers.length === 1 ? '' : 's'}
+                </span>
+                <span className={styles.relationshipReferredNames}>
+                  {referredCustomers.map((c) => c.fullName).join(', ')}
+                </span>
+              </div>
+            )}
+
+            {isStale && (
+              <a
+                href={getWhatsAppLink(customer.whatsappNumber, getReEngagementMessage(customer.fullName, shopName))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.relationshipNudge}
+              >
+                <FaWhatsapp />
+                Hasn't ordered in {daysSinceLastOrder} days — Send a nudge
+              </a>
+            )}
           </div>
 
           <div className={`${styles.card} ${styles.notesSection}`}>

@@ -161,3 +161,47 @@ export function getOrderProgressMessage(params: {
 
   return `${stageMessages[status]} You can monitor its progress anytime here: ${trackingUrl}`;
 }
+
+/** A birthday WhatsApp message, pre-filled the same way order updates are. */
+export function getBirthdayMessage(customerName: string, shopName: string): string {
+  const firstName = customerName.trim().split(' ')[0] || customerName;
+  return `Happy birthday, ${firstName}! 🎉 Wishing you a wonderful day from all of us at ${shopName}. Thank you for being a valued customer!`;
+}
+
+/** A "come back" nudge for a customer who hasn't ordered in a while. */
+export function getReEngagementMessage(customerName: string, shopName: string): string {
+  const firstName = customerName.trim().split(' ')[0] || customerName;
+  return `Hi ${firstName}, it's been a while! We'd love to see you again at ${shopName} for your next outfit — let us know if there's anything we can help with.`;
+}
+
+export type LoyaltyTier = 'new' | 'regular' | 'vip';
+
+/** Purely a recognition nudge for the tailor — not shown to the customer. */
+export function getLoyaltyTier(orderCount: number): { label: string; tier: LoyaltyTier } {
+  if (orderCount >= 5) return { label: 'VIP Customer', tier: 'vip' };
+  if (orderCount >= 2) return { label: 'Regular Customer', tier: 'regular' };
+  return { label: 'New Customer', tier: 'new' };
+}
+
+/**
+ * Days from today until the next occurrence of this date's month/day
+ * (handles the year wraparound — e.g. today is December, birthday is
+ * January). Returns null if the date string is invalid.
+ */
+export function getDaysUntilAnnualDate(dateString: string): number | null {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const next = new Date(today.getFullYear(), date.getMonth(), date.getDate());
+  next.setHours(0, 0, 0, 0);
+  if (next < today) next.setFullYear(today.getFullYear() + 1);
+  return Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/** Whole days elapsed since the given date string (always >= 0). */
+export function getDaysSince(dateString: string): number {
+  const then = new Date(dateString);
+  const now = new Date();
+  return Math.max(0, Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24)));
+}

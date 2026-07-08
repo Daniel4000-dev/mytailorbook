@@ -61,8 +61,21 @@ function customerFromRow(row: any): Customer {
     whatsappNumber: row.whatsapp_number,
     gender: row.gender,
     measurements: row.measurements || undefined,
+    dateOfBirth: row.date_of_birth || undefined,
+    referredBy: row.referred_by || undefined,
     createdAt: row.created_at,
   };
+}
+
+function customerToRow(updates: Partial<Customer>) {
+  const row: Record<string, unknown> = {};
+  if (updates.fullName !== undefined) row.full_name = updates.fullName;
+  if (updates.whatsappNumber !== undefined) row.whatsapp_number = updates.whatsappNumber;
+  if (updates.gender !== undefined) row.gender = updates.gender;
+  if (updates.measurements !== undefined) row.measurements = updates.measurements;
+  if (updates.dateOfBirth !== undefined) row.date_of_birth = updates.dateOfBirth || null;
+  if (updates.referredBy !== undefined) row.referred_by = updates.referredBy || null;
+  return row;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -205,6 +218,8 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
       whatsapp_number: customer.whatsappNumber,
       gender: customer.gender,
       measurements: customer.measurements || null,
+      date_of_birth: customer.dateOfBirth || null,
+      referred_by: customer.referredBy || null,
     })
     .select()
     .single();
@@ -217,6 +232,13 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
 export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, shopId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
+  if (error) throw new Error(error.message);
+  return getCustomers(shopId);
+}
+
+export async function updateCustomerAction(customerId: string, updates: Partial<Customer>, shopId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('customers').update(customerToRow(updates)).eq('id', customerId);
   if (error) throw new Error(error.message);
   return getCustomers(shopId);
 }

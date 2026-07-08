@@ -16,7 +16,7 @@ import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, loading: authLoading } = useAuth();
   const { staffMembers, addStaff, updateStaff, currentShop, updateShop, isLoaded } = useData();
   const { toggleMenu } = useSidebar();
   const { showToast } = useToast();
@@ -37,18 +37,11 @@ export default function SettingsPage() {
   const [shopAddress, setShopAddress] = useState('');
   const [savingShop, setSavingShop] = useState(false);
 
-  if (!isOwner) {
-    return (
-      <PageLayout>
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--sf-text-secondary)' }}>
-          <h2>Access Denied</h2>
-          <p>Only the studio owner has access to Settings.</p>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  if (!isLoaded) {
+  // Auth still resolving — show the skeleton, not "Access Denied". `isOwner`
+  // is derived from `user`, which starts null before the session check
+  // finishes, so checking it first would incorrectly deny a real owner for
+  // a brief instant on every load.
+  if (authLoading || !isLoaded) {
     return (
       <PageLayout
         className={styles.pageGrid}
@@ -68,6 +61,17 @@ export default function SettingsPage() {
         }
       >
         <SettingsSkeleton />
+      </PageLayout>
+    );
+  }
+
+  if (!isOwner) {
+    return (
+      <PageLayout>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--sf-text-secondary)' }}>
+          <h2>Access Denied</h2>
+          <p>Only the studio owner has access to Settings.</p>
+        </div>
       </PageLayout>
     );
   }
