@@ -34,7 +34,7 @@ import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
-import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage, formatMeasurementLabel } from '@/lib/formatters';
+import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage, getBalanceReminderMessage, formatMeasurementLabel } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue } from '@/lib/types';
 import type { Order, Role, Customer, Priority, OrderPhoto } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
@@ -90,6 +90,17 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
       })
     : undefined;
 
+  const balanceOwed = getBalanceOwed(order);
+
+  const balanceReminderMessage = customer
+    ? getBalanceReminderMessage({
+        customerName: customer.fullName,
+        shopName: currentShop?.name || 'us',
+        balanceOwed,
+        trackingUrl,
+      })
+    : undefined;
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(trackingUrl);
     setCopied(true);
@@ -99,8 +110,6 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   useEffect(() => {
     QRCode.toDataURL(trackingUrl, { width: 160, margin: 1 }).then(setQrDataUrl).catch(() => {});
   }, [trackingUrl]);
-
-  const balanceOwed = getBalanceOwed(order);
 
   const handleRecordPayment = async (amount: number) => {
     if (amount <= 0) return;
@@ -535,6 +544,22 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
                 className={styles.premiumContactLink}
               >
                 <FaWhatsapp /> Send {order.status} Update
+              </a>
+            </div>
+          </div>
+        )}
+
+        {customer && balanceOwed > 0 && (
+          <div className={styles.actionRow}>
+            <span className={styles.actionRowLabel}>Balance Owed</span>
+            <div className={styles.contactActions}>
+              <a
+                href={getWhatsAppLink(customer.whatsappNumber, balanceReminderMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.premiumContactLink}
+              >
+                <FaWhatsapp /> Send Balance Reminder
               </a>
             </div>
           </div>

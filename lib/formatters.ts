@@ -174,6 +174,18 @@ export function getReEngagementMessage(customerName: string, shopName: string): 
   return `Hi ${firstName}, it's been a while! We'd love to see you again at ${shopName} for your next outfit — let us know if there's anything we can help with.`;
 }
 
+/** A polite balance-owed reminder — worded gently, never dunning. */
+export function getBalanceReminderMessage(params: {
+  customerName: string;
+  shopName: string;
+  balanceOwed: number;
+  trackingUrl: string;
+}): string {
+  const { customerName, shopName, balanceOwed, trackingUrl } = params;
+  const firstName = customerName.trim().split(' ')[0] || customerName;
+  return `Hi ${firstName}, just a friendly reminder from ${shopName} — there's an outstanding balance of ${formatCurrency(balanceOwed)} on your order. You can view the details here: ${trackingUrl}. Thank you!`;
+}
+
 export type LoyaltyTier = 'new' | 'regular' | 'vip';
 
 /** Purely a recognition nudge for the tailor — not shown to the customer. */

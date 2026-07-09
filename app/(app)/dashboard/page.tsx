@@ -14,6 +14,7 @@ import {
   FaClipboardList,
   FaGift,
   FaClock,
+  FaMoneyBillWave,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -180,7 +181,18 @@ function OwnerDashboard({
       .slice(0, 3);
   }, [customers, lastOrderByCustomer]);
 
-  const hasAnyAttention = needsAttentionOrders.length > 0 || birthdayNudges.length > 0 || staleNudges.length > 0;
+  // Completed orders that still owe money — the job's done, so this is
+  // exactly the kind of thing that quietly falls through the cracks
+  // without a daily reminder.
+  const unpaidCompletedOrders = useMemo(() => {
+    return orders
+      .filter((o) => o.status === 'Completed' && getBalanceOwed(o) > 0)
+      .sort((a, b) => getBalanceOwed(b) - getBalanceOwed(a))
+      .slice(0, 5);
+  }, [orders]);
+
+  const hasAnyAttention =
+    needsAttentionOrders.length > 0 || birthdayNudges.length > 0 || staleNudges.length > 0 || unpaidCompletedOrders.length > 0;
 
   return (
     <>
@@ -339,6 +351,23 @@ function OwnerDashboard({
               </div>
               <div className={styles.attentionMeta}>
                 <Badge variant="default"><FaClock /> Re-engage</Badge>
+              </div>
+            </button>
+          ))}
+
+          {unpaidCompletedOrders.map((order) => (
+            <button
+              key={`unpaid-${order.id}`}
+              className={styles.attentionRow}
+              onClick={() => onNavigate(`/production?order=${order.id}`)}
+              type="button"
+            >
+              <div className={styles.attentionInfo}>
+                <span className={styles.attentionCustomer}>{order.customerName}</span>
+                <span className={styles.attentionDetails}>Completed, still owes {formatCurrency(getBalanceOwed(order))}</span>
+              </div>
+              <div className={styles.attentionMeta}>
+                <Badge variant="gold"><FaMoneyBillWave /> Collect Payment</Badge>
               </div>
             </button>
           ))}
