@@ -47,6 +47,18 @@ export interface OrderItem {
   price: number;
 }
 
+/** A scheduled future payment for an order — what's expected and when,
+ *  distinct from PaymentRecord which is money already received. */
+export interface OrderInstallment {
+  id: string;
+  orderId: string;
+  amount: number;
+  dueDate: string;
+  paid: boolean;
+  paidAt?: string;
+  createdAt: string;
+}
+
 /** A fabric stock entry — manually tracked, not auto-deducted from orders. */
 export interface FabricItem {
   id: string;

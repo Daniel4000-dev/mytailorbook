@@ -520,6 +520,67 @@
   margin: 0;
 }
 
+.installmentList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.installmentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-sm);
+}
+
+.installmentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.installmentAmount {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.installmentDue {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+}
+
+.installmentActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+}
+
+.itemRemoveBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border-light);
+  background: #fff;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.itemRemoveBtn:hover {
+  color: var(--sf-error);
+}
+
 .premiumTimelineSection {
   margin-top: var(--sf-space-md);
   display: flex;

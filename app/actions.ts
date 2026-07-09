@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate, FabricItem } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate, FabricItem, OrderInstallment } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -503,5 +503,68 @@ export async function updateFabricItemAction(
 export async function deleteFabricItemAction(itemId: string, shopId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('fabric_items').delete().eq('id', itemId).eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
+}
+
+// ----------------------------------------------------------------------
+// Order installment plans
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function installmentFromRow(row: any): OrderInstallment {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    amount: row.amount,
+    dueDate: row.due_date,
+    paid: row.paid,
+    paidAt: row.paid_at || undefined,
+    createdAt: row.created_at,
+  };
+}
+
+export async function getInstallmentsAction(orderId: string): Promise<OrderInstallment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_installments')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('due_date', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data || []).map(installmentFromRow);
+}
+
+export async function addInstallmentAction(
+  orderId: string,
+  shopId: string,
+  amount: number,
+  dueDate: string
+): Promise<OrderInstallment> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_installments')
+    .insert({ order_id: orderId, shop_id: shopId, amount, due_date: dueDate })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return installmentFromRow(data);
+}
+
+export async function markInstallmentPaidAction(installmentId: string, shopId: string): Promise<OrderInstallment> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_installments')
+    .update({ paid: true, paid_at: new Date().toISOString() })
+    .eq('id', installmentId)
+    .eq('shop_id', shopId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return installmentFromRow(data);
+}
+
+export async function deleteInstallmentAction(installmentId: string, shopId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('order_installments').delete().eq('id', installmentId).eq('shop_id', shopId);
   if (error) throw new Error(error.message);
 }

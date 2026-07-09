@@ -109,6 +109,15 @@ export function formatDate(dateString: string): string {
 }
 
 /**
+ * Formats an absolute calendar date, e.g. "Jul 20, 2026" — for dates that
+ * point at the future (due dates, deadlines), where formatDate's "time ago"
+ * phrasing (Just now / 2h ago) would be nonsensical or actively wrong.
+ */
+export function formatDueDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
  * Formats a date as "Month Year" — used for "added on" / "customer since"
  * style displays where the exact day doesn't matter.
  * Example: "2024-03-15T14:30:00Z" → "March 2024"

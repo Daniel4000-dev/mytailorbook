@@ -22,6 +22,8 @@ import {
   FaQrcode,
   FaStar,
   FaRegFileLines,
+  FaCalendarCheck,
+  FaTrash,
 } from 'react-icons/fa6';
 import QRCode from 'qrcode';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,9 +36,10 @@ import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
-import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage, getBalanceReminderMessage, formatMeasurementLabel } from '@/lib/formatters';
+import { formatCurrency, formatDate, formatDueDate, getWhatsAppLink, getOrderProgressMessage, getBalanceReminderMessage, formatMeasurementLabel } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue } from '@/lib/types';
-import type { Order, Role, Customer, Priority, OrderPhoto } from '@/lib/types';
+import { getInstallmentsAction, addInstallmentAction, markInstallmentPaidAction, deleteInstallmentAction } from '@/app/actions';
+import type { Order, Role, Customer, Priority, OrderPhoto, OrderInstallment } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
 
 interface OrderDetailSheetProps {
@@ -62,6 +65,11 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [installments, setInstallments] = useState<OrderInstallment[]>([]);
+  const [showAddInstallment, setShowAddInstallment] = useState(false);
+  const [installmentAmount, setInstallmentAmount] = useState('');
+  const [installmentDueDate, setInstallmentDueDate] = useState('');
+  const [savingInstallment, setSavingInstallment] = useState(false);
 
   const { user } = useAuth();
   const { updateOrderStatus, updateOrder, staffMembers, currentShop } = useData();
@@ -110,6 +118,40 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
   useEffect(() => {
     QRCode.toDataURL(trackingUrl, { width: 160, margin: 1 }).then(setQrDataUrl).catch(() => {});
   }, [trackingUrl]);
+
+  useEffect(() => {
+    getInstallmentsAction(order.id).then(setInstallments).catch(() => {});
+  }, [order.id]);
+
+  const handleAddInstallment = async () => {
+    if (!currentShop || !installmentAmount || !installmentDueDate) return;
+    setSavingInstallment(true);
+    try {
+      const amount = parseInt(installmentAmount.replace(/,/g, '')) || 0;
+      const installment = await addInstallmentAction(order.id, currentShop.id, amount, installmentDueDate);
+      setInstallments((prev) => [...prev, installment].sort((a, b) => a.dueDate.localeCompare(b.dueDate)));
+      setInstallmentAmount('');
+      setInstallmentDueDate('');
+      setShowAddInstallment(false);
+      showToast('Installment added', 'success');
+    } finally {
+      setSavingInstallment(false);
+    }
+  };
+
+  const handleMarkInstallmentPaid = async (installment: OrderInstallment) => {
+    if (!currentShop) return;
+    await onUpdatePayment(order.id, installment.amount, `Installment due ${formatDueDate(installment.dueDate)}`);
+    const updated = await markInstallmentPaidAction(installment.id, currentShop.id);
+    setInstallments((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+    showToast('Installment marked paid', 'success');
+  };
+
+  const handleDeleteInstallment = async (installmentId: string) => {
+    if (!currentShop) return;
+    setInstallments((prev) => prev.filter((i) => i.id !== installmentId));
+    await deleteInstallmentAction(installmentId, currentShop.id);
+  };
 
   const handleRecordPayment = async (amount: number) => {
     if (amount <= 0) return;
@@ -526,6 +568,83 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               <FaPrint /> View / Print Receipt
             </a>
           </div>
+        </div>
+      )}
+
+      {/* Payment Plan Card — an optional schedule of expected future
+          payments, distinct from the payment history above which only
+          shows money already received. */}
+      {userRole === 'Owner' && (
+        <div className={styles.premiumCard}>
+          <div className={styles.cardHeaderRow}>
+            <span className={styles.cardSectionTitle}>
+              <FaCalendarCheck /> Payment Plan
+            </span>
+            {!showAddInstallment && (
+              <button type="button" className={styles.iconBtn} onClick={() => setShowAddInstallment(true)} aria-label="Add installment">
+                <FaPen />
+              </button>
+            )}
+          </div>
+
+          {installments.length === 0 && !showAddInstallment && (
+            <p className={styles.premiumDetailText}>No payment schedule set — add one if this customer is paying in installments.</p>
+          )}
+
+          {installments.length > 0 && (
+            <div className={styles.installmentList}>
+              {installments.map((installment) => {
+                const overdue = !installment.paid && new Date(installment.dueDate) < new Date(new Date().toDateString());
+                return (
+                  <div key={installment.id} className={styles.installmentRow}>
+                    <div className={styles.installmentInfo}>
+                      <span className={styles.installmentAmount}>{formatCurrency(installment.amount)}</span>
+                      <span className={styles.installmentDue}>
+                        Due {formatDueDate(installment.dueDate)}
+                        {overdue && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
+                      </span>
+                    </div>
+                    {installment.paid ? (
+                      <Badge variant="completed"><FaCircleCheck /> Paid</Badge>
+                    ) : (
+                      <div className={styles.installmentActions}>
+                        <Button variant="secondary" size="sm" onClick={() => handleMarkInstallmentPaid(installment)}>
+                          Mark Paid
+                        </Button>
+                        <button type="button" className={styles.itemRemoveBtn} onClick={() => handleDeleteInstallment(installment.id)} aria-label="Remove installment">
+                          <FaTrash />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {showAddInstallment && (
+            <div className={styles.editForm}>
+              <div className={styles.editRow}>
+                <Input
+                  label="Amount (₦)"
+                  placeholder="0"
+                  value={installmentAmount}
+                  onChange={(e) => setInstallmentAmount(e.target.value.replace(/[^0-9,]/g, ''))}
+                  inputMode="numeric"
+                />
+                <Input
+                  label="Due Date"
+                  type="date"
+                  value={installmentDueDate}
+                  onChange={(e) => setInstallmentDueDate(e.target.value)}
+                />
+              </div>
+              <div className={styles.editActions}>
+                <Button variant="ghost" onClick={() => setShowAddInstallment(false)}>Cancel</Button>
+                <Button variant="primary" loading={savingInstallment} onClick={handleAddInstallment}>Add</Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
