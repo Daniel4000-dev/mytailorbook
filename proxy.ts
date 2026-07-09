@@ -1,12 +1,25 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { checkPublicRouteLimit } from '@/lib/ratelimit';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy'];
 const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/auth/', '/studio/'];
 
+// These three are the ones backed by a service-role client that bypasses
+// RLS, scoped only by a guessable UUID — the actual enumeration/scraping
+// risk. /auth/ (email confirmation links) is excluded on purpose since
+// those are single-use, time-limited tokens, not an open lookup surface.
+const RATE_LIMITED_PREFIXES = ['/track/', '/receipt/', '/studio/'];
+
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+function getClientIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) return forwardedFor.split(',')[0].trim();
+  return request.headers.get('x-real-ip') || 'unknown';
 }
 
 /**
@@ -16,6 +29,15 @@ function isPublicPath(pathname: string) {
  * redirect (which runs after the page has already rendered once).
  */
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (RATE_LIMITED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    const { allowed } = await checkPublicRouteLimit(getClientIp(request));
+    if (!allowed) {
+      return new NextResponse('Too many requests. Please try again in a minute.', { status: 429 });
+    }
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -36,7 +58,6 @@ export async function proxy(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const { pathname } = request.nextUrl;
 
   const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
 
