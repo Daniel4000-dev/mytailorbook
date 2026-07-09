@@ -512,6 +512,30 @@
   font-weight: 600;
 }
 
+.teamCommissionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--sf-space-sm);
+  padding-top: var(--sf-space-sm);
+  border-top: 1px dashed var(--sf-border);
+}
+
+.teamCommissionLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
+}
+
+.teamCommissionValue {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-sm);
+  font-weight: 700;
+  color: var(--sf-accent-emerald);
+}
+
 /* ── Attention / Task List ── */
 .emptyState {
   background: #FFFFFF;

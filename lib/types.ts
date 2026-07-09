@@ -110,6 +110,9 @@ export interface User {
   role: Role;
   shopId: string;
   active?: boolean; // undefined/true = active, false = deactivated
+  /** Optional commission rate (%) — used to compute what this staff member
+   *  has earned from their completed, assigned orders. */
+  commissionRate?: number;
   createdAt: string;
 }
 
@@ -220,11 +223,33 @@ export interface Order {
    *  immune to later edits to the customer's profile, so a completed order always
    *  reflects what it was actually cut/sewn against. */
   measurementsSnapshot?: Measurements;
+  /** Which fixed per-stage checklist items (see STAGE_CHECKLISTS) have been
+   *  ticked off, keyed by item id — a lightweight quality-control habit,
+   *  not a per-shop configurable workflow. */
+  stageChecklist?: Record<string, boolean>;
   payments?: PaymentRecord[];
   statusHistory: StatusChange[];
   createdAt: string;
   updatedAt: string;
 }
+
+/** Fixed checklist items per production stage — same for every shop,
+ *  intentionally not configurable, so it stays simple to actually use. */
+export const STAGE_CHECKLISTS: Partial<Record<OrderStatus, { id: string; label: string }[]>> = {
+  Cutting: [
+    { id: 'cutting-fabric-cut', label: 'Fabric cut to measurements' },
+    { id: 'cutting-pattern-matched', label: 'Pattern pieces matched/verified' },
+  ],
+  Sewing: [
+    { id: 'sewing-seams', label: 'Main seams stitched' },
+    { id: 'sewing-fastenings', label: 'Buttons/zippers/embellishments attached' },
+  ],
+  Ready: [
+    { id: 'ready-pressed', label: 'Pressed/ironed' },
+    { id: 'ready-quality-checked', label: 'Quality checked' },
+    { id: 'ready-packaged', label: 'Packaged for pickup' },
+  ],
+};
 
 /** Computed field — not stored, derived at read time */
 export function getBalanceOwed(order: Order): number {

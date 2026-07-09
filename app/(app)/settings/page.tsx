@@ -29,6 +29,7 @@ export default function SettingsPage() {
 
   const [editingUid, setEditingUid] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editCommissionRate, setEditCommissionRate] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
   const [editingShop, setEditingShop] = useState(false);
@@ -76,15 +77,19 @@ export default function SettingsPage() {
     );
   }
 
-  const startEditStaff = (staff: { uid: string; name: string }) => {
+  const startEditStaff = (staff: { uid: string; name: string; commissionRate?: number }) => {
     setEditingUid(staff.uid);
     setEditName(staff.name);
+    setEditCommissionRate(staff.commissionRate !== undefined ? String(staff.commissionRate) : '');
   };
 
   const handleSaveStaffEdit = async (uid: string) => {
     setSavingEdit(true);
     try {
-      await updateStaff(uid, { name: editName });
+      await updateStaff(uid, {
+        name: editName,
+        commissionRate: editCommissionRate ? parseFloat(editCommissionRate) : undefined,
+      });
       setEditingUid(null);
       showToast('Staff member updated', 'success');
     } finally {
@@ -231,6 +236,14 @@ export default function SettingsPage() {
                     {isEditing ? (
                       <div className={styles.staffEditForm}>
                         <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Full name" />
+                        {staff.role === 'Staff' && (
+                          <Input
+                            value={editCommissionRate}
+                            onChange={(e) => setEditCommissionRate(e.target.value.replace(/[^0-9.]/g, ''))}
+                            placeholder="Commission rate % (optional)"
+                            inputMode="decimal"
+                          />
+                        )}
                         <div className={styles.staffEditActions}>
                           <Button variant="ghost" size="sm" onClick={() => setEditingUid(null)}>Cancel</Button>
                           <Button variant="primary" size="sm" loading={savingEdit} onClick={() => handleSaveStaffEdit(staff.uid)}>Save</Button>
@@ -243,7 +256,10 @@ export default function SettingsPage() {
                             {staff.name}
                             {!isActive && <span className={styles.inactiveBadge}>Inactive</span>}
                           </span>
-                          <span className={styles.staffRole}>{staff.role} ({staff.email})</span>
+                          <span className={styles.staffRole}>
+                            {staff.role} ({staff.email})
+                            {staff.commissionRate !== undefined && ` · ${staff.commissionRate}% commission`}
+                          </span>
                         </div>
                         {staff.role === 'Staff' && (
                           <div className={styles.staffActions}>

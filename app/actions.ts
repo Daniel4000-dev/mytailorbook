@@ -31,6 +31,7 @@ function orderFromRow(row: any): Order {
     rating: row.rating ?? undefined,
     ratingSubmittedAt: row.rating_submitted_at || undefined,
     measurementsSnapshot: row.measurements_snapshot || undefined,
+    stageChecklist: row.stage_checklist && Object.keys(row.stage_checklist).length > 0 ? row.stage_checklist : undefined,
     statusHistory: row.status_history || [],
     payments: row.payments || [],
     createdAt: row.created_at,
@@ -55,6 +56,7 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.priority !== undefined) row.priority = o.priority;
   if (o.images !== undefined) row.images = o.images;
   if (o.measurementsSnapshot !== undefined) row.measurements_snapshot = o.measurementsSnapshot;
+  if (o.stageChecklist !== undefined) row.stage_checklist = o.stageChecklist;
   if (o.statusHistory !== undefined) row.status_history = o.statusHistory;
   if (o.payments !== undefined) row.payments = o.payments;
   return row;
@@ -107,6 +109,7 @@ function userFromRow(row: any): User {
     role: row.role,
     shopId: row.shop_id,
     active: row.active,
+    commissionRate: row.commission_rate ?? undefined,
     createdAt: row.created_at,
   };
 }
@@ -322,6 +325,7 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
   const row: Record<string, unknown> = {};
   if (updates.name !== undefined) row.name = updates.name;
   if (updates.active !== undefined) row.active = updates.active;
+  if (updates.commissionRate !== undefined) row.commission_rate = updates.commissionRate ?? null;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
   if (error) throw new Error(error.message);
   return getStaff(shopId);

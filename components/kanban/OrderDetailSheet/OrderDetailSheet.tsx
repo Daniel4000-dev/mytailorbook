@@ -37,7 +37,7 @@ import TextArea from '@/components/ui/TextArea/TextArea';
 import Select from '@/components/ui/Select/Select';
 import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
 import { formatCurrency, formatDate, formatDueDate, getWhatsAppLink, getOrderProgressMessage, getBalanceReminderMessage, formatMeasurementLabel } from '@/lib/formatters';
-import { getBalanceOwed, isOverdue } from '@/lib/types';
+import { getBalanceOwed, isOverdue, STAGE_CHECKLISTS } from '@/lib/types';
 import { getInstallmentsAction, addInstallmentAction, markInstallmentPaidAction, deleteInstallmentAction } from '@/app/actions';
 import type { Order, Role, Customer, Priority, OrderPhoto, OrderInstallment } from '@/lib/types';
 import styles from './OrderDetailSheet.module.css';
@@ -151,6 +151,12 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
     if (!currentShop) return;
     setInstallments((prev) => prev.filter((i) => i.id !== installmentId));
     await deleteInstallmentAction(installmentId, currentShop.id);
+  };
+
+  const handleToggleChecklistItem = async (itemId: string) => {
+    const current = order.stageChecklist || {};
+    const updated = { ...current, [itemId]: !current[itemId] };
+    await updateOrder(order.id, { stageChecklist: updated });
   };
 
   const handleRecordPayment = async (amount: number) => {
@@ -376,6 +382,34 @@ export default function OrderDetailSheet({ order, customer, userRole, onUpdatePa
               This customer&apos;s measurements have been updated since this order was placed.
             </p>
           )}
+        </div>
+      )}
+
+      {/* Stage Checklist — a small FIXED list per production stage, ticked
+          off while working, for a lightweight quality-control habit. */}
+      {STAGE_CHECKLISTS[order.status] && (
+        <div className={styles.premiumCard}>
+          <span className={styles.cardSectionTitle}>
+            <FaCircleCheck /> {order.status} Checklist
+          </span>
+          <div className={styles.checklistList}>
+            {STAGE_CHECKLISTS[order.status]!.map((item) => {
+              const checked = order.stageChecklist?.[item.id] || false;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={styles.checklistItem}
+                  onClick={() => handleToggleChecklistItem(item.id)}
+                >
+                  <span className={`${styles.checklistCheckbox} ${checked ? styles.checklistCheckboxChecked : ''}`}>
+                    {checked && <FaCircleCheck />}
+                  </span>
+                  <span className={`${styles.checklistLabel} ${checked ? styles.checklistLabelChecked : ''}`}>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

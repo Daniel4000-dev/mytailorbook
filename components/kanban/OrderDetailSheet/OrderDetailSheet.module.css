@@ -520,6 +520,56 @@
   margin: 0;
 }
 
+.checklistList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.checklistItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  background: none;
+  border: none;
+  padding: var(--sf-space-sm);
+  cursor: pointer;
+  text-align: left;
+  border-radius: var(--sf-radius-sm);
+}
+
+.checklistItem:hover {
+  background: var(--sf-bg-surface);
+}
+
+.checklistCheckbox {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--sf-radius-sm);
+  border: 1.5px solid var(--sf-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.checklistCheckboxChecked {
+  background: var(--sf-accent-emerald);
+  border-color: var(--sf-accent-emerald);
+}
+
+.checklistLabel {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+}
+
+.checklistLabelChecked {
+  color: var(--sf-text-tertiary);
+  text-decoration: line-through;
+}
+
 .installmentList {
   display: flex;
   flex-direction: column;

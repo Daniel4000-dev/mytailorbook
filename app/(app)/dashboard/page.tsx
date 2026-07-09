@@ -130,8 +130,12 @@ function OwnerDashboard({
         const assigned = orders.filter((o) => o.assignedTo === staff.uid);
         const active = assigned.filter((o) => o.status === 'Cutting' || o.status === 'Sewing' || o.status === 'Ready').length;
         const overdue = assigned.filter((o) => o.status !== 'Completed' && isOverdue(o)).length;
-        const completed = assigned.filter((o) => o.status === 'Completed').length;
-        return { staff, active, overdue, completed };
+        const completedOrders = assigned.filter((o) => o.status === 'Completed');
+        const commission =
+          staff.commissionRate !== undefined
+            ? completedOrders.reduce((sum, o) => sum + o.totalBill * (staff.commissionRate! / 100), 0)
+            : undefined;
+        return { staff, active, overdue, completed: completedOrders.length, commission };
       });
   }, [orders, staffMembers]);
 
@@ -265,7 +269,7 @@ function OwnerDashboard({
       </div>
 
       <div className={styles.teamGrid}>
-        {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+        {teamSnapshot.map(({ staff, active, overdue, completed, commission }) => (
           <button
             key={staff.uid}
             className={styles.teamCard}
@@ -290,6 +294,12 @@ function OwnerDashboard({
                 <span className={styles.teamStatLabel}>Done</span>
               </div>
             </div>
+            {commission !== undefined && (
+              <div className={styles.teamCommissionRow}>
+                <span className={styles.teamCommissionLabel}>Commission Earned</span>
+                <span className={styles.teamCommissionValue}>{formatCurrency(commission)}</span>
+              </div>
+            )}
           </button>
         ))}
       </div>
