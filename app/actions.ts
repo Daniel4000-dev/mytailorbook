@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate, FabricItem, OrderInstallment } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, PortfolioPhoto, MeasurementHistoryEntry, OrderTemplate, FabricItem, OrderInstallment, Appointment } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -566,5 +566,81 @@ export async function markInstallmentPaidAction(installmentId: string, shopId: s
 export async function deleteInstallmentAction(installmentId: string, shopId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('order_installments').delete().eq('id', installmentId).eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
+}
+
+// ----------------------------------------------------------------------
+// Appointments
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function appointmentFromRow(row: any): Appointment {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    customerId: row.customer_id,
+    customerName: row.customer_name,
+    orderId: row.order_id || undefined,
+    type: row.type,
+    scheduledAt: row.scheduled_at,
+    notes: row.notes || undefined,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+export async function getAppointmentsAction(shopId: string): Promise<Appointment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('scheduled_at', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data || []).map(appointmentFromRow);
+}
+
+export async function addAppointmentAction(
+  shopId: string,
+  appointment: Omit<Appointment, 'id' | 'shopId' | 'createdAt' | 'status'>
+): Promise<Appointment> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert({
+      shop_id: shopId,
+      customer_id: appointment.customerId,
+      customer_name: appointment.customerName,
+      order_id: appointment.orderId || null,
+      type: appointment.type,
+      scheduled_at: appointment.scheduledAt,
+      notes: appointment.notes || null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return appointmentFromRow(data);
+}
+
+export async function updateAppointmentStatusAction(
+  appointmentId: string,
+  status: Appointment['status'],
+  shopId: string
+): Promise<Appointment> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({ status })
+    .eq('id', appointmentId)
+    .eq('shop_id', shopId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return appointmentFromRow(data);
+}
+
+export async function deleteAppointmentAction(appointmentId: string, shopId: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('appointments').delete().eq('id', appointmentId).eq('shop_id', shopId);
   if (error) throw new Error(error.message);
 }

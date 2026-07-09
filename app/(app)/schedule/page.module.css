@@ -1,0 +1,184 @@
+.pageGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: 0 var(--sf-space-md) var(--sf-space-2xl) var(--sf-space-md);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  margin-top: var(--sf-space-md);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+}
+
+.introText {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+
+.card {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.suggestionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  box-shadow: var(--sf-shadow-md);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestionItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  background: none;
+  border: none;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+}
+
+.suggestionItem:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sf-space-md);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sf-space-sm);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-xl) 0;
+  color: var(--sf-text-tertiary);
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 28px;
+  color: var(--sf-border);
+}
+
+.appointmentList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.appointmentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-md);
+}
+
+.appointmentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.appointmentTop {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.appointmentCustomer {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.appointmentTime {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+}
+
+.appointmentNotes {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  font-style: italic;
+}
+
+.appointmentActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.iconActionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border-light);
+  background: #fff;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.iconActionBtn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface-hover);
+}

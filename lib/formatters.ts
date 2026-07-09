@@ -5,7 +5,7 @@
    ============================================================ */
 
 import { PHONE_PREFIX } from './constants';
-import type { OrderStatus } from './types';
+import type { OrderStatus, AppointmentType } from './types';
 
 /**
  * Formats a number as Nigerian Naira with commas.
@@ -193,6 +193,31 @@ export function getBalanceReminderMessage(params: {
   const { customerName, shopName, balanceOwed, trackingUrl } = params;
   const firstName = customerName.trim().split(' ')[0] || customerName;
   return `Hi ${firstName}, just a friendly reminder from ${shopName} — there's an outstanding balance of ${formatCurrency(balanceOwed)} on your order. You can view the details here: ${trackingUrl}. Thank you!`;
+}
+
+/** A pre-filled appointment reminder — sent manually, same as every other
+ *  WhatsApp message in the app; there's no automated push scheduling here. */
+export function getAppointmentReminderMessage(params: {
+  customerName: string;
+  shopName: string;
+  type: AppointmentType;
+  scheduledAt: string;
+}): string {
+  const { customerName, shopName, type, scheduledAt } = params;
+  const firstName = customerName.trim().split(' ')[0] || customerName;
+  const typeLabel: Record<AppointmentType, string> = {
+    fitting: 'fitting appointment',
+    pickup: 'pickup',
+    consultation: 'consultation',
+  };
+  const when = new Date(scheduledAt).toLocaleString('en-NG', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `Hi ${firstName}, this is a reminder from ${shopName} about your ${typeLabel[type]} on ${when}. See you then!`;
 }
 
 export type LoyaltyTier = 'new' | 'regular' | 'vip';

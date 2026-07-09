@@ -125,6 +125,7 @@ export function getPreviousStatus(current: OrderStatus): OrderStatus | null {
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'FaHouse' },
   { label: 'Production', href: '/production', icon: 'FaTableColumns' },
+  { label: 'Schedule', href: '/schedule', icon: 'FaCalendarDays' },
   { label: 'Customers', href: '/customers', icon: 'FaUsers', ownerOnly: true },
 ];
 

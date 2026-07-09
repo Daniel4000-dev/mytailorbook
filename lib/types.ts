@@ -47,6 +47,24 @@ export interface OrderItem {
   price: number;
 }
 
+export type AppointmentType = 'fitting' | 'pickup' | 'consultation';
+export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+
+/** A fitting/pickup/consultation appointment — the one feature in this
+ *  app that's a genuine new daily workflow, not a card on an existing page. */
+export interface Appointment {
+  id: string;
+  shopId: string;
+  customerId: string;
+  customerName: string;
+  orderId?: string;
+  type: AppointmentType;
+  scheduledAt: string;
+  notes?: string;
+  status: AppointmentStatus;
+  createdAt: string;
+}
+
 /** A scheduled future payment for an order — what's expected and when,
  *  distinct from PaymentRecord which is money already received. */
 export interface OrderInstallment {

@@ -23,6 +23,7 @@ import {
   FaGear,
   FaImage,
   FaBoxesStacked,
+  FaCalendarDays,
   FaChevronLeft,
   FaChevronRight
 } from 'react-icons/fa6';
@@ -37,6 +38,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   FaGear: <FaGear className={styles.menuIcon} />,
   FaImage: <FaImage className={styles.menuIcon} />,
   FaBoxesStacked: <FaBoxesStacked className={styles.menuIcon} />,
+  FaCalendarDays: <FaCalendarDays className={styles.menuIcon} />,
 };
 
 export default function SidebarMenu() {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaHouse, FaTableColumns, FaUsers, FaGear } from 'react-icons/fa6';
+import { FaHouse, FaTableColumns, FaUsers, FaGear, FaCalendarDays } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { NAV_ITEMS } from '@/lib/constants';
 import styles from './BottomNav.module.css';
@@ -12,6 +12,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   FaTableColumns: <FaTableColumns />,
   FaUsers: <FaUsers />,
   FaGear: <FaGear />,
+  FaCalendarDays: <FaCalendarDays />,
 };
 
 export default function BottomNav() {
