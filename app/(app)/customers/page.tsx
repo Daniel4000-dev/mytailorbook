@@ -15,11 +15,14 @@ import { getBalanceOwed } from '@/lib/types';
 import CustomersSkeleton from './CustomersSkeleton';
 import styles from './page.module.css';
 
+const PAGE_SIZE = 40;
+
 export default function CustomersPage() {
   const router = useRouter();
   const { isOwner } = useAuth();
   const { customers, orders, isLoaded } = useData();
   const [search, setSearch] = useState('');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Calculate order stats per customer
   const customerStats = useMemo(() => {
@@ -50,6 +53,11 @@ export default function CustomersPage() {
     if (!isLoaded) return;
     customers.slice(0, 60).forEach((c) => router.prefetch(`/customers/${c.id}`));
   }, [isLoaded, customers, router]);
+
+  // A new search should start back at the first page rather than staying
+  // scrolled deep into a now-irrelevant "load more" position.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setVisibleCount(PAGE_SIZE), [search]);
 
   if (!isOwner) {
     return (
@@ -107,10 +115,10 @@ export default function CustomersPage() {
           <>
             {/* Mobile View */}
             <div className={styles.mobileList}>
-              {filtered.map((c, i) => {
+              {filtered.slice(0, visibleCount).map((c, i) => {
                 const stats = customerStats[c.id];
                 return (
-                  <div key={c.id} className={styles.mobileCard} style={{ animationDelay: `${i * 0.04}s` }} onClick={() => router.push(`/customers/${c.id}`)}>
+                  <div key={c.id} className={styles.mobileCard} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(`/customers/${c.id}`)}>
                     <div className={styles.cardHeader}>
                       <Avatar name={c.fullName} size="md" />
                       <div className={styles.cardInfo}>
@@ -157,10 +165,10 @@ export default function CustomersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((c, i) => {
+                  {filtered.slice(0, visibleCount).map((c, i) => {
                     const stats = customerStats[c.id];
                     return (
-                      <tr key={c.id} className={styles.tableRow} style={{ animationDelay: `${i * 0.04}s` }} onClick={() => router.push(`/customers/${c.id}`)}>
+                      <tr key={c.id} className={styles.tableRow} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(`/customers/${c.id}`)}>
                         <td>
                           <div className={styles.customerCell}>
                             <Avatar name={c.fullName} size="sm" />
@@ -200,6 +208,16 @@ export default function CustomersPage() {
                 </tbody>
               </table>
             </div>
+
+            {filtered.length > visibleCount && (
+              <button
+                type="button"
+                className={styles.loadMoreBtn}
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              >
+                Load {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more ({filtered.length - visibleCount} remaining)
+              </button>
+            )}
           </>
         )}
       </PageLayout>

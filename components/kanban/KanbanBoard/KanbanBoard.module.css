@@ -96,6 +96,26 @@
   gap: var(--sf-space-md);
 }
 
+.showMoreBtn {
+  width: 100%;
+  height: var(--sf-touch-target);
+  margin-top: var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  transition: background-color var(--sf-transition-fast);
+}
+
+.showMoreBtn:hover {
+  background: var(--sf-surface-variant);
+}
+
+.showMoreBtn:active {
+  background: var(--sf-secondary-container);
+}
+
 /* Photo-first cards read best around the mockup's 320px column width —
    grid them on wider screens instead of stretching full-width. */
 @media (min-width: 768px) {

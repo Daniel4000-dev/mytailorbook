@@ -43,6 +43,26 @@
   width: 100%;
 }
 
+.loadMoreBtn {
+  width: 100%;
+  height: var(--sf-touch-target);
+  margin-top: var(--sf-space-sm);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  transition: background-color var(--sf-transition-fast);
+}
+
+.loadMoreBtn:hover {
+  background: var(--sf-surface-variant);
+}
+
+.loadMoreBtn:active {
+  background: var(--sf-secondary-container);
+}
+
 /* Mobile List */
 .mobileList {
   display: flex;

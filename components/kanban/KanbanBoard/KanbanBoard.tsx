@@ -24,6 +24,7 @@ interface KanbanBoardProps {
 const ALL_FILTER = 'All' as const;
 type StageFilter = typeof ALL_FILTER | OrderStatus;
 const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Completed');
+const STAGE_PAGE_SIZE = 15;
 
 export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const { user } = useAuth();
@@ -35,6 +36,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
   const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [stageVisibleCounts, setStageVisibleCounts] = useState<Partial<Record<OrderStatus, number>>>({});
 
   // userRole falls back to 'Staff' for one tick while auth session loads; re-sync
   // once the real role is known so the Owner doesn't get stuck on "My Orders".
@@ -137,6 +139,18 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     [filteredOrders]
   );
 
+  // A changed filter/search is a new view — start each stage back at its
+  // first page rather than keeping a "show more" count that referred to a
+  // now-irrelevant previous list. Adjusted during render (React's guidance
+  // for resetting state in response to a prop/derived-value change) rather
+  // than in an effect.
+  const filterKey = `${searchQuery}|${filterMyTasks}|${staffFilterId}|${stageFilter}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setStageVisibleCounts({});
+  }
+
   if (!isLoaded) {
     return <KanbanBoardSkeleton />;
   }
@@ -221,11 +235,13 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
         visibleStages.map((status) => {
           const stageOrders = getOrdersByStatus(status);
           if (stageOrders.length === 0) return null;
+          const visibleCount = stageVisibleCounts[status] ?? STAGE_PAGE_SIZE;
+          const shown = stageOrders.slice(0, visibleCount);
           return (
             <section key={status} className={styles.stageSection}>
               <StageBanner status={status} count={stageOrders.length} />
               <div className={styles.cardList}>
-                {stageOrders.map((order, i) => (
+                {shown.map((order, i) => (
                   <OrderListCard
                     key={order.id}
                     order={order}
@@ -239,6 +255,18 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
                   />
                 ))}
               </div>
+              {stageOrders.length > visibleCount && (
+                <button
+                  type="button"
+                  className={styles.showMoreBtn}
+                  onClick={() =>
+                    setStageVisibleCounts((prev) => ({ ...prev, [status]: visibleCount + STAGE_PAGE_SIZE }))
+                  }
+                >
+                  Show {Math.min(STAGE_PAGE_SIZE, stageOrders.length - visibleCount)} more (
+                  {stageOrders.length - visibleCount} remaining)
+                </button>
+              )}
             </section>
           );
         })
