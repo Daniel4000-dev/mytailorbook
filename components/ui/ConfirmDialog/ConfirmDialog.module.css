@@ -5,6 +5,11 @@
   /* Above --sf-z-sheet (400) — this can be opened from inside an
      already-open BottomSheet, so it must always win. */
   z-index: 450;
+  /* vaul sets `pointer-events: none` on <body> as a focus-trap while its
+     Drawer is open, re-enabling it only on the drawer's own content
+     subtree. This overlay is a sibling portal on <body>, not inside that
+     subtree, so it silently inherits the block without this override. */
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
