@@ -121,20 +121,41 @@ export function getPreviousStatus(current: OrderStatus): OrderStatus | null {
 
 /** Garment style catalog: order-wizard cards and new-client preference
  *  chips. `keywords` match against past orders' details so each card can
- *  wear the shop's own best photo of that style. */
+ *  wear the shop's own best photo of that style. `gender` gates the catalog
+ *  everywhere it's shown — a male customer only ever sees male styles and
+ *  vice versa, no mixed picker. `photoUrl` is a permanent placeholder shot
+ *  (studio mannequin, on-brand) used until the shop has taken its own photo
+ *  of that style — `getStylePhotos` prefers the shop's real photo first. */
 export interface GarmentStyle {
   name: string;
   subtitle: string;
   keywords: string[];
+  gender: 'male' | 'female';
+  photoUrl: string;
 }
 
 export const GARMENT_STYLES: GarmentStyle[] = [
-  { name: 'Agbada', subtitle: 'Traditional 3-piece set', keywords: ['agbada'] },
-  { name: 'Kaftan', subtitle: '2-piece suit', keywords: ['kaftan'] },
-  { name: 'Senator', subtitle: 'Modern native', keywords: ['senator'] },
-  { name: 'Ankara Gown', subtitle: "Women's tailored gown", keywords: ['ankara', 'gown'] },
-  { name: 'Buba & Iro', subtitle: "Traditional women's wear", keywords: ['buba', 'iro'] },
-  { name: 'Two-Piece Suit', subtitle: 'Bespoke suiting', keywords: ['suit', 'blazer'] },
+  // ── Male ──────────────────────────────────────────────────
+  { name: 'Agbada', subtitle: 'Traditional 3-piece set', keywords: ['agbada'], gender: 'male', photoUrl: '/images/garments/agbada-male.jpg' },
+  { name: 'Senator', subtitle: 'Modern native', keywords: ['senator'], gender: 'male', photoUrl: '/images/garments/senator-male.jpg' },
+  { name: 'Kaftan', subtitle: '2-piece suit', keywords: ['kaftan'], gender: 'male', photoUrl: '/images/garments/kaftan-male.jpg' },
+  { name: 'Ankara Shirt', subtitle: 'Casual print shirt', keywords: ['ankara shirt'], gender: 'male', photoUrl: '/images/garments/ankara-shirt-male.jpg' },
+  { name: 'Danshiki', subtitle: 'Casual native top', keywords: ['danshiki', 'dashiki'], gender: 'male', photoUrl: '/images/garments/danshiki-male.jpg' },
+  { name: 'Two-Piece Suit', subtitle: 'Bespoke suiting', keywords: ['suit', 'blazer'], gender: 'male', photoUrl: '/images/garments/suit-male.jpg' },
+  { name: 'Babariga', subtitle: 'Grand embroidered robe', keywords: ['babariga'], gender: 'male', photoUrl: '/images/garments/babariga-male.jpg' },
+  { name: 'Isi Agu', subtitle: 'Chieftaincy/cultural wear', keywords: ['isi agu', 'isiagu'], gender: 'male', photoUrl: '/images/garments/isi-agu-male.jpg' },
+  { name: 'Aso Ebi (Men)', subtitle: 'Matching event wear', keywords: ['aso ebi', 'asoebi'], gender: 'male', photoUrl: '/images/garments/aso-ebi-male.jpg' },
+
+  // ── Female ────────────────────────────────────────────────
+  { name: 'Ankara Gown', subtitle: "Women's tailored gown", keywords: ['ankara', 'gown'], gender: 'female', photoUrl: '/images/garments/ankara-gown-female.jpg' },
+  { name: 'Buba & Iro', subtitle: "Traditional women's wear", keywords: ['buba', 'iro'], gender: 'female', photoUrl: '/images/garments/buba-iro-female.jpg' },
+  { name: 'Boubou', subtitle: 'Flowing formal gown', keywords: ['boubou'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg' },
+  { name: 'Skirt & Blouse', subtitle: 'Office/native combo', keywords: ['skirt', 'blouse'], gender: 'female', photoUrl: '/images/garments/skirt-blouse-female.jpg' },
+  { name: 'Aso Ebi Gown', subtitle: 'Event/ceremony dress', keywords: ['aso ebi gown', 'asoebi gown'], gender: 'female', photoUrl: '/images/garments/aso-ebi-gown-female.jpg' },
+  { name: 'Jumpsuit', subtitle: 'Modern tailored piece', keywords: ['jumpsuit', 'jump suit'], gender: 'female', photoUrl: '/images/garments/jumpsuit-female.jpg' },
+  { name: 'Kaftan (Women)', subtitle: 'Relaxed flowing gown', keywords: ['kaftan'], gender: 'female', photoUrl: '/images/garments/kaftan-female.jpg' },
+  { name: 'Senator (Women)', subtitle: 'Fitted native 2-piece', keywords: ['senator'], gender: 'female', photoUrl: '/images/garments/senator-female.jpg' },
+  { name: 'Peplum & Wrapper', subtitle: 'Fitted top, wrapper skirt', keywords: ['peplum', 'wrapper'], gender: 'female', photoUrl: '/images/garments/peplum-wrapper-female.jpg' },
 ];
 
 /* ── Style-specific measurement intake ─────────────────────────
@@ -239,6 +260,155 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
       { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 112, gy: 220 },
       { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 82, gy: 210 },
+    ],
+  },
+
+  // ── New styles reuse their closest analog's exact guide coordinates —
+  //    same silhouette region, same variant, only labels/hints change. ──
+  'Ankara Shirt': {
+    variant: 'tunic',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
+      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 160, gy: 128 },
+      { key: 'shirtLength', label: 'Shirt Length', hint: 'Shoulder to shirt hem', gx: 100, gy: 182 },
+    ],
+  },
+  Danshiki: {
+    variant: 'tunic',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to hem', gx: 100, gy: 182 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
+    ],
+  },
+  Babariga: {
+    variant: 'robe',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 141, gy: 50 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 92 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 163, gy: 92 },
+      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 176, gy: 122 },
+      { key: 'shirtLength', label: 'Inner Top Length', hint: 'Shoulder to inner-top hem', gx: 66, gy: 160 },
+      { key: 'gownLength', label: 'Babariga Length', hint: 'Shoulder to full hem', gx: 100, gy: 244 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 138, gy: 244 },
+    ],
+  },
+  'Isi Agu': {
+    variant: 'tunic',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
+      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to hem', gx: 100, gy: 182 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
+    ],
+  },
+  'Aso Ebi (Men)': {
+    variant: 'robe',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 141, gy: 50 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 92 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 163, gy: 92 },
+      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 176, gy: 122 },
+      { key: 'shirtLength', label: 'Inner Top Length', hint: 'Shoulder to inner-top hem', gx: 66, gy: 160 },
+      { key: 'gownLength', label: 'Agbada Length', hint: 'Shoulder to full hem', gx: 100, gy: 244 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 138, gy: 244 },
+    ],
+  },
+  Boubou: {
+    variant: 'gown',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
+      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 88 },
+      { key: 'gownLength', label: 'Boubou Length', hint: 'Shoulder to hem', gx: 100, gy: 256 },
+    ],
+  },
+  'Skirt & Blouse': {
+    variant: 'wrapper',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 82 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 50 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 156, gy: 90 },
+      { key: 'shirtLength', label: 'Blouse Length', hint: 'Shoulder to blouse hem', gx: 100, gy: 148 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 168 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 196 },
+      { key: 'dressLength', label: 'Skirt Length', hint: 'Waist to skirt hem', gx: 100, gy: 258 },
+    ],
+  },
+  'Aso Ebi Gown': {
+    variant: 'gown',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
+      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
+      { key: 'shoulderToBustPoint', label: 'Shoulder to Bust', hint: 'Shoulder to bust point', gx: 116, gy: 64 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 88 },
+      { key: 'gownLength', label: 'Gown Length', hint: 'Shoulder to hem', gx: 100, gy: 256 },
+    ],
+  },
+  Jumpsuit: {
+    variant: 'suit',
+    points: [
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 84 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 124 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 148 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'trouserLength', label: 'Leg Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
+      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 112, gy: 220 },
+    ],
+  },
+  'Kaftan (Women)': {
+    variant: 'gown',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
+      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 88 },
+      { key: 'gownLength', label: 'Kaftan Length', hint: 'Shoulder to hem', gx: 100, gy: 256 },
+    ],
+  },
+  'Senator (Women)': {
+    variant: 'wrapper',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 82 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 50 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 156, gy: 90 },
+      { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to top hem', gx: 100, gy: 148 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 168 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 196 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 258 },
+    ],
+  },
+  'Peplum & Wrapper': {
+    variant: 'wrapper',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 82 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 50 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 156, gy: 90 },
+      { key: 'shirtLength', label: 'Peplum Top Length', hint: 'Shoulder to peplum hem', gx: 100, gy: 148 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 168 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 196 },
+      { key: 'dressLength', label: 'Wrapper Length', hint: 'Waist to wrapper hem', gx: 100, gy: 258 },
     ],
   },
 };

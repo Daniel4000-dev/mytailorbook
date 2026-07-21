@@ -23,11 +23,11 @@ interface StyleProfileSheetProps {
   initialStyle: string | null;
 }
 
-/** Two-phase sheet: pick a garment style (photo pulled from the shop's own
- *  past orders, same as the order wizard's catalog), then record/edit that
- *  style's saved measurement profile on the customer. */
+/** Two-phase sheet: pick a garment style (permanent catalog placeholder
+ *  photo, gendered to the customer), then record/edit that style's saved
+ *  measurement profile on the customer. */
 export default function StyleProfileSheet({ isOpen, onClose, customer, initialStyle }: StyleProfileSheetProps) {
-  const { orders, updateCustomerStyleProfile, deleteCustomerStyleProfile } = useData();
+  const { updateCustomerStyleProfile, deleteCustomerStyleProfile } = useData();
   const { showToast } = useToast();
   const [styleName, setStyleName] = useState<string | null>(initialStyle);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -57,15 +57,17 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
     setPrevOpenKey(null);
   }
 
-  const stylePhotos = useMemo(() => getStylePhotos(orders, GARMENT_STYLES), [orders]);
+  // Gendered — no mixed picker.
+  const genderedStyles = useMemo(() => GARMENT_STYLES.filter((s) => s.gender === customer.gender), [customer.gender]);
+  const stylePhotos = useMemo(() => getStylePhotos(genderedStyles), [genderedStyles]);
   const profiledStyles = useMemo(() => new Set(Object.keys(customer.styleMeasurements || {})), [customer.styleMeasurements]);
 
   const pickableStyles = useMemo(() => {
     const extra = (customer.preferredStyles || [])
-      .filter((s) => !GARMENT_STYLES.some((g) => g.name === s))
+      .filter((s) => !genderedStyles.some((g) => g.name === s))
       .map((s) => ({ name: s, subtitle: 'Preferred style', keywords: [s.toLowerCase()] }));
-    return [...GARMENT_STYLES, ...extra];
-  }, [customer.preferredStyles]);
+    return [...genderedStyles, ...extra];
+  }, [customer.preferredStyles, genderedStyles]);
 
   const spec = styleName ? STYLE_MEASUREMENTS[styleName] || DEFAULT_MEASURE_SPEC : DEFAULT_MEASURE_SPEC;
 

@@ -10,10 +10,6 @@ import styles from './page.module.css';
 
 import { GARMENT_STYLES } from '@/lib/constants';
 
-/** Preset chips from the shared garment catalog; "Other" adds free-form
- *  entries on top. */
-const STYLE_PRESETS = GARMENT_STYLES.map((s) => s.name);
-
 /** Step 2 of the walk-in ritual: FAB choice → this profile → straight
  *  into a New Order pre-filled with the freshly created client. */
 export default function NewClientPage() {
@@ -25,6 +21,10 @@ export default function NewClientPage() {
   const [phone, setPhone] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [styleSet, setStyleSet] = useState<string[]>([]);
+
+  // Preset chips are gendered — no mixed picker. Style names from the
+  // built-in catalog, filtered to whichever gender is currently selected.
+  const STYLE_PRESETS = GARMENT_STYLES.filter((s) => s.gender === gender).map((s) => s.name);
   const [customStyle, setCustomStyle] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [error, setError] = useState('');
@@ -146,7 +146,12 @@ export default function NewClientPage() {
                     role="radio"
                     aria-checked={gender === g}
                     className={`${styles.segmentBtn} ${gender === g ? styles.segmentBtnActive : ''}`}
-                    onClick={() => setGender(g)}
+                    onClick={() => {
+                      setGender(g);
+                      // Previously picked chips belong to the other gender's
+                      // catalog — clear rather than leave a stale mismatch.
+                      setStyleSet([]);
+                    }}
                   >
                     {g === 'male' ? 'Male' : 'Female'}
                   </button>

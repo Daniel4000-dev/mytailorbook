@@ -49,14 +49,17 @@ function NewOrderWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const { customers, orders, staffMembers, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile } = useData();
+  const { customers, orders, staffMembers, currentShop, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile, updateShop } = useData();
   const { showToast } = useToast();
 
   const [step, setStep] = useState<Step>('customer');
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [customerQuery, setCustomerQuery] = useState('');
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const [customStyles, setCustomStyles] = useState<string[]>([]);
+  // Shop-wide custom styles persist across orders (seeded from the shop
+  // record); newly typed ones this session are added on top and saved back.
+  const [customStyles, setCustomStyles] = useState<{ name: string; photoUrl?: string }[]>([]);
+  const [uploadingCustomPhoto, setUploadingCustomPhoto] = useState<string | null>(null);
   const [customDraft, setCustomDraft] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [measureIndex, setMeasureIndex] = useState(0);
@@ -87,23 +90,33 @@ function NewOrderWizard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
-  /* ── Catalog, sorted by this client's preferred styles ─────── */
+  /* ── Catalog, gendered (no mixed picker) and sorted by this client's
+   *  preferred styles ─────────────────────────────────────────── */
+  const allCustomStyles = useMemo(() => {
+    // Session-local entries (just typed, possibly just got a photo) take
+    // priority over the shop's persisted list for the same name.
+    const merged = new Map((currentShop?.customStyles || []).map((s) => [s.name, s]));
+    for (const s of customStyles) merged.set(s.name, s);
+    return [...merged.values()];
+  }, [currentShop, customStyles]);
+
   const catalog = useMemo(() => {
     const preferred = customer?.preferredStyles || [];
-    const preset = [...GARMENT_STYLES].sort((a, b) => {
+    const genderStyles = customer ? GARMENT_STYLES.filter((s) => s.gender === customer.gender) : GARMENT_STYLES;
+    const preset = [...genderStyles].sort((a, b) => {
       const ap = preferred.includes(a.name) ? 0 : 1;
       const bp = preferred.includes(b.name) ? 0 : 1;
       return ap - bp;
     });
     return [
       ...preset,
-      ...customStyles.map((name) => ({ name, subtitle: 'Custom item', keywords: [name.toLowerCase()] })),
+      ...allCustomStyles.map((s) => ({ name: s.name, subtitle: 'Custom item', keywords: [s.name.toLowerCase()], photoUrl: s.photoUrl })),
     ];
-  }, [customer, customStyles]);
+  }, [customer, allCustomStyles]);
 
-  /** The shop's own latest photo of each style — the catalog doubles as
-   *  the atelier's portfolio. */
-  const stylePhoto = useMemo(() => getStylePhotos(orders, catalog), [catalog, orders]);
+  /** Permanent placeholder for built-in styles; the shop's own uploaded
+   *  photo for a custom style once one's been added. */
+  const stylePhoto = useMemo(() => getStylePhotos(catalog), [catalog]);
 
   const basket = useMemo(
     () => catalog.filter((s) => (counts[s.name] || 0) > 0).map((s) => ({ ...s, count: counts[s.name] })),
@@ -289,6 +302,42 @@ function NewOrderWizard() {
     }
   };
 
+  /* ── Custom style photo — the "avenue" to add a picture for a
+   *  shop-defined style once it's created ────────────────────── */
+  const handleCustomStylePhoto = async (styleName: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.shopId) return;
+    setUploadingCustomPhoto(styleName);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.shopId}/custom-styles/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('order-photos').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw new Error(uploadError.message);
+      const photoUrl = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
+
+      setCustomStyles((prev) => {
+        const next = prev.some((s) => s.name === styleName)
+          ? prev.map((s) => (s.name === styleName ? { ...s, photoUrl } : s))
+          : [...prev, { name: styleName, photoUrl }];
+        return next;
+      });
+      const persisted = (currentShop?.customStyles || []).some((s) => s.name === styleName)
+        ? (currentShop?.customStyles || []).map((s) => (s.name === styleName ? { ...s, photoUrl } : s))
+        : [...(currentShop?.customStyles || []), { name: styleName, photoUrl }];
+      await updateShop({ customStyles: persisted });
+      showToast('Style photo saved', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
+    } finally {
+      setUploadingCustomPhoto(null);
+      e.target.value = '';
+    }
+  };
+
   /* ── Inspiration upload (per unit) ─────────────────────────── */
   const handleInspoUpload = async (unitKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -421,6 +470,21 @@ function NewOrderWizard() {
                       {photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={photo} alt={s.name} />
+                      ) : s.subtitle === 'Custom item' ? (
+                        <label
+                          className={styles.addPhotoLabel}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            disabled={uploadingCustomPhoto === s.name}
+                            onChange={(e) => handleCustomStylePhoto(s.name, e)}
+                          />
+                          <Symbol name={uploadingCustomPhoto === s.name ? 'progress_activity' : 'add_a_photo'} size={22} />
+                          <span>{uploadingCustomPhoto === s.name ? 'Uploading…' : 'Add photo'}</span>
+                        </label>
                       ) : (
                         <span className={styles.garmentInitial}>{s.name[0]}</span>
                       )}
@@ -469,8 +533,11 @@ function NewOrderWizard() {
                 onBlur={() => {
                   const name = customDraft.trim();
                   if (name && !catalog.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
-                    setCustomStyles((p) => [...p, name]);
+                    setCustomStyles((p) => [...p, { name }]);
                     setCounts((p) => ({ ...p, [name]: 1 }));
+                    // Remembered shop-wide so it's already in the catalog
+                    // next time, same as a built-in style.
+                    updateShop({ customStyles: [...(currentShop?.customStyles || []), { name }] }).catch(() => {});
                   }
                   setCustomDraft('');
                   setShowCustomInput(false);

@@ -13,6 +13,9 @@ export interface Shop {
   address?: string;
   ownerUid: string;
   createdAt: string;
+  /** Shop-defined one-off garment styles beyond the built-in catalog —
+   *  remembered across future orders once created, same as built-in styles. */
+  customStyles?: { name: string; photoUrl?: string }[];
 }
 
 export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';

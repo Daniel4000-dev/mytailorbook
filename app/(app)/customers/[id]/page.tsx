@@ -119,7 +119,7 @@ function CustomerProfileContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customer.id]);
 
-  const stylePhotos = useMemo(() => getStylePhotos(orders, GARMENT_STYLES), [orders]);
+  const stylePhotos = useMemo(() => getStylePhotos(GARMENT_STYLES), []);
   const profileEntries = useMemo(
     () =>
       Object.entries(customer.styleMeasurements || {}).sort(

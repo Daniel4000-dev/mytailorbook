@@ -317,6 +317,19 @@
   opacity: 0.55;
 }
 
+.addPhotoLabel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+}
+
 .garmentShade {
   position: absolute;
   inset: 0;

@@ -11,8 +11,6 @@ import { useToast } from '@/contexts/ToastContext';
 import type { Customer } from '@/lib/types';
 import styles from './EditCustomerSheet.module.css';
 
-const STYLE_PRESETS = GARMENT_STYLES.map((s) => s.name);
-
 interface EditCustomerSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,6 +27,9 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   const [phone, setPhone] = useState(formatPhone(customer.whatsappNumber).replace(/^\+?234\s?/, ''));
   const [gender, setGender] = useState(customer.gender);
   const [styleSet, setStyleSet] = useState<string[]>(customer.preferredStyles || []);
+
+  // Preset chips are gendered — no mixed picker.
+  const STYLE_PRESETS = GARMENT_STYLES.filter((s) => s.gender === gender).map((s) => s.name);
   const [customStyle, setCustomStyle] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [error, setError] = useState('');
@@ -141,7 +142,10 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
                 role="radio"
                 aria-checked={gender === g}
                 className={`${styles.segmentBtn} ${gender === g ? styles.segmentBtnActive : ''}`}
-                onClick={() => setGender(g)}
+                onClick={() => {
+                  setGender(g);
+                  if (g !== gender) setStyleSet([]);
+                }}
               >
                 {g === 'male' ? 'Male' : 'Female'}
               </button>

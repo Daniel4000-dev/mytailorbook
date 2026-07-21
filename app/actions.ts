@@ -109,6 +109,7 @@ function shopFromRow(row: any): Shop {
     address: row.address || undefined,
     ownerUid: row.owner_id,
     createdAt: row.created_at,
+    customStyles: row.custom_styles || [],
   };
 }
 
@@ -362,6 +363,7 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.name !== undefined) row.name = updates.name;
   if (updates.phone !== undefined) row.phone = updates.phone;
   if (updates.address !== undefined) row.address = updates.address;
+  if (updates.customStyles !== undefined) row.custom_styles = updates.customStyles;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);
