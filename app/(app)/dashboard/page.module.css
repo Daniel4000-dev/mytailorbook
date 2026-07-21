@@ -305,7 +305,10 @@
 }
 
 .cardValue {
-  font-family: var(--sf-font-heading);
+  /* Hanken Grotesk (sans, rounder numerals) instead of the serif heading
+     font — Libre Caslon's static, sharp-edged digits read as too rigid for
+     a glance-and-go balance figure (closer to OPay/fintech numeral style). */
+  font-family: var(--sf-font-body);
   font-size: var(--sf-text-2xl);
   font-weight: 700;
   color: var(--sf-text-primary);
@@ -318,12 +321,14 @@
   pointer-events: none;
 }
 
-/* Money reads at a glance by color alone: green = received,
-   violet = still out there to collect. */
+/* Label always matches its own card's value color — one identity color
+   per card, not a neutral title over a colored number. */
+.collectedCard .cardLabel,
 .collectedCard .cardValue {
   color: var(--sf-success);
 }
 
+.projectedCard .cardLabel,
 .projectedCard .cardValue {
   color: var(--sf-text-gold);
 }

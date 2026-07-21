@@ -16,6 +16,16 @@
   z-index: var(--sf-z-sticky);
 }
 
+/* The <Link> itself carries no box styling — useLinkStatus (read by the
+   .item div below) only works in a Link descendant, so the pill/icon/label
+   all live one level in. display:contents keeps Link out of the flex flow
+   entirely, so .item is what actually behaves as .nav's flex child. */
+.linkReset {
+  display: contents;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .item {
   display: flex;
   flex-direction: column;

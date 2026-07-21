@@ -53,7 +53,16 @@ export async function completeGoogleOnboarding(name: string, shopName: string) {
  * supabase/migrations/0004_signup_trigger.sql — it goes through Supabase's
  * real signUp() so a genuine confirmation email gets sent.)
  */
-export async function createStaffAccount(shopId: string, name: string, email: string, tempPassword: string) {
+/** Returns `{ error }` rather than throwing for expected failures (e.g. a
+ *  duplicate email) — Next.js redacts thrown Server Action errors to a
+ *  generic "omitted in production" message before they reach the client,
+ *  so a real, actionable message can only get through as a return value. */
+export async function createStaffAccount(
+  shopId: string,
+  name: string,
+  email: string,
+  tempPassword: string
+): Promise<{ userId?: string; error?: string }> {
   const admin = createAdminClient();
 
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
@@ -62,15 +71,15 @@ export async function createStaffAccount(shopId: string, name: string, email: st
     email_confirm: true,
   });
   if (authError || !authData.user) {
-    throw new Error(authError?.message || 'Could not create staff account');
+    return { error: authError?.message || 'Could not create staff account' };
   }
 
   const { error: profileError } = await admin
     .from('profiles')
     .insert({ id: authData.user.id, shop_id: shopId, name, role: 'Staff', email });
   if (profileError) {
-    throw new Error(profileError.message);
+    return { error: profileError.message };
   }
 
-  return { userId: authData.user.id as string };
+  return { userId: authData.user.id };
 }

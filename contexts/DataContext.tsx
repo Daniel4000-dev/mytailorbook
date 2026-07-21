@@ -210,7 +210,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addStaff = useCallback(
     async (name: string, email: string, password: string) => {
       if (!shopId) return;
-      await createStaffAccount(shopId, name, email, password);
+      const { error } = await createStaffAccount(shopId, name, email, password);
+      if (error) throw new Error(error);
       const updated = await getStaff(shopId);
       mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
     },

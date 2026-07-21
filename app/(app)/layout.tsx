@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { FaPlus } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +15,29 @@ import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
+
+/** Plays the 360ms entrance animation, then drops it entirely (not just
+ *  the class — the whole animation) once it finishes. `animation-fill-mode:
+ *  both` keeps a CSS animation "current" indefinitely once played, and any
+ *  element with a current transform animation gets a fixed-position
+ *  containing block — even at an identity transform, even resolved to
+ *  `none` — for as long as that animation is still considered active. The
+ *  only real fix is to stop applying the animation once it's done, which is
+ *  what settling into `.pageSettled` (no animation, no transform at all)
+ *  does; without this, any `position: fixed` element a page renders itself
+ *  (e.g. the order detail page's WhatsApp shortcut) stays permanently
+ *  unpinned from the viewport. */
+function PageEnter({ children }: { children: ReactNode }) {
+  const [settled, setSettled] = useState(false);
+  return (
+    <div
+      className={settled ? styles.pageSettled : styles.pageEnter}
+      onAnimationEnd={() => setSettled(true)}
+    >
+      {children}
+    </div>
+  );
+}
 
 function AppLayoutContent({ children }: { children: ReactNode }) {
   const [showActionMenu, setShowActionMenu] = useState(false);
@@ -68,9 +92,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
         onClick={isMenuOpen ? () => setMenuOpen(false) : undefined}
       >
         <main className={styles.main}>
-          <div key={pathname} className={styles.pageEnter}>
-            {children}
-          </div>
+          <PageEnter key={pathname}>{children}</PageEnter>
         </main>
       </div>
 
@@ -100,9 +122,10 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       >
         <div className={styles.actionMenu}>
           <p className={styles.actionMenuHint}>Select the client profile to begin.</p>
-          <button
+          <Link
+            href="/orders/new"
             className={styles.actionOption}
-            onClick={() => { setShowActionMenu(false); router.push('/orders/new'); }}
+            onClick={() => setShowActionMenu(false)}
           >
             <span className={styles.actionOptionIcon}>
               <Symbol name="group" fill size={24} />
@@ -112,10 +135,11 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
               <span className={styles.actionOptionDesc}>Select from your client roster</span>
             </span>
             <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </button>
-          <button
+          </Link>
+          <Link
+            href="/customers/new"
             className={styles.actionOption}
-            onClick={() => { setShowActionMenu(false); router.push('/customers/new'); }}
+            onClick={() => setShowActionMenu(false)}
           >
             <span className={styles.actionOptionIcon}>
               <Symbol name="person_add" fill size={24} />
@@ -125,7 +149,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
               <span className={styles.actionOptionDesc}>Create a new measurement profile</span>
             </span>
             <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </button>
+          </Link>
         </div>
       </BottomSheet>
     </div>
