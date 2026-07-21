@@ -1,0 +1,144 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+}
+
+.errorBanner {
+  background: var(--sf-error-bg);
+  color: var(--sf-error);
+  border-radius: var(--sf-radius-sm);
+  padding: 10px 14px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.capsLabel {
+  font-size: var(--sf-text-xs);
+  line-height: 16px;
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-secondary);
+}
+
+.input {
+  width: 100%;
+  height: var(--sf-touch-target);
+  padding: 0 var(--sf-space-md);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.input::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--sf-accent-emerald);
+  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+}
+
+.phoneRow {
+  display: flex;
+  gap: var(--sf-space-sm);
+}
+
+.phonePrefix {
+  display: flex;
+  align-items: center;
+  height: var(--sf-touch-target);
+  padding: 0 14px;
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+}
+
+.phoneInput {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Gender segmented control ───────────────────────────────── */
+.segment {
+  display: flex;
+  height: 56px;
+  padding: 4px;
+  background: var(--sf-surface-variant);
+  border-radius: var(--sf-radius-sm);
+}
+
+.segmentBtn {
+  flex: 1;
+  border-radius: 6px;
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-secondary);
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.segmentBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.segmentBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-semibold);
+  box-shadow: var(--sf-shadow-sm);
+}
+
+/* ── Style chips ────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-sm);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  height: var(--sf-touch-target);
+  padding: 0 20px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-base);
+}
+
+.chip:hover {
+  background: var(--sf-surface-variant);
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+.chipActive {
+  background: var(--sf-secondary-container);
+  border-color: var(--sf-secondary-container);
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.customStyleInput {
+  width: 160px;
+  height: var(--sf-touch-target);
+  border-radius: var(--sf-radius-full);
+}

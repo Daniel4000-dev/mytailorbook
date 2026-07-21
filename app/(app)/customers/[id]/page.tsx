@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaWhatsapp, FaUserSlash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,15 +10,19 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import Badge from '@/components/ui/Badge/Badge';
+import Button from '@/components/ui/Button/Button';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasurementAnatomy from '@/components/customers/MeasurementAnatomy/MeasurementAnatomy';
-import OrderDetailSheet from '@/components/kanban/OrderDetailSheet/OrderDetailSheet';
-import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
+import EditCustomerSheet from '@/components/customers/EditCustomerSheet/EditCustomerSheet';
+import StyleProfileSheet from '@/components/customers/StyleProfileSheet/StyleProfileSheet';
+import { getStylePhotos } from '@/lib/style-photos';
+import { GARMENT_STYLES } from '@/lib/constants';
+import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import type { Measurements, Customer, Order, User } from '@/lib/types';
+import type { Measurements, Customer, Order } from '@/lib/types';
 import CustomerDetailSkeleton from './CustomerDetailSkeleton';
 import styles from './page.module.css';
 
@@ -31,8 +35,8 @@ interface Point {
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  const { isOwner, user } = useAuth();
-  const { customers, orders, isLoaded, updateCustomerMeasurements, updateOrder } = useData();
+  const { isOwner } = useAuth();
+  const { customers, orders, isLoaded, updateCustomerMeasurements } = useData();
 
   if (!isOwner) {
     return (
@@ -44,7 +48,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
 
   if (!isLoaded) {
     return (
-      <PageLayout className={styles.pageGrid} header={<TopBar title="Customer Details" showBack />}>
+      <PageLayout className={styles.page} header={<TopBar title="Customer Details" showBack />}>
         <CustomerDetailSkeleton />
       </PageLayout>
     );
@@ -64,10 +68,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     <CustomerProfileContent
       customer={customer}
       orders={orders}
-      isOwner={isOwner}
-      user={user}
       updateCustomerMeasurements={updateCustomerMeasurements}
-      updateOrder={updateOrder}
     />
   );
 }
@@ -75,19 +76,14 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
 function CustomerProfileContent({
   customer,
   orders,
-  isOwner,
-  user,
   updateCustomerMeasurements,
-  updateOrder,
 }: {
   customer: Customer;
   orders: Order[];
-  isOwner: boolean;
-  user: User | null;
   updateCustomerMeasurements: ReturnType<typeof useData>['updateCustomerMeasurements'];
-  updateOrder: ReturnType<typeof useData>['updateOrder'];
 }) {
   const { showToast } = useToast();
+  const router = useRouter();
 
   // Initialize from customer measurements — this component only mounts once
   // real customer data is available, so these initializers see real values.
@@ -106,12 +102,24 @@ function CustomerProfileContent({
   const [notes, setNotes] = useState(customer.measurements?.notes || '');
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
   const [currentValue, setCurrentValue] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [styleSheet, setStyleSheet] = useState<{ open: boolean; style: string | null }>({ open: false, style: null });
 
   const id = customer.id;
-  const custOrders = orders.filter((o) => o.customerId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const custOrders = orders
+    .filter((o) => o.customerId === id)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const totalSpend = custOrders.reduce((s, o) => s + o.totalBill, 0);
   const totalOwed = custOrders.reduce((s, o) => s + getBalanceOwed(o), 0);
+
+  const stylePhotos = useMemo(() => getStylePhotos(orders, GARMENT_STYLES), [orders]);
+  const profileEntries = useMemo(
+    () =>
+      Object.entries(customer.styleMeasurements || {}).sort(
+        (a, b) => new Date(b[1].updatedAt).getTime() - new Date(a[1].updatedAt).getTime()
+      ),
+    [customer.styleMeasurements]
+  );
 
   const handlePointSelect = (point: Point) => {
     setSelectedPoint(point);
@@ -123,26 +131,26 @@ function CustomerProfileContent({
       ...prev,
       [pointId]: val
     }));
-    
+
     const updatedMeasurements: Measurements = {
       ...customer.measurements,
       notes: notes || undefined
     };
-    
+
     const updatedRecord = { ...measurements, [pointId]: val };
-    
+
     Object.entries(updatedRecord).forEach(([key, value]) => {
       const num = parseFloat(value);
       if (!isNaN(num)) {
-        (updatedMeasurements as any)[key] = num;
+        (updatedMeasurements as unknown as Record<string, number>)[key] = num;
       }
     });
-    
+
     const num = parseFloat(val);
     if (isNaN(num)) {
-      delete (updatedMeasurements as any)[pointId];
+      delete (updatedMeasurements as unknown as Record<string, number>)[pointId];
     }
-    
+
     updateCustomerMeasurements(customer.id, updatedMeasurements);
   };
 
@@ -151,11 +159,11 @@ function CustomerProfileContent({
       ...customer.measurements,
       notes: notes || undefined
     };
-    
+
     Object.entries(measurements).forEach(([key, val]) => {
       const num = parseFloat(val);
       if (!isNaN(num)) {
-        (updatedMeasurements as any)[key] = num;
+        (updatedMeasurements as unknown as Record<string, number>)[key] = num;
       }
     });
 
@@ -170,26 +178,26 @@ function CustomerProfileContent({
         ...prev,
         [selectedPoint.id]: newVal
       }));
-      
+
       const updatedMeasurements: Measurements = {
         ...customer.measurements,
         notes: notes || undefined
       };
-      
+
       Object.entries(measurements).forEach(([key, val]) => {
         const num = parseFloat(val);
         if (!isNaN(num)) {
-          (updatedMeasurements as any)[key] = num;
+          (updatedMeasurements as unknown as Record<string, number>)[key] = num;
         }
       });
-      
+
       const newNum = parseFloat(newVal);
       if (!isNaN(newNum)) {
-        (updatedMeasurements as any)[selectedPoint.id] = newNum;
+        (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id] = newNum;
       } else {
-        delete (updatedMeasurements as any)[selectedPoint.id];
+        delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
       }
-      
+
       updateCustomerMeasurements(customer.id, updatedMeasurements);
       showToast(`${selectedPoint.name} measurement saved`, 'success');
       setSelectedPoint(null);
@@ -203,22 +211,22 @@ function CustomerProfileContent({
         delete copy[selectedPoint.id];
         return copy;
       });
-      
+
       const updatedMeasurements: Measurements = {
         ...customer.measurements,
         notes: notes || undefined
       };
-      
+
       Object.entries(measurements).forEach(([key, val]) => {
         if (key !== selectedPoint.id) {
           const num = parseFloat(val);
           if (!isNaN(num)) {
-            (updatedMeasurements as any)[key] = num;
+            (updatedMeasurements as unknown as Record<string, number>)[key] = num;
           }
         }
       });
-      
-      delete (updatedMeasurements as any)[selectedPoint.id];
+
+      delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
 
       updateCustomerMeasurements(customer.id, updatedMeasurements);
       showToast(`${selectedPoint.name} measurement cleared`, 'success');
@@ -228,108 +236,180 @@ function CustomerProfileContent({
 
   return (
     <PageLayout
-      className={styles.pageGrid}
-      header={<TopBar title="Customer Details" showBack />}
+      className={styles.page}
+      header={
+        <TopBar
+          title="Client Profile"
+          showBack
+          rightAction={
+            <button type="button" className={styles.editBtn} onClick={() => setEditOpen(true)} aria-label="Edit profile">
+              <Symbol name="edit" size={22} />
+            </button>
+          }
+        />
+      }
     >
-        
-        {/* LEFT COLUMN: Profile, Stats, Notes */}
-        <div className={styles.leftColumn}>
-          
-          <div className={`${styles.card} ${styles.profileHeader}`}>
-            <Avatar name={customer.fullName} size="lg" />
-            <h2 className={styles.name}>{customer.fullName}</h2>
-            <a href={getWhatsAppLink(customer.whatsappNumber)} target="_blank" rel="noopener noreferrer" className={styles.whatsapp}>
-              <FaWhatsapp size={16} /> {formatPhone(customer.whatsappNumber)}
-            </a>
-            <span className={styles.memberSince}>
-              Customer since {formatMonthYear(customer.createdAt)}
+      {/* Profile header */}
+      <section className={styles.profileHeader}>
+        <Avatar name={customer.fullName} size="lg" />
+        <h2 className={styles.name}>{customer.fullName}</h2>
+        <span className={styles.memberSince}>Customer since {formatMonthYear(customer.createdAt)}</span>
+
+        {customer.preferredStyles && customer.preferredStyles.length > 0 && (
+          <div className={styles.prefChips}>
+            {customer.preferredStyles.map((s) => (
+              <span key={s} className={styles.prefChip}>{s}</span>
+            ))}
+          </div>
+        )}
+
+        <div className={styles.quickActions}>
+          <a href={`tel:+${customer.whatsappNumber}`} className={styles.quickActionBtn}>
+            <Symbol name="call" size={22} />
+            <span>Call</span>
+          </a>
+          <a
+            href={getWhatsAppLink(customer.whatsappNumber)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.quickActionBtn}
+          >
+            <FaWhatsapp size={20} />
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </section>
+
+      {/* Financial Summary */}
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Financial Summary</h3>
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Total Spent</span>
+            <span className={styles.statValue}>{formatCurrency(totalSpend)}</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Pending Bal.</span>
+            <span className={`${styles.statValue} ${totalOwed > 0 ? styles.warn : ''}`}>
+              {formatCurrency(totalOwed)}
             </span>
           </div>
-
-          <div className={`${styles.card} ${styles.statsGrid}`}>
-            <div className={styles.stat}>
-              <span className={styles.statValue}>{custOrders.length}</span>
-              <span className={styles.statLabel}>Orders</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statValue}>{formatCurrency(totalSpend)}</span>
-              <span className={styles.statLabel}>Lifetime</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={`${styles.statValue} ${totalOwed > 0 ? styles.gold : ''}`}>
-                {formatCurrency(totalOwed)}
-              </span>
-              <span className={styles.statLabel}>Owed</span>
-            </div>
+          <div className={`${styles.statCard} ${styles.statCardWide}`}>
+            <span className={styles.statLabel}>Lifetime Orders</span>
+            <span className={styles.statValue}>{custOrders.length}</span>
           </div>
+        </div>
+      </section>
 
-          <div className={`${styles.card} ${styles.notesSection}`}>
-            <h3 className={styles.sectionTitle}>Customer Notes</h3>
-            <textarea
-              className={styles.notesTextarea}
-              placeholder="Add special requests, preferences, or fabric details here..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleSaveNotes}
-            />
-          </div>
-
+      {/* Measurement Profiles */}
+      <section className={styles.section}>
+        <div className={styles.sectionTitleRow}>
+          <h3 className={styles.sectionTitle}>Measurement Profiles</h3>
+          <button type="button" className={styles.newBtn} onClick={() => setStyleSheet({ open: true, style: null })}>
+            <Symbol name="add" size={18} /> NEW
+          </button>
         </div>
 
-        {/* RIGHT COLUMN: Measurements & Orders */}
-        <div className={styles.rightColumn}>
-          
-          <div className={styles.card}>
-            <h3 className={styles.sectionTitle}>Measurements</h3>
-            <MeasurementAnatomy 
-              gender={customer.gender || 'female'}
-              measurements={measurements} 
-              selectedPointId={selectedPoint?.id} 
-              onPointSelect={handlePointSelect} 
-              onValueChange={handleMeasurementChange}
-            />
-          </div>
-
-          <div className={styles.card}>
-            <h3 className={styles.sectionTitle}>Order History</h3>
-            <div className={styles.orderList}>
-              {custOrders.map((o, i) => (
-                <div 
-                  key={o.id} 
-                  className={styles.orderCard} 
-                  style={{ animationDelay: `${i * 0.05}s`, cursor: 'pointer' }}
-                  onClick={() => setSelectedOrder(o)}
-                >
-                  <div className={styles.orderHeader}>
-                    <div className={styles.orderMeta}>
-                      <Badge variant={o.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'} size="md">
-                        {o.status}
-                      </Badge>
-                      <span className={styles.orderDate}>
-                        {new Date(o.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <p className={styles.orderDetails}>{truncateText(o.orderDetails, 120)}</p>
-                  
-                  <div className={styles.orderFinancials}>
-                    <span className={styles.orderAmount}>{formatCurrency(o.totalBill)}</span>
-                    {getBalanceOwed(o) > 0 && (
-                      <span className={styles.orderBalance}>Owes {formatCurrency(getBalanceOwed(o))}</span>
-                    )}
-                  </div>
+        {profileEntries.length > 0 ? (
+          <div className={styles.profileList}>
+            {profileEntries.map(([styleName, profile]) => (
+              <div key={styleName} className={styles.profileCard}>
+                <div className={styles.profilePhoto}>
+                  {stylePhotos[styleName] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={stylePhotos[styleName]} alt="" />
+                  ) : (
+                    <Symbol name="checkroom" size={28} />
+                  )}
                 </div>
-              ))}
-              {custOrders.length === 0 && (
-                <p style={{ color: 'var(--sf-text-tertiary)', textAlign: 'center', padding: 'var(--sf-space-lg) 0' }}>
-                  No orders found for this customer.
-                </p>
-              )}
-            </div>
+                <div className={styles.profileInfo}>
+                  <h4>{styleName}</h4>
+                  <p>Updated: {formatDate(profile.updatedAt)}</p>
+                  <button
+                    type="button"
+                    className={styles.viewEditBtn}
+                    onClick={() => setStyleSheet({ open: true, style: styleName })}
+                  >
+                    VIEW / EDIT
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+        ) : (
+          <p className={styles.emptyHint}>No measurement profiles yet — tap + NEW to add one.</p>
+        )}
+      </section>
 
-        </div>
+      {/* Full-body reference profile */}
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Full-Body Profile</h3>
+        <MeasurementAnatomy
+          gender={customer.gender || 'female'}
+          measurements={measurements}
+          selectedPointId={selectedPoint?.id}
+          onPointSelect={handlePointSelect}
+          onValueChange={handleMeasurementChange}
+        />
+      </section>
+
+      {/* Notes */}
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Customer Notes</h3>
+        <textarea
+          className={styles.notesTextarea}
+          placeholder="Add special requests, preferences, or fabric details here..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={handleSaveNotes}
+        />
+      </section>
+
+      {/* Order History */}
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Recent Orders</h3>
+        {custOrders.length > 0 ? (
+          <div className={styles.orderList}>
+            {custOrders.map((o, i) => (
+              <div
+                key={o.id}
+                className={styles.orderCard}
+                style={{ animationDelay: `${i * 0.05}s` }}
+                onClick={() => router.push(`/production/${o.id}`)}
+              >
+                <div className={styles.orderHeader}>
+                  <div className={styles.orderMeta}>
+                    <h4 className={styles.orderTitle}>{truncateText(o.orderDetails, 40)}</h4>
+                    <span className={styles.orderDate}>{new Date(o.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <Badge variant={o.status.toLowerCase() as 'documented' | 'cutting' | 'sewing' | 'ready' | 'completed'} size="md">
+                    {o.status}
+                  </Badge>
+                </div>
+
+                <div className={styles.orderFinancials}>
+                  <span className={styles.orderAmount}>{formatCurrency(o.totalBill)}</span>
+                  {getBalanceOwed(o) > 0 && (
+                    <span className={styles.orderBalance}>Owes {formatCurrency(getBalanceOwed(o))}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.emptyHint}>No orders yet for this customer.</p>
+        )}
+      </section>
+
+      {/* Bottom actions */}
+      <section className={styles.actionBar}>
+        <Button variant="primary" fullWidth onClick={() => router.push(`/orders/new?customer=${customer.id}`)}>
+          <Symbol name="add_circle" size={20} /> Create New Order
+        </Button>
+        <Button variant="secondary" fullWidth onClick={() => setStyleSheet({ open: true, style: null })}>
+          <Symbol name="straighten" size={20} /> Record Measurements
+        </Button>
+      </section>
 
       <BottomSheet isOpen={!!selectedPoint} onClose={() => setSelectedPoint(null)}>
         <div style={{ padding: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-md)' }}>
@@ -339,10 +419,10 @@ function CustomerProfileContent({
               {selectedPoint?.name}
             </h3>
           </div>
-          
-          <Input 
-            label="Measurement Value" 
-            placeholder="e.g. 15 inches or 38 cm" 
+
+          <Input
+            label="Measurement Value"
+            placeholder="e.g. 15 inches or 38 cm"
             value={currentValue}
             onChange={(e) => setCurrentValue(e.target.value)}
           />
@@ -358,36 +438,14 @@ function CustomerProfileContent({
         </div>
       </BottomSheet>
 
-      {/* Order Detail Sheet */}
-      <BottomSheet 
-        isOpen={!!selectedOrder} 
-        onClose={() => setSelectedOrder(null)}
-        title="Order Details"
-      >
-        {selectedOrder && (
-          <OrderDetailSheet 
-            order={orders.find(o => o.id === selectedOrder.id) || selectedOrder}
-            customer={customer}
-            userRole={isOwner ? 'Owner' : 'Staff'}
-            onUpdatePayment={async (orderId, amount) => {
-              const target = orders.find((o) => o.id === orderId);
-              if (!target) return;
-              const newDeposit = Math.min(target.totalBill, target.depositPaid + amount);
-              const paymentRecord = {
-                id: `pay-${Date.now()}`,
-                amount,
-                recordedBy: user?.uid || '',
-                recordedByName: user?.name || 'Unknown',
-                timestamp: new Date().toISOString(),
-              };
-              await updateOrder(orderId, {
-                depositPaid: newDeposit,
-                payments: [...(target.payments || []), paymentRecord],
-              });
-            }}
-          />
-        )}
-      </BottomSheet>
+      <EditCustomerSheet isOpen={editOpen} onClose={() => setEditOpen(false)} customer={customer} />
+
+      <StyleProfileSheet
+        isOpen={styleSheet.open}
+        onClose={() => setStyleSheet({ open: false, style: null })}
+        customer={customer}
+        initialStyle={styleSheet.style}
+      />
     </PageLayout>
   );
 }

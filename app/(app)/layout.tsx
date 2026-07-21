@@ -9,24 +9,25 @@ import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import OrderForm from '@/components/forms/OrderForm/OrderForm';
-import CustomerForm from '@/components/forms/CustomerForm/CustomerForm';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
 
 function AppLayoutContent({ children }: { children: ReactNode }) {
   const [showActionMenu, setShowActionMenu] = useState(false);
-  const [showOrderForm, setShowOrderForm] = useState(false);
-  const [showCustomerForm, setShowCustomerForm] = useState(false);
   const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
-  // The FAB creates orders/customers — not a relevant action on Settings,
-  // where it would otherwise float over the Register Employee form.
-  const showFab = !pathname.startsWith('/settings');
+  // The new-client wizard is a focused, transactional flow — global nav
+  // and the create-FAB get out of its way (it brings its own action bar).
+  const isTransactional = pathname === '/customers/new' || pathname === '/orders/new';
+  // The FAB creates orders/customers — not a relevant action on Settings
+  // (it would float over the Register Employee form) or on an order's own
+  // page, which has its floating WhatsApp shortcut in the same spot.
+  const showFab = !pathname.startsWith('/settings') && !/^\/production\/./.test(pathname) && !isTransactional;
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).
@@ -37,7 +38,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   }, [authLoading, needsOnboarding, router]);
 
   useEffect(() => {
-    const color = isMenuOpen ? '#FAF2E8' : '#FFFFFF';
+    const color = isMenuOpen ? '#ECECFB' : '#F8F8FE';
     let meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) {
       meta = document.createElement('meta');
@@ -88,46 +89,44 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           label="Create action"
         />
       )}
-      {!isMenuOpen && <BottomNav />}
+      {!isMenuOpen && !isTransactional && <BottomNav />}
       {!isMenuOpen && <InstallPrompt />}
 
       {/* Create Action Menu */}
       <BottomSheet
         isOpen={showActionMenu}
         onClose={() => setShowActionMenu(false)}
-        title="Create New"
-      >
-        <div className={styles.actionMenu}>
-          <button
-            className={styles.actionMenuItem}
-            onClick={() => { setShowActionMenu(false); setShowOrderForm(true); }}
-          >
-            New Order
-          </button>
-          <button
-            className={styles.actionMenuItem}
-            onClick={() => { setShowActionMenu(false); setShowCustomerForm(true); }}
-          >
-            New Customer
-          </button>
-        </div>
-      </BottomSheet>
-
-      {/* Forms */}
-      <BottomSheet
-        isOpen={showOrderForm}
-        onClose={() => setShowOrderForm(false)}
         title="New Order"
       >
-        <OrderForm onClose={() => setShowOrderForm(false)} />
-      </BottomSheet>
-
-      <BottomSheet
-        isOpen={showCustomerForm}
-        onClose={() => setShowCustomerForm(false)}
-        title="New Customer"
-      >
-        <CustomerForm onClose={() => setShowCustomerForm(false)} />
+        <div className={styles.actionMenu}>
+          <p className={styles.actionMenuHint}>Select the client profile to begin.</p>
+          <button
+            className={styles.actionOption}
+            onClick={() => { setShowActionMenu(false); router.push('/orders/new'); }}
+          >
+            <span className={styles.actionOptionIcon}>
+              <Symbol name="group" fill size={24} />
+            </span>
+            <span className={styles.actionOptionText}>
+              <span className={styles.actionOptionTitle}>Existing Customer</span>
+              <span className={styles.actionOptionDesc}>Select from your client roster</span>
+            </span>
+            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
+          </button>
+          <button
+            className={styles.actionOption}
+            onClick={() => { setShowActionMenu(false); router.push('/customers/new'); }}
+          >
+            <span className={styles.actionOptionIcon}>
+              <Symbol name="person_add" fill size={24} />
+            </span>
+            <span className={styles.actionOptionText}>
+              <span className={styles.actionOptionTitle}>Walk-in / New Customer</span>
+              <span className={styles.actionOptionDesc}>Create a new measurement profile</span>
+            </span>
+            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
+          </button>
+        </div>
       </BottomSheet>
     </div>
   );

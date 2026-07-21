@@ -64,8 +64,8 @@
 
 .title {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-xl);
+  font-weight: var(--sf-weight-bold);
   color: var(--sf-text-primary);
   text-align: center;
   overflow: hidden;
@@ -111,7 +111,7 @@
 
 .profileName {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-lg);
+  font-size: var(--sf-text-xl);
   font-weight: var(--sf-weight-bold);
   color: var(--sf-text-primary);
 }
@@ -149,7 +149,7 @@
 
   .title {
     text-align: left;
-    font-size: var(--sf-text-xl);
+    font-size: var(--sf-text-2xl);
   }
 
   .subtitle {
@@ -159,6 +159,6 @@
   }
 
   .profileName {
-    font-size: var(--sf-text-xl);
+    font-size: var(--sf-text-2xl);
   }
 }

@@ -17,9 +17,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       meta.setAttribute('name', 'theme-color');
       document.head.appendChild(meta);
     }
-    meta.setAttribute('content', '#FAF2E8');
-    document.documentElement.style.backgroundColor = '#FAF2E8';
-    document.body.style.backgroundColor = '#FAF2E8';
+    meta.setAttribute('content', '#F8F8FE');
+    document.documentElement.style.backgroundColor = '#F8F8FE';
+    document.body.style.backgroundColor = '#F8F8FE';
     
     return () => {
       let cleanupMeta = document.querySelector('meta[name="theme-color"]');
@@ -67,7 +67,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <>
           {!isCustomAuth && (
             <div className={styles.branding}>
-              <h1 className={styles.logo}>{APP_CONFIG.name}</h1>
+              <img src="/images/logo-full.png" alt={APP_CONFIG.name} className={styles.logo} />
               <p className={styles.tagline}>{APP_CONFIG.tagline}</p>
             </div>
           )}

@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
       'Premium workspace for managing orders, production, and clients in your fashion design studio.',
     start_url: '/dashboard',
     display: 'standalone',
-    background_color: '#FAF2E8',
-    theme_color: '#FAF2E8',
+    background_color: '#F8F8FE',
+    theme_color: '#F8F8FE',
     orientation: 'portrait',
     icons: [
       {

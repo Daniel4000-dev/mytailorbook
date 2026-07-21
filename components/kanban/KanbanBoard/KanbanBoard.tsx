@@ -2,39 +2,37 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { FaFilter, FaListCheck, FaTimeline, FaUser, FaCalendarDays, FaClock, FaRegCommentDots, FaLink, FaWhatsapp, FaCreditCard, FaChevronDown, FaChevronUp, FaArrowRight, FaXmark, FaMagnifyingGlass } from 'react-icons/fa6';
+import { FaXmark, FaMagnifyingGlass } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { STATUS_CONFIG } from '@/lib/constants';
-import KanbanColumn from '@/components/kanban/KanbanColumn/KanbanColumn';
-import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import Badge from '@/components/ui/Badge/Badge';
-import Button from '@/components/ui/Button/Button';
-import ActivityTimeline from '@/components/kanban/ActivityTimeline/ActivityTimeline';
-import OrderDetailSheet from '@/components/kanban/OrderDetailSheet/OrderDetailSheet';
-import { PRODUCTION_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
-import type { Order, OrderStatus, Role } from '@/lib/types';
+import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
+import FilterPill from '@/components/ui/FilterPill/FilterPill';
+import StageBanner from '@/components/production/StageBanner/StageBanner';
+import OrderListCard from '@/components/production/OrderListCard/OrderListCard';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import type { OrderStatus, Role } from '@/lib/types';
 import KanbanBoardSkeleton from './KanbanBoardSkeleton';
 import styles from './KanbanBoard.module.css';
-
 
 interface KanbanBoardProps {
   userRole: Role;
 }
 
+/** "All" shows the active pipeline stage by stage; Completed has its own
+ *  pill so finished work doesn't bury the current workload. */
+const ALL_FILTER = 'All' as const;
+type StageFilter = typeof ALL_FILTER | OrderStatus;
+const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Completed');
+
 export default function KanbanBoard({ userRole }: KanbanBoardProps) {
   const { user } = useAuth();
-  const { orders, customers, staffMembers, isLoaded, updateOrderStatus, updateOrder } = useData();
+  const { orders, staffMembers, isLoaded, updateOrderStatus, updateOrder } = useData();
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [mobileActiveTab, setMobileActiveTab] = useState<OrderStatus>(PRODUCTION_STATUSES[0]);
+  const [stageFilter, setStageFilter] = useState<StageFilter>(ALL_FILTER);
   const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
-  const [intakeExpanded, setIntakeExpanded] = useState(false);
   const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -45,69 +43,47 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     setFilterMyTasks(userRole === 'Staff');
   }, [userRole]);
 
-  // Deep-link support: /production?order=<id> opens a specific order,
-  // /production?staff=<uid> filters the board to that staff member's orders.
-  // One-time hydration from the URL once data has loaded, so setState-in-effect is intentional here.
+  // Deep-link support: /production?order=<id> forwards to the order's own
+  // page, /production?staff=<uid> filters the board to that staff member's
+  // orders. One-time hydration from the URL once data has loaded.
   useEffect(() => {
     if (!isLoaded) return;
     const orderId = searchParams.get('order');
     const staffId = searchParams.get('staff');
 
     if (orderId) {
-      const found = orders.find((o) => o.id === orderId);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (found) setSelectedOrder(found);
+      router.replace(`/production/${orderId}`);
+      return;
     }
     if (staffId && userRole === 'Owner') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setStaffFilterId(staffId);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterMyTasks(false);
-    }
-    if (orderId || staffId) {
       router.replace('/production');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
-  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } });
-  const sensors = useSensors(pointerSensor, touchSensor);
-
-
-  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-    const orderId = active.id as string;
-    const newStatus = over.id as OrderStatus;
-    const draggedOrder = active.data.current?.order as Order | undefined;
-    const previousStatus = draggedOrder?.status;
-
-    if ((PRODUCTION_STATUSES as readonly string[]).includes(newStatus) && newStatus !== previousStatus) {
-      await updateOrderStatus(orderId, newStatus, user?.uid || '', user?.name || '');
-
-      // Undo is only offered for mouse-driven drags — a mouse drag-and-drop
-      // is easy to mis-drop (a shaky click-drag near a column boundary);
-      // the mobile swipe gesture instead gets its own hold-delay protection
-      // against accidental triggers, so it doesn't need this safety net.
-      const activatorEvent = event.activatorEvent;
-      const isMouseDrag = 'pointerType' in activatorEvent && (activatorEvent as PointerEvent).pointerType === 'mouse';
-      if (isMouseDrag && previousStatus) {
-        showToast(`Moved to ${STATUS_CONFIG[newStatus].label}`, 'success', {
-          label: 'Undo',
-          onClick: () => {
-            updateOrderStatus(orderId, previousStatus, user?.uid || '', user?.name || '');
-          },
-        });
-      }
-    }
-  }, [updateOrderStatus, user, showToast]);
-
   const handleAdvance = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
     const next = getNextStatus(order.status);
-    if (next) await updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
+    if (!next) return;
+    await updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
+    showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success', {
+      label: 'Undo',
+      onClick: () => {
+        updateOrderStatus(orderId, order.status, user?.uid || '', user?.name || '');
+      },
+    });
+  }, [orders, updateOrderStatus, user, showToast]);
+
+  const handleRevert = useCallback(async (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+    const prev = getPreviousStatus(order.status);
+    if (prev) await updateOrderStatus(orderId, prev, user?.uid || '', user?.name || '');
   }, [orders, updateOrderStatus, user]);
 
   const handleReassign = useCallback(async (orderId: string, staffUid: string, staffName: string) => {
@@ -119,17 +95,6 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     });
     showToast(staffUid ? `Reassigned to ${staffName}` : 'Order unassigned', 'success');
   }, [updateOrder, showToast]);
-
-  const handleRevert = useCallback(async (orderId: string) => {
-    const order = orders.find((o) => o.id === orderId);
-    if (!order) return;
-    const prev = getPreviousStatus(order.status);
-    if (prev) await updateOrderStatus(orderId, prev, user?.uid || '', user?.name || '');
-  }, [orders, updateOrderStatus, user]);
-
-  const handleStartProduction = useCallback(async (orderId: string) => {
-    await updateOrderStatus(orderId, 'Cutting', user?.uid || '', user?.name || '');
-  }, [updateOrderStatus, user]);
 
   // Filter orders based on role and toggle
   const filteredOrders = useMemo(() => {
@@ -155,34 +120,17 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
 
   const staffFilterName = staffFilterId ? staffMembers.find((s) => s.uid === staffFilterId)?.name : null;
 
-  // Documented orders for intake queue
-  const documentedOrders = useMemo(() => {
-    return filteredOrders.filter(o => o.status === 'Documented');
-  }, [filteredOrders]);
-
-
-  const getOrdersByStatus = (status: OrderStatus) =>
-    filteredOrders.filter((o) => o.status === status);
-
-  // Sync selected order with latest state
-  const currentOrder = selectedOrder
-    ? orders.find((o) => o.id === selectedOrder.id) || selectedOrder
-    : null;
-
-  const handleCopyLink = () => {
-    if (currentOrder) {
-      const url = `${window.location.origin}/track/${currentOrder.id}`;
-      navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const currentCustomer = currentOrder ? customers.find(c => c.id === currentOrder.customerId) : null;
+  const getOrdersByStatus = useCallback(
+    (status: OrderStatus) => filteredOrders.filter((o) => o.status === status),
+    [filteredOrders]
+  );
 
   if (!isLoaded) {
     return <KanbanBoardSkeleton />;
   }
+
+  const visibleStages: OrderStatus[] = stageFilter === ALL_FILTER ? [...ACTIVE_STATUSES] : [stageFilter];
+  const hasAnyVisible = visibleStages.some((s) => getOrdersByStatus(s).length > 0);
 
   return (
     <>
@@ -203,23 +151,21 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
         )}
       </div>
 
-      {/* Owner Filter Toggle */}
+      {/* Owner scope toggle — neutral pills in the new design */}
       {userRole === 'Owner' && !staffFilterId && (
-        <div className={styles.filterToggleRow}>
-          <button
-            type="button"
-            className={`${styles.toggleBtn} ${!filterMyTasks ? styles.toggleBtnActive : ''}`}
+        <div className={styles.pillRow}>
+          <FilterPill
+            label="All Orders"
+            count={orders.filter((o) => o.status !== 'Completed').length}
+            active={!filterMyTasks}
             onClick={() => setFilterMyTasks(false)}
-          >
-            All Orders
-          </button>
-          <button
-            type="button"
-            className={`${styles.toggleBtn} ${filterMyTasks ? styles.toggleBtnActive : ''}`}
+          />
+          <FilterPill
+            label="My Orders"
+            count={orders.filter((o) => o.assignedTo === user?.uid && o.status !== 'Completed').length}
+            active={filterMyTasks}
             onClick={() => setFilterMyTasks(true)}
-          >
-            My Orders
-          </button>
+          />
         </div>
       )}
 
@@ -232,126 +178,59 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
         </div>
       )}
 
-      {/* Intake Queue for Documented Orders */}
-      {documentedOrders.length > 0 && (
-        <div className={styles.intakeQueue}>
-          <button
-            type="button"
-            className={styles.intakeHeader}
-            onClick={() => setIntakeExpanded(!intakeExpanded)}
-          >
-            <span className={styles.intakeTitle}>
-              <FaListCheck /> Intake Queue <span className={styles.intakeCount}>{documentedOrders.length}</span>
-            </span>
-            {intakeExpanded ? <FaChevronUp className={styles.intakeChevron} /> : <FaChevronDown className={styles.intakeChevron} />}
-          </button>
-          {intakeExpanded && (
-            <div className={styles.intakeList}>
-              {documentedOrders.map((order) => (
-                <div key={order.id} className={styles.intakeCard}>
-                  <div className={styles.intakeCardInfo}>
-                    <span className={styles.intakeCardName}>{order.customerName}</span>
-                    <span className={styles.intakeCardDetails}>
-                      {order.orderDetails.length > 40
-                        ? order.orderDetails.slice(0, 40) + '…'
-                        : order.orderDetails}
-                    </span>
-                    {order.dueDate && (
-                      <span className={styles.intakeCardDue}>
-                        Due: {new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.startBtn}
-                    onClick={() => handleStartProduction(order.id)}
-                  >
-                    Start <FaArrowRight style={{ fontSize: 11 }} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Mobile Tabs — production stages only */}
-      <div className={styles.mobileTabs}>
-        {PRODUCTION_STATUSES.map((status) => (
-          <button
+      {/* Stage filter pills */}
+      <div className={`${styles.pillRow} ${styles.stagePills}`}>
+        <FilterPill
+          label="All"
+          active={stageFilter === ALL_FILTER}
+          onClick={() => setStageFilter(ALL_FILTER)}
+        />
+        {ORDER_STATUSES.map((status) => (
+          <FilterPill
             key={status}
-            className={`${styles.tabBtn} ${mobileActiveTab === status ? styles.tabBtnActive : ''}`}
-            onClick={() => setMobileActiveTab(status)}
-          >
-            {status} ({getOrdersByStatus(status).length})
-          </button>
+            label={STATUS_CONFIG[status].label}
+            count={getOrdersByStatus(status).length}
+            active={stageFilter === status}
+            color={STATUS_CONFIG[status].color}
+            colorBg={STATUS_CONFIG[status].bgColor}
+            onClick={() => setStageFilter(stageFilter === status ? ALL_FILTER : status)}
+          />
         ))}
       </div>
 
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className={styles.board}>
-          {PRODUCTION_STATUSES.map((status) => (
-            <div
-              key={status}
-              className={`${styles.columnWrapper} ${mobileActiveTab === status ? styles.columnActive : styles.columnHidden}`}
-            >
-              <KanbanColumn
-                status={status}
-                orders={getOrdersByStatus(status)}
-                userRole={userRole}
-                onCardClick={(order) => setSelectedOrder(order)}
-                onAdvance={(orderId) => handleAdvance(orderId)}
-                onRevert={(orderId) => handleRevert(orderId)}
-                staffMembers={staffMembers}
-                onReassign={handleReassign}
-              />
-            </div>
-          ))}
-        </div>
-      </DndContext>
-
-      <BottomSheet
-        isOpen={!!currentOrder}
-        onClose={() => setSelectedOrder(null)}
-        title="Order Details"
-        footer={
-          currentOrder && currentOrder.status !== 'Completed' && (
-            <Button
-              fullWidth
-              onClick={() => {
-                handleAdvance(currentOrder.id);
-              }}
-            >
-              Move to {getNextStatus(currentOrder.status)}
-            </Button>
-          )
-        }
-      >
-        {currentOrder && (
-          <OrderDetailSheet 
-            order={currentOrder}
-            customer={currentCustomer || null}
-            userRole={userRole}
-            onUpdatePayment={async (orderId, amount) => {
-              const target = orders.find((o) => o.id === orderId);
-              if (!target) return;
-              const newDeposit = Math.min(target.totalBill, target.depositPaid + amount);
-              const paymentRecord = {
-                id: `pay-${Date.now()}`,
-                amount,
-                recordedBy: user?.uid || '',
-                recordedByName: user?.name || 'Unknown',
-                timestamp: new Date().toISOString(),
-              };
-              await updateOrder(orderId, {
-                depositPaid: newDeposit,
-                payments: [...(target.payments || []), paymentRecord],
-              });
-            }}
-          />
-        )}
-      </BottomSheet>
+      {/* Stage sections: banner + vertical list of compact cards */}
+      {!hasAnyVisible ? (
+        <EmptyState
+          icon="🧵"
+          title="Nothing here yet"
+          description={searchQuery ? 'No orders match your search.' : 'Orders in this stage will appear here.'}
+        />
+      ) : (
+        visibleStages.map((status) => {
+          const stageOrders = getOrdersByStatus(status);
+          if (stageOrders.length === 0) return null;
+          return (
+            <section key={status} className={styles.stageSection}>
+              <StageBanner status={status} count={stageOrders.length} />
+              <div className={styles.cardList}>
+                {stageOrders.map((order, i) => (
+                  <OrderListCard
+                    key={order.id}
+                    order={order}
+                    userRole={userRole}
+                    index={i}
+                    onOpen={() => router.push(`/production/${order.id}`)}
+                    onAdvance={() => handleAdvance(order.id)}
+                    onRevert={() => handleRevert(order.id)}
+                    staffMembers={staffMembers}
+                    onReassign={handleReassign}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })
+      )}
     </>
   );
 }

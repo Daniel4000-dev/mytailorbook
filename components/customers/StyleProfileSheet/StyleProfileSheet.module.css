@@ -1,0 +1,68 @@
+.footerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.pickerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-md);
+}
+
+.pickerCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  transition: border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.pickerCard:hover {
+  border-color: var(--sf-accent-emerald);
+  transform: translateY(-1px);
+}
+
+.pickerPhoto {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pickerPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pickerName {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  text-align: center;
+}
+
+.pickerBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+}

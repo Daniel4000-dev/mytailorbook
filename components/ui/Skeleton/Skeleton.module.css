@@ -1,5 +1,5 @@
 .skeleton {
-  background: #F0EBE3;
+  background: var(--sf-surface-variant);
   border-radius: 6px;
   position: relative;
   overflow: hidden;

@@ -58,7 +58,7 @@ export default function OnboardingPage() {
   return (
     <div className={styles.container}>
       <div className={styles.logoWrapper}>
-        <img src="/images/sewing-machine.svg" alt="Sewing Machine" className={styles.sewingMachineSvg} />
+        <img src="/images/logo-mark.png" alt="MyTailorBook" className={styles.sewingMachineSvg} />
       </div>
       <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
       <p className={styles.subheading}>

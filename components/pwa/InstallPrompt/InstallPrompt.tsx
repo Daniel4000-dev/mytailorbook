@@ -104,7 +104,7 @@ export default function InstallPrompt() {
       </button>
 
       <div className={styles.iconWrapper}>
-        <img src="/images/sewing-machine.svg" alt="" className={styles.appIcon} />
+        <img src="/images/logo-mark.png" alt="" className={styles.appIcon} />
       </div>
 
       <div className={styles.textWrapper}>

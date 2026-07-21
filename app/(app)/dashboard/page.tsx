@@ -12,6 +12,7 @@ import {
   FaCircleCheck,
   FaScissors,
   FaClipboardList,
+  FaRegCommentDots,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -21,7 +22,7 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Badge from '@/components/ui/Badge/Badge';
 import { formatCurrency } from '@/lib/formatters';
-import { getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
+import { getBalanceOwed, isOverdue, isDueSoon, hasUnreadComment } from '@/lib/types';
 import type { Order } from '@/lib/types';
 import DashboardSkeleton from './DashboardSkeleton';
 
@@ -136,6 +137,13 @@ function OwnerDashboard({
       .slice(0, 5);
   }, [orders]);
 
+  // Customer comments no one has opened yet — without this nudge a comment
+  // is only discoverable by happening to open that specific order.
+  const unreadCommentOrders = useMemo(
+    () => orders.filter(hasUnreadComment).slice(0, 5),
+    [orders]
+  );
+
   return (
     <>
       <div className={styles.sectionHeader}>
@@ -143,7 +151,7 @@ function OwnerDashboard({
       </div>
 
       <div className={styles.financeGrid}>
-        <div className={styles.financeCard}>
+        <div className={`${styles.financeCard} ${styles.collectedCard}`}>
           <div className={styles.cardHeaderRow}>
             <span className={styles.cardLabel}>Total Collected</span>
             <button
@@ -160,7 +168,7 @@ function OwnerDashboard({
           </span>
         </div>
 
-        <div className={styles.financeCard}>
+        <div className={`${styles.financeCard} ${styles.projectedCard}`}>
           <div className={styles.cardHeaderRow}>
             <span className={styles.cardLabel}>Projected Earnings</span>
             <button
@@ -231,7 +239,7 @@ function OwnerDashboard({
         </span>
       </div>
 
-      {needsAttention.length === 0 ? (
+      {needsAttention.length === 0 && unreadCommentOrders.length === 0 ? (
         <div className={styles.emptyState}>Nothing overdue or rushed — production is on track.</div>
       ) : (
         <div className={styles.attentionList}>
@@ -245,6 +253,18 @@ function OwnerDashboard({
                 {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
                 {order.priority === 'rush' && <Badge variant="gold"><FaFireFlameCurved /> Rush</Badge>}
                 {order.assignedToName && <span className={styles.attentionAssignee}>{order.assignedToName}</span>}
+              </div>
+            </button>
+          ))}
+
+          {unreadCommentOrders.map((order) => (
+            <button key={`comment-${order.id}`} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
+              <div className={styles.attentionInfo}>
+                <span className={styles.attentionCustomer}>{order.customerName}</span>
+                <span className={styles.attentionDetails}>Left a comment on their order — tap to read</span>
+              </div>
+              <div className={styles.attentionMeta}>
+                <Badge variant="gold"><FaRegCommentDots /> New Comment</Badge>
               </div>
             </button>
           ))}

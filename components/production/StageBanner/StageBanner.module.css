@@ -1,0 +1,48 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sf-space-md) 0;
+  margin-bottom: var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--sf-radius-full);
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  line-height: 32px;
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+}
+
+/* "Documented Phase" at 24px serif + count chip is tight on small
+   phones — step the title down before letting anything wrap. */
+@media (max-width: 420px) {
+  .title {
+    font-size: var(--sf-text-xl);
+  }
+}
+
+.countChip {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-surface-hover);
+  padding: 4px 12px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+}

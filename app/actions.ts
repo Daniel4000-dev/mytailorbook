@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -25,7 +25,12 @@ function orderFromRow(row: any): Order {
     assignedToName: row.assigned_to_name || undefined,
     dueDate: row.due_date || undefined,
     priority: row.priority,
+    measurements: row.measurements || undefined,
     images: row.images || [],
+    inspirationImages: row.inspiration_images || [],
+    batchId: row.batch_id || undefined,
+    lastCommentAt: row.last_comment_at || undefined,
+    commentsSeenAt: row.comments_seen_at || undefined,
     statusHistory: row.status_history || [],
     payments: row.payments || [],
     createdAt: row.created_at,
@@ -46,10 +51,25 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.assignedToName !== undefined) row.assigned_to_name = o.assignedToName || null;
   if (o.dueDate !== undefined) row.due_date = o.dueDate || null;
   if (o.priority !== undefined) row.priority = o.priority;
+  if (o.measurements !== undefined) row.measurements = o.measurements;
   if (o.images !== undefined) row.images = o.images;
+  if (o.inspirationImages !== undefined) row.inspiration_images = o.inspirationImages;
+  if (o.batchId !== undefined) row.batch_id = o.batchId || null;
+  if (o.commentsSeenAt !== undefined) row.comments_seen_at = o.commentsSeenAt || null;
   if (o.statusHistory !== undefined) row.status_history = o.statusHistory;
   if (o.payments !== undefined) row.payments = o.payments;
   return row;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function orderCommentFromRow(row: any): OrderComment {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    message: row.message,
+    stage: row.stage,
+    createdAt: row.created_at,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,7 +80,9 @@ function customerFromRow(row: any): Customer {
     fullName: row.full_name,
     whatsappNumber: row.whatsapp_number,
     gender: row.gender,
+    preferredStyles: row.preferred_styles || undefined,
     measurements: row.measurements || undefined,
+    styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
     createdAt: row.created_at,
   };
 }
@@ -151,6 +173,25 @@ export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | '
   return getOrders(shopId);
 }
 
+/**
+ * Creates several orders in one intake session — e.g. a customer dropping
+ * off multiple garments at once. Each garment becomes its own independent
+ * order/kanban card (they move through production at different paces),
+ * but all rows share a generated batchId so the UI can show "N items from
+ * this visit" without merging their statuses together.
+ */
+export async function addOrderBatchAction(
+  shopId: string,
+  garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]
+) {
+  const supabase = await createClient();
+  const batchId = garments.length > 1 ? crypto.randomUUID() : undefined;
+  const rows = garments.map((garment) => orderToRow(shopId, { ...garment, batchId }));
+  const { error } = await supabase.from('orders').insert(rows);
+  if (error) throw new Error(error.message);
+  return getOrders(shopId);
+}
+
 export async function updateOrderStatusAction(
   orderId: string,
   newStatus: OrderStatus,
@@ -191,6 +232,29 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
   return getOrders(shopId);
 }
 
+/** Sibling orders created in the same multi-garment intake session. */
+export async function getBatchOrdersAction(batchId: string, excludeOrderId: string): Promise<Order[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('batch_id', batchId)
+    .neq('id', excludeOrderId);
+  if (error) throw new Error(error.message);
+  return (data || []).map(orderFromRow);
+}
+
+export async function getOrderCommentsAction(orderId: string): Promise<OrderComment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_comments')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(orderCommentFromRow);
+}
+
 // ----------------------------------------------------------------------
 // Customers
 // ----------------------------------------------------------------------
@@ -204,6 +268,7 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
       full_name: customer.fullName,
       whatsapp_number: customer.whatsappNumber,
       gender: customer.gender,
+      preferred_styles: customer.preferredStyles || [],
       measurements: customer.measurements || null,
     })
     .select()
@@ -217,6 +282,62 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
 export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, shopId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
+  if (error) throw new Error(error.message);
+  return getCustomers(shopId);
+}
+
+export async function updateCustomerStyleProfileAction(
+  customerId: string,
+  styleName: string,
+  measurements: Measurements,
+  shopId: string
+) {
+  const supabase = await createClient();
+  const { data: current, error: fetchError } = await supabase
+    .from('customers')
+    .select('style_measurements')
+    .eq('id', customerId)
+    .single();
+  if (fetchError) throw new Error(fetchError.message);
+
+  const existing = (current?.style_measurements as Record<string, unknown>) || {};
+  const updated = {
+    ...existing,
+    [styleName]: { measurements, updatedAt: new Date().toISOString() },
+  };
+  const { error } = await supabase.from('customers').update({ style_measurements: updated }).eq('id', customerId);
+  if (error) throw new Error(error.message);
+  return getCustomers(shopId);
+}
+
+export async function deleteCustomerStyleProfileAction(customerId: string, styleName: string, shopId: string) {
+  const supabase = await createClient();
+  const { data: current, error: fetchError } = await supabase
+    .from('customers')
+    .select('style_measurements')
+    .eq('id', customerId)
+    .single();
+  if (fetchError) throw new Error(fetchError.message);
+
+  const existing = { ...((current?.style_measurements as Record<string, unknown>) || {}) };
+  delete existing[styleName];
+  const { error } = await supabase.from('customers').update({ style_measurements: existing }).eq('id', customerId);
+  if (error) throw new Error(error.message);
+  return getCustomers(shopId);
+}
+
+export async function updateCustomerProfileAction(
+  customerId: string,
+  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles'>>,
+  shopId: string
+) {
+  const supabase = await createClient();
+  const row: Record<string, unknown> = {};
+  if (updates.fullName !== undefined) row.full_name = updates.fullName;
+  if (updates.whatsappNumber !== undefined) row.whatsapp_number = updates.whatsappNumber;
+  if (updates.gender !== undefined) row.gender = updates.gender;
+  if (updates.preferredStyles !== undefined) row.preferred_styles = updates.preferredStyles;
+  const { error } = await supabase.from('customers').update(row).eq('id', customerId);
   if (error) throw new Error(error.message);
   return getCustomers(shopId);
 }

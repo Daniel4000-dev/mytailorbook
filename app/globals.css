@@ -8,9 +8,11 @@
 @import '../styles/tokens.css';
 
 :root {
-  --font-outfit: 'Outfit', sans-serif;
-  --font-inter: 'Inter', sans-serif;
-  --font-cinzel: 'Cinzel', Georgia, serif;
+  /* Legacy aliases — screens not yet rebuilt for the new design still
+     reference these; they now resolve to the current families. */
+  --font-outfit: 'Hanken Grotesk', sans-serif;
+  --font-inter: 'Hanken Grotesk', sans-serif;
+  --font-cinzel: 'Libre Caslon Text', Georgia, serif;
 }
 
 /* ── Reset ─────────────────────────────────────────────────── */

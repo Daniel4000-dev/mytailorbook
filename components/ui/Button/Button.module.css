@@ -20,9 +20,22 @@
 }
 
 .button:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Disabled primary reads as a solid "not yet" gray, not a washed-out
+   ghost — the button stays visibly present so the user knows a next
+   action exists, it just isn't ready. */
+.primary:disabled {
+  background: var(--sf-border);
+  color: #A2937E;
+}
+
+.secondary:disabled,
+.ghost:disabled,
+.danger:disabled {
+  opacity: 0.5;
 }
 
 /* Sizes */
@@ -41,16 +54,23 @@
 }
 
 .lg {
-  height: 52px;
+  height: 56px;
   padding: 0 var(--sf-space-xl);
   font-size: var(--sf-text-lg);
   border-radius: var(--sf-radius-lg);
 }
 
 /* Variants */
+/* One flat, unmistakable CTA treatment app-wide: burnt saffron — the
+   app's single accent. Nothing else on screen carries this hue, so the
+   eye instantly finds "the" action. */
 .primary {
-  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
+  background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--sf-accent-emerald-dark);
 }
 
 .secondary {

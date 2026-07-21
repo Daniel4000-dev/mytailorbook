@@ -22,11 +22,8 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes pulseMesh {
-  0% { transform: scale(1) translate(0, 0); opacity: 0.8; }
-  50% { transform: scale(1.1) translate(2%, -2%); opacity: 1; }
-  100% { transform: scale(1) translate(0, 0); opacity: 0.8; }
-}
+/* pulseMesh animation retired: surfaces stay still so the sidebar
+   transition remains the app's one signature motion. */
 
 /* ── Bento Grid ── */
 .bentoGrid {
@@ -61,21 +58,19 @@
 }
 
 /* ── Hero / Balance Card (Hero Bento) ── */
+/* White card like every other surface (mockup grammar); the violet
+   radial glow below is the only flourish. */
 .heroBento {
-  background: #ffffff;
-  color: var(--sf-text-primary);
-  /* Mesh gradient background effect */
+  background: var(--sf-ink);
+  color: var(--sf-ink-text);
 }
 
 .heroBento::before {
   content: '';
   position: absolute;
   top: -50%; left: -50%; width: 200%; height: 200%;
-  background: radial-gradient(circle at 50% 0%, var(--sf-accent-emerald-soft) 0%, transparent 40%),
-              radial-gradient(circle at 80% 100%, var(--sf-accent-gold-soft) 0%, transparent 40%);
-  opacity: 0.5;
+  background: radial-gradient(circle at 85% 10%, var(--sf-accent-emerald-glow) 0%, transparent 45%);
   pointer-events: none;
-  animation: pulseMesh 15s ease-in-out infinite;
 }
 
 .heroContent {
@@ -88,14 +83,14 @@
 
 .heroGreeting {
   font-size: var(--sf-text-sm);
-  color: var(--sf-text-secondary);
+  color: var(--sf-ink-text-muted);
   font-weight: 600;
   letter-spacing: -0.2px;
 }
 
 .heroBalanceLabel {
   font-size: var(--sf-text-sm);
-  color: var(--sf-text-tertiary);
+  color: var(--sf-ink-text-muted);
   margin-top: var(--sf-space-md);
   font-weight: 500;
 }
@@ -106,15 +101,13 @@
   line-height: 1;
   font-weight: 800;
   letter-spacing: -1.5px;
-  background: linear-gradient(135deg, var(--sf-text-primary) 0%, #4a5568 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--sf-ink-text);
   margin-bottom: var(--sf-space-xs);
 }
 
 /* ── Dynamic Island Alert ── */
 .dynamicIsland {
-  background: #111111;
+  background: var(--sf-nav);
   border-radius: 999px;
   padding: 12px 20px;
   display: flex;
@@ -325,6 +318,16 @@
   pointer-events: none;
 }
 
+/* Money reads at a glance by color alone: green = received,
+   violet = still out there to collect. */
+.collectedCard .cardValue {
+  color: var(--sf-success);
+}
+
+.projectedCard .cardValue {
+  color: var(--sf-text-gold);
+}
+
 .alertCard {
   border-color: rgba(220, 38, 38, 0.2);
 }
@@ -342,11 +345,11 @@
 }
 
 .dueCard .cardLabel {
-  color: #D97706;
+  color: var(--sf-text-gold);
 }
 
 .dueCard .cardValue {
-  color: #D97706;
+  color: var(--sf-text-gold);
 }
 
 .sectionHeader {

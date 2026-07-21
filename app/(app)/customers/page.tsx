@@ -85,7 +85,15 @@ export default function CustomersPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <EmptyState icon={<FaUserSlash />} title="No customers found" description="Try a different search term" />
+          customers.length === 0 ? (
+            <EmptyState
+              icon={<FaUserSlash />}
+              title="No customers yet"
+              description="Your customer book starts with your first order — create one and the customer is saved here automatically."
+            />
+          ) : (
+            <EmptyState icon={<FaUserSlash />} title="No customers found" description="Try a different search term" />
+          )
         ) : (
           <>
             {/* Mobile View */}

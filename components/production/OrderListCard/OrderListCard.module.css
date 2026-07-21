@@ -1,0 +1,280 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--sf-sand);
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border-light);
+  box-shadow: var(--sf-shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--sf-transition-fast);
+  animation: cardIn 0.35s ease both;
+}
+
+.card:hover {
+  box-shadow: var(--sf-shadow-md);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { animation: none; }
+}
+
+/* ── Photo area ─────────────────────────────────────────────── */
+.photoArea {
+  position: relative;
+  width: 100%;
+  height: 176px;
+  background: var(--sf-surface-container-high);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoFallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--sf-text-tertiary);
+}
+
+.photoFallback span {
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+}
+
+/* Glassmorphic status pill floating on the photo */
+.glassStatus {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-text-primary);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-accent-emerald);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusDot { animation: none; }
+}
+
+.unreadBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sf-shadow-sm);
+}
+
+/* ── Content ────────────────────────────────────────────────── */
+.content {
+  padding: var(--sf-space-md);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sf-space-sm);
+}
+
+.titleCol {
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-lg);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dueQuiet {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+.dueUrgent {
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-bold);
+}
+
+.customerAvatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-container-high);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Meta row: customer + ref + assignee */
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-md);
+  padding-top: 12px;
+  border-top: 1px solid var(--sf-border-light);
+  min-width: 0;
+}
+
+.customer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.personIcon {
+  color: var(--sf-text-tertiary);
+}
+
+.metaRight {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  flex-shrink: 0;
+}
+
+.orderRef {
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-tertiary);
+  white-space: nowrap;
+}
+
+.assignee {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 90px;
+}
+
+.assigneeName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.reassignSelect {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* ── Move actions ───────────────────────────────────────────── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px var(--sf-space-md);
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.moveBackBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+  transition: color var(--sf-transition-fast);
+  padding: 6px 4px;
+}
+
+.moveBackBtn:hover {
+  color: var(--sf-accent-emerald);
+}
+
+.moveNextBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  box-shadow: var(--sf-shadow-sm);
+  transition: background-color var(--sf-transition-fast);
+}
+
+.moveNextBtn:hover {
+  background: var(--sf-accent-emerald-light);
+}

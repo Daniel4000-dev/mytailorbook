@@ -9,7 +9,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
-import { FaBars, FaUserPlus, FaUsers, FaArrowRight, FaGear, FaPen, FaUserSlash, FaUserCheck, FaStore } from 'react-icons/fa6';
+import { FaBars, FaUserPlus, FaUsers, FaPen, FaUserSlash, FaUserCheck, FaStore } from 'react-icons/fa6';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { formatPhone } from '@/lib/formatters';
 import SettingsSkeleton from './SettingsSkeleton';
@@ -17,7 +17,7 @@ import styles from './page.module.css';
 
 export default function SettingsPage() {
   const { user, isOwner } = useAuth();
-  const { staffMembers, addStaff, updateStaff, currentShop, updateShop, isLoaded } = useData();
+  const { staffMembers, addStaff, updateStaff, currentShop, updateShop, isLoaded, getOrdersByStaff } = useData();
   const { toggleMenu } = useSidebar();
   const { showToast } = useToast();
 
@@ -219,6 +219,7 @@ export default function SettingsPage() {
               {staffMembers.map((staff) => {
                 const isActive = staff.active !== false;
                 const isEditing = editingUid === staff.uid;
+                const activeOrderCount = getOrdersByStaff(staff.uid).filter((o) => o.status !== 'Completed').length;
                 return (
                   <div key={staff.uid} className={`${styles.staffItem} ${!isActive ? styles.staffItemInactive : ''}`}>
                     <div className={styles.avatarCircle}>
@@ -240,6 +241,11 @@ export default function SettingsPage() {
                             {!isActive && <span className={styles.inactiveBadge}>Inactive</span>}
                           </span>
                           <span className={styles.staffRole}>{staff.role} ({staff.email})</span>
+                          {staff.role === 'Staff' && isActive && (
+                            <span className={styles.staffOrderCount}>
+                              {activeOrderCount} active order{activeOrderCount === 1 ? '' : 's'}
+                            </span>
+                          )}
                         </div>
                         {staff.role === 'Staff' && (
                           <div className={styles.staffActions}>

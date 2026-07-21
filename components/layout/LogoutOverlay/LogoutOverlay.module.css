@@ -15,7 +15,7 @@
   height: 32px;
   border-radius: 50%;
   border: 3px solid var(--sf-border-light);
-  border-top-color: var(--sf-accent-emerald, #7A6952);
+  border-top-color: var(--sf-accent-emerald);
   animation: spin 0.7s linear infinite;
 }
 

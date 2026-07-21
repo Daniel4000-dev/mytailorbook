@@ -1,0 +1,93 @@
+.guide {
+  position: relative;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  box-shadow: var(--sf-shadow-sm);
+  padding: var(--sf-space-sm);
+  display: flex;
+  justify-content: center;
+}
+
+.svg {
+  width: 100%;
+  max-width: 230px;
+  height: auto;
+}
+
+.silhouette path {
+  fill: var(--sf-accent-emerald-glow);
+  stroke: var(--sf-accent-emerald-light);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.marker {
+  cursor: pointer;
+}
+
+.markerCircle {
+  fill: var(--sf-bg-surface);
+  stroke: var(--sf-border);
+  stroke-width: 1.5;
+}
+
+.markerNum {
+  font-family: var(--sf-font-body);
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--sf-text-secondary);
+  user-select: none;
+}
+
+.markerDone .markerCircle {
+  fill: var(--sf-surface-container-highest);
+  stroke: var(--sf-accent-emerald-light);
+}
+
+.markerDone .markerNum {
+  fill: var(--sf-accent-emerald);
+}
+
+.markerActive .markerCircle {
+  fill: var(--sf-accent-emerald);
+  stroke: var(--sf-accent-emerald);
+}
+
+.markerActive .markerNum {
+  fill: var(--sf-text-on-accent);
+}
+
+.pulseRing {
+  fill: none;
+  stroke: var(--sf-accent-emerald);
+  stroke-width: 1.5;
+  opacity: 0.5;
+  animation: guidePulse 1.6s ease-out infinite;
+  transform-origin: center;
+}
+
+@keyframes guidePulse {
+  0% { opacity: 0.55; }
+  70% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulseRing { animation: none; opacity: 0.35; }
+}
+
+.badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 10px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-variant);
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+}

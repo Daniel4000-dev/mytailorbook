@@ -82,19 +82,22 @@
   gap: 16px;
   background: none;
   border: none;
-  padding: 8px 0;
-  color: #28190B;
+  padding: 10px 14px;
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-text-primary);
   font-family: var(--sf-font-body), sans-serif;
   font-size: 17px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), background-color var(--sf-transition-fast), color var(--sf-transition-fast);
   transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
   width: max-content;
 }
 
 .menuItem:hover {
-  color: #7A6952;
+  color: var(--sf-accent-emerald);
+  background: var(--sf-bg-surface-hover);
   transform: translateX(4px);
 }
 
@@ -106,17 +109,28 @@
 .menuItem.active {
   color: var(--sf-accent-emerald);
   font-weight: 600;
+  background: var(--sf-secondary-container);
+  animation: navPillIn 260ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes navPillIn {
+  from { transform: scale(0.94); opacity: 0.6; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menuItem.active { animation: none; }
 }
 
 .menuIcon {
   font-size: 20px;
-  color: #28190B;
+  color: var(--sf-text-primary);
   flex-shrink: 0;
   transition: color var(--sf-transition-fast);
 }
 
 .menuItem:hover .menuIcon {
-  color: #7A6952;
+  color: var(--sf-text-secondary);
 }
 
 .menuItem.active .menuIcon {
@@ -140,7 +154,7 @@
   background: none;
   border: none;
   padding: 8px 0;
-  color: #28190B;
+  color: var(--sf-text-primary);
   font-family: var(--sf-font-body), sans-serif;
   font-size: 17px;
   font-weight: 500;
@@ -151,18 +165,18 @@
 }
 
 .settingsBtn:hover {
-  color: #7A6952;
+  color: var(--sf-text-secondary);
   transform: translateX(4px);
 }
 
 .settingsIcon {
   font-size: 20px;
-  color: #28190B;
+  color: var(--sf-text-primary);
   transition: color var(--sf-transition-fast);
 }
 
 .settingsBtn:hover .settingsIcon {
-  color: #7A6952;
+  color: var(--sf-text-secondary);
 }
 
 .logoutBtn {
@@ -172,7 +186,7 @@
   background: none;
   border: none;
   padding: 8px 0;
-  color: #28190B;
+  color: var(--sf-text-primary);
   font-family: var(--sf-font-body), sans-serif;
   font-size: 17px;
   font-weight: 500;
@@ -193,7 +207,7 @@
 
 .logoutIcon {
   font-size: 20px;
-  color: #28190B;
+  color: var(--sf-text-primary);
   transition: color var(--sf-transition-fast);
 }
 
@@ -242,7 +256,7 @@
     font-family: var(--font-cinzel), Georgia, serif;
     font-size: 14px;
     font-weight: 700;
-    color: #7A6952;
+    color: var(--sf-text-secondary);
     letter-spacing: 1px;
     white-space: nowrap;
     max-width: 200px;

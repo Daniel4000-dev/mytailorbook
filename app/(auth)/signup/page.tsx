@@ -64,7 +64,7 @@ export default function SignupPage() {
     return (
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
-          <img src="/images/sewing-machine.svg" alt="Sewing Machine" className={styles.sewingMachineSvg} />
+          <img src="/images/logo-mark.png" alt="MyTailorBook" className={styles.sewingMachineSvg} />
         </div>
         <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
         <div className={styles.successWrapper}>
@@ -92,8 +92,8 @@ export default function SignupPage() {
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
         <img
-          src="/images/sewing-machine.svg"
-          alt="Sewing Machine"
+          src="/images/logo-mark.png"
+          alt="MyTailorBook"
           className={styles.sewingMachineSvg}
         />
       </div>

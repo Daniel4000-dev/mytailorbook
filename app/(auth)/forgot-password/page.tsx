@@ -33,8 +33,8 @@ export default function ForgotPasswordPage() {
         {/* Sewing Machine Logo */}
         <div className={styles.logoWrapper}>
           <img
-            src="/images/sewing-machine.svg"
-            alt="Sewing Machine"
+            src="/images/logo-mark.png"
+            alt="MyTailorBook"
             className={styles.sewingMachineSvg}
           />
         </div>
@@ -67,8 +67,8 @@ export default function ForgotPasswordPage() {
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
         <img
-          src="/images/sewing-machine.svg"
-          alt="Sewing Machine"
+          src="/images/logo-mark.png"
+          alt="MyTailorBook"
           className={styles.sewingMachineSvg}
         />
       </div>

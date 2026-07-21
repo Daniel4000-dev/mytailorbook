@@ -7,7 +7,7 @@
   max-width: var(--sf-max-width-desktop);
   margin: 0 auto;
   height: 100dvh;
-  background-color: #FAF2E8; /* Soft beige page background from mockup for mobile menu */
+  background-color: var(--sf-bg-primary); /* Soft beige page background from mockup for mobile menu */
   overflow: hidden;
 }
 
@@ -19,7 +19,7 @@
   height: 100dvh;
   max-width: var(--sf-max-width-desktop);
   margin: 0 auto;
-  background-color: #E2D7C7; /* Offset stacked card background */
+  background-color: #E9E8F0; /* Offset stacked card background */
   border-radius: 0;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   transform: none;
@@ -93,17 +93,17 @@
   min-height: 100%;
   width: 100%;
   will-change: transform, opacity;
-  animation: pageEnter 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageEnter 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes pageEnter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(14px) scale(0.992);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -113,36 +113,83 @@
   }
 }
 
-/* ── FAB Action Menu ── */
+/* ── FAB Action Menu (per new-order mockup) ── */
 .actionMenu {
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-md);
-  padding: var(--sf-space-md) 0 var(--sf-space-lg);
+  padding-bottom: var(--sf-space-sm);
 }
 
-.actionMenuItem {
+.actionMenuHint {
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-base);
+  margin-bottom: var(--sf-space-xs);
+}
+
+.actionOption {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+  width: 100%;
+  min-height: 80px;
+  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  text-align: left;
+  transition: background-color var(--sf-transition-fast);
+}
+
+.actionOption:hover {
+  background: var(--sf-surface-container-high);
+}
+
+.actionOptionIcon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-secondary-container);
+  color: var(--sf-accent-emerald);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--sf-space-lg);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-primary);
-  text-decoration: none;
-  transition: all var(--sf-transition-fast);
-  box-shadow: var(--sf-shadow-xs);
-  width: 100%;
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
 }
 
-.actionMenuItem:hover {
-  background: var(--sf-bg-surface-hover);
-  border-color: var(--sf-border-focus);
-  color: var(--sf-accent-emerald);
+.actionOption:hover .actionOptionIcon {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+}
+
+.actionOptionText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actionOptionTitle {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  line-height: 20px;
+  color: var(--sf-text-primary);
+}
+
+.actionOptionDesc {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+}
+
+.actionOptionChevron {
+  color: var(--sf-text-tertiary);
+  transition: color var(--sf-transition-fast);
+}
+
+.actionOption:hover .actionOptionChevron {
+  color: var(--sf-text-primary);
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */

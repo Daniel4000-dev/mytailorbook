@@ -64,7 +64,7 @@ export default function SidebarMenu() {
             ariaLabel="Profile Settings"
           />
           <img
-            src="/images/sewing-machine.svg"
+            src="/images/logo-mark.png"
             alt={shopName}
             className={styles.mobileLogo}
           />
@@ -73,7 +73,7 @@ export default function SidebarMenu() {
         {/* Desktop Branding (Logo & Shop Name) */}
         <div className={styles.desktopBranding}>
           <img
-            src="/images/sewing-machine.svg"
+            src="/images/logo-mark.png"
             alt={shopName}
             className={styles.desktopLogo}
           />
@@ -90,17 +90,31 @@ export default function SidebarMenu() {
         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
 
-      {/* Mobile-only Settings Link */}
-      {isOwner && (
+      {/* Mobile-only Settings + Portfolio Links */}
+      {(isOwner || currentShop) && (
         <div className={styles.mobileOnlyNav}>
-          <Link 
-            href="/settings"
-            className={styles.menuItem} 
-            onClick={() => setMenuOpen(false)}
-          >
-            <FaGear className={styles.menuIcon} />
-            <span className={styles.menuText}>Settings</span>
-          </Link>
+          {isOwner && (
+            <Link
+              href="/settings"
+              className={styles.menuItem}
+              onClick={() => setMenuOpen(false)}
+            >
+              <FaGear className={styles.menuIcon} />
+              <span className={styles.menuText}>Settings</span>
+            </Link>
+          )}
+          {currentShop && (
+            <a
+              href={`/studio/${currentShop.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.menuItem}
+              onClick={() => setMenuOpen(false)}
+            >
+              <FaRegHeart className={styles.menuIcon} />
+              <span className={styles.menuText}>My Portfolio</span>
+            </a>
+          )}
         </div>
       )}
 
@@ -121,6 +135,20 @@ export default function SidebarMenu() {
             </Link>
           );
         })}
+        {/* The tailor's public showcase page — opens in a new tab so they
+            see exactly what a customer sees. */}
+        {currentShop && (
+          <a
+            href={`/studio/${currentShop.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.menuItem}
+            title={isCollapsed ? 'My Portfolio' : undefined}
+          >
+            <FaRegHeart className={styles.menuIcon} />
+            <span className={styles.menuText}>My Portfolio</span>
+          </a>
+        )}
       </nav>
 
       {/* Footer Navigation (Logout only) */}

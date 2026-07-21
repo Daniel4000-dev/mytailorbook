@@ -21,7 +21,7 @@
   align-items: center;
   gap: 10px;
   padding: 13px 14px;
-  background: #28190B;
+  background: var(--sf-nav);
   color: #FFFFFF;
   border-radius: var(--sf-radius-lg);
   box-shadow: var(--sf-shadow-lg);

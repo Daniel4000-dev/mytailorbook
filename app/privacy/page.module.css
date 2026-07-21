@@ -29,7 +29,7 @@
   font-family: var(--font-cinzel), Georgia, serif;
   font-size: 14px;
   font-weight: 700;
-  color: #7A6952;
+  color: var(--sf-text-secondary);
   letter-spacing: 1px;
 }
 
@@ -94,7 +94,7 @@
 }
 
 .content a {
-  color: var(--sf-accent-emerald, #7A6952);
+  color: var(--sf-accent-emerald);
   font-weight: 600;
   text-decoration: underline;
 }

@@ -1,15 +1,18 @@
+/* Labeled M3 bottom bar per mockup: light surface, rounded top corners,
+   active item wrapped in a terracotta pill. */
 .nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: var(--sf-bottom-nav-height);
-  padding-bottom: var(--sf-safe-area-bottom);
   display: flex;
-  align-items: center;
   justify-content: space-around;
-  background: #FFFFFF;
-  border-top: 1px solid var(--sf-border-light);
+  align-items: center;
+  padding: 12px 8px calc(12px + var(--sf-safe-area-bottom));
+  background: var(--sf-bg-primary);
+  border-top: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md) var(--sf-radius-md) 0 0;
+  box-shadow: var(--sf-shadow-lg);
   z-index: var(--sf-z-sticky);
 }
 
@@ -17,55 +20,41 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: var(--sf-space-sm) var(--sf-space-md);
-  color: var(--sf-text-tertiary);
+  justify-content: center;
+  color: var(--sf-text-secondary);
+  opacity: 0.8;
   text-decoration: none;
-  transition: color var(--sf-transition-fast), transform 120ms ease, opacity 120ms ease;
-  position: relative;
+  padding: 4px 16px;
+  border-radius: var(--sf-radius-full);
+  transition: opacity var(--sf-transition-fast), background-color var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
 .item:hover {
-  color: var(--sf-text-secondary);
+  opacity: 1;
 }
 
-.item:active {
-  transform: scale(0.92);
-  opacity: 0.65;
+.item:active .icon {
+  transform: scale(0.9);
 }
 
 .active {
-  color: var(--sf-accent-emerald-light);
+  background: var(--sf-accent-emerald-light);
+  color: var(--sf-text-on-accent);
+  opacity: 1;
 }
 
 .icon {
-  font-size: var(--sf-text-xl);
-  display: flex;
-  align-items: center;
-  transition: transform var(--sf-transition-fast);
-}
-
-.active .icon {
-  transform: scale(1.1);
+  margin-bottom: 4px;
+  transition: transform 150ms ease;
 }
 
 .label {
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-medium);
-  letter-spacing: 0.3px;
-}
-
-.indicator {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 2px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald);
-  box-shadow: 0 0 8px rgba(0, 121, 107, 0.5);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-xs);
+  line-height: 16px;
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */

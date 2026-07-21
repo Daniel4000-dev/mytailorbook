@@ -2,16 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaHouse, FaTableColumns, FaUsers, FaGear } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { NAV_ITEMS } from '@/lib/constants';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './BottomNav.module.css';
 
-const ICON_MAP: Record<string, React.ReactNode> = {
-  FaHouse: <FaHouse />,
-  FaTableColumns: <FaTableColumns />,
-  FaUsers: <FaUsers />,
-  FaGear: <FaGear />,
+/** NAV_ITEMS icon keys → Material Symbols names (new design icon set). */
+const SYMBOL_MAP: Record<string, string> = {
+  FaHouse: 'dashboard',
+  FaTableColumns: 'precision_manufacturing',
+  FaUsers: 'group',
+  FaGear: 'settings',
 };
 
 export default function BottomNav() {
@@ -30,9 +31,8 @@ export default function BottomNav() {
             href={item.href}
             className={`${styles.item} ${isActive ? styles.active : ''}`}
           >
-            <span className={styles.icon}>{ICON_MAP[item.icon]}</span>
+            <Symbol name={SYMBOL_MAP[item.icon] || 'circle'} fill={isActive} size={24} className={styles.icon} />
             <span className={styles.label}>{item.label}</span>
-            {isActive && <span className={styles.indicator} />}
           </Link>
         );
       })}

@@ -1,0 +1,109 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.importRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-sm);
+}
+
+.importBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-variant);
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  transition: background-color var(--sf-transition-fast);
+}
+
+.importBtn:hover {
+  background: var(--sf-surface-container-highest);
+}
+
+.measureList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.measureCard {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border-light);
+  border-left: 4px solid transparent;
+  padding: var(--sf-space-md);
+  box-shadow: var(--sf-shadow-sm);
+  transition: border-color var(--sf-transition-fast);
+}
+
+.measureCardActive {
+  border-left-color: var(--sf-accent-emerald);
+}
+
+.measureMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.measureLabel {
+  display: block;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-secondary);
+}
+
+.measureCardActive .measureLabel {
+  color: var(--sf-accent-emerald);
+}
+
+.measureHint {
+  display: block;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin: 2px 0 6px;
+}
+
+.measureInput {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--sf-border);
+  background: transparent;
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  color: var(--sf-text-primary);
+  padding: 2px 0 4px;
+  transition: border-color var(--sf-transition-fast);
+}
+
+.measureInput::placeholder {
+  color: var(--sf-border);
+}
+
+.measureInput:focus {
+  outline: none;
+  border-bottom-color: var(--sf-accent-emerald);
+}
+
+.unitTag {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  margin-bottom: 4px;
+}

@@ -4,8 +4,9 @@
   right: var(--sf-space-md);
   width: var(--sf-fab-size);
   height: var(--sf-fab-size);
-  border-radius: var(--sf-radius-full);
-  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
+  /* Squared-off M3 FAB per mockup: rounded-2xl, terracotta. */
+  border-radius: var(--sf-radius-xl);
+  background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
   font-size: var(--sf-text-xl);
   display: flex;
@@ -13,15 +14,17 @@
   justify-content: center;
   border: none;
   cursor: pointer;
-  z-index: var(--sf-z-fab);
+  /* Above page content, but underneath any open sheet/modal overlay */
+  z-index: calc(var(--sf-z-sheet) - 1);
   box-shadow: var(--sf-shadow-emerald), var(--sf-shadow-lg);
   transition: all var(--sf-transition-normal);
   -webkit-tap-highlight-color: transparent;
 }
 
 .fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 30px rgba(0, 121, 107, 0.5), var(--sf-shadow-xl);
+  transform: scale(1.05);
+  background: var(--sf-accent-emerald-light);
+  box-shadow: var(--sf-shadow-xl);
 }
 
 .fab:active {

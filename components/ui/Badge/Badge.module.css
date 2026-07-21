@@ -33,6 +33,11 @@
 
 /* ── Variants ───────────────────────────────────────────── */
 
+.documented {
+  background: var(--sf-stage-documented-bg);
+  color: var(--sf-stage-documented);
+}
+
 .cutting {
   background: var(--sf-stage-cutting-bg);
   color: var(--sf-stage-cutting);

@@ -2,62 +2,91 @@
    MyTailorBook Design Tokens
    ============================================================
    Single source of truth for the entire design system.
+   Layout/typography from the productionboard.html mockup (serif
+   Libre Caslon Text display + Hanken Grotesk body); color follows
+   the TWO-COLOR RULE below, not the mockup's multi-hue palette.
    Change any value here → it propagates everywhere.
    ============================================================ */
 
 :root {
+  /* ── Two-color system ────────────────────────────────── */
+  /* Rule: ONE accent — Adire indigo #4338CA (the dye of Nigerian
+     cloth). The canvas is a tint of it so light it can be mistaken for
+     white (#F8F8FE); cards are pure white on top. Every "lighter" need
+     is an opacity/lightness variant of the same indigo. Text/borders
+     are true neutral grays — never a third hue. */
+
   /* ── Colors: Backgrounds ─────────────────────────────── */
-  /* Warm cream canvas (same tone as the auth screens) with white cards lifted on top. */
-  --sf-bg-primary: #FAF2E8;
+  --sf-bg-primary: #F8F8FE;
   --sf-bg-surface: #FFFFFF;
   --sf-bg-surface-elevated: #FFFFFF;
-  --sf-bg-surface-hover: #FDF9F3;
+  --sf-bg-surface-hover: rgba(67, 56, 202, 0.05);
   --sf-bg-input: #FFFFFF;
-  --sf-bg-overlay: rgba(0, 0, 0, 0.3);
+  --sf-bg-overlay: rgba(27, 27, 34, 0.35);
+  --sf-surface-container-high: rgba(67, 56, 202, 0.08);
+  --sf-surface-container-highest: rgba(67, 56, 202, 0.10);
+  --sf-surface-variant: rgba(67, 56, 202, 0.08);
+  --sf-sand: rgba(67, 56, 202, 0.045);        /* order-card ground */
 
-  /* ── Colors: Brand ───────────────────────────────────── */
-  --sf-accent-emerald: #7A6952;
-  --sf-accent-emerald-dark: #28190B;
-  --sf-accent-emerald-light: #AD9C85;
-  --sf-accent-emerald-glow: rgba(122, 105, 82, 0.12);
-  --sf-accent-gold: #F59E0B;
-  --sf-accent-gold-soft: rgba(245, 158, 11, 0.1);
-  --sf-accent-gold-glow: rgba(245, 158, 11, 0.2);
+  /* ── Colors: Ink surfaces (legacy aliases) ───────────── */
+  --sf-ink: #FFFFFF;
+  --sf-ink-soft: rgba(67, 56, 202, 0.05);
+  --sf-ink-text: #1B1B22;
+  --sf-ink-text-muted: rgba(27, 27, 34, 0.55);
+  --sf-nav: #23232B;                           /* dark chrome (toasts) */
+  --sf-nav-icon: rgba(255, 255, 255, 0.7);
 
-  /* ── Colors: Text ────────────────────────────────────── */
-  --sf-text-primary: #28190B;
-  --sf-text-secondary: #7A6952;
-  --sf-text-tertiary: #C2B5A3;
+  /* ── Colors: Brand (the ONE accent) ──────────────────── */
+  --sf-accent-emerald: #4338CA;
+  --sf-accent-emerald-dark: #312E81;
+  --sf-accent-emerald-light: #6366F1;
+  --sf-accent-emerald-glow: rgba(67, 56, 202, 0.10);
+  --sf-accent-gold: #4338CA;
+  --sf-accent-gold-soft: rgba(67, 56, 202, 0.10);
+  --sf-accent-gold-glow: rgba(67, 56, 202, 0.20);
+
+  /* Legacy supporting-hue names — all collapse into the accent family */
+  --sf-secondary: #4338CA;
+  --sf-secondary-container: rgba(67, 56, 202, 0.12);
+  --sf-on-secondary-container: #4338CA;
+  --sf-amber: #6366F1;
+  --sf-ochre: #4338CA;
+
+  /* ── Colors: Text (warm neutral grays) ───────────────── */
+  --sf-text-primary: #1B1B22;
+  --sf-text-secondary: #585866;
+  --sf-text-tertiary: #8A8A99;
   --sf-text-on-accent: #FFFFFF;
-  --sf-text-gold: #D97706;
+  --sf-text-gold: #4338CA;
 
-  /* ── Colors: Borders ─────────────────────────────────── */
-  --sf-border: #E2D7C7;
-  --sf-border-light: #FAF4EB;
-  --sf-border-focus: #7A6952;
+  /* ── Colors: Borders (accent tints) ──────────────────── */
+  --sf-border: rgba(67, 56, 202, 0.16);
+  --sf-border-light: rgba(67, 56, 202, 0.09);
+  --sf-border-focus: #4338CA;
 
-  /* ── Colors: Semantic ────────────────────────────────── */
-  --sf-error: #EF4444;
-  --sf-error-bg: rgba(239, 68, 68, 0.1);
-  --sf-success: #10B981;
-  --sf-success-bg: rgba(16, 185, 129, 0.1);
-  --sf-warning: #F59E0B;
-  --sf-warning-bg: rgba(245, 158, 11, 0.1);
-  --sf-info: #3B82F6;
-  --sf-info-bg: rgba(59, 130, 246, 0.1);
+  /* ── Colors: Semantic (accent-only signaling) ────────── */
+  /* Urgency/success read through weight and fill, not extra hues. */
+  --sf-error: #4338CA;
+  --sf-error-bg: rgba(67, 56, 202, 0.12);
+  --sf-success: #4338CA;
+  --sf-success-bg: rgba(67, 56, 202, 0.10);
+  --sf-warning: #4338CA;
+  --sf-warning-bg: rgba(67, 56, 202, 0.10);
+  --sf-info: #4338CA;
+  --sf-info-bg: rgba(67, 56, 202, 0.10);
 
-  /* ── Colors: Kanban Stages (Monochromatic / Premium) ─── */
-  /* ── Colors: Kanban Stages (Monochromatic / Premium) ─── */
-  --sf-stage-documented: #AD9C85;
-  --sf-stage-documented-bg: #FDF9F3;
-  --sf-stage-cutting: #E2D7C7;
-  --sf-stage-cutting-bg: #FAF6F0;
-  --sf-stage-sewing: #E2D7C7;
-  --sf-stage-sewing-bg: #FAF6F0;
-  --sf-stage-ready: #E2D7C7;
-  --sf-stage-ready-bg: #FAF6F0;
-  --sf-stage-completed: #E2D7C7;
-  --sf-stage-completed-bg: #FAF6F0;
+  /* ── Colors: Order Stages (tint ladder of the accent) ── */
+  /* Same hue everywhere; progress = deeper tint. */
+  --sf-stage-documented: #4338CA;
+  --sf-stage-documented-bg: rgba(67, 56, 202, 0.06);
+  --sf-stage-cutting: #4338CA;
+  --sf-stage-cutting-bg: rgba(67, 56, 202, 0.10);
+  --sf-stage-sewing: #4338CA;
+  --sf-stage-sewing-bg: rgba(67, 56, 202, 0.15);
+  --sf-stage-ready: #4338CA;
+  --sf-stage-ready-bg: rgba(67, 56, 202, 0.22);
+  --sf-stage-completed: #4338CA;
+  --sf-stage-completed-bg: rgba(67, 56, 202, 0.08);
 
   /* ── Spacing (4px base unit) ─────────────────────────── */
   --sf-space-2xs: 2px;
@@ -68,10 +97,13 @@
   --sf-space-xl: 32px;
   --sf-space-2xl: 48px;
   --sf-space-3xl: 64px;
+  --sf-margin-mobile: 20px;
+  --sf-margin-desktop: 48px;
+  --sf-touch-target: 48px;
 
   /* ── Typography ──────────────────────────────────────── */
-  --sf-font-heading: var(--font-outfit), 'Outfit', sans-serif;
-  --sf-font-body: var(--font-inter), 'Inter', sans-serif;
+  --sf-font-heading: 'Libre Caslon Text', Georgia, serif;
+  --sf-font-body: 'Hanken Grotesk', -apple-system, sans-serif;
 
   --sf-text-2xs: 0.625rem;   /* 10px */
   --sf-text-xs: 0.75rem;     /* 12px */
@@ -79,11 +111,11 @@
   --sf-text-base: 1rem;      /* 16px */
   --sf-text-lg: 1.125rem;    /* 18px */
   --sf-text-xl: 1.25rem;     /* 20px */
-  --sf-text-2xl: 1.5rem;     /* 24px */
-  --sf-text-3xl: 1.875rem;   /* 30px */
-  --sf-text-4xl: 2.25rem;    /* 36px */
+  --sf-text-2xl: 1.5rem;     /* 24px — headline-lg-mobile */
+  --sf-text-3xl: 2rem;       /* 32px — headline-lg */
+  --sf-text-4xl: 3rem;       /* 48px — display-lg */
 
-  --sf-leading-tight: 1.2;
+  --sf-leading-tight: 1.25;
   --sf-leading-normal: 1.5;
   --sf-leading-relaxed: 1.65;
 
@@ -92,24 +124,26 @@
   --sf-weight-semibold: 600;
   --sf-weight-bold: 700;
 
-  /* ── Border Radius ───────────────────────────────────── */
-  --sf-radius-xs: 6px;
-  --sf-radius-sm: 6px;
-  --sf-radius-md: 6px;
-  --sf-radius-lg: 6px;
-  --sf-radius-xl: 24px;
-  --sf-radius-2xl: 32px;
+  /* label-caps utility: 12/16, +5% tracking, bold, uppercase */
+  --sf-tracking-caps: 0.05em;
+
+  /* ── Border Radius (mockup scale) ────────────────────── */
+  --sf-radius-xs: 4px;
+  --sf-radius-sm: 8px;
+  --sf-radius-md: 12px;
+  --sf-radius-lg: 12px;
+  --sf-radius-xl: 16px;
+  --sf-radius-2xl: 16px;
   --sf-radius-full: 9999px;
 
-  /* ── Shadows (Softer, Apple-like) ────────────────────── */
-  /* ── Shadows (Soft & Clean, like Mockup) ─────────────── */
-  --sf-shadow-xs: 0 2px 4px rgba(15, 23, 42, 0.02);
-  --sf-shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
-  --sf-shadow-md: 0 10px 24px rgba(15, 23, 42, 0.06);
-  --sf-shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.08);
-  --sf-shadow-xl: 0 24px 56px rgba(15, 23, 42, 0.1);
-  --sf-shadow-emerald: 0 8px 32px rgba(59, 107, 136, 0.2);
-  --sf-shadow-gold: 0 8px 32px rgba(245, 158, 11, 0.15);
+  /* ── Shadows ─────────────────────────────────────────── */
+  --sf-shadow-xs: 0 1px 2px rgba(27, 27, 34, 0.05);
+  --sf-shadow-sm: 0 1px 3px rgba(27, 27, 34, 0.08);
+  --sf-shadow-md: 0 4px 10px rgba(27, 27, 34, 0.08);
+  --sf-shadow-lg: 0 10px 25px rgba(27, 27, 34, 0.12);
+  --sf-shadow-xl: 0 20px 40px rgba(27, 27, 34, 0.14);
+  --sf-shadow-emerald: 0 8px 24px rgba(67, 56, 202, 0.25);
+  --sf-shadow-gold: 0 8px 24px rgba(67, 56, 202, 0.18);
 
   /* ── Transitions ─────────────────────────────────────── */
   --sf-transition-fast: 150ms ease;
@@ -131,8 +165,8 @@
   /* ── Layout ──────────────────────────────────────────── */
   --sf-max-width: 480px;
   --sf-max-width-tablet: 768px;
-  --sf-max-width-desktop: 1200px;
-  --sf-bottom-nav-height: 72px;
+  --sf-max-width-desktop: 1280px;   /* mockup max-w-7xl */
+  --sf-bottom-nav-height: 76px;
   --sf-top-bar-height: 56px;
   --sf-fab-size: 56px;
   --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);

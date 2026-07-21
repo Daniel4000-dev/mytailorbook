@@ -1,0 +1,337 @@
+/* New-client wizard (step 2) — layout per the register-client mockup,
+   colors per the two-color rule. Transactional page: its own header,
+   scroll area, and fixed glass action bar. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  padding: 0 var(--sf-margin-mobile);
+  background: var(--sf-bg-primary);
+  flex-shrink: 0;
+}
+
+.backBtn {
+  width: var(--sf-touch-target);
+  height: var(--sf-touch-target);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: var(--sf-text-secondary);
+  transition: transform 120ms ease;
+}
+
+.backBtn:active {
+  transform: scale(0.95);
+}
+
+.headerCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stepLabel {
+  font-size: var(--sf-text-xs);
+  line-height: 16px;
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-secondary);
+}
+
+.headerTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  line-height: 32px;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.headerSpacer {
+  width: var(--sf-touch-target);
+  height: var(--sf-touch-target);
+}
+
+.progressTrack {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--sf-surface-variant);
+}
+
+.progressFill {
+  height: 100%;
+  width: 66.6%;
+  background: var(--sf-accent-emerald);
+  border-radius: 0 var(--sf-radius-full) var(--sf-radius-full) 0;
+  transition: width var(--sf-transition-slow);
+}
+
+/* ── Scroll area ────────────────────────────────────────────── */
+.scroll {
+  flex: 1;
+  padding: var(--sf-space-lg) var(--sf-margin-mobile) 140px;
+}
+
+.formCol {
+  max-width: 448px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+}
+
+.sectionTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  line-height: 32px;
+  color: var(--sf-accent-emerald);
+}
+
+.sectionSub {
+  color: var(--sf-text-secondary);
+  margin-top: 4px;
+}
+
+.errorBanner {
+  background: var(--sf-error-bg);
+  color: var(--sf-error);
+  border-radius: var(--sf-radius-sm);
+  padding: 10px 14px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--sf-border-light);
+}
+
+/* ── Fields ─────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.capsLabel {
+  font-size: var(--sf-text-xs);
+  line-height: 16px;
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-secondary);
+}
+
+.inputWrap {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  height: var(--sf-touch-target);
+  padding: 0 var(--sf-space-md);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.input::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--sf-accent-emerald);
+  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+}
+
+.inputIcon {
+  position: absolute;
+  right: var(--sf-space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sf-text-tertiary);
+  pointer-events: none;
+}
+
+.phoneRow {
+  display: flex;
+  gap: var(--sf-space-sm);
+}
+
+/* Fixed Nigeria prefix — the whole app normalizes to +234, so this is a
+   statement of fact, not a selector. */
+.phonePrefix {
+  display: flex;
+  align-items: center;
+  height: var(--sf-touch-target);
+  padding: 0 14px;
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.phoneInput {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Gender segmented control ───────────────────────────────── */
+.segment {
+  display: flex;
+  height: 56px;
+  padding: 4px;
+  background: var(--sf-surface-variant);
+  border-radius: var(--sf-radius-sm);
+}
+
+.segmentBtn {
+  flex: 1;
+  border-radius: 6px;
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-secondary);
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.segmentBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.segmentBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-semibold);
+  box-shadow: var(--sf-shadow-sm);
+}
+
+/* ── Style chips ────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-sm);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  height: var(--sf-touch-target);
+  padding: 0 20px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-base);
+  transition: background-color var(--sf-transition-fast), transform 120ms ease;
+}
+
+.chip:hover {
+  background: var(--sf-surface-variant);
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+.chipActive {
+  background: var(--sf-secondary-container);
+  border-color: var(--sf-secondary-container);
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.customStyleInput {
+  width: 160px;
+  height: var(--sf-touch-target);
+  border-radius: var(--sf-radius-full);
+}
+
+/* ── Fixed action bar (glass) ───────────────────────────────── */
+.actionBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: var(--sf-space-md) var(--sf-margin-mobile) calc(var(--sf-space-xl) + var(--sf-safe-area-bottom));
+  background: linear-gradient(145deg, rgba(248, 248, 254, 0.75) 0%, rgba(248, 248, 254, 0.4) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: var(--sf-z-sticky);
+}
+
+.actionBarInner {
+  max-width: 448px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.cancelBtn {
+  height: 56px;
+  padding: 0 var(--sf-space-md);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-semibold);
+  transition: color var(--sf-transition-fast);
+}
+
+.cancelBtn:hover {
+  color: var(--sf-accent-emerald);
+}
+
+.createBtn {
+  flex: 1;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  border-radius: var(--sf-radius-md);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-bold);
+  box-shadow: 0 10px 25px var(--sf-accent-gold-glow);
+  transition: transform 120ms ease, background-color var(--sf-transition-fast);
+}
+
+.createBtn:hover:not(:disabled) {
+  background: var(--sf-accent-emerald-light);
+}
+
+.createBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.createBtn:disabled {
+  opacity: 0.6;
+}

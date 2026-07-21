@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link href="/login" className={styles.brand}>
-          <img src="/images/sewing-machine.svg" alt="" className={styles.logo} />
+          <img src="/images/logo-mark.png" alt="" className={styles.logo} />
           <span>{APP_CONFIG.name.toUpperCase()}</span>
         </Link>
       </header>

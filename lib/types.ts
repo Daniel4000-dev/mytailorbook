@@ -17,6 +17,24 @@ export interface Shop {
 
 export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';
 
+/** A garment photo tagged with the production stage it was taken at —
+ *  lets the tracking page show an actual visual story, not one flat gallery. */
+export interface OrderPhoto {
+  url: string;
+  stage: OrderStatus;
+  uploadedAt: string;
+}
+
+/** A customer comment left on the public tracking page, tagged with
+ *  whatever stage the order was in at the moment it was written. */
+export interface OrderComment {
+  id: string;
+  orderId: string;
+  message: string;
+  stage: OrderStatus;
+  createdAt: string;
+}
+
 export type Priority = 'normal' | 'urgent' | 'rush';
 
 export interface User {
@@ -67,13 +85,26 @@ export interface Measurements {
   notes?: string;
 }
 
+/** A saved, named measurement snapshot for one garment style — lets a
+ *  returning client's numbers for that exact style be recalled directly,
+ *  instead of only via scanning their past orders. */
+export interface StyleMeasurementProfile {
+  measurements: Measurements;
+  updatedAt: string;
+}
+
 export interface Customer {
   id: string;
   shopId: string;
   fullName: string;
   whatsappNumber: string;
   gender: 'male' | 'female';
+  /** Styles this client usually commissions (chips in the new-client
+   *  wizard) — e.g. ['Agbada', 'Senator']. */
+  preferredStyles?: string[];
   measurements?: Measurements;
+  /** Keyed by garment style name (matches GARMENT_STYLES / STYLE_MEASUREMENTS). */
+  styleMeasurements?: Record<string, StyleMeasurementProfile>;
   createdAt: string;
 }
 
@@ -107,7 +138,22 @@ export interface Order {
   assignedToName?: string;   // Staff display name
   dueDate?: string;          // ISO date string
   priority: Priority;
-  images?: string[];         // URLs or base64 data URIs
+  /** Snapshot of the measurements this garment was cut to, frozen at
+   *  intake — the customer's live profile may drift afterwards. */
+  measurements?: Measurements;
+  images?: OrderPhoto[];     // garment photos, each tagged with its production stage
+  /** Reference photo(s) the CUSTOMER brought in of what they want made —
+   *  separate from `images`, which shows the tailor's actual progress. */
+  inspirationImages?: string[];
+  /** Shared across every order created in the same multi-garment intake
+   *  session — lets the UI show "N items from this visit" without
+   *  forcing all garments from one drop-off to share a single kanban card. */
+  batchId?: string;
+  /** When the most recent customer comment was left (set by the public
+   *  comment action). Compared against commentsSeenAt for an "unread" badge. */
+  lastCommentAt?: string;
+  /** When someone at the shop last opened this order's detail sheet. */
+  commentsSeenAt?: string;
   payments?: PaymentRecord[];
   statusHistory: StatusChange[];
   createdAt: string;
@@ -117,6 +163,13 @@ export interface Order {
 /** Computed field — not stored, derived at read time */
 export function getBalanceOwed(order: Order): number {
   return order.totalBill - order.depositPaid;
+}
+
+/** True when a customer comment arrived that no one at the shop has opened yet. */
+export function hasUnreadComment(order: Order): boolean {
+  if (!order.lastCommentAt) return false;
+  if (!order.commentsSeenAt) return true;
+  return new Date(order.lastCommentAt) > new Date(order.commentsSeenAt);
 }
 
 /** Check if an order is overdue */

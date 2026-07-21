@@ -15,10 +15,14 @@ import { createStaffAccount } from '@/app/auth-actions';
 import {
   getShopBundle,
   addOrderAction,
+  addOrderBatchAction,
   updateOrderStatusAction,
   updateOrderAction,
   addCustomerAction,
   updateCustomerMeasurementsAction,
+  updateCustomerStyleProfileAction,
+  deleteCustomerStyleProfileAction,
+  updateCustomerProfileAction,
   updateStaffAction,
   updateShopAction,
   getStaff,
@@ -41,10 +45,17 @@ interface DataContextValue {
   currentShop: Shop | null;
   isLoaded: boolean;
   addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<void>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => Promise<void>;
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) => Promise<Customer>;
   updateCustomerMeasurements: (customerId: string, measurements: Measurements) => Promise<void>;
+  updateCustomerStyleProfile: (customerId: string, styleName: string, measurements: Measurements) => Promise<void>;
+  deleteCustomerStyleProfile: (customerId: string, styleName: string) => Promise<void>;
+  updateCustomerProfile: (
+    customerId: string,
+    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles'>>
+  ) => Promise<void>;
   getCustomerOrders: (customerId: string) => Order[];
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
@@ -89,6 +100,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [shopId, mutate]
   );
 
+  const addOrderBatch = useCallback(
+    async (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => {
+      if (!shopId) return;
+      const updated = await addOrderBatchAction(shopId, garments);
+      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
+    },
+    [shopId, mutate]
+  );
+
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
       if (!shopId) return;
@@ -124,6 +144,39 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (customerId: string, measurements: Measurements) => {
       if (!shopId) return;
       const updated = await updateCustomerMeasurementsAction(customerId, measurements, shopId);
+      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+    },
+    [shopId, mutate]
+  );
+
+  const updateCustomerStyleProfile = useCallback(
+    async (customerId: string, styleName: string, measurements: Measurements) => {
+      if (!shopId) return;
+      const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, shopId);
+      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+    },
+    [shopId, mutate]
+  );
+
+  const deleteCustomerStyleProfile = useCallback(
+    async (customerId: string, styleName: string) => {
+      if (!shopId) return;
+      const updated = await deleteCustomerStyleProfileAction(customerId, styleName, shopId);
+      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+    },
+    [shopId, mutate]
+  );
+
+  const updateCustomerProfile = useCallback(
+    async (
+      customerId: string,
+      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles'>>
+    ) => {
+      if (!shopId) return;
+      const normalized = updates.whatsappNumber !== undefined
+        ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
+        : updates;
+      const updated = await updateCustomerProfileAction(customerId, normalized, shopId);
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
     },
     [shopId, mutate]
@@ -191,10 +244,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       currentShop,
       isLoaded,
       addOrder,
+      addOrderBatch,
       updateOrderStatus,
       updateOrder,
       addCustomer,
       updateCustomerMeasurements,
+      updateCustomerStyleProfile,
+      deleteCustomerStyleProfile,
+      updateCustomerProfile,
       getCustomerOrders,
       getOrdersByStatus,
       getOrdersByStaff,
@@ -203,7 +260,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateStaff,
       updateShop,
     }),
-    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop]
+    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
