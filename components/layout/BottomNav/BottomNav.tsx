@@ -32,7 +32,14 @@ function NavItemContent({ icon, label, isActive }: { icon: string; label: string
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { isOwner } = useAuth();
+  const { isOwner, loading } = useAuth();
+
+  // Owner-only items (e.g. Customers) depend on `isOwner`, which starts
+  // false until the profile finishes loading — rendering before then would
+  // show a shorter nav that visibly grows/shifts once the real role
+  // resolves. Waiting the extra beat for a stable, correct-on-first-paint
+  // nav reads far better than items jumping sideways under the user's thumb.
+  if (loading) return null;
 
   const visibleItems = NAV_ITEMS.filter((item) => (!item.ownerOnly || isOwner) && item.href !== '/settings');
 

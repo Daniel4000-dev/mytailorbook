@@ -19,7 +19,12 @@ export default function Symbol({ name, fill = false, size = 24, className = '' }
   return (
     <span
       className={`material-symbols-outlined ${styles.symbol} ${className}`}
-      style={{ fontSize: size, fontVariationSettings: fill ? "'FILL' 1" : undefined }}
+      style={{
+        fontSize: size,
+        width: size,
+        height: size,
+        fontVariationSettings: fill ? "'FILL' 1" : undefined,
+      }}
       aria-hidden="true"
     >
       {name}

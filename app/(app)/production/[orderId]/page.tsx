@@ -14,6 +14,7 @@ import NotificationBell from '@/components/layout/NotificationBell/NotificationB
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import Input from '@/components/ui/Input/Input';
 import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -42,6 +43,7 @@ export default function OrderDetailPage() {
   const [advancing, setAdvancing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingInspo, setUploadingInspo] = useState(false);
+  const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [clearFull, setClearFull] = useState(false);
   const [recordingPayment, setRecordingPayment] = useState(false);
@@ -430,7 +432,12 @@ export default function OrderDetailPage() {
               {(order.inspirationImages || []).map((url, i) => (
                 <div key={i} className={styles.inspoThumb}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`Inspiration ${i + 1}`} />
+                  <img
+                    src={url}
+                    alt={`Inspiration ${i + 1}`}
+                    onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
+                    style={{ cursor: 'zoom-in' }}
+                  />
                   <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
                     <Symbol name="close" size={14} />
                   </button>
@@ -630,19 +637,11 @@ export default function OrderDetailPage() {
           </section>
         )}
 
-        {/* 9. Share & communicate */}
+        {/* 9. Share & communicate — the WhatsApp FAB already covers sending
+             this exact stage update (same link/message), so no separate
+             button is needed here. */}
         <section className={styles.card}>
           <h3 className={styles.sectionTitle}>Share &amp; Communicate</h3>
-          {customer && (
-            <a
-              href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.sendUpdateBtn}
-            >
-              <Symbol name="send" size={16} /> Send {order.status} Update
-            </a>
-          )}
           <div className={styles.trackBlock}>
             <span className={styles.capsLabel}>Public Tracking Link</span>
             <div className={styles.trackRow}>
@@ -688,9 +687,11 @@ export default function OrderDetailPage() {
           </div>
         </section>
 
-        {/* Footer actions */}
-        <div className={styles.footerActions}>
-          {userRole === 'Owner' && balanceOwed > 0 && (
+        {/* Footer actions — the "advance to next stage" action already lives
+             at the top of the page (section 1), so only Mark Paid (unique,
+             not shown elsewhere) belongs here. */}
+        {userRole === 'Owner' && balanceOwed > 0 && (
+          <div className={styles.footerActions}>
             <button
               type="button"
               className={styles.markPaidBtn}
@@ -699,13 +700,8 @@ export default function OrderDetailPage() {
             >
               <Symbol name="check_circle" size={20} /> Mark Paid
             </button>
-          )}
-          {next && (
-            <button type="button" className={styles.footerAdvanceBtn} onClick={handleAdvance} disabled={advancing}>
-              Advance to &lsquo;{STATUS_CONFIG[next].label}&rsquo; <Symbol name="arrow_forward" size={20} />
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Floating WhatsApp shortcut */}
@@ -717,7 +713,7 @@ export default function OrderDetailPage() {
           className={styles.whatsappFab}
           aria-label={`WhatsApp ${customer.fullName}`}
         >
-          <FaWhatsapp />
+          <FaWhatsapp color="#FFFFFF" size={28} />
         </a>
       )}
 
@@ -732,6 +728,12 @@ export default function OrderDetailPage() {
         description={`This marks the remaining ${formatCurrency(balanceOwed)} as paid in full. Make sure the payment has actually been received before confirming.`}
         confirmLabel="Clear Balance"
         loading={recordingPayment}
+      />
+
+      <PhotoLightbox
+        src={lightbox?.src ?? null}
+        originRect={lightbox?.rect ?? null}
+        onClose={() => setLightbox(null)}
       />
     </PageLayout>
   );

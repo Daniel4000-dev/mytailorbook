@@ -10,7 +10,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-lg);
-  padding-bottom: var(--sf-space-2xl);
+  /* PageLayout's own content padding already trails the last card — no
+     extra padding-bottom here, or the two stack into a much bigger gap
+     than the last item's own margin/gap. */
   min-width: 0;
 }
 
@@ -751,26 +753,6 @@
 }
 
 /* ── 9. Share & communicate ─────────────────────────────────── */
-.sendUpdateBtn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--sf-space-sm);
-  width: 100%;
-  padding: 8px 0;
-  border: 1px solid var(--sf-accent-emerald);
-  color: var(--sf-accent-emerald);
-  border-radius: var(--sf-radius-sm);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-bold);
-  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
-}
-
-.sendUpdateBtn:hover {
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
-}
-
 .trackBlock {
   display: flex;
   flex-direction: column;
@@ -913,27 +895,6 @@
   background: var(--sf-secondary-container);
 }
 
-.footerAdvanceBtn {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--sf-space-sm);
-  min-height: var(--sf-touch-target);
-  padding: 12px 24px;
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
-  border-radius: var(--sf-radius-sm);
-  font-weight: var(--sf-weight-bold);
-  box-shadow: var(--sf-shadow-md);
-  transition: background-color var(--sf-transition-fast);
-}
-
-.footerAdvanceBtn:hover:not(:disabled) {
-  background: var(--sf-accent-emerald-light);
-}
-
-.footerAdvanceBtn:disabled,
 .markPaidBtn:disabled {
   opacity: 0.6;
 }
@@ -955,10 +916,18 @@
   box-shadow: var(--sf-shadow-lg);
   z-index: var(--sf-z-fab);
   transition: transform var(--sf-transition-fast);
+  /* Own compositing layer — mobile Safari has a known repaint bug where
+     fixed-position elements can render blank after the app is backgrounded
+     (e.g. switching to WhatsApp) and foregrounded again, until something
+     forces a reflow. Promoting this to its own layer avoids that class of
+     glitch; the icon's fill is also now passed explicitly as a color prop
+     rather than inherited via currentColor, removing a second variable. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .whatsappFab:hover {
-  transform: scale(1.05);
+  transform: translateZ(0) scale(1.05);
 }
 
 @media (min-width: 1024px) {

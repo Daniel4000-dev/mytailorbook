@@ -5,4 +5,12 @@
   line-height: 1;
   user-select: none;
   flex-shrink: 0;
+  /* The Material Symbols font loads with `display=swap` — before it's
+     ready, the browser renders the raw ligature text (e.g. literally the
+     word "dashboard") in a fallback font. Without a fixed box, that text is
+     far wider than the intended icon glyph, distorting surrounding layout
+     (most visible in the bottom nav on a fresh reload) until the font
+     swaps in. Clipping to the fixed size fixes that regardless of timing. */
+  overflow: hidden;
+  white-space: nowrap;
 }
