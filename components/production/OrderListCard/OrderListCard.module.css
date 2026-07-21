@@ -31,6 +31,11 @@
   background: var(--sf-surface-container-high);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: filter var(--sf-transition-fast);
+}
+
+.photoArea:active {
+  filter: brightness(0.92);
 }
 
 .photoImg {
@@ -116,6 +121,11 @@
   padding: var(--sf-space-md);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--sf-transition-fast);
+}
+
+.content:active {
+  background-color: var(--sf-surface-container-high);
 }
 
 .titleRow {

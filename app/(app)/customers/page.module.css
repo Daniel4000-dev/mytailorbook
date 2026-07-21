@@ -192,6 +192,10 @@
   background: var(--sf-bg-surface-hover);
 }
 
+.tableRow:active {
+  background: var(--sf-surface-variant);
+}
+
 .tableRow:last-child td {
   border-bottom: none;
 }

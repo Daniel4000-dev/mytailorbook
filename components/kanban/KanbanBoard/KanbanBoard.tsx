@@ -65,6 +65,18 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
+  // Order cards are plain divs (not <Link>), since each also hosts nested
+  // interactive controls (reassign select, move back/forward buttons) that
+  // can't sit inside a real anchor — so Next never gets a chance to
+  // prefetch these routes automatically. Warm the active (non-Completed)
+  // orders' detail pages as soon as the board loads instead, capped so a
+  // very large board doesn't fire off an unbounded burst of requests.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const active = orders.filter((o) => o.status !== 'Completed').slice(0, 40);
+    active.forEach((o) => router.prefetch(`/production/${o.id}`));
+  }, [isLoaded, orders, router]);
+
   const handleAdvance = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;

@@ -73,15 +73,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // SWR keeps this shop's bundle in an in-memory cache keyed by shopId, so
   // switching pages within the app never re-fetches — the cached value is
-  // returned instantly. It revalidates in the background on reconnect/focus,
-  // but not more often than `dedupingInterval`, which is our "cache time."
+  // returned instantly. `revalidateOnFocus` is deliberately OFF: this bundle
+  // is the shop's entire order/customer/staff history, unpaginated, and
+  // every mutation already pushes its own optimistic update via `mutate`.
+  // With it on, the extremely common phone flow of "tap the WhatsApp FAB →
+  // send a message → switch back to the app" silently re-downloaded and
+  // re-rendered the whole dataset on every return, which is exactly the
+  // kind of invisible lag that reads as "this app feels slow." A real
+  // network drop (revalidateOnReconnect) and the 2-minute background
+  // refresh below are enough to keep a multi-staff shop in sync without
+  // paying that cost on every app switch.
   const { data, mutate } = useSWR(
     shopId ? (['shop-bundle', shopId] as const) : null,
     ([, id]) => getShopBundle(id),
     {
       dedupingInterval: 60_000,
-      revalidateOnFocus: true,
+      revalidateOnFocus: false,
       revalidateOnReconnect: true,
+      refreshInterval: 120_000,
     }
   );
 

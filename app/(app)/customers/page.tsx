@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +41,15 @@ export default function CustomersPage() {
     });
     return stats;
   }, [customers, orders]);
+
+  // Rows are plain divs/<tr>s (not <Link>), so Next never gets a chance to
+  // prefetch these routes on its own — warm them proactively instead of
+  // waiting for the click, capped so a very large customer book doesn't
+  // fire an unbounded burst of requests.
+  useEffect(() => {
+    if (!isLoaded) return;
+    customers.slice(0, 60).forEach((c) => router.prefetch(`/customers/${c.id}`));
+  }, [isLoaded, customers, router]);
 
   if (!isOwner) {
     return (

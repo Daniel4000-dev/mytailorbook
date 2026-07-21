@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaWhatsapp, FaUserSlash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
@@ -111,6 +111,13 @@ function CustomerProfileContent({
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const totalSpend = custOrders.reduce((s, o) => s + o.totalBill, 0);
   const totalOwed = custOrders.reduce((s, o) => s + getBalanceOwed(o), 0);
+
+  // Order rows are plain divs (not <Link>), so warm their routes proactively
+  // rather than waiting for the click.
+  useEffect(() => {
+    custOrders.slice(0, 30).forEach((o) => router.prefetch(`/production/${o.id}`));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer.id]);
 
   const stylePhotos = useMemo(() => getStylePhotos(orders, GARMENT_STYLES), [orders]);
   const profileEntries = useMemo(
