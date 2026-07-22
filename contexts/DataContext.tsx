@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useCallback,
+  useEffect,
   useMemo,
   type ReactNode,
 } from 'react';
@@ -12,6 +13,7 @@ import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/l
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
 import { createStaffAccount } from '@/app/auth-actions';
+import { createClient } from '@/lib/supabase/client';
 import {
   getShopBundle,
   addOrderAction,
@@ -79,10 +81,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // With it on, the extremely common phone flow of "tap the WhatsApp FAB →
   // send a message → switch back to the app" silently re-downloaded and
   // re-rendered the whole dataset on every return, which is exactly the
-  // kind of invisible lag that reads as "this app feels slow." A real
-  // network drop (revalidateOnReconnect) and the 2-minute background
-  // refresh below are enough to keep a multi-staff shop in sync without
-  // paying that cost on every app switch.
+  // kind of invisible lag that reads as "this app feels slow."
+  //
+  // Cross-device sync (a second staff member's phone changing something)
+  // used to be handled by a blind 2-minute poll. That's replaced below by a
+  // Supabase Realtime subscription: data is used from memory indefinitely
+  // and only re-fetched when a real change actually happens to this shop's
+  // rows, not on a guessed timer.
   const { data, mutate } = useSWR(
     shopId ? (['shop-bundle', shopId] as const) : null,
     ([, id]) => getShopBundle(id),
@@ -90,9 +95,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
       dedupingInterval: 60_000,
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      refreshInterval: 120_000,
     }
   );
+
+  // Push-based invalidation: any change to this shop's orders/customers/
+  // profiles (from this device or another) re-fetches the bundle once,
+  // instead of polling on a timer regardless of whether anything changed.
+  useEffect(() => {
+    if (!shopId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`shop-sync-${shopId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${shopId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `shop_id=eq.${shopId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${shopId}` }, () => mutate())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [shopId, mutate]);
 
   const bundle = data ?? EMPTY_BUNDLE;
   const { orders, customers, staffMembers, shop: currentShop } = bundle;

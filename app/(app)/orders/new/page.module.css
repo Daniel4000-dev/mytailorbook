@@ -542,8 +542,19 @@
 
 .unitGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* Single column on narrow phones — a native <input type="date"> has a
+     browser-controlled minimum rendering width (iOS Safari in particular)
+     that can exceed a narrow 1fr column regardless of width: 100%, pushing
+     it into the neighboring field. Stacking avoids that entirely; 2 columns
+     only once there's reliably enough room. */
+  grid-template-columns: 1fr;
   gap: var(--sf-space-md);
+}
+
+@media (min-width: 420px) {
+  .unitGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .unitField {
@@ -555,6 +566,7 @@
 
 .unitInput {
   width: 100%;
+  min-width: 0;
   height: 44px;
   padding: 0 12px;
   background: var(--sf-sand);
