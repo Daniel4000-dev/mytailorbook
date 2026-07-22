@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { truncateText } from '@/lib/formatters';
 import { isOverdue, isDueSoon, hasUnreadComment } from '@/lib/types';
-import { STATUS_CONFIG, getNextStatus, getPreviousStatus } from '@/lib/constants';
+import { getNextStatus, getPreviousStatus } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { Order, Role, User } from '@/lib/types';
 import styles from './OrderListCard.module.css';
@@ -35,7 +35,6 @@ export default function OrderListCard({
 }: OrderListCardProps) {
   const next = getNextStatus(order.status);
   const prev = getPreviousStatus(order.status);
-  const stage = STATUS_CONFIG[order.status];
   // Latest progress photo tells the truest story; fall back to the
   // customer's inspiration photo before the placeholder.
   const photos = order.images || [];
@@ -117,7 +116,8 @@ export default function OrderListCard({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Photo area with glass status pill */}
+      {/* Photo area — the stage is already conveyed by the section this
+          card sits under, so no separate status pill on the photo. */}
       <div className={styles.photoArea} onClick={onOpen} role="button" tabIndex={0}>
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -128,10 +128,6 @@ export default function OrderListCard({
             <span>No photo yet</span>
           </div>
         )}
-        <span className={styles.glassStatus}>
-          <span className={styles.statusDot} />
-          {stage.label}
-        </span>
         {hasUnreadComment(order) && (
           <span className={styles.unreadBadge} title="New customer comment">
             <Symbol name="chat_bubble" size={12} fill />

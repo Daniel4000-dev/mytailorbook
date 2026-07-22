@@ -22,8 +22,11 @@
 }
 
 .mobileLogo {
-  width: 64px;
+  /* width: auto — the mark's natural aspect is wider than tall; forcing
+     an exact square squished it into a cramped-looking crop. */
+  width: auto;
   height: 64px;
+  object-fit: contain;
   opacity: 1;
 }
 
@@ -246,8 +249,9 @@
   }
 
   .desktopLogo {
-    width: 64px;
+    width: auto;
     height: 64px;
+    object-fit: contain;
     flex-shrink: 0;
     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -396,7 +400,7 @@
   }
 
   .sidebar.collapsed .desktopLogo {
-    width: 32px;
+    width: auto;
     height: 32px;
   }
 

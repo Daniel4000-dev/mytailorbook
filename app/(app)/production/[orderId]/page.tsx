@@ -88,7 +88,7 @@ export default function OrderDetailPage() {
   if (isLoaded && !order) {
     return (
       <PageLayout header={<TopBar title="Order" showBack />}>
-        <EmptyState icon="🧵" title="Order not found" description="It may have been removed, or the link is wrong." />
+        <EmptyState icon={<Symbol name="search_off" size={40} />} title="Order not found" description="It may have been removed, or the link is wrong." />
       </PageLayout>
     );
   }

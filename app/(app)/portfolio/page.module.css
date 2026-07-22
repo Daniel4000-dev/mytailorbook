@@ -1,0 +1,36 @@
+.wrap {
+  position: relative;
+  min-height: 100%;
+}
+
+.backBtn {
+  position: fixed;
+  top: calc(var(--sf-space-md) + env(safe-area-inset-top, 0px));
+  left: var(--sf-space-md);
+  z-index: 70;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sf-radius-full);
+  background: rgba(248, 248, 254, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--sf-text-primary);
+  box-shadow: var(--sf-shadow-md);
+}
+
+.backBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--sf-space-xl);
+  text-align: center;
+  color: var(--sf-text-secondary);
+}

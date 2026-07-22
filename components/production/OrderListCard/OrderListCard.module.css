@@ -64,43 +64,6 @@
 }
 
 /* Glassmorphic status pill floating on the photo */
-.glassStatus {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: var(--sf-radius-full);
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-text-primary);
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .statusDot { animation: none; }
-}
-
 .unreadBadge {
   position: absolute;
   top: 12px;

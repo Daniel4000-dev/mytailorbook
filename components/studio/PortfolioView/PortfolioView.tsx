@@ -97,7 +97,10 @@ export default function PortfolioView({ portfolio }: { portfolio: PublicPortfoli
   }, [lightboxIndex, filteredPhotos.length]);
 
   const handleShare = async () => {
-    const url = window.location.href;
+    // Always the canonical public URL — this view can also render inside
+    // the authenticated app (a different route), where window.location.href
+    // would leak an in-app path a visitor couldn't open.
+    const url = `${window.location.origin}/studio/${shop.id}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${shop.name} — Bespoke Tailoring`, url });

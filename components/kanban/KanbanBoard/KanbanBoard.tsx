@@ -8,6 +8,7 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import StageBanner from '@/components/production/StageBanner/StageBanner';
 import OrderListCard from '@/components/production/OrderListCard/OrderListCard';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -217,8 +218,6 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
             label={STATUS_CONFIG[status].label}
             count={getOrdersByStatus(status).length}
             active={stageFilter === status}
-            color={STATUS_CONFIG[status].color}
-            colorBg={STATUS_CONFIG[status].bgColor}
             onClick={() => setStageFilter(stageFilter === status ? ALL_FILTER : status)}
           />
         ))}
@@ -227,7 +226,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       {/* Stage sections: banner + vertical list of compact cards */}
       {!hasAnyVisible ? (
         <EmptyState
-          icon="🧵"
+          icon={<Symbol name="checkroom" size={40} />}
           title="Nothing here yet"
           description={searchQuery ? 'No orders match your search.' : 'Orders in this stage will appear here.'}
         />

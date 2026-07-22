@@ -7,19 +7,6 @@
   border-bottom: 1px solid var(--sf-border-light);
 }
 
-.left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--sf-radius-full);
-  flex-shrink: 0;
-}
-
 .title {
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-2xl);

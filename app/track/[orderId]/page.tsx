@@ -107,7 +107,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       <header className={styles.header}>
         <div className={styles.brandBlock}>
           <span className={styles.brandIcon}>
-            <Symbol name="storefront" fill size={22} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/logo-mark.png" alt="" />
           </span>
           <span className={styles.brandName}>{APP_CONFIG.name}</span>
         </div>

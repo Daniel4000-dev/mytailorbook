@@ -90,31 +90,18 @@ export default function SidebarMenu() {
         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
 
-      {/* Mobile-only Settings + Portfolio Links */}
-      {(isOwner || currentShop) && (
+      {/* Mobile-only Portfolio link — Settings moved to the bottom nav's
+          4th tab, so it no longer needs a separate entry here. */}
+      {currentShop && (
         <div className={styles.mobileOnlyNav}>
-          {isOwner && (
-            <Link
-              href="/settings"
-              className={styles.menuItem}
-              onClick={() => setMenuOpen(false)}
-            >
-              <FaGear className={styles.menuIcon} />
-              <span className={styles.menuText}>Settings</span>
-            </Link>
-          )}
-          {currentShop && (
-            <a
-              href={`/studio/${currentShop.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.menuItem}
-              onClick={() => setMenuOpen(false)}
-            >
-              <FaRegHeart className={styles.menuIcon} />
-              <span className={styles.menuText}>My Portfolio</span>
-            </a>
-          )}
+          <Link
+            href="/portfolio"
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+          >
+            <FaRegHeart className={styles.menuIcon} />
+            <span className={styles.menuText}>My Portfolio</span>
+          </Link>
         </div>
       )}
 
@@ -135,19 +122,17 @@ export default function SidebarMenu() {
             </Link>
           );
         })}
-        {/* The tailor's public showcase page — opens in a new tab so they
-            see exactly what a customer sees. */}
+        {/* Opens in-app (same tab) — the Share button on the page itself
+            hands out the actual public /studio/[shopId] link to visitors. */}
         {currentShop && (
-          <a
-            href={`/studio/${currentShop.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/portfolio"
             className={styles.menuItem}
             title={isCollapsed ? 'My Portfolio' : undefined}
           >
             <FaRegHeart className={styles.menuIcon} />
             <span className={styles.menuText}>My Portfolio</span>
-          </a>
+          </Link>
         )}
       </nav>
 

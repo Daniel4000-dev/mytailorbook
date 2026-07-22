@@ -52,10 +52,14 @@
   --sf-amber: #6366F1;
   --sf-ochre: #4338CA;
 
-  /* ── Colors: Text (warm neutral grays) ───────────────── */
-  --sf-text-primary: #1B1B22;
-  --sf-text-secondary: #585866;
-  --sf-text-tertiary: #8A8A99;
+  /* ── Colors: Text (near-black blended with the accent, not flat
+     gray — R/G/B were previously ~equal, which reads as generic
+     near-black rather than deliberately toned to the brand; these lean
+     the same direction as the indigo accent (R slightly > G, B raised)
+     so text never feels like a mismatched, off-the-shelf dark gray) ── */
+  --sf-text-primary: #1C1A28;
+  --sf-text-secondary: #55536A;
+  --sf-text-tertiary: #8C8A9E;
   --sf-text-on-accent: #FFFFFF;
   --sf-text-gold: #4338CA;
 
@@ -104,6 +108,10 @@
   /* ── Typography ──────────────────────────────────────── */
   --sf-font-heading: 'Libre Caslon Text', Georgia, serif;
   --sf-font-body: 'Hanken Grotesk', -apple-system, sans-serif;
+  /* Rounder, softer terminals than Hanken Grotesk's numerals — used
+     specifically for money/stat figures (Overview Analytics, Team
+     Snapshot, etc.), the OPay-style "glanceable balance" numeral look. */
+  --sf-font-numeric: 'Manrope', 'Hanken Grotesk', -apple-system, sans-serif;
 
   --sf-text-2xs: 0.625rem;   /* 10px */
   --sf-text-xs: 0.75rem;     /* 12px */

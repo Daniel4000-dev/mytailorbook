@@ -305,33 +305,18 @@
 }
 
 .cardValue {
-  /* Hanken Grotesk (sans, rounder numerals) instead of the serif heading
-     font — Libre Caslon's static, sharp-edged digits read as too rigid for
-     a glance-and-go balance figure (closer to OPay/fintech numeral style). */
-  font-family: var(--sf-font-body);
+  /* Manrope — softer, rounder numeral terminals than Hanken Grotesk or the
+     serif heading font, closer to the OPay/fintech "glanceable balance"
+     numeral style than either. */
+  font-family: var(--sf-font-numeric);
   font-size: var(--sf-text-2xl);
   font-weight: 700;
   color: var(--sf-text-primary);
-  transition: filter var(--sf-transition-normal);
 }
 
-.blurredValue {
-  filter: blur(6px);
-  user-select: none;
-  pointer-events: none;
-}
-
-/* Label always matches its own card's value color — one identity color
-   per card, not a neutral title over a colored number. */
-.collectedCard .cardLabel,
-.collectedCard .cardValue {
-  color: var(--sf-success);
-}
-
-.projectedCard .cardLabel,
-.projectedCard .cardValue {
-  color: var(--sf-text-gold);
-}
+/* Collected/Projected are routine stats, not alerts — they use the
+   standard text color like any other figure. Color is reserved for
+   things that actually need attention (Overdue, Due Today). */
 
 .alertCard {
   border-color: rgba(220, 38, 38, 0.2);
@@ -471,7 +456,7 @@
 }
 
 .teamStatValue {
-  font-family: var(--sf-font-heading);
+  font-family: var(--sf-font-numeric);
   font-size: var(--sf-text-lg);
   font-weight: 700;
   color: var(--sf-text-primary);

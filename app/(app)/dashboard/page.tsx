@@ -163,8 +163,8 @@ function OwnerDashboard({
               {hideCollected ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-          <span className={`${styles.cardValue} ${hideCollected ? styles.blurredValue : ''}`}>
-            {formatCurrency(collected)}
+          <span className={styles.cardValue}>
+            {hideCollected ? '₦ ******' : formatCurrency(collected)}
           </span>
         </div>
 
@@ -180,8 +180,8 @@ function OwnerDashboard({
               {hideProjected ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-          <span className={`${styles.cardValue} ${hideProjected ? styles.blurredValue : ''}`}>
-            {formatCurrency(projected)}
+          <span className={styles.cardValue}>
+            {hideProjected ? '₦ ******' : formatCurrency(projected)}
           </span>
         </div>
 
