@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
@@ -12,9 +13,14 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import { formatPhone, formatCurrency, formatShortMonthYear } from '@/lib/formatters';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import { formatPhone, formatCurrency, formatShortMonthYear, formatDate, getWhatsAppLink } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
+import type { Customer } from '@/lib/types';
 import { GARMENT_STYLES } from '@/lib/constants';
+import { getStylePhotoSubmissionsAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
+import type { StylePhotoSubmission } from '@/lib/types';
+import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './CustomersSkeleton';
 import styles from './page.module.css';
 
@@ -23,13 +29,51 @@ type GenderFilter = 'all' | 'male' | 'female';
 
 export default function CustomersPage() {
   const router = useRouter();
-  const { isOwner } = useAuth();
-  const { customers, orders, isLoaded } = useData();
+  const { user, isOwner } = useAuth();
+  const { currentShop, customers, orders, isLoaded } = useData();
+  const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [styleFilter, setStyleFilter] = useState<string | null>(null);
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
+
+  // Outreach: this style's saved (owner-approved) photos, and who's already
+  // been contacted about it — fetched fresh whenever the active style
+  // changes, one query each, never per customer row.
+  const [savedPhotos, setSavedPhotos] = useState<StylePhotoSubmission[]>([]);
+  const [outreachMap, setOutreachMap] = useState<Record<string, string>>({});
+  const [isOutreachSheetOpen, setIsOutreachSheetOpen] = useState(false);
+  const [outreachStep, setOutreachStep] = useState<'compose' | 'queue'>('compose');
+  const [selectedPhoto, setSelectedPhoto] = useState<StylePhotoSubmission | null>(null);
+  const [noteText, setNoteText] = useState('');
+  const [queueList, setQueueList] = useState<Customer[]>([]);
+  const [queueIndex, setQueueIndex] = useState(0);
+  const [sharing, setSharing] = useState(false);
+  const [includeContacted, setIncludeContacted] = useState(false);
+
+  // Reset immediately when the active style changes — adjusted during
+  // render rather than in the effect below, which only handles the actual
+  // (async) fetch once a style is selected.
+  const [prevStyleFilter, setPrevStyleFilter] = useState(styleFilter);
+  if (styleFilter !== prevStyleFilter) {
+    setPrevStyleFilter(styleFilter);
+    setSavedPhotos([]);
+    setOutreachMap({});
+  }
+
+  useEffect(() => {
+    if (!styleFilter || !currentShop?.id) return;
+    getStylePhotoSubmissionsAction(currentShop.id, styleFilter).then(({ saved }) => setSavedPhotos(saved));
+    getOutreachLogAction(currentShop.id, styleFilter).then((entries) => {
+      const map: Record<string, string> = {};
+      // Entries come back newest-first — first write per customer wins, i.e. the latest.
+      entries.forEach((e) => {
+        if (!map[e.customerId]) map[e.customerId] = e.contactedAt;
+      });
+      setOutreachMap(map);
+    });
+  }, [styleFilter, currentShop]);
 
   // Calculate order stats per customer
   const customerStats = useMemo(() => {
@@ -79,6 +123,58 @@ export default function CustomersPage() {
       .sort((a, b) => a.localeCompare(b))
       .map((name) => ({ name, photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl }));
   }, [customers, genderFilter]);
+
+  const openOutreachSheet = () => {
+    setOutreachStep('compose');
+    setSelectedPhoto(savedPhotos[0] || null);
+    setNoteText(`Hi {name}, thought you'd love this ${styleFilter} style!`);
+    setIncludeContacted(false);
+    setIsOutreachSheetOpen(true);
+  };
+
+  const startQueue = (list: Customer[]) => {
+    setQueueList(list);
+    setQueueIndex(0);
+    setOutreachStep('queue');
+  };
+
+  const closeOutreachSheet = () => {
+    setIsOutreachSheetOpen(false);
+    setQueueList([]);
+    setQueueIndex(0);
+  };
+
+  const handleShareToCurrent = useCallback(async () => {
+    const customer = queueList[queueIndex];
+    if (!customer || !selectedPhoto || !styleFilter || !currentShop?.id || !user) return;
+    setSharing(true);
+    try {
+      const personalNote = noteText.replace(/\{name\}/g, customer.fullName.split(' ')[0]);
+      const result = await shareStylePhoto(selectedPhoto.photoUrl, personalNote);
+      if (result === 'shared') {
+        await logOutreachContactAction(currentShop.id, customer.id, styleFilter, user.uid);
+        setOutreachMap((prev) => ({ ...prev, [customer.id]: new Date().toISOString() }));
+        showToast(`Shared with ${customer.fullName}`, 'success');
+        setQueueIndex((i) => i + 1);
+      } else if (result === 'unsupported') {
+        window.open(getWhatsAppLink(customer.whatsappNumber, personalNote), '_blank');
+        showToast('Photo sharing isn’t supported here — sent the note only. Attach the photo yourself, then mark as sent.', 'info');
+      }
+      // 'cancelled': user backed out of the share sheet — stay put, no toast.
+    } catch {
+      showToast('Could not open the share sheet', 'error');
+    } finally {
+      setSharing(false);
+    }
+  }, [queueList, queueIndex, selectedPhoto, styleFilter, currentShop, user, noteText, showToast]);
+
+  const handleMarkSentManually = useCallback(async () => {
+    const customer = queueList[queueIndex];
+    if (!customer || !styleFilter || !currentShop?.id || !user) return;
+    await logOutreachContactAction(currentShop.id, customer.id, styleFilter, user.uid);
+    setOutreachMap((prev) => ({ ...prev, [customer.id]: new Date().toISOString() }));
+    setQueueIndex((i) => i + 1);
+  }, [queueList, queueIndex, styleFilter, currentShop, user]);
 
   if (!isOwner) {
     return (
@@ -182,6 +278,125 @@ export default function CustomersPage() {
           )}
         </BottomSheet>
 
+        {styleFilter && (
+          savedPhotos.length > 0 ? (
+            <button type="button" className={styles.reachOutBar} onClick={openOutreachSheet}>
+              <Symbol name="ios_share" size={18} />
+              <span>Reach out to {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
+            </button>
+          ) : (
+            <a href={`/styles/${encodeURIComponent(styleFilter)}`} className={styles.reachOutHint}>
+              No approved photos yet for {styleFilter} — add one in Style Gallery
+            </a>
+          )
+        )}
+
+        <BottomSheet
+          isOpen={isOutreachSheetOpen}
+          onClose={closeOutreachSheet}
+          title={outreachStep === 'compose' ? `Reach Out — ${styleFilter}` : undefined}
+        >
+          {outreachStep === 'compose' ? (
+            <div className={styles.composeWrap}>
+              <span className={styles.composeLabel}>Choose a photo</span>
+              <div className={styles.styleFilterGrid}>
+                {savedPhotos.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`${styles.styleFilterCard} ${selectedPhoto?.id === p.id ? styles.styleFilterCardSelected : ''}`}
+                    onClick={() => setSelectedPhoto(p)}
+                  >
+                    <div className={styles.styleFilterPhoto}>
+                      <img src={p.photoUrl} alt="" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <span className={styles.composeLabel}>Note (use {'{name}'} to insert each customer&apos;s first name)</span>
+              <textarea
+                className={styles.noteInput}
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                rows={3}
+              />
+              {(() => {
+                const notYetContacted = filtered.filter((c) => !outreachMap[c.id]);
+                const queueTarget = includeContacted ? filtered : notYetContacted;
+                return (
+                  <>
+                    {filtered.length > notYetContacted.length && (
+                      <label className={styles.includeContactedRow}>
+                        <input
+                          type="checkbox"
+                          checked={includeContacted}
+                          onChange={(e) => setIncludeContacted(e.target.checked)}
+                        />
+                        Include the {filtered.length - notYetContacted.length} already contacted
+                      </label>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.startBtn}
+                      disabled={!selectedPhoto || queueTarget.length === 0}
+                      onClick={() => startQueue(queueTarget)}
+                    >
+                      {queueTarget.length === 0
+                        ? 'Everyone here has already been contacted'
+                        : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className={styles.queueWrap}>
+              {queueIndex >= queueList.length ? (
+                <div className={styles.queueDone}>
+                  <Symbol name="check_circle" size={40} />
+                  <p>All done — reached out to everyone in this list.</p>
+                  <button type="button" className={styles.startBtn} onClick={closeOutreachSheet}>Close</button>
+                </div>
+              ) : (
+                <>
+                  <p className={styles.queuePosition}>Customer {queueIndex + 1} of {queueList.length}</p>
+                  <div className={styles.queueCard}>
+                    <Avatar name={queueList[queueIndex].fullName} size="md" />
+                    <div>
+                      <p className={styles.queueName}>{queueList[queueIndex].fullName}</p>
+                      <p className={styles.queuePhone}>{formatPhone(queueList[queueIndex].whatsappNumber)}</p>
+                      {outreachMap[queueList[queueIndex].id] && (
+                        <span className={styles.contactedTag}>
+                          Already reached out {formatDate(outreachMap[queueList[queueIndex].id])}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {selectedPhoto && (
+                    <div className={styles.queuePreviewPhoto}>
+                      <img src={selectedPhoto.photoUrl} alt="" />
+                    </div>
+                  )}
+                  <p className={styles.queueNotePreview}>
+                    {noteText.replace(/\{name\}/g, queueList[queueIndex].fullName.split(' ')[0])}
+                  </p>
+                  <div className={styles.queueActions}>
+                    <button type="button" className={styles.skipBtn} onClick={() => setQueueIndex((i) => i + 1)}>
+                      Skip
+                    </button>
+                    <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
+                      <Symbol name="ios_share" size={18} /> Share
+                    </button>
+                  </div>
+                  <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>
+                    Already sent this manually — just mark as contacted
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </BottomSheet>
+
         {filtered.length === 0 ? (
           customers.length === 0 ? (
             <EmptyState
@@ -206,6 +421,11 @@ export default function CustomersPage() {
                         <span className={styles.name}>{c.fullName}</span>
                         <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
                         <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
+                        {styleFilter && (
+                          <span className={`${styles.contactBadge} ${outreachMap[c.id] ? styles.contactBadgeDone : ''}`}>
+                            {outreachMap[c.id] ? `Reached out ${formatDate(outreachMap[c.id])}` : 'Not yet contacted'}
+                          </span>
+                        )}
                       </div>
                       <div className={styles.cardActionIcon}>
                         <FaChevronRight />
@@ -259,6 +479,11 @@ export default function CustomersPage() {
                         <td>
                           <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
                           <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
+                          {styleFilter && (
+                            <span className={`${styles.contactBadge} ${outreachMap[c.id] ? styles.contactBadgeDone : ''}`}>
+                              {outreachMap[c.id] ? `Reached out ${formatDate(outreachMap[c.id])}` : 'Not yet contacted'}
+                            </span>
+                          )}
                         </td>
                         <td>
                           <span className={styles.orderBadge}>

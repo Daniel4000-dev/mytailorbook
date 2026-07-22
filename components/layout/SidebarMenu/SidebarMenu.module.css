@@ -188,7 +188,9 @@
   gap: 16px;
   background: none;
   border: none;
-  padding: 8px 0;
+  /* Matches .menuItem's 14px left padding so the icon/text lines up with
+     the routes above it instead of sitting flush against the edge. */
+  padding: 8px 0 8px 14px;
   color: var(--sf-text-primary);
   font-family: var(--sf-font-body), sans-serif;
   font-size: 17px;

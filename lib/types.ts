@@ -111,6 +111,34 @@ export interface Customer {
   createdAt: string;
 }
 
+/** A photo submitted for one of the built-in garment styles — either
+ *  `pending` (visible shop-wide, awaiting the Owner's approve/discard) or
+ *  `saved` (approved into the Owner's private outreach gallery). */
+export interface StylePhotoSubmission {
+  id: string;
+  shopId: string;
+  styleName: string;
+  photoUrl: string;
+  storagePath: string;
+  status: 'pending' | 'saved';
+  uploadedBy: string;
+  uploadedByName: string;
+  savedBy?: string;
+  createdAt: string;
+  savedAt?: string;
+}
+
+/** One outreach message sent (via the native share sheet) to a customer
+ *  about a given style — powers the "Reached out X ago" badge. */
+export interface OutreachLogEntry {
+  id: string;
+  shopId: string;
+  customerId: string;
+  styleName: string;
+  contactedBy: string;
+  contactedAt: string;
+}
+
 export interface StatusChange {
   from: OrderStatus | null;
   to: OrderStatus;

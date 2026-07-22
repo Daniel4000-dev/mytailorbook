@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -367,4 +367,151 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);
+}
+
+// ----------------------------------------------------------------------
+// Style photo gallery — staff-sourced outreach photos, owner-curated
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function stylePhotoSubmissionFromRow(row: any): StylePhotoSubmission {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    styleName: row.style_name,
+    photoUrl: row.photo_url,
+    storagePath: row.storage_path,
+    status: row.status,
+    uploadedBy: row.uploaded_by,
+    uploadedByName: row.uploaded_by_name,
+    savedBy: row.saved_by || undefined,
+    createdAt: row.created_at,
+    savedAt: row.saved_at || undefined,
+  };
+}
+
+export async function createStylePhotoSubmissionAction(
+  shopId: string,
+  styleName: string,
+  storagePath: string,
+  photoUrl: string,
+  uploadedBy: string,
+  uploadedByName: string
+): Promise<StylePhotoSubmission> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('style_photo_submissions')
+    .insert({
+      shop_id: shopId,
+      style_name: styleName,
+      storage_path: storagePath,
+      photo_url: photoUrl,
+      uploaded_by: uploadedBy,
+      uploaded_by_name: uploadedByName,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return stylePhotoSubmissionFromRow(data);
+}
+
+/** Pending photos are visible shop-wide by RLS; saved photos only come
+ *  back for the Owner (RLS hides them from Staff entirely) — so `saved`
+ *  is naturally empty for a Staff caller without any app-level role check. */
+export async function getStylePhotoSubmissionsAction(
+  shopId: string,
+  styleName: string
+): Promise<{ pending: StylePhotoSubmission[]; saved: StylePhotoSubmission[] }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('style_photo_submissions')
+    .select('*')
+    .eq('shop_id', shopId)
+    .eq('style_name', styleName)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  const all = (data || []).map(stylePhotoSubmissionFromRow);
+  return {
+    pending: all.filter((s) => s.status === 'pending'),
+    saved: all.filter((s) => s.status === 'saved'),
+  };
+}
+
+/** One query for the whole Style Gallery index — how many pending photos
+ *  are waiting per style, so the grid can badge them without a per-tile request. */
+export async function getPendingStyleCountsAction(shopId: string): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('style_photo_submissions')
+    .select('style_name')
+    .eq('shop_id', shopId)
+    .eq('status', 'pending');
+  if (error) throw new Error(error.message);
+  const counts: Record<string, number> = {};
+  (data || []).forEach((row) => {
+    counts[row.style_name] = (counts[row.style_name] || 0) + 1;
+  });
+  return counts;
+}
+
+export async function approveStylePhotoSubmissionAction(id: string, savedBy: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('style_photo_submissions')
+    .update({ status: 'saved', saved_by: savedBy, saved_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function discardStylePhotoSubmissionAction(id: string, storagePath: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('style_photo_submissions').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  await supabase.storage.from('style-photos').remove([storagePath]);
+}
+
+// ----------------------------------------------------------------------
+// Outreach log
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function outreachLogEntryFromRow(row: any): OutreachLogEntry {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    customerId: row.customer_id,
+    styleName: row.style_name,
+    contactedBy: row.contacted_by,
+    contactedAt: row.contacted_at,
+  };
+}
+
+/** Latest contact per customer for this style — one query per filter
+ *  selection, joined client-side against the already-loaded customer list. */
+export async function getOutreachLogAction(shopId: string, styleName: string): Promise<OutreachLogEntry[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('customer_outreach_log')
+    .select('*')
+    .eq('shop_id', shopId)
+    .eq('style_name', styleName)
+    .order('contacted_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(outreachLogEntryFromRow);
+}
+
+export async function logOutreachContactAction(
+  shopId: string,
+  customerId: string,
+  styleName: string,
+  contactedBy: string
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('customer_outreach_log').insert({
+    shop_id: shopId,
+    customer_id: customerId,
+    style_name: styleName,
+    contacted_by: contactedBy,
+  });
+  if (error) throw new Error(error.message);
 }

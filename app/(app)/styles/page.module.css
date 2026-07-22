@@ -1,0 +1,91 @@
+.intro {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--sf-space-md);
+}
+
+.pillRow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-md);
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pillRow::-webkit-scrollbar {
+  display: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-md);
+}
+
+@media (min-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  display: block;
+  text-decoration: none;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  box-shadow: var(--sf-shadow-sm);
+  transition: transform 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--sf-surface-container-highest);
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pendingBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--sf-accent-emerald);
+  color: #FFFFFF;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.35);
+}
+
+.label {
+  padding: 10px 12px 12px;
+}
+
+.label h3 {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.label p {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  margin: 2px 0 0;
+}

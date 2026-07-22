@@ -12,6 +12,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import {
   FaRegUser,
   FaRegHeart,
+  FaImages,
   FaArrowRightFromBracket,
   FaHouse,
   FaTableColumns,
@@ -86,8 +87,10 @@ export default function SidebarMenu() {
         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
       </button>
 
-      {/* Mobile-only Portfolio link — Settings moved to the bottom nav's
-          4th tab, so it no longer needs a separate entry here. */}
+      {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
+          bottom nav's 4th tab, so it no longer needs a separate entry here.
+          Style Gallery isn't in NAV_ITEMS (which also feeds the bottom nav)
+          since it's a secondary, occasional destination, not a daily tab. */}
       {currentShop && (
         <div className={styles.mobileOnlyNav}>
           <Link
@@ -97,6 +100,14 @@ export default function SidebarMenu() {
           >
             <FaRegHeart className={styles.menuIcon} />
             <span className={styles.menuText}>My Portfolio</span>
+          </Link>
+          <Link
+            href="/styles"
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+          >
+            <FaImages className={styles.menuIcon} />
+            <span className={styles.menuText}>Style Gallery</span>
           </Link>
         </div>
       )}
@@ -128,6 +139,16 @@ export default function SidebarMenu() {
           >
             <FaRegHeart className={styles.menuIcon} />
             <span className={styles.menuText}>My Portfolio</span>
+          </Link>
+        )}
+        {currentShop && (
+          <Link
+            href="/styles"
+            className={styles.menuItem}
+            title={isCollapsed ? 'Style Gallery' : undefined}
+          >
+            <FaImages className={styles.menuIcon} />
+            <span className={styles.menuText}>Style Gallery</span>
           </Link>
         )}
       </nav>

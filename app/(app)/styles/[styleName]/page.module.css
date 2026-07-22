@@ -1,0 +1,153 @@
+.uploadCard {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+  background: #FFFFFF;
+  border: 1px dashed var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+  margin-bottom: var(--sf-space-lg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--sf-transition-fast), background-color var(--sf-transition-fast);
+}
+
+.uploadCard:active {
+  background: var(--sf-bg-surface-hover);
+}
+
+.catalogPhoto {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.catalogPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploadAction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+}
+
+.section {
+  margin-bottom: var(--sf-space-xl);
+}
+
+.sectionTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: 0 0 var(--sf-space-sm);
+}
+
+.hint {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-md);
+}
+
+@media (min-width: 700px) {
+  .photoGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.photoCard {
+  background: #FFFFFF;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+}
+
+.photoWrap {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--sf-surface-container-highest);
+}
+
+.expiryTag {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #FFFFFF;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+}
+
+.expiryTagSoon {
+  background: #DC2626;
+}
+
+.photoWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meta {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  padding: 8px 10px 0;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 10px;
+}
+
+.approveBtn,
+.discardBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: none;
+  border-radius: var(--sf-radius-sm);
+  padding: 6px 8px;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.approveBtn {
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
+}
+
+.approveBtn:active {
+  background: var(--sf-accent-emerald);
+  color: #FFFFFF;
+}
+
+.discardBtn {
+  background: var(--sf-error-bg, rgba(220, 38, 38, 0.08));
+  color: #DC2626;
+}
+
+.discardBtn:active {
+  background: #DC2626;
+  color: #FFFFFF;
+}
