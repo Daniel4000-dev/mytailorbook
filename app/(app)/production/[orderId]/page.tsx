@@ -323,7 +323,6 @@ export default function OrderDetailPage() {
             </div>
             <div className={styles.headerRight}>
               <span className={styles.stagePill} style={{ background: STATUS_CONFIG[order.status].bgColor }}>
-                <span className={styles.stageDot} />
                 {STATUS_CONFIG[order.status].label} Stage
               </span>
               {customer && (

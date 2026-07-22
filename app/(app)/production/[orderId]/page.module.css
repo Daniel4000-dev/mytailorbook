@@ -132,13 +132,6 @@
   white-space: nowrap;
 }
 
-.stageDot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald);
-}
-
 .callBtn {
   width: 44px;
   height: 44px;
