@@ -49,7 +49,7 @@ export default function MessageTemplatesSettingsPage() {
   };
 
   return (
-    <PageLayout header={<TopBar title="Order Update Messages" showBack onBack={() => router.push('/settings')} />}>
+    <PageLayout width="narrow" header={<TopBar title="Order Update Messages" showBack onBack={() => router.push('/settings')} />}>
       <p className={styles.intro}>
         Customize the WhatsApp update sent at each stage. Untouched stages keep the app&apos;s default wording.
       </p>

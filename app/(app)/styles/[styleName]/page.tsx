@@ -107,7 +107,7 @@ export default function StyleDetailPage() {
   };
 
   return (
-    <PageLayout header={<TopBar title={styleName} showBack onBack={() => router.push('/styles')} />}>
+    <PageLayout width="narrow" header={<TopBar title={styleName} showBack onBack={() => router.push('/styles')} />}>
       <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleUpload} />
 
       <div className={styles.uploadCard} onClick={() => fileInputRef.current?.click()}>

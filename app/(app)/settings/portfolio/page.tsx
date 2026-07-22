@@ -56,7 +56,7 @@ export default function PortfolioCurationSettingsPage() {
   };
 
   return (
-    <PageLayout header={<TopBar title="Manage Portfolio" showBack onBack={() => router.push('/settings')} />}>
+    <PageLayout width="narrow" header={<TopBar title="Manage Portfolio" showBack onBack={() => router.push('/settings')} />}>
       <p className={styles.intro}>Choose which photos customers see on your public portfolio page.</p>
 
       {isLoaded && photos.length === 0 ? (

@@ -124,7 +124,7 @@ export default function StaffSettingsPage() {
   };
 
   return (
-    <PageLayout
+    <PageLayout width="narrow"
       header={
         <TopBar
           title="Staff"

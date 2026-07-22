@@ -43,7 +43,7 @@ export default function SettingsPage() {
 
   if (!isOwner) {
     return (
-      <PageLayout>
+      <PageLayout width="narrow">
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--sf-text-secondary)' }}>
           <h2>Access Denied</h2>
           <p>Only the studio owner has access to Settings.</p>
@@ -69,7 +69,7 @@ export default function SettingsPage() {
 
   if (!isLoaded) {
     return (
-      <PageLayout className={styles.pageGrid} header={topBar}>
+      <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
         <SettingsSkeleton />
       </PageLayout>
     );
@@ -143,7 +143,7 @@ export default function SettingsPage() {
   const customStylesCount = currentShop?.customStyles?.length || 0;
 
   return (
-    <PageLayout className={styles.pageGrid} header={topBar}>
+    <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
       <button type="button" className={styles.identityStrip} onClick={() => setOpenSheet('account')}>
         <Avatar name={user?.name || 'Owner'} size="lg" />
         <div className={styles.identityText}>

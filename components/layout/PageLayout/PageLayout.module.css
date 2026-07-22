@@ -37,3 +37,16 @@
     margin: 0;
   }
 }
+
+/* Narrow single-column pages (settings, detail views): cap the content to a
+   comfortable measure and centre it so it reads as a designed column rather
+   than a mobile list stretched edge-to-edge. The full-width sticky header
+   stays edge-to-edge; only the scrolling content is constrained. */
+@media (min-width: 1024px) {
+  .narrow {
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}

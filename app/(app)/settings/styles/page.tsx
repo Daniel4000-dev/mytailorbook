@@ -59,7 +59,7 @@ export default function CustomStylesSettingsPage() {
   };
 
   return (
-    <PageLayout header={<TopBar title="Custom Styles" showBack onBack={() => router.push('/settings')} />}>
+    <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack onBack={() => router.push('/settings')} />}>
       {customStyles.length === 0 ? (
         <EmptyState
           icon={<Symbol name="checkroom" size={40} />}
