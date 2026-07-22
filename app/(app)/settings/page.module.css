@@ -17,224 +17,159 @@
   }
 }
 
-.container {
+/* ── Identity strip ── */
+.identityStrip {
   display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-xl);
-  margin-top: var(--sf-space-md);
+  align-items: center;
+  gap: var(--sf-space-md);
+  width: 100%;
+  background: none;
+  border: none;
+  padding: var(--sf-space-sm) 0;
+  margin-top: var(--sf-space-sm);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.section {
+.identityText {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-sm);
+  flex: 1;
+  min-width: 0;
 }
 
-.sectionTitle {
+.identityName {
   font-family: var(--sf-font-heading);
-  font-size: 16px;
+  font-size: var(--sf-text-lg);
   font-weight: 700;
   color: var(--sf-text-primary);
-  display: flex;
-  align-items: center;
-  gap: var(--sf-space-sm);
-  margin: 0;
 }
 
-/* Decorative section icons stay neutral — the accent is reserved for
-   things you can act on, so it keeps meaning "tap here". */
-.sectionIcon {
+.identityRole {
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
   color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  margin-top: 2px;
 }
 
-.card {
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md); /* 6px */
-  padding: var(--sf-space-lg);
+.identityChevron {
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
 }
 
-/* Profile Section */
-.profileRow {
+/* ── Grouped settings list ── */
+.groups {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--sf-space-lg);
 }
 
-.avatarLarge {
-  width: 56px;
-  height: 56px;
-  border-radius: 20%;
-  background: var(--sf-secondary-container);
-  color: var(--sf-accent-emerald);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.profileInfo {
+.group {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
 }
 
-.profileName {
-  font-family: var(--sf-font-heading);
-  font-size: 18px;
+.groupLabel {
+  font-size: var(--sf-text-xs);
   font-weight: 700;
-  color: var(--sf-text-primary);
-  margin: 0;
-}
-
-.profileRole {
-  font-size: 12px;
-  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
   color: var(--sf-text-secondary);
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  padding: 0 4px;
 }
 
-.profileEmail {
-  font-size: 13px;
-  color: var(--sf-text-tertiary);
-  margin: 0;
-}
-
-/* Staff Directory */
-.staffList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
-}
-
-.staffItem {
-  display: flex;
-  align-items: center;
-  gap: var(--sf-space-md);
-  padding-bottom: var(--sf-space-md);
-  border-bottom: 1px solid var(--sf-border-light);
-}
-
-.staffItem:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.avatarCircle {
-  width: 32px;
-  height: 32px;
-  border-radius: 20%;
-  background: var(--sf-surface-variant);
-  color: var(--sf-accent-emerald);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.staffInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.staffName {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-}
-
-.staffRole {
-  font-size: 12px;
-  color: var(--sf-text-tertiary);
-}
-
-.staffOrderCount {
-  font-size: 11px;
-  color: var(--sf-accent-emerald);
-  font-weight: 600;
-}
-
-.staffItemInactive {
-  opacity: 0.55;
-}
-
-.inactiveBadge {
-  margin-left: var(--sf-space-sm);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--sf-accent-emerald-dark);
-  background: var(--sf-accent-emerald-glow);
-  padding: 2px 6px;
-  border-radius: var(--sf-radius-full);
-}
-
-.staffActions {
-  display: flex;
-  gap: var(--sf-space-xs);
-  margin-left: auto;
-}
-
-.staffActionBtn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid var(--sf-border-light);
+.groupCard {
   background: var(--sf-bg-surface-elevated);
-  color: var(--sf-text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 13px;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
 }
 
-.staffActionBtn:hover {
-  color: var(--sf-text-primary);
-  background: var(--sf-bg-surface-hover);
+.logoThumb {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--sf-radius-sm);
+  object-fit: cover;
 }
 
-.staffEditForm {
+/* ── Sheet bodies ── */
+.sheetBody {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-sm);
-  flex: 1;
+  gap: var(--sf-space-md);
+  padding-bottom: var(--sf-space-lg);
 }
 
-.staffEditActions {
+.sheetActions {
   display: flex;
   justify-content: flex-end;
   gap: var(--sf-space-sm);
 }
 
-/* Form Group */
-.form {
+.readonlyEmail {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.hintText {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.noteTextarea {
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  resize: vertical;
+}
+
+.logoPreviewWrap {
   display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
+  justify-content: center;
 }
 
-.submitBtn {
-  margin-top: var(--sf-space-sm);
+.logoPreview {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--sf-radius-lg);
+  object-fit: cover;
 }
 
-.successText {
+.logoPreviewEmpty {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-surface-container-highest);
+  color: var(--sf-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploadBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--sf-touch-target);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
   color: var(--sf-accent-emerald);
-  font-size: 13px;
-  font-weight: 600;
-  margin: 0;
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.errorText {
-  color: var(--sf-error);
-  font-size: 13px;
-  font-weight: 600;
-  margin: 0;
+.uploadBtn:active {
+  background: var(--sf-bg-surface-hover);
 }

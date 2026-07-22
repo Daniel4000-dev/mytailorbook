@@ -16,6 +16,27 @@ export interface Shop {
   /** Shop-defined one-off garment styles beyond the built-in catalog —
    *  remembered across future orders once created, same as built-in styles. */
   customStyles?: { name: string; photoUrl?: string }[];
+  /** Shown on receipts and the public portfolio, replacing the plain text
+   *  name there once set. */
+  logoUrl?: string;
+  /** Prefills the "Reach Out" composer on the Customers page. Supports a
+   *  {name} placeholder. Falls back to a generic default when unset. */
+  outreachTemplate?: string;
+  /** Per-stage WhatsApp update wording, keyed by OrderStatus. A missing key
+   *  means "use the app's built-in default" (see getOrderProgressMessage). */
+  stageMessageTemplates?: Partial<Record<OrderStatus, string>>;
+}
+
+/** Owner-set visibility override for one photo (matched by URL) on the
+ *  public portfolio — photos otherwise show automatically from order
+ *  history with no curation. */
+export interface PortfolioPhotoOverride {
+  id: string;
+  shopId: string;
+  photoUrl: string;
+  hidden: boolean;
+  featured: boolean;
+  createdAt: string;
 }
 
 export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';

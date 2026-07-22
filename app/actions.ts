@@ -1,7 +1,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry } from '@/lib/types';
+import { createAdminClient } from '@/lib/supabase/admin';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -110,6 +111,9 @@ function shopFromRow(row: any): Shop {
     ownerUid: row.owner_id,
     createdAt: row.created_at,
     customStyles: row.custom_styles || [],
+    logoUrl: row.logo_url || undefined,
+    outreachTemplate: row.outreach_template || undefined,
+    stageMessageTemplates: row.stage_message_templates || {},
   };
 }
 
@@ -364,9 +368,114 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.phone !== undefined) row.phone = updates.phone;
   if (updates.address !== undefined) row.address = updates.address;
   if (updates.customStyles !== undefined) row.custom_styles = updates.customStyles;
+  if (updates.logoUrl !== undefined) row.logo_url = updates.logoUrl;
+  if (updates.outreachTemplate !== undefined) row.outreach_template = updates.outreachTemplate;
+  if (updates.stageMessageTemplates !== undefined) row.stage_message_templates = updates.stageMessageTemplates;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);
+}
+
+/** Adds or updates one custom garment style by name (case-insensitive).
+ *  Reads `custom_styles` fresh from the database immediately before
+ *  writing — rather than trusting the caller's possibly-stale client-side
+ *  `currentShop.customStyles` snapshot — so two near-simultaneous calls
+ *  (e.g. creating a custom style, then immediately attaching a photo to
+ *  it) can never each compute their own array and silently create a
+ *  duplicate entry with the same name. */
+export async function upsertCustomStyleAction(
+  shopId: string,
+  name: string,
+  photoUrl?: string
+): Promise<Shop> {
+  const supabase = await createClient();
+  const { data: shopRow, error: fetchError } = await supabase
+    .from('shops')
+    .select('custom_styles')
+    .eq('id', shopId)
+    .single();
+  if (fetchError) throw new Error(fetchError.message);
+
+  const existing: { name: string; photoUrl?: string }[] = shopRow?.custom_styles || [];
+  const idx = existing.findIndex((s) => s.name.toLowerCase() === name.toLowerCase());
+  const next =
+    idx === -1
+      ? [...existing, { name, photoUrl }]
+      : existing.map((s, i) => (i === idx ? { ...s, photoUrl: photoUrl ?? s.photoUrl } : s));
+
+  const { data, error } = await supabase.from('shops').update({ custom_styles: next }).eq('id', shopId).select().single();
+  if (error) throw new Error(error.message);
+  return shopFromRow(data);
+}
+
+/** Owner resets a staff member's password. Verifies the requester actually
+ *  owns the shop that `staffUid` belongs to (never trust a client-supplied
+ *  staff id alone) before using the admin client to do the actual reset —
+ *  same bootstrap reasoning as staff creation. Generates a random temporary
+ *  password when none is given. */
+export async function resetStaffPasswordAction(
+  staffUid: string,
+  requestedBy: string,
+  newPassword?: string
+): Promise<{ password?: string; error?: string }> {
+  const admin = createAdminClient();
+
+  const { data: staffProfile } = await admin.from('profiles').select('shop_id').eq('id', staffUid).single();
+  const { data: ownerProfile } = await admin.from('profiles').select('shop_id, role').eq('id', requestedBy).single();
+  if (
+    !staffProfile ||
+    !ownerProfile ||
+    ownerProfile.role !== 'Owner' ||
+    ownerProfile.shop_id !== staffProfile.shop_id
+  ) {
+    return { error: 'Not authorized to reset this password' };
+  }
+
+  const password = newPassword || Math.random().toString(36).slice(-10) + 'A1!';
+  const { error } = await admin.auth.admin.updateUserById(staffUid, { password });
+  if (error) return { error: error.message };
+  return { password };
+}
+
+// ----------------------------------------------------------------------
+// Portfolio photo curation
+// ----------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function portfolioPhotoOverrideFromRow(row: any): PortfolioPhotoOverride {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    photoUrl: row.photo_url,
+    hidden: row.hidden,
+    featured: row.featured,
+    createdAt: row.created_at,
+  };
+}
+
+export async function getPortfolioPhotoOverridesAction(shopId: string): Promise<PortfolioPhotoOverride[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('portfolio_photo_overrides')
+    .select('*')
+    .eq('shop_id', shopId);
+  if (error) throw new Error(error.message);
+  return (data || []).map(portfolioPhotoOverrideFromRow);
+}
+
+export async function setPortfolioPhotoOverrideAction(
+  shopId: string,
+  photoUrl: string,
+  updates: { hidden?: boolean; featured?: boolean }
+): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('portfolio_photo_overrides')
+    .upsert(
+      { shop_id: shopId, photo_url: photoUrl, ...updates },
+      { onConflict: 'shop_id,photo_url' }
+    );
+  if (error) throw new Error(error.message);
 }
 
 // ----------------------------------------------------------------------
@@ -514,4 +623,50 @@ export async function logOutreachContactAction(
     contacted_by: contactedBy,
   });
   if (error) throw new Error(error.message);
+}
+
+// ----------------------------------------------------------------------
+// Portfolio content curation (owner-facing — unlike the public
+// getPublicShopPortfolio in public-actions.ts, this returns every photo,
+// including ones currently hidden, so the Owner can unhide them again.)
+// ----------------------------------------------------------------------
+
+export interface PortfolioCurationPhoto {
+  url: string;
+  garment: string;
+  takenAt: string;
+  hidden: boolean;
+  featured: boolean;
+}
+
+export async function getPortfolioCurationPhotosAction(shopId: string): Promise<PortfolioCurationPhoto[]> {
+  const supabase = await createClient();
+  const { data: orderRows, error } = await supabase
+    .from('orders')
+    .select('order_details, images')
+    .eq('shop_id', shopId)
+    .order('created_at', { ascending: false })
+    .limit(300);
+  if (error) throw new Error(error.message);
+
+  const { data: overrideRows } = await supabase
+    .from('portfolio_photo_overrides')
+    .select('photo_url, hidden, featured')
+    .eq('shop_id', shopId);
+  const overrides = new Map((overrideRows || []).map((r) => [r.photo_url, r]));
+
+  const photos: PortfolioCurationPhoto[] = [];
+  for (const o of orderRows || []) {
+    for (const p of (o.images || []) as { url: string; stage: string; uploadedAt: string }[]) {
+      const override = overrides.get(p.url);
+      photos.push({
+        url: p.url,
+        garment: o.order_details,
+        takenAt: p.uploadedAt,
+        hidden: override?.hidden || false,
+        featured: override?.featured || false,
+      });
+    }
+  }
+  return photos;
 }

@@ -68,6 +68,7 @@ export async function getPublicOrderView(orderId: string): Promise<{
         address: shopRow.address || undefined,
         ownerUid: shopRow.owner_id,
         createdAt: shopRow.created_at,
+        logoUrl: shopRow.logo_url || undefined,
       }
     : null;
 
@@ -166,7 +167,7 @@ export interface PortfolioPhoto {
 }
 
 export interface PublicPortfolio {
-  shop: { id: string; name: string; phone?: string; address?: string };
+  shop: { id: string; name: string; phone?: string; address?: string; logoUrl?: string };
   photos: PortfolioPhoto[];
   stats: {
     completed: number;
@@ -180,7 +181,7 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, name, phone, address')
+    .select('id, name, phone, address, logo_url')
     .eq('id', shopId)
     .single();
   if (shopErr || !shopRow) return null;
@@ -194,18 +195,29 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
 
   const orders = orderRows || [];
 
-  // Gallery: finished-stage photos first (Ready/Completed — the actual
-  // showcase), padded with the freshest in-progress shots if sparse.
+  const { data: overrideRows } = await admin
+    .from('portfolio_photo_overrides')
+    .select('photo_url, hidden, featured')
+    .eq('shop_id', shopId);
+  const overrides = new Map((overrideRows || []).map((r) => [r.photo_url, r]));
+
+  // Gallery: featured photos first, then finished-stage (Ready/Completed —
+  // the actual showcase), padded with the freshest in-progress shots if
+  // sparse. Anything explicitly hidden by the Owner never appears here.
+  const featured: PortfolioPhoto[] = [];
   const finished: PortfolioPhoto[] = [];
   const inProgress: PortfolioPhoto[] = [];
   for (const o of orders) {
     for (const p of (o.images || []) as { url: string; stage: string; uploadedAt: string }[]) {
+      const override = overrides.get(p.url);
+      if (override?.hidden) continue;
       const entry: PortfolioPhoto = { url: p.url, garment: o.order_details, takenAt: p.uploadedAt };
-      if (p.stage === 'Ready' || p.stage === 'Completed') finished.push(entry);
+      if (override?.featured) featured.push(entry);
+      else if (p.stage === 'Ready' || p.stage === 'Completed') finished.push(entry);
       else inProgress.push(entry);
     }
   }
-  const photos = [...finished, ...inProgress].slice(0, 30);
+  const photos = [...featured, ...finished, ...inProgress].slice(0, 30);
 
   const completedOrders = orders.filter((o) => o.status === 'Completed');
   const withDue = completedOrders.filter((o) => o.due_date);
@@ -234,6 +246,7 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
       name: shopRow.name,
       phone: shopRow.phone || undefined,
       address: shopRow.address || undefined,
+      logoUrl: shopRow.logo_url || undefined,
     },
     photos,
     stats: {

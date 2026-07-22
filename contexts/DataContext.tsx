@@ -27,6 +27,7 @@ import {
   updateCustomerProfileAction,
   updateStaffAction,
   updateShopAction,
+  upsertCustomStyleAction,
   getStaff,
 } from '@/app/actions';
 
@@ -65,6 +66,7 @@ interface DataContextValue {
   addStaff: (name: string, email: string, password: string) => Promise<void>;
   updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
   updateShop: (updates: Partial<Shop>) => Promise<void>;
+  upsertCustomStyle: (name: string, photoUrl?: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -267,6 +269,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [shopId, mutate]
   );
 
+  const upsertCustomStyle = useCallback(
+    async (name: string, photoUrl?: string) => {
+      if (!shopId) return;
+      const updated = await upsertCustomStyleAction(shopId, name, photoUrl);
+      mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
+    },
+    [shopId, mutate]
+  );
+
   const value = useMemo<DataContextValue>(
     () => ({
       orders,
@@ -291,8 +302,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addStaff,
       updateStaff,
       updateShop,
+      upsertCustomStyle,
     }),
-    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop]
+    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

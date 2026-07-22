@@ -127,7 +127,7 @@ export default function CustomersPage() {
   const openOutreachSheet = () => {
     setOutreachStep('compose');
     setSelectedPhoto(savedPhotos[0] || null);
-    setNoteText(`Hi {name}, thought you'd love this ${styleFilter} style!`);
+    setNoteText(currentShop?.outreachTemplate || `Hi {name}, thought you'd love this ${styleFilter} style!`);
     setIncludeContacted(false);
     setIsOutreachSheetOpen(true);
   };

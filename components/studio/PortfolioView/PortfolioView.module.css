@@ -159,6 +159,13 @@
   justify-content: center;
   margin-bottom: var(--sf-space-lg);
   box-shadow: var(--sf-shadow-xl);
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .eyebrow {

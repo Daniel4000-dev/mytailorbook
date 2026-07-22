@@ -50,7 +50,7 @@ function NewOrderWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const { customers, orders, staffMembers, currentShop, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile, updateShop } = useData();
+  const { customers, orders, staffMembers, currentShop, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile, upsertCustomStyle } = useData();
   const { showToast } = useToast();
 
   const [step, setStep] = useState<Step>('customer');
@@ -325,10 +325,11 @@ function NewOrderWizard() {
           : [...prev, { name: styleName, photoUrl }];
         return next;
       });
-      const persisted = (currentShop?.customStyles || []).some((s) => s.name === styleName)
-        ? (currentShop?.customStyles || []).map((s) => (s.name === styleName ? { ...s, photoUrl } : s))
-        : [...(currentShop?.customStyles || []), { name: styleName, photoUrl }];
-      await updateShop({ customStyles: persisted });
+      // Reads the shop's custom styles fresh from the database and merges
+      // by name server-side, rather than computing the merge from this
+      // component's (possibly stale) `currentShop` snapshot — avoids
+      // creating a duplicate entry if the style was only just created.
+      await upsertCustomStyle(styleName, photoUrl);
       showToast('Style photo saved', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
@@ -536,8 +537,10 @@ function NewOrderWizard() {
                     setCustomStyles((p) => [...p, { name }]);
                     setCounts((p) => ({ ...p, [name]: 1 }));
                     // Remembered shop-wide so it's already in the catalog
-                    // next time, same as a built-in style.
-                    updateShop({ customStyles: [...(currentShop?.customStyles || []), { name }] }).catch(() => {});
+                    // next time, same as a built-in style. Merged
+                    // server-side against a fresh read, not this
+                    // component's snapshot — see upsertCustomStyle.
+                    upsertCustomStyle(name).catch(() => {});
                   }
                   setCustomDraft('');
                   setShowCustomInput(false);

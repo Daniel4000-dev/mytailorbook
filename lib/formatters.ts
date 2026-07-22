@@ -138,26 +138,39 @@ export function getWhatsAppLink(phone: string, message?: string): string {
 }
 
 /**
+ * Built-in per-stage wording, each ending with a `{link}` placeholder for
+ * the tracking URL — shown as the pre-filled default in Settings' Order
+ * Update Messages screen, and used as-is for any shop that never
+ * customizes a given stage.
+ */
+export const DEFAULT_STAGE_MESSAGES: Record<OrderStatus, string> = {
+  Documented: `Hi {name}, thank you for choosing {shop}! We've logged your order and it's queued up to begin production soon. You can monitor its progress anytime here: {link}`,
+  Cutting: `Hi {name}, good news from {shop}! We've started working on your outfit — it's currently in the cutting stage. You can monitor its progress anytime here: {link}`,
+  Sewing: `Hi {name}, quick update from {shop} — your outfit is now being sewn together. You can monitor its progress anytime here: {link}`,
+  Ready: `Hi {name}, exciting news from {shop}! Your outfit is ready, just some final touches away from being set for you. You can monitor its progress anytime here: {link}`,
+  Completed: `Hi {name}, your outfit is complete and ready for you from {shop}! Thank you for your patience. You can monitor its progress anytime here: {link}`,
+};
+
+/**
  * The stage-specific WhatsApp update a tailor sends a customer from the
  * order detail sheet — worded around whatever stage the order is actually
- * in right now, always closing with the tracking link.
+ * in right now, always closing with the tracking link. Uses the shop's own
+ * customized wording for that stage when set (see Settings > Order Update
+ * Messages), otherwise the built-in default above.
  */
 export function getOrderProgressMessage(params: {
   customerName: string;
   shopName: string;
   status: OrderStatus;
   trackingUrl: string;
+  customTemplate?: string;
 }): string {
-  const { customerName, shopName, status, trackingUrl } = params;
+  const { customerName, shopName, status, trackingUrl, customTemplate } = params;
   const firstName = customerName.trim().split(' ')[0] || customerName;
+  const template = customTemplate || DEFAULT_STAGE_MESSAGES[status];
 
-  const stageMessages: Record<OrderStatus, string> = {
-    Documented: `Hi ${firstName}, thank you for choosing ${shopName}! We've logged your order and it's queued up to begin production soon.`,
-    Cutting: `Hi ${firstName}, good news from ${shopName}! We've started working on your outfit — it's currently in the cutting stage.`,
-    Sewing: `Hi ${firstName}, quick update from ${shopName} — your outfit is now being sewn together.`,
-    Ready: `Hi ${firstName}, exciting news from ${shopName}! Your outfit is ready, just some final touches away from being set for you.`,
-    Completed: `Hi ${firstName}, your outfit is complete and ready for you from ${shopName}! Thank you for your patience.`,
-  };
-
-  return `${stageMessages[status]} You can monitor its progress anytime here: ${trackingUrl}`;
+  return template
+    .replace(/\{name\}/g, firstName)
+    .replace(/\{shop\}/g, shopName)
+    .replace(/\{link\}/g, trackingUrl);
 }

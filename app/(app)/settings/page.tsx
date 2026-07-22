@@ -1,41 +1,45 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { createClient } from '@/lib/supabase/client';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
-import { FaBars, FaUserPlus, FaUsers, FaPen, FaUserSlash, FaUserCheck, FaStore } from 'react-icons/fa6';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { formatPhone } from '@/lib/formatters';
+import Avatar from '@/components/ui/Avatar/Avatar';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import { FaBars } from 'react-icons/fa6';
 import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { user, isOwner } = useAuth();
-  const { staffMembers, addStaff, updateStaff, currentShop, updateShop, isLoaded, getOrdersByStaff } = useData();
+  const { currentShop, staffMembers, updateShop, isLoaded } = useData();
   const { toggleMenu } = useSidebar();
   const { showToast } = useToast();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | null>(null);
 
-  const [editingUid, setEditingUid] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
-  const [savingEdit, setSavingEdit] = useState(false);
-
-  const [editingShop, setEditingShop] = useState(false);
   const [shopName, setShopName] = useState('');
   const [shopPhone, setShopPhone] = useState('');
   const [shopAddress, setShopAddress] = useState('');
   const [savingShop, setSavingShop] = useState(false);
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
+
+  const [noteTemplate, setNoteTemplate] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
 
   if (!isOwner) {
     return (
@@ -48,275 +52,258 @@ export default function SettingsPage() {
     );
   }
 
+  const topBar = (
+    <TopBar
+      profileMode={{
+        greeting: 'Studio Settings',
+        name: user?.name || 'Owner',
+        avatarInitials: user?.name ? user.name[0] : 'O',
+      }}
+      leftAction={
+        <div className={styles.mobileOnly}>
+          <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
+        </div>
+      }
+    />
+  );
+
   if (!isLoaded) {
     return (
-      <PageLayout
-        className={styles.pageGrid}
-        header={
-          <TopBar
-            profileMode={{
-              greeting: 'Studio Settings',
-              name: user?.name || 'Owner',
-              avatarInitials: user?.name ? user.name[0] : 'O',
-            }}
-            leftAction={
-              <div className={styles.mobileOnly}>
-                <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
-              </div>
-            }
-          />
-        }
-      >
+      <PageLayout className={styles.pageGrid} header={topBar}>
         <SettingsSkeleton />
       </PageLayout>
     );
   }
 
-  const startEditStaff = (staff: { uid: string; name: string }) => {
-    setEditingUid(staff.uid);
-    setEditName(staff.name);
-  };
-
-  const handleSaveStaffEdit = async (uid: string) => {
-    setSavingEdit(true);
-    try {
-      await updateStaff(uid, { name: editName });
-      setEditingUid(null);
-      showToast('Staff member updated', 'success');
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
-  const handleToggleActive = async (uid: string, currentlyActive: boolean) => {
-    await updateStaff(uid, { active: !currentlyActive });
-    showToast(currentlyActive ? 'Staff member deactivated' : 'Staff member reactivated', 'success');
-  };
-
-  const startEditShop = () => {
+  const openStudioSheet = () => {
     setShopName(currentShop?.name || '');
     setShopPhone(currentShop?.phone || '');
     setShopAddress(currentShop?.address || '');
-    setEditingShop(true);
+    setOpenSheet('studio');
   };
 
   const handleSaveShop = async () => {
     setSavingShop(true);
     try {
       await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined });
-      setEditingShop(false);
+      setOpenSheet(null);
       showToast('Studio profile updated', 'success');
     } finally {
       setSavingShop(false);
     }
   };
 
-  const handleAddStaff = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !password) return;
-    if (password.length < 6) {
-      setMessage('Password must be at least 6 characters.');
-      return;
-    }
-
-    setLoading(true);
-    setMessage('');
+  const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentShop?.id) return;
+    setUploadingLogo(true);
     try {
-      await addStaff(name, email, password);
-      setName('');
-      setEmail('');
-      setPassword('');
-      showToast(`${name} added as staff`, 'success');
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${currentShop.id}/branding/logo-${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('order-photos').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw new Error(uploadError.message);
+      const logoUrl = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
+      await updateShop({ logoUrl });
+      showToast('Logo updated', 'success');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to add staff member.', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to upload logo', 'error');
     } finally {
-      setLoading(false);
+      setUploadingLogo(false);
+      e.target.value = '';
     }
   };
 
+  const handleRemoveLogo = async () => {
+    setConfirmRemoveLogo(false);
+    await updateShop({ logoUrl: '' });
+    showToast('Logo removed', 'success');
+  };
+
+  const openNoteSheet = () => {
+    setNoteTemplate(currentShop?.outreachTemplate || `Hi {name}, thought you'd love this style!`);
+    setOpenSheet('note');
+  };
+
+  const handleSaveNote = async () => {
+    setSavingNote(true);
+    try {
+      await updateShop({ outreachTemplate: noteTemplate });
+      setOpenSheet(null);
+      showToast('Message template saved', 'success');
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const activeStaffCount = staffMembers.filter((s) => s.active !== false).length;
+  const customStylesCount = currentShop?.customStyles?.length || 0;
+
   return (
-    <PageLayout
-      className={styles.pageGrid}
-      header={
-        <TopBar
-          profileMode={{
-            greeting: "Studio Settings",
-            name: user?.name || "Owner",
-            avatarInitials: user?.name ? user.name[0] : "O"
-          }}
-          leftAction={
-            <div className={styles.mobileOnly}>
-              <CircleIconButton
-                icon={<FaBars />}
-                onClick={toggleMenu}
-                ariaLabel="Open menu"
-              />
-            </div>
-          }
-        />
-      }
-    >
-      <div className={styles.container}>
-        {/* Personal Details Card */}
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Account Profile</h3>
-          <div className={styles.card}>
-            <div className={styles.profileRow}>
-              <div className={styles.avatarLarge}>
-                {user?.name ? user.name[0] : 'O'}
-              </div>
-              <div className={styles.profileInfo}>
-                <h4 className={styles.profileName}>{user?.name}</h4>
-                <p className={styles.profileRole}>{user?.role} Account</p>
-                <p className={styles.profileEmail}>{user?.email}</p>
-              </div>
+    <PageLayout className={styles.pageGrid} header={topBar}>
+      <button type="button" className={styles.identityStrip} onClick={() => setOpenSheet('account')}>
+        <Avatar name={user?.name || 'Owner'} size="lg" />
+        <div className={styles.identityText}>
+          <span className={styles.identityName}>{user?.name}</span>
+          <span className={styles.identityRole}>{user?.role} Account</span>
+        </div>
+        <Symbol name="chevron_right" size={18} className={styles.identityChevron} />
+      </button>
+
+      <div className={styles.groups}>
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Your Studio</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="storefront"
+              label="Studio Profile"
+              subtitle={currentShop?.name || 'Unnamed Studio'}
+              onClick={openStudioSheet}
+            />
+            <SettingsRow
+              icon="image"
+              label="Shop Logo"
+              subtitle={currentShop?.logoUrl ? 'Set' : 'Not set'}
+              meta={
+                currentShop?.logoUrl ? (
+                  <img src={currentShop.logoUrl} alt="" className={styles.logoThumb} />
+                ) : undefined
+              }
+              onClick={() => setOpenSheet('logo')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Your Team</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="group"
+              label="Staff"
+              subtitle={`${activeStaffCount} active`}
+              onClick={() => router.push('/settings/staff')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Garment Styles</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="checkroom"
+              label="Custom Styles"
+              subtitle={customStylesCount > 0 ? `${customStylesCount} added` : 'None yet'}
+              onClick={() => router.push('/settings/styles')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Messages &amp; Templates</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="forum"
+              label="Reach-Out Note Template"
+              subtitle={currentShop?.outreachTemplate ? currentShop.outreachTemplate.slice(0, 40) : 'Using default'}
+              onClick={openNoteSheet}
+            />
+            <SettingsRow
+              icon="chat"
+              label="Order Update Messages"
+              subtitle="Customize per-stage WhatsApp wording"
+              onClick={() => router.push('/settings/messages')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Public Portfolio</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="photo_library"
+              label="Manage Portfolio Photos"
+              subtitle="Choose what customers see"
+              onClick={() => router.push('/settings/portfolio')}
+            />
+          </div>
+        </div>
+      </div>
+
+      <BottomSheet isOpen={openSheet === 'account'} onClose={() => setOpenSheet(null)} title="Your Account">
+        <div className={styles.sheetBody}>
+          <div className={styles.identityStrip} style={{ pointerEvents: 'none' }}>
+            <Avatar name={user?.name || 'Owner'} size="lg" />
+            <div className={styles.identityText}>
+              <span className={styles.identityName}>{user?.name}</span>
+              <span className={styles.identityRole}>{user?.role} Account</span>
             </div>
           </div>
-        </section>
+          <p className={styles.readonlyEmail}>{user?.email}</p>
+        </div>
+      </BottomSheet>
 
-        {/* Studio / Shop Profile Card — this is what appears on receipts and the customer tracking page */}
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>
-            <FaStore className={styles.sectionIcon} /> Studio Profile
-          </h3>
-          <div className={styles.card}>
-            {editingShop ? (
-              <div className={styles.form}>
-                <Input label="Shop / Studio Name" value={shopName} onChange={(e) => setShopName(e.target.value)} required />
-                <Input label="Phone (shown on receipts)" value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="08012345678" />
-                <Input label="Address" value={shopAddress} onChange={(e) => setShopAddress(e.target.value)} placeholder="Shop address" />
-                <div className={styles.staffEditActions}>
-                  <Button variant="ghost" size="sm" onClick={() => setEditingShop(false)}>Cancel</Button>
-                  <Button variant="primary" size="sm" loading={savingShop} onClick={handleSaveShop}>Save</Button>
-                </div>
-              </div>
+      <BottomSheet isOpen={openSheet === 'studio'} onClose={() => setOpenSheet(null)} title="Studio Profile">
+        <div className={styles.sheetBody}>
+          <Input label="Shop / Studio Name" value={shopName} onChange={(e) => setShopName(e.target.value)} required />
+          <Input label="Phone (shown on receipts)" value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="08012345678" />
+          <Input label="Address" value={shopAddress} onChange={(e) => setShopAddress(e.target.value)} placeholder="Shop address" />
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setOpenSheet(null)}>Cancel</Button>
+            <Button variant="primary" loading={savingShop} onClick={handleSaveShop}>Save</Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet isOpen={openSheet === 'logo'} onClose={() => setOpenSheet(null)} title="Shop Logo">
+        <div className={styles.sheetBody}>
+          <div className={styles.logoPreviewWrap}>
+            {currentShop?.logoUrl ? (
+              <img src={currentShop.logoUrl} alt="" className={styles.logoPreview} />
             ) : (
-              <div className={styles.profileRow}>
-                <div className={styles.avatarLarge}>
-                  <FaStore />
-                </div>
-                <div className={styles.profileInfo}>
-                  <h4 className={styles.profileName}>{currentShop?.name || 'Unnamed Studio'}</h4>
-                  {currentShop?.phone && <p className={styles.profileEmail}>{formatPhone(currentShop.phone)}</p>}
-                  {currentShop?.address && <p className={styles.profileEmail}>{currentShop.address}</p>}
-                  <p className={styles.profileRole}>This name appears on customer receipts &amp; tracking pages</p>
-                </div>
-                <button type="button" className={styles.staffActionBtn} style={{ marginLeft: 'auto', flexShrink: 0 }} onClick={startEditShop} aria-label="Edit studio profile">
-                  <FaPen />
-                </button>
+              <div className={styles.logoPreviewEmpty}>
+                <Symbol name="storefront" size={36} />
               </div>
             )}
           </div>
-        </section>
+          <p className={styles.hintText}>Shown on receipts and your public portfolio page.</p>
+          <label className={styles.uploadBtn}>
+            <input type="file" accept="image/*" hidden onChange={handleUploadLogo} />
+            <Symbol name={uploadingLogo ? 'progress_activity' : 'upload'} size={18} />
+            {uploadingLogo ? 'Uploading…' : 'Upload Photo'}
+          </label>
+          {currentShop?.logoUrl && (
+            <Button variant="danger" onClick={() => setConfirmRemoveLogo(true)}>Remove Logo</Button>
+          )}
+        </div>
+      </BottomSheet>
 
-        {/* Staff Directory Card */}
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>
-            <FaUsers className={styles.sectionIcon} /> Active Staff ({staffMembers.length})
-          </h3>
-          <div className={styles.card}>
-            <div className={styles.staffList}>
-              {staffMembers.map((staff) => {
-                const isActive = staff.active !== false;
-                const isEditing = editingUid === staff.uid;
-                const activeOrderCount = getOrdersByStaff(staff.uid).filter((o) => o.status !== 'Completed').length;
-                return (
-                  <div key={staff.uid} className={`${styles.staffItem} ${!isActive ? styles.staffItemInactive : ''}`}>
-                    <div className={styles.avatarCircle}>
-                      {staff.name[0]}
-                    </div>
-                    {isEditing ? (
-                      <div className={styles.staffEditForm}>
-                        <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Full name" />
-                        <div className={styles.staffEditActions}>
-                          <Button variant="ghost" size="sm" onClick={() => setEditingUid(null)}>Cancel</Button>
-                          <Button variant="primary" size="sm" loading={savingEdit} onClick={() => handleSaveStaffEdit(staff.uid)}>Save</Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className={styles.staffInfo}>
-                          <span className={styles.staffName}>
-                            {staff.name}
-                            {!isActive && <span className={styles.inactiveBadge}>Inactive</span>}
-                          </span>
-                          <span className={styles.staffRole}>{staff.role} ({staff.email})</span>
-                          {staff.role === 'Staff' && isActive && (
-                            <span className={styles.staffOrderCount}>
-                              {activeOrderCount} active order{activeOrderCount === 1 ? '' : 's'}
-                            </span>
-                          )}
-                        </div>
-                        {staff.role === 'Staff' && (
-                          <div className={styles.staffActions}>
-                            <button type="button" className={styles.staffActionBtn} onClick={() => startEditStaff(staff)} aria-label="Edit staff">
-                              <FaPen />
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.staffActionBtn}
-                              onClick={() => handleToggleActive(staff.uid, isActive)}
-                              aria-label={isActive ? 'Deactivate staff' : 'Reactivate staff'}
-                              title={isActive ? 'Deactivate' : 'Reactivate'}
-                            >
-                              {isActive ? <FaUserSlash /> : <FaUserCheck />}
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+      <BottomSheet isOpen={openSheet === 'note'} onClose={() => setOpenSheet(null)} title="Reach-Out Message">
+        <div className={styles.sheetBody}>
+          <textarea
+            className={styles.noteTextarea}
+            value={noteTemplate}
+            onChange={(e) => setNoteTemplate(e.target.value)}
+            rows={3}
+          />
+          <p className={styles.hintText}>Use {'{name}'} and it&apos;ll be replaced with the customer&apos;s name.</p>
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setOpenSheet(null)}>Cancel</Button>
+            <Button variant="primary" loading={savingNote} onClick={handleSaveNote}>Save Template</Button>
           </div>
-        </section>
+        </div>
+      </BottomSheet>
 
-        {/* Add Staff Form Section */}
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>
-            <FaUserPlus className={styles.sectionIcon} /> Register Employee
-          </h3>
-          <div className={styles.card}>
-            <form onSubmit={handleAddStaff} className={styles.form}>
-              <Input
-                label="Full Name"
-                placeholder="e.g. Chioma Eze"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-              <Input
-                label="Email/Username"
-                type="email"
-                placeholder="e.g. chioma@mytailorbook.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Input
-                label="Temporary Password"
-                type="password"
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              
-              {message && <p className={styles.errorText}>{message}</p>}
-
-              <Button
-                type="submit"
-                variant="primary"
-                loading={loading}
-                className={styles.submitBtn}
-              >
-                Add Staff Member
-              </Button>
-            </form>
-          </div>
-        </section>
-      </div>
+      <ConfirmDialog
+        isOpen={confirmRemoveLogo}
+        onClose={() => setConfirmRemoveLogo(false)}
+        onConfirm={handleRemoveLogo}
+        title="Remove your shop logo?"
+        description="Receipts and your public portfolio will show your studio name instead."
+        confirmLabel="Remove"
+      />
     </PageLayout>
   );
 }

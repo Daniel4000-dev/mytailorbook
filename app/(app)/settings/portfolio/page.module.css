@@ -1,0 +1,94 @@
+.intro {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--sf-space-md);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sf-space-sm);
+}
+
+.card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  background: var(--sf-surface-container-highest);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hiddenPhoto {
+  opacity: 0.35;
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--sf-accent-emerald);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-full);
+}
+
+.hiddenOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding-bottom: var(--sf-space-lg);
+}
+
+.sheetPhoto {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--sf-radius-md);
+  object-fit: cover;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding: 10px 0;
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.toggleLabel {
+  display: block;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-primary);
+}
+
+.toggleHint {
+  display: block;
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}

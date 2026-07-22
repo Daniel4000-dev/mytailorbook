@@ -30,6 +30,20 @@
   align-items: flex-start;
 }
 
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--sf-radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .brand {
   font-family: var(--sf-font-heading);
   font-size: 22px;

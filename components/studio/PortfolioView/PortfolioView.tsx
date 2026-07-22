@@ -136,7 +136,9 @@ export default function PortfolioView({ portfolio }: { portfolio: PublicPortfoli
         )}
         <div className={styles.heroShade} />
         <div className={styles.heroContent}>
-          <div className={styles.avatar}>{shop.name[0]?.toUpperCase()}</div>
+          <div className={styles.avatar}>
+            {shop.logoUrl ? <img src={shop.logoUrl} alt="" /> : shop.name[0]?.toUpperCase()}
+          </div>
           <span className={styles.eyebrow}>Bespoke Tailoring{city ? ` · ${city}` : ''}</span>
           <h1 className={styles.heroName}>{shop.name}</h1>
           <div className={styles.heroCtas}>

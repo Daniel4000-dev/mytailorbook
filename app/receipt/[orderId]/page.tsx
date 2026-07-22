@@ -32,10 +32,13 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
       <div className={styles.card}>
         <header className={styles.header}>
-          <div>
-            <h1 className={styles.brand}>{shop?.name || APP_CONFIG.name}</h1>
-            {shop?.phone && <span className={styles.brandSub}>{formatPhone(shop.phone)}</span>}
-            {shop?.address && <span className={styles.brandSub}>{shop.address}</span>}
+          <div className={styles.brandRow}>
+            {shop?.logoUrl && <img src={shop.logoUrl} alt="" className={styles.brandLogo} />}
+            <div>
+              <h1 className={styles.brand}>{shop?.name || APP_CONFIG.name}</h1>
+              {shop?.phone && <span className={styles.brandSub}>{formatPhone(shop.phone)}</span>}
+              {shop?.address && <span className={styles.brandSub}>{shop.address}</span>}
+            </div>
           </div>
           <div className={styles.receiptMeta}>
             <span className={styles.receiptLabel}>RECEIPT</span>

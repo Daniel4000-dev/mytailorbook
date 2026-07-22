@@ -106,6 +106,7 @@ export default function OrderDetailPage() {
         shopName: currentShop?.name || 'us',
         status: order.status,
         trackingUrl,
+        customTemplate: currentShop?.stageMessageTemplates?.[order.status],
       })
     : undefined;
 
