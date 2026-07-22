@@ -72,12 +72,11 @@ export default function OrderDetailPage() {
   }, [order?.id, order?.lastCommentAt]);
 
   useEffect(() => {
-    if (order?.batchId) {
-      getBatchOrdersAction(order.batchId, order.id).then(setBatchSiblings).catch(() => {});
-    } else {
-      setBatchSiblings([]);
-    }
-  }, [order?.batchId, order?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    const fetchSiblings = order?.batchId
+      ? getBatchOrdersAction(order.batchId, order.id)
+      : Promise.resolve([]);
+    fetchSiblings.then(setBatchSiblings).catch(() => {});
+  }, [order?.batchId, order?.id]);
 
   const stageEntry = useMemo(() => {
     if (!order) return null;

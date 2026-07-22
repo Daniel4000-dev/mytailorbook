@@ -21,15 +21,15 @@ export default function PrivacyPolicyPage() {
         <p className={styles.updated}>Last updated: {LAST_UPDATED}</p>
 
         <p>
-          This policy explains how {APP_CONFIG.name} ("we," "our," "the platform") collects, uses,
+          This policy explains how {APP_CONFIG.name} (&quot;we,&quot; &quot;our,&quot; &quot;the platform&quot;) collects, uses,
           and protects information when you use our fashion-studio management software — whether
-          you're a tailor/studio owner, a staff member they've added, or a customer of theirs
+          you&apos;re a tailor/studio owner, a staff member they&apos;ve added, or a customer of theirs
           tracking an order.
         </p>
 
         <div className={styles.noticeBox}>
           <strong>An important distinction before you read further:</strong> {APP_CONFIG.name} is a
-          tool that tailors and studios use to run their business. If you're a studio owner, you
+          tool that tailors and studios use to run their business. If you&apos;re a studio owner, you
           enter information about your own customers — their name, phone number, body measurements,
           and order details — into the app. For that customer data, <em>you</em> (the studio) are the
           data controller under Nigerian law, and {APP_CONFIG.name} acts as your data processor,
@@ -49,10 +49,10 @@ export default function PrivacyPolicyPage() {
         <h3>2.1 Account information (studio owners &amp; staff)</h3>
         <p>
           When you sign up or are added as staff, we collect your name, email address, and role
-          (Owner or Staff). If you sign up with a password, it's stored and verified by our
+          (Owner or Staff). If you sign up with a password, it&apos;s stored and verified by our
           authentication provider (Supabase Auth) — we never see or store your plain-text password
           ourselves. If you sign in with Google, we receive your name and email address from Google;
-          we don't receive your Google password.
+          we don&apos;t receive your Google password.
         </p>
 
         <h3>2.2 Studio information</h3>
@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
 
         <h3>2.3 Customer information (entered by studio owners)</h3>
         <p>
-          Studios use {APP_CONFIG.name} to record their own customers': full name, WhatsApp/phone
+          Studios use {APP_CONFIG.name} to record their own customers&apos; full name, WhatsApp/phone
           number, gender, body measurements, notes, order details, garment photos, and billing/payment
           amounts. This information is entered by the studio, not collected by us directly from the
           customer — see Section 8 on studio responsibilities.
@@ -73,13 +73,13 @@ export default function PrivacyPolicyPage() {
         <p>
           Like most web applications, our hosting provider (Vercel) automatically logs standard
           technical data for security and reliability — IP address, browser type, and request
-          timestamps. We don't run third-party advertising trackers or analytics on this app.
+          timestamps. We don&apos;t run third-party advertising trackers or analytics on this app.
         </p>
 
         <h2>3. How We Use Information</h2>
         <ul>
           <li>To provide the core service — production tracking, customer records, measurements, billing, and the public order-tracking page.</li>
-          <li>To authenticate you and keep your studio's data separate and secure from other studios.</li>
+          <li>To authenticate you and keep your studio&apos;s data separate and secure from other studios.</li>
           <li>To send account-related emails — confirming your email address, or a password reset, when you request one.</li>
           <li>To maintain and improve the reliability and security of the platform.</li>
         </ul>
@@ -95,14 +95,14 @@ export default function PrivacyPolicyPage() {
 
         <h2>5. Who We Share Information With</h2>
         <p>
-          We don't sell or rent personal information. We do rely on a small number of infrastructure
+          We don&apos;t sell or rent personal information. We do rely on a small number of infrastructure
           providers to run the service, each of whom only processes data on our instructions:
         </p>
         <ul>
           <li><strong>Supabase</strong> — our database and authentication provider. All account data, studio data, customer records, and order information is stored here.</li>
           <li><strong>Vercel</strong> — hosts the application itself.</li>
           <li><strong>Resend</strong> — sends account-related emails (e.g., password resets), where configured.</li>
-          <li><strong>Google</strong> — if you choose "Sign in with Google," Google authenticates your identity for us.</li>
+          <li><strong>Google</strong> — if you choose &quot;Sign in with Google,&quot; Google authenticates your identity for us.</li>
         </ul>
         <p>
           We may also disclose information if required to do so by law, or to protect the rights,
@@ -112,7 +112,7 @@ export default function PrivacyPolicyPage() {
         <h2>6. International Data Transfers</h2>
         <p>
           Our infrastructure providers (Supabase, Vercel) may store and process data on servers
-          located outside Nigeria. Where this happens, we rely on those providers' own security and
+          located outside Nigeria. Where this happens, we rely on those providers&apos; own security and
           compliance commitments to protect your data in transit and at rest.
         </p>
 
@@ -125,13 +125,13 @@ export default function PrivacyPolicyPage() {
           in our care.
         </p>
 
-        <h2>8. If You're a Studio Owner: Your Responsibilities</h2>
+        <h2>8. If You&apos;re a Studio Owner: Your Responsibilities</h2>
         <p>
-          Because you enter your own customers' personal information — including sensitive details
+          Because you enter your own customers&apos; personal information — including sensitive details
           like body measurements — into {APP_CONFIG.name}, you are responsible for:
         </p>
         <ul>
-          <li>Having a lawful basis (typically your customer's consent) to collect and store their information.</li>
+          <li>Having a lawful basis (typically your customer&apos;s consent) to collect and store their information.</li>
           <li>Being transparent with your customers about how you use their data.</li>
           <li>Responding to your customers if they ask you to correct or delete their information — you can do this directly within the app.</li>
         </ul>
@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
         <p>
           We retain account and studio data for as long as your account remains active. If you close
           your account, we will delete or anonymize your data within a reasonable period, except where
-          we're required to retain it for legal or accounting reasons.
+          we&apos;re required to retain it for legal or accounting reasons.
         </p>
 
         <h2>10. Your Rights</h2>
@@ -157,11 +157,11 @@ export default function PrivacyPolicyPage() {
 
         <h2>11. Cookies &amp; Sessions</h2>
         <p>
-          We use a single essential cookie to keep you signed in securely between visits. We don't use
+          We use a single essential cookie to keep you signed in securely between visits. We don&apos;t use
           cookies for advertising or cross-site tracking.
         </p>
 
-        <h2>12. Children's Privacy</h2>
+        <h2>12. Children&apos;s Privacy</h2>
         <p>
           {APP_CONFIG.name} is a business tool intended for adults running or working in a tailoring
           studio. It is not directed at children, and we do not knowingly collect personal information
@@ -170,7 +170,7 @@ export default function PrivacyPolicyPage() {
 
         <h2>13. Changes to This Policy</h2>
         <p>
-          If we make material changes to this policy, we'll update the "Last updated" date above. We
+          If we make material changes to this policy, we&apos;ll update the &quot;Last updated&quot; date above. We
           encourage you to review this page periodically.
         </p>
 
@@ -182,7 +182,7 @@ export default function PrivacyPolicyPage() {
 
         <p className={styles.disclaimer}>
           This policy is written to accurately describe how {APP_CONFIG.name} actually works. It is
-          provided for general informational purposes and isn't a substitute for advice from a
+          provided for general informational purposes and isn&apos;t a substitute for advice from a
           qualified lawyer, particularly before wider commercial launch.
         </p>
 

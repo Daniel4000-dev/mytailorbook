@@ -84,7 +84,6 @@ function NewOrderWizard() {
       if (found) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setCustomer(found);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStep('garments');
       }
     }

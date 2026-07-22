@@ -5,7 +5,6 @@
    ============================================================ */
 
 import type { OrderStatus, Role, NavItem, Priority } from './types';
-import { APP_CONFIG } from './config';
 
 export const ORDER_STATUSES: readonly OrderStatus[] = [
   'Documented',

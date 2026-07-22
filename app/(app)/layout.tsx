@@ -78,6 +78,14 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
     return <LogoutOverlay />;
   }
 
+  // Render nothing while the onboarding redirect is in flight — otherwise
+  // the page's own children (e.g. the dashboard) mount and fetch data for a
+  // frame before router.replace('/onboarding') above takes effect, flashing
+  // a skeleton the user will never actually get to use.
+  if (!authLoading && needsOnboarding) {
+    return null;
+  }
+
   return (
     <div className={`${styles.outerWrapper} ${isCollapsed ? styles.sidebarCollapsed : ''}`}>
       {/* 1. Fixed sidebar menu sitting behind the appShell */}

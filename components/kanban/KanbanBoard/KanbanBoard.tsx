@@ -41,10 +41,13 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
 
   // userRole falls back to 'Staff' for one tick while auth session loads; re-sync
   // once the real role is known so the Owner doesn't get stuck on "My Orders".
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => {
+  // Adjusted during render (React's guidance for deriving state from a changed
+  // prop) rather than in an effect — same pattern as filterKey below.
+  const [prevUserRole, setPrevUserRole] = useState(userRole);
+  if (userRole !== prevUserRole) {
+    setPrevUserRole(userRole);
     setFilterMyTasks(userRole === 'Staff');
-  }, [userRole]);
+  }
 
   // Deep-link support: /production?order=<id> forwards to the order's own
   // page, /production?staff=<uid> filters the board to that staff member's
@@ -59,10 +62,10 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       return;
     }
     if (staffId && userRole === 'Owner') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStaffFilterId(staffId);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFilterMyTasks(false);
+      Promise.resolve().then(() => {
+        setStaffFilterId(staffId);
+        setFilterMyTasks(false);
+      });
       router.replace('/production');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { completeGoogleOnboarding } from '@/app/auth-actions';
+import { completeOnboarding } from '@/app/auth-actions';
 import AuthInput from '@/app/(auth)/components/AuthInput';
 import styles from './page.module.css';
 
@@ -15,11 +15,20 @@ export default function OnboardingPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (googleUserInfo?.name) setName(googleUserInfo.name);
-  }, [googleUserInfo]);
+  // Google gives us no signup form, so there's no name to carry over yet —
+  // pre-fill from their Google profile and let them confirm/edit it here.
+  // Email signups already gave a name at signup, so this field is skipped
+  // entirely for them (see the conditional render below). Adjusted during
+  // render (guarded so it only fires once, when the async profile name
+  // actually arrives) rather than in an effect, so it never clobbers the
+  // user's own edits afterward.
+  const [prefilledGoogleName, setPrefilledGoogleName] = useState<string | null>(null);
+  if (googleUserInfo?.name && googleUserInfo.name !== prefilledGoogleName) {
+    setPrefilledGoogleName(googleUserInfo.name);
+    setName(googleUserInfo.name);
+  }
 
-  // If someone lands here without an in-progress Google sign-in, send them
+  // If someone lands here without an in-progress sign-in, send them
   // back to login rather than showing a dead-end form. This must only ever
   // check once, on the initial load — otherwise a *successful* submission
   // (which also flips `needsOnboarding` to false, via refreshProfile) races
@@ -34,16 +43,18 @@ export default function OnboardingPage() {
     }
   }, [loading, needsOnboarding, router]);
 
+  const isGoogleAccount = !!googleUserInfo?.isGoogleAccount;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!name || !shopName) {
-      setError('Please fill in both fields');
+    if (!shopName || (isGoogleAccount && !name)) {
+      setError('Please fill in all fields');
       return;
     }
     setSubmitting(true);
     try {
-      await completeGoogleOnboarding(name, shopName);
+      await completeOnboarding(shopName, isGoogleAccount ? name : undefined);
       await refreshProfile();
       router.push('/dashboard');
     } catch (err) {
@@ -68,14 +79,17 @@ export default function OnboardingPage() {
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <div className={styles.errorBanner}>{error}</div>}
 
-        <AuthInput
-          id="name"
-          type="text"
-          label="Your Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        {isGoogleAccount && (
+          <AuthInput
+            id="name"
+            type="text"
+            label="Your Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        )}
+
         <AuthInput
           id="shopName"
           type="text"

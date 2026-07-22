@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     document.body.style.backgroundColor = '#F8F8FE';
     
     return () => {
-      let cleanupMeta = document.querySelector('meta[name="theme-color"]');
+      const cleanupMeta = document.querySelector('meta[name="theme-color"]');
       if (cleanupMeta) {
         cleanupMeta.setAttribute('content', '#FFFFFF');
       }

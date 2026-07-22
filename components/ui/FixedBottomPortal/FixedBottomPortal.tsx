@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useHasMounted } from '@/lib/hooks/useHasMounted';
 
 /** Renders children straight onto document.body instead of in place.
  *
@@ -20,8 +21,7 @@ import { createPortal } from 'react-dom';
  *  that the same way since they're defined inside the page itself — this
  *  portal gives them the same escape hatch. */
 export default function FixedBottomPortal({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHasMounted();
   if (!mounted) return null;
   return createPortal(children, document.body);
 }

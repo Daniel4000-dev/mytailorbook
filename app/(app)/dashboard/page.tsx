@@ -6,7 +6,6 @@ import {
   FaBars,
   FaEye,
   FaEyeSlash,
-  FaUserGroup,
   FaTriangleExclamation,
   FaFireFlameCurved,
   FaCircleCheck,
@@ -16,6 +15,7 @@ import {
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
 import { useSidebar } from '@/contexts/SidebarContext';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -34,14 +34,14 @@ export default function DashboardPage() {
   const { orders, staffMembers, isLoaded } = useData();
   const { toggleMenu } = useSidebar();
 
-  const firstName = user?.name?.split(' ')[0] || 'there';
+  const firstName = user?.name?.split(' ')[0] || '';
 
   const topBar = (
     <TopBar
       profileMode={{
         greeting: 'Overview',
         name: firstName,
-        avatarInitials: firstName[0],
+        avatarInitials: firstName ? firstName[0] : '',
       }}
       leftAction={
         <div className={styles.mobileOnly}>
@@ -87,8 +87,25 @@ function OwnerDashboard({
   staffMembers: ReturnType<typeof useData>['staffMembers'];
   onNavigate: (href: string) => void;
 }) {
-  const [hideCollected, setHideCollected] = useState(false);
-  const [hideProjected, setHideProjected] = useState(false);
+  // Persisted across refresh/logout/login — a hidden balance shouldn't
+  // reveal itself just because the tab reloaded or the session changed.
+  const [hideCollected, setHideCollected] = useState(() => getClientCookie('mtb_hide_collected') === '1');
+  const [hideProjected, setHideProjected] = useState(() => getClientCookie('mtb_hide_projected') === '1');
+
+  const toggleHideCollected = () => {
+    setHideCollected((prev) => {
+      const next = !prev;
+      setClientCookie('mtb_hide_collected', next ? '1' : '0');
+      return next;
+    });
+  };
+  const toggleHideProjected = () => {
+    setHideProjected((prev) => {
+      const next = !prev;
+      setClientCookie('mtb_hide_projected', next ? '1' : '0');
+      return next;
+    });
+  };
 
   const collected = useMemo(() => orders.reduce((sum, o) => sum + o.depositPaid, 0), [orders]);
 
@@ -153,10 +170,10 @@ function OwnerDashboard({
       <div className={styles.financeGrid}>
         <div className={`${styles.financeCard} ${styles.collectedCard}`}>
           <div className={styles.cardHeaderRow}>
-            <span className={styles.cardLabel}>Total Collected</span>
+            <span className={styles.cardLabel}>Collected</span>
             <button
               type="button"
-              onClick={() => setHideCollected(!hideCollected)}
+              onClick={toggleHideCollected}
               className={styles.cardPrivacyBtn}
               title={hideCollected ? 'Show Balance' : 'Hide Balance'}
             >
@@ -164,16 +181,16 @@ function OwnerDashboard({
             </button>
           </div>
           <span className={styles.cardValue}>
-            {hideCollected ? '₦ ******' : formatCurrency(collected)}
+            {hideCollected ? '******' : formatCurrency(collected)}
           </span>
         </div>
 
         <div className={`${styles.financeCard} ${styles.projectedCard}`}>
           <div className={styles.cardHeaderRow}>
-            <span className={styles.cardLabel}>Projected Earnings</span>
+            <span className={styles.cardLabel}>Projected</span>
             <button
               type="button"
-              onClick={() => setHideProjected(!hideProjected)}
+              onClick={toggleHideProjected}
               className={styles.cardPrivacyBtn}
               title={hideProjected ? 'Show Balance' : 'Hide Balance'}
             >
@@ -181,12 +198,12 @@ function OwnerDashboard({
             </button>
           </div>
           <span className={styles.cardValue}>
-            {hideProjected ? '₦ ******' : formatCurrency(projected)}
+            {hideProjected ? '******' : formatCurrency(projected)}
           </span>
         </div>
 
         <div className={`${styles.financeCard} ${urgentCount > 0 ? styles.alertCard : ''}`}>
-          <span className={styles.cardLabel}>Overdue & Urgent</span>
+          <span className={styles.cardLabel}>Overdue</span>
           <span className={styles.cardValue}>{urgentCount}</span>
         </div>
         <div className={`${styles.financeCard} ${dueTodayCount > 0 ? styles.dueCard : ''}`}>
@@ -196,10 +213,7 @@ function OwnerDashboard({
       </div>
 
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>
-          <FaUserGroup style={{ marginRight: 6 }} />
-          Team Snapshot
-        </span>
+        <span className={styles.sectionTitle}>Team Snapshot</span>
       </div>
 
       <div className={styles.teamGrid}>
@@ -233,10 +247,7 @@ function OwnerDashboard({
       </div>
 
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>
-          <FaTriangleExclamation style={{ marginRight: 6 }} />
-          Needs Attention
-        </span>
+        <span className={styles.sectionTitle}>Needs Attention</span>
       </div>
 
       {needsAttention.length === 0 && unreadCommentOrders.length === 0 ? (

@@ -4,16 +4,19 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
 /**
- * Runs the first time someone signs in with Google — since OAuth gives us
- * no form to collect a shop name before the auth account exists, we let
- * Supabase create the (profile-less) account first, then complete the
- * bootstrap here once they tell us their shop's name.
+ * Runs for every first-time sign-in, Google or email — neither gives us a
+ * form to collect a shop name before the auth account exists (Google has no
+ * form at all; email signup no longer asks, to avoid asking twice), so we
+ * let Supabase create the (profile-less) account first, then complete the
+ * bootstrap here once they tell us their shop's name. `name` comes from
+ * whatever the auth account already has in its metadata (Google profile
+ * name, or the name given at email signup) rather than being asked again.
  *
  * Uses the request-scoped server client to confirm who's actually calling
  * (never trust a client-supplied user id for this), then the admin client
  * to do the actual insert — same bootstrap reasoning as new-shop signup.
  */
-export async function completeGoogleOnboarding(name: string, shopName: string) {
+export async function completeOnboarding(shopName: string, nameOverride?: string) {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
@@ -26,6 +29,11 @@ export async function completeGoogleOnboarding(name: string, shopName: string) {
   if (existing) {
     throw new Error('Onboarding already completed for this account');
   }
+
+  // Email signups already collected a name in the form — carry that
+  // straight through from metadata. Google gives us no form at all, so its
+  // (editable) name field on this page is the only chance to confirm it.
+  const name = nameOverride || user.user_metadata?.name || user.user_metadata?.full_name || '';
 
   const { data: shop, error: shopError } = await admin
     .from('shops')

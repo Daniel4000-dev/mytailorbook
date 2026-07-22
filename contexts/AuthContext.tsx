@@ -21,7 +21,7 @@ interface AuthContextValue {
    *  happens the first time a person signs in with Google, since OAuth gives
    *  us no chance to ask for a shop name before the account is created. */
   needsOnboarding: boolean;
-  googleUserInfo: { name: string; email: string } | null;
+  googleUserInfo: { name: string; email: string; isGoogleAccount: boolean } | null;
   /** True from the moment logout is triggered until the redirect to /login
    *  completes — lets the UI show a full-screen overlay instead of a frame
    *  of empty/placeholder data as `user` and shop data clear out. */
@@ -30,7 +30,7 @@ interface AuthContextValue {
   /** Returns whether Supabase actually requires clicking an email link before
    *  login works — this depends on the project's "Confirm email" setting,
    *  so the signup page can adapt without any code changes later. */
-  signup: (name: string, email: string, password: string, shopName: string) => Promise<{ needsEmailConfirmation: boolean }>;
+  signup: (name: string, email: string, password: string) => Promise<{ needsEmailConfirmation: boolean }>;
   signInWithGoogle: () => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [googleUserInfo, setGoogleUserInfo] = useState<{ name: string; email: string } | null>(null);
+  const [googleUserInfo, setGoogleUserInfo] = useState<{ name: string; email: string; isGoogleAccount: boolean } | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const supabase = useMemo(() => createClient(), []);
 
@@ -91,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setGoogleUserInfo({
           name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
           email: session.user.email!,
+          isGoogleAccount: session.user.app_metadata?.provider === 'google',
         });
       }
     },
@@ -121,19 +122,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const signup = useCallback(
-    async (name: string, email: string, password: string, shopName: string) => {
+    async (name: string, email: string, password: string) => {
       setLoading(true);
       try {
-        // The shop + profile rows are created by a database trigger the
-        // moment the auth account exists (see
-        // supabase/migrations/0004_signup_trigger.sql) — regardless of
-        // whether email confirmation is required, so this works either way.
+        // Shop creation now happens entirely in onboarding (see
+        // app/onboarding/page.tsx + completeOnboarding) — signup only
+        // creates the bare auth account, carrying `name` through in user
+        // metadata so onboarding can pre-fill it without asking again.
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm`,
-            data: { name, shop_name: shopName },
+            emailRedirectTo: `${window.location.origin}/auth/confirm?next=/onboarding`,
+            data: { name },
           },
         });
         if (error) throw new Error(error.message);

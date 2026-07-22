@@ -11,7 +11,6 @@ export default function SignupPage() {
   const router = useRouter();
   const { signup, signInWithGoogle, loading } = useAuth();
   const [name, setName] = useState('');
-  const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -36,7 +35,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!name || !shopName || !email || !password || !confirmPw) {
+    if (!name || !email || !password || !confirmPw) {
       setError('Please fill in all fields');
       return;
     }
@@ -49,11 +48,11 @@ export default function SignupPage() {
       return;
     }
     try {
-      const { needsEmailConfirmation } = await signup(name, email, password, shopName);
+      const { needsEmailConfirmation } = await signup(name, email, password);
       if (needsEmailConfirmation) {
         setSubmitted(true);
       } else {
-        router.push('/dashboard');
+        router.push('/onboarding');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create account');
@@ -77,7 +76,7 @@ export default function SignupPage() {
           <h2 className={styles.successHeading}>Check your email</h2>
           <p className={styles.successText}>
             We&apos;ve sent a confirmation link to <br /><strong>{email}</strong><br />
-            Click it to activate {shopName}&apos;s workspace.
+            Click it to finish setting up your workspace.
           </p>
           <Link href="/login" className={styles.registerButton} style={{ marginTop: '24px' }}>
             Back to Login
@@ -111,16 +110,6 @@ export default function SignupPage() {
           label="Full Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          required
-        />
-
-        {/* Shop Name Field */}
-        <AuthInput
-          id="shopName"
-          type="text"
-          label="Shop / Studio Name"
-          value={shopName}
-          onChange={(e) => setShopName(e.target.value)}
           required
         />
 

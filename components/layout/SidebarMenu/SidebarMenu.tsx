@@ -9,13 +9,9 @@ import { APP_CONFIG } from '@/lib/config';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import { 
-  FaRegUser, 
-  FaXmark, 
-  FaChartLine, 
-  FaRegCreditCard, 
-  FaRegFileLines, 
-  FaRegHeart, 
+import {
+  FaRegUser,
+  FaRegHeart,
   FaArrowRightFromBracket,
   FaHouse,
   FaTableColumns,

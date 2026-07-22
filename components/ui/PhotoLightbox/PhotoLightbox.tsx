@@ -3,6 +3,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import styles from './PhotoLightbox.module.css';
 
 interface PhotoLightboxProps {
@@ -25,18 +26,21 @@ const TRANSITION_MS = 320; // matches the spring transition in PhotoLightbox.mod
  *  hijacked by a transformed/animated ancestor (see the page-transition
  *  wrapper fix — same class of bug). */
 export default function PhotoLightbox({ src, originRect, alt = '', onClose }: PhotoLightboxProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHasMounted();
   const [phase, setPhase] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
   const [renderedSrc, setRenderedSrc] = useState<string | null>(null);
   const [renderedRect, setRenderedRect] = useState<DOMRect | null>(null);
 
-  useEffect(() => setMounted(true), []);
-
   useEffect(() => {
     if (src && originRect) {
-      setRenderedSrc(src);
-      setRenderedRect(originRect);
-      setPhase('opening');
+      // Deferred a microtask so these aren't synchronous-in-effect (the
+      // two rAFs right after already push the actual animation start past
+      // the next paint regardless, so this changes no visible timing).
+      Promise.resolve().then(() => {
+        setRenderedSrc(src);
+        setRenderedRect(originRect);
+        setPhase('opening');
+      });
       // Two rAFs: the first commits the thumbnail-position starting frame,
       // the second flips to the fullscreen target — guaranteeing the browser
       // actually paints the start state before the transition begins.
@@ -47,7 +51,7 @@ export default function PhotoLightbox({ src, originRect, alt = '', onClose }: Ph
       return () => cancelAnimationFrame(raf1);
     }
     if (!src) {
-      setPhase((p) => (p === 'closed' ? p : 'closing'));
+      Promise.resolve().then(() => setPhase((p) => (p === 'closed' ? p : 'closing')));
       const t = setTimeout(() => {
         setPhase('closed');
         setRenderedSrc(null);

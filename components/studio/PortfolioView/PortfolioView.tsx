@@ -6,7 +6,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
-import type { PublicPortfolio, PortfolioPhoto } from '@/app/public-actions';
+import type { PublicPortfolio } from '@/app/public-actions';
 import styles from './PortfolioView.module.css';
 
 const PROCESS_STEPS = [

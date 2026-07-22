@@ -3,6 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Drawer } from 'vaul';
 import { FaXmark } from 'react-icons/fa6';
+import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import styles from './BottomSheet.module.css';
 
 interface BottomSheetProps {
@@ -15,14 +16,13 @@ interface BottomSheetProps {
 
 export default function BottomSheet({ isOpen, onClose, title, children, footer }: BottomSheetProps) {
   const [direction, setDirection] = useState<'bottom' | 'right'>('bottom');
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHasMounted();
 
   useEffect(() => {
     const handleResize = () => {
       setDirection(window.innerWidth >= 1024 ? 'right' : 'bottom');
     };
     handleResize();
-    setMounted(true);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);

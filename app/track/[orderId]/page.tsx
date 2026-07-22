@@ -77,8 +77,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   ]);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
 
+  // This is a Server Component rendered fresh per request, not a client
+  // component re-rendering in the browser — reading the real current time
+  // here is correct, not a hydration-purity concern the lint rule assumes.
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now();
   const daysRemaining = order.dueDate
-    ? Math.ceil((new Date(order.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil((new Date(order.dueDate).getTime() - now) / (1000 * 60 * 60 * 24))
     : null;
   const daysRemainingLabel =
     daysRemaining === null

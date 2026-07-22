@@ -42,7 +42,7 @@ export default function CommentBox({ orderId, currentStage, initialComments }: C
       <h3 className={styles.sectionTitle}>
         <FaRegCommentDots style={{ marginRight: 6 }} /> Leave a Comment
       </h3>
-      <p className={styles.hint}>Have a note about your garment? It's shared with the shop right away.</p>
+      <p className={styles.hint}>Have a note about your garment? It&apos;s shared with the shop right away.</p>
 
       <div className={styles.inputRow}>
         <textarea

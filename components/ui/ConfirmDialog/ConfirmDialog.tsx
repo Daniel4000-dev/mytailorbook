@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Button from '@/components/ui/Button/Button';
+import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import styles from './ConfirmDialog.module.css';
 
 interface ConfirmDialogProps {
@@ -40,8 +40,7 @@ export default function ConfirmDialog({
   destructive = true,
   loading = false,
 }: ConfirmDialogProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHasMounted();
 
   if (!isOpen || !mounted) return null;
 

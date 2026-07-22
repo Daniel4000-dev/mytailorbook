@@ -53,7 +53,7 @@ export default function InstallPrompt() {
 
     const detected = detectMobilePlatform();
     if (!detected) return;
-    setPlatform(detected);
+    Promise.resolve().then(() => setPlatform(detected));
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
