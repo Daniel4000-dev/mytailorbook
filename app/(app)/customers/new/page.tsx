@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import { isValidPhone } from '@/lib/formatters';
 import styles from './page.module.css';
 
@@ -199,18 +200,21 @@ export default function NewClientPage() {
         </div>
       </main>
 
-      {/* Fixed glass action bar */}
-      <div className={styles.actionBar}>
-        <div className={styles.actionBarInner}>
-          <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
-            Cancel
-          </button>
-          <button type="button" className={styles.createBtn} onClick={handleCreate} disabled={submitting}>
-            {submitting ? 'Creating…' : 'Create Profile & Proceed'}
-            <Symbol name="arrow_forward" size={22} />
-          </button>
+      {/* Fixed glass action bar — portaled straight to document.body, see
+          FixedBottomPortal for why. */}
+      <FixedBottomPortal>
+        <div className={styles.actionBar}>
+          <div className={styles.actionBarInner}>
+            <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
+              Cancel
+            </button>
+            <button type="button" className={styles.createBtn} onClick={handleCreate} disabled={submitting}>
+              {submitting ? 'Creating…' : 'Create Profile & Proceed'}
+              <Symbol name="arrow_forward" size={22} />
+            </button>
+          </div>
         </div>
-      </div>
+      </FixedBottomPortal>
     </div>
   );
 }

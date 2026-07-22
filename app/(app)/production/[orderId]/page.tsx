@@ -15,6 +15,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
+import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import Input from '@/components/ui/Input/Input';
 import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -704,17 +705,20 @@ export default function OrderDetailPage() {
         )}
       </div>
 
-      {/* Floating WhatsApp shortcut */}
+      {/* Floating WhatsApp shortcut — portaled straight to document.body,
+          see FixedBottomPortal for why. */}
       {customer && (
-        <a
-          href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.whatsappFab}
-          aria-label={`WhatsApp ${customer.fullName}`}
-        >
-          <FaWhatsapp color="#FFFFFF" size={28} />
-        </a>
+        <FixedBottomPortal>
+          <a
+            href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.whatsappFab}
+            aria-label={`WhatsApp ${customer.fullName}`}
+          >
+            <FaWhatsapp color="#FFFFFF" size={28} />
+          </a>
+        </FixedBottomPortal>
       )}
 
       <ConfirmDialog

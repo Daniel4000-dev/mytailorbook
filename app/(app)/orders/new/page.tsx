@@ -8,6 +8,7 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
 import {
   GARMENT_STYLES,
@@ -714,51 +715,58 @@ function NewOrderWizard() {
         )}
       </main>
 
-      {/* ── Sticky summary / action bar ──────────────────────── */}
+      {/* ── Sticky summary / action bar — portaled straight to
+           document.body, see FixedBottomPortal for why. ────────── */}
       {step === 'garments' && (
-        <div className={styles.summaryBarWrap}>
-          <div className={styles.summaryBar}>
-            <div className={styles.summaryLeft}>
-              <span className={styles.summaryCount}>{totalItems}</span>
-              <span className={styles.summaryText}>
-                <b>{totalItems === 1 ? 'Item Selected' : 'Items Selected'}</b>
-                <small>{basketSummary || 'Tap a style to begin'}</small>
-              </span>
+        <FixedBottomPortal>
+          <div className={styles.summaryBarWrap}>
+            <div className={styles.summaryBar}>
+              <div className={styles.summaryLeft}>
+                <span className={styles.summaryCount}>{totalItems}</span>
+                <span className={styles.summaryText}>
+                  <b>{totalItems === 1 ? 'Item Selected' : 'Items Selected'}</b>
+                  <small>{basketSummary || 'Tap a style to begin'}</small>
+                </span>
+              </div>
+              <button type="button" className={styles.proceedBtn} disabled={totalItems === 0} onClick={goToMeasure}>
+                Proceed <Symbol name="arrow_forward" size={20} fill />
+              </button>
             </div>
-            <button type="button" className={styles.proceedBtn} disabled={totalItems === 0} onClick={goToMeasure}>
-              Proceed <Symbol name="arrow_forward" size={20} fill />
-            </button>
           </div>
-        </div>
+        </FixedBottomPortal>
       )}
       {step === 'measure' && (
-        <div className={styles.summaryBarWrap}>
-          <div className={styles.summaryBar}>
-            <button type="button" className={styles.skipBtn} onClick={measureNext}>
-              Skip for now
-            </button>
-            <button type="button" className={styles.proceedBtn} onClick={measureNext}>
-              {measureIndex < basket.length - 1 ? `Next: ${basket[measureIndex + 1].name}` : 'Proceed to Details'}
-              <Symbol name="arrow_forward" size={20} fill />
-            </button>
+        <FixedBottomPortal>
+          <div className={styles.summaryBarWrap}>
+            <div className={styles.summaryBar}>
+              <button type="button" className={styles.skipBtn} onClick={measureNext}>
+                Skip for now
+              </button>
+              <button type="button" className={styles.proceedBtn} onClick={measureNext}>
+                {measureIndex < basket.length - 1 ? `Next: ${basket[measureIndex + 1].name}` : 'Proceed to Details'}
+                <Symbol name="arrow_forward" size={20} fill />
+              </button>
+            </div>
           </div>
-        </div>
+        </FixedBottomPortal>
       )}
       {step === 'details' && (
-        <div className={styles.summaryBarWrap}>
-          <div className={styles.summaryBar}>
-            <div className={styles.summaryLeft}>
-              <span className={styles.summaryText}>
-                <small>Order Total</small>
-                <b className={styles.summaryTotal}>{formatCurrency(orderTotal)}</b>
-              </span>
+        <FixedBottomPortal>
+          <div className={styles.summaryBarWrap}>
+            <div className={styles.summaryBar}>
+              <div className={styles.summaryLeft}>
+                <span className={styles.summaryText}>
+                  <small>Order Total</small>
+                  <b className={styles.summaryTotal}>{formatCurrency(orderTotal)}</b>
+                </span>
+              </div>
+              <button type="button" className={styles.proceedBtn} disabled={submitting} onClick={handleCreate}>
+                {submitting ? 'Creating…' : units.length > 1 ? `Create ${units.length} Orders` : 'Create Order'}
+                <Symbol name="check_circle" size={20} fill />
+              </button>
             </div>
-            <button type="button" className={styles.proceedBtn} disabled={submitting} onClick={handleCreate}>
-              {submitting ? 'Creating…' : units.length > 1 ? `Create ${units.length} Orders` : 'Create Order'}
-              <Symbol name="check_circle" size={20} fill />
-            </button>
           </div>
-        </div>
+        </FixedBottomPortal>
       )}
     </div>
   );
