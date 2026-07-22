@@ -21,7 +21,7 @@ interface CustomStyle {
 
 export default function CustomStylesSettingsPage() {
   const router = useRouter();
-  const { currentShop, updateShop } = useData();
+  const { currentShop, updateShop, renameCustomStyle } = useData();
   const { showToast } = useToast();
 
   const customStyles = currentShop?.customStyles || [];
@@ -36,13 +36,14 @@ export default function CustomStylesSettingsPage() {
   };
 
   const handleSaveRename = async () => {
-    if (!activeStyle || !editName.trim()) return;
+    if (!activeStyle || !editName.trim() || editName.trim() === activeStyle.name) return;
     setSaving(true);
     try {
-      const next = customStyles.map((s) => (s.name === activeStyle.name ? { ...s, name: editName.trim() } : s));
-      await updateShop({ customStyles: next });
-      showToast('Style renamed', 'success');
+      await renameCustomStyle(activeStyle.name, editName.trim());
+      showToast('Style renamed — updated on any customers who had it as a preference', 'success');
       setActiveStyle(null);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not rename style', 'error');
     } finally {
       setSaving(false);
     }
@@ -88,6 +89,9 @@ export default function CustomStylesSettingsPage() {
             </div>
           )}
           <Input label="Style Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+          <p className={styles.hintText}>
+            Renaming updates every customer who already has this as a preferred style.
+          </p>
           <div className={styles.sheetActions}>
             <Button variant="ghost" onClick={() => setActiveStyle(null)}>Cancel</Button>
             <Button variant="primary" loading={saving} onClick={handleSaveRename}>Save</Button>

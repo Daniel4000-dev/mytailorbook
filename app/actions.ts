@@ -408,6 +408,57 @@ export async function upsertCustomStyleAction(
   return shopFromRow(data);
 }
 
+/** Renames a custom style everywhere it's referenced: the shop's own style
+ *  list, AND every customer's `preferredStyles` that names it — otherwise a
+ *  rename would silently orphan existing customer records (they'd keep the
+ *  old name, which no longer matches anything in the picker or the Style
+ *  Gallery/Customers filter). */
+export async function renameCustomStyleEverywhereAction(
+  shopId: string,
+  oldName: string,
+  newName: string
+): Promise<Shop> {
+  const supabase = await createClient();
+
+  const { data: shopRow, error: shopFetchError } = await supabase
+    .from('shops')
+    .select('custom_styles')
+    .eq('id', shopId)
+    .single();
+  if (shopFetchError) throw new Error(shopFetchError.message);
+
+  const existing: { name: string; photoUrl?: string }[] = shopRow?.custom_styles || [];
+  const nextStyles = existing.map((s) =>
+    s.name.toLowerCase() === oldName.toLowerCase() ? { ...s, name: newName } : s
+  );
+
+  const { data: updatedShop, error: shopUpdateError } = await supabase
+    .from('shops')
+    .update({ custom_styles: nextStyles })
+    .eq('id', shopId)
+    .select()
+    .single();
+  if (shopUpdateError) throw new Error(shopUpdateError.message);
+
+  const { data: affectedCustomers, error: customersError } = await supabase
+    .from('customers')
+    .select('id, preferred_styles')
+    .eq('shop_id', shopId)
+    .contains('preferred_styles', [oldName]);
+  if (customersError) throw new Error(customersError.message);
+
+  if (affectedCustomers && affectedCustomers.length > 0) {
+    const updates = affectedCustomers.map((c) => ({
+      id: c.id,
+      preferred_styles: (c.preferred_styles as string[]).map((s) => (s === oldName ? newName : s)),
+    }));
+    const { error: cascadeError } = await supabase.from('customers').upsert(updates);
+    if (cascadeError) throw new Error(cascadeError.message);
+  }
+
+  return shopFromRow(updatedShop);
+}
+
 /** Owner resets a staff member's password. Verifies the requester actually
  *  owns the shop that `staffUid` belongs to (never trust a client-supplied
  *  staff id alone) before using the admin client to do the actual reset —

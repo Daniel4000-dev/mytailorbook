@@ -28,6 +28,7 @@ import {
   updateStaffAction,
   updateShopAction,
   upsertCustomStyleAction,
+  renameCustomStyleEverywhereAction,
   getStaff,
 } from '@/app/actions';
 
@@ -67,6 +68,7 @@ interface DataContextValue {
   updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
   updateShop: (updates: Partial<Shop>) => Promise<void>;
   upsertCustomStyle: (name: string, photoUrl?: string) => Promise<void>;
+  renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -278,6 +280,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [shopId, mutate]
   );
 
+  const renameCustomStyle = useCallback(
+    async (oldName: string, newName: string) => {
+      if (!shopId) return;
+      const updated = await renameCustomStyleEverywhereAction(shopId, oldName, newName);
+      mutate(
+        (current) =>
+          current
+            ? {
+                ...current,
+                shop: updated,
+                customers: current.customers.map((c) =>
+                  c.preferredStyles?.includes(oldName)
+                    ? { ...c, preferredStyles: c.preferredStyles.map((s) => (s === oldName ? newName : s)) }
+                    : c
+                ),
+              }
+            : current,
+        { revalidate: false }
+      );
+    },
+    [shopId, mutate]
+  );
+
   const value = useMemo<DataContextValue>(
     () => ({
       orders,
@@ -303,8 +328,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateStaff,
       updateShop,
       upsertCustomStyle,
+      renameCustomStyle,
     }),
-    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle]
+    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

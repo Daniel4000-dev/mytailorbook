@@ -61,6 +61,12 @@
   padding-bottom: var(--sf-space-lg);
 }
 
+.hintText {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin: -8px 0 0;
+}
+
 .sheetPhoto {
   aspect-ratio: 4 / 3;
   border-radius: var(--sf-radius-md);
