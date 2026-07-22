@@ -19,7 +19,7 @@ export default function ProductionPage() {
       header={
         <TopBar 
           title="Production Board"
-          subtitle="Track and manage custom orders through the workshop cutting and sewing phases."
+          subtitle="From first cut to final stitch."
           leftAction={
             <div className={styles.mobileOnly}>
               <button className={styles.mobileMenuBtn} onClick={toggleMenu} aria-label="Menu">
