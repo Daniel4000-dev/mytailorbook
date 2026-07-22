@@ -323,7 +323,7 @@
     width: calc(100% - 32px) !important;
     padding: 10px 16px !important;
     margin: 0 16px;
-    border-radius: 10px;
+    border-radius: var(--sf-radius-sm);
     transition: all var(--sf-transition-fast);
   }
 
@@ -352,7 +352,7 @@
     width: calc(100% - 32px) !important;
     padding: 10px 16px !important;
     margin: 0 16px;
-    border-radius: 10px;
+    border-radius: var(--sf-radius-sm);
     transition: all var(--sf-transition-fast);
     display: flex;
     align-items: center;
@@ -373,7 +373,7 @@
     width: calc(100% - 32px) !important;
     padding: 10px 16px !important;
     margin: 0 16px;
-    border-radius: 10px;
+    border-radius: var(--sf-radius-sm);
     transition: all var(--sf-transition-fast);
   }
 

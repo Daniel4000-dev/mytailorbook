@@ -235,7 +235,7 @@
   .illustrationCard {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 24px;
+    border-radius: 18px;
     padding: var(--sf-space-xl);
     display: flex;
     justify-content: center;
