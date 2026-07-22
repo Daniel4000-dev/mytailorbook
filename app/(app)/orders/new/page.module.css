@@ -755,6 +755,8 @@
   color: var(--sf-text-secondary);
   font-weight: var(--sf-weight-semibold);
   transition: color var(--sf-transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .skipBtn:hover {
