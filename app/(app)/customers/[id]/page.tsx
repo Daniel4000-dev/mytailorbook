@@ -264,9 +264,15 @@ function CustomerProfileContent({
 
         {customer.preferredStyles && customer.preferredStyles.length > 0 && (
           <div className={styles.prefChips}>
-            {customer.preferredStyles.map((s) => (
-              <span key={s} className={styles.prefChip}>{s}</span>
-            ))}
+            {customer.preferredStyles.map((s) => {
+              const photoUrl = GARMENT_STYLES.find((g) => g.name === s)?.photoUrl;
+              return (
+                <span key={s} className={`${styles.prefChip} ${photoUrl ? '' : styles.prefChipNoPhoto}`}>
+                  {photoUrl && <img src={photoUrl} alt="" className={styles.prefChipPhoto} />}
+                  {s}
+                </span>
+              );
+            })}
           </div>
         )}
 

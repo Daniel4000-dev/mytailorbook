@@ -353,7 +353,7 @@ function StaffDashboard({
           <span className={styles.cardValue}>{overdueCount}</span>
         </div>
         <div className={styles.financeCard}>
-          <span className={styles.cardLabel}>Completed</span>
+          <span className={styles.cardLabel}>Delivered</span>
           <span className={styles.cardValue}>{completedCount}</span>
         </div>
       </div>

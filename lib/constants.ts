@@ -59,7 +59,7 @@ export const STATUS_CONFIG: Record<
     color: 'var(--sf-stage-completed)',
     bgColor: 'var(--sf-stage-completed-bg)',
     icon: 'FaCircleCheck',
-    label: 'Completed',
+    label: 'Delivered',
   },
 };
 

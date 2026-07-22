@@ -10,12 +10,16 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import FilterPill from '@/components/ui/FilterPill/FilterPill';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { formatPhone, formatCurrency, formatShortMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
+import { GARMENT_STYLES } from '@/lib/constants';
 import CustomersSkeleton from './CustomersSkeleton';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 40;
+type GenderFilter = 'all' | 'male' | 'female';
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -23,6 +27,9 @@ export default function CustomersPage() {
   const { customers, orders, isLoaded } = useData();
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+  const [styleFilter, setStyleFilter] = useState<string | null>(null);
+  const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
 
   // Calculate order stats per customer
   const customerStats = useMemo(() => {
@@ -54,10 +61,24 @@ export default function CustomersPage() {
     customers.slice(0, 60).forEach((c) => router.prefetch(`/customers/${c.id}`));
   }, [isLoaded, customers, router]);
 
-  // A new search should start back at the first page rather than staying
-  // scrolled deep into a now-irrelevant "load more" position.
+  // A new search/filter should start back at the first page rather than
+  // staying scrolled deep into a now-irrelevant "load more" position.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setVisibleCount(PAGE_SIZE), [search]);
+  useEffect(() => setVisibleCount(PAGE_SIZE), [search, genderFilter, styleFilter]);
+
+  // Styles offered in the filter sheet are only ones actually in use by this
+  // shop's own customers (scoped to the active gender filter) — never the
+  // full static catalog, so a tailor never picks a style that returns zero
+  // results. Each resolves to its catalog photo when it's a built-in style;
+  // custom styles (free text, no catalog entry) fall back to a text-only chip.
+  const availableStyles = useMemo(() => {
+    const scoped = genderFilter === 'all' ? customers : customers.filter((c) => c.gender === genderFilter);
+    const names = new Set<string>();
+    scoped.forEach((c) => c.preferredStyles?.forEach((s) => names.add(s)));
+    return Array.from(names)
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => ({ name, photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl }));
+  }, [customers, genderFilter]);
 
   if (!isOwner) {
     return (
@@ -76,6 +97,8 @@ export default function CustomersPage() {
   }
 
   const filtered = customers.filter((c) => {
+    if (genderFilter !== 'all' && c.gender !== genderFilter) return false;
+    if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
     const q = search.toLowerCase();
     return c.fullName.toLowerCase().includes(q) || c.whatsappNumber.includes(q);
   });
@@ -101,6 +124,64 @@ export default function CustomersPage() {
           <SearchBar value={search} onChange={setSearch} placeholder="Search by name or phone..." />
         </div>
 
+        <div className={styles.pillRow}>
+          <FilterPill label="All" active={genderFilter === 'all'} onClick={() => setGenderFilter('all')} />
+          <FilterPill
+            label="Male"
+            active={genderFilter === 'male'}
+            onClick={() => {
+              setGenderFilter('male');
+              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
+                setStyleFilter(null);
+              }
+            }}
+          />
+          <FilterPill
+            label="Female"
+            active={genderFilter === 'female'}
+            onClick={() => {
+              setGenderFilter('female');
+              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
+                setStyleFilter(null);
+              }
+            }}
+          />
+          <FilterPill
+            label={styleFilter || 'Style'}
+            active={!!styleFilter}
+            onClick={() => setIsStyleSheetOpen(true)}
+          />
+        </div>
+
+        <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">
+          {availableStyles.length === 0 ? (
+            <p className={styles.noStylesHint}>No preferred styles recorded yet for this filter.</p>
+          ) : (
+            <div className={styles.styleFilterGrid}>
+              {availableStyles.map((s) => (
+                <button
+                  key={s.name}
+                  type="button"
+                  className={`${styles.styleFilterCard} ${styleFilter === s.name ? styles.styleFilterCardSelected : ''}`}
+                  onClick={() => {
+                    setStyleFilter(styleFilter === s.name ? null : s.name);
+                    setIsStyleSheetOpen(false);
+                  }}
+                >
+                  {s.photoUrl ? (
+                    <div className={styles.styleFilterPhoto}>
+                      <img src={s.photoUrl} alt="" />
+                    </div>
+                  ) : (
+                    <div className={styles.styleFilterPhoto} aria-hidden="true" />
+                  )}
+                  <span>{s.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </BottomSheet>
+
         {filtered.length === 0 ? (
           customers.length === 0 ? (
             <EmptyState
@@ -109,7 +190,7 @@ export default function CustomersPage() {
               description="Your customer book starts with your first order — create one and the customer is saved here automatically."
             />
           ) : (
-            <EmptyState icon={<FaUserSlash />} title="No customers found" description="Try a different search term" />
+            <EmptyState icon={<FaUserSlash />} title="No customers found" description="Try a different search or filter" />
           )
         ) : (
           <>

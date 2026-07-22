@@ -43,6 +43,78 @@
   width: 100%;
 }
 
+/* Horizontally-scrollable pill row for gender/style filters — bleeds to
+   the screen edge on mobile, no visible scrollbar. */
+.pillRow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-sm);
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.pillRow::-webkit-scrollbar {
+  display: none;
+}
+
+.noStylesHint {
+  padding: var(--sf-space-lg);
+  text-align: center;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+}
+
+.styleFilterGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-xs) 0 var(--sf-space-lg);
+}
+
+.styleFilterCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.styleFilterCard span {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  text-align: center;
+}
+
+.styleFilterPhoto {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: var(--sf-surface-container-highest);
+  border: 2px solid transparent;
+  transition: border-color var(--sf-transition-fast);
+}
+
+.styleFilterPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.styleFilterCardSelected .styleFilterPhoto {
+  border-color: var(--sf-accent-emerald);
+}
+
+.styleFilterCard:active .styleFilterPhoto {
+  transform: scale(0.96);
+}
+
 .loadMoreBtn {
   width: 100%;
   height: var(--sf-touch-target);

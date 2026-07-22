@@ -56,7 +56,10 @@
 }
 
 .prefChip {
-  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 4px;
   border-radius: var(--sf-radius-full);
   background: var(--sf-secondary-container);
   color: var(--sf-accent-emerald);
@@ -64,6 +67,17 @@
   font-weight: var(--sf-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
+}
+
+.prefChipPhoto {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.prefChipNoPhoto {
+  padding-left: 12px;
 }
 
 .quickActions {
