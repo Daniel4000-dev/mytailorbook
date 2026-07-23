@@ -98,7 +98,7 @@ export default function InstallPrompt() {
   if (!platform || !visible) return null;
 
   return (
-    <div className={styles.banner} role="dialog" aria-label="Install MyTailorBook">
+    <div className={styles.banner} role="dialog" aria-label="Install MyStitchBook">
       <button type="button" className={styles.closeBtn} onClick={dismiss} aria-label="Dismiss">
         <FaXmark />
       </button>
@@ -108,7 +108,7 @@ export default function InstallPrompt() {
       </div>
 
       <div className={styles.textWrapper}>
-        <span className={styles.title}>Install MyTailorBook</span>
+        <span className={styles.title}>Install MyStitchBook</span>
         {platform === 'android' ? (
           <span className={styles.subtitle}>Add it to your home screen for the full app experience.</span>
         ) : (

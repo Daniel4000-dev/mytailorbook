@@ -48,13 +48,13 @@ export default function LoginPage() {
       <div className={styles.logoWrapper}>
         <img
           src="/images/logo-mark.png"
-          alt="MyTailorBook"
+          alt="MyStitchBook"
           className={styles.sewingMachineSvg}
         />
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
+      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
 
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <div className={styles.errorBanner}>{error}</div>}

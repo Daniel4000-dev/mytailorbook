@@ -1,5 +1,5 @@
 -- ============================================================
--- MyTailorBook — Initial Schema
+-- MyStitchBook — Initial Schema
 -- ============================================================
 -- Run this once in Supabase Dashboard → SQL Editor → New query → Paste → Run.
 --

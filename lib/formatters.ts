@@ -1,5 +1,5 @@
 /* ============================================================
-   MyTailorBook Formatters
+   MyStitchBook Formatters
    ============================================================
    Utility functions for formatting display values.
    ============================================================ */

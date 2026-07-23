@@ -63,9 +63,9 @@ export default function SignupPage() {
     return (
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
-          <img src="/images/logo-mark.png" alt="MyTailorBook" className={styles.sewingMachineSvg} />
+          <img src="/images/logo-mark.png" alt="MyStitchBook" className={styles.sewingMachineSvg} />
         </div>
-        <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
+        <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
         <div className={styles.successWrapper}>
           <div className={styles.successIconWrapper}>
             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -92,13 +92,13 @@ export default function SignupPage() {
       <div className={styles.logoWrapper}>
         <img
           src="/images/logo-mark.png"
-          alt="MyTailorBook"
+          alt="MyStitchBook"
           className={styles.sewingMachineSvg}
         />
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
+      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
 
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <div className={styles.errorBanner}>{error}</div>}

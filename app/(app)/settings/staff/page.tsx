@@ -274,7 +274,7 @@ export default function StaffSettingsPage() {
       <BottomSheet isOpen={isAddSheetOpen} onClose={() => setIsAddSheetOpen(false)} title="Register Employee">
         <form onSubmit={handleAddStaff} className={styles.sheetBody}>
           <Input label="Full Name" placeholder="e.g. Chioma Eze" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input label="Email/Username" type="email" placeholder="e.g. chioma@mytailorbook.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input label="Email/Username" type="email" placeholder="e.g. chioma@mystitchbook.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input label="Temporary Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {addError && <p className={styles.errorText}>{addError}</p>}
           <Button type="submit" variant="primary" loading={addLoading}>Add Staff Member</Button>

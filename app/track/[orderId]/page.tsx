@@ -107,7 +107,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   return (
     <div className={styles.page}>
-      {/* Brand header — deliberately MyTailorBook, not the shop: this page
+      {/* Brand header — deliberately MyStitchBook, not the shop: this page
           is the app's main visibility channel to every shop's customers. */}
       <header className={styles.header}>
         <div className={styles.brandBlock}>

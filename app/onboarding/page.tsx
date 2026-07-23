@@ -69,9 +69,9 @@ export default function OnboardingPage() {
   return (
     <div className={styles.container}>
       <div className={styles.logoWrapper}>
-        <img src="/images/logo-mark.png" alt="MyTailorBook" className={styles.sewingMachineSvg} />
+        <img src="/images/logo-mark.png" alt="MyStitchBook" className={styles.sewingMachineSvg} />
       </div>
-      <h1 className={styles.brandTitle}>MYTAILORBOOK</h1>
+      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
       <p className={styles.subheading}>
         Almost there — tell us a bit about your studio to finish setting up your workspace.
       </p>

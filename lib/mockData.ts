@@ -1,5 +1,5 @@
 /**
- * MyTailorBook Mock Data
+ * MyStitchBook Mock Data
  *
  * For demonstration purposes. Provides initial state for the context providers.
  */
