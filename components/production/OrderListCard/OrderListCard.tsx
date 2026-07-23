@@ -17,6 +17,12 @@ interface OrderListCardProps {
   staffMembers?: User[];
   onReassign?: (orderId: string, staffUid: string, staffName: string) => void;
   index?: number;
+  /** Desktop Kanban columns replace Move Back/Move to X with drag-and-drop
+   *  between columns — the footer buttons would be redundant there. */
+  hideFooterActions?: boolean;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: () => void;
 }
 
 /** Photo-first production card: a large garment photo with a glass status
@@ -32,6 +38,10 @@ export default function OrderListCard({
   staffMembers,
   onReassign,
   index = 0,
+  hideFooterActions = false,
+  draggable = false,
+  onDragStart,
+  onDragEnd,
 }: OrderListCardProps) {
   const next = getNextStatus(order.status);
   const prev = getPreviousStatus(order.status);
@@ -106,7 +116,7 @@ export default function OrderListCard({
 
   return (
     <div
-      className={styles.card}
+      className={`${styles.card} ${draggable ? styles.draggableCard : ''}`}
       style={{
         transform: swipeOffset ? `translate3d(${swipeOffset}px, 0, 0)` : undefined,
         transition: isSwiping ? 'none' : 'transform 0.2s ease',
@@ -115,6 +125,9 @@ export default function OrderListCard({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
     >
       {/* Photo area — the stage is already conveyed by the section this
           card sits under, so no separate status pill on the photo. */}
@@ -186,7 +199,7 @@ export default function OrderListCard({
       </div>
 
       {/* Move actions */}
-      {(prev || next) && order.status !== 'Completed' && (
+      {!hideFooterActions && (prev || next) && order.status !== 'Completed' && (
         <div className={styles.footer}>
           {prev && onRevert ? (
             <button type="button" className={styles.moveBackBtn} onClick={onRevert}>

@@ -1,0 +1,89 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 280px;
+  max-width: 340px;
+  /* Without this, nested flex columns default to min-height:auto at every
+     level, so the browser shrinks cards to fit the constrained column
+     height instead of letting .columnBody scroll — the classic "flex
+     children get squashed instead of scrolling" bug. */
+  min-height: 0;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+  max-height: 100%;
+  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast);
+}
+
+.column.dropTarget {
+  background: var(--sf-accent-emerald-glow);
+  border-color: var(--sf-accent-emerald);
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-sm);
+  border-bottom: 1px solid var(--sf-border-light);
+  flex-shrink: 0;
+}
+
+.columnTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.columnCount {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-surface-hover);
+  padding: 2px 9px;
+  border-radius: var(--sf-radius-full);
+}
+
+.columnBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-bottom: var(--sf-space-sm);
+}
+
+.columnBody > * {
+  flex-shrink: 0;
+}
+
+.columnEmpty {
+  border: 1px dashed var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+  padding: var(--sf-space-lg);
+  text-align: center;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-xs);
+}
+
+.showMoreBtn {
+  width: 100%;
+  padding: var(--sf-space-sm);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-xs);
+  flex-shrink: 0;
+  transition: background-color var(--sf-transition-fast);
+}
+
+.showMoreBtn:hover {
+  background: var(--sf-surface-variant);
+}
+

@@ -1,6 +1,19 @@
 /* Production board — mockup layout: search, pill filter rows, then
    stage sections (banner + vertical list of compact cards). */
 
+/* Desktop-only real Kanban: all stages as columns side by side, filling
+   the remaining viewport height so each column scrolls independently
+   rather than the whole page. */
+.columnsRow {
+  display: flex;
+  gap: var(--sf-space-md);
+  flex: 1;
+  min-height: 0;
+  height: calc(100dvh - 260px);
+  overflow-x: auto;
+  padding-bottom: var(--sf-space-sm);
+}
+
 .searchBar {
   position: relative;
   display: flex;
@@ -88,6 +101,16 @@
 
 .stageSection {
   margin-bottom: var(--sf-space-xl);
+}
+
+.fabClearance {
+  height: calc(var(--sf-fab-size) + var(--sf-space-lg));
+}
+
+@media (min-width: 1024px) {
+  .fabClearance {
+    display: none;
+  }
 }
 
 .cardList {
