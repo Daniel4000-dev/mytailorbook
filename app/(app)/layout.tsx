@@ -40,8 +40,7 @@ function PageEnter({ children }: { children: ReactNode }) {
 }
 
 function AppLayoutContent({ children }: { children: ReactNode }) {
-  const [showActionMenu, setShowActionMenu] = useState(false);
-  const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
+  const { isMenuOpen, setMenuOpen, isCollapsed, isCreateMenuOpen, openCreateMenu, closeCreateMenu } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
@@ -114,7 +113,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           disappears until I open the sidebar again" bug this fixes. */}
       {!isMenuOpen && showFab && (
         <FAB
-          onClick={() => setShowActionMenu(true)}
+          onClick={openCreateMenu}
           icon={<FaPlus />}
           label="Create action"
         />
@@ -122,10 +121,11 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {!isMenuOpen && !isTransactional && <BottomNav />}
       {!isMenuOpen && <InstallPrompt />}
 
-      {/* Create Action Menu */}
+      {/* Create Action Menu — opened by the FAB on mobile, or by the
+          equivalent button in SidebarMenu on desktop (see SidebarContext). */}
       <BottomSheet
-        isOpen={showActionMenu}
-        onClose={() => setShowActionMenu(false)}
+        isOpen={isCreateMenuOpen}
+        onClose={closeCreateMenu}
         title="New Order"
       >
         <div className={styles.actionMenu}>
@@ -133,7 +133,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           <Link
             href="/orders/new"
             className={styles.actionOption}
-            onClick={() => setShowActionMenu(false)}
+            onClick={closeCreateMenu}
           >
             <span className={styles.actionOptionIcon}>
               <Symbol name="group" fill size={24} />
@@ -147,7 +147,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           <Link
             href="/customers/new"
             className={styles.actionOption}
-            onClick={() => setShowActionMenu(false)}
+            onClick={closeCreateMenu}
           >
             <span className={styles.actionOptionIcon}>
               <Symbol name="person_add" fill size={24} />

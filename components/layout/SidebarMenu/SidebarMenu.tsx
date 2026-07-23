@@ -13,6 +13,7 @@ import {
   FaRegUser,
   FaRegHeart,
   FaImages,
+  FaPlus,
   FaArrowRightFromBracket,
   FaHouse,
   FaTableColumns,
@@ -33,10 +34,10 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 export default function SidebarMenu() {
-  const { logout, isOwner } = useAuth();
-  const { currentShop } = useData();
+  const { logout, isOwner, loading: authLoading } = useAuth();
+  const { currentShop, isLoaded } = useData();
   const shopName = currentShop?.name || APP_CONFIG.name;
-  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
+  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse, openCreateMenu } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
   const [showProfile, setShowProfile] = useState(false);
@@ -48,6 +49,14 @@ export default function SidebarMenu() {
     await logout();
     router.push('/login');
   };
+
+  // Both the real shop name and the Portfolio/Style Gallery links depend on
+  // currentShop/role resolving — rendering before then shows a generic
+  // wordmark and a shorter nav that visibly grows/renames itself a beat
+  // later. Same tradeoff BottomNav already makes: waiting an extra beat for
+  // a stable, correct-on-first-paint sidebar reads far better than content
+  // jumping under the user's cursor.
+  if (authLoading || !isLoaded) return null;
 
   return (
     <div className={`${styles.sidebar} ${isMenuOpen ? styles.open : ''} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -77,6 +86,20 @@ export default function SidebarMenu() {
           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
         </div>
       </div>
+
+      {/* Desktop's equivalent of the mobile FAB — a floating "+" belongs to
+          a bottom-nav app, not a persistent sidebar shell, so desktop gets
+          the same New Order/New Customer sheet from a button in the rail
+          instead (see SidebarContext's isCreateMenuOpen). */}
+      <button
+        type="button"
+        className={styles.newBtn}
+        onClick={openCreateMenu}
+        title={isCollapsed ? 'New' : undefined}
+      >
+        <FaPlus className={styles.newIcon} />
+        <span className={styles.menuText}>New</span>
+      </button>
 
       {/* Collapse Toggle Button for Desktop */}
       <button 

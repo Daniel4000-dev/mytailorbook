@@ -30,3 +30,12 @@
 .fab:active {
   transform: scale(0.92);
 }
+
+/* A floating "+" is a bottom-nav mobile pattern — on desktop the persistent
+   sidebar has its own "New" action (see SidebarMenu), so the FAB would just
+   be a second, redundant affordance floating over content. */
+@media (min-width: 1024px) {
+  .fab {
+    display: none;
+  }
+}

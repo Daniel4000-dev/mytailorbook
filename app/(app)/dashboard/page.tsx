@@ -253,7 +253,10 @@ function OwnerDashboard({
       </div>
 
       {needsAttention.length === 0 && unreadCommentOrders.length === 0 ? (
-        <div className={styles.emptyState}>Nothing overdue or rushed — production is on track.</div>
+        <div className={styles.emptyState}>
+          <FaCircleCheck className={styles.emptyStateIcon} />
+          <span>Nothing overdue or rushed — production is on track.</span>
+        </div>
       ) : (
         <div className={styles.attentionList}>
           {needsAttention.map((order) => (
@@ -366,7 +369,10 @@ function StaffDashboard({
       </div>
 
       {myTasks.length === 0 ? (
-        <div className={styles.emptyState}>No orders assigned to you right now.</div>
+        <div className={styles.emptyState}>
+          <FaClipboardList className={styles.emptyStateIcon} />
+          <span>No orders assigned to you right now.</span>
+        </div>
       ) : (
         <div className={styles.attentionList}>
           {myTasks.map((order) => (

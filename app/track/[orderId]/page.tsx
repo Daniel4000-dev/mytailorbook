@@ -132,7 +132,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           </span>
           <h2 className={styles.heroTitle}>Tracking your {order.orderDetails}</h2>
           <p className={styles.heroSub}>
-            Hello {order.customerName.split(' ')[0]} 👋 — watch your piece come to life
+            Hello {order.customerName.split(' ')[0]} — watch your piece come to life
             {shop ? ` at ${shop.name}` : ''}. Every major step of the process is documented here.
           </p>
           {order.dueDate && order.status !== 'Completed' && (

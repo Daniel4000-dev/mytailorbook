@@ -391,7 +391,11 @@
 
 @media (min-width: 1024px) {
   .teamGrid {
-    grid-template-columns: repeat(4, 1fr);
+    /* auto-fill rather than a fixed 4-column split — with only one or two
+       staff, forcing equal-width columns left a lone card looking stranded
+       beside a large void. This sizes columns to the cards themselves and
+       only adds as many as actually fit. */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 240px));
   }
 }
 
@@ -477,13 +481,23 @@
 
 /* ── Attention / Task List ── */
 .emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sf-space-sm);
   background: #FFFFFF;
   border: 1px dashed var(--sf-border-light);
   border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-xl);
+  padding: var(--sf-space-2xl) var(--sf-space-xl);
   text-align: center;
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-sm);
+}
+
+.emptyStateIcon {
+  font-size: 28px;
+  color: var(--sf-accent-emerald);
+  opacity: 0.6;
 }
 
 .attentionList {
