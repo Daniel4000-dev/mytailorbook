@@ -1,4 +1,14 @@
 
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
 /* Stats */
 .statsContainer {
   display: grid;

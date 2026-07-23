@@ -52,13 +52,12 @@ export default function SettingsPage() {
     );
   }
 
+  {/* Plain title, not profileMode — the identity strip just below the
+      header already shows name/role/avatar; profileMode here would just
+      repeat the same thing twice on one screen. */}
   const topBar = (
     <TopBar
-      profileMode={{
-        greeting: 'Studio Settings',
-        name: user?.name || 'Owner',
-        avatarInitials: user?.name ? user.name[0] : 'O',
-      }}
+      title="Settings"
       leftAction={
         <div className={styles.mobileOnly}>
           <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />

@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { FaBars } from 'react-icons/fa6';
 import { useData } from '@/contexts/DataContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
+import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getPendingStyleCountsAction } from '@/app/actions';
@@ -14,6 +17,7 @@ type GenderFilter = 'all' | 'male' | 'female';
 
 export default function StyleGalleryPage() {
   const { currentShop } = useData();
+  const { toggleMenu } = useSidebar();
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [pendingCounts, setPendingCounts] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState(false);
@@ -31,7 +35,19 @@ export default function StyleGalleryPage() {
   );
 
   return (
-    <PageLayout header={<TopBar title="Style Gallery" subtitle="Photos worth showing your customers" />}>
+    <PageLayout
+      header={
+        <TopBar
+          title="Style Gallery"
+          subtitle="Photos worth showing your customers"
+          leftAction={
+            <div className={styles.mobileOnly}>
+              <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
+            </div>
+          }
+        />
+      }
+    >
       <p className={styles.intro}>
         Spot a great style somewhere? Add a photo here. Once the owner approves it, it&apos;s ready to send
         to any customer who loves that style.

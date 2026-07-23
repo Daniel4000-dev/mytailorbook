@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp } from 'react-icons/fa6';
+import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp, FaBars } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
@@ -13,6 +14,7 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatPhone, formatCurrency, formatShortMonthYear, formatDate, getWhatsAppLink } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
@@ -32,6 +34,17 @@ export default function CustomersPage() {
   const { user, isOwner } = useAuth();
   const { currentShop, customers, orders, isLoaded } = useData();
   const { showToast } = useToast();
+  const { toggleMenu } = useSidebar();
+  const topBar = (
+    <TopBar
+      title="Customers"
+      leftAction={
+        <div className={styles.mobileOnly}>
+          <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
+        </div>
+      }
+    />
+  );
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
@@ -178,7 +191,7 @@ export default function CustomersPage() {
 
   if (!isOwner) {
     return (
-      <PageLayout header={<TopBar title="Customers" />}>
+      <PageLayout header={topBar}>
         <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
       </PageLayout>
     );
@@ -186,7 +199,7 @@ export default function CustomersPage() {
 
   if (!isLoaded) {
     return (
-      <PageLayout header={<TopBar title="Customers" />}>
+      <PageLayout header={topBar}>
         <CustomersSkeleton />
       </PageLayout>
     );
@@ -203,7 +216,7 @@ export default function CustomersPage() {
   const activeCustomers = customers.filter(c => customerStats[c.id]?.activeOrders > 0).length;
 
   return (
-    <PageLayout header={<TopBar title="Customers" />}>
+    <PageLayout header={topBar}>
         
         <div className={styles.statsContainer}>
           <div className={styles.statCard}>

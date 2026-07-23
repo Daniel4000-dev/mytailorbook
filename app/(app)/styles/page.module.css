@@ -1,3 +1,13 @@
+.mobileOnly {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
 .intro {
   font-size: var(--sf-text-sm);
   color: var(--sf-text-secondary);
