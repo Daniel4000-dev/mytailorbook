@@ -5,11 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { useSidebar } from '@/contexts/SidebarContext';
 import { createClient } from '@/lib/supabase/client';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
-import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
 import Avatar from '@/components/ui/Avatar/Avatar';
@@ -17,7 +15,6 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { FaBars } from 'react-icons/fa6';
 import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
@@ -25,7 +22,6 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user, isOwner } = useAuth();
   const { currentShop, staffMembers, updateShop, isLoaded } = useData();
-  const { toggleMenu } = useSidebar();
   const { showToast } = useToast();
 
   const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | null>(null);
@@ -58,11 +54,6 @@ export default function SettingsPage() {
   const topBar = (
     <TopBar
       title="Settings"
-      leftAction={
-        <div className={styles.mobileOnly}>
-          <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
-        </div>
-      }
     />
   );
 

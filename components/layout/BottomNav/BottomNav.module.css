@@ -1,5 +1,5 @@
-/* Labeled M3 bottom bar per mockup: light surface, rounded top corners,
-   active item wrapped in a terracotta pill. */
+/* Labeled bottom bar: white surface, rounded top corners, active item
+   marked by a small indigo "drip" indicator instead of a filled pill. */
 .nav {
   position: fixed;
   bottom: 0;
@@ -9,10 +9,12 @@
   justify-content: space-around;
   align-items: center;
   padding: 12px 8px calc(12px + var(--sf-safe-area-bottom));
-  background: var(--sf-bg-primary);
-  border-top: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-md) var(--sf-radius-md) 0 0;
-  box-shadow: var(--sf-shadow-lg);
+  background: var(--sf-bg-surface);
+  border-radius: 24px 24px 0 0;
+  /* Two layers: a tight, closer shadow so the rounded top corners actually
+     read against a page that's now the same white as the bar itself, plus
+     the wider soft glow for the "floating above the page" depth. */
+  box-shadow: 0 -1px 6px rgba(27, 27, 34, 0.07), var(--sf-shadow-xl);
   z-index: var(--sf-z-sticky);
 }
 
@@ -27,6 +29,7 @@
 }
 
 .item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -36,7 +39,7 @@
   text-decoration: none;
   padding: 4px 16px;
   border-radius: var(--sf-radius-full);
-  transition: opacity var(--sf-transition-fast), background-color var(--sf-transition-fast);
+  transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -48,10 +51,29 @@
   transform: scale(0.9);
 }
 
+/* No pill fill on the active item — instead a small rectangular indigo
+   marker sits at the very top of the bar above the icon, solid at the
+   top edge and fading to transparent toward the bottom, matching the
+   reference's active-tab indicator exactly (a gradient bar, not a
+   tapering shape). */
 .active {
-  background: var(--sf-accent-emerald-light);
-  color: var(--sf-text-on-accent);
+  background: none;
+  color: var(--sf-accent-emerald);
   opacity: 1;
+}
+
+.active::before {
+  content: '';
+  position: absolute;
+  /* -12px cancels .nav's padding-top, so this starts exactly at the bar's
+     own top edge rather than floating above it. */
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 6px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(to bottom, var(--sf-accent-emerald) 0%, rgba(67, 56, 202, 0) 100%);
 }
 
 .icon {

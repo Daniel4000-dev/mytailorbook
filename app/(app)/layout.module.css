@@ -26,7 +26,7 @@
   pointer-events: none;
   z-index: 5;
   opacity: 0;
-  box-shadow: -10px 15px 30px rgba(40, 25, 11, 0.05);
+  box-shadow: -10px 15px 30px rgba(27, 27, 34, 0.05);
 }
 
 .depthLayer.menuOpen {
@@ -56,21 +56,24 @@
 .appShell.menuOpen {
   transform: scale(0.68) translate(76%, 8vh); /* Main card scaled down and pushed right & down */
   border-radius: 28px;
-  box-shadow: -15px 25px 45px rgba(40, 25, 11, 0.09), 0 5px 15px rgba(0, 0, 0, 0.02);
+  box-shadow: -15px 25px 45px rgba(27, 27, 34, 0.09), 0 5px 15px rgba(0, 0, 0, 0.02);
   height: 100dvh; /* Contain to viewport height */
   overflow: hidden; /* Hide any overflowing page content */
-  cursor: pointer;
   user-select: none;
 }
 
-.appShell.menuOpen * {
-  pointer-events: none; /* Block clicking on items inside main content while menu is open */
-}
-
-/* Allow clicking the appShell container itself to close the menu */
-.appShell.menuOpen, 
-.appShell.menuOpen button {
-  pointer-events: auto !important;
+/* menuOpenOverlay (see layout.tsx) is what actually blocks interaction
+   with the shrunk page and closes the menu on tap — a single real element
+   sitting on top, not a wildcard pointer-events toggle. A wildcard "disable
+   everything, then re-enable buttons" approach is exactly what let clicks
+   reach real buttons/links underneath while the menu was open. */
+.menuOpenOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  cursor: pointer;
+  pointer-events: auto;
+  background: transparent;
 }
 
 .main {
@@ -234,10 +237,6 @@
   .appShell.sidebarCollapsed, .appShell.menuOpen.sidebarCollapsed {
     margin-left: 80px;
     width: calc(100% - 80px);
-  }
-  
-  .appShell.menuOpen * {
-    pointer-events: auto !important;
   }
 
   .main {

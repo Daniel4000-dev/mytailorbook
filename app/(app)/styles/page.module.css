@@ -1,13 +1,3 @@
-.mobileOnly {
-  display: block;
-}
-
-@media (min-width: 1024px) {
-  .mobileOnly {
-    display: none;
-  }
-}
-
 .intro {
   font-size: var(--sf-text-sm);
   color: var(--sf-text-secondary);
@@ -46,9 +36,9 @@
   text-decoration: none;
   border-radius: var(--sf-radius-md);
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--sf-sand);
   border: 1px solid var(--sf-border-light);
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: var(--sf-shadow-xs);
   transition: transform 150ms ease;
   -webkit-tap-highlight-color: transparent;
 }

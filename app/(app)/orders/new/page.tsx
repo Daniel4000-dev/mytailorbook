@@ -10,10 +10,12 @@ import { createClient } from '@/lib/supabase/client';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
+import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
 import {
   GARMENT_STYLES,
   STYLE_MEASUREMENTS,
   DEFAULT_MEASURE_SPEC,
+  buildCustomStyleSpec,
   ORDER_STATUSES,
 } from '@/lib/constants';
 import { getStylePhotos } from '@/lib/style-photos';
@@ -59,10 +61,16 @@ function NewOrderWizard() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   // Shop-wide custom styles persist across orders (seeded from the shop
   // record); newly typed ones this session are added on top and saved back.
-  const [customStyles, setCustomStyles] = useState<{ name: string; photoUrl?: string }[]>([]);
+  const [customStyles, setCustomStyles] = useState<
+    { name: string; photoUrl?: string; measurementFields?: { id: string; label: string }[] }[]
+  >([]);
   const [uploadingCustomPhoto, setUploadingCustomPhoto] = useState<string | null>(null);
   const [customDraft, setCustomDraft] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
+  // A brand-new custom style (no saved fields yet) opens the field builder
+  // right after creation, instead of silently handing over the generic
+  // DEFAULT_MEASURE_SPEC at the measure step.
+  const [fieldBuilderStyle, setFieldBuilderStyle] = useState<string | null>(null);
   const [measureIndex, setMeasureIndex] = useState(0);
   const [measures, setMeasures] = useState<Record<string, Record<string, string>>>({});
   const [updateProfile, setUpdateProfile] = useState(true);
@@ -125,7 +133,14 @@ function NewOrderWizard() {
   const totalItems = basket.reduce((sum, s) => sum + s.count, 0);
   const basketSummary = basket.map((s) => `${s.name} (${s.count})`).join(', ');
 
-  const specFor = (styleName: string) => STYLE_MEASUREMENTS[styleName] || DEFAULT_MEASURE_SPEC;
+  const specFor = (styleName: string) => {
+    if (STYLE_MEASUREMENTS[styleName]) return STYLE_MEASUREMENTS[styleName];
+    const custom = allCustomStyles.find((s) => s.name === styleName);
+    if (custom?.measurementFields && custom.measurementFields.length > 0) {
+      return buildCustomStyleSpec(custom.measurementFields);
+    }
+    return DEFAULT_MEASURE_SPEC;
+  };
   const currentStyle = basket[measureIndex]?.name;
   const currentSpec = currentStyle ? specFor(currentStyle) : DEFAULT_MEASURE_SPEC;
   const currentValues = (currentStyle && measures[currentStyle]) || {};
@@ -339,6 +354,19 @@ function NewOrderWizard() {
     }
   };
 
+  /* ── Custom style measurement fields ───────────────────────── */
+  const handleSaveCustomFields = (name: string, fields: { id: string; label: string }[]) => {
+    setCustomStyles((prev) =>
+      prev.some((s) => s.name === name)
+        ? prev.map((s) => (s.name === name ? { ...s, measurementFields: fields } : s))
+        : [...prev, { name, measurementFields: fields }]
+    );
+    setFieldBuilderStyle(null);
+    upsertCustomStyle(name, undefined, fields).catch(() => {
+      showToast('Could not save the fields — check your connection and try again', 'error');
+    });
+  };
+
   /* ── Inspiration upload (per unit) ─────────────────────────── */
   const handleInspoUpload = async (unitKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -541,6 +569,10 @@ function NewOrderWizard() {
                     // server-side against a fresh read, not this
                     // component's snapshot — see upsertCustomStyle.
                     upsertCustomStyle(name).catch(() => {});
+                    // Brand new — no saved fields yet, so prompt for them
+                    // now instead of silently falling back to the generic
+                    // DEFAULT_MEASURE_SPEC later at the measure step.
+                    setFieldBuilderStyle(name);
                   }
                   setCustomDraft('');
                   setShowCustomInput(false);
@@ -770,6 +802,14 @@ function NewOrderWizard() {
           </div>
         </FixedBottomPortal>
       )}
+
+      <CustomStyleFieldBuilder
+        isOpen={!!fieldBuilderStyle}
+        styleName={fieldBuilderStyle || ''}
+        initialFields={(fieldBuilderStyle && allCustomStyles.find((s) => s.name === fieldBuilderStyle)?.measurementFields) || []}
+        onClose={() => setFieldBuilderStyle(null)}
+        onSave={(fields) => fieldBuilderStyle && handleSaveCustomFields(fieldBuilderStyle, fields)}
+      />
     </div>
   );
 }

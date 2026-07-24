@@ -10,24 +10,33 @@
   font-weight: var(--sf-weight-semibold);
   line-height: 20px;
   border: 1px solid transparent;
-  transition: background-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast), transform var(--sf-transition-fast);
   flex-shrink: 0;
 }
 
+.pill:active {
+  transform: scale(0.96);
+  box-shadow: var(--sf-shadow-xs);
+}
+
+/* Uniform light-indigo track for every idle pill — matches the reference's
+   segmented-control look, where every inactive tab shares one quiet tint
+   and only the selected one goes solid. */
 .neutral {
-  background: var(--sf-bg-primary);
-  color: var(--sf-text-primary);
-  border-color: var(--sf-border);
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-secondary);
+  border-color: transparent;
 }
 
 .neutral:hover {
-  background: var(--sf-surface-container-high);
+  background: var(--sf-surface-container-highest);
 }
 
 .neutralActive {
-  background: var(--sf-surface-variant);
-  color: var(--sf-text-secondary);
-  border-color: var(--sf-border);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  border-color: var(--sf-accent-emerald);
+  box-shadow: var(--sf-shadow-md);
 }
 
 .stage {
@@ -60,6 +69,7 @@
   background: color-mix(in srgb, var(--pill-color) 20%, transparent);
 }
 
-.stageActive .count {
+.stageActive .count,
+.neutralActive .count {
   background: rgba(255, 255, 255, 0.2);
 }

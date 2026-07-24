@@ -67,7 +67,7 @@ interface DataContextValue {
   addStaff: (name: string, email: string, password: string) => Promise<void>;
   updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
   updateShop: (updates: Partial<Shop>) => Promise<void>;
-  upsertCustomStyle: (name: string, photoUrl?: string) => Promise<void>;
+  upsertCustomStyle: (name: string, photoUrl?: string, measurementFields?: { id: string; label: string }[]) => Promise<void>;
   renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
 }
 
@@ -272,9 +272,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const upsertCustomStyle = useCallback(
-    async (name: string, photoUrl?: string) => {
+    async (name: string, photoUrl?: string, measurementFields?: { id: string; label: string }[]) => {
       if (!shopId) return;
-      const updated = await upsertCustomStyleAction(shopId, name, photoUrl);
+      const updated = await upsertCustomStyleAction(shopId, name, photoUrl, measurementFields);
       mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
     },
     [shopId, mutate]

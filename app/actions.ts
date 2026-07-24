@@ -386,7 +386,8 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
 export async function upsertCustomStyleAction(
   shopId: string,
   name: string,
-  photoUrl?: string
+  photoUrl?: string,
+  measurementFields?: { id: string; label: string }[]
 ): Promise<Shop> {
   const supabase = await createClient();
   const { data: shopRow, error: fetchError } = await supabase
@@ -396,12 +397,17 @@ export async function upsertCustomStyleAction(
     .single();
   if (fetchError) throw new Error(fetchError.message);
 
-  const existing: { name: string; photoUrl?: string }[] = shopRow?.custom_styles || [];
+  const existing: { name: string; photoUrl?: string; measurementFields?: { id: string; label: string }[] }[] =
+    shopRow?.custom_styles || [];
   const idx = existing.findIndex((s) => s.name.toLowerCase() === name.toLowerCase());
   const next =
     idx === -1
-      ? [...existing, { name, photoUrl }]
-      : existing.map((s, i) => (i === idx ? { ...s, photoUrl: photoUrl ?? s.photoUrl } : s));
+      ? [...existing, { name, photoUrl, measurementFields }]
+      : existing.map((s, i) =>
+          i === idx
+            ? { ...s, photoUrl: photoUrl ?? s.photoUrl, measurementFields: measurementFields ?? s.measurementFields }
+            : s
+        );
 
   const { data, error } = await supabase.from('shops').update({ custom_styles: next }).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);

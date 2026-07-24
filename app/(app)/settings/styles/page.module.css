@@ -15,9 +15,9 @@
   text-align: left;
   border-radius: var(--sf-radius-md);
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--sf-sand);
   border: 1px solid var(--sf-border-light);
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: var(--sf-shadow-xs);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 150ms ease;

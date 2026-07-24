@@ -1,14 +1,4 @@
 
-.mobileOnly {
-  display: block;
-}
-
-@media (min-width: 1024px) {
-  .mobileOnly {
-    display: none;
-  }
-}
-
 /* Stats */
 .statsContainer {
   display: grid;
@@ -213,35 +203,19 @@
   justify-content: center;
 }
 
-.cardMetrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sf-space-sm);
-  padding-top: var(--sf-space-md);
-  border-top: 1px solid var(--sf-border-light);
-}
-
-.metric {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.metricLabel {
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metricValue {
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-  color: var(--sf-text-primary);
-}
-
-.metricValue.hasBalance {
-  color: var(--sf-color-warning);
+/* Balance-owed is the one number worth surfacing without a tap — everything
+   else (order count, total spend) is one tap away in the profile, and
+   repeating it on every row was what made the list feel stretched. */
+.owesBadge {
+  flex-shrink: 0;
+  align-self: flex-start;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
 }
 
 /* Desktop Table */

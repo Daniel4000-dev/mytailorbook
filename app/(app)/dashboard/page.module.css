@@ -6,16 +6,6 @@
   width: 100%;
 }
 
-.mobileOnly {
-  display: block;
-}
-
-@media (min-width: 1024px) {
-  .mobileOnly {
-    display: none;
-  }
-}
-
 /* ── Animations ── */
 @keyframes fluidReveal {
   from { opacity: 0; transform: translateY(20px) scale(0.98); }
@@ -271,6 +261,148 @@
 .dotSew { background: var(--sf-accent-emerald); }
 .dotReady { background: var(--sf-accent-gold); }
 
+/* ── Discover Carousel ── */
+.discoverSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.discoverScroll {
+  display: flex;
+  gap: var(--sf-space-md);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 2px 2px var(--sf-space-sm);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.discoverScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.discoverCard {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sf-space-xs);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-lg);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  box-shadow: var(--sf-shadow-xs);
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+/* Image variant: real product screenshot (framed by an actual device
+   mockup) instead of an icon, contained fully within the card with its
+   own breathing room — no bleed past the card's edge. */
+.discoverCardWithImage {
+  flex-direction: row;
+  align-items: center;
+  min-height: 140px;
+}
+
+.discoverText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+  padding-right: var(--sf-space-sm);
+}
+
+.discoverImageWrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 78px;
+}
+
+.discoverImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 14px rgba(27, 27, 34, 0.16));
+}
+
+.discoverCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sf-shadow-md);
+}
+
+.discoverCard:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--sf-shadow-xs);
+}
+
+.discoverIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sf-bg-surface-elevated);
+  color: var(--sf-accent-emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: var(--sf-shadow-xs);
+  margin-bottom: var(--sf-space-xs);
+}
+
+.discoverTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  line-height: 1.3;
+}
+
+.discoverDesc {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+}
+
+.discoverCta {
+  margin-top: auto;
+  padding-top: var(--sf-space-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-accent-emerald);
+}
+
+.discoverDots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--sf-space-xs);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sf-border);
+  transition: background var(--sf-transition-fast), width var(--sf-transition-fast);
+}
+
+.dotActive {
+  width: 16px;
+  height: 6px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-accent-emerald);
+}
+
 /* ── Financial Overview Cards ── */
 .financeGrid {
   display: grid;
@@ -293,6 +425,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-xs);
+  box-shadow: var(--sf-shadow-xs);
 }
 
 .cardLabel {
@@ -411,12 +544,18 @@
   text-align: left;
   font: inherit;
   color: inherit;
+  box-shadow: var(--sf-shadow-xs);
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .teamCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.teamCard:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--sf-shadow-xs);
 }
 
 .teamCardHeader {
@@ -520,6 +659,7 @@
   font: inherit;
   color: inherit;
   width: 100%;
+  box-shadow: var(--sf-shadow-xs);
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
@@ -528,7 +668,35 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
+.attentionRow:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--sf-shadow-xs);
+}
+
 .attentionInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  min-width: 0;
+}
+
+.attentionAvatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sf-font-heading);
+  font-weight: var(--sf-weight-bold);
+  font-size: var(--sf-text-xs);
+  text-transform: uppercase;
+}
+
+.attentionTextGroup {
   display: flex;
   flex-direction: column;
   gap: 2px;

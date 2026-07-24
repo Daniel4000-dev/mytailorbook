@@ -7,16 +7,6 @@
   margin: 0 auto;
 }
 
-.mobileOnly {
-  display: block;
-}
-
-@media (min-width: 1024px) {
-  .mobileOnly {
-    display: none;
-  }
-}
-
 /* ── Identity strip ── */
 .identityStrip {
   display: flex;
@@ -87,6 +77,7 @@
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   overflow: hidden;
+  box-shadow: var(--sf-shadow-xs);
 }
 
 .logoThumb {

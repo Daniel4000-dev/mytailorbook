@@ -3,15 +3,17 @@
   align-items: center;
   gap: var(--sf-space-sm);
   background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border);
+  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-full);
   padding: 0 var(--sf-space-md);
   height: 44px;
-  transition: border-color var(--sf-transition-fast);
+  box-shadow: var(--sf-shadow-sm);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .wrapper:focus-within {
   border-color: var(--sf-border-focus);
+  box-shadow: var(--sf-shadow-md);
 }
 
 .icon {

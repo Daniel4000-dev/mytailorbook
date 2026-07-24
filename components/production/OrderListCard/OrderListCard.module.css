@@ -4,7 +4,7 @@
   background: var(--sf-sand);
   border-radius: var(--sf-radius-md);
   border: 1px solid var(--sf-border-light);
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: var(--sf-shadow-xs);
   overflow: hidden;
   transition: box-shadow var(--sf-transition-fast);
   animation: cardIn 0.35s ease both;

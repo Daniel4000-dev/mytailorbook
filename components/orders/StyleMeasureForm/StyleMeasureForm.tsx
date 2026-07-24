@@ -45,15 +45,17 @@ export default function StyleMeasureForm({
 
   return (
     <div className={styles.wrap}>
-      <MeasureGuide
-        spec={spec}
-        activeKey={activeKey}
-        filledKeys={Object.keys(values).filter((k) => values[k])}
-        onPointTap={(key) => {
-          onActiveKeyChange?.(key);
-          inputRefs.current[key]?.focus();
-        }}
-      />
+      {spec.hasDiagram !== false && (
+        <MeasureGuide
+          spec={spec}
+          activeKey={activeKey}
+          filledKeys={Object.keys(values).filter((k) => values[k])}
+          onPointTap={(key) => {
+            onActiveKeyChange?.(key);
+            inputRefs.current[key]?.focus();
+          }}
+        />
+      )}
 
       {importSources.length > 0 && (
         <div className={styles.importRow}>

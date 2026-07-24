@@ -14,8 +14,11 @@ export interface Shop {
   ownerUid: string;
   createdAt: string;
   /** Shop-defined one-off garment styles beyond the built-in catalog —
-   *  remembered across future orders once created, same as built-in styles. */
-  customStyles?: { name: string; photoUrl?: string }[];
+   *  remembered across future orders once created, same as built-in styles.
+   *  `measurementFields` is the shop's own named+ordered field list for
+   *  this style (set via the field builder); absent/empty means the style
+   *  still falls back to the generic DEFAULT_MEASURE_SPEC. */
+  customStyles?: { name: string; photoUrl?: string; measurementFields?: { id: string; label: string }[] }[];
   /** Shown on receipts and the public portfolio, replacing the plain text
    *  name there once set. */
   logoUrl?: string;
@@ -107,6 +110,11 @@ export interface Measurements {
   ankle?: number;
   crotch?: number;
   notes?: string;
+  /** Custom garment styles collect their own shop-defined field keys
+   *  (see lib/constants.ts buildCustomStyleSpec) — these don't have a
+   *  fixed name on this interface, so an arbitrary key must be allowed
+   *  alongside the fixed body-measurement fields above. */
+  [key: string]: number | string | undefined;
 }
 
 /** A saved, named measurement snapshot for one garment style — lets a

@@ -1,27 +1,5 @@
 
 
-.mobileOnly {
-  display: block;
-}
-
-@media (min-width: 1024px) {
-  .mobileOnly {
-    display: none;
-  }
-}
-
-.mobileMenuBtn {
-  background: none;
-  border: none;
-  font-size: var(--sf-text-lg);
-  color: var(--sf-text-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-}
-
 .desktopHeader {
   display: none;
 }

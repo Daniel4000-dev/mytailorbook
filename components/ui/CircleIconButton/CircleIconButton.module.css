@@ -3,25 +3,27 @@
   height: 52px;
   border-radius: 50%;
   border: none;
-  background-color: rgba(40, 25, 11, 0.05); /* Semi-transparent blend overlay */
-  color: rgba(40, 25, 11, 0.8); /* Softened icon color */
+  background-color: var(--sf-bg-surface-elevated);
+  color: var(--sf-accent-emerald);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: none; /* Removed box-shadow to keep it cleanly integrated with the background */
+  box-shadow: var(--sf-shadow-sm);
   font-size: 20px;
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast), color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast), color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .circleBtn:hover {
-  background-color: rgba(40, 25, 11, 0.09); /* Slightly darker blend on hover */
-  color: rgba(40, 25, 11, 0.95);
+  background-color: var(--sf-bg-surface-hover);
+  color: var(--sf-accent-emerald-dark);
+  box-shadow: var(--sf-shadow-md);
   transform: scale(1.04);
 }
 
 .circleBtn:active {
-  background-color: rgba(40, 25, 11, 0.13);
+  background-color: var(--sf-surface-container-high);
+  box-shadow: var(--sf-shadow-xs);
   transform: scale(0.96);
 }
 

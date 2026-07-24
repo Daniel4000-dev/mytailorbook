@@ -12,16 +12,18 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
 import styles from './page.module.css';
 
 interface CustomStyle {
   name: string;
   photoUrl?: string;
+  measurementFields?: { id: string; label: string }[];
 }
 
 export default function CustomStylesSettingsPage() {
   const router = useRouter();
-  const { currentShop, updateShop, renameCustomStyle } = useData();
+  const { currentShop, updateShop, renameCustomStyle, upsertCustomStyle } = useData();
   const { showToast } = useToast();
 
   const customStyles = currentShop?.customStyles || [];
@@ -29,6 +31,7 @@ export default function CustomStylesSettingsPage() {
   const [editName, setEditName] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [editingFields, setEditingFields] = useState(false);
 
   const openStyleSheet = (style: CustomStyle) => {
     setActiveStyle(style);
@@ -56,6 +59,18 @@ export default function CustomStylesSettingsPage() {
     await updateShop({ customStyles: next });
     showToast('Style deleted', 'success');
     setActiveStyle(null);
+  };
+
+  const handleSaveFields = async (fields: { id: string; label: string }[]) => {
+    if (!activeStyle) return;
+    try {
+      await upsertCustomStyle(activeStyle.name, activeStyle.photoUrl, fields);
+      showToast('Measurement fields saved', 'success');
+      setEditingFields(false);
+      setActiveStyle(null);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not save fields', 'error');
+    }
   };
 
   return (
@@ -96,9 +111,22 @@ export default function CustomStylesSettingsPage() {
             <Button variant="ghost" onClick={() => setActiveStyle(null)}>Cancel</Button>
             <Button variant="primary" loading={saving} onClick={handleSaveRename}>Save</Button>
           </div>
+          <Button variant="secondary" onClick={() => setEditingFields(true)}>
+            {activeStyle?.measurementFields?.length ? 'Edit Measurement Fields' : 'Set Up Measurement Fields'}
+          </Button>
           <Button variant="danger" onClick={() => setConfirmDelete(true)}>Delete Style</Button>
         </div>
       </BottomSheet>
+
+      {activeStyle && (
+        <CustomStyleFieldBuilder
+          isOpen={editingFields}
+          styleName={activeStyle.name}
+          initialFields={activeStyle.measurementFields || []}
+          onClose={() => setEditingFields(false)}
+          onSave={handleSaveFields}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={confirmDelete}

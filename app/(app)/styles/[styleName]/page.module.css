@@ -69,7 +69,7 @@
 }
 
 .photoCard {
-  background: #FFFFFF;
+  background: var(--sf-sand);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   overflow: hidden;

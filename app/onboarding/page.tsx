@@ -2,10 +2,27 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaRulerCombined, FaClipboardList } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
 import AuthInput from '@/app/(auth)/components/AuthInput';
 import styles from './page.module.css';
+
+// Welcome-tour screens shown before the setup form below — grounded in
+// features that actually ship (measurement reuse, the production board +
+// shareable tracking link), not generic onboarding copy.
+const WELCOME_SCREENS = [
+  {
+    icon: <FaRulerCombined />,
+    title: 'Say goodbye to paper measurements',
+    subtitle: "Capture every customer's measurements once — they're remembered automatically for every order after.",
+  },
+  {
+    icon: <FaClipboardList />,
+    title: 'Your studio, start to finish',
+    subtitle: 'Track each order through cutting, sewing and delivery, assign staff, and share a live link so customers can watch their own progress.',
+  },
+];
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -14,6 +31,8 @@ export default function OnboardingPage() {
   const [shopName, setShopName] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // 0/1 = welcome carousel screens, 2 = the actual setup form below.
+  const [step, setStep] = useState(0);
 
   // Google gives us no signup form, so there's no name to carry over yet —
   // pre-fill from their Google profile and let them confirm/edit it here.
@@ -65,6 +84,33 @@ export default function OnboardingPage() {
   };
 
   if (loading || !needsOnboarding) return null;
+
+  if (step < 2) {
+    const screen = WELCOME_SCREENS[step];
+    return (
+      <div className={styles.container}>
+        <div className={styles.carousel} key={step}>
+          <div className={styles.carouselIcon}>{screen.icon}</div>
+          <h1 className={styles.carouselTitle}>{screen.title}</h1>
+          <p className={styles.carouselSubtitle}>{screen.subtitle}</p>
+        </div>
+
+        <div className={styles.dots}>
+          <span className={step === 0 ? styles.dotActive : styles.dot} />
+          <span className={step === 1 ? styles.dotActive : styles.dot} />
+        </div>
+
+        <div className={styles.carouselActions}>
+          <button type="button" className={styles.skipBtn} onClick={() => setStep(2)}>
+            Skip
+          </button>
+          <button type="button" className={styles.nextBtn} onClick={() => setStep(step === 0 ? 1 : 2)}>
+            {step === 0 ? 'Next' : 'Get Started'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

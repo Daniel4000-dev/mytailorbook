@@ -3,6 +3,7 @@
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   overflow: hidden;
+  box-shadow: var(--sf-shadow-xs);
 }
 
 .row {

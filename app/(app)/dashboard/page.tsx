@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type UIEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  FaBars,
   FaEye,
   FaEyeSlash,
   FaTriangleExclamation,
@@ -12,17 +11,21 @@ import {
   FaScissors,
   FaClipboardList,
   FaRegCommentDots,
+  FaShareFromSquare,
+  FaLocationDot,
+  FaWhatsapp,
+  FaRulerCombined,
+  FaChevronRight,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
-import { useSidebar } from '@/contexts/SidebarContext';
-import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Badge from '@/components/ui/Badge/Badge';
 import { formatCurrency } from '@/lib/formatters';
 import { getBalanceOwed, isOverdue, isDueSoon, hasUnreadComment } from '@/lib/types';
+import { getInitials } from '@/lib/formatters';
 import type { Order } from '@/lib/types';
 import DashboardSkeleton from './DashboardSkeleton';
 
@@ -32,7 +35,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { orders, staffMembers, isLoaded } = useData();
-  const { toggleMenu } = useSidebar();
 
   const firstName = user?.name?.split(' ')[0] || '';
   const hour = new Date().getHours();
@@ -45,11 +47,6 @@ export default function DashboardPage() {
         name: firstName,
         avatarInitials: firstName ? firstName[0] : '',
       }}
-      leftAction={
-        <div className={styles.mobileOnly}>
-          <CircleIconButton icon={<FaBars />} onClick={toggleMenu} ariaLabel="Open menu" />
-        </div>
-      }
     />
   );
 
@@ -73,6 +70,96 @@ export default function DashboardPage() {
     <PageLayout className={styles.pageGrid} header={topBar}>
       <StaffDashboard orders={orders} userUid={user?.uid} onNavigate={router.push} />
     </PageLayout>
+  );
+}
+
+// ============================================================
+// Discover Carousel — a swipeable pointer to features that add real
+// value but aren't sitting on the bottom nav (public tracking, the
+// portfolio link, WhatsApp wording, the style measurement guides).
+// Each card's CTA lands on the exact screen that does the thing.
+// ============================================================
+
+const DISCOVER_CARDS = [
+  {
+    icon: <FaShareFromSquare />,
+    image: '/images/discover/portfolio.png',
+    title: 'Share your portfolio',
+    description: 'A public page with your best work — send the link to new customers.',
+    cta: 'Set it up',
+    href: '/settings/portfolio',
+  },
+  {
+    icon: <FaLocationDot />,
+    image: '/images/discover/tracking.png',
+    title: 'Customers can track their own order',
+    description: 'Every order gets a live photo-story link — no app for them to install.',
+    cta: 'See it in action',
+    href: '/production',
+  },
+  {
+    icon: <FaWhatsapp />,
+    image: '/images/discover/whatsapp.png',
+    title: 'Automatic WhatsApp updates',
+    description: 'Ready-to-send stage updates, worded the way your shop actually talks.',
+    cta: 'Customize wording',
+    href: '/settings/messages',
+  },
+  {
+    icon: <FaRulerCombined />,
+    image: '/images/discover/measurement-builder.png',
+    title: 'Build your own measurement sheet',
+    description: "For anything off-catalog — name the fields you measure, once, and reuse them every time.",
+    cta: 'Set up a style',
+    href: '/settings/styles',
+  },
+];
+
+function DiscoverCarousel({ onNavigate }: { onNavigate: (href: string) => void }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = (e: UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const cardWidth = el.firstElementChild?.clientWidth || 1;
+    const gap = 16;
+    setActiveIndex(Math.round(el.scrollLeft / (cardWidth + gap)));
+  };
+
+  return (
+    <div className={styles.discoverSection}>
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>Discover</span>
+      </div>
+      <div className={styles.discoverScroll} onScroll={handleScroll}>
+        {DISCOVER_CARDS.map((card) => (
+          <button
+            key={card.title}
+            type="button"
+            className={`${styles.discoverCard} ${card.image ? styles.discoverCardWithImage : ''}`}
+            onClick={() => onNavigate(card.href)}
+          >
+            <div className={styles.discoverText}>
+              {!card.image && <div className={styles.discoverIcon}>{card.icon}</div>}
+              <span className={styles.discoverTitle}>{card.title}</span>
+              <span className={styles.discoverDesc}>{card.description}</span>
+              <span className={styles.discoverCta}>
+                {card.cta} <FaChevronRight />
+              </span>
+            </div>
+            {card.image && (
+              <div className={styles.discoverImageWrap}>
+                <img src={card.image} alt="" className={styles.discoverImage} />
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+      <div className={styles.discoverDots}>
+        {DISCOVER_CARDS.map((card, i) => (
+          <span key={card.title} className={i === activeIndex ? styles.dotActive : styles.dot} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -165,6 +252,8 @@ function OwnerDashboard({
 
   return (
     <>
+      <DiscoverCarousel onNavigate={onNavigate} />
+
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Overview Analytics</span>
       </div>
@@ -262,8 +351,11 @@ function OwnerDashboard({
           {needsAttention.map((order) => (
             <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
               <div className={styles.attentionInfo}>
-                <span className={styles.attentionCustomer}>{order.customerName}</span>
-                <span className={styles.attentionDetails}>{order.orderDetails}</span>
+                <div className={styles.attentionAvatar}>{getInitials(order.customerName)}</div>
+                <div className={styles.attentionTextGroup}>
+                  <span className={styles.attentionCustomer}>{order.customerName}</span>
+                  <span className={styles.attentionDetails}>{order.orderDetails}</span>
+                </div>
               </div>
               <div className={styles.attentionMeta}>
                 {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
@@ -276,8 +368,11 @@ function OwnerDashboard({
           {unreadCommentOrders.map((order) => (
             <button key={`comment-${order.id}`} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
               <div className={styles.attentionInfo}>
-                <span className={styles.attentionCustomer}>{order.customerName}</span>
-                <span className={styles.attentionDetails}>Left a comment on their order — tap to read</span>
+                <div className={styles.attentionAvatar}>{getInitials(order.customerName)}</div>
+                <div className={styles.attentionTextGroup}>
+                  <span className={styles.attentionCustomer}>{order.customerName}</span>
+                  <span className={styles.attentionDetails}>Left a comment on their order — tap to read</span>
+                </div>
               </div>
               <div className={styles.attentionMeta}>
                 <Badge variant="gold"><FaRegCommentDots /> New Comment</Badge>
@@ -378,8 +473,11 @@ function StaffDashboard({
           {myTasks.map((order) => (
             <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
               <div className={styles.attentionInfo}>
-                <span className={styles.attentionCustomer}>{order.customerName}</span>
-                <span className={styles.attentionDetails}>{order.orderDetails}</span>
+                <div className={styles.attentionAvatar}>{getInitials(order.customerName)}</div>
+                <div className={styles.attentionTextGroup}>
+                  <span className={styles.attentionCustomer}>{order.customerName}</span>
+                  <span className={styles.attentionDetails}>{order.orderDetails}</span>
+                </div>
               </div>
               <div className={styles.attentionMeta}>
                 <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'}>

@@ -17,7 +17,12 @@
      are true neutral grays — never a third hue. */
 
   /* ── Colors: Backgrounds ─────────────────────────────── */
-  --sf-bg-primary: #F8F8FE;
+  /* True white everywhere — page canvas, cards, search bar, nav — the
+     mockup this was benchmarked against never darkens the ground for a
+     plain surface; shadows alone carry all the separation. The only
+     background that ever tints toward the accent is --sf-sand, reserved
+     for cards whose main content is a photo (order cards, style tiles). */
+  --sf-bg-primary: #FFFFFF;
   --sf-bg-surface: #FFFFFF;
   --sf-bg-surface-elevated: #FFFFFF;
   --sf-bg-surface-hover: rgba(67, 56, 202, 0.05);
@@ -106,12 +111,21 @@
   --sf-touch-target: 48px;
 
   /* ── Typography ──────────────────────────────────────── */
-  --sf-font-heading: 'Libre Caslon Text', Georgia, serif;
-  --sf-font-body: 'Hanken Grotesk', -apple-system, sans-serif;
-  /* Rounder, softer terminals than Hanken Grotesk's numerals — used
-     specifically for money/stat figures (Overview Analytics, Team
-     Snapshot, etc.), the OPay-style "glanceable balance" numeral look. */
-  --sf-font-numeric: 'Manrope', 'Hanken Grotesk', -apple-system, sans-serif;
+  /* Inter everywhere, headings included — the mobile-app references this
+     was benchmarked against (a measurement-template app, a tailor
+     marketplace app) use one sans throughout and read as genuinely
+     premium purely on weight/spacing contrast, no serif needed. Dropped
+     Libre Caslon Text (heading) and Hanken Grotesk (body) in favor of
+     this single, native-app-standard family (Linear/GitHub/Figma all
+     use it) for a more "real app," less "web brochure" feel. */
+  --sf-font-heading: 'Inter', -apple-system, sans-serif;
+  --sf-font-body: 'Inter', -apple-system, sans-serif;
+  /* Rounder, softer terminals than Inter's numerals — used specifically
+     for money/stat figures (Overview Analytics, Team Snapshot, etc.),
+     the OPay-style "glanceable balance" numeral look. Kept as its own
+     separately-validated choice, independent of the heading/body switch
+     above. */
+  --sf-font-numeric: 'Manrope', 'Inter', -apple-system, sans-serif;
 
   --sf-text-2xs: 0.625rem;   /* 10px */
   --sf-text-xs: 0.75rem;     /* 12px */
@@ -145,12 +159,18 @@
   --sf-radius-full: 9999px;
 
   /* ── Shadows ─────────────────────────────────────────── */
-  --sf-shadow-xs: 0 1px 2px rgba(27, 27, 34, 0.05);
-  --sf-shadow-sm: 0 1px 3px rgba(27, 27, 34, 0.08);
-  --sf-shadow-md: 0 4px 10px rgba(27, 27, 34, 0.08);
-  --sf-shadow-lg: 0 10px 25px rgba(27, 27, 34, 0.12);
-  --sf-shadow-xl: 0 20px 40px rgba(27, 27, 34, 0.14);
-  --sf-shadow-emerald: 0 8px 24px rgba(67, 56, 202, 0.25);
+  /* Wide blur, low opacity, no hard edge — measured directly off the
+     reference mockup (its shadows sample only ~4-6% darker than the page
+     at their darkest, spread over a wide soft falloff, never a tight
+     halo). A small blur radius at low opacity reads as a thin outline,
+     not elevation — the blur has to be generous for the "floating above
+     the page" feel to read at all. */
+  --sf-shadow-xs: 0 2px 8px rgba(27, 27, 34, 0.04);
+  --sf-shadow-sm: 0 4px 12px rgba(27, 27, 34, 0.06);
+  --sf-shadow-md: 0 6px 18px rgba(27, 27, 34, 0.08);
+  --sf-shadow-lg: 0 12px 28px rgba(27, 27, 34, 0.10);
+  --sf-shadow-xl: 0 24px 48px rgba(27, 27, 34, 0.12);
+  --sf-shadow-emerald: 0 8px 24px rgba(67, 56, 202, 0.20);
   --sf-shadow-gold: 0 8px 24px rgba(67, 56, 202, 0.18);
 
   /* ── Transitions ─────────────────────────────────────── */

@@ -176,6 +176,10 @@ export interface StyleMeasurePoint {
 export interface StyleMeasureSpec {
   variant: GuideVariant;
   points: StyleMeasurePoint[];
+  /** false skips rendering the body-diagram guide — used for custom
+   *  garment styles, whose shop-defined fields don't correspond to a
+   *  real body-diagram pin placement. */
+  hasDiagram?: boolean;
 }
 
 export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
@@ -411,6 +415,18 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
     ],
   },
 };
+
+/** A shop-defined custom style with its own saved field list (from the
+ *  measurement-field builder) builds its spec from those fields instead of
+ *  falling back to DEFAULT_MEASURE_SPEC — no body-diagram since the
+ *  fields have no meaningful pin placement. */
+export function buildCustomStyleSpec(fields: { id: string; label: string }[]): StyleMeasureSpec {
+  return {
+    variant: 'tunic',
+    hasDiagram: false,
+    points: fields.map((f) => ({ key: f.id, label: f.label, hint: '', gx: 0, gy: 0 })),
+  };
+}
 
 /** Fallback point set for custom garments — the classic full pass. */
 export const DEFAULT_MEASURE_SPEC: StyleMeasureSpec = {

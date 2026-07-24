@@ -11,6 +11,7 @@ import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
+import SidebarEdgeHandle from '@/components/layout/SidebarEdgeHandle/SidebarEdgeHandle';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -96,11 +97,23 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {/* 3. Main app Shell (scales down and pushes right when menu is open) */}
       <div
         className={`${styles.appShell} ${isMenuOpen ? styles.menuOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
-        onClick={isMenuOpen ? () => setMenuOpen(false) : undefined}
       >
         <main className={styles.main}>
           <PageEnter key={pathname}>{children}</PageEnter>
         </main>
+        {/* Sits on top of the shrunk page while the menu is open, so a tap
+           anywhere just restores the view — it must intercept the click
+           before it ever reaches a real button/link underneath, not just
+           react to it after the fact (an onClick on .appShell itself would
+           fire during bubbling, by which point the actual element tapped
+           has already run its own handler). */}
+        {isMenuOpen && (
+          <div
+            className={styles.menuOpenOverlay}
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
       </div>
 
       {/* Fixed UI lives outside .appShell on purpose — .appShell gets a real
@@ -111,6 +124,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           real viewport during scroll until something forces a reflow
           (e.g. reopening the sidebar), which is exactly the "bottom nav
           disappears until I open the sidebar again" bug this fixes. */}
+      {!isMenuOpen && <SidebarEdgeHandle />}
       {!isMenuOpen && showFab && (
         <FAB
           onClick={openCreateMenu}
