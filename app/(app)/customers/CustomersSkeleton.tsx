@@ -34,20 +34,7 @@ export default function CustomersSkeleton() {
                 <Skeleton width={110} height={12} />
                 <Skeleton width={90} height={11} />
               </div>
-            </div>
-            <div className={styles.cardMetrics}>
-              <div className={styles.metric}>
-                <Skeleton width={40} height={11} />
-                <Skeleton width={24} height={16} />
-              </div>
-              <div className={styles.metric}>
-                <Skeleton width={40} height={11} />
-                <Skeleton width={60} height={16} />
-              </div>
-              <div className={styles.metric}>
-                <Skeleton width={40} height={11} />
-                <Skeleton width={60} height={16} />
-              </div>
+              <Skeleton width={16} height={16} />
             </div>
           </div>
         ))}

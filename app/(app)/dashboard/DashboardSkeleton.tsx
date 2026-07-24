@@ -6,6 +6,22 @@ import styles from './page.module.css';
 export default function DashboardSkeleton() {
   return (
     <>
+      <div className={styles.discoverSection}>
+        <div className={styles.sectionHeader}>
+          <Skeleton width={80} height={16} />
+        </div>
+        <div className={styles.discoverScroll}>
+          <div className={styles.discoverCard}>
+            <div className={styles.discoverText}>
+              <Skeleton width={40} height={40} borderRadius="50%" />
+              <Skeleton width="70%" height={14} />
+              <Skeleton width="90%" height={12} />
+              <Skeleton width={80} height={12} />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className={styles.sectionHeader}>
         <Skeleton width={140} height={16} />
       </div>
