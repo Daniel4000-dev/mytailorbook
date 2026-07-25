@@ -6,11 +6,9 @@ import {
   FaEye,
   FaEyeSlash,
   FaTriangleExclamation,
-  FaFireFlameCurved,
   FaCircleCheck,
   FaScissors,
   FaClipboardList,
-  FaRegCommentDots,
   FaShareFromSquare,
   FaLocationDot,
   FaWhatsapp,
@@ -19,12 +17,13 @@ import {
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useNotifications } from '@/lib/hooks/useNotifications';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Badge from '@/components/ui/Badge/Badge';
 import { formatCurrency } from '@/lib/formatters';
-import { getBalanceOwed, isOverdue, isDueSoon, hasUnreadComment } from '@/lib/types';
+import { getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
 import { getInitials } from '@/lib/formatters';
 import type { Order } from '@/lib/types';
 import DashboardSkeleton from './DashboardSkeleton';
@@ -231,24 +230,19 @@ function OwnerDashboard({
       });
   }, [orders, staffMembers]);
 
-  const needsAttention = useMemo(() => {
-    return orders
-      .filter((o) => o.status !== 'Completed' && o.status !== 'Documented' && (isOverdue(o) || o.priority === 'rush'))
-      .sort((a, b) => {
-        const aOverdue = isOverdue(a) ? 1 : 0;
-        const bOverdue = isOverdue(b) ? 1 : 0;
-        if (aOverdue !== bOverdue) return bOverdue - aOverdue;
-        return (a.dueDate || '').localeCompare(b.dueDate || '');
-      })
-      .slice(0, 5);
-  }, [orders]);
-
-  // Customer comments no one has opened yet — without this nudge a comment
-  // is only discoverable by happening to open that specific order.
-  const unreadCommentOrders = useMemo(
-    () => orders.filter(hasUnreadComment).slice(0, 5),
-    [orders]
+  // Same source as the bell/full Notifications page, so this list can
+  // never drift out of sync with what's shown there — just the
+  // needs-action tones (alert/warning), capped short so this section
+  // can't grow into a second scrolling page on its own; "See all" covers
+  // the rest via the real Notifications page instead of listing them here.
+  const { notifications } = useNotifications();
+  const ATTENTION_LIMIT = 4;
+  const attentionItems = useMemo(
+    () => notifications.filter((n) => n.tone !== 'info'),
+    [notifications]
   );
+  const visibleAttentionItems = attentionItems.slice(0, ATTENTION_LIMIT);
+  const hasMoreAttentionItems = attentionItems.length > ATTENTION_LIMIT;
 
   return (
     <>
@@ -341,44 +335,29 @@ function OwnerDashboard({
         <span className={styles.sectionTitle}>Needs Attention</span>
       </div>
 
-      {needsAttention.length === 0 && unreadCommentOrders.length === 0 ? (
+      {visibleAttentionItems.length === 0 ? (
         <div className={styles.emptyState}>
           <FaCircleCheck className={styles.emptyStateIcon} />
           <span>Nothing overdue or rushed — production is on track.</span>
         </div>
       ) : (
         <div className={styles.attentionList}>
-          {needsAttention.map((order) => (
-            <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
+          {visibleAttentionItems.map((n) => (
+            <button key={n.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${n.orderId}`)} type="button">
               <div className={styles.attentionInfo}>
-                <div className={styles.attentionAvatar}>{getInitials(order.customerName)}</div>
+                <div className={`${styles.attentionAvatar} ${styles[`attentionAvatar_${n.tone}`]}`}>{n.icon}</div>
                 <div className={styles.attentionTextGroup}>
-                  <span className={styles.attentionCustomer}>{order.customerName}</span>
-                  <span className={styles.attentionDetails}>{order.orderDetails}</span>
+                  <span className={styles.attentionCustomer}>{n.title}</span>
+                  <span className={styles.attentionDetails}>{n.subtitle}</span>
                 </div>
-              </div>
-              <div className={styles.attentionMeta}>
-                {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
-                {order.priority === 'rush' && <Badge variant="gold"><FaFireFlameCurved /> Rush</Badge>}
-                {order.assignedToName && <span className={styles.attentionAssignee}>{order.assignedToName}</span>}
               </div>
             </button>
           ))}
-
-          {unreadCommentOrders.map((order) => (
-            <button key={`comment-${order.id}`} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
-              <div className={styles.attentionInfo}>
-                <div className={styles.attentionAvatar}>{getInitials(order.customerName)}</div>
-                <div className={styles.attentionTextGroup}>
-                  <span className={styles.attentionCustomer}>{order.customerName}</span>
-                  <span className={styles.attentionDetails}>Left a comment on their order — tap to read</span>
-                </div>
-              </div>
-              <div className={styles.attentionMeta}>
-                <Badge variant="gold"><FaRegCommentDots /> New Comment</Badge>
-              </div>
+          {hasMoreAttentionItems && (
+            <button className={styles.attentionSeeAll} onClick={() => onNavigate('/notifications')} type="button">
+              See all notifications
             </button>
-          ))}
+          )}
         </div>
       )}
     </>

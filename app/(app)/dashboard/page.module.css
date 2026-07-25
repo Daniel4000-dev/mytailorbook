@@ -696,6 +696,34 @@
   text-transform: uppercase;
 }
 
+/* Tone-colored icon circle for notification-sourced rows (Needs Attention
+   now reads straight from the shared notification feed) — alert/warning
+   get their own color instead of every row looking identically indigo. */
+.attentionAvatar_alert {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.attentionAvatar_warning {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.attentionSeeAll {
+  padding: var(--sf-space-md);
+  text-align: center;
+  background: none;
+  border: none;
+  color: var(--sf-accent-emerald);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+}
+
+.attentionSeeAll:hover {
+  text-decoration: underline;
+}
+
 .attentionTextGroup {
   display: flex;
   flex-direction: column;

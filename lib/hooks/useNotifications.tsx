@@ -121,6 +121,9 @@ export function useNotifications() {
     const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
     relevantOrders.forEach((o) => {
       const last = o.statusHistory[o.statusHistory.length - 1];
+      // Skip your own moves — you don't need to be told about the thing
+      // you just did yourself.
+      if (last && last.changedBy === user?.uid) return;
       if (last && new Date(last.timestamp).getTime() >= threeDaysAgo) {
         items.push({
           id: `activity-${o.id}-${last.timestamp}`,
@@ -139,6 +142,8 @@ export function useNotifications() {
     // happened on this order" rather than "needs attention right now".
     relevantOrders.forEach((o) => {
       const lastPayment = o.payments?.[o.payments.length - 1];
+      // Same self-action skip as status moves above.
+      if (lastPayment && lastPayment.recordedBy === user?.uid) return;
       if (lastPayment && new Date(lastPayment.timestamp).getTime() >= threeDaysAgo) {
         items.push({
           id: `payment-${o.id}-${lastPayment.id}`,
@@ -159,7 +164,7 @@ export function useNotifications() {
     });
 
     return { notifications: items, alertCount };
-  }, [relevantOrders]);
+  }, [relevantOrders, user]);
 
   return { notifications, alertCount };
 }
