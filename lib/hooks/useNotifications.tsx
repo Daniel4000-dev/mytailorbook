@@ -1,11 +1,35 @@
 'use client';
 
 import { useMemo } from 'react';
-import { FaTriangleExclamation, FaFireFlameCurved, FaClock, FaCircleCheck } from 'react-icons/fa6';
+import {
+  FaTriangleExclamation,
+  FaFireFlameCurved,
+  FaClock,
+  FaClipboardList,
+  FaScissors,
+  FaGears,
+  FaCircleCheck,
+  FaBoxOpen,
+  FaRegCommentDots,
+  FaSackDollar,
+} from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { isOverdue } from '@/lib/types';
-import type { Order } from '@/lib/types';
+import { isOverdue, hasUnreadComment } from '@/lib/types';
+import type { Order, OrderStatus } from '@/lib/types';
+import { formatCurrency } from '@/lib/formatters';
+
+/** One icon per production stage — "moved to X" used to show the same
+ *  generic checkmark for every stage, which made the activity feed
+ *  unreadable at a glance. Mirrors the icon names already assigned to
+ *  each stage in STATUS_CONFIG (lib/constants.ts). */
+const STAGE_ICON: Record<OrderStatus, React.ReactNode> = {
+  Documented: <FaClipboardList />,
+  Cutting: <FaScissors />,
+  Sewing: <FaGears />,
+  Ready: <FaCircleCheck />,
+  Completed: <FaBoxOpen />,
+};
 
 export interface NotificationItem {
   id: string;
@@ -71,6 +95,24 @@ export function useNotifications() {
       }
     });
 
+    // A customer comment can land on any order regardless of stage (even
+    // a completed one), so this checks every relevant order, not just the
+    // active ones above — and it counts toward the badge, since a customer
+    // waiting on a reply is exactly a "needs attention" case.
+    relevantOrders.forEach((o) => {
+      if (hasUnreadComment(o)) {
+        items.push({
+          id: `comment-${o.id}-${o.lastCommentAt}`,
+          icon: <FaRegCommentDots />,
+          tone: 'warning',
+          title: `${o.customerName} left a comment`,
+          subtitle: 'Tap to read and reply',
+          timestamp: o.lastCommentAt!,
+          orderId: o.id,
+        });
+      }
+    });
+
     const alertCount = items.length;
 
     // Recent activity — last status change per order, within the last 3 days.
@@ -82,11 +124,29 @@ export function useNotifications() {
       if (last && new Date(last.timestamp).getTime() >= threeDaysAgo) {
         items.push({
           id: `activity-${o.id}-${last.timestamp}`,
-          icon: <FaCircleCheck />,
+          icon: STAGE_ICON[last.to] ?? <FaCircleCheck />,
           tone: 'info',
           title: `${o.customerName}'s order moved to ${last.to}`,
           subtitle: `By ${last.changedByName}`,
           timestamp: last.timestamp,
+          orderId: o.id,
+        });
+      }
+    });
+
+    // A payment recorded on an order — same 3-day recency window as the
+    // status-change activity above, since both are "things that just
+    // happened on this order" rather than "needs attention right now".
+    relevantOrders.forEach((o) => {
+      const lastPayment = o.payments?.[o.payments.length - 1];
+      if (lastPayment && new Date(lastPayment.timestamp).getTime() >= threeDaysAgo) {
+        items.push({
+          id: `payment-${o.id}-${lastPayment.id}`,
+          icon: <FaSackDollar />,
+          tone: 'info',
+          title: `Payment recorded for ${o.customerName}'s order`,
+          subtitle: `${formatCurrency(lastPayment.amount)} — by ${lastPayment.recordedByName}`,
+          timestamp: lastPayment.timestamp,
           orderId: o.id,
         });
       }

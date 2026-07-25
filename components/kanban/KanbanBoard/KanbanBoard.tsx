@@ -56,7 +56,11 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
 
   // Deep-link support: /production?order=<id> forwards to the order's own
   // page, /production?staff=<uid> filters the board to that staff member's
-  // orders. One-time hydration from the URL once data has loaded.
+  // orders. Must react to searchParams itself, not just isLoaded — the
+  // notification bell renders on this same page, so clicking a
+  // notification while already on /production is a same-route navigation
+  // (no remount, isLoaded never changes) and this effect needs to re-run
+  // on that new query string, not just once on mount.
   useEffect(() => {
     if (!isLoaded) return;
     const orderId = searchParams.get('order');
@@ -73,8 +77,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       });
       router.replace('/production');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded]);
+  }, [isLoaded, searchParams, userRole, router]);
 
   // Order cards are plain divs (not <Link>), since each also hosts nested
   // interactive controls (reassign select, move back/forward buttons) that
