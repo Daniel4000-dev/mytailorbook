@@ -216,6 +216,13 @@ export interface Order {
   commentsSeenAt?: string;
   payments?: PaymentRecord[];
   statusHistory: StatusChange[];
+  /** The garment style picked at intake (from the built-in/custom styles
+   *  catalog) — persisted so cost data can eventually be aggregated per
+   *  style, not just entered per order. */
+  styleName?: string;
+  materialSuppliedBy?: 'shop' | 'customer';
+  materialCost?: number;
+  otherCosts?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -223,6 +230,18 @@ export interface Order {
 /** Computed field — not stored, derived at read time */
 export function getBalanceOwed(order: Order): number {
   return order.totalBill - order.depositPaid;
+}
+
+/** True once at least one cost figure has actually been entered — guards
+ *  against a blank/zero cost silently reading as "100% margin". */
+export function hasCostData(order: Order): boolean {
+  return (order.materialCost || 0) > 0 || (order.otherCosts || 0) > 0;
+}
+
+/** Computed field — not stored, derived at read time. Only meaningful
+ *  once hasCostData(order) is true. */
+export function getMargin(order: Order): number {
+  return order.totalBill - (order.materialCost || 0) - (order.otherCosts || 0);
 }
 
 /** True when a customer comment arrived that no one at the shop has opened yet. */

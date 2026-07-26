@@ -34,6 +34,9 @@ interface UnitDraft {
   dueDate: string;
   assignedTo: string;
   inspirationImages: string[];
+  materialSuppliedBy: 'shop' | 'customer';
+  materialCost: string;
+  otherCosts: string;
 }
 
 /** Walk-in order ritual: pick the client, tap garments into the basket,
@@ -195,6 +198,9 @@ function NewOrderWizard() {
               dueDate: '',
               assignedTo: '',
               inspirationImages: [],
+              materialSuppliedBy: 'shop',
+              materialCost: '',
+              otherCosts: '',
             }
           );
         }
@@ -274,6 +280,10 @@ function NewOrderWizard() {
           measurements: parsedMeasures(u.styleName),
           images: [],
           inspirationImages: u.inspirationImages,
+          styleName: u.styleName,
+          materialSuppliedBy: u.materialSuppliedBy,
+          materialCost: u.materialSuppliedBy === 'shop' ? (parseInt(u.materialCost.replace(/,/g, '')) || 0) : 0,
+          otherCosts: parseInt(u.otherCosts.replace(/,/g, '')) || 0,
           statusHistory: [{
             from: null,
             to: startingStage,
@@ -698,6 +708,44 @@ function NewOrderWizard() {
                           </option>
                         ))}
                     </select>
+                  </div>
+                </div>
+                <div className={styles.costSection}>
+                  <span className={styles.capsLabel}>Cost &amp; Margin (optional)</span>
+                  <div className={styles.unitGrid}>
+                    <div className={styles.unitField}>
+                      <label className={styles.capsLabel}>Material Supplied By</label>
+                      <select
+                        className={styles.unitInput}
+                        value={u.materialSuppliedBy}
+                        onChange={(e) => updateUnit(u.key, { materialSuppliedBy: e.target.value as 'shop' | 'customer' })}
+                      >
+                        <option value="shop">Shop</option>
+                        <option value="customer">Customer</option>
+                      </select>
+                    </div>
+                    {u.materialSuppliedBy === 'shop' && (
+                      <div className={styles.unitField}>
+                        <label className={styles.capsLabel}>Material Cost (₦)</label>
+                        <input
+                          className={styles.unitInput}
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={u.materialCost}
+                          onChange={(e) => updateUnit(u.key, { materialCost: e.target.value.replace(/[^0-9,]/g, '') })}
+                        />
+                      </div>
+                    )}
+                    <div className={styles.unitField}>
+                      <label className={styles.capsLabel}>Other Costs (₦)</label>
+                      <input
+                        className={styles.unitInput}
+                        inputMode="numeric"
+                        placeholder="Thread, buttons, outsourced labor…"
+                        value={u.otherCosts}
+                        onChange={(e) => updateUnit(u.key, { otherCosts: e.target.value.replace(/[^0-9,]/g, '') })}
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className={styles.inspoRow}>

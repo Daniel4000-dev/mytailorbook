@@ -34,6 +34,10 @@ function orderFromRow(row: any): Order {
     commentsSeenAt: row.comments_seen_at || undefined,
     statusHistory: row.status_history || [],
     payments: row.payments || [],
+    styleName: row.style_name || undefined,
+    materialSuppliedBy: row.material_supplied_by || 'shop',
+    materialCost: row.material_cost || 0,
+    otherCosts: row.other_costs || 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -59,6 +63,10 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.commentsSeenAt !== undefined) row.comments_seen_at = o.commentsSeenAt || null;
   if (o.statusHistory !== undefined) row.status_history = o.statusHistory;
   if (o.payments !== undefined) row.payments = o.payments;
+  if (o.styleName !== undefined) row.style_name = o.styleName || null;
+  if (o.materialSuppliedBy !== undefined) row.material_supplied_by = o.materialSuppliedBy;
+  if (o.materialCost !== undefined) row.material_cost = o.materialCost;
+  if (o.otherCosts !== undefined) row.other_costs = o.otherCosts;
   return row;
 }
 

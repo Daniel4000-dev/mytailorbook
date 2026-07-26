@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getBalanceOwed, hasUnreadComment, isOverdue, isDueSoon } from '@/lib/types';
+import { getBalanceOwed, getMargin, hasCostData, hasUnreadComment, isOverdue, isDueSoon } from '@/lib/types';
 import type { Order } from '@/lib/types';
 
 function makeOrder(overrides: Partial<Order> = {}): Order {
@@ -31,6 +31,38 @@ describe('getBalanceOwed', () => {
 
   it('can go negative on an overpayment (not clamped)', () => {
     expect(getBalanceOwed(makeOrder({ totalBill: 50000, depositPaid: 60000 }))).toBe(-10000);
+  });
+});
+
+describe('hasCostData', () => {
+  it('is false when no cost fields are set', () => {
+    expect(hasCostData(makeOrder())).toBe(false);
+  });
+
+  it('is true when material cost is set', () => {
+    expect(hasCostData(makeOrder({ materialCost: 12000 }))).toBe(true);
+  });
+
+  it('is true when other costs is set', () => {
+    expect(hasCostData(makeOrder({ otherCosts: 1500 }))).toBe(true);
+  });
+
+  it('is false when both are explicitly zero', () => {
+    expect(hasCostData(makeOrder({ materialCost: 0, otherCosts: 0 }))).toBe(false);
+  });
+});
+
+describe('getMargin', () => {
+  it('subtracts material and other costs from the total bill', () => {
+    expect(getMargin(makeOrder({ totalBill: 50000, materialCost: 15000, otherCosts: 2000 }))).toBe(33000);
+  });
+
+  it('treats missing cost fields as zero', () => {
+    expect(getMargin(makeOrder({ totalBill: 50000 }))).toBe(50000);
+  });
+
+  it('can go negative when costs exceed the total bill', () => {
+    expect(getMargin(makeOrder({ totalBill: 10000, materialCost: 8000, otherCosts: 5000 }))).toBe(-3000);
   });
 });
 

@@ -21,7 +21,7 @@ import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
-import { getBalanceOwed, isOverdue, hasUnreadComment } from '@/lib/types';
+import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import styles from './page.module.css';
@@ -55,6 +55,9 @@ export default function OrderDetailPage() {
   const [editPriority, setEditPriority] = useState<Priority>('normal');
   const [editAssignedTo, setEditAssignedTo] = useState('');
   const [editTotalBill, setEditTotalBill] = useState('');
+  const [editMaterialSuppliedBy, setEditMaterialSuppliedBy] = useState<'shop' | 'customer'>('shop');
+  const [editMaterialCost, setEditMaterialCost] = useState('');
+  const [editOtherCosts, setEditOtherCosts] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
@@ -138,6 +141,9 @@ export default function OrderDetailPage() {
     setEditPriority(order.priority);
     setEditAssignedTo(order.assignedTo || '');
     setEditTotalBill(String(order.totalBill));
+    setEditMaterialSuppliedBy(order.materialSuppliedBy || 'shop');
+    setEditMaterialCost(order.materialCost ? String(order.materialCost) : '');
+    setEditOtherCosts(order.otherCosts ? String(order.otherCosts) : '');
     setIsEditing(true);
   };
 
@@ -154,6 +160,9 @@ export default function OrderDetailPage() {
         assignedTo: editAssignedTo,
         assignedToName: assignee?.name || '',
         totalBill: parseInt(editTotalBill.replace(/,/g, '')) || 0,
+        materialSuppliedBy: editMaterialSuppliedBy,
+        materialCost: editMaterialSuppliedBy === 'shop' ? (parseInt(editMaterialCost.replace(/,/g, '')) || 0) : 0,
+        otherCosts: parseInt(editOtherCosts.replace(/,/g, '')) || 0,
       });
       setIsEditing(false);
       showToast('Order updated', 'success');
@@ -407,6 +416,34 @@ export default function OrderDetailPage() {
                   inputMode="numeric"
                 />
               </div>
+              <div className={styles.editRow}>
+                <Select
+                  label="Material Supplied By"
+                  options={[
+                    { value: 'shop', label: 'Shop' },
+                    { value: 'customer', label: 'Customer' },
+                  ]}
+                  value={editMaterialSuppliedBy}
+                  onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
+                />
+                {editMaterialSuppliedBy === 'shop' && (
+                  <Input
+                    label="Material Cost (₦)"
+                    value={editMaterialCost}
+                    onChange={(e) => setEditMaterialCost(e.target.value.replace(/[^0-9,]/g, ''))}
+                    inputMode="numeric"
+                  />
+                )}
+              </div>
+              <div className={styles.editRow}>
+                <Input
+                  label="Other Costs (₦)"
+                  value={editOtherCosts}
+                  onChange={(e) => setEditOtherCosts(e.target.value.replace(/[^0-9,]/g, ''))}
+                  inputMode="numeric"
+                  placeholder="Thread, buttons, outsourced labor…"
+                />
+              </div>
               <div className={styles.editActions}>
                 <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
                 <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
@@ -634,6 +671,43 @@ export default function OrderDetailPage() {
                 <Symbol name="receipt" size={16} /> View/Print Receipt
               </a>
             </div>
+          </section>
+        )}
+
+        {/* 8b. Cost & margin (owner only) */}
+        {userRole === 'Owner' && (
+          <section className={styles.card}>
+            <h3 className={styles.sectionTitle}>Cost &amp; Margin</h3>
+            {hasCostData(order) ? (
+              <div className={styles.payRows}>
+                <div className={styles.payRow}>
+                  <span className={styles.payLabel}>Material Cost</span>
+                  <span className={styles.payValueAccent}>
+                    -{formatCurrency(order.materialSuppliedBy === 'customer' ? 0 : order.materialCost || 0)}
+                  </span>
+                </div>
+                <div className={styles.payRow}>
+                  <span className={styles.payLabel}>Other Costs</span>
+                  <span className={styles.payValueAccent}>-{formatCurrency(order.otherCosts || 0)}</span>
+                </div>
+                <div className={styles.payRowTotal}>
+                  <span>Margin</span>
+                  <span>
+                    {formatCurrency(getMargin(order))}
+                    {order.totalBill > 0 && ` (${Math.round((getMargin(order) / order.totalBill) * 100)}%)`}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className={styles.emptyNote}>
+                Add cost details to see your margin on this order.
+              </p>
+            )}
+            {!isEditing && (
+              <button type="button" className={styles.metaEditBtn} onClick={startEditing} aria-label="Edit cost details">
+                <Symbol name="edit" size={18} />
+              </button>
+            )}
           </section>
         )}
 
