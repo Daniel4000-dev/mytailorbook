@@ -430,7 +430,7 @@
 
 .cardLabel {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-xs);
+  font-size: var(--sf-text-sm);
   color: var(--sf-text-secondary);
   font-weight: 600;
   text-transform: uppercase;
@@ -444,7 +444,7 @@
   font-family: var(--sf-font-numeric);
   font-size: var(--sf-text-2xl);
   font-weight: 700;
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-primary);
 }
 
 /* Collected/Projected are routine stats, not alerts — they use the

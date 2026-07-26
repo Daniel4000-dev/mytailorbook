@@ -204,7 +204,7 @@ function OwnerDashboard({
 
   const urgentCount = useMemo(() => {
     return orders.filter((o) => {
-      if (o.status === 'Completed' || o.status === 'Documented') return false;
+      if (o.status === 'Completed') return false;
       return isOverdue(o) || o.priority === 'rush' || o.priority === 'urgent';
     }).length;
   }, [orders]);
@@ -212,7 +212,7 @@ function OwnerDashboard({
   const dueTodayCount = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
     return orders.filter((o) => {
-      if (!o.dueDate || o.status === 'Completed' || o.status === 'Documented') return false;
+      if (!o.dueDate || o.status === 'Completed') return false;
       const dueStr = new Date(o.dueDate).toISOString().split('T')[0];
       return dueStr === todayStr;
     }).length;

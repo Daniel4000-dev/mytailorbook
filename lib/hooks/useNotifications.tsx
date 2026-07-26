@@ -57,7 +57,7 @@ export function useNotifications() {
 
   const { notifications, alertCount } = useMemo(() => {
     const items: NotificationItem[] = [];
-    const activeOrders = relevantOrders.filter((o) => o.status !== 'Completed' && o.status !== 'Documented');
+    const activeOrders = relevantOrders.filter((o) => o.status !== 'Completed');
     const todayStr = new Date().toISOString().split('T')[0];
     const isDueToday = (o: Order) => !!o.dueDate && new Date(o.dueDate).toISOString().split('T')[0] === todayStr;
 
@@ -82,12 +82,12 @@ export function useNotifications() {
           timestamp: o.dueDate || o.updatedAt,
           orderId: o.id,
         });
-      } else if (o.priority === 'rush') {
+      } else if (o.priority === 'rush' || o.priority === 'urgent') {
         items.push({
           id: `rush-${o.id}`,
           icon: <FaFireFlameCurved />,
           tone: 'alert',
-          title: `${o.customerName}'s order is marked Rush`,
+          title: `${o.customerName}'s order is marked ${o.priority === 'rush' ? 'Rush' : 'Urgent'}`,
           subtitle: `Status: ${o.status}`,
           timestamp: o.updatedAt,
           orderId: o.id,
