@@ -158,6 +158,82 @@ export async function getShopBundle(shopId: string, orgId: string) {
   };
 }
 
+/** Dashboard's Collected/Projected/Overdue/Due Today figures via a single
+ *  SQL aggregate (get_branch_stats, migration 0021) instead of requiring
+ *  the full order list client-side — mirrors the exact overdue/due-today
+ *  logic already fixed this session (Documented-status orders are NOT
+ *  excluded, only Completed ones are). */
+export async function getBranchStats(shopId: string): Promise<{
+  collected: number;
+  projected: number;
+  overdueCount: number;
+  dueTodayCount: number;
+} | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('get_branch_stats', { p_shop_id: shopId }).single();
+  if (error || !data) return null;
+  const row = data as { collected: number; projected: number; overdue_count: number; due_today_count: number };
+  return {
+    collected: Number(row.collected) || 0,
+    projected: Number(row.projected) || 0,
+    overdueCount: Number(row.overdue_count) || 0,
+    dueTodayCount: Number(row.due_today_count) || 0,
+  };
+}
+
+/** Server-side paginated + searched customer list — keyset pagination on
+ *  (created_at, id), search hits the database (ilike on name/phone)
+ *  instead of filtering an in-memory array. New infrastructure, not yet
+ *  wired into app/(app)/customers/page.tsx: that page's outreach feature
+ *  ("reach out to N customers about this style") builds its send queue
+ *  from the FULL filtered customer list, not one page at a time — wiring
+ *  this in would silently make outreach only see the current page. Use
+ *  this for a future customer-list redesign that also reworks outreach,
+ *  or anywhere else that doesn't need the complete filtered set at once. */
+export async function getCustomersPage({
+  orgId,
+  search,
+  cursor,
+  limit = 40,
+}: {
+  orgId: string;
+  search?: string;
+  cursor?: { createdAt: string; id: string };
+  limit?: number;
+}): Promise<{ customers: Customer[]; nextCursor: { createdAt: string; id: string } | null }> {
+  const supabase = await createClient();
+  let query = supabase
+    .from('customers')
+    .select('*')
+    .eq('org_id', orgId)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1);
+
+  if (search) {
+    const q = search.replace(/[%_]/g, '');
+    query = query.or(`full_name.ilike.%${q}%,whatsapp_number.ilike.%${q}%`);
+  }
+  if (cursor) {
+    query = query.or(
+      `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`
+    );
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  const rows = data || [];
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+  const last = page[page.length - 1];
+
+  return {
+    customers: page.map(customerFromRow),
+    nextCursor: hasMore && last ? { createdAt: last.created_at, id: last.id } : null,
+  };
+}
+
 /** Every branch (shops row) under an organization — powers the branch
  *  switcher and the "Your Organization" settings list. */
 export async function getOrgBranches(orgId: string): Promise<Shop[]> {
