@@ -1,8 +1,15 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
+
+// A real customer refreshing their own tracking page a few times is
+// normal; a scraper hitting many different order/shop IDs from one IP in
+// a burst is what this guards against.
+const READ_LIMIT = { limit: 20, windowSeconds: 60 };
+const WRITE_LIMIT = { limit: 5, windowSeconds: 3600 };
 
 /**
  * Fetches a single order (+ its customer and shop) for the public,
@@ -18,6 +25,10 @@ export async function getPublicOrderView(orderId: string): Promise<{
   customer: Customer | null;
   shop: Shop | null;
 } | null> {
+  const ip = await getRequestIp();
+  const { allowed } = await checkRateLimit(`track:${ip}`, READ_LIMIT);
+  if (!allowed) return null;
+
   const admin = createAdminClient();
 
   const { data: row, error } = await admin.from('orders').select('*').eq('id', orderId).single();
@@ -108,6 +119,10 @@ export async function submitOrderComment(orderId: string, message: string): Prom
   if (!trimmed) return { success: false, error: 'Comment cannot be empty.' };
   if (trimmed.length > 1000) return { success: false, error: 'Comment is too long.' };
 
+  const ip = await getRequestIp();
+  const { allowed } = await checkRateLimit(`comment:${ip}`, WRITE_LIMIT);
+  if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
+
   const admin = createAdminClient();
 
   const { data: order, error: fetchError } = await admin.from('orders').select('id, shop_id, status').eq('id', orderId).single();
@@ -136,6 +151,10 @@ export async function submitOrderComment(orderId: string, message: string): Prom
  * feedback, not the real guard) rather than trusting the caller.
  */
 export async function submitOrderReminder(orderId: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
+  const ip = await getRequestIp();
+  const { allowed } = await checkRateLimit(`reminder:${ip}`, WRITE_LIMIT);
+  if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
+
   const admin = createAdminClient();
 
   const { data: order, error: fetchError } = await admin.from('orders').select('id, last_reminder_at').eq('id', orderId).single();
@@ -202,6 +221,10 @@ export interface PublicPortfolio {
 }
 
 export async function getPublicShopPortfolio(shopId: string): Promise<PublicPortfolio | null> {
+  const ip = await getRequestIp();
+  const { allowed } = await checkRateLimit(`portfolio:${ip}`, READ_LIMIT);
+  if (!allowed) return null;
+
   const admin = createAdminClient();
 
   const { data: shopRow, error: shopErr } = await admin
