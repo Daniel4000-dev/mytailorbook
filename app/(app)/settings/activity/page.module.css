@@ -1,0 +1,48 @@
+.intro {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--sf-space-md);
+}
+
+.card {
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  box-shadow: var(--sf-shadow-xs);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--sf-text-sm);
+}
+
+.actorName {
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.description {
+  color: var(--sf-text-secondary);
+}
+
+.timestamp {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  white-space: nowrap;
+}

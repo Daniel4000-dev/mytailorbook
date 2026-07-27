@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride } from '@/lib/types';
+import { logAudit } from '@/lib/audit';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -236,6 +237,16 @@ export async function updateOrderStatusAction(
     .eq('id', orderId);
   if (error) throw new Error(error.message);
 
+  await logAudit({
+    shopId,
+    actorId: changedBy,
+    actorName: changedByName,
+    action: 'order.status_changed',
+    entityType: 'order',
+    entityId: orderId,
+    diff: { fromStatus: current.status, toStatus: newStatus },
+  });
+
   return getOrders(shopId);
 }
 
@@ -246,6 +257,38 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     .update({ ...orderToRow('', updates), updated_at: new Date().toISOString() })
     .eq('id', orderId);
   if (error) throw new Error(error.message);
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  let actorName = 'Unknown';
+  if (actorId) {
+    const { data: actorProfile } = await supabase.from('profiles').select('name').eq('id', actorId).single();
+    actorName = actorProfile?.name || actorName;
+  }
+
+  if (updates.payments) {
+    const lastPayment = updates.payments[updates.payments.length - 1];
+    await logAudit({
+      shopId,
+      actorId,
+      actorName,
+      action: 'payment.recorded',
+      entityType: 'order',
+      entityId: orderId,
+      diff: lastPayment ? { amount: lastPayment.amount } : undefined,
+    });
+  } else {
+    await logAudit({
+      shopId,
+      actorId,
+      actorName,
+      action: 'order.updated',
+      entityType: 'order',
+      entityId: orderId,
+      diff: { fields: Object.keys(updates) },
+    });
+  }
+
   return getOrders(shopId);
 }
 
@@ -492,8 +535,8 @@ export async function resetStaffPasswordAction(
 ): Promise<{ password?: string; error?: string }> {
   const admin = createAdminClient();
 
-  const { data: staffProfile } = await admin.from('profiles').select('shop_id').eq('id', staffUid).single();
-  const { data: ownerProfile } = await admin.from('profiles').select('shop_id, role').eq('id', requestedBy).single();
+  const { data: staffProfile } = await admin.from('profiles').select('shop_id, name').eq('id', staffUid).single();
+  const { data: ownerProfile } = await admin.from('profiles').select('shop_id, role, name').eq('id', requestedBy).single();
   if (
     !staffProfile ||
     !ownerProfile ||
@@ -506,6 +549,17 @@ export async function resetStaffPasswordAction(
   const password = newPassword || Math.random().toString(36).slice(-10) + 'A1!';
   const { error } = await admin.auth.admin.updateUserById(staffUid, { password });
   if (error) return { error: error.message };
+
+  await logAudit({
+    shopId: ownerProfile.shop_id,
+    actorId: requestedBy,
+    actorName: ownerProfile.name,
+    action: 'staff.password_reset',
+    entityType: 'profile',
+    entityId: staffUid,
+    diff: { staffName: staffProfile.name },
+  });
+
   return { password };
 }
 
@@ -798,12 +852,13 @@ export async function deleteOwnShopAction(): Promise<{ error?: string }> {
   if (!uid) return { error: 'Not signed in' };
 
   const admin = createAdminClient();
-  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role, name').eq('id', uid).single();
   if (!requester || requester.role !== 'Owner') {
     return { error: 'Only the shop owner can delete the shop account' };
   }
   const shopId = requester.shop_id;
 
+  const { data: shopRow } = await admin.from('shops').select('name').eq('id', shopId).single();
   const { data: allProfiles } = await admin.from('profiles').select('id').eq('shop_id', shopId);
   const profileIds = (allProfiles || []).map((p) => p.id as string);
 
@@ -813,6 +868,16 @@ export async function deleteOwnShopAction(): Promise<{ error?: string }> {
   for (const pid of profileIds) {
     await deleteStorageFolder(admin, 'avatars', pid);
   }
+
+  await logAudit({
+    shopId,
+    actorId: uid,
+    actorName: requester.name,
+    action: 'shop.deleted',
+    entityType: 'shop',
+    entityId: shopId,
+    diff: { shopName: shopRow?.name, staffCount: profileIds.length },
+  });
 
   const { error: shopDeleteError } = await admin.from('shops').delete().eq('id', shopId);
   if (shopDeleteError) return { error: shopDeleteError.message };
@@ -837,12 +902,22 @@ export async function deleteOwnStaffAccountAction(): Promise<{ error?: string }>
   if (!uid) return { error: 'Not signed in' };
 
   const admin = createAdminClient();
-  const { data: requester } = await admin.from('profiles').select('role').eq('id', uid).single();
+  const { data: requester } = await admin.from('profiles').select('role, name, shop_id').eq('id', uid).single();
   if (!requester || requester.role !== 'Staff') {
     return { error: 'Only a staff member can delete their own staff account' };
   }
 
   await deleteStorageFolder(admin, 'avatars', uid);
+
+  await logAudit({
+    shopId: requester.shop_id,
+    actorId: uid,
+    actorName: requester.name,
+    action: 'staff.deleted',
+    entityType: 'profile',
+    entityId: uid,
+    diff: { staffName: requester.name },
+  });
 
   const { error } = await admin.auth.admin.deleteUser(uid);
   if (error) return { error: error.message };
@@ -858,17 +933,27 @@ export async function deleteOrderAction(orderId: string): Promise<{ error?: stri
   if (!uid) return { error: 'Not signed in' };
 
   const admin = createAdminClient();
-  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role, name').eq('id', uid).single();
   if (!requester || requester.role !== 'Owner') {
     return { error: 'Only the shop owner can delete orders' };
   }
 
-  const { data: order } = await admin.from('orders').select('id, shop_id').eq('id', orderId).single();
+  const { data: order } = await admin.from('orders').select('id, shop_id, customer_name, order_details').eq('id', orderId).single();
   if (!order || order.shop_id !== requester.shop_id) {
     return { error: 'Order not found' };
   }
 
   await deleteStorageFolder(admin, 'order-photos', `${requester.shop_id}/${orderId}`);
+
+  await logAudit({
+    shopId: requester.shop_id,
+    actorId: uid,
+    actorName: requester.name,
+    action: 'order.deleted',
+    entityType: 'order',
+    entityId: orderId,
+    diff: { customerName: order.customer_name, orderDetails: order.order_details },
+  });
 
   const { error } = await admin.from('orders').delete().eq('id', orderId);
   if (error) return { error: error.message };
@@ -887,12 +972,12 @@ export async function deleteCustomerAction(customerId: string): Promise<{ error?
   if (!uid) return { error: 'Not signed in' };
 
   const admin = createAdminClient();
-  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role, name').eq('id', uid).single();
   if (!requester || requester.role !== 'Owner') {
     return { error: 'Only the shop owner can delete customers' };
   }
 
-  const { data: customer } = await admin.from('customers').select('id, shop_id').eq('id', customerId).single();
+  const { data: customer } = await admin.from('customers').select('id, shop_id, full_name').eq('id', customerId).single();
   if (!customer || customer.shop_id !== requester.shop_id) {
     return { error: 'Customer not found' };
   }
@@ -903,6 +988,17 @@ export async function deleteCustomerAction(customerId: string): Promise<{ error?
   for (const oid of orderIds) {
     await deleteStorageFolder(admin, 'order-photos', `${requester.shop_id}/${oid}`);
   }
+
+  await logAudit({
+    shopId: requester.shop_id,
+    actorId: uid,
+    actorName: requester.name,
+    action: 'customer.deleted',
+    entityType: 'customer',
+    entityId: customerId,
+    diff: { customerName: customer.full_name, deletedOrderCount: orderIds.length },
+  });
+
   if (orderIds.length > 0) {
     const { error: ordersDeleteError } = await admin.from('orders').delete().in('id', orderIds);
     if (ordersDeleteError) return { error: ordersDeleteError.message };
@@ -960,4 +1056,27 @@ export async function exportShopDataAction(): Promise<{ data?: string; error?: s
   };
 
   return { data: JSON.stringify(exportPayload, null, 2) };
+}
+
+/** Owner-only recent activity, for accountability — RLS (see migration
+ *  0018) already restricts this to the caller's own shop and Owner role,
+ *  so a Staff member calling this simply gets zero rows back, not an error. */
+export async function getAuditLogAction(shopId: string): Promise<AuditLogEntry[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('audit_log')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) throw new Error(error.message);
+  return (data || []).map((row) => ({
+    id: String(row.id),
+    actorName: row.actor_name,
+    action: row.action,
+    entityType: row.entity_type,
+    entityId: row.entity_id,
+    diff: row.diff,
+    createdAt: row.created_at,
+  }));
 }

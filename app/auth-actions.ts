@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { logAudit } from '@/lib/audit';
 
 /**
  * Runs for every first-time sign-in, Google or email — neither gives us a
@@ -88,6 +89,23 @@ export async function createStaffAccount(
   if (profileError) {
     return { error: profileError.message };
   }
+
+  const supabase = await createClient();
+  const { data: { user: actorUser } } = await supabase.auth.getUser();
+  let actorName = 'Unknown';
+  if (actorUser) {
+    const { data: actorProfile } = await admin.from('profiles').select('name').eq('id', actorUser.id).single();
+    actorName = actorProfile?.name || actorName;
+  }
+  await logAudit({
+    shopId,
+    actorId: actorUser?.id ?? null,
+    actorName,
+    action: 'staff.created',
+    entityType: 'profile',
+    entityId: authData.user.id,
+    diff: { staffName: name, email },
+  });
 
   return { userId: authData.user.id };
 }

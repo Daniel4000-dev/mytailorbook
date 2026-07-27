@@ -253,6 +253,18 @@ export default function SettingsPage() {
             />
           </div>
         </div>
+
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Security</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="history"
+              label="Activity Log"
+              subtitle="See who did what, and when"
+              onClick={() => router.push('/settings/activity')}
+            />
+          </div>
+        </div>
       </div>
 
       <BottomSheet isOpen={openSheet === 'account'} onClose={() => setOpenSheet(null)} title="Your Account">

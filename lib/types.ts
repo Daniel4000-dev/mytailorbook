@@ -170,6 +170,16 @@ export interface OutreachLogEntry {
   contactedAt: string;
 }
 
+export interface AuditLogEntry {
+  id: string;
+  actorName: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  diff: Record<string, unknown> | null;
+  createdAt: string;
+}
+
 export interface StatusChange {
   from: OrderStatus | null;
   to: OrderStatus;
