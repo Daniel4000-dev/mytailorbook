@@ -159,13 +159,19 @@ export function useNotifications() {
     });
 
     // A customer clicking "Send a reminder" on the public tracking page —
-    // same 3-day recency window as the activity items above.
+    // same 3-day recency window as the activity items above. Tone is 'info',
+    // not 'warning': like a status move or a payment, this is a point-in-time
+    // "something just happened" ping, not an ongoing state the shop owes a
+    // fix to (that's what overdue/due-today/rush/unread-comment are for) —
+    // so it belongs in the full notification feed, but not the dashboard's
+    // short Needs Attention list (see app/(app)/dashboard/page.tsx, which
+    // filters this hook's output to tone !== 'info' for that section).
     relevantOrders.forEach((o) => {
       if (o.lastReminderAt && new Date(o.lastReminderAt).getTime() >= threeDaysAgo) {
         items.push({
           id: `reminder-${o.id}-${o.lastReminderAt}`,
           icon: <FaBell />,
-          tone: 'warning',
+          tone: 'info',
           title: `${o.customerName} sent a reminder about their order`,
           subtitle: `Status: ${o.status}`,
           timestamp: o.lastReminderAt,

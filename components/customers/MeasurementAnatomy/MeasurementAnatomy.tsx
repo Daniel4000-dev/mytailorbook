@@ -102,7 +102,7 @@ export default function MeasurementAnatomy({
   onPointSelect,
   onValueChange,
 }: MeasurementAnatomyProps) {
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual');
+  const [viewMode, setViewMode] = useState<'visual' | 'list'>('list');
   const points = gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
   
   const filledCount = Object.keys(measurements).length;
@@ -120,17 +120,17 @@ export default function MeasurementAnatomy({
       <div className={styles.viewModeTabs}>
         <button
           type="button"
-          className={`${styles.viewModeBtn} ${viewMode === 'visual' ? styles.viewModeBtnActive : ''}`}
-          onClick={() => setViewMode('visual')}
-        >
-          Visual Anatomy
-        </button>
-        <button
-          type="button"
           className={`${styles.viewModeBtn} ${viewMode === 'list' ? styles.viewModeBtnActive : ''}`}
           onClick={() => setViewMode('list')}
         >
           Quick List
+        </button>
+        <button
+          type="button"
+          className={`${styles.viewModeBtn} ${viewMode === 'visual' ? styles.viewModeBtnActive : ''}`}
+          onClick={() => setViewMode('visual')}
+        >
+          Visual Anatomy
         </button>
       </div>
 
