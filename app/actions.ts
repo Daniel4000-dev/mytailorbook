@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { checkRateLimit } from '@/lib/rateLimit';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride } from '@/lib/types';
 
 // ----------------------------------------------------------------------
@@ -910,4 +911,53 @@ export async function deleteCustomerAction(customerId: string): Promise<{ error?
   const { error } = await admin.from('customers').delete().eq('id', customerId);
   if (error) return { error: error.message };
   return { deletedOrderCount: orderIds.length };
+}
+
+/** Owner-only self-serve export of everything this app stores for their
+ *  shop — fulfills the data-access/portability right the privacy policy
+ *  already promises, without needing a manual support request. Everything
+ *  is scoped to the requester's own shop_id, derived server-side from
+ *  their session, never a client-supplied id. */
+export async function exportShopDataAction(): Promise<{ data?: string; error?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const uid = authData?.user?.id;
+  if (!uid) return { error: 'Not signed in' };
+
+  const admin = createAdminClient();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  if (!requester || requester.role !== 'Owner') {
+    return { error: 'Only the shop owner can export shop data' };
+  }
+  const shopId = requester.shop_id;
+
+  const { allowed } = await checkRateLimit(`export:${uid}`, { limit: 3, windowSeconds: 3600 });
+  if (!allowed) return { error: 'Too many export requests — please try again in an hour.' };
+
+  const [shop, customers, orders, staff, stylePhotos, portfolioOverrides] = await Promise.all([
+    admin.from('shops').select('*').eq('id', shopId).single(),
+    admin.from('customers').select('*').eq('shop_id', shopId),
+    admin.from('orders').select('*').eq('shop_id', shopId),
+    admin.from('profiles').select('id, name, email, role').eq('shop_id', shopId),
+    admin.from('style_photo_submissions').select('*').eq('shop_id', shopId),
+    admin.from('portfolio_photo_overrides').select('*').eq('shop_id', shopId),
+  ]);
+
+  const orderIds = (orders.data || []).map((o) => o.id as string);
+  const { data: orderComments } = orderIds.length
+    ? await admin.from('order_comments').select('*').in('order_id', orderIds)
+    : { data: [] };
+
+  const exportPayload = {
+    exportedAt: new Date().toISOString(),
+    shop: shop.data,
+    staff: staff.data,
+    customers: customers.data,
+    orders: orders.data,
+    orderComments,
+    stylePhotoSubmissions: stylePhotos.data,
+    portfolioPhotoOverrides: portfolioOverrides.data,
+  };
+
+  return { data: JSON.stringify(exportPayload, null, 2) };
 }

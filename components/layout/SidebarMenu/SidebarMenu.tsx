@@ -8,7 +8,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { useToast } from '@/contexts/ToastContext';
 import { APP_CONFIG } from '@/lib/config';
 import { createClient } from '@/lib/supabase/client';
-import { deleteOwnShopAction, deleteOwnStaffAccountAction } from '@/app/actions';
+import { deleteOwnShopAction, deleteOwnStaffAccountAction, exportShopDataAction } from '@/app/actions';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
@@ -25,7 +25,8 @@ import {
   FaGear,
   FaChevronLeft,
   FaChevronRight,
-  FaTriangleExclamation
+  FaTriangleExclamation,
+  FaDownload
 } from 'react-icons/fa6';
 import { NAV_ITEMS } from '@/lib/constants';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
@@ -226,10 +227,61 @@ export default function SidebarMenu() {
             Logout
           </button>
 
+          {isOwner && <ExportDataButton shopName={shopName} />}
+
           <DangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
         </div>
       </BottomSheet>
     </div>
+  );
+}
+
+function ExportDataButton({ shopName }: { shopName: string }) {
+  const { showToast } = useToast();
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    const { data, error } = await exportShopDataAction();
+    setExporting(false);
+    if (error || !data) {
+      showToast(error || 'Could not export data', 'error');
+      return;
+    }
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.href = url;
+    link.download = `${shopName.toLowerCase().replace(/\s+/g, '-')}-data-export-${dateStr}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Data export downloaded', 'success');
+  };
+
+  return (
+    <button
+      onClick={handleExport}
+      disabled={exporting}
+      style={{
+        padding: 'var(--sf-space-sm) var(--sf-space-md)',
+        borderRadius: 'var(--sf-radius-md)',
+        border: '1px solid var(--sf-border-light)',
+        background: 'none',
+        color: 'var(--sf-text-primary)',
+        fontWeight: 'var(--sf-weight-medium)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 'var(--sf-space-sm)',
+        cursor: exporting ? 'default' : 'pointer',
+      }}
+    >
+      <FaDownload />
+      {exporting ? 'Preparing export…' : 'Export My Data'}
+    </button>
   );
 }
 
