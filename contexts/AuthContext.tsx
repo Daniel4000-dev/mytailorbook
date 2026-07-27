@@ -117,7 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      throw new Error(error.message);
+      // Thrown as-is (not wrapped in a plain Error) so callers can use
+      // isAuthRetryableFetchError() to tell a network/timeout failure
+      // apart from genuinely wrong credentials, instead of always
+      // assuming the latter.
+      throw error;
     }
     // onAuthStateChange above picks up the new session and sets `user`.
     setLoading(false);

@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '../components/AuthInput';
 import styles from './page.module.css';
@@ -25,8 +26,14 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/dashboard');
-    } catch {
-      setError('Invalid email or password');
+    } catch (err) {
+      if (isAuthRetryableFetchError(err)) {
+        setError('Could not reach the server — check your connection and try again.');
+      } else if (isAuthApiError(err) && err.code === 'invalid_credentials') {
+        setError('Invalid email or password');
+      } else {
+        setError('Something went wrong — please try again.');
+      }
     }
   };
 

@@ -578,6 +578,14 @@
   flex-shrink: 0;
 }
 
+.teamAvatarImage {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .teamName {
   font-weight: 600;
   font-size: var(--sf-text-sm);

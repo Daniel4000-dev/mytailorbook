@@ -45,6 +45,7 @@ export default function DashboardPage() {
         greeting: timeGreeting,
         name: firstName,
         avatarInitials: firstName ? firstName[0] : '',
+        avatarUrl: user?.avatarUrl,
       }}
     />
   );
@@ -310,7 +311,12 @@ function OwnerDashboard({
             type="button"
           >
             <div className={styles.teamCardHeader}>
-              <div className={styles.teamAvatar}>{staff.name[0]}</div>
+              {staff.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={staff.avatarUrl} alt="" className={styles.teamAvatarImage} />
+              ) : (
+                <div className={styles.teamAvatar}>{staff.name[0]}</div>
+              )}
               <div className={styles.teamName}>{staff.name}</div>
             </div>
             <div className={styles.teamStatsRow}>

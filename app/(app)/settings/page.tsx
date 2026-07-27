@@ -15,6 +15,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
@@ -285,6 +286,8 @@ export default function SettingsPage() {
           {user?.avatarUrl && (
             <Button variant="danger" onClick={() => setConfirmRemoveAvatar(true)}>Remove Photo</Button>
           )}
+          <ExportDataButton shopName={currentShop?.name || 'shop'} />
+          <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setOpenSheet(null)} />
         </div>
       </BottomSheet>
 
