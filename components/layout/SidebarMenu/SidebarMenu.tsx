@@ -36,7 +36,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function SidebarMenu() {
   const { logout, isOwner, loading: authLoading } = useAuth();
-  const { currentShop, isLoaded } = useData();
+  const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
   const shopName = currentShop?.name || APP_CONFIG.name;
   const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse, openCreateMenu } = useSidebar();
   const router = useRouter();
@@ -87,6 +87,23 @@ export default function SidebarMenu() {
           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
         </div>
       </div>
+
+      {/* Only shown once an org actually has a second branch — every org
+          today has exactly one, so this stays hidden for all of them. */}
+      {isOwner && shops.length > 1 && (
+        <select
+          className={styles.branchSwitcher}
+          value={activeBranchId ?? ''}
+          onChange={(e) => setActiveBranchId(e.target.value)}
+          aria-label="Switch branch"
+        >
+          {shops.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name}{branch.isPrimary ? ' (Primary)' : ''}
+            </option>
+          ))}
+        </select>
+      )}
 
       {/* Desktop's equivalent of the mobile FAB — a floating "+" belongs to
           a bottom-nav app, not a persistent sidebar shell, so desktop gets

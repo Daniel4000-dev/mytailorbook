@@ -21,6 +21,18 @@
   pointer-events: auto;
 }
 
+.branchSwitcher {
+  width: calc(100% - 48px);
+  margin: 0 24px 16px;
+  padding: 8px 12px;
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+}
+
 .mobileLogo {
   /* width: auto — the mark's natural aspect is wider than tall; forcing
      an exact square squished it into a cramped-looking crop. */

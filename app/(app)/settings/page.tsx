@@ -16,21 +16,27 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+import { addBranchAction } from '@/app/actions';
 import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, isOwner, updateAvatar } = useAuth();
-  const { currentShop, staffMembers, updateShop, isLoaded } = useData();
+  const { currentShop, staffMembers, updateShop, shops, refreshBranches, isLoaded } = useData();
   const { showToast } = useToast();
 
-  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | null>(null);
+  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | null>(null);
 
   const [shopName, setShopName] = useState('');
   const [shopPhone, setShopPhone] = useState('');
   const [shopAddress, setShopAddress] = useState('');
   const [savingShop, setSavingShop] = useState(false);
+
+  const [branchName, setBranchName] = useState('');
+  const [branchPhone, setBranchPhone] = useState('');
+  const [branchAddress, setBranchAddress] = useState('');
+  const [addingBranch, setAddingBranch] = useState(false);
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
@@ -84,6 +90,26 @@ export default function SettingsPage() {
       showToast('Studio profile updated', 'success');
     } finally {
       setSavingShop(false);
+    }
+  };
+
+  const handleAddBranch = async () => {
+    if (!branchName.trim()) return;
+    setAddingBranch(true);
+    try {
+      const { error } = await addBranchAction(branchName, branchPhone || undefined, branchAddress || undefined);
+      if (error) {
+        showToast(error, 'error');
+        return;
+      }
+      refreshBranches();
+      setOpenSheet(null);
+      setBranchName('');
+      setBranchPhone('');
+      setBranchAddress('');
+      showToast('Branch added', 'success');
+    } finally {
+      setAddingBranch(false);
     }
   };
 
@@ -202,6 +228,32 @@ export default function SettingsPage() {
         </div>
 
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Your Organization</span>
+          <div className={styles.groupCard}>
+            {shops.map((branch) => (
+              <SettingsRow
+                key={branch.id}
+                icon="storefront"
+                label={branch.name}
+                subtitle={
+                  branch.isPrimary
+                    ? (branch.address || 'Primary branch')
+                    : (branch.address || 'Branch')
+                }
+                meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
+                onClick={() => {}}
+              />
+            ))}
+            <SettingsRow
+              icon="add"
+              label="Add Branch"
+              subtitle="Add another physical location"
+              onClick={() => setOpenSheet('addBranch')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.group}>
           <span className={styles.groupLabel}>Your Team</span>
           <div className={styles.groupCard}>
             <SettingsRow
@@ -299,6 +351,18 @@ export default function SettingsPage() {
           <div className={styles.sheetActions}>
             <Button variant="ghost" onClick={() => setOpenSheet(null)}>Cancel</Button>
             <Button variant="primary" loading={savingShop} onClick={handleSaveShop}>Save</Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet isOpen={openSheet === 'addBranch'} onClose={() => setOpenSheet(null)} title="Add Branch">
+        <div className={styles.sheetBody}>
+          <Input label="Branch Name" value={branchName} onChange={(e) => setBranchName(e.target.value)} required />
+          <Input label="Phone" value={branchPhone} onChange={(e) => setBranchPhone(e.target.value)} placeholder="08012345678" />
+          <Input label="Address" value={branchAddress} onChange={(e) => setBranchAddress(e.target.value)} placeholder="Branch address" />
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setOpenSheet(null)}>Cancel</Button>
+            <Button variant="primary" loading={addingBranch} onClick={handleAddBranch}>Add Branch</Button>
           </div>
         </div>
       </BottomSheet>

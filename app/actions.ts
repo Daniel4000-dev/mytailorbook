@@ -108,6 +108,7 @@ function userFromRow(row: any): User {
     email: row.email,
     role: row.role,
     shopId: row.shop_id,
+    orgId: row.org_id,
     active: row.active,
     avatarUrl: row.avatar_url || undefined,
     createdAt: row.created_at,
@@ -123,6 +124,8 @@ function shopFromRow(row: any): Shop {
     address: row.address || undefined,
     ownerUid: row.owner_id,
     createdAt: row.created_at,
+    orgId: row.org_id,
+    isPrimary: row.is_primary,
     customStyles: row.custom_styles || [],
     logoUrl: row.logo_url || undefined,
     outreachTemplate: row.outreach_template || undefined,
@@ -134,11 +137,15 @@ function shopFromRow(row: any): Shop {
 // Reads
 // ----------------------------------------------------------------------
 
-export async function getShopBundle(shopId: string) {
+/** `shopId` is the ACTIVE BRANCH (orders/staff stay branch-scoped);
+ *  `orgId` scopes customers, which are shared across every branch in the
+ *  organization. For every org today (exactly one branch), these two ids
+ *  point at the same underlying shop row, so behavior is unchanged. */
+export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
   const [shopRes, customersRes, ordersRes, profilesRes] = await Promise.all([
     supabase.from('shops').select('*').eq('id', shopId).single(),
-    supabase.from('customers').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }),
+    supabase.from('customers').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
     supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }),
     supabase.from('profiles').select('*').eq('shop_id', shopId),
   ]);
@@ -149,6 +156,54 @@ export async function getShopBundle(shopId: string) {
     orders: (ordersRes.data || []).map(orderFromRow),
     staffMembers: (profilesRes.data || []).map(userFromRow),
   };
+}
+
+/** Every branch (shops row) under an organization — powers the branch
+ *  switcher and the "Your Organization" settings list. */
+export async function getOrgBranches(orgId: string): Promise<Shop[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('shops')
+    .select('*')
+    .eq('org_id', orgId)
+    .order('is_primary', { ascending: false })
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data || []).map(shopFromRow);
+}
+
+/** Owner-only: adds a new physical location under their existing
+ *  organization — not the signup flow, no new auth user/profile. org_id
+ *  is derived server-side from the caller's own session, never trusted
+ *  from the client. */
+export async function addBranchAction(
+  name: string,
+  phone?: string,
+  address?: string
+): Promise<{ shop?: Shop; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('org_id, role')
+    .eq('id', user.id)
+    .single();
+  if (!profile || profile.role !== 'Owner') return { error: 'Only the Owner can add a branch' };
+
+  // No RLS INSERT policy exists on `shops` (it's normally only ever
+  // inserted via the security-definer signup trigger) — the admin client
+  // is used here after the Owner/org check above, the same pattern as
+  // other Owner-gated mutations in this file (e.g. deleteOwnShopAction).
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from('shops')
+    .insert({ name, phone, address, owner_id: user.id, org_id: profile.org_id, is_primary: false })
+    .select()
+    .single();
+  if (error) return { error: error.message };
+  return { shop: shopFromRow(data) };
 }
 
 async function getOrders(shopId: string): Promise<Order[]> {
@@ -162,12 +217,14 @@ async function getOrders(shopId: string): Promise<Order[]> {
   return (data || []).map(orderFromRow);
 }
 
-async function getCustomers(shopId: string): Promise<Customer[]> {
+// Customers are org-shared (see migration 0020) — scoped by org_id, not
+// any single branch's shop_id.
+async function getCustomers(orgId: string): Promise<Customer[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('customers')
     .select('*')
-    .eq('shop_id', shopId)
+    .eq('org_id', orgId)
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return (data || []).map(customerFromRow);
@@ -319,7 +376,14 @@ export async function getOrderCommentsAction(orderId: string): Promise<OrderComm
 // Customers
 // ----------------------------------------------------------------------
 
-export async function addCustomerAction(shopId: string, customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) {
+// shopId tags which branch this customer was created at (required by the
+// "insert org customers" RLS policy); orgId is used to return the full
+// org-wide customer list afterward, since customers are org-shared.
+export async function addCustomerAction(
+  shopId: string,
+  orgId: string,
+  customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>
+) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('customers')
@@ -336,22 +400,22 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
     .single();
   if (error) throw new Error(error.message);
 
-  const customers = await getCustomers(shopId);
+  const customers = await getCustomers(orgId);
   return { newCustomer: customerFromRow(data), customers };
 }
 
-export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, shopId: string) {
+export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, orgId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
   if (error) throw new Error(error.message);
-  return getCustomers(shopId);
+  return getCustomers(orgId);
 }
 
 export async function updateCustomerStyleProfileAction(
   customerId: string,
   styleName: string,
   measurements: Measurements,
-  shopId: string
+  orgId: string
 ) {
   const supabase = await createClient();
   const { data: current, error: fetchError } = await supabase
@@ -368,10 +432,10 @@ export async function updateCustomerStyleProfileAction(
   };
   const { error } = await supabase.from('customers').update({ style_measurements: updated }).eq('id', customerId);
   if (error) throw new Error(error.message);
-  return getCustomers(shopId);
+  return getCustomers(orgId);
 }
 
-export async function deleteCustomerStyleProfileAction(customerId: string, styleName: string, shopId: string) {
+export async function deleteCustomerStyleProfileAction(customerId: string, styleName: string, orgId: string) {
   const supabase = await createClient();
   const { data: current, error: fetchError } = await supabase
     .from('customers')
@@ -384,13 +448,13 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
   delete existing[styleName];
   const { error } = await supabase.from('customers').update({ style_measurements: existing }).eq('id', customerId);
   if (error) throw new Error(error.message);
-  return getCustomers(shopId);
+  return getCustomers(orgId);
 }
 
 export async function updateCustomerProfileAction(
   customerId: string,
   updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>,
-  shopId: string
+  orgId: string
 ) {
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
@@ -401,7 +465,7 @@ export async function updateCustomerProfileAction(
   if (updates.address !== undefined) row.address = updates.address || null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
   if (error) throw new Error(error.message);
-  return getCustomers(shopId);
+  return getCustomers(orgId);
 }
 
 // ----------------------------------------------------------------------

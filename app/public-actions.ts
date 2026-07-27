@@ -81,6 +81,8 @@ export async function getPublicOrderView(orderId: string): Promise<{
         address: shopRow.address || undefined,
         ownerUid: shopRow.owner_id,
         createdAt: shopRow.created_at,
+        orgId: shopRow.org_id,
+        isPrimary: shopRow.is_primary,
         logoUrl: shopRow.logo_url || undefined,
       }
     : null;

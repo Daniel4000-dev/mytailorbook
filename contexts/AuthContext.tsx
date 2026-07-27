@@ -44,7 +44,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 async function loadUserProfile(supabase: ReturnType<typeof createClient>, authUserId: string, email: string): Promise<User | null> {
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, shop_id, name, role, active, avatar_url, created_at')
+    .select('id, shop_id, org_id, name, role, active, avatar_url, created_at')
     .eq('id', authUserId)
     .single();
 
@@ -56,6 +56,7 @@ async function loadUserProfile(supabase: ReturnType<typeof createClient>, authUs
     email,
     role: profile.role,
     shopId: profile.shop_id,
+    orgId: profile.org_id,
     active: profile.active,
     avatarUrl: profile.avatar_url || undefined,
     createdAt: profile.created_at,

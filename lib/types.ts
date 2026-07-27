@@ -6,6 +6,13 @@
 
 export type Role = 'Owner' | 'Staff';
 
+export interface Organization {
+  id: string;
+  name: string;
+  ownerId?: string;
+  createdAt: string;
+}
+
 export interface Shop {
   id: string;
   name: string;
@@ -13,6 +20,8 @@ export interface Shop {
   address?: string;
   ownerUid: string;
   createdAt: string;
+  orgId: string;
+  isPrimary: boolean;
   /** Shop-defined one-off garment styles beyond the built-in catalog —
    *  remembered across future orders once created, same as built-in styles.
    *  `measurementFields` is the shop's own named+ordered field list for
@@ -72,6 +81,7 @@ export interface User {
   email: string;
   role: Role;
   shopId: string;
+  orgId: string;
   active?: boolean; // undefined/true = active, false = deactivated
   avatarUrl?: string;
   createdAt: string;

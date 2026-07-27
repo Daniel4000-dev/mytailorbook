@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useState,
   type ReactNode,
 } from 'react';
 import useSWR from 'swr';
@@ -14,8 +15,10 @@ import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
+import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
 import {
   getShopBundle,
+  getOrgBranches,
   addOrderAction,
   addOrderBatchAction,
   updateOrderStatusAction,
@@ -32,6 +35,8 @@ import {
   getStaff,
 } from '@/app/actions';
 
+const ACTIVE_BRANCH_COOKIE = 'mtb_active_branch';
+
 interface ShopBundle {
   orders: Order[];
   customers: Customer[];
@@ -47,6 +52,9 @@ interface DataContextValue {
   staffMembers: User[];
   shops: Shop[];
   currentShop: Shop | null;
+  activeBranchId: string | null;
+  setActiveBranchId: (shopId: string) => void;
+  refreshBranches: () => void;
   isLoaded: boolean;
   addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<void>;
@@ -76,25 +84,62 @@ const DataContext = createContext<DataContextValue | null>(null);
 export function DataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const shopId = user?.shopId ?? null;
+  const orgId = user?.orgId ?? null;
 
-  // SWR keeps this shop's bundle in an in-memory cache keyed by shopId, so
+  // Every branch (shops row) under this user's org — powers the branch
+  // switcher. For every org today (exactly one branch), this is a
+  // single-item list and the switcher stays hidden.
+  const { data: branchesData, mutate: mutateBranches } = useSWR(
+    orgId ? (['org-branches', orgId] as const) : null,
+    ([, id]) => getOrgBranches(id),
+    { dedupingInterval: 60_000, revalidateOnFocus: false }
+  );
+  const branches = useMemo(() => branchesData ?? [], [branchesData]);
+  const refreshBranches = useCallback(() => {
+    mutateBranches();
+  }, [mutateBranches]);
+
+  // Which branch's orders/staff are currently shown — defaults to the
+  // user's own branch, persisted across sessions once the Owner switches.
+  // `manualOverride` is a derived value (read once from the cookie, same
+  // lazy-init pattern as the dashboard's hide-balance toggles), and the
+  // actual resolved `activeBranchId` is validated against the org's real
+  // branch list once loaded, so a stale cookie referencing a branch that
+  // no longer exists (or belongs to a different org, e.g. after switching
+  // accounts) can't silently apply.
+  const [manualOverride, setManualOverride] = useState<string | null>(() => getClientCookie(ACTIVE_BRANCH_COOKIE));
+
+  const activeBranchId = useMemo(() => {
+    if (manualOverride && (branches.length === 0 || branches.some((b) => b.id === manualOverride))) {
+      return manualOverride;
+    }
+    return shopId;
+  }, [manualOverride, branches, shopId]);
+
+  const setActiveBranchId = useCallback((newShopId: string) => {
+    setManualOverride(newShopId);
+    setClientCookie(ACTIVE_BRANCH_COOKIE, newShopId);
+  }, []);
+
+  // SWR keeps this bundle in an in-memory cache keyed by branch+org, so
   // switching pages within the app never re-fetches — the cached value is
   // returned instantly. `revalidateOnFocus` is deliberately OFF: this bundle
-  // is the shop's entire order/customer/staff history, unpaginated, and
-  // every mutation already pushes its own optimistic update via `mutate`.
-  // With it on, the extremely common phone flow of "tap the WhatsApp FAB →
-  // send a message → switch back to the app" silently re-downloaded and
-  // re-rendered the whole dataset on every return, which is exactly the
-  // kind of invisible lag that reads as "this app feels slow."
+  // is the org's entire customer history plus the active branch's entire
+  // order/staff history, unpaginated, and every mutation already pushes its
+  // own optimistic update via `mutate`. With it on, the extremely common
+  // phone flow of "tap the WhatsApp FAB → send a message → switch back to
+  // the app" silently re-downloaded and re-rendered the whole dataset on
+  // every return, which is exactly the kind of invisible lag that reads as
+  // "this app feels slow."
   //
   // Cross-device sync (a second staff member's phone changing something)
   // used to be handled by a blind 2-minute poll. That's replaced below by a
   // Supabase Realtime subscription: data is used from memory indefinitely
-  // and only re-fetched when a real change actually happens to this shop's
-  // rows, not on a guessed timer.
+  // and only re-fetched when a real change actually happens to this org's/
+  // branch's rows, not on a guessed timer.
   const { data, mutate } = useSWR(
-    shopId ? (['shop-bundle', shopId] as const) : null,
-    ([, id]) => getShopBundle(id),
+    activeBranchId && orgId ? (['shop-bundle', activeBranchId, orgId] as const) : null,
+    ([, branch, org]) => getShopBundle(branch, org),
     {
       dedupingInterval: 60_000,
       revalidateOnFocus: false,
@@ -102,23 +147,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  // Push-based invalidation: any change to this shop's orders/customers/
-  // profiles (from this device or another) re-fetches the bundle once,
-  // instead of polling on a timer regardless of whether anything changed.
+  // Push-based invalidation: any change to the active branch's orders/
+  // profiles, or the org's customers (from this device or another),
+  // re-fetches the bundle once, instead of polling on a timer regardless
+  // of whether anything changed.
   useEffect(() => {
-    if (!shopId) return;
+    if (!activeBranchId || !orgId) return;
     const supabase = createClient();
     const channel = supabase
-      .channel(`shop-sync-${shopId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${shopId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `shop_id=eq.${shopId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${shopId}` }, () => mutate())
+      .channel(`shop-sync-${activeBranchId}-${orgId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [shopId, mutate]);
+  }, [activeBranchId, orgId, mutate]);
 
   const bundle = data ?? EMPTY_BUNDLE;
   const { orders, customers, staffMembers, shop: currentShop } = bundle;
@@ -128,78 +174,78 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addOrder = useCallback(
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
-      if (!shopId) return;
-      const updated = await addOrderAction(shopId, orderData);
+      if (!activeBranchId) return;
+      const updated = await addOrderAction(activeBranchId, orderData);
       mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const addOrderBatch = useCallback(
     async (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => {
-      if (!shopId) return;
-      const updated = await addOrderBatchAction(shopId, garments);
+      if (!activeBranchId) return;
+      const updated = await addOrderBatchAction(activeBranchId, garments);
       mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
-      if (!shopId) return;
-      const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, shopId);
+      if (!activeBranchId) return;
+      const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
       mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
-      if (!shopId) return;
-      const updated = await updateOrderAction(orderId, updates, shopId);
+      if (!activeBranchId) return;
+      const updated = await updateOrderAction(orderId, updates, activeBranchId);
       mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const addCustomer = useCallback(
     async (customerData: Omit<Customer, 'id' | 'shopId' | 'createdAt'>): Promise<Customer> => {
-      if (!shopId) throw new Error('No active shop for the current user');
-      const { newCustomer, customers: updated } = await addCustomerAction(shopId, {
+      if (!activeBranchId || !orgId) throw new Error('No active shop for the current user');
+      const { newCustomer, customers: updated } = await addCustomerAction(activeBranchId, orgId, {
         ...customerData,
         whatsappNumber: normalizePhone(customerData.whatsappNumber),
       });
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
       return newCustomer;
     },
-    [shopId, mutate]
+    [activeBranchId, orgId, mutate]
   );
 
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
-      if (!shopId) return;
-      const updated = await updateCustomerMeasurementsAction(customerId, measurements, shopId);
+      if (!orgId) return;
+      const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [orgId, mutate]
   );
 
   const updateCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string, measurements: Measurements) => {
-      if (!shopId) return;
-      const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, shopId);
+      if (!orgId) return;
+      const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, orgId);
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [orgId, mutate]
   );
 
   const deleteCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string) => {
-      if (!shopId) return;
-      const updated = await deleteCustomerStyleProfileAction(customerId, styleName, shopId);
+      if (!orgId) return;
+      const updated = await deleteCustomerStyleProfileAction(customerId, styleName, orgId);
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [orgId, mutate]
   );
 
   const updateCustomerProfile = useCallback(
@@ -207,14 +253,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       customerId: string,
       updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
     ) => {
-      if (!shopId) return;
+      if (!orgId) return;
       const normalized = updates.whatsappNumber !== undefined
         ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
         : updates;
-      const updated = await updateCustomerProfileAction(customerId, normalized, shopId);
+      const updated = await updateCustomerProfileAction(customerId, normalized, orgId);
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [orgId, mutate]
   );
 
   const findOrCreateCustomer = useCallback(
@@ -244,46 +290,46 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addStaff = useCallback(
     async (name: string, email: string, password: string) => {
-      if (!shopId) return;
-      const { error } = await createStaffAccount(shopId, name, email, password);
+      if (!activeBranchId) return;
+      const { error } = await createStaffAccount(activeBranchId, name, email, password);
       if (error) throw new Error(error);
-      const updated = await getStaff(shopId);
+      const updated = await getStaff(activeBranchId);
       mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const updateStaff = useCallback(
     async (uid: string, updates: Partial<User>) => {
-      if (!shopId) return;
-      const updated = await updateStaffAction(uid, updates, shopId);
+      if (!activeBranchId) return;
+      const updated = await updateStaffAction(uid, updates, activeBranchId);
       mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const updateShop = useCallback(
     async (updates: Partial<Shop>) => {
-      if (!shopId) return;
-      const updated = await updateShopAction(shopId, updates);
+      if (!activeBranchId) return;
+      const updated = await updateShopAction(activeBranchId, updates);
       mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const upsertCustomStyle = useCallback(
     async (name: string, photoUrl?: string, measurementFields?: { id: string; label: string }[]) => {
-      if (!shopId) return;
-      const updated = await upsertCustomStyleAction(shopId, name, photoUrl, measurementFields);
+      if (!activeBranchId) return;
+      const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields);
       mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const renameCustomStyle = useCallback(
     async (oldName: string, newName: string) => {
-      if (!shopId) return;
-      const updated = await renameCustomStyleEverywhereAction(shopId, oldName, newName);
+      if (!activeBranchId) return;
+      const updated = await renameCustomStyleEverywhereAction(activeBranchId, oldName, newName);
       mutate(
         (current) =>
           current
@@ -300,7 +346,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         { revalidate: false }
       );
     },
-    [shopId, mutate]
+    [activeBranchId, mutate]
   );
 
   const value = useMemo<DataContextValue>(
@@ -308,8 +354,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       orders,
       customers,
       staffMembers,
-      shops: currentShop ? [currentShop] : [],
+      shops: branches,
       currentShop,
+      activeBranchId,
+      setActiveBranchId,
+      refreshBranches,
       isLoaded,
       addOrder,
       addOrderBatch,
@@ -330,7 +379,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       upsertCustomStyle,
       renameCustomStyle,
     }),
-    [orders, customers, staffMembers, currentShop, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle]
+    [orders, customers, staffMembers, branches, currentShop, activeBranchId, setActiveBranchId, refreshBranches, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

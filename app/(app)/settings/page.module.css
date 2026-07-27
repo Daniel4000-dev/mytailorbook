@@ -87,6 +87,15 @@
   object-fit: cover;
 }
 
+.primaryBadge {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-accent-emerald);
+  background: var(--sf-accent-emerald-glow);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 /* ── Sheet bodies ── */
 .sheetBody {
   display: flex;

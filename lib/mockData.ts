@@ -20,6 +20,8 @@ export const MOCK_SHOP: Shop = {
   address: 'Lagos, Nigeria',
   ownerUid: 'user-owner-001',
   createdAt: '2024-01-15T09:00:00Z',
+  orgId: 'org-001',
+  isPrimary: true,
 };
 
 export const MOCK_SHOPS: Shop[] = [MOCK_SHOP];
@@ -37,6 +39,7 @@ const RAW_MOCK_USERS: Omit<User, 'shopId'>[] = [
     name: 'Adebayo Fashola',
     email: `adebayo@${APP_CONFIG.domain}`,
     role: 'Owner',
+    orgId: 'org-001',
     createdAt: '2024-01-15T09:00:00Z',
   },
   {
@@ -44,6 +47,7 @@ const RAW_MOCK_USERS: Omit<User, 'shopId'>[] = [
     name: 'Chioma Eze',
     email: `chioma@${APP_CONFIG.domain}`,
     role: 'Staff',
+    orgId: 'org-001',
     createdAt: '2024-03-10T11:00:00Z',
   },
   {
@@ -51,6 +55,7 @@ const RAW_MOCK_USERS: Omit<User, 'shopId'>[] = [
     name: 'Tunde Bakare',
     email: `tunde@${APP_CONFIG.domain}`,
     role: 'Staff',
+    orgId: 'org-001',
     createdAt: '2024-06-01T08:30:00Z',
   },
 ];
