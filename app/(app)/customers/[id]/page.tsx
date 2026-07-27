@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaWhatsapp, FaUserSlash, FaLocationDot } from 'react-icons/fa6';
+import { FaWhatsapp, FaUserSlash, FaLocationDot, FaTrash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -13,6 +13,7 @@ import Badge from '@/components/ui/Badge/Badge';
 import Button from '@/components/ui/Button/Button';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Input from '@/components/ui/Input/Input';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasurementAnatomy from '@/components/customers/MeasurementAnatomy/MeasurementAnatomy';
@@ -22,6 +23,7 @@ import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
+import { deleteCustomerAction } from '@/app/actions';
 import type { Measurements, Customer, Order } from '@/lib/types';
 import CustomerDetailSkeleton from './CustomerDetailSkeleton';
 import styles from './page.module.css';
@@ -84,6 +86,26 @@ function CustomerProfileContent({
 }) {
   const { showToast } = useToast();
   const router = useRouter();
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deletingCustomer, setDeletingCustomer] = useState(false);
+  const customerOrderCount = useMemo(
+    () => orders.filter((o) => o.customerId === customer.id).length,
+    [orders, customer.id]
+  );
+
+  const handleDeleteCustomer = async () => {
+    setDeletingCustomer(true);
+    const { error } = await deleteCustomerAction(customer.id);
+    if (error) {
+      showToast(error, 'error');
+      setDeletingCustomer(false);
+      setConfirmingDelete(false);
+      return;
+    }
+    showToast('Customer deleted', 'success');
+    router.push('/customers');
+  };
 
   // Initialize from customer measurements — this component only mounts once
   // real customer data is available, so these initializers see real values.
@@ -429,6 +451,26 @@ function CustomerProfileContent({
           <Symbol name="straighten" size={20} /> Record Measurements
         </Button>
       </section>
+
+      <section className={styles.actionBar}>
+        <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
+          <FaTrash /> Delete Customer
+        </Button>
+      </section>
+
+      <ConfirmDialog
+        isOpen={confirmingDelete}
+        onClose={() => setConfirmingDelete(false)}
+        onConfirm={handleDeleteCustomer}
+        title="Delete this customer?"
+        description={
+          customerOrderCount > 0
+            ? `This customer has ${customerOrderCount} order${customerOrderCount === 1 ? '' : 's'} — deleting them will also permanently delete all ${customerOrderCount} order${customerOrderCount === 1 ? '' : 's'} and cannot be undone.`
+            : 'This permanently deletes the customer and cannot be undone.'
+        }
+        confirmLabel="Delete Customer"
+        loading={deletingCustomer}
+      />
 
       <BottomSheet isOpen={!!selectedPoint} onClose={() => setSelectedPoint(null)}>
         <div style={{ padding: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-md)' }}>

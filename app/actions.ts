@@ -741,3 +741,173 @@ export async function getPortfolioCurationPhotosAction(shopId: string): Promise<
   }
   return photos;
 }
+
+// ----------------------------------------------------------------------
+// Account / data deletion (NDPR right-to-erasure)
+// ----------------------------------------------------------------------
+// Every deletion below re-derives "who is asking" from the actual session
+// cookie (via createClient().auth.getUser()), never from a client-supplied
+// id — a deletion action is exactly the wrong place to trust a caller's
+// self-reported identity.
+
+/** Recursively lists and removes every file under `prefix` in `bucket`.
+ *  Storage's `list()` only returns one folder level at a time and doesn't
+ *  distinguish files from sub-folders in its response shape, so folders
+ *  are detected by the absence of `id` (files always have one) and walked
+ *  one level deeper. Best-effort: swallows list/remove errors so a missing
+ *  or already-empty bucket never blocks the rest of a deletion. */
+async function deleteStorageFolder(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  bucket: string,
+  prefix: string
+): Promise<void> {
+  try {
+    const { data: entries } = await admin.storage.from(bucket).list(prefix);
+    if (!entries || entries.length === 0) return;
+
+    const filePaths: string[] = [];
+    for (const entry of entries) {
+      const fullPath = `${prefix}/${entry.name}`;
+      if (entry.id) {
+        filePaths.push(fullPath);
+      } else {
+        await deleteStorageFolder(admin, bucket, fullPath);
+      }
+    }
+    if (filePaths.length > 0) {
+      await admin.storage.from(bucket).remove(filePaths);
+    }
+  } catch {
+    // Best-effort cleanup — never let a storage hiccup block account/order
+    // deletion, which must still succeed on the database side.
+  }
+}
+
+/** Owner deletes their entire shop: every order/customer/staff profile and
+ *  all associated storage, then the Owner's own auth account. The shop row
+ *  cascades (via `on delete cascade` FKs) to profiles/customers/orders and
+ *  everything keyed off them — but deleting a `shops` row does NOT touch
+ *  `auth.users` (shops.owner_id is `on delete set null`, not cascade), so
+ *  every profile's auth user under this shop is deleted explicitly, last. */
+export async function deleteOwnShopAction(): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const uid = authData?.user?.id;
+  if (!uid) return { error: 'Not signed in' };
+
+  const admin = createAdminClient();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  if (!requester || requester.role !== 'Owner') {
+    return { error: 'Only the shop owner can delete the shop account' };
+  }
+  const shopId = requester.shop_id;
+
+  const { data: allProfiles } = await admin.from('profiles').select('id').eq('shop_id', shopId);
+  const profileIds = (allProfiles || []).map((p) => p.id as string);
+
+  await deleteStorageFolder(admin, 'order-photos', shopId);
+  await deleteStorageFolder(admin, 'portfolio-photos', shopId);
+  await deleteStorageFolder(admin, 'style-photos', shopId);
+  for (const pid of profileIds) {
+    await deleteStorageFolder(admin, 'avatars', pid);
+  }
+
+  const { error: shopDeleteError } = await admin.from('shops').delete().eq('id', shopId);
+  if (shopDeleteError) return { error: shopDeleteError.message };
+
+  for (const pid of profileIds) {
+    await admin.auth.admin.deleteUser(pid);
+  }
+
+  return {};
+}
+
+/** A Staff member deletes their own account only — never the shop or its
+ *  data. Deleting their own auth.users row cascades to their own profiles
+ *  row automatically (`profiles.id references auth.users(id) on delete
+ *  cascade`), and any orders assigned to them are auto-unassigned by the
+ *  existing `assigned_to ... on delete set null` FK — no manual cleanup
+ *  needed for either. */
+export async function deleteOwnStaffAccountAction(): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const uid = authData?.user?.id;
+  if (!uid) return { error: 'Not signed in' };
+
+  const admin = createAdminClient();
+  const { data: requester } = await admin.from('profiles').select('role').eq('id', uid).single();
+  if (!requester || requester.role !== 'Staff') {
+    return { error: 'Only a staff member can delete their own staff account' };
+  }
+
+  await deleteStorageFolder(admin, 'avatars', uid);
+
+  const { error } = await admin.auth.admin.deleteUser(uid);
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Owner deletes a single order (and its photos). Verifies the order
+ *  actually belongs to the requester's own shop before touching anything. */
+export async function deleteOrderAction(orderId: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const uid = authData?.user?.id;
+  if (!uid) return { error: 'Not signed in' };
+
+  const admin = createAdminClient();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  if (!requester || requester.role !== 'Owner') {
+    return { error: 'Only the shop owner can delete orders' };
+  }
+
+  const { data: order } = await admin.from('orders').select('id, shop_id').eq('id', orderId).single();
+  if (!order || order.shop_id !== requester.shop_id) {
+    return { error: 'Order not found' };
+  }
+
+  await deleteStorageFolder(admin, 'order-photos', `${requester.shop_id}/${orderId}`);
+
+  const { error } = await admin.from('orders').delete().eq('id', orderId);
+  if (error) return { error: error.message };
+  return {};
+}
+
+/** Owner deletes a customer and every order they have (orders.customer_id
+ *  is `on delete restrict`, so the customer row itself would otherwise be
+ *  rejected by Postgres while any order still references it — their orders
+ *  are deleted first, deliberately, not left to a cascade that doesn't
+ *  exist for this relationship). */
+export async function deleteCustomerAction(customerId: string): Promise<{ error?: string; deletedOrderCount?: number }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const uid = authData?.user?.id;
+  if (!uid) return { error: 'Not signed in' };
+
+  const admin = createAdminClient();
+  const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
+  if (!requester || requester.role !== 'Owner') {
+    return { error: 'Only the shop owner can delete customers' };
+  }
+
+  const { data: customer } = await admin.from('customers').select('id, shop_id').eq('id', customerId).single();
+  if (!customer || customer.shop_id !== requester.shop_id) {
+    return { error: 'Customer not found' };
+  }
+
+  const { data: customerOrders } = await admin.from('orders').select('id').eq('customer_id', customerId);
+  const orderIds = (customerOrders || []).map((o) => o.id as string);
+
+  for (const oid of orderIds) {
+    await deleteStorageFolder(admin, 'order-photos', `${requester.shop_id}/${oid}`);
+  }
+  if (orderIds.length > 0) {
+    const { error: ordersDeleteError } = await admin.from('orders').delete().in('id', orderIds);
+    if (ordersDeleteError) return { error: ordersDeleteError.message };
+  }
+
+  const { error } = await admin.from('customers').delete().eq('id', customerId);
+  if (error) return { error: error.message };
+  return { deletedOrderCount: orderIds.length };
+}

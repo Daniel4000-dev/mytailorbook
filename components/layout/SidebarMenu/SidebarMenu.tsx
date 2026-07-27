@@ -5,10 +5,14 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useToast } from '@/contexts/ToastContext';
 import { APP_CONFIG } from '@/lib/config';
+import { createClient } from '@/lib/supabase/client';
+import { deleteOwnShopAction, deleteOwnStaffAccountAction } from '@/app/actions';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import {
   FaRegUser,
   FaRegHeart,
@@ -20,7 +24,8 @@ import {
   FaUsers,
   FaGear,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaTriangleExclamation
 } from 'react-icons/fa6';
 import { NAV_ITEMS } from '@/lib/constants';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
@@ -198,7 +203,7 @@ export default function SidebarMenu() {
               {isOwner ? 'Owner Account' : 'Staff Account'}
             </p>
           </div>
-          <button 
+          <button
             onClick={() => {
               setShowProfile(false);
               handleLogout();
@@ -220,8 +225,139 @@ export default function SidebarMenu() {
             <FaArrowRightFromBracket />
             Logout
           </button>
+
+          <DangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
         </div>
       </BottomSheet>
+    </div>
+  );
+}
+
+function DangerZone({ isOwner, onClosingProfile }: { isOwner: boolean; onClosingProfile: () => void }) {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [expanded, setExpanded] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [confirmStaffDelete, setConfirmStaffDelete] = useState(false);
+
+  const handleDeleteShop = async () => {
+    setDeleting(true);
+    const { error } = await deleteOwnShopAction();
+    if (error) {
+      showToast(error, 'error');
+      setDeleting(false);
+      return;
+    }
+    onClosingProfile();
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login?deleted=1');
+  };
+
+  const handleDeleteStaffAccount = async () => {
+    setDeleting(true);
+    const { error } = await deleteOwnStaffAccountAction();
+    if (error) {
+      showToast(error, 'error');
+      setDeleting(false);
+      return;
+    }
+    onClosingProfile();
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login?deleted=1');
+  };
+
+  return (
+    <div style={{ borderTop: '1px solid var(--sf-border-light)', paddingTop: 'var(--sf-space-md)', marginTop: 'var(--sf-space-xs)' }}>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--sf-space-sm)',
+          background: 'none',
+          border: 'none',
+          color: 'var(--sf-text-secondary)',
+          fontSize: 'var(--sf-text-sm)',
+          fontWeight: 'var(--sf-weight-medium)',
+          cursor: 'pointer',
+          padding: 0,
+        }}
+      >
+        <FaTriangleExclamation style={{ color: 'var(--sf-error)' }} />
+        Danger Zone
+      </button>
+
+      {expanded && (
+        <div style={{ marginTop: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-sm)' }}>
+          {isOwner ? (
+            <>
+              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>
+                This permanently deletes your entire shop — every order, customer, staff account, and photo. This cannot be undone.
+              </p>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder='Type "DELETE" to confirm'
+                style={{
+                  padding: 'var(--sf-space-sm)',
+                  borderRadius: 'var(--sf-radius-md)',
+                  border: '1px solid var(--sf-border-light)',
+                  fontSize: 'var(--sf-text-sm)',
+                }}
+              />
+              <button
+                onClick={handleDeleteShop}
+                disabled={confirmText !== 'DELETE' || deleting}
+                style={{
+                  padding: 'var(--sf-space-sm) var(--sf-space-md)',
+                  borderRadius: 'var(--sf-radius-md)',
+                  border: 'none',
+                  background: confirmText === 'DELETE' ? 'var(--sf-error)' : 'var(--sf-error-bg)',
+                  color: confirmText === 'DELETE' ? '#fff' : 'var(--sf-error)',
+                  fontWeight: 'var(--sf-weight-medium)',
+                  cursor: confirmText === 'DELETE' ? 'pointer' : 'not-allowed',
+                  opacity: deleting ? 0.7 : 1,
+                }}
+              >
+                {deleting ? 'Deleting…' : 'Permanently Delete My Shop'}
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>
+                This permanently deletes your own staff account. Orders assigned to you will become unassigned, not deleted.
+              </p>
+              <button
+                onClick={() => setConfirmStaffDelete(true)}
+                style={{
+                  padding: 'var(--sf-space-sm) var(--sf-space-md)',
+                  borderRadius: 'var(--sf-radius-md)',
+                  border: 'none',
+                  background: 'var(--sf-error)',
+                  color: '#fff',
+                  fontWeight: 'var(--sf-weight-medium)',
+                  cursor: 'pointer',
+                }}
+              >
+                Delete My Account
+              </button>
+              <ConfirmDialog
+                isOpen={confirmStaffDelete}
+                onClose={() => setConfirmStaffDelete(false)}
+                onConfirm={handleDeleteStaffAccount}
+                title="Delete your account?"
+                description="This permanently deletes your staff account and cannot be undone."
+                confirmLabel={deleting ? 'Deleting…' : 'Delete My Account'}
+                loading={deleting}
+              />
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

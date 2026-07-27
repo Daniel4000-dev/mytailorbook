@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FaWhatsapp } from 'react-icons/fa6';
+import { FaWhatsapp, FaTrash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -22,7 +22,7 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment } from '@/lib/types';
-import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
+import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -49,6 +49,21 @@ export default function OrderDetailPage() {
   const [clearFull, setClearFull] = useState(false);
   const [recordingPayment, setRecordingPayment] = useState(false);
   const [confirmingFullPay, setConfirmingFullPay] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deletingOrder, setDeletingOrder] = useState(false);
+
+  const handleDeleteOrder = async () => {
+    setDeletingOrder(true);
+    const { error } = await deleteOrderAction(orderId);
+    if (error) {
+      showToast(error, 'error');
+      setDeletingOrder(false);
+      setConfirmingDelete(false);
+      return;
+    }
+    showToast('Order deleted', 'success');
+    router.push('/production');
+  };
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editDueDate, setEditDueDate] = useState('');
@@ -776,6 +791,32 @@ export default function OrderDetailPage() {
             </button>
           </div>
         )}
+
+        {userRole === 'Owner' && (
+          <section className={styles.card}>
+            <h3 className={styles.sectionTitle}>Danger Zone</h3>
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              disabled={deletingOrder}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--sf-space-sm)',
+                padding: 'var(--sf-space-sm) var(--sf-space-md)',
+                borderRadius: 'var(--sf-radius-md)',
+                border: 'none',
+                background: 'var(--sf-error-bg)',
+                color: 'var(--sf-error)',
+                fontWeight: 'var(--sf-weight-medium)',
+                cursor: 'pointer',
+                marginTop: 'var(--sf-space-sm)',
+              }}
+            >
+              <FaTrash /> Delete Order
+            </button>
+          </section>
+        )}
       </div>
 
       {/* Floating WhatsApp shortcut — portaled straight to document.body,
@@ -805,6 +846,16 @@ export default function OrderDetailPage() {
         description={`This marks the remaining ${formatCurrency(balanceOwed)} as paid in full. Make sure the payment has actually been received before confirming.`}
         confirmLabel="Clear Balance"
         loading={recordingPayment}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmingDelete}
+        onClose={() => setConfirmingDelete(false)}
+        onConfirm={handleDeleteOrder}
+        title="Delete this order?"
+        description="This permanently deletes the order and all its photos. This cannot be undone."
+        confirmLabel="Delete Order"
+        loading={deletingOrder}
       />
 
       <PhotoLightbox
