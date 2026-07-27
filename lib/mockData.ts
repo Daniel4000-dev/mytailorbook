@@ -38,7 +38,7 @@ const RAW_MOCK_USERS: Omit<User, 'shopId'>[] = [
     uid: 'user-owner-001',
     name: 'Adebayo Fashola',
     email: `adebayo@${APP_CONFIG.domain}`,
-    role: 'Owner',
+    role: 'OrgAdmin',
     orgId: 'org-001',
     createdAt: '2024-01-15T09:00:00Z',
   },

@@ -15,6 +15,7 @@ import KanbanColumn from '@/components/kanban/KanbanColumn/KanbanColumn';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { OrderStatus, Role } from '@/lib/types';
+import { isOwnerLikeRole } from '@/lib/types';
 import KanbanBoardSkeleton from './KanbanBoardSkeleton';
 import styles from './KanbanBoard.module.css';
 
@@ -70,7 +71,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       router.replace(`/production/${orderId}`);
       return;
     }
-    if (staffId && userRole === 'Owner') {
+    if (staffId && isOwnerLikeRole(userRole)) {
       Promise.resolve().then(() => {
         setStaffFilterId(staffId);
         setFilterMyTasks(false);
@@ -210,7 +211,7 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       </div>
 
       {/* Owner scope toggle — neutral pills in the new design */}
-      {userRole === 'Owner' && !staffFilterId && (
+      {isOwnerLikeRole(userRole) && !staffFilterId && (
         <div className={styles.pillRow}>
           <FilterPill
             label="All Orders"

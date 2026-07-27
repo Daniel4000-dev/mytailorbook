@@ -72,7 +72,7 @@ interface DataContextValue {
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
   findOrCreateCustomer: (fullName: string, whatsappNumber: string) => Promise<Customer>;
-  addStaff: (name: string, email: string, password: string) => Promise<void>;
+  addStaff: (name: string, email: string, password: string, role?: 'Staff' | 'BranchManager' | 'Accountant') => Promise<void>;
   updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
   updateShop: (updates: Partial<Shop>) => Promise<void>;
   upsertCustomStyle: (name: string, photoUrl?: string, measurementFields?: { id: string; label: string }[]) => Promise<void>;
@@ -289,9 +289,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const addStaff = useCallback(
-    async (name: string, email: string, password: string) => {
+    async (name: string, email: string, password: string, role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff') => {
       if (!activeBranchId) return;
-      const { error } = await createStaffAccount(activeBranchId, name, email, password);
+      const { error } = await createStaffAccount(activeBranchId, name, email, password, role);
       if (error) throw new Error(error);
       const updated = await getStaff(activeBranchId);
       mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });

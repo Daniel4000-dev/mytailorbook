@@ -47,7 +47,7 @@ export async function completeOnboarding(shopName: string, nameOverride?: string
 
   const { error: profileError } = await admin
     .from('profiles')
-    .insert({ id: user.id, shop_id: shop.id, name, role: 'Owner', email: user.email });
+    .insert({ id: user.id, shop_id: shop.id, name, role: 'OrgAdmin', email: user.email });
   if (profileError) {
     throw new Error(profileError.message);
   }
@@ -70,7 +70,8 @@ export async function createStaffAccount(
   shopId: string,
   name: string,
   email: string,
-  tempPassword: string
+  tempPassword: string,
+  role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff'
 ): Promise<{ userId?: string; error?: string }> {
   const admin = createAdminClient();
 
@@ -85,7 +86,7 @@ export async function createStaffAccount(
 
   const { error: profileError } = await admin
     .from('profiles')
-    .insert({ id: authData.user.id, shop_id: shopId, name, role: 'Staff', email });
+    .insert({ id: authData.user.id, shop_id: shopId, name, role, email });
   if (profileError) {
     return { error: profileError.message };
   }

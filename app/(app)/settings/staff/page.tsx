@@ -42,6 +42,7 @@ export default function StaffSettingsPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState<'Staff' | 'BranchManager' | 'Accountant'>('Staff');
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState('');
 
@@ -110,10 +111,11 @@ export default function StaffSettingsPage() {
     setAddLoading(true);
     setAddError('');
     try {
-      await addStaff(name, email, password);
+      await addStaff(name, email, password, newStaffRole);
       setName('');
       setEmail('');
       setPassword('');
+      setNewStaffRole('Staff');
       setIsAddSheetOpen(false);
       showToast(`${name} added as staff`, 'success');
     } catch (err) {
@@ -276,6 +278,22 @@ export default function StaffSettingsPage() {
           <Input label="Full Name" placeholder="e.g. Chioma Eze" value={name} onChange={(e) => setName(e.target.value)} required />
           <Input label="Email/Username" type="email" placeholder="e.g. chioma@mystitchbook.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input label="Temporary Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <label className={styles.label} htmlFor="new-staff-role">Role</label>
+          <select
+            id="new-staff-role"
+            value={newStaffRole}
+            onChange={(e) => setNewStaffRole(e.target.value as 'Staff' | 'BranchManager' | 'Accountant')}
+            style={{
+              padding: 'var(--sf-space-sm)',
+              borderRadius: 'var(--sf-radius-md)',
+              border: '1px solid var(--sf-border-light)',
+              fontSize: 'var(--sf-text-sm)',
+            }}
+          >
+            <option value="Staff">Staff</option>
+            <option value="BranchManager">Branch Manager</option>
+            <option value="Accountant">Accountant</option>
+          </select>
           {addError && <p className={styles.errorText}>{addError}</p>}
           <Button type="submit" variant="primary" loading={addLoading}>Add Staff Member</Button>
         </form>

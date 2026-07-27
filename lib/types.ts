@@ -4,7 +4,15 @@
    All shared TypeScript types and interfaces.
    ============================================================ */
 
-export type Role = 'Owner' | 'Staff';
+export type Role = 'OrgAdmin' | 'BranchManager' | 'Staff' | 'Accountant';
+
+/** OrgAdmin and BranchManager get every owner-level privilege the app's UI
+ *  already gates behind `isOwner` — this is the one place that equivalence
+ *  is defined, so every existing `isOwner` call site keeps its current
+ *  meaning without being touched individually. */
+export function isOwnerLikeRole(role: Role | undefined): boolean {
+  return role === 'OrgAdmin' || role === 'BranchManager';
+}
 
 export interface Organization {
   id: string;

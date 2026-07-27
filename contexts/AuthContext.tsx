@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { User } from '@/lib/types';
+import { isOwnerLikeRole } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
 interface AuthContextValue {
@@ -199,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
-      isOwner: user?.role === 'Owner',
+      isOwner: isOwnerLikeRole(user?.role),
       isStaff: user?.role === 'Staff',
       needsOnboarding,
       googleUserInfo,

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { truncateText } from '@/lib/formatters';
-import { isOverdue, isDueSoon, hasUnreadComment } from '@/lib/types';
+import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getNextStatus, getPreviousStatus } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { Order, Role, User } from '@/lib/types';
@@ -165,7 +165,7 @@ export default function OrderListCard({
           </span>
           <span className={styles.metaRight}>
             <span className={styles.orderRef}>#{order.id.slice(0, 4).toUpperCase()}</span>
-            {userRole === 'Owner' && onReassign && staffMembers ? (
+            {isOwnerLikeRole(userRole) && onReassign && staffMembers ? (
               <span className={styles.assignee} onClick={(e) => e.stopPropagation()}>
                 <span className={styles.assigneeName}>{order.assignedToName?.split(' ')[0] || 'Unassigned'}</span>
                 <Symbol name="edit" size={11} />

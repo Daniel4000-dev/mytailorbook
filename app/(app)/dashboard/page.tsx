@@ -32,7 +32,7 @@ import styles from './page.module.css';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { orders, staffMembers, isLoaded } = useData();
 
   const firstName = user?.name?.split(' ')[0] || '';
@@ -58,7 +58,11 @@ export default function DashboardPage() {
     );
   }
 
-  if (user?.role === 'Owner') {
+  {/* Accountant gets the same financial-figures-heavy view as OrgAdmin/
+      BranchManager (read-only in practice — there's nothing to mutate on
+      this page itself), rather than Staff's task-assignment-focused view,
+      which has nothing relevant to show an Accountant. */}
+  if (isOwner || user?.role === 'Accountant') {
     return (
       <PageLayout className={styles.pageGrid} header={topBar}>
         <OwnerDashboard orders={orders} staffMembers={staffMembers} onNavigate={router.push} />

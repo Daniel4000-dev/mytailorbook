@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry } from '@/lib/types';
+import { isOwnerLikeRole } from '@/lib/types';
 
 // ----------------------------------------------------------------------
 // Row <-> App-type mappers
@@ -266,7 +267,7 @@ export async function addBranchAction(
     .select('org_id, role')
     .eq('id', user.id)
     .single();
-  if (!profile || profile.role !== 'Owner') return { error: 'Only the Owner can add a branch' };
+  if (!profile || !isOwnerLikeRole(profile.role)) return { error: 'Only the Owner can add a branch' };
 
   // No RLS INSERT policy exists on `shops` (it's normally only ever
   // inserted via the security-definer signup trigger) — the admin client
@@ -680,7 +681,7 @@ export async function resetStaffPasswordAction(
   if (
     !staffProfile ||
     !ownerProfile ||
-    ownerProfile.role !== 'Owner' ||
+    !isOwnerLikeRole(ownerProfile.role) ||
     ownerProfile.shop_id !== staffProfile.shop_id
   ) {
     return { error: 'Not authorized to reset this password' };
@@ -1021,7 +1022,7 @@ export async function deleteOwnShopAction(): Promise<{ error?: string }> {
 
   const admin = createAdminClient();
   const { data: requester } = await admin.from('profiles').select('shop_id, role, name').eq('id', uid).single();
-  if (!requester || requester.role !== 'Owner') {
+  if (!requester || !isOwnerLikeRole(requester.role)) {
     return { error: 'Only the shop owner can delete the shop account' };
   }
   const shopId = requester.shop_id;
@@ -1102,7 +1103,7 @@ export async function deleteOrderAction(orderId: string): Promise<{ error?: stri
 
   const admin = createAdminClient();
   const { data: requester } = await admin.from('profiles').select('shop_id, role, name').eq('id', uid).single();
-  if (!requester || requester.role !== 'Owner') {
+  if (!requester || !isOwnerLikeRole(requester.role)) {
     return { error: 'Only the shop owner can delete orders' };
   }
 
@@ -1141,7 +1142,7 @@ export async function deleteCustomerAction(customerId: string): Promise<{ error?
 
   const admin = createAdminClient();
   const { data: requester } = await admin.from('profiles').select('shop_id, role, name').eq('id', uid).single();
-  if (!requester || requester.role !== 'Owner') {
+  if (!requester || !isOwnerLikeRole(requester.role)) {
     return { error: 'Only the shop owner can delete customers' };
   }
 
@@ -1190,7 +1191,7 @@ export async function exportShopDataAction(): Promise<{ data?: string; error?: s
 
   const admin = createAdminClient();
   const { data: requester } = await admin.from('profiles').select('shop_id, role').eq('id', uid).single();
-  if (!requester || requester.role !== 'Owner') {
+  if (!requester || !isOwnerLikeRole(requester.role)) {
     return { error: 'Only the shop owner can export shop data' };
   }
   const shopId = requester.shop_id;

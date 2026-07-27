@@ -22,7 +22,7 @@ export const PRODUCTION_STATUSES: readonly OrderStatus[] = [
   'Completed',
 ] as const;
 
-export const USER_ROLES: readonly Role[] = ['Owner', 'Staff'] as const;
+export const USER_ROLES: readonly Role[] = ['OrgAdmin', 'BranchManager', 'Staff', 'Accountant'] as const;
 
 export const PHONE_PREFIX = '234';
 

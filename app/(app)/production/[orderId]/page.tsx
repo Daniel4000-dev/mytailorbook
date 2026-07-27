@@ -21,7 +21,7 @@ import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
-import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment } from '@/lib/types';
+import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import styles from './page.module.css';
@@ -31,6 +31,7 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const userRole = user?.role || 'Staff';
+  const isOwnerView = isOwnerLikeRole(userRole);
   const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder } = useData();
   const { showToast } = useToast();
 
@@ -401,7 +402,7 @@ export default function OrderDetailPage() {
               </span>
             </div>
           </div>
-          {userRole === 'Owner' && !isEditing && (
+          {isOwnerView && !isEditing && (
             <button type="button" className={styles.metaEditBtn} onClick={startEditing} aria-label="Edit order">
               <Symbol name="edit" size={18} />
             </button>
@@ -617,7 +618,7 @@ export default function OrderDetailPage() {
         </section>
 
         {/* 8. Payment summary (owner only) */}
-        {userRole === 'Owner' && (
+        {isOwnerView && (
           <section className={styles.card}>
             <h3 className={styles.sectionTitle}>Payment Summary</h3>
             <div className={styles.payRows}>
@@ -690,7 +691,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* 8b. Cost & margin (owner only) */}
-        {userRole === 'Owner' && (
+        {isOwnerView && (
           <section className={styles.card}>
             <h3 className={styles.sectionTitle}>Cost &amp; Margin</h3>
             {hasCostData(order) ? (
@@ -779,7 +780,7 @@ export default function OrderDetailPage() {
         {/* Footer actions — the "advance to next stage" action already lives
              at the top of the page (section 1), so only Mark Paid (unique,
              not shown elsewhere) belongs here. */}
-        {userRole === 'Owner' && balanceOwed > 0 && (
+        {isOwnerView && balanceOwed > 0 && (
           <div className={styles.footerActions}>
             <button
               type="button"
@@ -792,7 +793,7 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        {userRole === 'Owner' && (
+        {isOwnerView && (
           <section className={styles.card}>
             <h3 className={styles.sectionTitle}>Danger Zone</h3>
             <button
