@@ -38,6 +38,7 @@ function orderFromRow(row: any): Order {
     materialSuppliedBy: row.material_supplied_by || 'shop',
     materialCost: row.material_cost || 0,
     otherCosts: row.other_costs || 0,
+    lastReminderAt: row.last_reminder_at || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -92,6 +93,7 @@ function customerFromRow(row: any): Customer {
     preferredStyles: row.preferred_styles || undefined,
     measurements: row.measurements || undefined,
     styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
+    address: row.address || undefined,
     createdAt: row.created_at,
   };
 }
@@ -105,6 +107,7 @@ function userFromRow(row: any): User {
     role: row.role,
     shopId: row.shop_id,
     active: row.active,
+    avatarUrl: row.avatar_url || undefined,
     createdAt: row.created_at,
   };
 }
@@ -283,6 +286,7 @@ export async function addCustomerAction(shopId: string, customer: Omit<Customer,
       gender: customer.gender,
       preferred_styles: customer.preferredStyles || [],
       measurements: customer.measurements || null,
+      address: customer.address || null,
     })
     .select()
     .single();
@@ -341,7 +345,7 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
 
 export async function updateCustomerProfileAction(
   customerId: string,
-  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles'>>,
+  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>,
   shopId: string
 ) {
   const supabase = await createClient();
@@ -350,6 +354,7 @@ export async function updateCustomerProfileAction(
   if (updates.whatsappNumber !== undefined) row.whatsapp_number = updates.whatsappNumber;
   if (updates.gender !== undefined) row.gender = updates.gender;
   if (updates.preferredStyles !== undefined) row.preferred_styles = updates.preferredStyles;
+  if (updates.address !== undefined) row.address = updates.address || null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
   if (error) throw new Error(error.message);
   return getCustomers(shopId);
@@ -364,6 +369,7 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
   const row: Record<string, unknown> = {};
   if (updates.name !== undefined) row.name = updates.name;
   if (updates.active !== undefined) row.active = updates.active;
+  if (updates.avatarUrl !== undefined) row.avatar_url = updates.avatarUrl || null;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
   if (error) throw new Error(error.message);
   return getStaff(shopId);

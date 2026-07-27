@@ -17,6 +17,7 @@ interface TopBarProps {
     greeting: string;
     name: string;
     avatarInitials: string;
+    avatarUrl?: string;
   };
 }
 
@@ -52,7 +53,12 @@ export default function TopBar({
             </div>
           </div>
           <div className={styles.right}>
-            <div className={styles.avatar}>{profileMode.avatarInitials}</div>
+            {profileMode.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profileMode.avatarUrl} alt="" className={styles.avatarImage} />
+            ) : (
+              <div className={styles.avatar}>{profileMode.avatarInitials}</div>
+            )}
           </div>
         </div>
       ) : (

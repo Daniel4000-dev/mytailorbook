@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaWhatsapp, FaUserSlash } from 'react-icons/fa6';
+import { FaWhatsapp, FaUserSlash, FaLocationDot } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -261,6 +261,12 @@ function CustomerProfileContent({
         <Avatar name={customer.fullName} size="lg" />
         <h2 className={styles.name}>{customer.fullName}</h2>
         <span className={styles.memberSince}>Customer since {formatMonthYear(customer.createdAt)}</span>
+
+        {customer.address && (
+          <span className={styles.customerAddress}>
+            <FaLocationDot size={12} /> {customer.address}
+          </span>
+        )}
 
         {customer.preferredStyles && customer.preferredStyles.length > 0 && (
           <div className={styles.prefChips}>

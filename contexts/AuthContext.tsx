@@ -35,6 +35,7 @@ interface AuthContextValue {
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateAvatar: (avatarUrl: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -43,7 +44,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 async function loadUserProfile(supabase: ReturnType<typeof createClient>, authUserId: string, email: string): Promise<User | null> {
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, shop_id, name, role, active, created_at')
+    .select('id, shop_id, name, role, active, avatar_url, created_at')
     .eq('id', authUserId)
     .single();
 
@@ -56,6 +57,7 @@ async function loadUserProfile(supabase: ReturnType<typeof createClient>, authUs
     role: profile.role,
     shopId: profile.shop_id,
     active: profile.active,
+    avatarUrl: profile.avatar_url || undefined,
     createdAt: profile.created_at,
   };
 }
@@ -181,6 +183,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await syncFromSession(session);
   }, [supabase, syncFromSession]);
 
+  const updateAvatar = useCallback(async (avatarUrl: string) => {
+    if (!user) return;
+    const { error } = await supabase.from('profiles').update({ avatar_url: avatarUrl || null }).eq('id', user.uid);
+    if (error) throw new Error(error.message);
+    await refreshProfile();
+  }, [supabase, user, refreshProfile]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -196,8 +205,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       resetPassword,
       refreshProfile,
+      updateAvatar,
     }),
-    [user, loading, needsOnboarding, googleUserInfo, isLoggingOut, login, signup, signInWithGoogle, logout, resetPassword, refreshProfile]
+    [user, loading, needsOnboarding, googleUserInfo, isLoggingOut, login, signup, signInWithGoogle, logout, resetPassword, refreshProfile, updateAvatar]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

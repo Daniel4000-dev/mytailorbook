@@ -47,6 +47,15 @@
   color: var(--sf-text-tertiary);
 }
 
+.customerAddress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  text-align: center;
+}
+
 .prefChips {
   display: flex;
   flex-wrap: wrap;

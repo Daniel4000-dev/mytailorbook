@@ -71,6 +71,7 @@ export interface User {
   role: Role;
   shopId: string;
   active?: boolean; // undefined/true = active, false = deactivated
+  avatarUrl?: string;
   createdAt: string;
 }
 
@@ -137,6 +138,7 @@ export interface Customer {
   measurements?: Measurements;
   /** Keyed by garment style name (matches GARMENT_STYLES / STYLE_MEASUREMENTS). */
   styleMeasurements?: Record<string, StyleMeasurementProfile>;
+  address?: string;
   createdAt: string;
 }
 
@@ -223,6 +225,9 @@ export interface Order {
   materialSuppliedBy?: 'shop' | 'customer';
   materialCost?: number;
   otherCosts?: number;
+  /** When a customer last clicked "Send a reminder" on the public tracking
+   *  page — rate-limited server-side to once per calendar day per order. */
+  lastReminderAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -249,6 +254,17 @@ export function hasUnreadComment(order: Order): boolean {
   if (!order.lastCommentAt) return false;
   if (!order.commentsSeenAt) return true;
   return new Date(order.lastCommentAt) > new Date(order.commentsSeenAt);
+}
+
+/** The tracking-page "Send a reminder" button is rate-limited to once per
+ *  calendar day per order — compares UTC date strings rather than a rolling
+ *  24h window, so "today" means the same thing here as it does elsewhere
+ *  in the app (e.g. the dashboard's "due today" tile). */
+export function canSendReminder(order: Pick<Order, 'lastReminderAt'>): boolean {
+  if (!order.lastReminderAt) return true;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const lastStr = new Date(order.lastReminderAt).toISOString().split('T')[0];
+  return lastStr !== todayStr;
 }
 
 /** Check if an order is overdue */

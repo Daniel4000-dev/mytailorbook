@@ -153,7 +153,7 @@ export default function StaffSettingsPage() {
                 className={styles.row}
                 onClick={() => openStaffSheet(staff)}
               >
-                <Avatar name={staff.name} size="sm" />
+                <Avatar name={staff.name} imageUrl={staff.avatarUrl} size="sm" />
                 <span className={styles.textCol}>
                   <span className={styles.label}>
                     {staff.name}

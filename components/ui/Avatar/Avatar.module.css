@@ -34,3 +34,7 @@
   height: 80px;
   font-size: var(--sf-text-2xl);
 }
+
+.image {
+  object-fit: cover;
+}

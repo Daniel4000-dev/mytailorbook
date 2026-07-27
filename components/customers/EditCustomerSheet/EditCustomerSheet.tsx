@@ -26,6 +26,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   const [fullName, setFullName] = useState(customer.fullName);
   const [phone, setPhone] = useState(formatPhone(customer.whatsappNumber).replace(/^\+?234\s?/, ''));
   const [gender, setGender] = useState(customer.gender);
+  const [address, setAddress] = useState(customer.address || '');
   const [styleSet, setStyleSet] = useState<string[]>(customer.preferredStyles || []);
 
   // Preset chips are gendered — no mixed picker.
@@ -45,6 +46,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
     setFullName(customer.fullName);
     setPhone(formatPhone(customer.whatsappNumber).replace(/^\+?234\s?/, ''));
     setGender(customer.gender);
+    setAddress(customer.address || '');
     setStyleSet(customer.preferredStyles || []);
     setError('');
   } else if (!isOpen && prevOpenId !== null) {
@@ -82,6 +84,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
         fullName: fullName.trim(),
         whatsappNumber: phone.trim(),
         gender,
+        address: address.trim() || undefined,
         preferredStyles: styleSet,
       });
       showToast('Profile updated', 'success');
@@ -130,6 +133,18 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.capsLabel} htmlFor="edit-address">Home Address (Optional)</label>
+          <input
+            id="edit-address"
+            type="text"
+            className={styles.input}
+            placeholder="e.g. 12 Adeola Street, Lagos"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
         </div>
 
         <div className={styles.field}>

@@ -20,6 +20,7 @@ export default function NewClientPage() {
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [styleSet, setStyleSet] = useState<string[]>([]);
 
@@ -62,6 +63,7 @@ export default function NewClientPage() {
         fullName: fullName.trim(),
         whatsappNumber: phone.trim(),
         gender,
+        address: address.trim() || undefined,
         preferredStyles: styleSet,
         measurements: {},
       });
@@ -129,6 +131,21 @@ export default function NewClientPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.capsLabel} htmlFor="address">Home Address (Optional)</label>
+              <div className={styles.inputWrap}>
+                <input
+                  id="address"
+                  type="text"
+                  className={styles.input}
+                  placeholder="e.g. 12 Adeola Street, Lagos"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+                <Symbol name="location_on" size={22} className={styles.inputIcon} />
               </div>
             </div>
           </section>

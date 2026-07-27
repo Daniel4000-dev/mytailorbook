@@ -132,6 +132,15 @@
   border: 2px solid #FFFFFF;
 }
 
+.avatarImage {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sf-radius-full);
+  object-fit: cover;
+  box-shadow: var(--sf-shadow-sm);
+  border: 2px solid #FFFFFF;
+}
+
 /* Desktop Styles */
 @media (min-width: 1024px) {
   .topBar {

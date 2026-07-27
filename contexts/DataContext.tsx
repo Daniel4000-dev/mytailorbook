@@ -58,7 +58,7 @@ interface DataContextValue {
   deleteCustomerStyleProfile: (customerId: string, styleName: string) => Promise<void>;
   updateCustomerProfile: (
     customerId: string,
-    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles'>>
+    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
   ) => Promise<void>;
   getCustomerOrders: (customerId: string) => Order[];
   getOrdersByStatus: (status: OrderStatus) => Order[];
@@ -205,7 +205,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCustomerProfile = useCallback(
     async (
       customerId: string,
-      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles'>>
+      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
     ) => {
       if (!shopId) return;
       const normalized = updates.whatsappNumber !== undefined

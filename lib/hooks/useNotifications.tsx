@@ -12,6 +12,7 @@ import {
   FaBoxOpen,
   FaRegCommentDots,
   FaSackDollar,
+  FaBell,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -152,6 +153,22 @@ export function useNotifications() {
           title: `Payment recorded for ${o.customerName}'s order`,
           subtitle: `${formatCurrency(lastPayment.amount)} — by ${lastPayment.recordedByName}`,
           timestamp: lastPayment.timestamp,
+          orderId: o.id,
+        });
+      }
+    });
+
+    // A customer clicking "Send a reminder" on the public tracking page —
+    // same 3-day recency window as the activity items above.
+    relevantOrders.forEach((o) => {
+      if (o.lastReminderAt && new Date(o.lastReminderAt).getTime() >= threeDaysAgo) {
+        items.push({
+          id: `reminder-${o.id}-${o.lastReminderAt}`,
+          icon: <FaBell />,
+          tone: 'warning',
+          title: `${o.customerName} sent a reminder about their order`,
+          subtitle: `Status: ${o.status}`,
+          timestamp: o.lastReminderAt,
           orderId: o.id,
         });
       }

@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
+import { canSendReminder } from '@/lib/types';
 
 /**
  * Fetches a single order (+ its customer and shop) for the public,
@@ -39,6 +40,7 @@ export async function getPublicOrderView(orderId: string): Promise<{
     inspirationImages: row.inspiration_images || [],
     statusHistory: row.status_history || [],
     payments: row.payments || [],
+    lastReminderAt: row.last_reminder_at || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -125,6 +127,29 @@ export async function submitOrderComment(orderId: string, message: string): Prom
   await admin.from('orders').update({ last_comment_at: new Date().toISOString() }).eq('id', orderId);
 
   return { success: true };
+}
+
+/**
+ * Records a customer clicking "Send a reminder" on the public tracking
+ * page — no auth, so the once-per-calendar-day rate limit is enforced
+ * here server-side (client-side disabling is just for immediate UX
+ * feedback, not the real guard) rather than trusting the caller.
+ */
+export async function submitOrderReminder(orderId: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
+  const admin = createAdminClient();
+
+  const { data: order, error: fetchError } = await admin.from('orders').select('id, last_reminder_at').eq('id', orderId).single();
+  if (fetchError || !order) return { success: false, error: 'Order not found.' };
+
+  if (!canSendReminder({ lastReminderAt: order.last_reminder_at || undefined })) {
+    return { success: false, error: 'You can send another reminder tomorrow.' };
+  }
+
+  const now = new Date().toISOString();
+  const { error: updateError } = await admin.from('orders').update({ last_reminder_at: now }).eq('id', orderId);
+  if (updateError) return { success: false, error: updateError.message };
+
+  return { success: true, lastReminderAt: now };
 }
 
 /** The other garments dropped off in the same visit, so a customer holding

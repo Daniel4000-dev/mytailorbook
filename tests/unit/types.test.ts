@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getBalanceOwed, getMargin, hasCostData, hasUnreadComment, isOverdue, isDueSoon } from '@/lib/types';
+import { getBalanceOwed, getMargin, hasCostData, hasUnreadComment, isOverdue, isDueSoon, canSendReminder } from '@/lib/types';
 import type { Order } from '@/lib/types';
 
 function makeOrder(overrides: Partial<Order> = {}): Order {
@@ -135,5 +135,21 @@ describe('isDueSoon', () => {
   it('is false once the order is Completed', () => {
     const soon = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString();
     expect(isDueSoon(makeOrder({ dueDate: soon, status: 'Completed' }))).toBe(false);
+  });
+});
+
+describe('canSendReminder', () => {
+  it('is true when no reminder has ever been sent', () => {
+    expect(canSendReminder({ lastReminderAt: undefined })).toBe(true);
+  });
+
+  it('is false when a reminder was already sent earlier today', () => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    expect(canSendReminder({ lastReminderAt: `${todayStr}T00:00:01Z` })).toBe(false);
+  });
+
+  it('is true once a full calendar day has passed', () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    expect(canSendReminder({ lastReminderAt: yesterday })).toBe(true);
   });
 });

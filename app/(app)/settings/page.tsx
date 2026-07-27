@@ -20,7 +20,7 @@ import styles from './page.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, updateAvatar } = useAuth();
   const { currentShop, staffMembers, updateShop, isLoaded } = useData();
   const { showToast } = useToast();
 
@@ -33,6 +33,9 @@ export default function SettingsPage() {
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [confirmRemoveAvatar, setConfirmRemoveAvatar] = useState(false);
 
   const [noteTemplate, setNoteTemplate] = useState('');
   const [savingNote, setSavingNote] = useState(false);
@@ -113,6 +116,36 @@ export default function SettingsPage() {
     showToast('Logo removed', 'success');
   };
 
+  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.uid) return;
+    setUploadingAvatar(true);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.uid}/avatar-${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw new Error(uploadError.message);
+      const avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+      await updateAvatar(avatarUrl);
+      showToast('Profile picture updated', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setConfirmRemoveAvatar(false);
+    await updateAvatar('');
+    showToast('Profile picture removed', 'success');
+  };
+
   const openNoteSheet = () => {
     setNoteTemplate(currentShop?.outreachTemplate || `Hi {name}, thought you'd love this style!`);
     setOpenSheet('note');
@@ -135,7 +168,7 @@ export default function SettingsPage() {
   return (
     <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
       <button type="button" className={styles.identityStrip} onClick={() => setOpenSheet('account')}>
-        <Avatar name={user?.name || 'Owner'} size="lg" />
+        <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
         <div className={styles.identityText}>
           <span className={styles.identityName}>{user?.name}</span>
           <span className={styles.identityRole}>{user?.role} Account</span>
@@ -225,13 +258,21 @@ export default function SettingsPage() {
       <BottomSheet isOpen={openSheet === 'account'} onClose={() => setOpenSheet(null)} title="Your Account">
         <div className={styles.sheetBody}>
           <div className={styles.identityStrip} style={{ pointerEvents: 'none' }}>
-            <Avatar name={user?.name || 'Owner'} size="lg" />
+            <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
             <div className={styles.identityText}>
               <span className={styles.identityName}>{user?.name}</span>
               <span className={styles.identityRole}>{user?.role} Account</span>
             </div>
           </div>
           <p className={styles.readonlyEmail}>{user?.email}</p>
+          <label className={styles.uploadBtn}>
+            <input type="file" accept="image/*" hidden onChange={handleUploadAvatar} />
+            <Symbol name={uploadingAvatar ? 'progress_activity' : 'upload'} size={18} />
+            {uploadingAvatar ? 'Uploading…' : user?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
+          </label>
+          {user?.avatarUrl && (
+            <Button variant="danger" onClick={() => setConfirmRemoveAvatar(true)}>Remove Photo</Button>
+          )}
         </div>
       </BottomSheet>
 
@@ -292,6 +333,15 @@ export default function SettingsPage() {
         onConfirm={handleRemoveLogo}
         title="Remove your shop logo?"
         description="Receipts and your public portfolio will show your studio name instead."
+        confirmLabel="Remove"
+      />
+
+      <ConfirmDialog
+        isOpen={confirmRemoveAvatar}
+        onClose={() => setConfirmRemoveAvatar(false)}
+        onConfirm={handleRemoveAvatar}
+        title="Remove your profile picture?"
+        description="Your initials will be shown instead."
         confirmLabel="Remove"
       />
     </PageLayout>
