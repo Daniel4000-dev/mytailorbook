@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaBell } from 'react-icons/fa6';
-import { useNotifications } from '@/lib/hooks/useNotifications';
+import { useNotifications, type NotificationItem } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
 import { formatDate } from '@/lib/formatters';
 import styles from './NotificationBell.module.css';
@@ -31,10 +31,10 @@ export default function NotificationBell() {
 
   const preview = notifications.slice(0, 8);
 
-  const handleSelect = (orderId: string, id: string) => {
-    markRead(id);
+  const handleSelect = (n: NotificationItem) => {
+    markRead(n.id);
     setOpen(false);
-    router.push(`/production?order=${orderId}`);
+    router.push(n.href || `/production?order=${n.orderId}`);
   };
 
   const handleSeeAll = () => {
@@ -67,7 +67,7 @@ export default function NotificationBell() {
                   key={n.id}
                   type="button"
                   className={`${styles.item} ${styles[n.tone]} ${readIds.has(n.id) ? styles.read : ''}`}
-                  onClick={() => handleSelect(n.orderId, n.id)}
+                  onClick={() => handleSelect(n)}
                 >
                   <span className={styles.itemIcon}>{n.icon}</span>
                   <span className={styles.itemBody}>

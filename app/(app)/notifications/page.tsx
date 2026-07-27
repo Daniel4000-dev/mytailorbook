@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaBellSlash, FaCheckDouble } from 'react-icons/fa6';
-import { useNotifications } from '@/lib/hooks/useNotifications';
+import { useNotifications, type NotificationItem } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
 import { formatDate } from '@/lib/formatters';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -56,9 +56,9 @@ export default function NotificationsPage() {
     return Array.from(map.entries());
   }, [filtered]);
 
-  const handleSelect = (orderId: string, id: string) => {
-    markRead(id);
-    router.push(`/production?order=${orderId}`);
+  const handleSelect = (n: NotificationItem) => {
+    markRead(n.id);
+    router.push(n.href || `/production?order=${n.orderId}`);
   };
 
   return (
@@ -113,7 +113,7 @@ export default function NotificationsPage() {
                   key={n.id}
                   type="button"
                   className={`${styles.row} ${readIds.has(n.id) ? styles.read : ''}`}
-                  onClick={() => handleSelect(n.orderId, n.id)}
+                  onClick={() => handleSelect(n)}
                 >
                   <span className={`${styles.rowIcon} ${styles[n.tone]}`}>{n.icon}</span>
                   <span className={styles.rowBody}>

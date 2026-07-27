@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import useSWR from 'swr';
 import {
   FaTriangleExclamation,
   FaFireFlameCurved,
@@ -13,12 +14,14 @@ import {
   FaRegCommentDots,
   FaSackDollar,
   FaBell,
+  FaImage,
 } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { isOverdue, hasUnreadComment } from '@/lib/types';
+import { isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import type { Order, OrderStatus } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
+import { getPendingStylePhotoSubmissions } from '@/app/actions';
 
 /** One icon per production stage — "moved to X" used to show the same
  *  generic checkmark for every stage, which made the activity feed
@@ -40,6 +43,9 @@ export interface NotificationItem {
   subtitle: string;
   timestamp: string;
   orderId: string;
+  /** Overrides the default /production?order= navigation for items that
+   *  aren't about one specific order (e.g. a pending style photo). */
+  href?: string;
 }
 
 /** Single source of truth for notification data, shared by the header
@@ -48,6 +54,18 @@ export interface NotificationItem {
 export function useNotifications() {
   const { user } = useAuth();
   const { orders } = useData();
+
+  // Owner-only — Staff can't approve these anyway, so there's nothing
+  // actionable for them to see. Not revalidated on every focus (matches
+  // this app's general "push-based invalidation over polling" preference
+  // closely enough — a stale-by-a-minute pending-approval badge is low
+  // stakes compared to the order data DataContext already keeps fresh).
+  const isOwner = isOwnerLikeRole(user?.role);
+  const { data: pendingStylePhotos } = useSWR(
+    isOwner ? 'pending-style-photo-submissions' : null,
+    getPendingStylePhotoSubmissions,
+    { dedupingInterval: 60_000 }
+  );
 
   const relevantOrders = useMemo(() => {
     if (user?.role === 'Staff') {
@@ -112,6 +130,23 @@ export function useNotifications() {
           orderId: o.id,
         });
       }
+    });
+
+    // A staff-uploaded style photo awaiting the Owner's approve/discard —
+    // a genuine "needs your action" item (only the Owner can act on it),
+    // so it gets the same warning tone and Needs Attention visibility as
+    // an unread customer comment, not the info-tone "fyi" treatment.
+    (pendingStylePhotos || []).forEach((s) => {
+      items.push({
+        id: `style-photo-${s.id}`,
+        icon: <FaImage />,
+        tone: 'warning',
+        title: `A photo for "${s.styleName}" needs your approval`,
+        subtitle: `Uploaded by ${s.uploadedByName}`,
+        timestamp: s.createdAt,
+        orderId: '',
+        href: `/styles/${encodeURIComponent(s.styleName)}`,
+      });
     });
 
     const alertCount = items.length;
@@ -187,7 +222,7 @@ export function useNotifications() {
     });
 
     return { notifications: items, alertCount };
-  }, [relevantOrders, user]);
+  }, [relevantOrders, user, pendingStylePhotos]);
 
   return { notifications, alertCount };
 }

@@ -839,6 +839,28 @@ export async function getStylePhotoSubmissionsAction(
   };
 }
 
+/** Org-wide (not one style at a time) — every pending submission awaiting
+ *  the Owner's approval, across every style and branch. Powers the
+ *  "needs your approval" notification; org_id is derived server-side from
+ *  the caller's own session, never trusted from the client. */
+export async function getPendingStylePhotoSubmissions(): Promise<StylePhotoSubmission[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
+  if (!profile?.org_id) return [];
+
+  const { data, error } = await supabase
+    .from('style_photo_submissions')
+    .select('*')
+    .eq('org_id', profile.org_id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(stylePhotoSubmissionFromRow);
+}
+
 /** One query for the whole Style Gallery index — how many pending photos
  *  are waiting per style, so the grid can badge them without a per-tile request. */
 export async function getPendingStyleCountsAction(shopId: string): Promise<Record<string, number>> {
