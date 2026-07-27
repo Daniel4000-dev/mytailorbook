@@ -22,7 +22,18 @@
 -- constraint — the new constraint doesn't allow 'Owner' at all, so adding
 -- it first would reject every existing Owner row still holding that value
 -- (hit and fixed during rollout: "check constraint ... is violated by some row").
+--
+-- The bulk update below also has to run with the OLD
+-- prevent_profile_privilege_escalation trigger (0003_rls_owner_guard.sql)
+-- temporarily disabled: that trigger's "an Owner may change anything"
+-- escape hatch checks auth.uid(), which is NULL when this migration runs
+-- as a raw SQL-editor connection (no logged-in session) — so it falls
+-- through to the trigger's rejection branch since role is changing (hit
+-- and fixed during rollout: "You are not authorized to change role,
+-- active status, or shop assignment"). Re-enabled immediately after.
+alter table profiles disable trigger trg_prevent_profile_privilege_escalation;
 update profiles set role = 'OrgAdmin' where role = 'Owner';
+alter table profiles enable trigger trg_prevent_profile_privilege_escalation;
 
 alter table profiles drop constraint profiles_role_check;
 alter table profiles add constraint profiles_role_check
