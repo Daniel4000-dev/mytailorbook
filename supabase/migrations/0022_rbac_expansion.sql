@@ -18,11 +18,17 @@
 -- individually. This migration is that same equivalence, enforced in SQL.
 -- ============================================================
 
--- Must backfill existing 'Owner' rows to 'OrgAdmin' BEFORE swapping the
--- constraint — the new constraint doesn't allow 'Owner' at all, so adding
--- it first would reject every existing Owner row still holding that value
--- (hit and fixed during rollout: "check constraint ... is violated by some row").
---
+-- Chicken-and-egg between the old and new constraints: the OLD constraint
+-- (role in ('Owner','Staff')) rejects the backfill update itself (setting
+-- role = 'OrgAdmin' isn't in that allowed set), but the NEW constraint
+-- (which excludes 'Owner') would reject the still-unbackfilled existing
+-- rows the instant it's added. Fixed by dropping the constraint entirely
+-- first (no CHECK active at all, briefly), running the backfill, then
+-- adding the final constraint once every row already holds a valid value
+-- (hit and fixed during rollout: "new row for relation profiles violates
+-- check constraint profiles_role_check").
+alter table profiles drop constraint profiles_role_check;
+
 -- The bulk update below also has to run with the OLD
 -- prevent_profile_privilege_escalation trigger (0003_rls_owner_guard.sql)
 -- temporarily disabled: that trigger's "an Owner may change anything"
@@ -35,7 +41,6 @@ alter table profiles disable trigger trg_prevent_profile_privilege_escalation;
 update profiles set role = 'OrgAdmin' where role = 'Owner';
 alter table profiles enable trigger trg_prevent_profile_privilege_escalation;
 
-alter table profiles drop constraint profiles_role_check;
 alter table profiles add constraint profiles_role_check
   check (role in ('OrgAdmin', 'BranchManager', 'Staff', 'Accountant'));
 
