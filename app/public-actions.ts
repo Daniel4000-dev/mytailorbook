@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
+import { sendPushToShop } from '@/lib/push';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
 
@@ -127,7 +128,7 @@ export async function submitOrderComment(orderId: string, message: string): Prom
 
   const admin = createAdminClient();
 
-  const { data: order, error: fetchError } = await admin.from('orders').select('id, shop_id, status').eq('id', orderId).single();
+  const { data: order, error: fetchError } = await admin.from('orders').select('id, shop_id, status, customer_name').eq('id', orderId).single();
   if (fetchError || !order) return { success: false, error: 'Order not found.' };
 
   const { error: insertError } = await admin.from('order_comments').insert({
@@ -142,6 +143,12 @@ export async function submitOrderComment(orderId: string, message: string): Prom
   // Bump the unread marker so the shop's board/dashboard can surface
   // "new comment" without querying the comments table per order.
   await admin.from('orders').update({ last_comment_at: new Date().toISOString() }).eq('id', orderId);
+
+  sendPushToShop(order.shop_id, null, {
+    title: `${order.customer_name} left a comment`,
+    body: trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed,
+    orderId,
+  }).catch(() => {});
 
   return { success: true };
 }
@@ -159,7 +166,7 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
 
   const admin = createAdminClient();
 
-  const { data: order, error: fetchError } = await admin.from('orders').select('id, last_reminder_at').eq('id', orderId).single();
+  const { data: order, error: fetchError } = await admin.from('orders').select('id, shop_id, status, customer_name, last_reminder_at').eq('id', orderId).single();
   if (fetchError || !order) return { success: false, error: 'Order not found.' };
 
   if (!canSendReminder({ lastReminderAt: order.last_reminder_at || undefined })) {
@@ -169,6 +176,12 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
   const now = new Date().toISOString();
   const { error: updateError } = await admin.from('orders').update({ last_reminder_at: now }).eq('id', orderId);
   if (updateError) return { success: false, error: updateError.message };
+
+  sendPushToShop(order.shop_id, null, {
+    title: `${order.customer_name} sent a reminder about their order`,
+    body: `Status: ${order.status}`,
+    orderId,
+  }).catch(() => {});
 
   return { success: true, lastReminderAt: now };
 }

@@ -16,6 +16,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+import PushNotificationToggle from '@/components/settings/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
@@ -308,6 +309,18 @@ export default function SettingsPage() {
         </div>
 
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Financials</span>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="bar_chart"
+              label="Reports"
+              subtitle="Revenue, outstanding balance, and margin"
+              onClick={() => router.push('/settings/reports')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.group}>
           <span className={styles.groupLabel}>Security</span>
           <div className={styles.groupCard}>
             <SettingsRow
@@ -338,6 +351,7 @@ export default function SettingsPage() {
           {user?.avatarUrl && (
             <Button variant="danger" onClick={() => setConfirmRemoveAvatar(true)}>Remove Photo</Button>
           )}
+          <PushNotificationToggle />
           <ExportDataButton shopName={currentShop?.name || 'shop'} />
           <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setOpenSheet(null)} />
         </div>

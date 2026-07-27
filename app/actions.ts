@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
+import { sendPushToShop } from '@/lib/push';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
@@ -355,7 +356,7 @@ export async function updateOrderStatusAction(
 
   const { data: current, error: fetchError } = await supabase
     .from('orders')
-    .select('status, status_history')
+    .select('status, status_history, customer_name')
     .eq('id', orderId)
     .single();
   if (fetchError) throw new Error(fetchError.message);
@@ -380,6 +381,12 @@ export async function updateOrderStatusAction(
     entityId: orderId,
     diff: { fromStatus: current.status, toStatus: newStatus },
   });
+
+  sendPushToShop(shopId, changedBy, {
+    title: `${current.customer_name}'s order moved to ${newStatus}`,
+    body: `By ${changedByName}`,
+    orderId,
+  }).catch(() => {});
 
   return getOrders(shopId);
 }
@@ -411,6 +418,14 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
       entityId: orderId,
       diff: lastPayment ? { amount: lastPayment.amount } : undefined,
     });
+    if (lastPayment) {
+      const { data: orderRow } = await supabase.from('orders').select('customer_name').eq('id', orderId).single();
+      sendPushToShop(shopId, actorId, {
+        title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
+        body: `₦${lastPayment.amount.toLocaleString()} — by ${actorName}`,
+        orderId,
+      }).catch(() => {});
+    }
   } else {
     await logAudit({
       shopId,
@@ -1270,4 +1285,148 @@ export async function getAuditLogAction(shopId: string): Promise<AuditLogEntry[]
     diff: row.diff,
     createdAt: row.created_at,
   }));
+}
+
+export interface FinancialReportBranch {
+  shopId: string;
+  shopName: string;
+  isPrimary: boolean;
+  collected: number;
+  outstanding: number;
+  revenueWithCostData: number;
+  costTotal: number;
+  marginTotal: number;
+  ordersWithCostCount: number;
+}
+
+export interface FinancialReport {
+  branches: FinancialReportBranch[];
+  totals: Omit<FinancialReportBranch, 'shopId' | 'shopName' | 'isPrimary'>;
+}
+
+/** Owner/Accountant-only. fromDate (ISO string), if given, limits to orders
+ *  created on or after that date — omit for all-time. org_id is derived
+ *  server-side from the caller's own session, never trusted from the
+ *  client; the admin client is used for the actual cross-branch orders
+ *  read (after the role check below), the same pattern already used by
+ *  addBranchAction/deleteOwnShopAction elsewhere in this file — this
+ *  avoids depending on current_branch_ids() correctly covering every
+ *  branch in the org, which only holds once the RBAC migration (Phase 4)
+ *  is applied. */
+export async function getFinancialReport(fromDate?: string): Promise<{ data?: FinancialReport; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('org_id, role')
+    .eq('id', user.id)
+    .single();
+  if (!profile) return { error: 'Profile not found' };
+  if (!isOwnerLikeRole(profile.role) && profile.role !== 'Accountant') {
+    return { error: 'Only the Owner or Accountant can view financial reports' };
+  }
+
+  const admin = createAdminClient();
+  const { data: shops, error: shopsError } = await admin
+    .from('shops')
+    .select('id, name, is_primary')
+    .eq('org_id', profile.org_id)
+    .order('is_primary', { ascending: false })
+    .order('created_at', { ascending: true });
+  if (shopsError) return { error: shopsError.message };
+  if (!shops || shops.length === 0) return { data: { branches: [], totals: emptyTotals() } };
+
+  let ordersQuery = admin
+    .from('orders')
+    .select('shop_id, total_bill, deposit_paid, status, material_cost, other_costs, created_at')
+    .in('shop_id', shops.map((s) => s.id));
+  if (fromDate) ordersQuery = ordersQuery.gte('created_at', fromDate);
+  const { data: orders, error: ordersError } = await ordersQuery;
+  if (ordersError) return { error: ordersError.message };
+
+  const branches: FinancialReportBranch[] = shops.map((shop) => {
+    const shopOrders = (orders || []).filter((o) => o.shop_id === shop.id);
+    return {
+      shopId: shop.id,
+      shopName: shop.name,
+      isPrimary: shop.is_primary,
+      ...rollup(shopOrders),
+    };
+  });
+
+  const totals = rollup(orders || []);
+
+  return { data: { branches, totals } };
+}
+
+function emptyTotals(): FinancialReport['totals'] {
+  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0 };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rollup(rows: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' | 'isPrimary'> {
+  let collected = 0;
+  let outstanding = 0;
+  let revenueWithCostData = 0;
+  let costTotal = 0;
+  let ordersWithCostCount = 0;
+
+  for (const row of rows) {
+    collected += row.deposit_paid || 0;
+    if (row.status !== 'Completed') outstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
+
+    const materialCost = row.material_cost || 0;
+    const otherCosts = row.other_costs || 0;
+    if (materialCost > 0 || otherCosts > 0) {
+      ordersWithCostCount += 1;
+      revenueWithCostData += row.total_bill || 0;
+      costTotal += materialCost + otherCosts;
+    }
+  }
+
+  return {
+    collected,
+    outstanding,
+    revenueWithCostData,
+    costTotal,
+    marginTotal: revenueWithCostData - costTotal,
+    ordersWithCostCount,
+  };
+}
+
+// ----------------------------------------------------------------------
+// Web Push subscriptions
+// ----------------------------------------------------------------------
+
+export async function savePushSubscriptionAction(subscription: { endpoint: string; keys: { p256dh: string; auth: string } }): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData?.user) return { error: 'Not signed in' };
+
+  const { error } = await supabase.from('push_subscriptions').upsert(
+    {
+      profile_id: authData.user.id,
+      endpoint: subscription.endpoint,
+      keys: subscription.keys,
+    },
+    { onConflict: 'endpoint' }
+  );
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function removePushSubscriptionAction(endpoint: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData?.user) return { error: 'Not signed in' };
+
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('endpoint', endpoint)
+    .eq('profile_id', authData.user.id);
+  if (error) return { error: error.message };
+  return {};
 }
