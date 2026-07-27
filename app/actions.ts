@@ -575,6 +575,8 @@ function portfolioPhotoOverrideFromRow(row: any): PortfolioPhotoOverride {
     photoUrl: row.photo_url,
     hidden: row.hidden,
     featured: row.featured,
+    consentConfirmed: row.consent_confirmed,
+    consentConfirmedAt: row.consent_confirmed_at || undefined,
     createdAt: row.created_at,
   };
 }
@@ -592,16 +594,40 @@ export async function getPortfolioPhotoOverridesAction(shopId: string): Promise<
 export async function setPortfolioPhotoOverrideAction(
   shopId: string,
   photoUrl: string,
-  updates: { hidden?: boolean; featured?: boolean }
+  updates: { hidden?: boolean; featured?: boolean; consentConfirmed?: boolean }
 ): Promise<void> {
   const supabase = await createClient();
+  const row: Record<string, unknown> = { shop_id: shopId, photo_url: photoUrl };
+  if (updates.hidden !== undefined) row.hidden = updates.hidden;
+  if (updates.featured !== undefined) row.featured = updates.featured;
+  if (updates.consentConfirmed !== undefined) {
+    row.consent_confirmed = updates.consentConfirmed;
+    row.consent_confirmed_at = updates.consentConfirmed ? new Date().toISOString() : null;
+  }
+
   const { error } = await supabase
     .from('portfolio_photo_overrides')
-    .upsert(
-      { shop_id: shopId, photo_url: photoUrl, ...updates },
-      { onConflict: 'shop_id,photo_url' }
-    );
+    .upsert(row, { onConflict: 'shop_id,photo_url' });
   if (error) throw new Error(error.message);
+
+  if (updates.consentConfirmed) {
+    const { data: authData } = await supabase.auth.getUser();
+    const actorId = authData?.user?.id ?? null;
+    let actorName = 'Unknown';
+    if (actorId) {
+      const { data: actorProfile } = await supabase.from('profiles').select('name').eq('id', actorId).single();
+      actorName = actorProfile?.name || actorName;
+    }
+    await logAudit({
+      shopId,
+      actorId,
+      actorName,
+      action: 'portfolio_photo.consent_confirmed',
+      entityType: 'portfolio_photo_override',
+      entityId: null,
+      diff: { photoUrl },
+    });
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -763,6 +789,7 @@ export interface PortfolioCurationPhoto {
   takenAt: string;
   hidden: boolean;
   featured: boolean;
+  consentConfirmed: boolean;
 }
 
 export async function getPortfolioCurationPhotosAction(shopId: string): Promise<PortfolioCurationPhoto[]> {
@@ -777,7 +804,7 @@ export async function getPortfolioCurationPhotosAction(shopId: string): Promise<
 
   const { data: overrideRows } = await supabase
     .from('portfolio_photo_overrides')
-    .select('photo_url, hidden, featured')
+    .select('photo_url, hidden, featured, consent_confirmed')
     .eq('shop_id', shopId);
   const overrides = new Map((overrideRows || []).map((r) => [r.photo_url, r]));
 
@@ -791,6 +818,7 @@ export async function getPortfolioCurationPhotosAction(shopId: string): Promise<
         takenAt: p.uploadedAt,
         hidden: override?.hidden || false,
         featured: override?.featured || false,
+        consentConfirmed: override?.consent_confirmed || false,
       });
     }
   }

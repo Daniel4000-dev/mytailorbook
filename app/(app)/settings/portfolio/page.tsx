@@ -38,7 +38,7 @@ export default function PortfolioCurationSettingsPage() {
     load();
   }, [load]);
 
-  const handleToggle = async (updates: { hidden?: boolean; featured?: boolean }) => {
+  const handleToggle = async (updates: { hidden?: boolean; featured?: boolean; consentConfirmed?: boolean }) => {
     if (!activePhoto || !currentShop?.id) return;
     const reverted = activePhoto;
     const next = { ...activePhoto, ...updates };
@@ -76,6 +76,7 @@ export default function PortfolioCurationSettingsPage() {
             >
               <img src={p.url} alt="" className={p.hidden ? styles.hiddenPhoto : ''} />
               {p.featured && <span className={styles.badge}>Featured</span>}
+              {!p.hidden && !p.consentConfirmed && <span className={styles.consentBadge}>Consent not confirmed</span>}
               {p.hidden && <span className={styles.hiddenOverlay}><Symbol name="visibility_off" size={20} /></span>}
             </button>
           ))}
@@ -106,6 +107,17 @@ export default function PortfolioCurationSettingsPage() {
                 type="checkbox"
                 checked={activePhoto.hidden}
                 onChange={(e) => handleToggle({ hidden: e.target.checked })}
+              />
+            </label>
+            <label className={styles.toggleRow}>
+              <span>
+                <span className={styles.toggleLabel}>Customer consented to public use</span>
+                <span className={styles.toggleHint}>Confirm you&apos;ve checked with the customer before this shows publicly</span>
+              </span>
+              <input
+                type="checkbox"
+                checked={activePhoto.consentConfirmed}
+                onChange={(e) => handleToggle({ consentConfirmed: e.target.checked })}
               />
             </label>
           </div>

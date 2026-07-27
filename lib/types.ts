@@ -39,6 +39,8 @@ export interface PortfolioPhotoOverride {
   photoUrl: string;
   hidden: boolean;
   featured: boolean;
+  consentConfirmed: boolean;
+  consentConfirmedAt?: string;
   createdAt: string;
 }
 

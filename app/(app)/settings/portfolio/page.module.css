@@ -47,6 +47,20 @@
   border-radius: var(--sf-radius-full);
 }
 
+.consentBadge {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  background: rgba(217, 119, 6, 0.9);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-sm);
+}
+
 .hiddenOverlay {
   position: absolute;
   inset: 0;
