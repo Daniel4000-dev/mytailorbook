@@ -260,13 +260,13 @@ function CustomerProfileContent({
       <section className={styles.profileHeader}>
         <Avatar name={customer.fullName} size="lg" />
         <h2 className={styles.name}>{customer.fullName}</h2>
-        <span className={styles.memberSince}>Customer since {formatMonthYear(customer.createdAt)}</span>
-
         {customer.address && (
           <span className={styles.customerAddress}>
             <FaLocationDot size={12} /> {customer.address}
           </span>
         )}
+
+        <span className={styles.memberSince}>Customer since {formatMonthYear(customer.createdAt)}</span>
 
         {customer.preferredStyles && customer.preferredStyles.length > 0 && (
           <div className={styles.prefChips}>
