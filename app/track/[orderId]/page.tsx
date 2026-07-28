@@ -9,17 +9,10 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import CommentBox from '@/components/track/CommentBox/CommentBox';
 import ReminderButton from '@/components/track/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import TimelineStage from './_components/TimelineStage';
 import styles from './page.module.css';
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Completed'];
-
-const STAGE_ICONS: Record<OrderStatus, string> = {
-  Documented: 'assignment',
-  Cutting: 'content_cut',
-  Sewing: 'apparel',
-  Ready: 'inventory_2',
-  Completed: 'check_circle',
-};
 
 const STAGE_HEADLINES: Record<OrderStatus, string> = {
   Documented: 'Documented',
@@ -29,32 +22,9 @@ const STAGE_HEADLINES: Record<OrderStatus, string> = {
   Completed: 'Delivered',
 };
 
-const STAGE_STORIES: Record<OrderStatus, string> = {
-  Documented: 'Your order has been carefully logged — specifications and measurements recorded.',
-  Cutting: 'Patterns drafted and your fabric precision-cut to your exact measurements.',
-  Sewing: 'On the machine — every seam stitched with care by your tailor.',
-  Ready: 'Finished, pressed and packaged. Ready for pickup or delivery!',
-  Completed: 'Delivered. Thank you for trusting us with your style!',
-};
-
-const PENDING_NOTES: Record<OrderStatus, string> = {
-  Documented: 'Awaiting intake.',
-  Cutting: 'Awaiting pattern drafting and fabric cutting.',
-  Sewing: 'Awaiting the sewing bench.',
-  Ready: 'Awaiting final finishing and quality checks.',
-  Completed: 'Awaiting handover.',
-};
-
 function stageDate(history: StatusChange[], status: OrderStatus): Date | null {
   const entries = history.filter((h) => h.to === status);
   return entries.length > 0 ? new Date(entries[entries.length - 1].timestamp) : null;
-}
-
-function formatStageDate(d: Date): string {
-  const today = new Date();
-  const sameDay = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
-  if (sameDay) return 'Today';
-  return d.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export default async function TrackOrderPage({ params }: { params: Promise<{ orderId: string }> }) {
@@ -160,91 +130,19 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Completed');
             const isCurrent = index === currentStepIndex && status !== 'Completed';
             const isPending = index > currentStepIndex;
-            const date = stageDate(order.statusHistory, status);
-            const photos = photosFor(status);
-            const photo = photos[photos.length - 1];
 
             return (
-              <article
+              <TimelineStage
                 key={status}
-                className={`${styles.stage} ${isCurrent ? styles.stageCurrent : ''} ${isPending ? styles.stagePending : ''}`}
-              >
-                <div className={styles.stageMeta}>
-                  <div className={`${styles.stageNode} ${isCompleted ? styles.nodeDone : isCurrent ? styles.nodeNow : styles.nodeWait}`}>
-                    <Symbol
-                      name={isCompleted ? 'check' : STAGE_ICONS[status]}
-                      size={isCurrent ? 24 : 20}
-                      fill={isCompleted}
-                      className={isCurrent ? styles.nodePulse : undefined}
-                    />
-                  </div>
-                  <div className={styles.stageText}>
-                    <span className={styles.stageDate}>
-                      {isCurrent
-                        ? date ? formatStageDate(date) : 'Today'
-                        : isCompleted && date
-                          ? formatStageDate(date)
-                          : status === 'Ready' && order.dueDate
-                            ? `Est. ${new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
-                            : 'Up next'}
-                    </span>
-                    <h3 className={styles.stageTitle}>{STAGE_HEADLINES[status]}</h3>
-                    <span
-                      className={`${styles.stagePill} ${isCompleted ? styles.pillDone : isCurrent ? styles.pillNow : styles.pillWait}`}
-                    >
-                      {isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.stageBody}>
-                  {isPending ? (
-                    <div className={styles.pendingCard}>
-                      <Symbol name="hourglass_empty" size={30} className={styles.pendingIcon} />
-                      <p>{PENDING_NOTES[status]}</p>
-                    </div>
-                  ) : photo ? (
-                    <div className={`${styles.photoCard} ${isCurrent ? styles.photoCardCurrent : ''}`}>
-                      {isCurrent && (
-                        <span className={styles.liveTag}>
-                          <span className={styles.liveTagDot} />
-                          Live Update
-                        </span>
-                      )}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.url} alt={`Your garment during ${status}`} className={styles.stagePhoto} />
-                      <div className={styles.photoCaption}>
-                        <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
-                        {isCurrent && order.assignedToName && (
-                          <p className={styles.captionSub}>{order.assignedToName} is personally working on your garment.</p>
-                        )}
-                      </div>
-                      {photos.length > 1 && (
-                        <div className={styles.photoStrip}>
-                          {photos.slice(0, -1).map((p, i) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img key={i} src={p.url} alt={`${status} photo ${i + 1}`} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className={`${styles.storyCard} ${isCurrent ? styles.photoCardCurrent : ''}`}>
-                      {isCurrent && (
-                        <span className={styles.liveTag}>
-                          <span className={styles.liveTagDot} />
-                          Live Update
-                        </span>
-                      )}
-                      <Symbol name={STAGE_ICONS[status]} size={30} className={styles.storyIcon} />
-                      <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
-                      {isCurrent && order.assignedToName && (
-                        <p className={styles.captionSub}>{order.assignedToName} is personally working on your garment.</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </article>
+                status={status}
+                isCompleted={isCompleted}
+                isCurrent={isCurrent}
+                isPending={isPending}
+                date={stageDate(order.statusHistory, status)}
+                photos={photosFor(status)}
+                dueDate={order.dueDate}
+                assignedToName={order.assignedToName}
+              />
             );
           })}
         </section>
