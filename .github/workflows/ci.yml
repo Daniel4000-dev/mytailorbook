@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [main]
 
+# All secrets below point at the STAGING Supabase project, never production —
+# CI must never be able to read or write real customer data.
 env:
   NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -47,9 +49,6 @@ jobs:
       - name: Unit + RLS isolation tests
         run: npm run test
 
-      - name: Build
-        run: npm run build
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
@@ -57,4 +56,5 @@ jobs:
         run: node scripts/seed-e2e-fixture.mjs
 
       - name: E2E smoke tests
+        # playwright.config.ts's webServer builds and starts the app itself
         run: npm run test:e2e

@@ -3,13 +3,20 @@
 // accounts. tests/rls/isolation.test.ts signs in as each and asserts tenant
 // A's authenticated client can never read/write tenant B's rows.
 // Run with: node scripts/seed-rls-fixtures.mjs
-// Requires NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in the env.
+// Always targets the STAGING Supabase project (.env.staging.local), never
+// production — test fixtures must never live alongside real customer data.
 import { createClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 import { existsSync } from 'node:fs';
 import WebSocket from 'ws';
 
-if (existsSync('.env.local')) config({ path: '.env.local' });
+// Locally, load staging's keys from .env.staging.local. In CI, that file
+// doesn't exist (gitignored) — the same vars arrive as real env vars from
+// GitHub Actions secrets instead, so there's nothing to load.
+if (existsSync('.env.staging.local')) config({ path: '.env.staging.local' });
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL not set — RLS fixtures must target staging, not prod.');
+}
 
 const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,

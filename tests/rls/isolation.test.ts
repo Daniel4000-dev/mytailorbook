@@ -3,15 +3,22 @@
 // tenants (seeded by scripts/seed-rls-fixtures.mjs — never real users) via
 // their own anon-key sessions (not the service-role admin client), then
 // asserts tenant A's authenticated client can never read or write tenant
-// B's rows. Requires the fixtures to already be seeded and the following
-// env vars present (see .env.local): RLS_TENANT_A_*, RLS_TENANT_B_*.
+// B's rows. Always runs against the STAGING Supabase project, never
+// production — requires the fixtures to already be seeded there and the
+// following env vars present (see .env.staging.local): RLS_TENANT_A_*, RLS_TENANT_B_*.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 import { existsSync } from 'node:fs';
 import WebSocket from 'ws';
 
-if (existsSync('.env.local')) config({ path: '.env.local' });
+// Locally, load staging's keys from .env.staging.local. In CI, that file
+// doesn't exist (gitignored) — the same vars arrive as real env vars from
+// GitHub Actions secrets instead, so there's nothing to load.
+if (existsSync('.env.staging.local')) config({ path: '.env.staging.local' });
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL not set — RLS isolation tests must run against staging, not prod.');
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
