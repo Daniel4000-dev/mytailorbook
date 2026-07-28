@@ -16,6 +16,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import type { User } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './page.module.css';
@@ -25,7 +26,7 @@ type StaffSheetView = 'actions' | 'edit' | 'password';
 export default function StaffSettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { staffMembers, addStaff, updateStaff } = useData();
+  const { staffMembers, addStaff, updateStaff, isLoaded } = useData();
   const { showToast } = useToast();
 
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
@@ -143,7 +144,12 @@ export default function StaffSettingsPage() {
         />
       }
     >
-      {staffMembers.length === 0 ? (
+      {!isLoaded ? (
+        <div className={styles.card}>
+          <Skeleton height={64} />
+          <Skeleton height={64} />
+        </div>
+      ) : staffMembers.length === 0 ? (
         <EmptyState icon={<Symbol name="group" size={40} />} title="No staff yet" description="Add your first team member to get started." />
       ) : (
         <div className={styles.card}>

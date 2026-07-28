@@ -475,7 +475,10 @@ function NewOrderWizard() {
                   <Symbol name="arrow_forward_ios" size={14} className={styles.rowChevron} />
                 </button>
               ))}
-              {filteredCustomers.length === 0 && (
+              {!isLoaded && (
+                <p className={styles.emptyNote}>Loading your clients…</p>
+              )}
+              {isLoaded && filteredCustomers.length === 0 && (
                 <p className={styles.emptyNote}>No client matches “{customerQuery}”.</p>
               )}
             </div>

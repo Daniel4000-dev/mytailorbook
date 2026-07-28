@@ -54,7 +54,7 @@ export interface NotificationItem {
  *  of sync with each other. */
 export function useNotifications() {
   const { user } = useAuth();
-  const { orders } = useData();
+  const { orders, isLoaded } = useData();
 
   // Owner-only — Staff can't approve these anyway, so there's nothing
   // actionable for them to see. Not revalidated on every focus (matches
@@ -225,5 +225,5 @@ export function useNotifications() {
     return { notifications: items, alertCount };
   }, [relevantOrders, user, pendingStylePhotos]);
 
-  return { notifications, alertCount };
+  return { notifications, alertCount, isLoaded };
 }

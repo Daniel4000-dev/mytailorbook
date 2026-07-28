@@ -27,7 +27,7 @@ function groupLabel(timestamp: string): string {
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { notifications } = useNotifications();
+  const { notifications, isLoaded } = useNotifications();
   const { readIds, markRead, markAllRead } = useNotificationReadState();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterMode>('all');
@@ -94,7 +94,9 @@ export default function NotificationsPage() {
         <div className={styles.emptyState}>
           <FaBellSlash className={styles.emptyIcon} />
           <span>
-            {filter === 'unread'
+            {!isLoaded
+              ? 'Loading your notifications…'
+              : filter === 'unread'
               ? "You're all caught up — nothing unread."
               : filter === 'read'
               ? 'Nothing read yet.'

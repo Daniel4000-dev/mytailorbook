@@ -12,7 +12,7 @@ export default function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { notifications, alertCount: totalAlertCount } = useNotifications();
+  const { notifications, alertCount: totalAlertCount, isLoaded } = useNotifications();
   const { readIds, markRead } = useNotificationReadState();
 
   useEffect(() => {
@@ -58,7 +58,9 @@ export default function NotificationBell() {
       {open && (
         <div className={styles.panel}>
           <div className={styles.panelHeader}>Notifications</div>
-          {preview.length === 0 ? (
+          {!isLoaded ? (
+            <div className={styles.emptyState}>Loading…</div>
+          ) : preview.length === 0 ? (
             <div className={styles.emptyState}>You&apos;re all caught up.</div>
           ) : (
             <div className={styles.list}>
