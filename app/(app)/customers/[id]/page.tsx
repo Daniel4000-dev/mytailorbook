@@ -16,9 +16,9 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Input from '@/components/ui/Input/Input';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import MeasurementAnatomy from '@/components/customers/MeasurementAnatomy/MeasurementAnatomy';
-import EditCustomerSheet from '@/components/customers/EditCustomerSheet/EditCustomerSheet';
-import StyleProfileSheet from '@/components/customers/StyleProfileSheet/StyleProfileSheet';
+import MeasurementAnatomy from '../_components/MeasurementAnatomy';
+import EditCustomerSheet from '../_components/EditCustomerSheet';
+import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
@@ -26,7 +26,7 @@ import { getBalanceOwed } from '@/lib/types';
 import { deleteCustomerAction } from '@/app/actions';
 import type { Measurements, Customer, Order } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import CustomerDetailSkeleton from './CustomerDetailSkeleton';
+import CustomerDetailSkeleton from './_components/CustomerDetailSkeleton';
 import styles from './page.module.css';
 
 interface Point {

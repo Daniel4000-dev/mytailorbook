@@ -21,7 +21,7 @@ import { GARMENT_STYLES } from '@/lib/constants';
 import { getStylePhotoSubmissionsAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
 import type { StylePhotoSubmission } from '@/lib/types';
 import { shareStylePhoto } from '@/lib/share-outreach';
-import CustomersSkeleton from './CustomersSkeleton';
+import CustomersSkeleton from './_components/CustomersSkeleton';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 40;

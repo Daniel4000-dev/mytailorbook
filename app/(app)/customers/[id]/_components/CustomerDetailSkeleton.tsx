@@ -1,5 +1,5 @@
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import styles from './page.module.css';
+import styles from '../page.module.css';
 
 // Mirrors the real customer profile markup (same CSS classes/single-column
 // stack) so the skeleton occupies the same layout the real content will fill.

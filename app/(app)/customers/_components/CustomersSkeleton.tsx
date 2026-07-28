@@ -1,5 +1,5 @@
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import styles from './page.module.css';
+import styles from '../page.module.css';
 
 // Mirrors the real customers list markup (same CSS classes, both the mobile
 // card list and the desktop table are present — CSS hides one per breakpoint
