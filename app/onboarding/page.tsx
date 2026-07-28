@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FaRulerCombined, FaClipboardList } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
-import AuthInput from '@/app/(auth)/components/AuthInput';
+import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
 
 // Welcome-tour screens shown before the setup form below — grounded in

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import AuthInput from '../components/AuthInput';
+import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
 
 export default function SignupPage() {

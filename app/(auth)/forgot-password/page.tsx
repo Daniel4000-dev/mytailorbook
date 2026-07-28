@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthInput from '../components/AuthInput';
+import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
 
 export default function ForgotPasswordPage() {
