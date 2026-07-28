@@ -1,0 +1,205 @@
+import Symbol from '@/components/ui/Symbol/Symbol';
+import { ORDER_STATUSES } from '@/lib/constants';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import type { Customer, OrderStatus, Priority, User } from '@/lib/types';
+import styles from '../page.module.css';
+
+export interface UnitDraft {
+  key: string;
+  styleName: string;
+  details: string;
+  totalBill: string;
+  depositPaid: string;
+  dueDate: string;
+  assignedTo: string;
+  inspirationImages: string[];
+  materialSuppliedBy: 'shop' | 'customer';
+  materialCost: string;
+  otherCosts: string;
+}
+
+interface DetailsStepProps {
+  customer: Customer | null;
+  error: string;
+  units: UnitDraft[];
+  onUpdateUnit: (key: string, patch: Partial<UnitDraft>) => void;
+  staffMembers: User[];
+  currentUserUid: string | undefined;
+  uploadingKey: string | null;
+  onInspoUpload: (unitKey: string, e: React.ChangeEvent<HTMLInputElement>) => void;
+  priority: Priority;
+  onPriorityChange: (priority: Priority) => void;
+  startingStage: OrderStatus;
+  onStartingStageChange: (stage: OrderStatus) => void;
+}
+
+export default function DetailsStep({
+  customer,
+  error,
+  units,
+  onUpdateUnit,
+  staffMembers,
+  currentUserUid,
+  uploadingKey,
+  onInspoUpload,
+  priority,
+  onPriorityChange,
+  startingStage,
+  onStartingStageChange,
+}: DetailsStepProps) {
+  return (
+    <div className={styles.col}>
+      <div>
+        <h2 className={styles.stepTitle}>Order Details</h2>
+        <p className={styles.stepSub}>Price and schedule each piece for {customer?.fullName}.</p>
+      </div>
+
+      {error && <div className={styles.errorBanner}>{error}</div>}
+
+      {units.map((u, i) => (
+        <section key={u.key} className={styles.unitCard}>
+          <header className={styles.unitHeader}>
+            <span className={styles.unitNum}>{i + 1}</span>
+            <input
+              className={styles.unitName}
+              value={u.details}
+              onChange={(e) => onUpdateUnit(u.key, { details: e.target.value })}
+              aria-label="Garment description"
+            />
+          </header>
+          <div className={styles.unitGrid}>
+            <div className={styles.unitField}>
+              <label className={styles.capsLabel}>Total Bill (₦)</label>
+              <input
+                className={styles.unitInput}
+                inputMode="numeric"
+                placeholder="0"
+                value={u.totalBill}
+                onChange={(e) => onUpdateUnit(u.key, { totalBill: e.target.value.replace(/[^0-9,]/g, '') })}
+              />
+            </div>
+            <div className={styles.unitField}>
+              <label className={styles.capsLabel}>Deposit Paid (₦)</label>
+              <input
+                className={styles.unitInput}
+                inputMode="numeric"
+                placeholder="0"
+                value={u.depositPaid}
+                onChange={(e) => onUpdateUnit(u.key, { depositPaid: e.target.value.replace(/[^0-9,]/g, '') })}
+              />
+            </div>
+            <div className={styles.unitField}>
+              <label className={styles.capsLabel}>Due Date</label>
+              <input
+                className={styles.unitInput}
+                type="date"
+                value={u.dueDate}
+                onChange={(e) => onUpdateUnit(u.key, { dueDate: e.target.value })}
+              />
+            </div>
+            <div className={styles.unitField}>
+              <label className={styles.capsLabel}>Assign To</label>
+              <select
+                className={styles.unitInput}
+                value={u.assignedTo}
+                onChange={(e) => onUpdateUnit(u.key, { assignedTo: e.target.value })}
+              >
+                <option value="">Unassigned</option>
+                {staffMembers
+                  .filter((s) => s.active !== false)
+                  .map((s) => (
+                    <option key={s.uid} value={s.uid}>
+                      {s.uid === currentUserUid ? `${s.name} (You)` : s.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
+          {FEATURE_FLAGS.costMarginTracking && (
+            <div className={styles.costSection}>
+              <span className={styles.capsLabel}>Cost &amp; Margin (optional)</span>
+              <div className={styles.unitGrid}>
+                <div className={styles.unitField}>
+                  <label className={styles.capsLabel}>Material Supplied By</label>
+                  <select
+                    className={styles.unitInput}
+                    value={u.materialSuppliedBy}
+                    onChange={(e) => onUpdateUnit(u.key, { materialSuppliedBy: e.target.value as 'shop' | 'customer' })}
+                  >
+                    <option value="shop">Shop</option>
+                    <option value="customer">Customer</option>
+                  </select>
+                </div>
+                {u.materialSuppliedBy === 'shop' && (
+                  <div className={styles.unitField}>
+                    <label className={styles.capsLabel}>Material Cost (₦)</label>
+                    <input
+                      className={styles.unitInput}
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={u.materialCost}
+                      onChange={(e) => onUpdateUnit(u.key, { materialCost: e.target.value.replace(/[^0-9,]/g, '') })}
+                    />
+                  </div>
+                )}
+                <div className={styles.unitField}>
+                  <label className={styles.capsLabel}>Other Costs (₦)</label>
+                  <input
+                    className={styles.unitInput}
+                    inputMode="numeric"
+                    placeholder="Thread, buttons, outsourced labor…"
+                    value={u.otherCosts}
+                    onChange={(e) => onUpdateUnit(u.key, { otherCosts: e.target.value.replace(/[^0-9,]/g, '') })}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <div className={styles.inspoRow}>
+            {u.inspirationImages.map((url, idx) => (
+              <span key={idx} className={styles.inspoThumb}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="Inspiration" />
+                <button
+                  type="button"
+                  aria-label="Remove inspiration photo"
+                  onClick={() => onUpdateUnit(u.key, { inspirationImages: u.inspirationImages.filter((_, j) => j !== idx) })}
+                >
+                  <Symbol name="close" size={12} />
+                </button>
+              </span>
+            ))}
+            <label className={styles.inspoAdd}>
+              <input type="file" accept="image/*" multiple hidden onChange={(e) => onInspoUpload(u.key, e)} disabled={uploadingKey === u.key} />
+              <Symbol name="add_photo_alternate" size={18} />
+              {uploadingKey === u.key ? 'Uploading…' : 'Inspo'}
+            </label>
+          </div>
+        </section>
+      ))}
+
+      <section className={styles.orderLevel}>
+        <div className={styles.unitField}>
+          <label className={styles.capsLabel}>Priority</label>
+          <select className={styles.unitInput} value={priority} onChange={(e) => onPriorityChange(e.target.value as Priority)}>
+            <option value="normal">Normal</option>
+            <option value="urgent">Urgent</option>
+            <option value="rush">Rush</option>
+          </select>
+        </div>
+        <div className={styles.unitField}>
+          <label className={styles.capsLabel}>Starting Stage</label>
+          <select
+            className={styles.unitInput}
+            value={startingStage}
+            onChange={(e) => onStartingStageChange(e.target.value as OrderStatus)}
+          >
+            {ORDER_STATUSES.filter((s) => s !== 'Completed').map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+      </section>
+    </div>
+  );
+}
