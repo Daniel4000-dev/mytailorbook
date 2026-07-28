@@ -22,6 +22,9 @@ export const MOCK_SHOP: Shop = {
   createdAt: '2024-01-15T09:00:00Z',
   orgId: 'org-001',
   isPrimary: true,
+  portfolioTemplate: 'modern',
+  portfolioAccent: 'indigo',
+  portfolioSettings: {},
 };
 
 export const MOCK_SHOPS: Shop[] = [MOCK_SHOP];

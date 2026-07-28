@@ -45,6 +45,16 @@ export interface Shop {
   /** Per-stage WhatsApp update wording, keyed by OrderStatus. A missing key
    *  means "use the app's built-in default" (see getOrderProgressMessage). */
   stageMessageTemplates?: Partial<Record<OrderStatus, string>>;
+  /** Which of the 3 visual templates the public portfolio (/studio/[shopId])
+   *  renders. 'modern' is the original bento-grid design, kept as the default
+   *  so existing shops see no change until they pick something else. */
+  portfolioTemplate: 'modern' | 'editorial' | 'heritage';
+  /** A curated palette id (e.g. 'indigo', 'coral', 'terracotta') — not a raw
+   *  hex — so a non-technical owner can't land on an unreadable combination. */
+  portfolioAccent: string;
+  /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
+   *  fall back to no display of that element, not a placeholder string. */
+  portfolioSettings: { tagline?: string; bio?: string; foundedYear?: number };
 }
 
 /** Owner-set visibility override for one photo (matched by URL) on the
@@ -58,6 +68,9 @@ export interface PortfolioPhotoOverride {
   featured: boolean;
   consentConfirmed: boolean;
   consentConfirmedAt?: string;
+  /** Owner-entered story/caption shown under the photo on the public
+   *  portfolio — the fix for the gallery having no storytelling. */
+  caption?: string;
   createdAt: string;
 }
 

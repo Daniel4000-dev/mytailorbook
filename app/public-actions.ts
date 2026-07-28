@@ -85,6 +85,9 @@ export async function getPublicOrderView(orderId: string): Promise<{
         orgId: shopRow.org_id,
         isPrimary: shopRow.is_primary,
         logoUrl: shopRow.logo_url || undefined,
+        portfolioTemplate: shopRow.portfolio_template || 'modern',
+        portfolioAccent: shopRow.portfolio_accent || 'indigo',
+        portfolioSettings: shopRow.portfolio_settings || {},
       }
     : null;
 
@@ -186,6 +189,75 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
   return { success: true, lastReminderAt: now };
 }
 
+/** Whether this order already has a rating — the tracking page uses this to
+ *  decide between showing the "leave a review" prompt or a thank-you state,
+ *  since the table's unique constraint means only one is ever possible. */
+export async function hasOrderRatingAction(orderId: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { count } = await admin
+    .from('order_ratings')
+    .select('id', { count: 'exact', head: true })
+    .eq('order_id', orderId);
+  return (count || 0) > 0;
+}
+
+/**
+ * Records a customer's star rating (+ optional comment) from the public
+ * tracking page, once their order is Completed — no auth, so deliberately
+ * narrow: one rating per order (enforced by the table's unique constraint,
+ * not just this check), and it lands unapproved until the Owner reviews it
+ * in Settings → Manage Portfolio. Never shown publicly until approved.
+ */
+export async function submitOrderRatingAction(
+  orderId: string,
+  rating: number,
+  comment?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return { success: false, error: 'Rating must be between 1 and 5 stars.' };
+  }
+  const trimmedComment = comment?.trim();
+  if (trimmedComment && trimmedComment.length > 500) {
+    return { success: false, error: 'Comment is too long.' };
+  }
+
+  const ip = await getRequestIp();
+  const { allowed } = await checkRateLimit(`rating:${ip}`, WRITE_LIMIT);
+  if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
+
+  const admin = createAdminClient();
+
+  const { data: order, error: fetchError } = await admin
+    .from('orders')
+    .select('id, shop_id, status, customer_name')
+    .eq('id', orderId)
+    .single();
+  if (fetchError || !order) return { success: false, error: 'Order not found.' };
+  if (order.status !== 'Completed') {
+    return { success: false, error: 'You can leave a review once your order is complete.' };
+  }
+
+  const { error: insertError } = await admin.from('order_ratings').insert({
+    order_id: orderId,
+    shop_id: order.shop_id,
+    customer_name: order.customer_name,
+    rating,
+    comment: trimmedComment || null,
+  });
+  if (insertError) {
+    if (insertError.code === '23505') return { success: false, error: 'You already left a review for this order.' };
+    return { success: false, error: insertError.message };
+  }
+
+  sendPushToShop(order.shop_id, null, {
+    title: `${order.customer_name} left a ${rating}-star review`,
+    body: trimmedComment ? (trimmedComment.length > 80 ? trimmedComment.slice(0, 80) + '…' : trimmedComment) : 'Awaiting your approval to go public.',
+    orderId,
+  }).catch(() => {});
+
+  return { success: true };
+}
+
 /** The other garments dropped off in the same visit, so a customer holding
  *  any one tracking link can reach all of their items — without this, batch
  *  grouping exists only on the tailor's side and a 3-garment drop-off means
@@ -223,16 +295,37 @@ export interface PortfolioPhoto {
   garment: string;
   /** ISO date the photo was taken */
   takenAt: string;
+  /** Owner-entered story/caption for this specific photo. */
+  caption?: string;
+}
+
+export interface PortfolioTestimonial {
+  customerName: string;
+  rating: number;
+  comment?: string;
+  submittedAt: string;
 }
 
 export interface PublicPortfolio {
-  shop: { id: string; name: string; phone?: string; address?: string; logoUrl?: string };
+  shop: {
+    id: string;
+    name: string;
+    phone?: string;
+    address?: string;
+    logoUrl?: string;
+    portfolioTemplate: 'modern' | 'editorial' | 'heritage';
+    portfolioAccent: string;
+    tagline?: string;
+    bio?: string;
+    foundedYear?: number;
+  };
   photos: PortfolioPhoto[];
   stats: {
     completed: number;
     onTimePercent: number | null; // null until enough data
     stylesCount: number;
   };
+  testimonials: PortfolioTestimonial[];
 }
 
 export async function getPublicShopPortfolio(shopId: string): Promise<PublicPortfolio | null> {
@@ -244,7 +337,7 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, name, phone, address, logo_url')
+    .select('id, name, phone, address, logo_url, portfolio_template, portfolio_accent, portfolio_settings')
     .eq('id', shopId)
     .single();
   if (shopErr || !shopRow) return null;
@@ -260,7 +353,7 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
 
   const { data: overrideRows } = await admin
     .from('portfolio_photo_overrides')
-    .select('photo_url, hidden, featured')
+    .select('photo_url, hidden, featured, caption')
     .eq('shop_id', shopId);
   const overrides = new Map((overrideRows || []).map((r) => [r.photo_url, r]));
 
@@ -274,13 +367,33 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
     for (const p of (o.images || []) as { url: string; stage: string; uploadedAt: string }[]) {
       const override = overrides.get(p.url);
       if (override?.hidden) continue;
-      const entry: PortfolioPhoto = { url: p.url, garment: o.order_details, takenAt: p.uploadedAt };
+      const entry: PortfolioPhoto = {
+        url: p.url,
+        garment: o.order_details,
+        takenAt: p.uploadedAt,
+        caption: override?.caption || undefined,
+      };
       if (override?.featured) featured.push(entry);
       else if (p.stage === 'Ready' || p.stage === 'Completed') finished.push(entry);
       else inProgress.push(entry);
     }
   }
   const photos = [...featured, ...finished, ...inProgress].slice(0, 30);
+
+  const { data: ratingRows } = await admin
+    .from('order_ratings')
+    .select('customer_name, rating, comment, submitted_at, featured')
+    .eq('shop_id', shopId)
+    .eq('approved', true)
+    .order('featured', { ascending: false })
+    .order('submitted_at', { ascending: false })
+    .limit(20);
+  const testimonials: PortfolioTestimonial[] = (ratingRows || []).map((r) => ({
+    customerName: r.customer_name,
+    rating: r.rating,
+    comment: r.comment || undefined,
+    submittedAt: r.submitted_at,
+  }));
 
   const completedOrders = orders.filter((o) => o.status === 'Completed');
   const withDue = completedOrders.filter((o) => o.due_date);
@@ -303,6 +416,8 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
     }
   }
 
+  const settings = (shopRow.portfolio_settings || {}) as { tagline?: string; bio?: string; foundedYear?: number };
+
   return {
     shop: {
       id: shopRow.id,
@@ -310,6 +425,11 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
       phone: shopRow.phone || undefined,
       address: shopRow.address || undefined,
       logoUrl: shopRow.logo_url || undefined,
+      portfolioTemplate: shopRow.portfolio_template || 'modern',
+      portfolioAccent: shopRow.portfolio_accent || 'indigo',
+      tagline: settings.tagline || undefined,
+      bio: settings.bio || undefined,
+      foundedYear: settings.foundedYear || undefined,
     },
     photos,
     stats: {
@@ -317,5 +437,6 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
       onTimePercent: withDue.length >= 3 ? Math.round((onTime.length / withDue.length) * 100) : null,
       stylesCount: styleSet.size,
     },
+    testimonials,
   };
 }

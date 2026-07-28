@@ -132,6 +132,9 @@ function shopFromRow(row: any): Shop {
     logoUrl: row.logo_url || undefined,
     outreachTemplate: row.outreach_template || undefined,
     stageMessageTemplates: row.stage_message_templates || {},
+    portfolioTemplate: row.portfolio_template || 'modern',
+    portfolioAccent: row.portfolio_accent || 'indigo',
+    portfolioSettings: row.portfolio_settings || {},
   };
 }
 
@@ -585,6 +588,9 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.logoUrl !== undefined) row.logo_url = updates.logoUrl;
   if (updates.outreachTemplate !== undefined) row.outreach_template = updates.outreachTemplate;
   if (updates.stageMessageTemplates !== undefined) row.stage_message_templates = updates.stageMessageTemplates;
+  if (updates.portfolioTemplate !== undefined) row.portfolio_template = updates.portfolioTemplate;
+  if (updates.portfolioAccent !== undefined) row.portfolio_accent = updates.portfolioAccent;
+  if (updates.portfolioSettings !== undefined) row.portfolio_settings = updates.portfolioSettings;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);
@@ -733,6 +739,7 @@ function portfolioPhotoOverrideFromRow(row: any): PortfolioPhotoOverride {
     featured: row.featured,
     consentConfirmed: row.consent_confirmed,
     consentConfirmedAt: row.consent_confirmed_at || undefined,
+    caption: row.caption || undefined,
     createdAt: row.created_at,
   };
 }
@@ -750,12 +757,13 @@ export async function getPortfolioPhotoOverridesAction(shopId: string): Promise<
 export async function setPortfolioPhotoOverrideAction(
   shopId: string,
   photoUrl: string,
-  updates: { hidden?: boolean; featured?: boolean; consentConfirmed?: boolean }
+  updates: { hidden?: boolean; featured?: boolean; consentConfirmed?: boolean; caption?: string }
 ): Promise<void> {
   const supabase = await createClient();
   const row: Record<string, unknown> = { shop_id: shopId, photo_url: photoUrl };
   if (updates.hidden !== undefined) row.hidden = updates.hidden;
   if (updates.featured !== undefined) row.featured = updates.featured;
+  if (updates.caption !== undefined) row.caption = updates.caption || null;
   if (updates.consentConfirmed !== undefined) {
     row.consent_confirmed = updates.consentConfirmed;
     row.consent_confirmed_at = updates.consentConfirmed ? new Date().toISOString() : null;
@@ -968,6 +976,7 @@ export interface PortfolioCurationPhoto {
   hidden: boolean;
   featured: boolean;
   consentConfirmed: boolean;
+  caption?: string;
 }
 
 export async function getPortfolioCurationPhotosAction(shopId: string): Promise<PortfolioCurationPhoto[]> {
@@ -982,7 +991,7 @@ export async function getPortfolioCurationPhotosAction(shopId: string): Promise<
 
   const { data: overrideRows } = await supabase
     .from('portfolio_photo_overrides')
-    .select('photo_url, hidden, featured, consent_confirmed')
+    .select('photo_url, hidden, featured, consent_confirmed, caption')
     .eq('shop_id', shopId);
   const overrides = new Map((overrideRows || []).map((r) => [r.photo_url, r]));
 
@@ -997,10 +1006,68 @@ export async function getPortfolioCurationPhotosAction(shopId: string): Promise<
         hidden: override?.hidden || false,
         featured: override?.featured || false,
         consentConfirmed: override?.consent_confirmed || false,
+        caption: override?.caption || undefined,
       });
     }
   }
   return photos;
+}
+
+// ----------------------------------------------------------------------
+// Customer reviews (order_ratings) — owner-facing moderation. Submission
+// itself happens unauthenticated from the public tracking page (see
+// app/public-actions.ts submitOrderRatingAction) and lands unapproved;
+// nothing here is visible on the public portfolio until approved.
+// ----------------------------------------------------------------------
+
+export interface OrderRating {
+  id: string;
+  orderId: string;
+  shopId: string;
+  customerName: string;
+  rating: number;
+  comment?: string;
+  submittedAt: string;
+  approved: boolean;
+  featured: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function orderRatingFromRow(row: any): OrderRating {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    shopId: row.shop_id,
+    customerName: row.customer_name,
+    rating: row.rating,
+    comment: row.comment || undefined,
+    submittedAt: row.submitted_at,
+    approved: row.approved,
+    featured: row.featured,
+  };
+}
+
+export async function getOrderRatingsAction(shopId: string): Promise<OrderRating[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_ratings')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('submitted_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data || []).map(orderRatingFromRow);
+}
+
+export async function setOrderRatingModerationAction(
+  ratingId: string,
+  updates: { approved?: boolean; featured?: boolean }
+): Promise<void> {
+  const supabase = await createClient();
+  const row: Record<string, unknown> = {};
+  if (updates.approved !== undefined) row.approved = updates.approved;
+  if (updates.featured !== undefined) row.featured = updates.featured;
+  const { error } = await supabase.from('order_ratings').update(row).eq('id', ratingId);
+  if (error) throw new Error(error.message);
 }
 
 // ----------------------------------------------------------------------
