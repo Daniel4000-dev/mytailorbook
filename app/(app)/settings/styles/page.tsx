@@ -12,6 +12,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
 import styles from './page.module.css';
 
@@ -23,7 +24,7 @@ interface CustomStyle {
 
 export default function CustomStylesSettingsPage() {
   const router = useRouter();
-  const { currentShop, updateShop, renameCustomStyle, upsertCustomStyle } = useData();
+  const { currentShop, updateShop, renameCustomStyle, upsertCustomStyle, isLoaded } = useData();
   const { showToast } = useToast();
 
   const customStyles = currentShop?.customStyles || [];
@@ -75,7 +76,12 @@ export default function CustomStylesSettingsPage() {
 
   return (
     <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack onBack={() => router.push('/settings')} />}>
-      {customStyles.length === 0 ? (
+      {!isLoaded ? (
+        <div className={styles.grid}>
+          <Skeleton height={120} />
+          <Skeleton height={120} />
+        </div>
+      ) : customStyles.length === 0 ? (
         <EmptyState
           icon={<Symbol name="checkroom" size={40} />}
           title="No custom styles yet"
