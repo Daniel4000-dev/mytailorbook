@@ -11,7 +11,6 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { GARMENT_STYLES } from '@/lib/constants';
-import { formatDate } from '@/lib/formatters';
 import {
   getStylePhotoSubmissionsAction,
   createStylePhotoSubmissionAction,
@@ -19,6 +18,7 @@ import {
   discardStylePhotoSubmissionAction,
 } from '@/app/actions';
 import type { StylePhotoSubmission } from '@/lib/types';
+import StylePhotoCard from './_components/StylePhotoCard';
 import styles from './page.module.css';
 
 export default function StyleDetailPage() {
@@ -138,37 +138,15 @@ export default function StyleDetailPage() {
               // eslint-disable-next-line react-hooks/purity
               const daysLeft = 10 - Math.floor((Date.now() - new Date(s.createdAt).getTime()) / (1000 * 60 * 60 * 24));
               return (
-              <div key={s.id} className={styles.photoCard}>
-                <div className={styles.photoWrap}>
-                  <img src={s.photoUrl} alt="" />
-                  <span className={`${styles.expiryTag} ${daysLeft <= 3 ? styles.expiryTagSoon : ''}`}>
-                    {daysLeft <= 0 ? 'Expires today' : `${daysLeft}d left`}
-                  </span>
-                </div>
-                <p className={styles.meta}>
-                  {s.uploadedByName} · {formatDate(s.createdAt)}
-                </p>
-                <div className={styles.actions}>
-                  {isOwner && (
-                    <button
-                      type="button"
-                      className={styles.approveBtn}
-                      disabled={busyId === s.id}
-                      onClick={() => handleApprove(s)}
-                    >
-                      <Symbol name="check" size={16} /> Approve
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.discardBtn}
-                    disabled={busyId === s.id}
-                    onClick={() => setConfirmDiscard(s)}
-                  >
-                    <Symbol name="close" size={16} /> Discard
-                  </button>
-                </div>
-              </div>
+                <StylePhotoCard
+                  key={s.id}
+                  submission={s}
+                  isOwner={isOwner}
+                  busy={busyId === s.id}
+                  daysLeft={daysLeft}
+                  onApprove={handleApprove}
+                  onDiscard={setConfirmDiscard}
+                />
               );
             })}
           </div>
@@ -185,22 +163,13 @@ export default function StyleDetailPage() {
           ) : (
             <div className={styles.photoGrid}>
               {saved.map((s) => (
-                <div key={s.id} className={styles.photoCard}>
-                  <div className={styles.photoWrap}>
-                    <img src={s.photoUrl} alt="" />
-                  </div>
-                  <p className={styles.meta}>Approved {formatDate(s.savedAt || s.createdAt)}</p>
-                  <div className={styles.actions}>
-                    <button
-                      type="button"
-                      className={styles.discardBtn}
-                      disabled={busyId === s.id}
-                      onClick={() => setConfirmDiscard(s)}
-                    >
-                      <Symbol name="close" size={16} /> Remove
-                    </button>
-                  </div>
-                </div>
+                <StylePhotoCard
+                  key={s.id}
+                  submission={s}
+                  isOwner={isOwner}
+                  busy={busyId === s.id}
+                  onDiscard={setConfirmDiscard}
+                />
               ))}
             </div>
           )}
