@@ -24,7 +24,7 @@ import styles from './page.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isOwner, updateAvatar, logout } = useAuth();
+  const { user, isOwner, updateAvatar } = useAuth();
   const { currentShop, staffMembers, updateShop, shops, refreshBranches, isLoaded } = useData();
   const { showToast } = useToast();
 
@@ -76,11 +76,6 @@ export default function SettingsPage() {
       </PageLayout>
     );
   }
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
 
   const openStudioSheet = () => {
     setShopName(currentShop?.name || '');
@@ -369,7 +364,6 @@ export default function SettingsPage() {
           )}
           <PushNotificationToggle />
           {FEATURE_FLAGS.dataExport && <ExportDataButton shopName={currentShop?.name || 'shop'} />}
-          <Button variant="secondary" onClick={handleLogout}>Logout</Button>
           <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setOpenSheet(null)} />
         </div>
       </BottomSheet>
