@@ -32,6 +32,18 @@ export default function PushNotificationToggle() {
     setWorking(true);
     try {
       const permission = await Notification.requestPermission();
+      if (permission === 'denied') {
+        // Browsers only ever show the system permission prompt once per
+        // site — after a denial, requestPermission() silently resolves to
+        // 'denied' again with no UI at all, so retrying this button can
+        // never re-show it. The only way back is the browser's own site
+        // settings, not anything this app can trigger.
+        showToast(
+          'Notifications are blocked for this site. To enable them, open your browser\'s site settings (tap the icon next to the address bar) and allow Notifications, then try again.',
+          'error'
+        );
+        return;
+      }
       if (permission !== 'granted') {
         showToast('Notification permission was not granted', 'error');
         return;

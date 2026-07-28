@@ -4,32 +4,24 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import AuthInput from '../components/AuthInput';
 import styles from './page.module.css';
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, signInWithGoogle, loading } = useAuth();
+  const { signup, loading } = useAuth();
+  const { showToast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
-  const handleGoogle = async () => {
-    setError('');
-    setGoogleLoading(true);
-    try {
-      await signInWithGoogle();
-      // Browser redirects to Google here; first-time sign-ins land on
-      // /onboarding afterward to collect their shop name.
-    } catch {
-      setError('Could not connect with Google');
-      setGoogleLoading(false);
-    }
+  const handleGoogle = () => {
+    showToast('Google sign-in is currently unavailable — please create your account using the form.', 'info');
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -179,7 +171,7 @@ export default function SignupPage() {
           type="button"
           className={styles.googleButton}
           onClick={handleGoogle}
-          disabled={googleLoading || !agreedToPolicy}
+          disabled={!agreedToPolicy}
         >
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
             <path
@@ -199,7 +191,7 @@ export default function SignupPage() {
               fill="#EA4335"
             />
           </svg>
-          {googleLoading ? 'Connecting...' : 'Sign up with Google'}
+          Sign up with Google
         </button>
 
         {/* Footer label */}

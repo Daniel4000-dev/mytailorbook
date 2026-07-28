@@ -5,16 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import AuthInput from '../components/AuthInput';
 import styles from './page.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, signInWithGoogle, loading } = useAuth();
+  const { login, loading } = useAuth();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,16 +38,8 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    setError('');
-    setGoogleLoading(true);
-    try {
-      await signInWithGoogle();
-      // Browser redirects to Google here; nothing else to do.
-    } catch {
-      setError('Could not connect with Google');
-      setGoogleLoading(false);
-    }
+  const handleGoogle = () => {
+    showToast('Google sign-in is currently unavailable — please create an account manually using Register.', 'info');
   };
 
   return (
@@ -111,7 +104,6 @@ export default function LoginPage() {
           type="button"
           className={styles.googleButton}
           onClick={handleGoogle}
-          disabled={googleLoading}
         >
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
             <path
@@ -131,7 +123,7 @@ export default function LoginPage() {
               fill="#EA4335"
             />
           </svg>
-          {googleLoading ? 'Connecting...' : 'Sign in with Google'}
+          Sign in with Google
         </button>
 
         {/* Footer separator text */}

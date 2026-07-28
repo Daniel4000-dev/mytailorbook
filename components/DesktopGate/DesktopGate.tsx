@@ -1,0 +1,15 @@
+import styles from './DesktopGate.module.css';
+
+/** Temporary launch gate: blocks every page (in-app and public) above the
+ *  mobile breakpoint behind a static message. Pure CSS — hidden by default,
+ *  shown only via the media query in DesktopGate.module.css — so there's no
+ *  JS/hydration involved and removing this is a one-line deletion later. */
+export default function DesktopGate() {
+  return (
+    <div className={styles.overlay}>
+      <img src="/images/logo-mark.png" alt="" className={styles.logo} />
+      <p className={styles.message}>Temporarily unavailable.</p>
+      <p className={styles.submessage}>Access using a mobile device.</p>
+    </div>
+  );
+}
