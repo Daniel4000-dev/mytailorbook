@@ -2,7 +2,7 @@ import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
-import PrintButton from '@/components/receipt/PrintButton';
+import PrintButton from './_components/PrintButton';
 import styles from './page.module.css';
 
 export default async function ReceiptPage({ params }: { params: Promise<{ orderId: string }> }) {
