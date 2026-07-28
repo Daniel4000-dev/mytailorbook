@@ -5,7 +5,7 @@ import cardStyles from './OrderListCard.module.css';
 // Mirrors the real board: search bar, filter pill row, stage banner, and a
 // few card-shaped placeholders — same CSS classes as the real
 // OrderListCard so widths/paddings match exactly.
-export default function KanbanBoardSkeleton() {
+export default function ProductionBoardSkeleton() {
   return (
     <>
       <div className={boardStyles.searchBar}>
