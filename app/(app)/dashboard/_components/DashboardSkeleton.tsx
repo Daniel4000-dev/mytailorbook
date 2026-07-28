@@ -1,5 +1,5 @@
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import styles from './page.module.css';
+import styles from '../page.module.css';
 
 // Mirrors the real Owner/Staff dashboard markup 1:1 (same CSS classes) so the
 // skeleton occupies exactly the same layout the real content will fill in.
