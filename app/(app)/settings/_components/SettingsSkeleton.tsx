@@ -1,5 +1,5 @@
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import styles from './page.module.css';
+import styles from '../page.module.css';
 
 // Mirrors the real settings page markup (identity strip + grouped rows)
 // so the skeleton occupies the same layout the real content will fill in.

@@ -16,10 +16,10 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
-import PushNotificationToggle from '@/components/settings/PushNotificationToggle';
+import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import SettingsSkeleton from './SettingsSkeleton';
+import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
