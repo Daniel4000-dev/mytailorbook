@@ -22,6 +22,7 @@ import { isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import type { Order, OrderStatus } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { getPendingStylePhotoSubmissions } from '@/app/actions';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 
 /** One icon per production stage — "moved to X" used to show the same
  *  generic checkmark for every stage, which made the activity feed
@@ -62,7 +63,7 @@ export function useNotifications() {
   // stakes compared to the order data DataContext already keeps fresh).
   const isOwner = isOwnerLikeRole(user?.role);
   const { data: pendingStylePhotos } = useSWR(
-    isOwner ? 'pending-style-photo-submissions' : null,
+    FEATURE_FLAGS.stylePhotoApprovalNotification && isOwner ? 'pending-style-photo-submissions' : null,
     getPendingStylePhotoSubmissions,
     { dedupingInterval: 60_000 }
   );

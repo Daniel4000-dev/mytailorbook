@@ -9,6 +9,7 @@ import { isValidPhone, formatPhone } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import type { Customer } from '@/lib/types';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './EditCustomerSheet.module.css';
 
 interface EditCustomerSheetProps {
@@ -135,17 +136,19 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
           </div>
         </div>
 
-        <div className={styles.field}>
-          <label className={styles.capsLabel} htmlFor="edit-address">Home Address (Optional)</label>
-          <input
-            id="edit-address"
-            type="text"
-            className={styles.input}
-            placeholder="e.g. 12 Adeola Street, Lagos"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-        </div>
+        {FEATURE_FLAGS.customerAddress && (
+          <div className={styles.field}>
+            <label className={styles.capsLabel} htmlFor="edit-address">Home Address (Optional)</label>
+            <input
+              id="edit-address"
+              type="text"
+              className={styles.input}
+              placeholder="e.g. 12 Adeola Street, Lagos"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+        )}
 
         <div className={styles.field}>
           <span className={styles.capsLabel}>Gender</span>

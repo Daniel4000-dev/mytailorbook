@@ -21,6 +21,7 @@ import {
 import { getStylePhotos } from '@/lib/style-photos';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import type { Customer, Measurements, Order, OrderStatus, Priority } from '@/lib/types';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './page.module.css';
 
 type Step = 'customer' | 'garments' | 'measure' | 'details';
@@ -710,44 +711,46 @@ function NewOrderWizard() {
                     </select>
                   </div>
                 </div>
-                <div className={styles.costSection}>
-                  <span className={styles.capsLabel}>Cost &amp; Margin (optional)</span>
-                  <div className={styles.unitGrid}>
-                    <div className={styles.unitField}>
-                      <label className={styles.capsLabel}>Material Supplied By</label>
-                      <select
-                        className={styles.unitInput}
-                        value={u.materialSuppliedBy}
-                        onChange={(e) => updateUnit(u.key, { materialSuppliedBy: e.target.value as 'shop' | 'customer' })}
-                      >
-                        <option value="shop">Shop</option>
-                        <option value="customer">Customer</option>
-                      </select>
-                    </div>
-                    {u.materialSuppliedBy === 'shop' && (
+                {FEATURE_FLAGS.costMarginTracking && (
+                  <div className={styles.costSection}>
+                    <span className={styles.capsLabel}>Cost &amp; Margin (optional)</span>
+                    <div className={styles.unitGrid}>
                       <div className={styles.unitField}>
-                        <label className={styles.capsLabel}>Material Cost (₦)</label>
+                        <label className={styles.capsLabel}>Material Supplied By</label>
+                        <select
+                          className={styles.unitInput}
+                          value={u.materialSuppliedBy}
+                          onChange={(e) => updateUnit(u.key, { materialSuppliedBy: e.target.value as 'shop' | 'customer' })}
+                        >
+                          <option value="shop">Shop</option>
+                          <option value="customer">Customer</option>
+                        </select>
+                      </div>
+                      {u.materialSuppliedBy === 'shop' && (
+                        <div className={styles.unitField}>
+                          <label className={styles.capsLabel}>Material Cost (₦)</label>
+                          <input
+                            className={styles.unitInput}
+                            inputMode="numeric"
+                            placeholder="0"
+                            value={u.materialCost}
+                            onChange={(e) => updateUnit(u.key, { materialCost: e.target.value.replace(/[^0-9,]/g, '') })}
+                          />
+                        </div>
+                      )}
+                      <div className={styles.unitField}>
+                        <label className={styles.capsLabel}>Other Costs (₦)</label>
                         <input
                           className={styles.unitInput}
                           inputMode="numeric"
-                          placeholder="0"
-                          value={u.materialCost}
-                          onChange={(e) => updateUnit(u.key, { materialCost: e.target.value.replace(/[^0-9,]/g, '') })}
+                          placeholder="Thread, buttons, outsourced labor…"
+                          value={u.otherCosts}
+                          onChange={(e) => updateUnit(u.key, { otherCosts: e.target.value.replace(/[^0-9,]/g, '') })}
                         />
                       </div>
-                    )}
-                    <div className={styles.unitField}>
-                      <label className={styles.capsLabel}>Other Costs (₦)</label>
-                      <input
-                        className={styles.unitInput}
-                        inputMode="numeric"
-                        placeholder="Thread, buttons, outsourced labor…"
-                        value={u.otherCosts}
-                        onChange={(e) => updateUnit(u.key, { otherCosts: e.target.value.replace(/[^0-9,]/g, '') })}
-                      />
                     </div>
                   </div>
-                </div>
+                )}
                 <div className={styles.inspoRow}>
                   {u.inspirationImages.map((url, idx) => (
                     <span key={idx} className={styles.inspoThumb}>

@@ -18,6 +18,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from '@/components/settings/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import SettingsSkeleton from './SettingsSkeleton';
 import styles from './page.module.css';
 
@@ -228,31 +229,33 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Your Organization</span>
-          <div className={styles.groupCard}>
-            {shops.map((branch) => (
+        {FEATURE_FLAGS.orgBranchMultiTenancy && (
+          <div className={styles.group}>
+            <span className={styles.groupLabel}>Your Organization</span>
+            <div className={styles.groupCard}>
+              {shops.map((branch) => (
+                <SettingsRow
+                  key={branch.id}
+                  icon="storefront"
+                  label={branch.name}
+                  subtitle={
+                    branch.isPrimary
+                      ? (branch.address || 'Primary branch')
+                      : (branch.address || 'Branch')
+                  }
+                  meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
+                  onClick={() => {}}
+                />
+              ))}
               <SettingsRow
-                key={branch.id}
-                icon="storefront"
-                label={branch.name}
-                subtitle={
-                  branch.isPrimary
-                    ? (branch.address || 'Primary branch')
-                    : (branch.address || 'Branch')
-                }
-                meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
-                onClick={() => {}}
+                icon="add"
+                label="Add Branch"
+                subtitle="Add another physical location"
+                onClick={() => setOpenSheet('addBranch')}
               />
-            ))}
-            <SettingsRow
-              icon="add"
-              label="Add Branch"
-              subtitle="Add another physical location"
-              onClick={() => setOpenSheet('addBranch')}
-            />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className={styles.group}>
           <span className={styles.groupLabel}>Your Team</span>
@@ -308,18 +311,21 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Financials</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="bar_chart"
-              label="Reports"
-              subtitle="Revenue, outstanding balance, and margin"
-              onClick={() => router.push('/settings/reports')}
-            />
+        {FEATURE_FLAGS.financialReporting && (
+          <div className={styles.group}>
+            <span className={styles.groupLabel}>Financials</span>
+            <div className={styles.groupCard}>
+              <SettingsRow
+                icon="bar_chart"
+                label="Reports"
+                subtitle="Revenue, outstanding balance, and margin"
+                onClick={() => router.push('/settings/reports')}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
+        {FEATURE_FLAGS.auditLog && (
         <div className={styles.group}>
           <span className={styles.groupLabel}>Security</span>
           <div className={styles.groupCard}>
@@ -331,6 +337,7 @@ export default function SettingsPage() {
             />
           </div>
         </div>
+        )}
       </div>
 
       <BottomSheet isOpen={openSheet === 'account'} onClose={() => setOpenSheet(null)} title="Your Account">
@@ -343,16 +350,20 @@ export default function SettingsPage() {
             </div>
           </div>
           <p className={styles.readonlyEmail}>{user?.email}</p>
-          <label className={styles.uploadBtn}>
-            <input type="file" accept="image/*" hidden onChange={handleUploadAvatar} />
-            <Symbol name={uploadingAvatar ? 'progress_activity' : 'upload'} size={18} />
-            {uploadingAvatar ? 'Uploading…' : user?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
-          </label>
-          {user?.avatarUrl && (
-            <Button variant="danger" onClick={() => setConfirmRemoveAvatar(true)}>Remove Photo</Button>
+          {FEATURE_FLAGS.profilePictures && (
+            <>
+              <label className={styles.uploadBtn}>
+                <input type="file" accept="image/*" hidden onChange={handleUploadAvatar} />
+                <Symbol name={uploadingAvatar ? 'progress_activity' : 'upload'} size={18} />
+                {uploadingAvatar ? 'Uploading…' : user?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
+              </label>
+              {user?.avatarUrl && (
+                <Button variant="danger" onClick={() => setConfirmRemoveAvatar(true)}>Remove Photo</Button>
+              )}
+            </>
           )}
           <PushNotificationToggle />
-          <ExportDataButton shopName={currentShop?.name || 'shop'} />
+          {FEATURE_FLAGS.dataExport && <ExportDataButton shopName={currentShop?.name || 'shop'} />}
           <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setOpenSheet(null)} />
         </div>
       </BottomSheet>

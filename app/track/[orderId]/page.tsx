@@ -8,6 +8,7 @@ import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import CommentBox from '@/components/track/CommentBox/CommentBox';
 import ReminderButton from '@/components/track/ReminderButton/ReminderButton';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './page.module.css';
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Completed'];
@@ -289,7 +290,9 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         </section>
 
         {/* Send a reminder */}
-        <ReminderButton orderId={order.id} initialLastReminderAt={order.lastReminderAt} />
+        {FEATURE_FLAGS.trackingPageReminder && (
+          <ReminderButton orderId={order.id} initialLastReminderAt={order.lastReminderAt} />
+        )}
 
         {/* Customer comments */}
         <CommentBox orderId={order.id} currentStage={order.status} initialComments={comments} />

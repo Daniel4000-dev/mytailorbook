@@ -25,6 +25,7 @@ import {
 } from 'react-icons/fa6';
 import { NAV_ITEMS } from '@/lib/constants';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './SidebarMenu.module.css';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -90,7 +91,7 @@ export default function SidebarMenu() {
 
       {/* Only shown once an org actually has a second branch — every org
           today has exactly one, so this stays hidden for all of them. */}
-      {isOwner && shops.length > 1 && (
+      {FEATURE_FLAGS.orgBranchMultiTenancy && isOwner && shops.length > 1 && (
         <select
           className={styles.branchSwitcher}
           value={activeBranchId ?? ''}
@@ -239,7 +240,7 @@ export default function SidebarMenu() {
             Logout
           </button>
 
-          {isOwner && <ExportDataButton shopName={shopName} />}
+          {FEATURE_FLAGS.dataExport && isOwner && <ExportDataButton shopName={shopName} />}
 
           <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
         </div>

@@ -10,6 +10,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { getPortfolioCurationPhotosAction, setPortfolioPhotoOverrideAction, type PortfolioCurationPhoto } from '@/app/actions';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './page.module.css';
 
 export default function PortfolioCurationSettingsPage() {
@@ -76,7 +77,7 @@ export default function PortfolioCurationSettingsPage() {
             >
               <img src={p.url} alt="" className={p.hidden ? styles.hiddenPhoto : ''} />
               {p.featured && <span className={styles.badge}>Featured</span>}
-              {!p.hidden && !p.consentConfirmed && <span className={styles.consentBadge}>Consent not confirmed</span>}
+              {FEATURE_FLAGS.photoConsentTracking && !p.hidden && !p.consentConfirmed && <span className={styles.consentBadge}>Consent not confirmed</span>}
               {p.hidden && <span className={styles.hiddenOverlay}><Symbol name="visibility_off" size={20} /></span>}
             </button>
           ))}
@@ -109,17 +110,19 @@ export default function PortfolioCurationSettingsPage() {
                 onChange={(e) => handleToggle({ hidden: e.target.checked })}
               />
             </label>
-            <label className={styles.toggleRow}>
-              <span>
-                <span className={styles.toggleLabel}>Customer consented to public use</span>
-                <span className={styles.toggleHint}>Confirm you&apos;ve checked with the customer before this shows publicly</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={activePhoto.consentConfirmed}
-                onChange={(e) => handleToggle({ consentConfirmed: e.target.checked })}
-              />
-            </label>
+            {FEATURE_FLAGS.photoConsentTracking && (
+              <label className={styles.toggleRow}>
+                <span>
+                  <span className={styles.toggleLabel}>Customer consented to public use</span>
+                  <span className={styles.toggleHint}>Confirm you&apos;ve checked with the customer before this shows publicly</span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={activePhoto.consentConfirmed}
+                  onChange={(e) => handleToggle({ consentConfirmed: e.target.checked })}
+                />
+              </label>
+            )}
           </div>
         )}
       </BottomSheet>

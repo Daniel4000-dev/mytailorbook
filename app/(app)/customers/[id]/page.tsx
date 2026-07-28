@@ -25,6 +25,7 @@ import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthY
 import { getBalanceOwed } from '@/lib/types';
 import { deleteCustomerAction } from '@/app/actions';
 import type { Measurements, Customer, Order } from '@/lib/types';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import CustomerDetailSkeleton from './CustomerDetailSkeleton';
 import styles from './page.module.css';
 
@@ -282,7 +283,7 @@ function CustomerProfileContent({
       <section className={styles.profileHeader}>
         <Avatar name={customer.fullName} size="lg" />
         <h2 className={styles.name}>{customer.fullName}</h2>
-        {customer.address && (
+        {FEATURE_FLAGS.customerAddress && customer.address && (
           <span className={styles.customerAddress}>
             <FaLocationDot size={12} /> {customer.address}
           </span>

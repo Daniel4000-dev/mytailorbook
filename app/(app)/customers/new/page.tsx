@@ -7,6 +7,7 @@ import { useToast } from '@/contexts/ToastContext';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import { isValidPhone } from '@/lib/formatters';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './page.module.css';
 
 import { GARMENT_STYLES } from '@/lib/constants';
@@ -134,20 +135,22 @@ export default function NewClientPage() {
               </div>
             </div>
 
-            <div className={styles.field}>
-              <label className={styles.capsLabel} htmlFor="address">Home Address (Optional)</label>
-              <div className={styles.inputWrap}>
-                <input
-                  id="address"
-                  type="text"
-                  className={styles.input}
-                  placeholder="e.g. 12 Adeola Street, Lagos"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-                <Symbol name="location_on" size={22} className={styles.inputIcon} />
+            {FEATURE_FLAGS.customerAddress && (
+              <div className={styles.field}>
+                <label className={styles.capsLabel} htmlFor="address">Home Address (Optional)</label>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="address"
+                    type="text"
+                    className={styles.input}
+                    placeholder="e.g. 12 Adeola Street, Lagos"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                  <Symbol name="location_on" size={22} className={styles.inputIcon} />
+                </div>
               </div>
-            </div>
+            )}
           </section>
 
           <hr className={styles.divider} />

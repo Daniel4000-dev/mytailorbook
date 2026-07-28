@@ -24,6 +24,7 @@ import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } 
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './page.module.css';
 
 export default function OrderDetailPage() {
@@ -432,34 +433,38 @@ export default function OrderDetailPage() {
                   inputMode="numeric"
                 />
               </div>
-              <div className={styles.editRow}>
-                <Select
-                  label="Material Supplied By"
-                  options={[
-                    { value: 'shop', label: 'Shop' },
-                    { value: 'customer', label: 'Customer' },
-                  ]}
-                  value={editMaterialSuppliedBy}
-                  onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
-                />
-                {editMaterialSuppliedBy === 'shop' && (
-                  <Input
-                    label="Material Cost (₦)"
-                    value={editMaterialCost}
-                    onChange={(e) => setEditMaterialCost(e.target.value.replace(/[^0-9,]/g, ''))}
-                    inputMode="numeric"
-                  />
-                )}
-              </div>
-              <div className={styles.editRow}>
-                <Input
-                  label="Other Costs (₦)"
-                  value={editOtherCosts}
-                  onChange={(e) => setEditOtherCosts(e.target.value.replace(/[^0-9,]/g, ''))}
-                  inputMode="numeric"
-                  placeholder="Thread, buttons, outsourced labor…"
-                />
-              </div>
+              {FEATURE_FLAGS.costMarginTracking && (
+                <>
+                  <div className={styles.editRow}>
+                    <Select
+                      label="Material Supplied By"
+                      options={[
+                        { value: 'shop', label: 'Shop' },
+                        { value: 'customer', label: 'Customer' },
+                      ]}
+                      value={editMaterialSuppliedBy}
+                      onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
+                    />
+                    {editMaterialSuppliedBy === 'shop' && (
+                      <Input
+                        label="Material Cost (₦)"
+                        value={editMaterialCost}
+                        onChange={(e) => setEditMaterialCost(e.target.value.replace(/[^0-9,]/g, ''))}
+                        inputMode="numeric"
+                      />
+                    )}
+                  </div>
+                  <div className={styles.editRow}>
+                    <Input
+                      label="Other Costs (₦)"
+                      value={editOtherCosts}
+                      onChange={(e) => setEditOtherCosts(e.target.value.replace(/[^0-9,]/g, ''))}
+                      inputMode="numeric"
+                      placeholder="Thread, buttons, outsourced labor…"
+                    />
+                  </div>
+                </>
+              )}
               <div className={styles.editActions}>
                 <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
                 <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
@@ -691,7 +696,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* 8b. Cost & margin (owner only) */}
-        {isOwnerView && (
+        {isOwnerView && FEATURE_FLAGS.costMarginTracking && (
           <section className={styles.card}>
             <h3 className={styles.sectionTitle}>Cost &amp; Margin</h3>
             {hasCostData(order) ? (
