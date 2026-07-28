@@ -1,0 +1,301 @@
+.page {
+  --h-canvas: #F3E9DD;
+  --h-ink: #2B1E14;
+  --h-accent: #B4552E;
+  --h-accent-dark: #8A3F20;
+  --h-gold: #C89A5B;
+  --h-muted: #7A6B5C;
+  --h-line: rgba(43, 30, 20, 0.16);
+  --h-card: rgba(255, 255, 255, 0.45);
+
+  background: var(--h-canvas);
+  color: var(--h-ink);
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.page[data-accent='sage'] {
+  --h-accent: #5B7A6B;
+  --h-accent-dark: #435D50;
+  --h-gold: #94A98F;
+}
+.page[data-accent='umber'] {
+  --h-accent: #8A6C46;
+  --h-accent-dark: #6B5335;
+  --h-gold: #B99A6E;
+}
+.page[data-accent='plum'] {
+  --h-accent: #6B5B7A;
+  --h-accent-dark: #4F4259;
+  --h-gold: #A493B0;
+}
+
+.hero {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+}
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.heroFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, var(--h-accent), var(--h-accent-dark));
+}
+.heroShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(43, 30, 20, 0) 40%, var(--h-canvas) 100%);
+}
+
+.intro {
+  padding: 0 24px 8px;
+  text-align: center;
+}
+.crest {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--h-ink);
+  color: var(--h-canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 20px;
+  margin: -28px auto 14px;
+  box-shadow: 0 8px 20px rgba(43, 30, 20, 0.28);
+  overflow: hidden;
+}
+.crest img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.name {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 26px;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+.est {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--h-accent);
+  font-weight: 600;
+}
+.tagline {
+  font-size: 13.5px;
+  color: var(--h-muted);
+  max-width: 30ch;
+  margin: 12px auto 0;
+  line-height: 1.6;
+}
+
+.section {
+  padding: 34px 24px;
+}
+.sectionTitle {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 19px;
+  margin: 0 0 6px;
+}
+.sectionSub {
+  font-size: 12.5px;
+  color: var(--h-muted);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 28px;
+}
+.timelineRail {
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--h-line);
+}
+.node {
+  position: relative;
+  padding-bottom: 26px;
+}
+.node:last-child {
+  padding-bottom: 0;
+}
+.nodeDot {
+  position: absolute;
+  left: -28px;
+  top: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--h-gold);
+  box-shadow: 0 0 0 4px var(--h-canvas);
+}
+.nodeTitle {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 15px;
+  display: block;
+  margin-bottom: 3px;
+}
+.nodeText {
+  font-size: 12.5px;
+  color: var(--h-muted);
+  line-height: 1.5;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 10px;
+}
+.galleryItem {
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: var(--h-line);
+}
+.galleryItem.tall {
+  grid-row: span 2;
+}
+.galleryItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.galleryCap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(43, 30, 20, 0), rgba(43, 30, 20, 0.8));
+  color: var(--h-canvas);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.founderCard {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: var(--h-card);
+  border: 1px solid var(--h-line);
+  border-radius: 18px;
+  padding: 16px;
+}
+.founderQuote {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+.founderName {
+  font-size: 11px;
+  color: var(--h-muted);
+}
+
+.reviewCard {
+  background: var(--h-card);
+  border: 1px solid var(--h-line);
+  border-radius: 18px;
+  padding: 16px;
+}
+.reviewCard + .reviewCard {
+  margin-top: 10px;
+}
+.reviewStars {
+  color: var(--h-accent);
+  font-size: 12px;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+}
+.reviewQuote {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+.reviewAttrib {
+  font-size: 11px;
+  color: var(--h-muted);
+}
+.reviewAttrib b {
+  color: var(--h-ink);
+  font-weight: 600;
+}
+
+.cta {
+  margin: 8px 24px 0;
+  text-align: center;
+  padding: 30px 20px;
+  border: 1.5px solid var(--h-ink);
+  border-radius: 20px;
+}
+.cta h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 20px;
+  margin: 0 0 10px;
+}
+.cta p {
+  font-size: 12.5px;
+  color: var(--h-muted);
+  margin: 0 0 18px;
+  line-height: 1.6;
+}
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--h-accent);
+  color: var(--h-canvas);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 13px 26px;
+  border-radius: 100px;
+  text-decoration: none;
+}
+.guarantee {
+  display: block;
+  font-size: 11px;
+  color: var(--h-muted);
+  margin-top: 14px;
+}
+.ctaAddress {
+  display: block;
+  font-size: 11.5px;
+  color: var(--h-muted);
+  margin-top: 10px;
+}
+
+.footer {
+  text-align: center;
+  padding: 32px 24px 12px;
+  font-size: 12px;
+  color: var(--h-muted);
+}
+.footerBrand {
+  font-weight: 600;
+  color: var(--h-ink);
+}
