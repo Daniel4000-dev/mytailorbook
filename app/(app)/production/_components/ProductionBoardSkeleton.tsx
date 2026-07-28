@@ -1,6 +1,6 @@
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import boardStyles from './KanbanBoard.module.css';
-import cardStyles from '@/components/production/OrderListCard/OrderListCard.module.css';
+import boardStyles from './ProductionBoard.module.css';
+import cardStyles from './OrderListCard.module.css';
 
 // Mirrors the real board: search bar, filter pill row, stage banner, and a
 // few card-shaped placeholders — same CSS classes as the real

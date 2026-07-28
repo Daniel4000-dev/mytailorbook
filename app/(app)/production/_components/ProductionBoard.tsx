@@ -8,29 +8,22 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
-import Symbol from '@/components/ui/Symbol/Symbol';
-import StageBanner from '@/components/production/StageBanner/StageBanner';
-import OrderListCard from '@/components/production/OrderListCard/OrderListCard';
-import KanbanColumn from '@/components/kanban/KanbanColumn/KanbanColumn';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { OrderStatus, Role } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
-import KanbanBoardSkeleton from './KanbanBoardSkeleton';
-import styles from './KanbanBoard.module.css';
+import KanbanColumns from './desktop/KanbanColumns';
+import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
+import ProductionBoardSkeleton from './ProductionBoardSkeleton';
+import styles from './ProductionBoard.module.css';
 
-interface KanbanBoardProps {
+interface ProductionBoardProps {
   userRole: Role;
 }
 
-/** "All" shows the active pipeline stage by stage; Completed has its own
- *  pill so finished work doesn't bury the current workload. */
-const ALL_FILTER = 'All' as const;
-type StageFilter = typeof ALL_FILTER | OrderStatus;
 const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Completed');
 const STAGE_PAGE_SIZE = 15;
 
-export default function KanbanBoard({ userRole }: KanbanBoardProps) {
+export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { user } = useAuth();
   const { orders, staffMembers, isLoaded, updateOrderStatus, updateOrder } = useData();
   const { showToast } = useToast();
@@ -184,8 +177,14 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
     setStageVisibleCounts({});
   }
 
+  const handleShowMore = useCallback((status: OrderStatus) => {
+    setStageVisibleCounts((prev) => ({ ...prev, [status]: (prev[status] ?? STAGE_PAGE_SIZE) + STAGE_PAGE_SIZE }));
+  }, []);
+
+  const handleOpen = useCallback((orderId: string) => router.push(`/production/${orderId}`), [router]);
+
   if (!isLoaded) {
-    return <KanbanBoardSkeleton />;
+    return <ProductionBoardSkeleton />;
   }
 
   const visibleStages: OrderStatus[] = stageFilter === ALL_FILTER ? [...ACTIVE_STATUSES] : [stageFilter];
@@ -238,111 +237,42 @@ export default function KanbanBoard({ userRole }: KanbanBoardProps) {
       )}
 
       {isDesktop ? (
-        /* Real Kanban columns — every stage visible side by side, drag a
-           card between columns to change its status. Stage filter pills
-           don't make sense here (all stages are already on screen at once),
-           and drag replaces the mobile card's Move Back/Move to X buttons. */
-        <div className={styles.columnsRow}>
-          {ORDER_STATUSES.map((status) => {
-            const stageOrders = getOrdersByStatus(status);
-            const visibleCount = stageVisibleCounts[status] ?? STAGE_PAGE_SIZE;
-            return (
-              <KanbanColumn
-                key={status}
-                status={status}
-                orders={stageOrders.slice(0, visibleCount)}
-                totalCount={stageOrders.length}
-                onShowMore={() =>
-                  setStageVisibleCounts((prev) => ({ ...prev, [status]: visibleCount + STAGE_PAGE_SIZE }))
-                }
-                userRole={userRole}
-                staffMembers={staffMembers}
-                isDropTarget={dragOverStatus === status}
-                onOpen={(orderId) => router.push(`/production/${orderId}`)}
-                onReassign={handleReassign}
-                onDragStart={setDraggedOrderId}
-                onDragEnd={() => {
-                  setDraggedOrderId(null);
-                  setDragOverStatus(null);
-                }}
-                onDragOver={setDragOverStatus}
-                onDrop={handleDrop}
-              />
-            );
-          })}
-        </div>
+        <KanbanColumns
+          getOrdersByStatus={getOrdersByStatus}
+          stageVisibleCounts={stageVisibleCounts}
+          stagePageSize={STAGE_PAGE_SIZE}
+          onShowMore={handleShowMore}
+          userRole={userRole}
+          staffMembers={staffMembers}
+          dragOverStatus={dragOverStatus}
+          onOpen={handleOpen}
+          onReassign={handleReassign}
+          onDragStart={setDraggedOrderId}
+          onDragEnd={() => {
+            setDraggedOrderId(null);
+            setDragOverStatus(null);
+          }}
+          onDragOver={setDragOverStatus}
+          onDrop={handleDrop}
+        />
       ) : (
-        <>
-          {/* Stage filter pills */}
-          <div className={`${styles.pillRow} ${styles.stagePills}`}>
-            <FilterPill
-              label="All"
-              active={stageFilter === ALL_FILTER}
-              onClick={() => setStageFilter(ALL_FILTER)}
-            />
-            {ORDER_STATUSES.map((status) => (
-              <FilterPill
-                key={status}
-                label={STATUS_CONFIG[status].label}
-                count={getOrdersByStatus(status).length}
-                active={stageFilter === status}
-                onClick={() => setStageFilter(stageFilter === status ? ALL_FILTER : status)}
-              />
-            ))}
-          </div>
-
-          {/* Stage sections: banner + vertical list of compact cards */}
-          {!hasAnyVisible ? (
-            <EmptyState
-              icon={<Symbol name="checkroom" size={40} />}
-              title="Nothing here yet"
-              description={searchQuery ? 'No orders match your search.' : 'Orders in this stage will appear here.'}
-            />
-          ) : (
-            visibleStages.map((status) => {
-              const stageOrders = getOrdersByStatus(status);
-              if (stageOrders.length === 0) return null;
-              const visibleCount = stageVisibleCounts[status] ?? STAGE_PAGE_SIZE;
-              const shown = stageOrders.slice(0, visibleCount);
-              return (
-                <section key={status} className={styles.stageSection}>
-                  <StageBanner status={status} count={stageOrders.length} />
-                  <div className={styles.cardList}>
-                    {shown.map((order, i) => (
-                      <OrderListCard
-                        key={order.id}
-                        order={order}
-                        userRole={userRole}
-                        index={i}
-                        onOpen={() => router.push(`/production/${order.id}`)}
-                        onAdvance={() => handleAdvance(order.id)}
-                        onRevert={() => handleRevert(order.id)}
-                        staffMembers={staffMembers}
-                        onReassign={handleReassign}
-                      />
-                    ))}
-                  </div>
-                  {stageOrders.length > visibleCount && (
-                    <button
-                      type="button"
-                      className={styles.showMoreBtn}
-                      onClick={() =>
-                        setStageVisibleCounts((prev) => ({ ...prev, [status]: visibleCount + STAGE_PAGE_SIZE }))
-                      }
-                    >
-                      Show {Math.min(STAGE_PAGE_SIZE, stageOrders.length - visibleCount)} more (
-                      {stageOrders.length - visibleCount} remaining)
-                    </button>
-                  )}
-                </section>
-              );
-            })
-          )}
-          {/* Reserves clearance below the last card for the floating create
-              FAB (mobile only — the FAB doesn't exist on desktop), so it
-              never sits on top of a card's own "Move to X" action. */}
-          {hasAnyVisible && <div className={styles.fabClearance} />}
-        </>
+        <StageList
+          stageFilter={stageFilter}
+          setStageFilter={setStageFilter}
+          visibleStages={visibleStages}
+          hasAnyVisible={hasAnyVisible}
+          searchQuery={searchQuery}
+          getOrdersByStatus={getOrdersByStatus}
+          stageVisibleCounts={stageVisibleCounts}
+          stagePageSize={STAGE_PAGE_SIZE}
+          onShowMore={handleShowMore}
+          userRole={userRole}
+          staffMembers={staffMembers}
+          onOpen={handleOpen}
+          onAdvance={handleAdvance}
+          onRevert={handleRevert}
+          onReassign={handleReassign}
+        />
       )}
     </>
   );

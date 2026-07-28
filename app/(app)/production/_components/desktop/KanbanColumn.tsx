@@ -1,7 +1,7 @@
 'use client';
 
 import { STATUS_CONFIG } from '@/lib/constants';
-import OrderListCard from '@/components/production/OrderListCard/OrderListCard';
+import OrderListCard from '../OrderListCard';
 import type { Order, OrderStatus, Role, User } from '@/lib/types';
 import styles from './KanbanColumn.module.css';
 

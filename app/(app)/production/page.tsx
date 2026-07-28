@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
-import KanbanBoard from '@/components/kanban/KanbanBoard/KanbanBoard';
+import ProductionBoard from './_components/ProductionBoard';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import styles from './page.module.css';
 
@@ -27,7 +27,7 @@ export default function ProductionPage() {
     >
       <div className={styles.boardWrapper}>
         <Suspense fallback={null}>
-          <KanbanBoard userRole={user?.role || 'Staff'} />
+          <ProductionBoard userRole={user?.role || 'Staff'} />
         </Suspense>
       </div>
     </PageLayout>
