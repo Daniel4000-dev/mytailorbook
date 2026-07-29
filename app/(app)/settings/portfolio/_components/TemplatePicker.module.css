@@ -1,0 +1,79 @@
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.card {
+  text-align: left;
+  background: var(--sf-bg-surface);
+  border: 1.5px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease;
+}
+
+.cardActive {
+  border-color: var(--sf-accent-emerald);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-primary);
+}
+
+.cardCheck {
+  color: var(--sf-accent-emerald);
+}
+
+.cardDesc {
+  display: block;
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}
+
+.accentLabel {
+  display: block;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sf-space-sm);
+}
+
+.swatchRow {
+  display: flex;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swatchActive {
+  box-shadow: 0 0 0 2px var(--sf-bg-surface), 0 0 0 4px var(--sf-text-primary);
+}
+
+.swatchCheck {
+  color: #FFFFFF;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
