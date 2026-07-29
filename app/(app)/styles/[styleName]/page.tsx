@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/compressImage';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -53,10 +54,11 @@ export default function StyleDetailPage() {
   }, [load]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentShop?.id || !user) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !currentShop?.id || !user) return;
     setUploading(true);
     try {
+      const file = await compressImage(rawFile);
       const supabase = createClient();
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${currentShop.id}/${encodeURIComponent(styleName)}/${crypto.randomUUID()}.${ext}`;

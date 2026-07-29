@@ -19,6 +19,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { compressImage } from '@/lib/compressImage';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
 
@@ -116,10 +117,11 @@ export default function SettingsPage() {
   };
 
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentShop?.id) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !currentShop?.id) return;
     setUploadingLogo(true);
     try {
+      const file = await compressImage(rawFile, { maxDimension: 800 });
       const supabase = createClient();
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${currentShop.id}/branding/logo-${crypto.randomUUID()}.${ext}`;
@@ -146,10 +148,11 @@ export default function SettingsPage() {
   };
 
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user?.uid) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !user?.uid) return;
     setUploadingAvatar(true);
     try {
+      const file = await compressImage(rawFile, { maxDimension: 512 });
       const supabase = createClient();
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${user.uid}/avatar-${crypto.randomUUID()}.${ext}`;

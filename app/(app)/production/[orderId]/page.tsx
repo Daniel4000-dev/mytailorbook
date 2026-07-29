@@ -25,6 +25,7 @@ import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, is
 import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { compressImage } from '@/lib/compressImage';
 import styles from './page.module.css';
 
 export default function OrderDetailPage() {
@@ -188,11 +189,12 @@ export default function OrderDetailPage() {
     }
   };
 
-  const uploadToStorage = async (file: File, subdir: string) => {
+  const uploadToStorage = async (rawFile: File, subdir: string) => {
     // Uploaded straight to Supabase Storage from the browser — bypassing
     // the Next.js Server Action that `updateOrder` goes through, which
     // caps request bodies at 1MB by default. Only the short public URL
     // gets saved to the order.
+    const file = await compressImage(rawFile);
     const supabase = createClient();
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${order.shopId}/${order.id}/${subdir}${crypto.randomUUID()}.${ext}`;

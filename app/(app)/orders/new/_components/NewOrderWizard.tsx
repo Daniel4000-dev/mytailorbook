@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/compressImage';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
@@ -309,10 +310,11 @@ export default function NewOrderWizard() {
   /* ── Custom style photo — the "avenue" to add a picture for a
    *  shop-defined style once it's created ────────────────────── */
   const handleCustomStylePhoto = async (styleName: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user?.shopId) return;
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !user?.shopId) return;
     setUploadingCustomPhoto(styleName);
     try {
+      const file = await compressImage(rawFile);
       const supabase = createClient();
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${user.shopId}/custom-styles/${crypto.randomUUID()}.${ext}`;
@@ -364,7 +366,8 @@ export default function NewOrderWizard() {
     try {
       const supabase = createClient();
       const urls: string[] = [];
-      for (const file of Array.from(files)) {
+      for (const rawFile of Array.from(files)) {
+        const file = await compressImage(rawFile);
         const ext = file.name.split('.').pop() || 'jpg';
         const path = `${user.shopId}/inspo/${crypto.randomUUID()}.${ext}`;
         const { error: uploadError } = await supabase.storage.from('order-photos').upload(path, file, {
