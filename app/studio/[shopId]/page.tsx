@@ -17,10 +17,20 @@ export async function generateMetadata({ params }: { params: Promise<{ shopId: s
   return {
     title,
     description,
+    // The one page in the app that's genuinely meant to be found —
+    // explicit opt-in overrides the root layout's site-wide noindex default.
+    robots: { index: true, follow: true },
     openGraph: {
       title,
       description,
+      type: 'website',
       images: portfolio.photos[0] ? [{ url: portfolio.photos[0].url }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: portfolio.photos[0] ? [portfolio.photos[0].url] : undefined,
     },
   };
 }
@@ -40,5 +50,32 @@ export default async function StudioPage({ params }: { params: Promise<{ shopId:
     );
   }
 
-  return <PortfolioView portfolio={portfolio} />;
+  // Structured data for local-business discovery — only real fields the
+  // shop actually has are included, nothing fabricated (no rating/review
+  // counts, no fake hours).
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'ClothingStore',
+    name: portfolio.shop.name,
+  };
+  if (portfolio.shop.address) jsonLd.address = portfolio.shop.address;
+  if (portfolio.shop.phone) jsonLd.telephone = portfolio.shop.phone;
+  if (portfolio.shop.logoUrl) jsonLd.image = portfolio.shop.logoUrl;
+  else if (portfolio.photos[0]) jsonLd.image = portfolio.photos[0].url;
+  if (portfolio.shop.bio) jsonLd.description = portfolio.shop.bio;
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // shop name/bio/address are owner-entered content, not trusted —
+        // JSON.stringify doesn't escape "<", so without this a bio
+        // containing "</script>" could break out of the tag and inject
+        // arbitrary HTML/script into every visitor's page.
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
+      <PortfolioView portfolio={portfolio} />
+    </>
+  );
 }

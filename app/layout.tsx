@@ -6,9 +6,24 @@ import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(`https://${APP_CONFIG.domain}`),
   title: `${APP_CONFIG.name} — Fashion Studio Workspace`,
   description:
     'Premium workspace for managing orders, production, and clients in your fashion design studio.',
+  // Almost every route here is either auth-gated or a private-by-link
+  // customer page (tracking/receipt) — default to noindex and let the
+  // few genuinely public pages (portfolio, privacy) opt back in
+  // explicitly via their own metadata/generateMetadata.
+  robots: { index: false, follow: false },
+  openGraph: {
+    siteName: APP_CONFIG.name,
+    type: 'website',
+    locale: APP_CONFIG.locale.replace('-', '_'),
+    images: [{ url: '/images/logo-full.png', width: 760, height: 530 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

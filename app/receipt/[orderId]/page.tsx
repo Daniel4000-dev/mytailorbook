@@ -1,9 +1,14 @@
+import type { Metadata } from 'next';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import PrintButton from './_components/PrintButton';
 import styles from './page.module.css';
+
+// Private-by-link customer page (real names, financials) — must never
+// show up in search results even though it's technically public/unauthed.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function ReceiptPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;

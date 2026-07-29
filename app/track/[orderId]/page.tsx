@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { getPublicOrderView, getPublicOrderComments, getPublicBatchSiblings } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
@@ -11,6 +12,10 @@ import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
 import styles from './page.module.css';
+
+// Private-by-link customer page (real names, order details) — must never
+// show up in search results even though it's technically public/unauthed.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Completed'];
 
@@ -79,7 +84,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   return (
     <div className={styles.page}>
-      {/* Brand header — deliberately MyStitchBook, not the shop: this page
+      {/* Brand header — deliberately SabiTailors, not the shop: this page
           is the app's main visibility channel to every shop's customers. */}
       <header className={styles.header}>
         <div className={styles.brandBlock}>

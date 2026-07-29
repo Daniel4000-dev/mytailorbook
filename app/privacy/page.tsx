@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
+
+// A real, legitimately public legal page — opts back in to indexing
+// against the root layout's site-wide noindex default.
+export const metadata: Metadata = {
+  title: `Privacy Policy — ${APP_CONFIG.name}`,
+  description: `How ${APP_CONFIG.name} collects, uses, and protects your data.`,
+  robots: { index: true, follow: true },
+};
 
 const LAST_UPDATED = 'July 6, 2026';
 const CONTROLLER_NAME = 'Adekunle Daniel';
