@@ -1,5 +1,5 @@
 /* ============================================================
-   MyStitchBook Type Definitions
+   SabiTailors Type Definitions
    ============================================================
    All shared TypeScript types and interfaces.
    ============================================================ */

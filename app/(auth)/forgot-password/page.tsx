@@ -34,13 +34,13 @@ export default function ForgotPasswordPage() {
         <div className={styles.logoWrapper}>
           <img
             src="/images/logo-mark.png"
-            alt="MyStitchBook"
+            alt="SabiTailors"
             className={styles.sewingMachineSvg}
           />
         </div>
 
         {/* Brand Title */}
-        <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+        <h1 className={styles.brandTitle}>SABITAILORS</h1>
 
         <div className={styles.successWrapper}>
           <div className={styles.successIconWrapper}>
@@ -68,13 +68,13 @@ export default function ForgotPasswordPage() {
       <div className={styles.logoWrapper}>
         <img
           src="/images/logo-mark.png"
-          alt="MyStitchBook"
+          alt="SabiTailors"
           className={styles.sewingMachineSvg}
         />
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+      <h1 className={styles.brandTitle}>SABITAILORS</h1>
 
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <div className={styles.errorBanner}>{error}</div>}

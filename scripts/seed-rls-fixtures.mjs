@@ -27,7 +27,7 @@ const admin = createClient(
 const TENANTS = [
   {
     label: 'A',
-    email: 'rls-fixture-a@mystitchbook.test',
+    email: 'rls-fixture-a@sabitailors.test',
     password: 'RLS-fixture-pw-a-7h2k9',
     shopName: 'RLS Fixture Shop A',
     ownerName: 'RLS Fixture Owner A',
@@ -36,7 +36,7 @@ const TENANTS = [
   },
   {
     label: 'B',
-    email: 'rls-fixture-b@mystitchbook.test',
+    email: 'rls-fixture-b@sabitailors.test',
     password: 'RLS-fixture-pw-b-3q8m1',
     shopName: 'RLS Fixture Shop B',
     ownerName: 'RLS Fixture Owner B',

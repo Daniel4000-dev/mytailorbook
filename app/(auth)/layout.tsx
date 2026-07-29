@@ -49,7 +49,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               <div className={styles.tag}>BESPOKE WORKSHOP</div>
               <h2 className={styles.editorialTitle}>Crafting Perfection, One Stitch at a Time.</h2>
               <p className={styles.editorialText}>
-                MyStitchBook empowers master tailors to seamlessly capture measurements, track custom order pipelines, and manage workshop finances all in one premium workspace.
+                SabiTailors empowers master tailors to seamlessly capture measurements, track custom order pipelines, and manage workshop finances all in one premium workspace.
               </p>
               
               <div className={styles.illustrationCard}>
