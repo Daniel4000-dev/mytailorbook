@@ -1,5 +1,7 @@
 /* Public shop portfolio — the tailor's shareable website. Elevated from
-   the Stitch mockup; colors per the two-color rule. */
+   the Stitch mockup; --m-accent/-dark/-light are set inline per shop from
+   a curated palette (see ModernTemplate.tsx ACCENTS), defaulting to this
+   template's original indigo so existing shops see no visual change. */
 
 .page {
   min-height: 100dvh;
@@ -8,26 +10,6 @@
   font-family: var(--sf-font-body);
   display: flex;
   flex-direction: column;
-}
-
-/* ── Scroll reveals ─────────────────────────────────────────── */
-.reveal {
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    transition: none;
-    opacity: 1;
-    transform: none;
-  }
 }
 
 /* ── Mini header ────────────────────────────────────────────── */
@@ -56,7 +38,7 @@
 .miniName {
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-xl);
-  color: var(--sf-accent-emerald);
+  color: var(--m-accent);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -69,7 +51,7 @@
   height: 40px;
   padding: 0 var(--sf-space-lg);
   border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald);
+  background: var(--m-accent);
   color: var(--sf-text-on-accent);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
@@ -95,23 +77,13 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  animation: heroDrift 24s ease-in-out infinite alternate;
-}
-
-@keyframes heroDrift {
-  from { transform: scale(1); }
-  to { transform: scale(1.08); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .heroPhoto { animation: none; }
 }
 
 .heroFallback {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(120% 90% at 85% 10%, rgba(99, 102, 241, 0.55) 0%, transparent 55%),
+    radial-gradient(120% 90% at 85% 10%, color-mix(in srgb, var(--m-accent-light) 55%, transparent) 0%, transparent 55%),
     linear-gradient(160deg, #24215c 0%, #17163a 70%);
 }
 
@@ -131,16 +103,6 @@
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  animation: heroRise 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes heroRise {
-  from { opacity: 0; transform: translateY(26px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .heroContent { animation: none; }
 }
 
 .avatar {
@@ -182,8 +144,14 @@
   font-size: clamp(38px, 8vw, 56px);
   line-height: 1.1;
   color: #ffffff;
-  margin-bottom: var(--sf-space-xl);
   text-wrap: balance;
+}
+
+.heroTagline {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: var(--sf-text-sm);
+  max-width: 36ch;
+  margin: var(--sf-space-sm) 0 0;
 }
 
 .heroCtas {
@@ -191,6 +159,7 @@
   flex-direction: column;
   gap: var(--sf-space-md);
   width: 100%;
+  margin-top: var(--sf-space-xl);
 }
 
 @media (min-width: 640px) {
@@ -217,13 +186,13 @@
 }
 
 .ctaPrimary {
-  background: var(--sf-accent-emerald);
+  background: var(--m-accent);
   color: var(--sf-text-on-accent);
-  box-shadow: 0 10px 25px rgba(67, 56, 202, 0.35);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--m-accent) 35%, transparent);
 }
 
 .ctaPrimary:hover {
-  background: var(--sf-accent-emerald-light);
+  background: var(--m-accent-light);
 }
 
 .ctaPrimary:active,
@@ -241,6 +210,31 @@
 
 .ctaGlass:hover {
   background: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Our Craft — story block ───────────────────────────────── */
+.storySection {
+  padding: var(--sf-space-xl) var(--sf-margin-mobile);
+  background: var(--sf-bg-surface-elevated);
+  text-align: center;
+}
+
+.storyEyebrow {
+  display: block;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--m-accent);
+  margin-bottom: 6px;
+}
+
+.storyBody {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  max-width: 52ch;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
 /* ── Proof strip ────────────────────────────────────────────── */
@@ -269,13 +263,13 @@
   font-family: var(--sf-font-heading);
   font-size: clamp(30px, 8vw, 48px);
   line-height: 1.15;
-  color: var(--sf-accent-emerald);
+  color: var(--m-accent);
   font-variant-numeric: tabular-nums;
 }
 
 .proofNum em {
   font-style: normal;
-  color: var(--sf-accent-emerald-light);
+  color: var(--m-accent-light);
   opacity: 0.7;
 }
 
@@ -286,6 +280,12 @@
   text-transform: uppercase;
   color: var(--sf-text-secondary);
   margin-top: 4px;
+}
+
+.proofSub {
+  font-size: 10px;
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
 }
 
 /* ── Gallery ────────────────────────────────────────────────── */
@@ -338,8 +338,8 @@
 }
 
 .filterPillActive {
-  background: var(--sf-accent-emerald);
-  border-color: var(--sf-accent-emerald);
+  background: var(--m-accent);
+  border-color: var(--m-accent);
   color: var(--sf-text-on-accent);
   box-shadow: var(--sf-shadow-sm);
 }
@@ -456,7 +456,7 @@
   width: 64px;
   height: 64px;
   border-radius: var(--sf-radius-full);
-  color: var(--sf-accent-emerald);
+  color: var(--m-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -494,11 +494,70 @@
   padding: 10px 20px;
   border-radius: var(--sf-radius-full);
   background: var(--sf-surface-variant);
-  color: var(--sf-accent-emerald);
+  color: var(--m-accent);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
   text-transform: uppercase;
+}
+
+/* ── Real reviews ───────────────────────────────────────────── */
+.reviewsSection {
+  padding: var(--sf-space-2xl) 0 var(--sf-space-2xl) var(--sf-margin-mobile);
+  background: var(--sf-bg-primary);
+}
+
+.reviewsSub {
+  text-align: center;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin: calc(-1 * var(--sf-space-md)) var(--sf-margin-mobile) var(--sf-space-lg) 0;
+}
+
+.reviewsRow {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-right: var(--sf-margin-mobile);
+  padding-bottom: 4px;
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.reviewsRow::-webkit-scrollbar {
+  display: none;
+}
+
+.reviewCard {
+  flex: 0 0 78%;
+  max-width: 320px;
+  scroll-snap-align: start;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+}
+
+.reviewStars {
+  color: var(--m-accent);
+  font-size: 13px;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.reviewQuote {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  line-height: 1.55;
+  margin: 0 0 10px;
+}
+
+.reviewAttrib {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
 }
 
 /* ── Final CTA ──────────────────────────────────────────────── */
@@ -513,25 +572,12 @@
   position: relative;
   width: 100%;
   max-width: 520px;
-  background: linear-gradient(150deg, var(--sf-accent-emerald) 0%, #312E81 100%);
+  background: linear-gradient(150deg, var(--m-accent) 0%, var(--m-accent-dark) 100%);
   border-radius: 32px;
   padding: var(--sf-space-2xl) var(--sf-space-xl);
   text-align: center;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(67, 56, 202, 0.28);
-}
-
-.ctaOrb {
-  position: absolute;
-  top: -64px;
-  right: -64px;
-  width: 160px;
-  height: 160px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald-light);
-  filter: blur(60px);
-  opacity: 0.55;
-  pointer-events: none;
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--m-accent) 28%, transparent);
 }
 
 .ctaCard h2 {
@@ -560,7 +606,7 @@
   min-height: var(--sf-touch-target);
   border-radius: var(--sf-radius-full);
   background: #ffffff;
-  color: var(--sf-accent-emerald);
+  color: var(--m-accent);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-bold);
   text-decoration: none;
@@ -574,6 +620,34 @@
 
 .ctaCardBtn:active {
   transform: scale(0.97);
+}
+
+.guaranteeList {
+  position: relative;
+  list-style: none;
+  margin: var(--sf-space-lg) 0 0;
+  padding: var(--sf-space-md) 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+
+.guaranteeList li {
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  color: rgba(255, 255, 255, 0.85);
+  padding-left: 18px;
+  position: relative;
+}
+
+.guaranteeList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #ffffff;
+  font-weight: 900;
 }
 
 .ctaAddress {
@@ -611,7 +685,7 @@
 .footerBrand {
   font-family: var(--sf-font-heading);
   font-size: 14px;
-  color: var(--sf-accent-emerald);
+  color: var(--m-accent);
   text-transform: none;
 }
 
