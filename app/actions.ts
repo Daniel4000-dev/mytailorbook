@@ -135,6 +135,10 @@ function shopFromRow(row: any): Shop {
     portfolioTemplate: row.portfolio_template || 'modern',
     portfolioAccent: row.portfolio_accent || 'indigo',
     portfolioSettings: row.portfolio_settings || {},
+    paystackCustomerCode: row.paystack_customer_code || undefined,
+    paystackSubscriptionCode: row.paystack_subscription_code || undefined,
+    subscriptionPlan: row.subscription_plan || undefined,
+    subscriptionStatus: row.subscription_status || 'free',
   };
 }
 

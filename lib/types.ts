@@ -55,6 +55,10 @@ export interface Shop {
   /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
    *  fall back to no display of that element, not a placeholder string. */
   portfolioSettings: { tagline?: string; bio?: string; foundedYear?: number };
+  paystackCustomerCode?: string;
+  paystackSubscriptionCode?: string;
+  subscriptionPlan?: string;
+  subscriptionStatus: 'free' | 'active' | 'past_due' | 'canceled';
 }
 
 /** Owner-set visibility override for one photo (matched by URL) on the

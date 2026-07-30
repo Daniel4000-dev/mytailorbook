@@ -1,0 +1,108 @@
+.page {
+  min-height: 100vh;
+  background: var(--sf-bg-primary);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--sf-bg-primary);
+  border-bottom: 1px solid var(--sf-border-light);
+  padding: 16px 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+}
+
+.brand span {
+  font-weight: var(--sf-weight-bold);
+  font-size: var(--sf-text-sm);
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-text-primary);
+}
+
+.content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--sf-space-2xl) var(--sf-margin-mobile) var(--sf-space-3xl);
+}
+
+.back {
+  display: inline-block;
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  text-decoration: none;
+  margin-bottom: var(--sf-space-lg);
+}
+
+.title {
+  font-size: var(--sf-text-4xl);
+  line-height: var(--sf-leading-tight);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: 0 0 var(--sf-space-xs);
+}
+
+.date {
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-sm);
+  margin: 0 0 var(--sf-space-2xl);
+}
+
+/* Prose styling for the rendered MDX body — the app has no other
+   long-form-article surface to match, so this is deliberately its own
+   readable-text treatment, still built entirely from the shared tokens. */
+.prose {
+  font-size: var(--sf-text-lg);
+  line-height: var(--sf-leading-relaxed);
+  color: var(--sf-text-primary);
+}
+
+.prose :global(p) {
+  margin: 0 0 var(--sf-space-lg);
+}
+
+.prose :global(h2) {
+  font-size: var(--sf-text-2xl);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: var(--sf-space-2xl) 0 var(--sf-space-md);
+}
+
+.prose :global(h3) {
+  font-size: var(--sf-text-xl);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  margin: var(--sf-space-xl) 0 var(--sf-space-sm);
+}
+
+.prose :global(ul),
+.prose :global(ol) {
+  margin: 0 0 var(--sf-space-lg);
+  padding-left: var(--sf-space-lg);
+}
+
+.prose :global(li) {
+  margin-bottom: var(--sf-space-xs);
+}
+
+.prose :global(strong) {
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.prose :global(a) {
+  color: var(--sf-accent-emerald);
+}

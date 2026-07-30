@@ -25,6 +25,7 @@ export const MOCK_SHOP: Shop = {
   portfolioTemplate: 'modern',
   portfolioAccent: 'indigo',
   portfolioSettings: {},
+  subscriptionStatus: 'free',
 };
 
 export const MOCK_SHOPS: Shop[] = [MOCK_SHOP];

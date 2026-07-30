@@ -4,14 +4,12 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/contexts/ToastContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, loading } = useAuth();
-  const { showToast } = useToast();
+  const { signup, signInWithGoogle, loading } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,8 +18,12 @@ export default function SignupPage() {
   const [submitted, setSubmitted] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
-  const handleGoogle = () => {
-    showToast('Google sign-in is currently unavailable — please create your account using the form.', 'info');
+  const handleGoogle = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign up with Google');
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {

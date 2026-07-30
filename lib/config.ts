@@ -8,6 +8,7 @@ export const APP_CONFIG = {
   name: 'SabiTailors',
   tagline: 'Precision. Elegance. Flow.',
   domain: 'sabitailors.com',
+  baseUrl: 'https://sabitailors.com',
   currency: 'NGN',
   locale: 'en-NG',
   phonePrefix: '234',

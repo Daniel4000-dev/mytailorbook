@@ -88,6 +88,10 @@ export async function getPublicOrderView(orderId: string): Promise<{
         portfolioTemplate: shopRow.portfolio_template || 'modern',
         portfolioAccent: shopRow.portfolio_accent || 'indigo',
         portfolioSettings: shopRow.portfolio_settings || {},
+        // Billing state is deliberately never surfaced on this
+        // customer-facing tracking page — 'free' is a safe, inert default
+        // to satisfy the type, not a real read of the shop's own status.
+        subscriptionStatus: 'free',
       }
     : null;
 

@@ -14,14 +14,17 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
+import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
+import { initializeSubscription } from '@/app/actions/payments';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
+import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -49,6 +52,19 @@ export default function SettingsPage() {
 
   const [noteTemplate, setNoteTemplate] = useState('');
   const [savingNote, setSavingNote] = useState(false);
+
+  const [upgrading, setUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    setUpgrading(true);
+    try {
+      const { authorizationUrl } = await initializeSubscription();
+      window.location.href = authorizationUrl;
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
+      setUpgrading(false);
+    }
+  };
 
   if (!isOwner) {
     return (
@@ -210,6 +226,13 @@ export default function SettingsPage() {
 
       <div className={styles.groups}>
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Preferences</span>
+          <div className={styles.groupCard}>
+            <AppearanceToggle />
+          </div>
+        </div>
+
+        <div className={styles.group}>
           <span className={styles.groupLabel}>Your Studio</span>
           <div className={styles.groupCard}>
             <SettingsRow
@@ -229,6 +252,34 @@ export default function SettingsPage() {
               }
               onClick={() => setOpenSheet('logo')}
             />
+          </div>
+        </div>
+
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Billing & Subscription</span>
+          <div className={styles.groupCard}>
+            {/* Not a SettingsRow here on purpose — SettingsRow's root is
+                itself a <button>, and this row needs its own independently
+                clickable "Upgrade" button nested inside it. Nesting a
+                <button> inside another <button> is invalid HTML (breaks
+                hydration and click targeting), so this is built as a plain,
+                non-interactive row instead. */}
+            <div className={billingRowStyles.row}>
+              <Symbol name="workspace_premium" size={20} className={billingRowStyles.icon} />
+              <span className={billingRowStyles.textCol}>
+                <span className={billingRowStyles.label}>SabiTailors Pro</span>
+                <span className={billingRowStyles.subtitle}>
+                  {currentShop?.subscriptionStatus === 'active' ? 'Active Subscription' : 'Free Tier'}
+                </span>
+              </span>
+              {currentShop?.subscriptionStatus === 'active' ? (
+                <span className={styles.proMemberBadge}>Pro Member</span>
+              ) : (
+                <Button variant="primary" loading={upgrading} onClick={handleUpgrade} size="sm">
+                  Upgrade
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

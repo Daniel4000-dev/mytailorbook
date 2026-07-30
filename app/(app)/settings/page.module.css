@@ -173,3 +173,10 @@
 .uploadBtn:active {
   background: var(--sf-bg-surface-hover);
 }
+
+.proMemberBadge {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-success);
+  flex-shrink: 0;
+}

@@ -5,14 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/contexts/ToastContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loading } = useAuth();
-  const { showToast } = useToast();
+  const { login, signInWithGoogle, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,8 +36,12 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogle = () => {
-    showToast('Google sign-in is currently unavailable — please create an account manually using Register.', 'info');
+  const handleGoogle = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+    }
   };
 
   return (
