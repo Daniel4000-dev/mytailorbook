@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   border: 1px dashed var(--sf-border);
   border-radius: var(--sf-radius-md);
   padding: var(--sf-space-md);
@@ -139,7 +139,7 @@
 
 .approveBtn:active {
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
 }
 
 .discardBtn {

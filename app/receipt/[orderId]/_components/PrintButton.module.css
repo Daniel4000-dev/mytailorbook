@@ -4,7 +4,7 @@
   gap: var(--sf-space-sm);
   padding: var(--sf-space-sm) var(--sf-space-lg);
   background: var(--sf-accent-emerald);
-  color: #fff;
+  color: var(--sf-text-on-accent);
   border: none;
   border-radius: var(--sf-radius-md);
   font-size: var(--sf-text-sm);

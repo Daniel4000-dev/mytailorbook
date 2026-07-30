@@ -24,6 +24,29 @@
   padding: var(--sf-space-2xl);
 }
 
+/* .page/.card use a fixed off-white/paper look on purpose (this is a
+   receipt — meant to read like a physical document) rather than the
+   app's own reactive surface tokens, so left as literals in light mode.
+   A flat light-cream/white island would look like a bug sitting inside
+   an otherwise dark-themed app though, so both get a dark-mode-only
+   override to the real dark surface tokens. The existing @media print
+   block below is unaffected — it re-forces #fff/no-shadow for the
+   printed page regardless of on-screen theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .page {
+    background: var(--sf-bg-primary);
+  }
+  :root:not([data-theme="light"]) .card {
+    background: var(--sf-bg-surface);
+  }
+}
+:root[data-theme="dark"] .page {
+  background: var(--sf-bg-primary);
+}
+:root[data-theme="dark"] .card {
+  background: var(--sf-bg-surface);
+}
+
 .header {
   display: flex;
   justify-content: space-between;

@@ -33,7 +33,7 @@
   max-width: 380px;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: 6px;
   overflow: hidden;
@@ -271,7 +271,7 @@
   padding: 4px 8px;
   border: 1px solid var(--sf-border);
   border-radius: 4px;
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   font-size: 13px;
   color: var(--sf-text-primary);
   text-align: right;

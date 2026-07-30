@@ -770,3 +770,24 @@
 .skipBtn:hover {
   color: var(--sf-accent-emerald);
 }
+
+/* .header / .summaryBar are frosted-glass bars over the PAGE canvas
+   (not a photo) — their light-mode rgba tint is --sf-bg-primary/
+   --sf-bg-surface at partial alpha, so they need a dark equivalent or
+   they'd stay a bright near-white bar floating on a dark page. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .header {
+    background: rgba(19, 18, 32, 0.85);
+  }
+  :root:not([data-theme="light"]) .summaryBar {
+    background: rgba(27, 26, 43, 0.92);
+  }
+}
+
+:root[data-theme="dark"] .header {
+  background: rgba(19, 18, 32, 0.85);
+}
+
+:root[data-theme="dark"] .summaryBar {
+  background: rgba(27, 26, 43, 0.92);
+}

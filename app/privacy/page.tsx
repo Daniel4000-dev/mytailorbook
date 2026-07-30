@@ -37,8 +37,8 @@ export default function PrivacyPolicyPage() {
         </p>
 
         <div className={styles.noticeBox}>
-          <strong>An important distinction before you read further:</strong> {APP_CONFIG.name} is a
-          tool that tailors and studios use to run their business. If you&apos;re a studio owner, you
+          <strong>An important distinction before you read further:</strong>{' '}
+          {APP_CONFIG.name}{' '}is a tool that tailors and studios use to run their business. If you&apos;re a studio owner, you
           enter information about your own customers — their name, phone number, body measurements,
           and order details — into the app. For that customer data, <em>you</em> (the studio) are the
           data controller under Nigerian law, and {APP_CONFIG.name} acts as your data processor,

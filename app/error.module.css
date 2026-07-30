@@ -10,7 +10,7 @@
 .card {
   max-width: 420px;
   width: 100%;
-  background: #fff;
+  background: var(--sf-bg-surface);
   border-radius: var(--sf-radius-lg);
   padding: var(--sf-space-2xl);
   box-shadow: var(--sf-shadow-md);
@@ -60,7 +60,7 @@
   border-radius: var(--sf-radius-md);
   border: none;
   background: var(--sf-accent-emerald-dark);
-  color: #fff;
+  color: var(--sf-text-on-accent);
   font-weight: 600;
   font-size: var(--sf-text-sm);
   cursor: pointer;
@@ -74,4 +74,16 @@
   font-weight: 600;
   font-size: var(--sf-text-sm);
   text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .iconWrapper {
+    background: rgba(239, 68, 68, 0.16);
+    color: #F87171;
+  }
+}
+
+:root[data-theme="dark"] .iconWrapper {
+  background: rgba(239, 68, 68, 0.16);
+  color: #F87171;
 }

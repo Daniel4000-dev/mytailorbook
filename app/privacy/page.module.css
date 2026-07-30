@@ -37,7 +37,7 @@
   max-width: 720px;
   margin: 0 auto;
   padding: 48px 24px 96px;
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   border-radius: var(--sf-radius-xl);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
   margin-top: 32px;

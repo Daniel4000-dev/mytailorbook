@@ -78,5 +78,5 @@
 
 .actionBtnActive {
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
 }

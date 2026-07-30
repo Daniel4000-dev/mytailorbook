@@ -30,7 +30,7 @@
 .rangeBtnActive {
   background: var(--sf-accent-emerald);
   border-color: var(--sf-accent-emerald);
-  color: #fff;
+  color: var(--sf-text-on-accent);
 }
 
 .totalsGrid {

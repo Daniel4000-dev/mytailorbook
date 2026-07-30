@@ -64,7 +64,7 @@
   top: 8px;
   right: 8px;
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-semibold);
   padding: 3px 8px;

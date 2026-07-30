@@ -26,7 +26,7 @@
 .saveStoryBtn {
   align-self: flex-start;
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-medium);
   border: none;
@@ -69,7 +69,7 @@
   top: 4px;
   left: 4px;
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
   font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;

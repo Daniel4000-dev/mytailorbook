@@ -51,7 +51,7 @@
   width: 100%;
   height: 52px;
   background-color: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
   border: none;
   border-radius: var(--sf-radius-sm);
   font-size: 16px;
@@ -114,6 +114,19 @@
   font-family: var(--sf-font-body), sans-serif;
   margin-bottom: 16px;
   text-align: center;
+}
+
+/* The border above is a fixed light-mode indigo tint — in dark mode the
+   accent itself shifts to a lighter indigo (#6366F1), so this needs the
+   matching dark-mode rgb equivalent at the same opacity, or the border
+   goes near-invisible against a dark background. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .errorBanner {
+    border-color: rgba(99, 102, 241, 0.35);
+  }
+}
+:root[data-theme="dark"] .errorBanner {
+  border-color: rgba(99, 102, 241, 0.35);
 }
 
 /* Success State Styles */

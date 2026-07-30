@@ -243,7 +243,7 @@
     opacity: 1 !important;
     pointer-events: auto !important;
     position: fixed;
-    background-color: #FFFFFF; /* Premium white sidebar */
+    background-color: var(--sf-bg-surface); /* Premium white sidebar */
     border-right: 1px solid var(--sf-border);
     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 100 !important;
@@ -307,7 +307,7 @@
   }
 
   .collapseToggle:hover {
-    background-color: #FFFFFF;
+    background-color: var(--sf-bg-surface-elevated);
     color: var(--sf-text-primary);
     transform: scale(1.05);
   }
@@ -323,7 +323,7 @@
     border: none;
     border-radius: 10px;
     background: var(--sf-accent-emerald);
-    color: #FFFFFF;
+    color: var(--sf-text-on-accent);
     font-family: var(--sf-font-body), sans-serif;
     font-size: 15px;
     font-weight: 600;

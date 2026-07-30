@@ -901,7 +901,7 @@
   height: 56px;
   border-radius: var(--sf-radius-full);
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
   font-size: 28px;
   display: flex;
   align-items: center;

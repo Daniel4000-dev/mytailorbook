@@ -29,7 +29,7 @@
    action exists, it just isn't ready. */
 .primary:disabled {
   background: var(--sf-border);
-  color: #A2937E;
+  color: var(--sf-text-tertiary);
 }
 
 .secondary:disabled,

@@ -1,5 +1,5 @@
 .card {
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   padding: 20px;
@@ -53,7 +53,7 @@
   border-radius: 50%;
   border: none;
   background: var(--sf-accent-emerald);
-  color: #fff;
+  color: var(--sf-text-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,6 +71,16 @@
   font-size: 12px;
   color: #DC2626;
   margin: 0;
+}
+
+/* Fixed error-red doesn't have enough contrast once the page goes dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .error {
+    color: #F87171;
+  }
+}
+:root[data-theme="dark"] .error {
+  color: #F87171;
 }
 
 .commentList {

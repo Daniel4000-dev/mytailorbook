@@ -181,3 +181,24 @@
   color: var(--sf-accent-emerald);
   opacity: 0.6;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .rowIcon.alert {
+    background: rgba(239, 68, 68, 0.16);
+    color: #F87171;
+  }
+  :root:not([data-theme="light"]) .rowIcon.warning {
+    background: rgba(245, 158, 11, 0.16);
+    color: #FBBF24;
+  }
+}
+
+:root[data-theme="dark"] .rowIcon.alert {
+  background: rgba(239, 68, 68, 0.16);
+  color: #F87171;
+}
+
+:root[data-theme="dark"] .rowIcon.warning {
+  background: rgba(245, 158, 11, 0.16);
+  color: #FBBF24;
+}

@@ -117,7 +117,7 @@
   align-items: center;
   justify-content: center;
   background: var(--sf-accent-emerald);
-  color: #FFFFFF;
+  color: var(--sf-text-on-accent);
   border: none;
   cursor: pointer;
   box-shadow: var(--sf-shadow-sm);

@@ -8,7 +8,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #FFFFFF;
+  background: var(--sf-bg-input);
   border: 1.2px solid var(--sf-border);
   border-radius: var(--sf-radius-sm);
   padding: 0 16px;
@@ -59,6 +59,21 @@
   background-color: #F1F0FD !important;
   font-weight: 700;
   z-index: 3;
+}
+
+/* The floating label's cutout background must match whatever surface
+   sits behind it — the auth page's own background (var(--sf-bg-primary))
+   — or a visible pale box shows around every focused label once the page
+   goes dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .input:focus ~ .label,
+  :root:not([data-theme="light"]) .input:not(:placeholder-shown) ~ .label {
+    background-color: var(--sf-bg-primary) !important;
+  }
+}
+:root[data-theme="dark"] .input:focus ~ .label,
+:root[data-theme="dark"] .input:not(:placeholder-shown) ~ .label {
+  background-color: var(--sf-bg-primary) !important;
 }
 
 .iconButton {

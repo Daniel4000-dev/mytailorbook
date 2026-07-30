@@ -194,3 +194,24 @@
 .seeAllBtn:hover {
   background: var(--sf-bg-surface-hover);
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .item.alert .itemIcon {
+    background: rgba(239, 68, 68, 0.16);
+    color: #F87171;
+  }
+  :root:not([data-theme="light"]) .item.warning .itemIcon {
+    background: rgba(245, 158, 11, 0.16);
+    color: #FBBF24;
+  }
+}
+
+:root[data-theme="dark"] .item.alert .itemIcon {
+  background: rgba(239, 68, 68, 0.16);
+  color: #F87171;
+}
+
+:root[data-theme="dark"] .item.warning .itemIcon {
+  background: rgba(245, 158, 11, 0.16);
+  color: #FBBF24;
+}
