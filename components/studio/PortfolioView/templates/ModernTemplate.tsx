@@ -120,6 +120,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
   return (
     <div
       className={styles.page}
+      data-accent={shop.portfolioAccent}
       style={{
         ['--m-accent' as string]: palette.accent,
         ['--m-accent-dark' as string]: palette.accentDark,

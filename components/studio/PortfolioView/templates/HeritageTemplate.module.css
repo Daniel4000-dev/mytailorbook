@@ -299,3 +299,65 @@
   font-weight: 600;
   color: var(--h-ink);
 }
+
+/* ── Dark mode ──────────────────────────────────────────────
+   Every color here already flows through this template's own --h-*
+   custom properties (including per data-accent variant), all declared
+   directly in this stylesheet rather than via inline style — so a dark
+   override doesn't need !important, just to come after the base rules
+   above (or be at least as specific), same warm-but-dark ground as the
+   rest of the app's own dark mode (styles/tokens.css), not a cold
+   blue-black, to keep this template's "heritage/warm" feel. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .page {
+    --h-canvas: #1C140D;
+    --h-ink: #F0E6D8;
+    --h-accent: #D97F52;
+    --h-accent-dark: #B4552E;
+    --h-gold: #D9B87E;
+    --h-muted: #B3A392;
+    --h-line: rgba(240, 230, 216, 0.16);
+    --h-card: rgba(255, 255, 255, 0.06);
+  }
+  :root:not([data-theme="light"]) .page[data-accent='sage'] {
+    --h-accent: #8FAD9B;
+    --h-accent-dark: #5B7A6B;
+    --h-gold: #B9CAB4;
+  }
+  :root:not([data-theme="light"]) .page[data-accent='umber'] {
+    --h-accent: #C0996A;
+    --h-accent-dark: #8A6C46;
+    --h-gold: #DCC194;
+  }
+  :root:not([data-theme="light"]) .page[data-accent='plum'] {
+    --h-accent: #A490B3;
+    --h-accent-dark: #6B5B7A;
+    --h-gold: #C7B9D3;
+  }
+}
+
+:root[data-theme="dark"] .page {
+  --h-canvas: #1C140D;
+  --h-ink: #F0E6D8;
+  --h-accent: #D97F52;
+  --h-accent-dark: #B4552E;
+  --h-gold: #D9B87E;
+  --h-muted: #B3A392;
+  --h-line: rgba(240, 230, 216, 0.16);
+  --h-card: rgba(255, 255, 255, 0.06);
+}
+:root[data-theme="dark"] .page[data-accent='sage'] {
+  --h-accent: #8FAD9B;
+  --h-accent-dark: #5B7A6B;
+  --h-gold: #B9CAB4;
+}
+:root[data-theme="dark"] .page[data-accent='umber'] {
+  --h-accent: #C0996A;
+  --h-accent-dark: #8A6C46;
+  --h-gold: #DCC194;
+}
+:root[data-theme="dark"] .page[data-accent='plum'] {
+  --h-accent: #A490B3;
+  --h-accent-dark: #6B5B7A;
+  --h-gold: #C7B9D3;
+}

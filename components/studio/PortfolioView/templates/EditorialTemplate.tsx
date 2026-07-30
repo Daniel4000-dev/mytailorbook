@@ -100,6 +100,7 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
   return (
     <div
       className={styles.page}
+      data-accent={shop.portfolioAccent}
       style={{ ['--e-accent' as string]: palette.accent, ['--e-accent-dark' as string]: palette.accentDark, ['--e-scrim' as string]: palette.scrim }}
     >
       <header className={`${styles.miniHeader} ${showMiniHeader ? styles.miniHeaderShown : ''}`}>

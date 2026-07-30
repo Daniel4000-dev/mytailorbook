@@ -759,3 +759,65 @@
 .lightboxNext {
   right: var(--sf-space-sm);
 }
+
+/* ── Dark mode ──────────────────────────────────────────────
+   Most of this page already flows through the app's own --sf-* tokens
+   (see styles/tokens.css), which already have dark variants — canvas,
+   surfaces, text and borders adapt automatically with zero changes here.
+   What's left: --m-accent/-dark/-light are set inline per shop (see
+   ModernTemplate.tsx's ACCENTS lookup, keyed by the data-accent attribute
+   also set there), so they're fixed light-mode hex values regardless of
+   theme and need !important to win over that inline style. Lightened
+   per accent for contrast against a dark canvas, same relationship
+   tokens.css used for its own indigo (#4338CA → #6366F1). Also: the
+   mini-header's light glass background needs its own dark equivalent —
+   it's the one hardcoded (non-token) color in this file. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .page {
+    --m-accent: #6366F1 !important;
+    --m-accent-dark: #4338CA !important;
+    --m-accent-light: #818CF8 !important;
+  }
+  :root:not([data-theme="light"]) .page[data-accent="coral"] {
+    --m-accent: #FF7A4D !important;
+    --m-accent-dark: #E8532A !important;
+    --m-accent-light: #FFAB85 !important;
+  }
+  :root:not([data-theme="light"]) .page[data-accent="emerald"] {
+    --m-accent: #34D399 !important;
+    --m-accent-dark: #0F9960 !important;
+    --m-accent-light: #6EE7B7 !important;
+  }
+  :root:not([data-theme="light"]) .page[data-accent="amber"] {
+    --m-accent: #FBBF24 !important;
+    --m-accent-dark: #B8860B !important;
+    --m-accent-light: #FDE68A !important;
+  }
+  :root:not([data-theme="light"]) .miniHeader {
+    background: rgba(19, 18, 32, 0.85);
+  }
+}
+
+:root[data-theme="dark"] .page {
+  --m-accent: #6366F1 !important;
+  --m-accent-dark: #4338CA !important;
+  --m-accent-light: #818CF8 !important;
+}
+:root[data-theme="dark"] .page[data-accent="coral"] {
+  --m-accent: #FF7A4D !important;
+  --m-accent-dark: #E8532A !important;
+  --m-accent-light: #FFAB85 !important;
+}
+:root[data-theme="dark"] .page[data-accent="emerald"] {
+  --m-accent: #34D399 !important;
+  --m-accent-dark: #0F9960 !important;
+  --m-accent-light: #6EE7B7 !important;
+}
+:root[data-theme="dark"] .page[data-accent="amber"] {
+  --m-accent: #FBBF24 !important;
+  --m-accent-dark: #B8860B !important;
+  --m-accent-light: #FDE68A !important;
+}
+:root[data-theme="dark"] .miniHeader {
+  background: rgba(19, 18, 32, 0.85);
+}
