@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { ThemeProvider, THEME_ANTI_FLASH_SCRIPT } from '@/contexts/ThemeContext';
 import { APP_CONFIG } from '@/lib/config';
 import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import './globals.css';
@@ -41,7 +42,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#F8F8FE',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F8F8FE' },
+    { media: '(prefers-color-scheme: dark)', color: '#131220' },
+  ],
 };
 
 export default function RootLayout({
@@ -64,14 +68,19 @@ export default function RootLayout({
             not readable text worth showing early. A brief blank icon beats
             a flash of clipped text. */}
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
+        {/* Sets data-theme before first paint if the user has forced a
+            theme — otherwise they'd see a flash of the wrong one. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_ANTI_FLASH_SCRIPT }} />
       </head>
       <body>
         <DesktopGate />
-        <ToastProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

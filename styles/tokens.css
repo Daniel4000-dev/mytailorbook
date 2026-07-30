@@ -199,3 +199,163 @@
   --sf-fab-size: 56px;
   --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ============================================================
+   Dark mode — same two-color rule (indigo accent + true neutrals),
+   re-tuned for a dark ground: the accent gets lighter (needs more
+   luminance to read against near-black), text/borders flip direction,
+   shadows swap from "subtle dark wash on white" to "black falloff on
+   dark" since a same-hue wash barely shows once the page itself is dark.
+   Only color-adjacent tokens change — spacing/type-scale/radii/z-index/
+   layout are theme-independent and stay in :root above.
+
+   Applied two ways: automatically via prefers-color-scheme (unless the
+   user has explicitly forced light via the in-app toggle), and forced
+   via [data-theme="dark"] regardless of OS preference. The toggle (see
+   contexts/ThemeContext.tsx) sets data-theme on <html>. ────────────── */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sf-bg-primary: #131220;
+    --sf-bg-surface: #1B1A2B;
+    --sf-bg-surface-elevated: #211F35;
+    --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
+    --sf-bg-input: #1B1A2B;
+    --sf-bg-overlay: rgba(0, 0, 0, 0.55);
+    --sf-surface-container-high: rgba(99, 102, 241, 0.14);
+    --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
+    --sf-surface-variant: rgba(99, 102, 241, 0.14);
+    --sf-sand: rgba(99, 102, 241, 0.08);
+
+    --sf-ink: #1B1A2B;
+    --sf-ink-soft: rgba(99, 102, 241, 0.10);
+    --sf-ink-text: #EDEDF5;
+    --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
+    --sf-nav: #2E2D45;
+    --sf-nav-icon: rgba(255, 255, 255, 0.75);
+
+    --sf-accent-emerald: #6366F1;
+    --sf-accent-emerald-dark: #4338CA;
+    --sf-accent-emerald-light: #818CF8;
+    --sf-accent-emerald-glow: rgba(99, 102, 241, 0.18);
+    --sf-accent-gold: #6366F1;
+    --sf-accent-gold-soft: rgba(99, 102, 241, 0.16);
+    --sf-accent-gold-glow: rgba(99, 102, 241, 0.26);
+
+    --sf-secondary: #6366F1;
+    --sf-secondary-container: rgba(99, 102, 241, 0.18);
+    --sf-on-secondary-container: #C7D2FE;
+    --sf-amber: #818CF8;
+    --sf-ochre: #6366F1;
+
+    --sf-text-primary: #EDEDF5;
+    --sf-text-secondary: #A5A3BC;
+    --sf-text-tertiary: #726F91;
+    --sf-text-on-accent: #0D0C17;
+    --sf-text-gold: #A5B4FC;
+
+    --sf-border: rgba(99, 102, 241, 0.24);
+    --sf-border-light: rgba(99, 102, 241, 0.14);
+    --sf-border-focus: #818CF8;
+
+    --sf-error: #6366F1;
+    --sf-error-bg: rgba(99, 102, 241, 0.16);
+    --sf-success: #6366F1;
+    --sf-success-bg: rgba(99, 102, 241, 0.14);
+    --sf-warning: #6366F1;
+    --sf-warning-bg: rgba(99, 102, 241, 0.14);
+    --sf-info: #6366F1;
+    --sf-info-bg: rgba(99, 102, 241, 0.14);
+
+    --sf-stage-documented: #6366F1;
+    --sf-stage-documented-bg: rgba(99, 102, 241, 0.10);
+    --sf-stage-cutting: #6366F1;
+    --sf-stage-cutting-bg: rgba(99, 102, 241, 0.15);
+    --sf-stage-sewing: #6366F1;
+    --sf-stage-sewing-bg: rgba(99, 102, 241, 0.20);
+    --sf-stage-ready: #6366F1;
+    --sf-stage-ready-bg: rgba(99, 102, 241, 0.28);
+    --sf-stage-completed: #6366F1;
+    --sf-stage-completed-bg: rgba(99, 102, 241, 0.13);
+
+    --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
+    --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+    --sf-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
+    --sf-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.36);
+    --sf-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.42);
+    --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
+    --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
+  }
+}
+
+:root[data-theme="dark"] {
+  --sf-bg-primary: #131220;
+  --sf-bg-surface: #1B1A2B;
+  --sf-bg-surface-elevated: #211F35;
+  --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
+  --sf-bg-input: #1B1A2B;
+  --sf-bg-overlay: rgba(0, 0, 0, 0.55);
+  --sf-surface-container-high: rgba(99, 102, 241, 0.14);
+  --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
+  --sf-surface-variant: rgba(99, 102, 241, 0.14);
+  --sf-sand: rgba(99, 102, 241, 0.08);
+
+  --sf-ink: #1B1A2B;
+  --sf-ink-soft: rgba(99, 102, 241, 0.10);
+  --sf-ink-text: #EDEDF5;
+  --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
+  --sf-nav: #2E2D45;
+  --sf-nav-icon: rgba(255, 255, 255, 0.75);
+
+  --sf-accent-emerald: #6366F1;
+  --sf-accent-emerald-dark: #4338CA;
+  --sf-accent-emerald-light: #818CF8;
+  --sf-accent-emerald-glow: rgba(99, 102, 241, 0.18);
+  --sf-accent-gold: #6366F1;
+  --sf-accent-gold-soft: rgba(99, 102, 241, 0.16);
+  --sf-accent-gold-glow: rgba(99, 102, 241, 0.26);
+
+  --sf-secondary: #6366F1;
+  --sf-secondary-container: rgba(99, 102, 241, 0.18);
+  --sf-on-secondary-container: #C7D2FE;
+  --sf-amber: #818CF8;
+  --sf-ochre: #6366F1;
+
+  --sf-text-primary: #EDEDF5;
+  --sf-text-secondary: #A5A3BC;
+  --sf-text-tertiary: #726F91;
+  --sf-text-on-accent: #0D0C17;
+  --sf-text-gold: #A5B4FC;
+
+  --sf-border: rgba(99, 102, 241, 0.24);
+  --sf-border-light: rgba(99, 102, 241, 0.14);
+  --sf-border-focus: #818CF8;
+
+  --sf-error: #6366F1;
+  --sf-error-bg: rgba(99, 102, 241, 0.16);
+  --sf-success: #6366F1;
+  --sf-success-bg: rgba(99, 102, 241, 0.14);
+  --sf-warning: #6366F1;
+  --sf-warning-bg: rgba(99, 102, 241, 0.14);
+  --sf-info: #6366F1;
+  --sf-info-bg: rgba(99, 102, 241, 0.14);
+
+  --sf-stage-documented: #6366F1;
+  --sf-stage-documented-bg: rgba(99, 102, 241, 0.10);
+  --sf-stage-cutting: #6366F1;
+  --sf-stage-cutting-bg: rgba(99, 102, 241, 0.15);
+  --sf-stage-sewing: #6366F1;
+  --sf-stage-sewing-bg: rgba(99, 102, 241, 0.20);
+  --sf-stage-ready: #6366F1;
+  --sf-stage-ready-bg: rgba(99, 102, 241, 0.28);
+  --sf-stage-completed: #6366F1;
+  --sf-stage-completed-bg: rgba(99, 102, 241, 0.13);
+
+  --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
+  --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+  --sf-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
+  --sf-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.36);
+  --sf-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.42);
+  --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
+  --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
+}
