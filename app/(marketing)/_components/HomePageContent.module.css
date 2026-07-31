@@ -315,6 +315,22 @@
 .pricingCardHighlight {
   border-color: var(--sf-accent-emerald);
   box-shadow: 0 0 0 1px var(--sf-accent-emerald), var(--sf-shadow-md);
+  animation: pricingGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes pricingGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--sf-accent-emerald), var(--sf-shadow-md);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--sf-accent-emerald), 0 0 24px var(--sf-accent-emerald-glow), var(--sf-shadow-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pricingCardHighlight {
+    animation: none;
+  }
 }
 
 .pricingBadge {

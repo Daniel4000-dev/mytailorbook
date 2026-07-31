@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { useReveal } from '@/lib/marketingMotion';
+import { useReveal, slideInLeft, slideInRight, popIn } from '@/lib/marketingMotion';
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN } from '@/lib/subscription';
 import styles from './HomePageContent.module.css';
 
@@ -51,6 +51,7 @@ const FEATURES = [
 
 export default function HomePageContent() {
   const reveal = useReveal();
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className={styles.page}>
@@ -86,8 +87,16 @@ export default function HomePageContent() {
           <motion.div
             className={styles.heroImageWrap}
             initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: reduceMotion ? 0 : [0, -10, 0],
+            }}
+            transition={{
+              opacity: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 },
+              scale: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 },
+              y: reduceMotion ? {} : { duration: 5, ease: 'easeInOut', repeat: Infinity, delay: 0.85 },
+            }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -109,7 +118,7 @@ export default function HomePageContent() {
         </motion.h2>
         <div className={styles.painGrid}>
           {PAIN_POINTS.map((point, i) => (
-            <motion.div key={point.title} className={styles.painCard} {...reveal(0.1 + i * 0.08)}>
+            <motion.div key={point.title} className={styles.painCard} {...reveal(0.1 + i * 0.1, popIn)}>
               <Symbol name={point.icon} size={28} className={styles.painIcon} />
               <h3>{point.title}</h3>
               <p>{point.text}</p>
@@ -120,23 +129,28 @@ export default function HomePageContent() {
 
       {/* Feature highlights */}
       <section className={styles.featuresSection}>
-        {FEATURES.map((feature, i) => (
-          <motion.div
-            key={feature.title}
-            className={`${styles.featureRow} ${i % 2 === 1 ? styles.featureRowReverse : ''}`}
-            {...reveal()}
-          >
-            <div className={styles.featureText}>
-              <span className={styles.eyebrow}>{feature.kicker}</span>
-              <h2 className={styles.featureTitle}>{feature.title}</h2>
-              <p className={styles.featureBody}>{feature.text}</p>
+        {FEATURES.map((feature, i) => {
+          const reversed = i % 2 === 1;
+          return (
+            <div
+              key={feature.title}
+              className={`${styles.featureRow} ${reversed ? styles.featureRowReverse : ''}`}
+            >
+              <motion.div className={styles.featureText} {...reveal(0, reversed ? slideInRight : slideInLeft)}>
+                <span className={styles.eyebrow}>{feature.kicker}</span>
+                <h2 className={styles.featureTitle}>{feature.title}</h2>
+                <p className={styles.featureBody}>{feature.text}</p>
+              </motion.div>
+              <motion.div
+                className={styles.featureImageWrap}
+                {...reveal(0.1, reversed ? slideInLeft : slideInRight)}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={feature.image} alt="" className={styles.featureImage} />
+              </motion.div>
             </div>
-            <div className={styles.featureImageWrap}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={feature.image} alt="" className={styles.featureImage} />
-            </div>
-          </motion.div>
-        ))}
+          );
+        })}
         <motion.div className={styles.featureLinkRow} {...reveal()}>
           <Link href="/features" className={styles.featureLink}>
             See every feature
@@ -173,7 +187,7 @@ export default function HomePageContent() {
           Unlimited customers and unlimited custom styles, on every plan, forever. Free gets you{' '}
           {FREE_MONTHLY_ORDER_LIMIT} orders a month — upgrade only once your shop has genuinely outgrown that.
         </motion.p>
-        <motion.div className={styles.pricingCards} {...reveal(0.12)}>
+        <motion.div className={styles.pricingCards} {...reveal(0.12, popIn)}>
           <div className={styles.pricingCard}>
             <span className={styles.pricingCardName}>Free</span>
             <span className={styles.pricingCardPrice}>₦0</span>
@@ -207,7 +221,7 @@ export default function HomePageContent() {
 
       {/* Final CTA */}
       <section className={styles.finalCta}>
-        <motion.div className={styles.finalCtaInner} {...reveal()}>
+        <motion.div className={styles.finalCtaInner} {...reveal(0, popIn)}>
           <h2 className={styles.finalCtaTitle}>Ready to elevate your craft?</h2>
           <p className={styles.finalCtaBody}>
             It takes less than two minutes to set up your shop. No card required for the free plan.

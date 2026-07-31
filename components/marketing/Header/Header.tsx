@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './Header.module.css';
@@ -18,9 +19,16 @@ const NAV_LINKS = [
 export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 300, damping: 40, mass: 0.3 });
 
   return (
-    <header className={styles.header}>
+    <>
+      {/* Fixed to the viewport (not the sticky header) so it stays visible
+          and fills toward 100% as the visitor scrolls — a visible nudge
+          toward reaching the end of the page. */}
+      <motion.div className={styles.scrollProgress} style={{ scaleX }} />
+      <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} onClick={() => setMenuOpen(false)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -82,6 +90,7 @@ export default function Header() {
           </div>
         </div>
       )}
-    </header>
+      </header>
+    </>
   );
 }

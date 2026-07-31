@@ -1,3 +1,14 @@
+.scrollProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--sf-accent-emerald);
+  transform-origin: 0% 50%;
+  z-index: calc(var(--sf-z-sticky) + 1);
+}
+
 .header {
   position: sticky;
   top: 0;
