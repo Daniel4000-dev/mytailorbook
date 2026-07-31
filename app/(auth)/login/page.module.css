@@ -20,12 +20,22 @@
 
 .brandTitle {
   font-family: 'Fraunces', serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
+  letter-spacing: 0.2px;
   color: var(--sf-text-primary);
   text-align: center;
   margin-top: 0;
   margin-bottom: 18px;
+}
+
+/* The "Stitch" logotype accent — set apart from the neutral "My"/"Book"
+   in the brand indigo and italic, so the wordmark reads as a designed
+   logotype rather than plain text. */
+.brandAccent {
+  color: var(--sf-accent-emerald);
+  font-style: italic;
+  font-weight: 700;
 }
 
 .form {
