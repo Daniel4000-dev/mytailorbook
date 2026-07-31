@@ -56,7 +56,7 @@ export default function LoginPage() {
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+      <h1 className={styles.brandTitle}>MyStitchBook</h1>
 
       <form className={styles.form} onSubmit={handleSubmit}>
         {error && <div className={styles.errorBanner}>{error}</div>}

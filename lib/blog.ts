@@ -10,6 +10,12 @@ export type BlogPost = {
   date: string;
   excerpt: string;
   content: string;
+  /** Optional per-post OG/Twitter card image — falls back to the site
+   *  default (root layout's openGraph.images) when a post doesn't set one. */
+  coverImage?: string;
+  /** Optional byline — falls back to APP_CONFIG.name in Article JSON-LD
+   *  when a post doesn't set one. */
+  author?: string;
 };
 
 export function getBlogSlugs() {
@@ -37,6 +43,8 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
       date: data.date || '',
       excerpt: data.excerpt || '',
       content,
+      coverImage: data.coverImage || undefined,
+      author: data.author || undefined,
     };
   } catch {
     return null;

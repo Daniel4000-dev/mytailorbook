@@ -126,6 +126,30 @@
   z-index: 1;
 }
 
+.trustStrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-md);
+  margin-top: var(--sf-space-md);
+  color: var(--sf-text-tertiary);
+}
+
+.trustStrip span:not(.trustDot) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+}
+
+.trustDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--sf-text-tertiary);
+}
+
 .signupLayout {
   padding-top: 0 !important;
 }
@@ -144,9 +168,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--sf-space-xl) var(--sf-space-lg);
+  padding: var(--sf-space-md) var(--sf-space-lg);
   background-color: var(--sf-bg-primary);
   min-height: 100dvh;
+  max-height: 100dvh;
   overflow-y: auto;
 }
 
@@ -159,6 +184,7 @@
   .formPane {
     flex: 0 0 50%;
     max-width: 50%;
+    order: 2;
   }
 
   .editorialPane {
@@ -166,29 +192,24 @@
     flex: 0 0 50%;
     max-width: 50%;
     position: relative;
-    background: linear-gradient(150deg, #4338CA 0%, #23205E 100%);
     overflow: hidden;
+    order: 1;
   }
 
-  .meshBg {
+  .editorialImage {
     position: absolute;
     inset: 0;
-    background: 
-      radial-gradient(circle at 10% 20%, rgba(67, 56, 202, 0.16) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.10) 0%, transparent 45%);
-    filter: blur(40px);
-    pointer-events: none;
-    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
-  .meshBg::before {
-    content: '';
+  .editorialScrim {
     position: absolute;
-    top: 50%; left: 50%;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.09) 0%, transparent 70%);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
+    inset: 0;
+    /* Darkens evenly enough that the headline reads clearly wherever it
+       sits on the photo, not just against a bottom-anchored gradient. */
+    background: linear-gradient(180deg, rgba(19, 18, 32, 0.5) 0%, rgba(19, 18, 32, 0.35) 45%, rgba(19, 18, 32, 0.75) 100%);
   }
 
   .editorialContent {
@@ -200,8 +221,7 @@
     justify-content: center;
     padding: var(--sf-space-3xl);
     color: #ffffff;
-    max-width: 600px;
-    margin: 0 auto;
+    max-width: 560px;
   }
 
   .tag {
@@ -214,41 +234,20 @@
   }
 
   .editorialTitle {
-    font-family: var(--sf-font-heading);
+    font-family: 'Fraunces', serif;
     font-size: 2.8rem;
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -1.5px;
+    font-weight: 600;
+    line-height: 1.15;
     margin-bottom: var(--sf-space-lg);
-    background: linear-gradient(135deg, #ffffff 0%, #C7CBF4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
   }
 
   .editorialText {
     font-size: var(--sf-text-base);
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
     line-height: 1.7;
-    margin-bottom: var(--sf-space-2xl);
-  }
-
-  .illustrationCard {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 18px;
-    padding: var(--sf-space-xl);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 140px;
-    height: 140px;
-    margin-top: var(--sf-space-md);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  }
-
-  .mannequinIcon {
-    width: 100%;
-    height: 100%;
-    opacity: 0.95;
+    margin-bottom: 0;
   }
 }

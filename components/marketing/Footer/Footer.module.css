@@ -1,0 +1,101 @@
+.footer {
+  border-top: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  padding: var(--sf-space-3xl) 0 var(--sf-space-lg);
+  margin-top: var(--sf-space-3xl);
+}
+
+.inner {
+  max-width: var(--sf-max-width-desktop);
+  margin: 0 auto;
+  padding: 0 var(--sf-margin-desktop);
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--sf-space-2xl);
+}
+
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  max-width: 320px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  font-family: 'Fraunces', serif;
+  font-size: var(--sf-text-lg);
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.tagline {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.linkCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.linkCol a {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  transition: color var(--sf-transition-fast);
+}
+
+.linkCol a:hover {
+  color: var(--sf-accent-emerald);
+}
+
+.colLabel {
+  font-size: var(--sf-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-text-tertiary);
+}
+
+.bottom {
+  max-width: var(--sf-max-width-desktop);
+  margin: var(--sf-space-2xl) auto 0;
+  padding: var(--sf-space-lg) var(--sf-margin-desktop) 0;
+  border-top: 1px solid var(--sf-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+}
+
+@media (max-width: 900px) {
+  .inner {
+    padding: 0 var(--sf-margin-mobile);
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sf-space-xl) var(--sf-space-lg);
+  }
+
+  .brandCol {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
+  .bottom {
+    padding: var(--sf-space-lg) var(--sf-margin-mobile) 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sf-space-xs);
+  }
+}

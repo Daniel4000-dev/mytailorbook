@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: `Privacy Policy — ${APP_CONFIG.name}`,
   description: `How ${APP_CONFIG.name} collects, uses, and protects your data.`,
   robots: { index: true, follow: true },
+  alternates: { canonical: '/privacy' },
 };
 
 const LAST_UPDATED = 'July 6, 2026';

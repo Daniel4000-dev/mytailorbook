@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/lib/config';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -39,27 +40,40 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className={styles.formPane}>
             <div className={styles.loginContent}>
               {children}
+              <div className={styles.trustStrip}>
+                <span>
+                  <Symbol name="verified_user" size={16} />
+                  Secure Data
+                </span>
+                <span className={styles.trustDot} aria-hidden="true" />
+                <span>
+                  <Symbol name="cloud_sync" size={16} />
+                  Auto Sync
+                </span>
+              </div>
             </div>
           </div>
           
-          {/* Right: Premium editorial branding panel (Desktop only) */}
+          {/* Right: Premium editorial branding panel (Desktop only) — real
+             curated photography, same as the marketing site, so this
+             doesn't feel like a different product from what the visitor
+             just saw on the homepage. */}
           <div className={styles.editorialPane}>
-            <div className={styles.meshBg} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={isSignup ? '/images/marketing/atelier-review.jpg' : '/images/marketing/hero-tailor-tablet.jpg'}
+              alt=""
+              className={styles.editorialImage}
+            />
+            <div className={styles.editorialScrim} />
             <div className={styles.editorialContent}>
-              <div className={styles.tag}>BESPOKE WORKSHOP</div>
-              <h2 className={styles.editorialTitle}>Crafting Perfection, One Stitch at a Time.</h2>
+              <div className={styles.tag}>Bespoke Workshop</div>
+              <h2 className={styles.editorialTitle}>Precision. Elegance. Flow.</h2>
               <p className={styles.editorialText}>
-                MyStitchBook empowers master tailors to seamlessly capture measurements, track custom order pipelines, and manage workshop finances all in one premium workspace.
+                {isSignup
+                  ? 'Set up your shop in under two minutes. Unlimited customers and custom styles, free forever — no card required.'
+                  : 'Capture measurements, track every order, and give your customers a premium experience, all in one workspace.'}
               </p>
-              
-              <div className={styles.illustrationCard}>
-                <svg viewBox="0 0 100 100" className={styles.mannequinIcon} fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* High end abstract golden hanger/mannequin design */}
-                  <path d="M50 15v10M32 30h36v2c0 10-18 20-18 35v15M36 82h28" stroke="var(--sf-accent-gold)" strokeWidth="1.5" strokeLinecap="round" />
-                  <ellipse cx="50" cy="11" rx="4" ry="4" stroke="var(--sf-accent-gold)" strokeWidth="1.5" />
-                  <path d="M50 25c-8 3-18 10-18 20v15c0 8 8 15 18 20 10-5 18-12 18-20V45c0-10-10-17-18-20z" fill="rgba(212, 175, 55, 0.05)" stroke="var(--sf-accent-gold)" strokeWidth="1" strokeDasharray="3 3" />
-                </svg>
-              </div>
             </div>
           </div>
         </div>

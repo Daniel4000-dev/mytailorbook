@@ -3,7 +3,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider, THEME_ANTI_FLASH_SCRIPT } from '@/contexts/ThemeContext';
 import { APP_CONFIG } from '@/lib/config';
-import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -73,7 +72,6 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_ANTI_FLASH_SCRIPT }} />
       </head>
       <body>
-        <DesktopGate />
         <ThemeProvider>
           <ToastProvider>
             <AuthProvider>

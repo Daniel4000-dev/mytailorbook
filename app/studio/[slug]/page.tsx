@@ -20,6 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // The one page in the app that's genuinely meant to be found —
     // explicit opt-in overrides the root layout's site-wide noindex default.
     robots: { index: true, follow: true },
+    alternates: { canonical: `/studio/${slug}` },
     openGraph: {
       title,
       description,

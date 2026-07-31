@@ -3,39 +3,16 @@
   background: var(--sf-bg-primary);
 }
 
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--sf-bg-primary);
-  border-bottom: 1px solid var(--sf-border-light);
-  padding: 16px 24px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  width: fit-content;
-}
-
-.logo {
-  width: 28px;
-  height: 28px;
-}
-
-.brand span {
-  font-weight: var(--sf-weight-bold);
-  font-size: var(--sf-text-sm);
-  letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-text-primary);
-}
-
 .content {
   max-width: 720px;
   margin: 0 auto;
   padding: var(--sf-space-2xl) var(--sf-margin-mobile) var(--sf-space-3xl);
+}
+
+@media (min-width: 900px) {
+  .content {
+    padding: var(--sf-space-3xl) var(--sf-margin-desktop);
+  }
 }
 
 .back {
@@ -48,9 +25,10 @@
 }
 
 .title {
-  font-size: var(--sf-text-4xl);
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.75rem, 4vw, var(--sf-text-4xl));
   line-height: var(--sf-leading-tight);
-  font-weight: var(--sf-weight-bold);
+  font-weight: 600;
   color: var(--sf-text-primary);
   margin: 0 0 var(--sf-space-xs);
 }

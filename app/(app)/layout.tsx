@@ -14,6 +14,7 @@ import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
 import SidebarEdgeHandle from '@/components/layout/SidebarEdgeHandle/SidebarEdgeHandle';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
+import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
 
@@ -182,6 +183,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <DataProvider>
       <SidebarProvider>
+        {/* Scoped here (not the root layout) — this mobile-only gate must
+           never block the public marketing site, auth pages, or customer-
+           facing public pages, only the actual in-app screens this
+           mobile-first UI was built for. */}
+        <DesktopGate />
         <AppLayoutContent>{children}</AppLayoutContent>
       </SidebarProvider>
     </DataProvider>

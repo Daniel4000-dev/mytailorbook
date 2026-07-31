@@ -19,12 +19,11 @@
 }
 
 .brandTitle {
-  font-family: var(--font-cinzel), Georgia, serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--sf-text-secondary);
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
   text-align: center;
-  letter-spacing: 0.8px;
   margin-top: 0;
   margin-bottom: 18px;
 }
