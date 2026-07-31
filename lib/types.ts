@@ -1,5 +1,5 @@
 /* ============================================================
-   SabiTailors Type Definitions
+   MyStitchBook Type Definitions
    ============================================================
    All shared TypeScript types and interfaces.
    ============================================================ */
@@ -23,6 +23,10 @@ export interface Organization {
 
 export interface Shop {
   id: string;
+  /** Human-readable, unique, URL-safe identifier for the public portfolio
+   *  link (/studio/[slug]) — assigned once from the shop name at creation,
+   *  never regenerated on rename so shared links keep working. */
+  slug: string;
   name: string;
   phone?: string;
   address?: string;
@@ -45,7 +49,7 @@ export interface Shop {
   /** Per-stage WhatsApp update wording, keyed by OrderStatus. A missing key
    *  means "use the app's built-in default" (see getOrderProgressMessage). */
   stageMessageTemplates?: Partial<Record<OrderStatus, string>>;
-  /** Which of the 3 visual templates the public portfolio (/studio/[shopId])
+  /** Which of the 3 visual templates the public portfolio (/studio/[slug])
    *  renders. 'modern' is the original bento-grid design, kept as the default
    *  so existing shops see no change until they pick something else. */
   portfolioTemplate: 'modern' | 'editorial' | 'heritage';
@@ -59,6 +63,10 @@ export interface Shop {
   paystackSubscriptionCode?: string;
   subscriptionPlan?: string;
   subscriptionStatus: 'free' | 'active' | 'past_due' | 'canceled';
+  /** Only set while subscriptionStatus is 'past_due' — the 3-day grace
+   *  deadline from migration 0026, after which the daily cron
+   *  (app/api/cron/subscription-grace) demotes the shop to 'free'. */
+  graceExpiresAt?: string;
 }
 
 /** Owner-set visibility override for one photo (matched by URL) on the

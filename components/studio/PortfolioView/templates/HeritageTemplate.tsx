@@ -147,11 +147,13 @@ export default function HeritageTemplate({ portfolio }: { portfolio: PublicPortf
         </motion.section>
       )}
 
-      <footer className={styles.footer}>
-        <p>
-          Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
-        </p>
-      </footer>
+      {!portfolio.isPremium && (
+        <footer className={styles.footer}>
+          <p>
+            Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
+          </p>
+        </footer>
+      )}
     </div>
   );
 }

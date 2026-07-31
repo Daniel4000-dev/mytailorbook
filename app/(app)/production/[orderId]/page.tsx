@@ -26,6 +26,7 @@ import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from 
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
+import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
 import styles from './page.module.css';
 
 export default function OrderDetailPage() {
@@ -54,6 +55,7 @@ export default function OrderDetailPage() {
   const [confirmingFullPay, setConfirmingFullPay] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(false);
+  const [editingMeasurements, setEditingMeasurements] = useState(false);
 
   const handleDeleteOrder = async () => {
     setDeletingOrder(true);
@@ -313,9 +315,21 @@ export default function OrderDetailPage() {
     { value: 'rush', label: 'Rush' },
   ];
 
-  const measurementEntries = Object.entries(customer?.measurements || {}).filter(
+  // This garment's own recorded measurements are the source of truth for
+  // cutting/sewing it — they can deliberately differ from the customer's
+  // general body profile (e.g. a loose Agbada's ease vs. a fitted
+  // Senator). Only fall back to the body profile if this order was
+  // created without any measurements of its own (e.g. skipped at the
+  // wizard's measure step to take at fitting).
+  const orderMeasurementEntries = Object.entries(order.measurements || {}).filter(
     ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
   );
+  const usingOrderMeasurements = orderMeasurementEntries.length > 0;
+  const measurementEntries = usingOrderMeasurements
+    ? orderMeasurementEntries
+    : Object.entries(customer?.measurements || {}).filter(
+        ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+      );
 
   return (
     <PageLayout
@@ -603,24 +617,34 @@ export default function OrderDetailPage() {
         {/* 7. Measurements */}
         <section className={styles.card}>
           <div className={styles.sectionHeaderRow}>
-            <h3 className={styles.sectionTitle}>Measurements</h3>
-            {customer && (
-              <Link href={`/customers/${customer.id}`} className={styles.roundIconBtn} aria-label="Edit measurements">
-                <Symbol name="edit" size={20} />
-              </Link>
-            )}
+            <h3 className={styles.sectionTitle}>
+              {usingOrderMeasurements ? 'Measurements (this order)' : "Measurements (customer's body profile)"}
+            </h3>
+            <button
+              type="button"
+              className={styles.roundIconBtn}
+              aria-label="Edit this order's measurements"
+              onClick={() => setEditingMeasurements(true)}
+            >
+              <Symbol name="edit" size={20} />
+            </button>
           </div>
           {measurementEntries.length === 0 ? (
-            <p className={styles.emptyNote}>No measurements on file for this customer yet.</p>
+            <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
           ) : (
-            <div className={styles.measureGrid}>
-              {measurementEntries.map(([key, value]) => (
-                <div key={key} className={styles.measureRow}>
-                  <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
-                  <span className={styles.measureValue}>{value}&quot;</span>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className={styles.measureGrid}>
+                {measurementEntries.map(([key, value]) => (
+                  <div key={key} className={styles.measureRow}>
+                    <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
+                    <span className={styles.measureValue}>{value}&quot;</span>
+                  </div>
+                ))}
+              </div>
+              {!usingOrderMeasurements && (
+                <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
+              )}
+            </>
           )}
         </section>
 
@@ -870,6 +894,18 @@ export default function OrderDetailPage() {
         src={lightbox?.src ?? null}
         originRect={lightbox?.rect ?? null}
         onClose={() => setLightbox(null)}
+      />
+
+      <OrderMeasurementsSheet
+        isOpen={editingMeasurements}
+        onClose={() => setEditingMeasurements(false)}
+        order={order}
+        customer={customer}
+        currentShop={currentShop}
+        onSave={async (measurements) => {
+          await updateOrder(order.id, { measurements });
+          showToast('Measurements updated', 'success');
+        }}
       />
     </PageLayout>
   );

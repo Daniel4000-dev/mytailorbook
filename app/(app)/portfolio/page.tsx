@@ -13,7 +13,7 @@ import styles from './page.module.css';
 
 /** The owner's own portfolio, viewed in-app (same tab, app chrome still
  *  reachable via the back button) — same PortfolioView a visitor sees at
- *  the public /studio/[shopId] link, just not a new tab away from the app.
+ *  the public /studio/[slug] link, just not a new tab away from the app.
  *  Sharing from here still hands out that public URL, not this one. */
 export default function OwnPortfolioPage() {
   const router = useRouter();

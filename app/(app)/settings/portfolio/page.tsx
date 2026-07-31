@@ -136,7 +136,7 @@ export default function PortfolioCurationSettingsPage() {
             currentShop && (
               <CircleIconButton
                 icon={<Symbol name="open_in_new" size={18} />}
-                onClick={() => window.open(`/studio/${currentShop.id}`, '_blank')}
+                onClick={() => window.open(`/studio/${currentShop.slug}`, '_blank')}
                 ariaLabel="Preview my portfolio"
               />
             )

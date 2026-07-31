@@ -97,7 +97,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
     // Always the canonical public URL — this view can also render inside
     // the authenticated app (a different route), where window.location.href
     // would leak an in-app path a visitor couldn't open.
-    const url = `${window.location.origin}/studio/${shop.id}`;
+    const url = `${window.location.origin}/studio/${shop.slug}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${shop.name} — Bespoke Tailoring`, url });
@@ -315,11 +315,13 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
         </section>
       )}
 
-      <footer className={styles.footer}>
-        <p>
-          Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
-        </p>
-      </footer>
+      {!portfolio.isPremium && (
+        <footer className={styles.footer}>
+          <p>
+            Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
+          </p>
+        </footer>
+      )}
 
       {/* Lightbox */}
       {lightboxIndex !== null && filteredPhotos[lightboxIndex] && (

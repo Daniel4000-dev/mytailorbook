@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
+import { isOrgPremium } from '@/lib/subscription';
 
 /**
  * Runs for every first-time sign-in, Google or email — neither gives us a
@@ -74,6 +75,11 @@ export async function createStaffAccount(
   role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff'
 ): Promise<{ userId?: string; error?: string }> {
   const admin = createAdminClient();
+
+  const premium = await isOrgPremium(admin, shopId);
+  if (!premium) {
+    return { error: 'Adding staff requires a premium subscription. Upgrade from Settings to add team members.' };
+  }
 
   const { data: authData, error: authError } = await admin.auth.admin.createUser({
     email,

@@ -172,7 +172,7 @@ export default function SidebarMenu() {
           );
         })}
         {/* Opens in-app (same tab) — the Share button on the page itself
-            hands out the actual public /studio/[shopId] link to visitors. */}
+            hands out the actual public /studio/[slug] link to visitors. */}
         {currentShop && (
           <Link
             href="/portfolio"

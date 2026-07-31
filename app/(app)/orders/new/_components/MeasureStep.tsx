@@ -13,8 +13,10 @@ interface MeasureStepProps {
   onActiveMeasureKeyChange: (key: string | null) => void;
   lastSameStyleOrder: Order | null;
   onImported: () => void;
-  updateProfile: boolean;
-  onUpdateProfileChange: (value: boolean) => void;
+  saveStyleProfile: boolean;
+  onSaveStyleProfileChange: (value: boolean) => void;
+  updateBodyProfile: boolean;
+  onUpdateBodyProfileChange: (value: boolean) => void;
 }
 
 export default function MeasureStep({
@@ -27,8 +29,10 @@ export default function MeasureStep({
   onActiveMeasureKeyChange,
   lastSameStyleOrder,
   onImported,
-  updateProfile,
-  onUpdateProfileChange,
+  saveStyleProfile,
+  onSaveStyleProfileChange,
+  updateBodyProfile,
+  onUpdateBodyProfileChange,
 }: MeasureStepProps) {
   return (
     <div className={styles.col}>
@@ -46,6 +50,18 @@ export default function MeasureStep({
         activeKey={activeMeasureKey}
         onActiveKeyChange={onActiveMeasureKeyChange}
         importSources={[
+          // Most precise first: a deliberately saved, style-specific
+          // profile beats a derived guess from a past order, which beats
+          // the general body profile (which doesn't account for this
+          // garment's own fit/ease at all).
+          ...(currentStyle && customer?.styleMeasurements?.[currentStyle]
+            ? [{
+                label: `Import from saved ${currentStyle} profile`,
+                icon: 'bookmark',
+                measurements: customer.styleMeasurements[currentStyle].measurements,
+                onImported,
+              }]
+            : []),
           ...(lastSameStyleOrder
             ? [{
                 label: `Import from last ${currentStyle} (${new Date(lastSameStyleOrder.createdAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })})`,
@@ -66,8 +82,12 @@ export default function MeasureStep({
       />
 
       <label className={styles.profileToggle}>
-        <input type="checkbox" checked={updateProfile} onChange={(e) => onUpdateProfileChange(e.target.checked)} />
-        Also update {customer?.fullName.split(' ')[0]}&rsquo;s body profile with these numbers
+        <input type="checkbox" checked={saveStyleProfile} onChange={(e) => onSaveStyleProfileChange(e.target.checked)} />
+        Save these as {customer?.fullName.split(' ')[0]}&rsquo;s {currentStyle} measurements, for next time
+      </label>
+      <label className={styles.profileToggle}>
+        <input type="checkbox" checked={updateBodyProfile} onChange={(e) => onUpdateBodyProfileChange(e.target.checked)} />
+        Also update {customer?.fullName.split(' ')[0]}&rsquo;s general body profile — only if these are actual body measurements, not this garment&rsquo;s fit
       </label>
     </div>
   );

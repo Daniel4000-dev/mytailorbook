@@ -5,9 +5,9 @@ import styles from './page.module.css';
 
 /** Rich link previews are half this page's job — it gets shared in
  *  WhatsApp chats, where the og card is the real first impression. */
-export async function generateMetadata({ params }: { params: Promise<{ shopId: string }> }): Promise<Metadata> {
-  const { shopId } = await params;
-  const portfolio = await getPublicShopPortfolio(shopId);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const portfolio = await getPublicShopPortfolio(slug);
   if (!portfolio) return { title: 'Portfolio not found' };
 
   const title = `${portfolio.shop.name} — Bespoke Tailoring`;
@@ -35,9 +35,9 @@ export async function generateMetadata({ params }: { params: Promise<{ shopId: s
   };
 }
 
-export default async function StudioPage({ params }: { params: Promise<{ shopId: string }> }) {
-  const { shopId } = await params;
-  const portfolio = await getPublicShopPortfolio(shopId);
+export default async function StudioPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const portfolio = await getPublicShopPortfolio(slug);
 
   if (!portfolio) {
     return (

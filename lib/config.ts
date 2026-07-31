@@ -1,14 +1,14 @@
 /* ============================================================
-   SabiTailors App Configuration
+   MyStitchBook App Configuration
    ============================================================
    Central config — change values here to rebrand the app.
    ============================================================ */
 
 export const APP_CONFIG = {
-  name: 'SabiTailors',
+  name: 'MyStitchBook',
   tagline: 'Precision. Elegance. Flow.',
-  domain: 'sabitailors.com',
-  baseUrl: 'https://sabitailors.com',
+  domain: 'mystitchbook.com',
+  baseUrl: 'https://mystitchbook.com',
   currency: 'NGN',
   locale: 'en-NG',
   phonePrefix: '234',

@@ -16,7 +16,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error('NEXT_PUBLIC_SUPABASE_URL not set — the e2e fixture must target staging, not prod.');
 }
 
-const E2E_EMAIL = 'e2e-fixture@sabitailors.test';
+const E2E_EMAIL = 'e2e-fixture@mystitchbook.test';
 const E2E_PASSWORD = 'E2E-fixture-pw-9f3k2m';
 
 const admin = createClient(

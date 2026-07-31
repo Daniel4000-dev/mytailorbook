@@ -1,5 +1,5 @@
 /**
- * SabiTailors Mock Data
+ * MyStitchBook Mock Data
  *
  * For demonstration purposes. Provides initial state for the context providers.
  */
@@ -15,6 +15,7 @@ export const MOCK_SHOP_ID = 'shop-001';
 
 export const MOCK_SHOP: Shop = {
   id: MOCK_SHOP_ID,
+  slug: 'adebayo-fashion-studio',
   name: 'Adebayo Fashion Studio',
   phone: '2348012345678',
   address: 'Lagos, Nigeria',

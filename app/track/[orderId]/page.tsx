@@ -84,7 +84,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   return (
     <div className={styles.page}>
-      {/* Brand header — deliberately SabiTailors, not the shop: this page
+      {/* Brand header — deliberately MyStitchBook, not the shop: this page
           is the app's main visibility channel to every shop's customers. */}
       <header className={styles.header}>
         <div className={styles.brandBlock}>
@@ -211,11 +211,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         )}
       </main>
 
-      <footer className={styles.footer}>
-        <p>
-          Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
-        </p>
-      </footer>
+      {shop?.subscriptionStatus !== 'active' && (
+        <footer className={styles.footer}>
+          <p>
+            Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
+          </p>
+        </footer>
+      )}
     </div>
   );
 }

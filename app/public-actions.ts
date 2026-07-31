@@ -5,6 +5,7 @@ import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
 import { sendPushToShop } from '@/lib/push';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
+import { isOrgPremiumByOrgId } from '@/lib/subscription';
 
 // A real customer refreshing their own tracking page a few times is
 // normal; a scraper hitting many different order/shop IDs from one IP in
@@ -62,6 +63,8 @@ export async function getPublicOrderView(orderId: string): Promise<{
     admin.from('shops').select('*').eq('id', order.shopId).single(),
   ]);
 
+  const isPremium = shopRow ? await isOrgPremiumByOrgId(admin, shopRow.org_id) : false;
+
   const customer: Customer | null = customerRow
     ? {
         id: customerRow.id,
@@ -77,6 +80,7 @@ export async function getPublicOrderView(orderId: string): Promise<{
   const shop: Shop | null = shopRow
     ? {
         id: shopRow.id,
+        slug: shopRow.slug,
         name: shopRow.name,
         phone: shopRow.phone || undefined,
         address: shopRow.address || undefined,
@@ -88,10 +92,10 @@ export async function getPublicOrderView(orderId: string): Promise<{
         portfolioTemplate: shopRow.portfolio_template || 'modern',
         portfolioAccent: shopRow.portfolio_accent || 'indigo',
         portfolioSettings: shopRow.portfolio_settings || {},
-        // Billing state is deliberately never surfaced on this
-        // customer-facing tracking page — 'free' is a safe, inert default
-        // to satisfy the type, not a real read of the shop's own status.
-        subscriptionStatus: 'free',
+        // Resolved at the org level (not this branch shop's own column —
+        // see lib/subscription.ts) purely to drive the "Powered by" badge
+        // on this public page; no other billing detail is exposed here.
+        subscriptionStatus: isPremium ? 'active' : 'free',
       }
     : null;
 
@@ -313,6 +317,7 @@ export interface PortfolioTestimonial {
 export interface PublicPortfolio {
   shop: {
     id: string;
+    slug: string;
     name: string;
     phone?: string;
     address?: string;
@@ -330,9 +335,11 @@ export interface PublicPortfolio {
     stylesCount: number;
   };
   testimonials: PortfolioTestimonial[];
+  /** Premium shops get the "Powered by" badge removed from this page. */
+  isPremium: boolean;
 }
 
-export async function getPublicShopPortfolio(shopId: string): Promise<PublicPortfolio | null> {
+export async function getPublicShopPortfolio(slug: string): Promise<PublicPortfolio | null> {
   const ip = await getRequestIp();
   const { allowed } = await checkRateLimit(`portfolio:${ip}`, READ_LIMIT);
   if (!allowed) return null;
@@ -341,10 +348,14 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, name, phone, address, logo_url, portfolio_template, portfolio_accent, portfolio_settings')
-    .eq('id', shopId)
+    .select('id, slug, name, phone, address, logo_url, portfolio_template, portfolio_accent, portfolio_settings, org_id')
+    .eq('slug', slug)
     .single();
   if (shopErr || !shopRow) return null;
+
+  // Every subsequent query is scoped by the real shop id, not the slug.
+  const shopId = shopRow.id;
+  const isPremium = await isOrgPremiumByOrgId(admin, shopRow.org_id);
 
   const { data: orderRows } = await admin
     .from('orders')
@@ -425,6 +436,7 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
   return {
     shop: {
       id: shopRow.id,
+      slug: shopRow.slug,
       name: shopRow.name,
       phone: shopRow.phone || undefined,
       address: shopRow.address || undefined,
@@ -442,5 +454,6 @@ export async function getPublicShopPortfolio(shopId: string): Promise<PublicPort
       stylesCount: styleSet.size,
     },
     testimonials,
+    isPremium,
   };
 }

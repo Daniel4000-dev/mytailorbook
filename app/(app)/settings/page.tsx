@@ -21,6 +21,7 @@ import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { initializeSubscription } from '@/app/actions/payments';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
@@ -32,7 +33,7 @@ export default function SettingsPage() {
   const { currentShop, staffMembers, updateShop, shops, refreshBranches, isLoaded } = useData();
   const { showToast } = useToast();
 
-  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | null>(null);
+  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | 'plans' | null>(null);
 
   const [shopName, setShopName] = useState('');
   const [shopPhone, setShopPhone] = useState('');
@@ -54,11 +55,19 @@ export default function SettingsPage() {
   const [savingNote, setSavingNote] = useState(false);
 
   const [upgrading, setUpgrading] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
 
-  const handleUpgrade = async () => {
+  // Read once via lazy init rather than inline in render — Date.now() is an
+  // impure call the React Compiler flags if invoked directly during render.
+  const [nowMs] = useState(() => Date.now());
+  const graceDaysLeft = currentShop?.graceExpiresAt
+    ? Math.max(1, Math.ceil((new Date(currentShop.graceExpiresAt).getTime() - nowMs) / (24 * 60 * 60 * 1000)))
+    : null;
+
+  const handleUpgrade = async (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
     try {
-      const { authorizationUrl } = await initializeSubscription();
+      const { authorizationUrl } = await initializeSubscription(interval);
       window.location.href = authorizationUrl;
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
@@ -267,19 +276,29 @@ export default function SettingsPage() {
             <div className={billingRowStyles.row}>
               <Symbol name="workspace_premium" size={20} className={billingRowStyles.icon} />
               <span className={billingRowStyles.textCol}>
-                <span className={billingRowStyles.label}>SabiTailors Pro</span>
+                <span className={billingRowStyles.label}>MyStitchBook Pro</span>
                 <span className={billingRowStyles.subtitle}>
-                  {currentShop?.subscriptionStatus === 'active' ? 'Active Subscription' : 'Free Tier'}
+                  {currentShop?.subscriptionStatus === 'active' && 'Active Subscription'}
+                  {currentShop?.subscriptionStatus === 'past_due' && 'Payment failed'}
+                  {(!currentShop?.subscriptionStatus || currentShop.subscriptionStatus === 'free' || currentShop.subscriptionStatus === 'canceled') && 'Free Tier'}
                 </span>
               </span>
               {currentShop?.subscriptionStatus === 'active' ? (
                 <span className={styles.proMemberBadge}>Pro Member</span>
               ) : (
-                <Button variant="primary" loading={upgrading} onClick={handleUpgrade} size="sm">
-                  Upgrade
+                <Button variant="primary" onClick={() => setOpenSheet('plans')} size="sm">
+                  {currentShop?.subscriptionStatus === 'past_due' ? 'Fix Payment' : 'Upgrade'}
                 </Button>
               )}
             </div>
+            {currentShop?.subscriptionStatus === 'past_due' && graceDaysLeft !== null && (
+              <div className={styles.graceBanner}>
+                <Symbol name="warning" size={16} />
+                <span>
+                  {graceDaysLeft} day(s) left to update payment before you&apos;re moved to the Free plan. Your data stays safe either way.
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -318,6 +337,7 @@ export default function SettingsPage() {
               icon="group"
               label="Staff"
               subtitle={`${activeStaffCount} active`}
+              meta={currentShop?.subscriptionStatus !== 'active' ? <span className={styles.premiumBadge}>Premium</span> : undefined}
               onClick={() => router.push('/settings/staff')}
             />
           </div>
@@ -431,6 +451,91 @@ export default function SettingsPage() {
             <Button variant="ghost" onClick={() => setOpenSheet(null)}>Cancel</Button>
             <Button variant="primary" loading={savingShop} onClick={handleSaveShop}>Save</Button>
           </div>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet isOpen={openSheet === 'plans'} onClose={() => setOpenSheet(null)} title="Choose Your Plan">
+        <div className={styles.sheetBody}>
+          <div className={styles.intervalToggle} role="tablist" aria-label="Billing interval">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={billingInterval === 'monthly'}
+              className={`${styles.intervalOption} ${billingInterval === 'monthly' ? styles.intervalOptionActive : ''}`}
+              onClick={() => setBillingInterval('monthly')}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={billingInterval === 'yearly'}
+              className={`${styles.intervalOption} ${billingInterval === 'yearly' ? styles.intervalOptionActive : ''}`}
+              onClick={() => setBillingInterval('yearly')}
+            >
+              Yearly
+              <span className={styles.savingsBadge}>Save 2 months</span>
+            </button>
+          </div>
+
+          <div className={`${styles.planCard} ${styles.planCardHighlight}`}>
+            <div className={styles.planCardHeader}>
+              <span className={styles.planName}>Premium</span>
+              <span className={styles.planBadge}>Recommended</span>
+            </div>
+
+            {billingInterval === 'monthly' ? (
+              <span className={styles.planPrice}>
+                ₦{PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}
+                <span className={styles.planPriceUnit}>/month</span>
+              </span>
+            ) : (
+              <span className={styles.planPrice}>
+                ₦{PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}
+                <span className={styles.planPriceUnit}>/year</span>
+              </span>
+            )}
+            {billingInterval === 'yearly' && (
+              <span className={styles.priceSubtext}>
+                Pay for 10 months, get 12 — vs. ₦{(PREMIUM_MONTHLY_PRICE_NGN * 12).toLocaleString()}/year billed monthly.
+              </span>
+            )}
+
+            <ul className={styles.planFeatures}>
+              <li>Everything in Free</li>
+              <li><strong>Unlimited orders</strong></li>
+              <li><strong>Staff accounts</strong></li>
+              <li><strong>Analytics &amp; insights</strong></li>
+              <li>Badge removed from your public pages</li>
+              <li>Priority support</li>
+            </ul>
+            <Button variant="primary" loading={upgrading} onClick={() => handleUpgrade(billingInterval)} fullWidth>
+              {billingInterval === 'monthly'
+                ? `Upgrade — ₦${PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}/month`
+                : `Upgrade — ₦${PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}/year`}
+            </Button>
+          </div>
+
+          <div className={styles.planCard}>
+            <div className={styles.planCardHeader}>
+              <span className={styles.planName}>Free</span>
+              <span className={styles.planPrice}>₦0</span>
+            </div>
+            <ul className={styles.planFeatures}>
+              <li>Unlimited customers</li>
+              <li>Unlimited custom styles</li>
+              <li>15 orders / month</li>
+              <li>Receipts &amp; invoices</li>
+              <li>WhatsApp button, tracking link &amp; portfolio</li>
+              <li className={styles.planFeatureMuted}>&quot;Powered by MyStitchBook&quot; badge shown</li>
+              <li className={styles.planFeatureMuted}>No staff accounts</li>
+              <li className={styles.planFeatureMuted}>No analytics</li>
+            </ul>
+          </div>
+
+          <p className={styles.hintText}>
+            Cancel anytime. If a renewal payment fails, you keep Premium features for a 3-day grace period with reminders before reverting to Free — your data is never locked either way.
+          </p>
         </div>
       </BottomSheet>
 

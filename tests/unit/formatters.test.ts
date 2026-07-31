@@ -130,11 +130,11 @@ describe('getOrderProgressMessage', () => {
       customerName: 'Chioma Eze',
       shopName: 'Baan Wears',
       status: 'Cutting',
-      trackingUrl: 'https://sabitailors.com/track/abc123',
+      trackingUrl: 'https://mystitchbook.com/track/abc123',
     });
     expect(message).toContain('Chioma');
     expect(message).toContain('Baan Wears');
-    expect(message).toContain('https://sabitailors.com/track/abc123');
+    expect(message).toContain('https://mystitchbook.com/track/abc123');
     expect(message).not.toContain('{name}');
     expect(message).not.toContain('{shop}');
     expect(message).not.toContain('{link}');
@@ -145,7 +145,7 @@ describe('getOrderProgressMessage', () => {
       customerName: 'Chioma Eze',
       shopName: 'Baan Wears',
       status: 'Ready',
-      trackingUrl: 'https://sabitailors.com/track/abc123',
+      trackingUrl: 'https://mystitchbook.com/track/abc123',
     });
     expect(message).toContain('Chioma');
     expect(message).not.toContain('Chioma Eze');
@@ -156,9 +156,9 @@ describe('getOrderProgressMessage', () => {
       customerName: 'Chioma Eze',
       shopName: 'Baan Wears',
       status: 'Cutting',
-      trackingUrl: 'https://sabitailors.com/track/abc123',
+      trackingUrl: 'https://mystitchbook.com/track/abc123',
       customTemplate: 'Hey {name}, custom update from {shop}: {link}',
     });
-    expect(message).toBe('Hey Chioma, custom update from Baan Wears: https://sabitailors.com/track/abc123');
+    expect(message).toBe('Hey Chioma, custom update from Baan Wears: https://mystitchbook.com/track/abc123');
   });
 });

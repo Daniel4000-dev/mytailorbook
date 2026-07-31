@@ -14,15 +14,15 @@ self.addEventListener('push', (event) => {
       body: payload.body,
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
-      data: { orderId: payload.orderId },
+      data: { orderId: payload.orderId, url: payload.url },
     })
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const orderId = event.notification.data?.orderId;
-  const url = orderId ? `/production/${orderId}` : '/dashboard';
+  const { orderId, url: dataUrl } = event.notification.data || {};
+  const url = orderId ? `/production/${orderId}` : dataUrl || '/dashboard';
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {

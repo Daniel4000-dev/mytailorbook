@@ -56,7 +56,15 @@ export default function NewOrderWizard() {
   const [fieldBuilderStyle, setFieldBuilderStyle] = useState<string | null>(null);
   const [measureIndex, setMeasureIndex] = useState(0);
   const [measures, setMeasures] = useState<Record<string, Record<string, string>>>({});
-  const [updateProfile, setUpdateProfile] = useState(true);
+  // Two independent decisions: a style profile is *supposed* to diverge
+  // from the body profile (e.g. a loose Agbada's chest ease vs. the
+  // client's actual body chest) — saving one should never silently
+  // overwrite the other, so each has its own default. Style-profile
+  // capture is the normal per-order thing to do; body-profile updates are
+  // a deliberate re-measurement, not an incidental side effect of ordering
+  // a specific garment, so that one starts off.
+  const [saveStyleProfile, setSaveStyleProfile] = useState(true);
+  const [updateBodyProfile, setUpdateBodyProfile] = useState(false);
   const [activeMeasureKey, setActiveMeasureKey] = useState<string | null>(null);
   const [units, setUnits] = useState<UnitDraft[]>([]);
   const [priority, setPriority] = useState<Priority>('normal');
@@ -276,21 +284,26 @@ export default function NewOrderWizard() {
 
       await addOrderBatch(garmentOrders);
 
-      // Default-on: freshly taken numbers also refresh the body profile and
-      // this style's saved measurement profile.
-      if (updateProfile) {
+      // These are two independent stores on purpose — a style profile is
+      // meant to capture this specific garment's fit (which can and should
+      // differ from the client's actual body), while the body profile is
+      // the client's real measurements. Saving one must never overwrite
+      // the other.
+      if (saveStyleProfile) {
+        for (const s of basket) {
+          const styleValues = parsedMeasures(s.name);
+          if (styleValues && Object.keys(styleValues).length > 0) {
+            await updateCustomerStyleProfile(customer.id, s.name, styleValues).catch(() => {});
+          }
+        }
+      }
+      if (updateBodyProfile) {
         const merged: Measurements = { ...(customer.measurements || {}) };
         for (const s of basket) {
           Object.assign(merged, parsedMeasures(s.name) || {});
         }
         if (Object.keys(merged).length > 0) {
           await updateCustomerMeasurements(customer.id, merged).catch(() => {});
-        }
-        for (const s of basket) {
-          const styleValues = parsedMeasures(s.name);
-          if (styleValues && Object.keys(styleValues).length > 0) {
-            await updateCustomerStyleProfile(customer.id, s.name, styleValues).catch(() => {});
-          }
         }
       }
 
@@ -486,8 +499,10 @@ export default function NewOrderWizard() {
             onActiveMeasureKeyChange={setActiveMeasureKey}
             lastSameStyleOrder={lastSameStyleOrder}
             onImported={() => showToast('Measurements imported — adjust anything that changed', 'success')}
-            updateProfile={updateProfile}
-            onUpdateProfileChange={setUpdateProfile}
+            saveStyleProfile={saveStyleProfile}
+            onSaveStyleProfileChange={setSaveStyleProfile}
+            updateBodyProfile={updateBodyProfile}
+            onUpdateBodyProfileChange={setUpdateBodyProfile}
           />
         )}
 

@@ -13,6 +13,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const admin = createAdminClient();
 
   const { data: orders } = await admin.from('orders').select('shop_id, images');
+  const { data: shops } = await admin.from('shops').select('id, slug');
+  const slugById = new Map((shops || []).map((s) => [s.id, s.slug]));
 
   const shopLastPhoto = new Map<string, string>();
   for (const o of orders || []) {
@@ -46,11 +48,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     ...blogUrls,
-    ...Array.from(shopLastPhoto.entries()).map(([shopId, lastPhotoAt]) => ({
-      url: `${base}/studio/${shopId}`,
-      lastModified: new Date(lastPhotoAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    })),
+    ...Array.from(shopLastPhoto.entries())
+      .filter(([shopId]) => slugById.has(shopId))
+      .map(([shopId, lastPhotoAt]) => ({
+        url: `${base}/studio/${slugById.get(shopId)}`,
+        lastModified: new Date(lastPhotoAt),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      })),
   ];
 }

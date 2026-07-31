@@ -3,7 +3,7 @@ import webpush from 'web-push';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 webpush.setVapidDetails(
-  'mailto:support@sabitailors.com',
+  'mailto:support@mystitchbook.com',
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
   process.env.VAPID_PRIVATE_KEY!
 );
@@ -11,7 +11,10 @@ webpush.setVapidDetails(
 interface PushPayload {
   title: string;
   body: string;
-  orderId: string;
+  orderId?: string;
+  /** Fallback deep link used when there's no orderId (e.g. billing
+   *  reminders) — see public/sw.js notificationclick handler. */
+  url?: string;
 }
 
 async function sendToSubscription(admin: ReturnType<typeof createAdminClient>, sub: { id: string; endpoint: string; keys: unknown }, payload: PushPayload) {

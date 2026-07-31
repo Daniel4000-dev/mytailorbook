@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
+import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { sendPushToShop } from '@/lib/push';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
@@ -121,6 +122,7 @@ function userFromRow(row: any): User {
 function shopFromRow(row: any): Shop {
   return {
     id: row.id,
+    slug: row.slug,
     name: row.name,
     phone: row.phone || undefined,
     address: row.address || undefined,
@@ -139,6 +141,7 @@ function shopFromRow(row: any): Shop {
     paystackSubscriptionCode: row.paystack_subscription_code || undefined,
     subscriptionPlan: row.subscription_plan || undefined,
     subscriptionStatus: row.subscription_status || 'free',
+    graceExpiresAt: row.grace_expires_at || undefined,
   };
 }
 
@@ -328,6 +331,14 @@ export async function getStaff(shopId: string): Promise<User[]> {
 
 export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) {
   const supabase = await createClient();
+
+  const quota = await checkOrderQuota(supabase, shopId);
+  if (!quota.allowed) {
+    throw new Error(
+      `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.`
+    );
+  }
+
   const { error } = await supabase.from('orders').insert(orderToRow(shopId, order));
   if (error) throw new Error(error.message);
   return getOrders(shopId);
@@ -345,6 +356,14 @@ export async function addOrderBatchAction(
   garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]
 ) {
   const supabase = await createClient();
+
+  const quota = await checkOrderQuota(supabase, shopId, garments.length);
+  if (!quota.allowed) {
+    throw new Error(
+      `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.`
+    );
+  }
+
   const batchId = garments.length > 1 ? crypto.randomUUID() : undefined;
   const rows = garments.map((garment) => orderToRow(shopId, { ...garment, batchId }));
   const { error } = await supabase.from('orders').insert(rows);
@@ -1400,6 +1419,12 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
   }
 
   const admin = createAdminClient();
+
+  const premium = await isOrgPremiumByOrgId(admin, profile.org_id);
+  if (!premium) {
+    return { error: 'Financial reports require a premium subscription. Upgrade from Settings to view analytics.' };
+  }
+
   const { data: shops, error: shopsError } = await admin
     .from('shops')
     .select('id, name, is_primary')

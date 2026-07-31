@@ -26,7 +26,8 @@ type StaffSheetView = 'actions' | 'edit' | 'password';
 export default function StaffSettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { staffMembers, addStaff, updateStaff, isLoaded } = useData();
+  const { currentShop, staffMembers, addStaff, updateStaff, isLoaded } = useData();
+  const isPremium = currentShop?.subscriptionStatus === 'active';
   const { showToast } = useToast();
 
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
@@ -41,6 +42,7 @@ export default function StaffSettingsPage() {
   const [copied, setCopied] = useState(false);
 
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isUpsellOpen, setIsUpsellOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -137,7 +139,7 @@ export default function StaffSettingsPage() {
           rightAction={
             <CircleIconButton
               icon={<Symbol name="person_add" size={18} />}
-              onClick={() => setIsAddSheetOpen(true)}
+              onClick={() => (isPremium ? setIsAddSheetOpen(true) : setIsUpsellOpen(true))}
               ariaLabel="Register employee"
             />
           }
@@ -150,7 +152,15 @@ export default function StaffSettingsPage() {
           <Skeleton height={64} />
         </div>
       ) : staffMembers.length === 0 ? (
-        <EmptyState icon={<Symbol name="group" size={40} />} title="No staff yet" description="Add your first team member to get started." />
+        <EmptyState
+          icon={<Symbol name="group" size={40} />}
+          title="No staff yet"
+          description={
+            isPremium
+              ? 'Add your first team member to get started.'
+              : 'Staff accounts are a Premium feature — upgrade to add your first team member.'
+          }
+        />
       ) : (
         <div className={styles.card}>
           {staffMembers.map((staff) => {
@@ -283,7 +293,7 @@ export default function StaffSettingsPage() {
       <BottomSheet isOpen={isAddSheetOpen} onClose={() => setIsAddSheetOpen(false)} title="Register Employee">
         <form onSubmit={handleAddStaff} className={styles.sheetBody}>
           <Input label="Full Name" placeholder="e.g. Chioma Eze" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input label="Email/Username" type="email" placeholder="e.g. chioma@sabitailors.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input label="Email/Username" type="email" placeholder="e.g. chioma@mystitchbook.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input label="Temporary Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {FEATURE_FLAGS.orgBranchMultiTenancy && (
             <>
@@ -308,6 +318,25 @@ export default function StaffSettingsPage() {
           {addError && <p className={styles.errorText}>{addError}</p>}
           <Button type="submit" variant="primary" loading={addLoading}>Add Staff Member</Button>
         </form>
+      </BottomSheet>
+
+      <BottomSheet isOpen={isUpsellOpen} onClose={() => setIsUpsellOpen(false)} title="Staff Accounts">
+        <div className={styles.sheetBody}>
+          <p className={styles.hintText}>
+            Adding team members is a Premium feature. Upgrade to give staff their own login, track who&apos;s handling
+            each order, and unlock analytics — all while your free-tier customers, orders, and styles stay exactly as
+            they are.
+          </p>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setIsUpsellOpen(false);
+              router.push('/settings');
+            }}
+          >
+            View Plans
+          </Button>
+        </div>
       </BottomSheet>
     </PageLayout>
   );
