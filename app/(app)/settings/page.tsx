@@ -59,6 +59,7 @@ export default function SettingsPage() {
 
   const [upgrading, setUpgrading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [checkout, setCheckout] = useState<{ accessCode: string; reference: string; interval: 'monthly' | 'yearly' } | null>(null);
 
   // Read once via lazy init rather than inline in render — Date.now() is an
   // impure call the React Compiler flags if invoked directly during render.
@@ -67,15 +68,39 @@ export default function SettingsPage() {
     ? Math.max(1, Math.ceil((new Date(currentShop.graceExpiresAt).getTime() - nowMs) / (24 * 60 * 60 * 1000)))
     : null;
 
-  // Warms Paystack's inline-checkout script as soon as the plan picker is
-  // open — loading it cold on the actual "Upgrade" click left a visible gap
-  // between closing this sheet and the popup appearing (the script fetch),
-  // which read as the button doing nothing on the first try. By the second
-  // click the script was already cached, which is why it "worked the
-  // second time."
+  // Both the checkout script and the transaction itself (accessCode/
+  // reference from initializeSubscription) are fetched as soon as the plan
+  // picker opens, not on the "Upgrade" click — iOS Safari only treats a
+  // popup-opening call as trusted if it runs (near-)synchronously inside
+  // the click that triggered it; a real network round trip in between
+  // (which initializeSubscription is) uses up that window, so Safari
+  // silently kills the popup a moment after it appears and the app falls
+  // back to the redirect flow — seen live as "opens then cancels shortly
+  // and reloads the settings page," working only on a second click because
+  // by then the script (but not a fresh transaction) was already cached.
+  // Pre-fetching both means the click handler below only has to resolve
+  // already-settled promises before calling into Paystack, keeping it
+  // inside that window on every attempt, not just the second one.
   useEffect(() => {
-    if (openSheet === 'plans') preloadPaystackScript();
-  }, [openSheet]);
+    if (openSheet !== 'plans') return;
+    preloadPaystackScript();
+    let cancelled = false;
+    // No need to clear the previous checkout first — handleUpgrade already
+    // guards on `checkout.interval === interval`, so a stale entry for the
+    // other billing interval is simply ignored, not acted on.
+    initializeSubscription(billingInterval)
+      .then(({ accessCode, reference }) => {
+        if (!cancelled) setCheckout({ accessCode, reference, interval: billingInterval });
+      })
+      .catch((err) => {
+        // Not fatal — handleUpgrade falls back to fetching it inline if
+        // this hasn't resolved (or failed) by the time the user clicks.
+        console.error('Pre-fetching checkout failed, will retry on click:', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [openSheet, billingInterval]);
 
   // Paystack's inline popup normally handles the whole charge in-page (see
   // onSuccess below), but some mobile banks/browsers can't complete their
@@ -114,48 +139,59 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  const handleUpgrade = async (interval: 'monthly' | 'yearly' = 'monthly') => {
+  const handleUpgrade = (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
-    try {
-      const { accessCode, reference } = await initializeSubscription(interval);
-      // Close our own sheet before opening Paystack's popup. Paystack's
-      // inline.js appends its checkout iframe directly to document.body —
-      // it isn't inside this sheet's Radix-managed content, so while the
-      // sheet stays open Radix keeps document.body { pointer-events: none }
-      // locked for anything outside its own allow-listed content, and the
-      // Paystack iframe inherits that lock and becomes fully unclickable.
-      setOpenSheet(null);
-      await openPaystackPopup(accessCode, {
-        onSuccess: async () => {
-          showToast('Payment successful — activating your plan…', 'success');
-          setUpgrading(false);
-          try {
-            // Re-verifies server-to-server with Paystack and flips the
-            // shop to active directly — the webhook (app/api/webhooks/
-            // paystack) is still the real source of truth and will fire
-            // too, but it can lag several seconds behind this callback (and
-            // never reaches a localhost dev server at all), which is why
-            // the plan card kept showing "Upgrade" after a real successful
-            // charge. This closes that gap instead of just hoping the
-            // webhook + realtime subscription land before the user looks.
-            await confirmSubscriptionPayment(reference);
-          } catch (err) {
-            console.error('confirmSubscriptionPayment failed, relying on webhook:', err);
-          }
-          refreshShop();
-        },
-        onCancel: () => {
-          setUpgrading(false);
-        },
-        onError: (error) => {
-          showToast(error.message || 'Payment failed', 'error');
-          setUpgrading(false);
-        },
+    // If the plan sheet's effect already fetched a matching transaction,
+    // this resolves immediately (no real network gap before openPaystackPopup
+    // below) — that's what keeps the popup call inside iOS Safari's
+    // user-gesture window. Falling back to a fresh fetch here still works,
+    // it just reintroduces the gap this whole prefetch exists to avoid.
+    const ready = checkout && checkout.interval === interval
+      ? Promise.resolve(checkout)
+      : initializeSubscription(interval).then(({ accessCode, reference }) => ({ accessCode, reference, interval }));
+
+    ready
+      .then(({ accessCode, reference }) => {
+        setCheckout(null);
+        // Close our own sheet before opening Paystack's popup. Paystack's
+        // inline.js appends its checkout iframe directly to document.body —
+        // it isn't inside this sheet's Radix-managed content, so while the
+        // sheet stays open Radix keeps document.body { pointer-events: none }
+        // locked for anything outside its own allow-listed content, and the
+        // Paystack iframe inherits that lock and becomes fully unclickable.
+        setOpenSheet(null);
+        return openPaystackPopup(accessCode, {
+          onSuccess: async () => {
+            showToast('Payment successful — activating your plan…', 'success');
+            setUpgrading(false);
+            try {
+              // Re-verifies server-to-server with Paystack and flips the
+              // shop to active directly — the webhook (app/api/webhooks/
+              // paystack) is still the real source of truth and will fire
+              // too, but it can lag several seconds behind this callback (and
+              // never reaches a localhost dev server at all), which is why
+              // the plan card kept showing "Upgrade" after a real successful
+              // charge. This closes that gap instead of just hoping the
+              // webhook + realtime subscription land before the user looks.
+              await confirmSubscriptionPayment(reference);
+            } catch (err) {
+              console.error('confirmSubscriptionPayment failed, relying on webhook:', err);
+            }
+            refreshShop();
+          },
+          onCancel: () => {
+            setUpgrading(false);
+          },
+          onError: (error) => {
+            showToast(error.message || 'Payment failed', 'error');
+            setUpgrading(false);
+          },
+        });
+      })
+      .catch((err) => {
+        showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
+        setUpgrading(false);
       });
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
-      setUpgrading(false);
-    }
   };
 
   // authLoading starts true on every mount/auth-state event and only flips
