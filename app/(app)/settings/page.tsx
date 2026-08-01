@@ -21,7 +21,6 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { initializeSubscription, confirmSubscriptionPayment } from '@/app/actions/payments';
-import { openPaystackPopup, preloadPaystackScript, isStandalonePwa } from '@/lib/paystack';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
@@ -59,7 +58,6 @@ export default function SettingsPage() {
 
   const [upgrading, setUpgrading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
-  const [checkout, setCheckout] = useState<{ accessCode: string; authorizationUrl: string; reference: string; interval: 'monthly' | 'yearly' } | null>(null);
 
   // Read once via lazy init rather than inline in render — Date.now() is an
   // impure call the React Compiler flags if invoked directly during render.
@@ -68,59 +66,19 @@ export default function SettingsPage() {
     ? Math.max(1, Math.ceil((new Date(currentShop.graceExpiresAt).getTime() - nowMs) / (24 * 60 * 60 * 1000)))
     : null;
 
-  // Both the checkout script and the transaction itself (accessCode/
-  // reference from initializeSubscription) are fetched as soon as the plan
-  // picker opens, not on the "Upgrade" click — iOS Safari only treats a
-  // popup-opening call as trusted if it runs (near-)synchronously inside
-  // the click that triggered it; a real network round trip in between
-  // (which initializeSubscription is) uses up that window, so Safari
-  // silently kills the popup a moment after it appears and the app falls
-  // back to the redirect flow — seen live as "opens then cancels shortly
-  // and reloads the settings page," working only on a second click because
-  // by then the script (but not a fresh transaction) was already cached.
-  // Pre-fetching both means the click handler below only has to resolve
-  // already-settled promises before calling into Paystack, keeping it
-  // inside that window on every attempt, not just the second one.
-  useEffect(() => {
-    if (openSheet !== 'plans') return;
-    // Already have an unconsumed transaction for this interval (e.g. the
-    // user closed and reopened the sheet, or toggled back to a billing
-    // interval they'd already prefetched) — it's still perfectly valid
-    // until it's actually used, so skip fetching another one. Every open
-    // used to fire a fresh initializeSubscription call regardless, which
-    // burned through checkRateLimit's cap in minutes for anyone genuinely
-    // comparing plans (open/close/toggle a few times) rather than abusing
-    // it, and — with several rounds of testing on the same account — was
-    // enough to lock a real account out entirely.
-    if (checkout && checkout.interval === billingInterval) return;
-    preloadPaystackScript();
-    let cancelled = false;
-    initializeSubscription(billingInterval)
-      .then(({ accessCode, authorizationUrl, reference }) => {
-        if (!cancelled) setCheckout({ accessCode, authorizationUrl, reference, interval: billingInterval });
-      })
-      .catch((err) => {
-        // Not fatal — handleUpgrade falls back to fetching it inline if
-        // this hasn't resolved (or failed) by the time the user clicks.
-        console.error('Pre-fetching checkout failed, will retry on click:', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [openSheet, billingInterval, checkout]);
-
-  // Paystack's inline popup normally handles the whole charge in-page (see
-  // onSuccess below), but some mobile banks/browsers can't complete their
-  // OTP/3DS step inside that iframe and fall back to a full-page redirect
-  // to Paystack's hosted authorization page instead — which lands back
-  // here via the callback_url passed to transaction/initialize, appending
-  // ?payment=success&reference=... . That round trip is a real full page
-  // load: AuthProvider remounts and briefly shows the loading skeleton
-  // (the "flicker"), and since it's a fresh navigation, the popup's
-  // onSuccess handler never ran — nothing was verifying or activating the
-  // plan, so the page just settled back to "Upgrade" with nothing changed.
-  // This is the same activation the popup path does, just triggered from
-  // the redirect instead.
+  // Checkout is always a plain full-page redirect to Paystack's hosted
+  // checkout, on every device — not just as a fallback. Paystack's in-page
+  // popup depends on the browser trusting a JS-initiated popup call, and
+  // that trust is inconsistent across contexts in ways outside this app's
+  // control: iOS Safari only honors it within a narrow window of the
+  // original tap, and iOS's installed-home-screen-app runtime (WKWebView)
+  // doesn't support it at all (no window-opening delegate — an Apple
+  // platform restriction, not fixable from web code, confirmed against a
+  // real device). A same-tab redirect has no such dependency: it's the one
+  // checkout path guaranteed to behave identically everywhere. Landing
+  // back here happens via the callback_url passed to
+  // transaction/initialize, appending ?payment=success&reference=... ,
+  // handled below.
   useEffect(() => {
     if (searchParams.get('payment') !== 'success') return;
     const reference = searchParams.get('reference') || searchParams.get('trxref');
@@ -148,70 +106,13 @@ export default function SettingsPage() {
 
   const handleUpgrade = (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
-    // If the plan sheet's effect already fetched a matching transaction,
-    // this resolves immediately (no real network gap before openPaystackPopup
-    // below) — that's what keeps the popup call inside iOS Safari's
-    // user-gesture window. Falling back to a fresh fetch here still works,
-    // it just reintroduces the gap this whole prefetch exists to avoid.
-    const ready = checkout && checkout.interval === interval
-      ? Promise.resolve(checkout)
-      : initializeSubscription(interval).then(({ accessCode, authorizationUrl, reference }) => ({ accessCode, authorizationUrl, reference, interval }));
-
-    ready
-      .then(({ accessCode, authorizationUrl, reference }) => {
-        setCheckout(null);
-        // Close our own sheet before opening Paystack's popup. Paystack's
-        // inline.js appends its checkout iframe directly to document.body —
-        // it isn't inside this sheet's Radix-managed content, so while the
-        // sheet stays open Radix keeps document.body { pointer-events: none }
-        // locked for anything outside its own allow-listed content, and the
-        // Paystack iframe inherits that lock and becomes fully unclickable.
-        setOpenSheet(null);
-
-        // Installed home-screen PWAs on iOS run in a standalone WKWebView
-        // that's meaningfully more restrictive about "trusted user
-        // activation" than a real Safari tab — confirmed live: the same
-        // account that opened the popup fine on the first tap in Safari
-        // kept hitting "opens then cancels" every time from the home-
-        // screen icon, even with the prefetch that fixed it in Safari
-        // itself. Rather than chase gesture timing further in a context
-        // WebKit treats differently, skip the popup there entirely and use
-        // the plain full-page redirect to Paystack's hosted checkout — it
-        // doesn't depend on gesture timing at all, and the round trip back
-        // through ?payment=success&reference=... above already activates
-        // the plan the same way the popup's onSuccess does.
-        if (isStandalonePwa()) {
-          window.location.href = authorizationUrl;
-          return;
-        }
-
-        return openPaystackPopup(accessCode, {
-          onSuccess: async () => {
-            showToast('Payment successful — activating your plan…', 'success');
-            setUpgrading(false);
-            try {
-              // Re-verifies server-to-server with Paystack and flips the
-              // shop to active directly — the webhook (app/api/webhooks/
-              // paystack) is still the real source of truth and will fire
-              // too, but it can lag several seconds behind this callback (and
-              // never reaches a localhost dev server at all), which is why
-              // the plan card kept showing "Upgrade" after a real successful
-              // charge. This closes that gap instead of just hoping the
-              // webhook + realtime subscription land before the user looks.
-              await confirmSubscriptionPayment(reference);
-            } catch (err) {
-              console.error('confirmSubscriptionPayment failed, relying on webhook:', err);
-            }
-            refreshShop();
-          },
-          onCancel: () => {
-            setUpgrading(false);
-          },
-          onError: (error) => {
-            showToast(error.message || 'Payment failed', 'error');
-            setUpgrading(false);
-          },
-        });
+    initializeSubscription(interval)
+      .then(({ authorizationUrl }) => {
+        window.location.href = authorizationUrl;
+        // Deliberately no setUpgrading(false) on this path — the button
+        // stays in its loading state for the brief moment before the
+        // browser actually navigates away, rather than flashing back to
+        // "Upgrade" first.
       })
       .catch((err) => {
         showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
