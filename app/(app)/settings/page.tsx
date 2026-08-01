@@ -70,6 +70,13 @@ export default function SettingsPage() {
     setUpgrading(true);
     try {
       const { accessCode } = await initializeSubscription(interval);
+      // Close our own sheet before opening Paystack's popup. Paystack's
+      // inline.js appends its checkout iframe directly to document.body —
+      // it isn't inside this sheet's Radix-managed content, so while the
+      // sheet stays open Radix keeps document.body { pointer-events: none }
+      // locked for anything outside its own allow-listed content, and the
+      // Paystack iframe inherits that lock and becomes fully unclickable.
+      setOpenSheet(null);
       await openPaystackPopup(accessCode, {
         onSuccess: () => {
           // The webhook (source of truth) flips subscription_status once

@@ -82,7 +82,12 @@ export default function RootLayout({
               grep -rohE 'Symbol name="[a-z_0-9]+"' --include="*.tsx" app components \
                 | sed -E 's/Symbol name="([a-z_0-9]+)"/\1/' | sort -u
             then also check for dynamic `name={...}` usages (ternaries,
-            `icon:` fields in data arrays) that a static grep won't catch.
+            `icon:` fields in data arrays) that a static grep won't catch —
+            including indirection through a lookup object, e.g.
+            components/layout/BottomNav/BottomNav.tsx's SYMBOL_MAP (this bit
+            us once already: dashboard/precision_manufacturing/settings were
+            missing because they only ever appear as object *values*, never
+            as a literal Symbol name="..." anywhere in the source).
 
             The two lint warnings below are both inapplicable here, not
             overlooked: next/font/google doesn't offer Material Symbols at
@@ -90,7 +95,7 @@ export default function RootLayout({
             is the deliberate, correct choice for an icon font per the
             comment above, not the swap the rule assumes. */}
         {/* eslint-disable-next-line @next/next/google-font-display, @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_a_photo,add_circle,add_photo_alternate,all_inclusive,apparel,arrow_back,arrow_forward,arrow_forward_ios,assignment,auto_awesome,auto_stories,bar_chart,bookmark,broken_image,call,chat,chat_bubble,check,check_circle,checkroom,chevron_left,chevron_right,close,cloud_sync,content_copy,content_cut,contrast,credit_card_off,dark_mode,drag_indicator,edit,event,event_busy,forum,group,handshake,history,hourglass_empty,image,inventory_2,ios_share,layers,light_mode,location_on,lock_open,lock_reset,menu,notification_important,open_in_new,palette,person,person_add,person_off,photo_library,progress_activity,radar,radio_button_unchecked,receipt,receipt_long,remove,reviews,search,search_off,share,smartphone,star,sticky_note_2,storefront,straighten,toggle_on,tune,undo,upload,verified,verified_user,view_kanban,visibility,visibility_off,warning,workspace_premium&display=block" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_a_photo,add_circle,add_photo_alternate,all_inclusive,apparel,arrow_back,arrow_forward,arrow_forward_ios,assignment,auto_awesome,auto_stories,bar_chart,bookmark,broken_image,call,chat,chat_bubble,check,check_circle,checkroom,chevron_left,chevron_right,close,cloud_sync,content_copy,content_cut,contrast,credit_card_off,dark_mode,dashboard,drag_indicator,edit,event,event_busy,forum,group,handshake,history,hourglass_empty,image,inventory_2,ios_share,layers,light_mode,location_on,lock_open,lock_reset,menu,notification_important,open_in_new,palette,person,person_add,person_off,photo_library,precision_manufacturing,progress_activity,radar,radio_button_unchecked,receipt,receipt_long,remove,reviews,search,search_off,settings,share,smartphone,star,sticky_note_2,storefront,straighten,toggle_on,tune,undo,upload,verified,verified_user,view_kanban,visibility,visibility_off,warning,workspace_premium&display=block" rel="stylesheet" />
         {/* Sets data-theme before first paint if the user has forced a
             theme — otherwise they'd see a flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_ANTI_FLASH_SCRIPT }} />
