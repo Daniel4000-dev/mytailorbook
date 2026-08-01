@@ -31,13 +31,15 @@ export default function AboutPageContent() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
+        <Image src="/images/marketing/product-client-profile.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
+        <div className={styles.heroScrim} />
         <motion.div
           className={styles.heroInner}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className={styles.eyebrow}>Our Story</span>
+          <span className={styles.heroEyebrow}>Our Story</span>
           <h1 className={styles.heroHeadline}>Elevating the craft of tailoring through technology.</h1>
           <p className={styles.heroSubhead}>
             MyStitchBook merges the tactile heritage of textile arts with the precision of modern software — a
@@ -107,6 +109,8 @@ export default function AboutPageContent() {
       </section>
 
       <section className={styles.finalCta}>
+        <Image src="/images/marketing/product-laptop-clothing-grid.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
+        <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>Come build with us.</h2>
           <p className={styles.finalCtaBody}>

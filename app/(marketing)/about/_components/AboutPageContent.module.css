@@ -21,11 +21,30 @@
   margin: 0 0 var(--sf-space-2xl);
 }
 
-/* ── Hero ── */
+/* ── Hero — full-bleed photo, same cinematic treatment as the homepage ── */
 .hero {
-  padding: var(--sf-space-3xl) var(--sf-margin-desktop) var(--sf-space-xl);
+  position: relative;
+  min-height: 52vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  padding: var(--sf-space-3xl) var(--sf-margin-desktop);
   text-align: center;
-  background: radial-gradient(circle at 50% 0%, var(--sf-accent-emerald-glow) 0%, transparent 60%);
+}
+
+.heroBg {
+  object-fit: cover;
+  object-position: center;
+  z-index: -2;
+}
+
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(19, 18, 32, 0.6) 0%, rgba(19, 18, 32, 0.8) 100%);
 }
 
 .heroInner {
@@ -33,18 +52,34 @@
   margin: 0 auto;
 }
 
+.heroEyebrow {
+  display: inline-block;
+  font-size: var(--sf-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: var(--sf-radius-full);
+  margin-bottom: var(--sf-space-md);
+}
+
 .heroHeadline {
   font-family: var(--font-fraunces), serif;
   font-size: clamp(2.25rem, 4.5vw, var(--sf-text-4xl));
   font-weight: 600;
   line-height: 1.15;
-  color: var(--sf-text-primary);
+  color: #ffffff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   margin: 0 0 var(--sf-space-md);
 }
 
 .heroSubhead {
   font-size: var(--sf-text-lg);
-  color: var(--sf-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   line-height: var(--sf-leading-relaxed);
   margin: 0;
 }
@@ -185,9 +220,29 @@
   margin: 0 0 var(--sf-space-md);
 }
 
-/* ── Final CTA ── */
+/* ── Final CTA — photo-backed, matches the homepage's closing band ── */
 .finalCta {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
   padding: var(--sf-space-3xl) var(--sf-margin-desktop);
+}
+
+.finalCtaBg {
+  object-fit: cover;
+  object-position: center;
+  z-index: -2;
+}
+
+.finalCtaScrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(19, 18, 32, 0.82) 0%, rgba(30, 26, 74, 0.88) 100%);
 }
 
 .finalCtaInner {
@@ -200,13 +255,13 @@
   font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
-  color: var(--sf-text-primary);
+  color: #ffffff;
   margin: 0 0 var(--sf-space-md);
 }
 
 .finalCtaBody {
   font-size: var(--sf-text-base);
-  color: var(--sf-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0 0 var(--sf-space-xl);
 }
 

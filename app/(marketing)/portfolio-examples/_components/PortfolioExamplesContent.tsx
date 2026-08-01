@@ -19,13 +19,15 @@ export default function PortfolioExamplesContent() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
+        <Image src="/images/marketing/product-portfolio-showcase-phone.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
+        <div className={styles.heroScrim} />
         <motion.div
           className={styles.heroInner}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className={styles.eyebrow}>Showcase</span>
+          <span className={styles.heroEyebrow}>Showcase</span>
           <h1 className={styles.heroHeadline}>Your work deserves a stage.</h1>
           <p className={styles.heroSubhead}>
             Every shop gets a free public portfolio page — a beautiful, shareable showcase of your finished work.
@@ -104,6 +106,8 @@ export default function PortfolioExamplesContent() {
       </section>
 
       <section className={styles.finalCta}>
+        <Image src="/images/marketing/product-home-phone.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
+        <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>Ready to build yours?</h2>
           <p className={styles.finalCtaBody}>
