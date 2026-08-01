@@ -421,6 +421,39 @@
   color: var(--sf-text-secondary);
 }
 
+.customerPickList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+  padding: 4px;
+}
+
+.customerPickRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+}
+
+.customerPickRow:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.pickContactedTag {
+  margin-left: auto;
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  white-space: nowrap;
+}
+
 .startBtn {
   width: 100%;
   height: var(--sf-touch-target);

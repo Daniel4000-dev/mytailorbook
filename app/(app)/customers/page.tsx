@@ -63,6 +63,8 @@ export default function CustomersPage() {
   const [queueIndex, setQueueIndex] = useState(0);
   const [sharing, setSharing] = useState(false);
   const [includeContacted, setIncludeContacted] = useState(false);
+  const [selectionMode, setSelectionMode] = useState<'everyone' | 'choose'>('everyone');
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
 
   // Reset immediately when the active style changes — adjusted during
   // render rather than in the effect below, which only handles the actual
@@ -147,7 +149,18 @@ export default function CustomersPage() {
     setSelectedPhoto(savedPhotos[0] || null);
     setNoteText(currentShop?.outreachTemplate || `Hi {name}, thought you'd love this ${styleFilter} style!`);
     setIncludeContacted(false);
+    setSelectionMode('everyone');
+    setSelectedCustomerIds(new Set());
     setIsOutreachSheetOpen(true);
+  };
+
+  const toggleCustomerSelection = (id: string) => {
+    setSelectedCustomerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const startQueue = (list: Customer[]) => {
@@ -341,9 +354,49 @@ export default function CustomersPage() {
                 onChange={(e) => setNoteText(e.target.value)}
                 rows={3}
               />
+
+              <span className={styles.composeLabel}>Who should get this?</span>
+              <div className={styles.pillRow}>
+                <FilterPill label="Everyone" active={selectionMode === 'everyone'} onClick={() => setSelectionMode('everyone')} />
+                <FilterPill label="Choose People" active={selectionMode === 'choose'} onClick={() => setSelectionMode('choose')} />
+              </div>
+
               {(() => {
                 const notYetContacted = filtered.filter((c) => !outreachMap[c.id]);
-                const queueTarget = includeContacted ? filtered : notYetContacted;
+                const everyoneTarget = includeContacted ? filtered : notYetContacted;
+                const chosenTarget = filtered.filter((c) => selectedCustomerIds.has(c.id));
+                const queueTarget = selectionMode === 'everyone' ? everyoneTarget : chosenTarget;
+
+                if (selectionMode === 'choose') {
+                  return (
+                    <>
+                      <div className={styles.customerPickList}>
+                        {filtered.map((c) => (
+                          <label key={c.id} className={styles.customerPickRow}>
+                            <input
+                              type="checkbox"
+                              checked={selectedCustomerIds.has(c.id)}
+                              onChange={() => toggleCustomerSelection(c.id)}
+                            />
+                            <span>{c.fullName}</span>
+                            {outreachMap[c.id] && <span className={styles.pickContactedTag}>Already contacted</span>}
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.startBtn}
+                        disabled={!selectedPhoto || queueTarget.length === 0}
+                        onClick={() => startQueue(queueTarget)}
+                      >
+                        {queueTarget.length === 0
+                          ? 'Select at least one customer'
+                          : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
+                      </button>
+                    </>
+                  );
+                }
+
                 return (
                   <>
                     {filtered.length > notYetContacted.length && (
