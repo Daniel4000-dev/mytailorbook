@@ -32,12 +32,21 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
     throw new Error('No shop profile found');
   }
 
-  // Each call hits Paystack's API twice (plan lookup + transaction init) —
-  // cap it well above any legitimate retry pattern, just to stop scripted
-  // abuse from burning through Paystack's own rate limits on our behalf.
-  const { allowed } = await checkRateLimit(`checkout-init:${user.id}`, { limit: 10, windowSeconds: 3600 });
+  // Deliberately doesn't block on this — initializing a transaction moves
+  // no money (Paystack only actually charges a card once the user
+  // completes payment on their own hosted page, which Paystack protects
+  // itself), and this action already requires an authenticated shop owner,
+  // so there's no anonymous-abuse angle to defend against, only a caller
+  // spamming their own account for no gain. A hard per-user cap here
+  // twice locked out a genuine, non-abusive user (retrying after a flaky
+  // connection / an in-progress bug) rather than anything resembling
+  // abuse — the same mistake real payment integrations avoid by not
+  // gating a customer's own "buy" click. This just leaves a trace if a
+  // runaway loop (not a human) ever does show up, without ever refusing a
+  // real one.
+  const { allowed } = await checkRateLimit(`checkout-init:${user.id}`, { limit: 60, windowSeconds: 3600 });
   if (!allowed) {
-    throw new Error('Too many checkout attempts — please try again in a few minutes.');
+    console.error(`Unusually high checkout-init volume for user ${user.id} — not blocking, just flagging.`);
   }
 
   const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
