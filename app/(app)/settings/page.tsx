@@ -83,11 +83,18 @@ export default function SettingsPage() {
   // inside that window on every attempt, not just the second one.
   useEffect(() => {
     if (openSheet !== 'plans') return;
+    // Already have an unconsumed transaction for this interval (e.g. the
+    // user closed and reopened the sheet, or toggled back to a billing
+    // interval they'd already prefetched) — it's still perfectly valid
+    // until it's actually used, so skip fetching another one. Every open
+    // used to fire a fresh initializeSubscription call regardless, which
+    // burned through checkRateLimit's cap in minutes for anyone genuinely
+    // comparing plans (open/close/toggle a few times) rather than abusing
+    // it, and — with several rounds of testing on the same account — was
+    // enough to lock a real account out entirely.
+    if (checkout && checkout.interval === billingInterval) return;
     preloadPaystackScript();
     let cancelled = false;
-    // No need to clear the previous checkout first — handleUpgrade already
-    // guards on `checkout.interval === interval`, so a stale entry for the
-    // other billing interval is simply ignored, not acted on.
     initializeSubscription(billingInterval)
       .then(({ accessCode, reference }) => {
         if (!cancelled) setCheckout({ accessCode, reference, interval: billingInterval });
@@ -100,7 +107,7 @@ export default function SettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [openSheet, billingInterval]);
+  }, [openSheet, billingInterval, checkout]);
 
   // Paystack's inline popup normally handles the whole charge in-page (see
   // onSuccess below), but some mobile banks/browsers can't complete their
