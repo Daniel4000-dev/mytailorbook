@@ -944,6 +944,22 @@ export async function getPendingStyleCountsAction(shopId: string): Promise<Recor
   return counts;
 }
 
+/** Distinct style names that have at least one owner-approved ("saved")
+ *  gallery photo for this shop — powers the Customers page's style filter,
+ *  which is meant to only ever offer styles the tailor can actually show
+ *  proof of (a real approved photo), not every style a customer happens
+ *  to have listed as a preference with nothing to show for it yet. */
+export async function getApprovedStyleNamesAction(shopId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('style_photo_submissions')
+    .select('style_name')
+    .eq('shop_id', shopId)
+    .eq('status', 'saved');
+  if (error) throw new Error(error.message);
+  return Array.from(new Set((data || []).map((row) => row.style_name)));
+}
+
 export async function approveStylePhotoSubmissionAction(id: string, savedBy: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase

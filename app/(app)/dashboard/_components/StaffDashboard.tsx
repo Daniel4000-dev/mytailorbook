@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { FaTriangleExclamation, FaCircleCheck, FaScissors, FaClipboardList } from 'react-icons/fa6';
 import Badge from '@/components/ui/Badge/Badge';
+import { STATUS_CONFIG } from '@/lib/constants';
 import { isOverdue, isDueSoon } from '@/lib/types';
 import { getInitials } from '@/lib/formatters';
 import type { Order } from '@/lib/types';
@@ -105,7 +106,7 @@ export default function StaffDashboard({
               <div className={styles.attentionMeta}>
                 <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'}>
                   {order.status === 'Cutting' ? <FaScissors /> : order.status === 'Ready' ? <FaCircleCheck /> : null}
-                  {' '}{order.status}
+                  {' '}{STATUS_CONFIG[order.status].label}
                 </Badge>
                 {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
                 {!isOverdue(order) && isDueSoon(order) && <Badge variant="gold">Due Soon</Badge>}

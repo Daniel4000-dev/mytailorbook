@@ -18,10 +18,11 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import Input from '@/components/ui/Input/Input';
+import MoneyInput from '@/components/ui/MoneyInput/MoneyInput';
 import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
-import { formatCurrency, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
+import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
@@ -438,7 +439,7 @@ export default function OrderDetailPage() {
             <div className={styles.metaItem}>
               <span className={styles.metaLabel}>Current Stage Entry</span>
               <span className={styles.metaValue}>
-                {stageEntry ? `Entered ${order.status} on ${formatDate(stageEntry.timestamp)}` : '—'}
+                {stageEntry ? `Entered ${STATUS_CONFIG[order.status].label} on ${formatDate(stageEntry.timestamp)}` : '—'}
               </span>
             </div>
           </div>
@@ -465,11 +466,10 @@ export default function OrderDetailPage() {
                   value={editAssignedTo}
                   onChange={(e) => setEditAssignedTo(e.target.value)}
                 />
-                <Input
+                <MoneyInput
                   label="Total Bill (₦)"
                   value={editTotalBill}
-                  onChange={(e) => setEditTotalBill(e.target.value.replace(/[^0-9,]/g, ''))}
-                  inputMode="numeric"
+                  onChange={setEditTotalBill}
                 />
               </div>
               {FEATURE_FLAGS.costMarginTracking && (
@@ -485,20 +485,18 @@ export default function OrderDetailPage() {
                       onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
                     />
                     {editMaterialSuppliedBy === 'shop' && (
-                      <Input
+                      <MoneyInput
                         label="Material Cost (₦)"
                         value={editMaterialCost}
-                        onChange={(e) => setEditMaterialCost(e.target.value.replace(/[^0-9,]/g, ''))}
-                        inputMode="numeric"
+                        onChange={setEditMaterialCost}
                       />
                     )}
                   </div>
                   <div className={styles.editRow}>
-                    <Input
+                    <MoneyInput
                       label="Other Costs (₦)"
                       value={editOtherCosts}
-                      onChange={(e) => setEditOtherCosts(e.target.value.replace(/[^0-9,]/g, ''))}
-                      inputMode="numeric"
+                      onChange={setEditOtherCosts}
                       placeholder="Thread, buttons, outsourced labor…"
                     />
                   </div>
@@ -706,7 +704,7 @@ export default function OrderDetailPage() {
                   className={styles.payInput}
                   placeholder="₦0.00"
                   inputMode="numeric"
-                  value={clearFull ? String(balanceOwed) : paymentAmount}
+                  value={clearFull ? formatNumber(balanceOwed) : (paymentAmount ? formatNumber(Number(paymentAmount)) : '')}
                   disabled={clearFull}
                   onChange={(e) => setPaymentAmount(e.target.value.replace(/[^0-9]/g, ''))}
                 />
@@ -826,7 +824,11 @@ export default function OrderDetailPage() {
               const entry = order.statusHistory.filter((h) => h.to === status).pop();
               const currentIndex = ORDER_STATUSES.indexOf(order.status);
               const stepIndex = ORDER_STATUSES.indexOf(status);
-              const state = stepIndex < currentIndex ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
+              // The final stage (Completed/"Delivered") has no "next" to
+              // move on to — once reached it's done, not still "current"
+              // with an in-progress spinner.
+              const isTerminal = status === 'Completed' && order.status === 'Completed';
+              const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
               return (
                 <div key={status} className={styles.timelineStep}>
                   <div className={styles.timelineLine} />
@@ -838,7 +840,7 @@ export default function OrderDetailPage() {
                   </div>
                   <div>
                     <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
-                      {status}{state === 'current' ? ' (Current)' : ''}
+                      {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
                     </p>
                     <p className={styles.timelineMeta}>
                       {entry

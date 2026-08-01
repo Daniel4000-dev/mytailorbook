@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ORDER_STATUSES } from '@/lib/constants';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { formatNumber } from '@/lib/formatters';
 import type { Customer, OrderStatus, Priority, User } from '@/lib/types';
 import styles from '../page.module.css';
 
@@ -75,8 +76,8 @@ export default function DetailsStep({
                 className={styles.unitInput}
                 inputMode="numeric"
                 placeholder="0"
-                value={u.totalBill}
-                onChange={(e) => onUpdateUnit(u.key, { totalBill: e.target.value.replace(/[^0-9,]/g, '') })}
+                value={u.totalBill ? formatNumber(Number(u.totalBill)) : ''}
+                onChange={(e) => onUpdateUnit(u.key, { totalBill: e.target.value.replace(/[^0-9]/g, '') })}
               />
             </div>
             <div className={styles.unitField}>
@@ -85,8 +86,8 @@ export default function DetailsStep({
                 className={styles.unitInput}
                 inputMode="numeric"
                 placeholder="0"
-                value={u.depositPaid}
-                onChange={(e) => onUpdateUnit(u.key, { depositPaid: e.target.value.replace(/[^0-9,]/g, '') })}
+                value={u.depositPaid ? formatNumber(Number(u.depositPaid)) : ''}
+                onChange={(e) => onUpdateUnit(u.key, { depositPaid: e.target.value.replace(/[^0-9]/g, '') })}
               />
             </div>
             <div className={styles.unitField}>
@@ -138,8 +139,8 @@ export default function DetailsStep({
                       className={styles.unitInput}
                       inputMode="numeric"
                       placeholder="0"
-                      value={u.materialCost}
-                      onChange={(e) => onUpdateUnit(u.key, { materialCost: e.target.value.replace(/[^0-9,]/g, '') })}
+                      value={u.materialCost ? formatNumber(Number(u.materialCost)) : ''}
+                      onChange={(e) => onUpdateUnit(u.key, { materialCost: e.target.value.replace(/[^0-9]/g, '') })}
                     />
                   </div>
                 )}
@@ -149,8 +150,8 @@ export default function DetailsStep({
                     className={styles.unitInput}
                     inputMode="numeric"
                     placeholder="Thread, buttons, outsourced labor…"
-                    value={u.otherCosts}
-                    onChange={(e) => onUpdateUnit(u.key, { otherCosts: e.target.value.replace(/[^0-9,]/g, '') })}
+                    value={u.otherCosts ? formatNumber(Number(u.otherCosts)) : ''}
+                    onChange={(e) => onUpdateUnit(u.key, { otherCosts: e.target.value.replace(/[^0-9]/g, '') })}
                   />
                 </div>
               </div>

@@ -21,7 +21,7 @@ import MeasurementAnatomy from '../_components/MeasurementAnatomy';
 import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
-import { GARMENT_STYLES } from '@/lib/constants';
+import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import { deleteCustomerAction } from '@/app/actions';
@@ -425,7 +425,7 @@ function CustomerProfileContent({
                     <span className={styles.orderDate}>{new Date(o.createdAt).toLocaleDateString()}</span>
                   </div>
                   <Badge variant={o.status.toLowerCase() as 'documented' | 'cutting' | 'sewing' | 'ready' | 'completed'} size="md">
-                    {o.status}
+                    {STATUS_CONFIG[o.status].label}
                   </Badge>
                 </div>
 

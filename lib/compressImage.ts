@@ -19,6 +19,29 @@ interface CompressImageOptions {
 export async function compressImage(file: File, options: CompressImageOptions = {}): Promise<File> {
   const { maxDimension = 1600, quality = 0.82 } = options;
 
+  // HEIC/HEIF (the default format on iPhone cameras, when "High Efficiency"
+  // is selected in Settings > Camera > Formats — very common) can't be
+  // decoded by createImageBitmap in Chrome/Firefox/Android; only Safari's
+  // native decoder handles it. Without converting this up front, the file
+  // silently uploads unconverted: it "succeeds," but then renders as a
+  // broken image everywhere except Safari. MIME type alone is unreliable
+  // for HEIC across browsers/OSes (often reported blank), so this also
+  // checks the file extension. heic2any runs a WASM decoder entirely
+  // client-side, so this produces a real, working JPEG rather than just
+  // failing with a friendlier error.
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || /\.hei[cf]$/i.test(file.name);
+  if (isHeic) {
+    try {
+      const heic2any = (await import('heic2any')).default;
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality });
+      const blob = Array.isArray(converted) ? converted[0] : converted;
+      const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+      file = new File([blob], name, { type: 'image/jpeg', lastModified: file.lastModified });
+    } catch {
+      throw new Error('This photo couldn’t be converted — please switch your iPhone camera to "Most Compatible" format in Settings, or try a different photo.');
+    }
+  }
+
   if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') return file;
 
   try {

@@ -81,6 +81,19 @@
   background: var(--sf-surface-container-highest);
 }
 
+.photoError {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-xs);
+  text-align: center;
+}
+
 .expiryTag {
   position: absolute;
   bottom: 6px;

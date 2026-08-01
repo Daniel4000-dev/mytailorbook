@@ -19,7 +19,7 @@ import { formatPhone, formatCurrency, formatShortMonthYear, formatDate, getWhats
 import { getBalanceOwed } from '@/lib/types';
 import type { Customer } from '@/lib/types';
 import { GARMENT_STYLES } from '@/lib/constants';
-import { getStylePhotoSubmissionsAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
+import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
 import type { StylePhotoSubmission } from '@/lib/types';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
@@ -43,6 +43,12 @@ export default function CustomersPage() {
   const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
   const [styleFilter, setStyleFilter] = useState<string | null>(null);
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
+  const [approvedStyleNames, setApprovedStyleNames] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!currentShop?.id) return;
+    getApprovedStyleNamesAction(currentShop.id).then((names) => setApprovedStyleNames(new Set(names)));
+  }, [currentShop?.id]);
 
   // Outreach: this style's saved (owner-approved) photos, and who's already
   // been contacted about it — fetched fresh whenever the active style
@@ -116,19 +122,23 @@ export default function CustomersPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setVisibleCount(PAGE_SIZE), [search, genderFilter, styleFilter]);
 
-  // Styles offered in the filter sheet are only ones actually in use by this
-  // shop's own customers (scoped to the active gender filter) — never the
-  // full static catalog, so a tailor never picks a style that returns zero
-  // results. Each resolves to its catalog photo when it's a built-in style;
-  // custom styles (free text, no catalog entry) fall back to a text-only chip.
+  // Styles offered in the filter sheet must satisfy two things at once:
+  // (1) at least one customer (scoped to the active gender filter) actually
+  // prefers it, so outreach has someone to reach, and (2) the Style Gallery
+  // has an owner-approved photo for it, so there's something real to show
+  // them — a style with zero approved photos would send the tailor into an
+  // outreach flow with nothing to share. Each resolves to its catalog photo
+  // when it's a built-in style; custom styles (free text, no catalog entry)
+  // fall back to a text-only chip.
   const availableStyles = useMemo(() => {
     const scoped = genderFilter === 'all' ? customers : customers.filter((c) => c.gender === genderFilter);
     const names = new Set<string>();
     scoped.forEach((c) => c.preferredStyles?.forEach((s) => names.add(s)));
     return Array.from(names)
+      .filter((name) => approvedStyleNames.has(name))
       .sort((a, b) => a.localeCompare(b))
       .map((name) => ({ name, photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl }));
-  }, [customers, genderFilter]);
+  }, [customers, genderFilter, approvedStyleNames]);
 
   const openOutreachSheet = () => {
     setOutreachStep('compose');

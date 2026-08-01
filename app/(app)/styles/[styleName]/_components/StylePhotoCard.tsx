@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatDate } from '@/lib/formatters';
@@ -22,11 +25,19 @@ export default function StylePhotoCard({
   onDiscard,
 }: StylePhotoCardProps) {
   const isPending = daysLeft !== undefined;
+  const [failed, setFailed] = useState(false);
 
   return (
     <div className={styles.photoCard}>
       <div className={styles.photoWrap}>
-        <Image src={submission.photoUrl} alt="" width={400} height={400} />
+        {failed ? (
+          <div className={styles.photoError}>
+            <Symbol name="broken_image" size={28} />
+            <span>Photo unavailable</span>
+          </div>
+        ) : (
+          <Image src={submission.photoUrl} alt="" width={400} height={400} onError={() => setFailed(true)} />
+        )}
         {isPending && (
           <span className={`${styles.expiryTag} ${daysLeft <= 3 ? styles.expiryTagSoon : ''}`}>
             {daysLeft <= 0 ? 'Expires today' : `${daysLeft}d left`}

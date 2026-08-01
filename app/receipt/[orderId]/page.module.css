@@ -4,7 +4,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--sf-space-xl) var(--sf-space-md);
+  padding: var(--sf-space-lg) var(--sf-space-md);
+  box-sizing: border-box;
 }
 
 .actionsBar {
@@ -12,7 +13,7 @@
   max-width: 560px;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: var(--sf-space-md);
+  margin-bottom: var(--sf-space-sm);
 }
 
 .card {
@@ -20,8 +21,32 @@
   max-width: 560px;
   background: #fff;
   border-radius: var(--sf-radius-lg);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-  padding: var(--sf-space-2xl);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.cardInner {
+  padding: var(--sf-space-xl);
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: var(--sf-space-sm);
+  }
+  .cardInner {
+    padding: var(--sf-space-lg) var(--sf-space-md);
+  }
+  .header {
+    flex-wrap: wrap;
+    gap: var(--sf-space-sm);
+  }
+  .receiptMeta {
+    align-items: flex-start;
+  }
+  .brand {
+    font-size: 19px;
+  }
 }
 
 /* .page/.card use a fixed off-white/paper look on purpose (this is a
@@ -68,9 +93,9 @@
 }
 
 .brand {
-  font-family: var(--sf-font-heading);
+  font-family: var(--font-fraunces), var(--sf-font-heading), serif;
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   color: var(--sf-text-primary);
 }
@@ -89,14 +114,15 @@
 }
 
 .receiptLabel {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--sf-text-tertiary);
 }
 
 .receiptId {
-  font-family: monospace;
+  font-family: 'SFMono-Regular', Consolas, monospace;
   font-size: 14px;
   color: var(--sf-text-primary);
   font-weight: 700;
@@ -107,10 +133,62 @@
   color: var(--sf-text-tertiary);
 }
 
-.divider {
-  height: 1px;
-  background: var(--sf-border-light);
-  margin: var(--sf-space-lg) 0;
+/* ── Hero amount — the "you were charged this much" moment every real
+   receipt (Stripe, Uber, Paystack) leads with. ── */
+.amountHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  margin: var(--sf-space-lg) 0 var(--sf-space-md);
+}
+
+.amountHeroLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--sf-text-tertiary);
+}
+
+.amountHeroValue {
+  font-family: var(--font-fraunces), var(--sf-font-heading), serif;
+  font-size: clamp(28px, 9vw, 40px);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  line-height: 1.1;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 5px 14px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* This app's design system deliberately uses one accent hue only —
+   urgency/success is signaled through weight and fill, not extra colors
+   (see styles/tokens.css) — so "paid" is a solid indigo fill and "due" is
+   the same indigo as an outline, not a competing red/amber/green. */
+.statusPillPaid {
+  background: var(--sf-success-bg);
+  color: var(--sf-success);
+}
+
+.statusPillDue {
+  background: transparent;
+  border: 1.5px solid var(--sf-accent-emerald);
+  color: var(--sf-accent-emerald);
+}
+
+.dividerDashed {
+  height: 0;
+  border-top: 1.5px dashed var(--sf-border);
+  margin: var(--sf-space-md) 0;
 }
 
 .sectionLabel {
@@ -139,19 +217,29 @@
   color: var(--sf-text-secondary);
 }
 
-.itemSection {
-  margin-top: var(--sf-space-lg);
+.lineItemSection {
+  display: flex;
+  flex-direction: column;
 }
 
-.orderDetails {
+.lineItemTable {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 14px;
-  color: var(--sf-text-secondary);
-  line-height: 1.5;
-  margin: 0 0 var(--sf-space-xs) 0;
 }
 
-.orderStatus {
+.lineItemDesc {
+  padding: 4px 0;
+  color: var(--sf-text-primary);
+  font-weight: 600;
+  vertical-align: top;
+}
+
+.lineItemMeta {
+  display: block;
+  margin-top: 2px;
   font-size: 12px;
+  font-weight: 500;
   color: var(--sf-text-tertiary);
 }
 
@@ -176,6 +264,7 @@
 
 .amountCol {
   text-align: right;
+  white-space: nowrap;
 }
 
 .paymentTable th {
@@ -194,7 +283,7 @@
 }
 
 .footer {
-  margin-top: var(--sf-space-2xl);
+  margin-top: var(--sf-space-lg);
   text-align: center;
   color: var(--sf-text-tertiary);
   font-size: 13px;
@@ -206,6 +295,26 @@
   opacity: 0.7;
 }
 
+/* Perforated bottom edge — the classic torn-receipt-stub look, drawn as a
+   scalloped background pattern (not clip-path/mask) so it rasterizes
+   correctly through html-to-image, unlike some CSS masking techniques. */
+.perforatedEdge {
+  height: 14px;
+  background:
+    radial-gradient(circle at 8px 0, transparent 7px, #F5F5F0 7.5px) top / 16px 14px repeat-x;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .perforatedEdge {
+    background:
+      radial-gradient(circle at 8px 0, transparent 7px, var(--sf-bg-primary) 7.5px) top / 16px 14px repeat-x;
+  }
+}
+:root[data-theme="dark"] .perforatedEdge {
+  background:
+    radial-gradient(circle at 8px 0, transparent 7px, var(--sf-bg-primary) 7.5px) top / 16px 14px repeat-x;
+}
+
 @media print {
   .page {
     background: #fff;
@@ -214,6 +323,10 @@
   .card {
     box-shadow: none;
     max-width: 100%;
+  }
+  .perforatedEdge {
+    background:
+      radial-gradient(circle at 8px 0, transparent 7px, #fff 7.5px) top / 16px 14px repeat-x;
   }
   :global(.noPrint) {
     display: none !important;
