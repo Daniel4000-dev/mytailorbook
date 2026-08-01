@@ -62,7 +62,13 @@ export default function StyleDetailPage() {
       const file = await compressImage(rawFile);
       const supabase = createClient();
       const ext = file.name.split('.').pop() || 'jpg';
-      const path = `${currentShop.id}/${encodeURIComponent(styleName)}/${crypto.randomUUID()}.${ext}`;
+      // Storage object keys are literal strings, not URL path segments —
+      // encodeURIComponent here was double-encoding: getPublicUrl() below
+      // already URL-encodes the raw key for the returned public URL, so
+      // pre-encoding it first turned "Two-Piece Suit" into a key literally
+      // containing "%20", which then re-encoded to "%2520" in the final
+      // URL — a broken link pointing at an object that doesn't exist.
+      const path = `${currentShop.id}/${styleName}/${crypto.randomUUID()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from('style-photos').upload(path, file, {
         cacheControl: '3600',
         upsert: false,

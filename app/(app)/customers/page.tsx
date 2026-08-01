@@ -126,10 +126,12 @@ export default function CustomersPage() {
   // (1) at least one customer (scoped to the active gender filter) actually
   // prefers it, so outreach has someone to reach, and (2) the Style Gallery
   // has an owner-approved photo for it, so there's something real to show
-  // them — a style with zero approved photos would send the tailor into an
-  // outreach flow with nothing to share. Each resolves to its catalog photo
-  // when it's a built-in style; custom styles (free text, no catalog entry)
-  // fall back to a text-only chip.
+  // them. Deliberately NOT decoupled from preference — offering a style
+  // with zero matching customers would send the tailor into an outreach
+  // flow that immediately dead-ends at "0 customers," which reads as
+  // broken rather than as an honest empty state. Each resolves to its
+  // catalog photo when it's a built-in style; custom styles (free text,
+  // no catalog entry) fall back to a text-only chip.
   const availableStyles = useMemo(() => {
     const scoped = genderFilter === 'all' ? customers : customers.filter((c) => c.gender === genderFilter);
     const names = new Set<string>();
@@ -267,7 +269,10 @@ export default function CustomersPage() {
 
         <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">
           {availableStyles.length === 0 ? (
-            <p className={styles.noStylesHint}>No preferred styles recorded yet for this filter.</p>
+            <p className={styles.noStylesHint}>
+              No styles to filter by yet — a style shows up here once it has both an approved Style Gallery photo
+              and at least one customer who prefers it.
+            </p>
           ) : (
             <div className={styles.styleFilterGrid}>
               {availableStyles.map((s) => (

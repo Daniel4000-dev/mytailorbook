@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { FaWhatsapp } from 'react-icons/fa6';
-import { getPublicOrderView, getPublicOrderComments, getPublicBatchSiblings } from '@/app/public-actions';
+import { getPublicOrderView, getPublicOrderComments, getPublicBatchSiblings, hasOrderRatingAction } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
@@ -12,6 +12,7 @@ import CommentBox from './_components/CommentBox/CommentBox';
 import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
+import RatingForm from './_components/RatingForm/RatingForm';
 import styles from './page.module.css';
 
 // Private-by-link customer page (real names, order details) — must never
@@ -57,9 +58,11 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   }
 
   const { order, shop } = view;
-  const [comments, batchSiblings] = await Promise.all([
+  const isDelivered = order.status === 'Completed';
+  const [comments, batchSiblings, alreadyRated] = await Promise.all([
     getPublicOrderComments(orderId),
     getPublicBatchSiblings(orderId),
+    isDelivered ? hasOrderRatingAction(orderId) : Promise.resolve(false),
   ]);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
 
@@ -136,29 +139,34 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           )}
         </section>
 
-        {/* Visual progress story */}
-        <section className={styles.timeline}>
-          <div className={styles.timelineRail} aria-hidden="true" />
-          {visibleStages.map((status, index) => {
-            const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Completed');
-            const isCurrent = index === currentStepIndex && status !== 'Completed';
-            const isPending = index > currentStepIndex;
+        {/* Visual progress story — once delivered, the story is over and
+            the ask shifts to feedback instead of "what's next." */}
+        {isDelivered ? (
+          <RatingForm orderId={order.id} shopName={shop?.name || APP_CONFIG.name} alreadyRated={alreadyRated} />
+        ) : (
+          <section className={styles.timeline}>
+            <div className={styles.timelineRail} aria-hidden="true" />
+            {visibleStages.map((status, index) => {
+              const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Completed');
+              const isCurrent = index === currentStepIndex && status !== 'Completed';
+              const isPending = index > currentStepIndex;
 
-            return (
-              <TimelineStage
-                key={status}
-                status={status}
-                isCompleted={isCompleted}
-                isCurrent={isCurrent}
-                isPending={isPending}
-                date={stageDate(order.statusHistory, status)}
-                photos={photosFor(status)}
-                dueDate={order.dueDate}
-                assignedToName={order.assignedToName}
-              />
-            );
-          })}
-        </section>
+              return (
+                <TimelineStage
+                  key={status}
+                  status={status}
+                  isCompleted={isCompleted}
+                  isCurrent={isCurrent}
+                  isPending={isPending}
+                  date={stageDate(order.statusHistory, status)}
+                  photos={photosFor(status)}
+                  dueDate={order.dueDate}
+                  assignedToName={order.assignedToName}
+                />
+              );
+            })}
+          </section>
+        )}
 
         {/* Other garments from the same drop-off */}
         {batchSiblings.length > 0 && (
