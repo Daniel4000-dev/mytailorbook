@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,8 +20,8 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
-import { initializeSubscription } from '@/app/actions/payments';
-import { openPaystackPopup } from '@/lib/paystack';
+import { initializeSubscription, confirmSubscriptionPayment } from '@/app/actions/payments';
+import { openPaystackPopup, preloadPaystackScript } from '@/lib/paystack';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
@@ -31,7 +31,7 @@ import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isOwner, updateAvatar } = useAuth();
+  const { user, isOwner, loading: authLoading, updateAvatar } = useAuth();
   const { currentShop, staffMembers, updateShop, shops, refreshBranches, refreshShop, isLoaded } = useData();
   const { showToast } = useToast();
 
@@ -66,10 +66,20 @@ export default function SettingsPage() {
     ? Math.max(1, Math.ceil((new Date(currentShop.graceExpiresAt).getTime() - nowMs) / (24 * 60 * 60 * 1000)))
     : null;
 
+  // Warms Paystack's inline-checkout script as soon as the plan picker is
+  // open — loading it cold on the actual "Upgrade" click left a visible gap
+  // between closing this sheet and the popup appearing (the script fetch),
+  // which read as the button doing nothing on the first try. By the second
+  // click the script was already cached, which is why it "worked the
+  // second time."
+  useEffect(() => {
+    if (openSheet === 'plans') preloadPaystackScript();
+  }, [openSheet]);
+
   const handleUpgrade = async (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
     try {
-      const { accessCode } = await initializeSubscription(interval);
+      const { accessCode, reference } = await initializeSubscription(interval);
       // Close our own sheet before opening Paystack's popup. Paystack's
       // inline.js appends its checkout iframe directly to document.body —
       // it isn't inside this sheet's Radix-managed content, so while the
@@ -78,16 +88,23 @@ export default function SettingsPage() {
       // Paystack iframe inherits that lock and becomes fully unclickable.
       setOpenSheet(null);
       await openPaystackPopup(accessCode, {
-        onSuccess: () => {
-          // The webhook (source of truth) flips subscription_status once
-          // Paystack confirms the charge — that can land a beat after this
-          // fires, so the realtime subscription in DataContext will also
-          // pick it up on its own; this just gets the UI there immediately
-          // instead of waiting on that round trip.
+        onSuccess: async () => {
           showToast('Payment successful — activating your plan…', 'success');
-          setOpenSheet(null);
-          refreshShop();
           setUpgrading(false);
+          try {
+            // Re-verifies server-to-server with Paystack and flips the
+            // shop to active directly — the webhook (app/api/webhooks/
+            // paystack) is still the real source of truth and will fire
+            // too, but it can lag several seconds behind this callback (and
+            // never reaches a localhost dev server at all), which is why
+            // the plan card kept showing "Upgrade" after a real successful
+            // charge. This closes that gap instead of just hoping the
+            // webhook + realtime subscription land before the user looks.
+            await confirmSubscriptionPayment(reference);
+          } catch (err) {
+            console.error('confirmSubscriptionPayment failed, relying on webhook:', err);
+          }
+          refreshShop();
         },
         onCancel: () => {
           setUpgrading(false);
@@ -102,6 +119,21 @@ export default function SettingsPage() {
       setUpgrading(false);
     }
   };
+
+  // authLoading starts true on every mount/auth-state event and only flips
+  // once the profile (and its role) has actually resolved — checking
+  // isOwner before that resolves is checking a value that hasn't been
+  // determined yet, not a real "not the owner" answer, and previously
+  // flashed this denial screen during that window (most visible right
+  // after a Server Action, since a fresh onAuthStateChange tick can land
+  // around the same time).
+  if (authLoading) {
+    return (
+      <PageLayout width="narrow">
+        <SettingsSkeleton />
+      </PageLayout>
+    );
+  }
 
   if (!isOwner) {
     return (

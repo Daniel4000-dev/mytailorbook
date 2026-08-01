@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 /** Starts a Paystack checkout for the current user's shop, returning the
@@ -109,4 +110,68 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
     accessCode: data.data.access_code as string,
     reference: data.data.reference as string,
   };
+}
+
+/** Called right after Paystack's popup reports success, so the UI reflects
+ *  the upgrade immediately instead of waiting on the webhook — which is the
+ *  real source of truth (app/api/webhooks/paystack) but can lag by several
+ *  seconds, and never arrives at all against a localhost dev server since
+ *  Paystack has no way to reach it. Re-verifies the transaction directly
+ *  with Paystack's API (server-to-server, our secret key) rather than
+ *  trusting the client's onSuccess callback at face value — a client could
+ *  otherwise call this with a fabricated reference to self-upgrade for
+ *  free. Also confirms the verified transaction's metadata.shop_id matches
+ *  the caller's own shop, so one shop can't activate itself off another
+ *  shop's (still-valid) reference. */
+export async function confirmSubscriptionPayment(reference: string) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.shop_id) {
+    throw new Error('No shop profile found');
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  if (!PAYSTACK_SECRET) {
+    throw new Error('Server configuration error');
+  }
+
+  const verifyResponse = await fetch(
+    `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+    { headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` } }
+  );
+  const verifyData = await verifyResponse.json();
+
+  if (!verifyResponse.ok || !verifyData.status || verifyData.data?.status !== 'success') {
+    throw new Error('Payment could not be verified');
+  }
+
+  if (verifyData.data.metadata?.shop_id !== profile.shop_id) {
+    throw new Error('Payment does not belong to this shop');
+  }
+
+  // Same fields the webhook's charge.success handler sets — this just gets
+  // there sooner. If the webhook lands afterward it's a harmless no-op
+  // update to the same values.
+  const admin = createAdminClient();
+  await admin
+    .from('shops')
+    .update({
+      paystack_customer_code: verifyData.data.customer.customer_code,
+      subscription_status: 'active',
+      grace_expires_at: null,
+    })
+    .eq('id', profile.shop_id);
+
+  return { success: true };
 }

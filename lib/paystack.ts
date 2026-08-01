@@ -45,6 +45,19 @@ function loadPaystackScript(): Promise<void> {
   return loadPromise;
 }
 
+/** Warms the inline-checkout script ahead of time (e.g. as soon as the plan
+ *  picker opens) so the click that actually starts checkout doesn't have to
+ *  wait on this network fetch — on a cold load that gap was long enough for
+ *  the user to see nothing happen between closing the plan sheet and the
+ *  popup appearing. Safe to call repeatedly; loadPaystackScript() itself
+ *  already dedupes. */
+export function preloadPaystackScript(): void {
+  loadPaystackScript().catch(() => {
+    // Swallow — openPaystackPopup will surface the real error if the user
+    // actually goes on to click Upgrade while this is still failing.
+  });
+}
+
 /** Resumes an already-initialized Paystack transaction (created
  *  server-side via transaction/initialize) inside an in-page popup,
  *  rather than redirecting the whole browser to Paystack's hosted
