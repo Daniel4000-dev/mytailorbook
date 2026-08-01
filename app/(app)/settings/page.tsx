@@ -59,6 +59,23 @@ export default function SettingsPage() {
   const [upgrading, setUpgrading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
 
+  // Clicking Upgrade navigates away to Paystack's checkout — on the way
+  // there, most browsers (Safari especially) freeze this page's JS state
+  // in the back/forward cache instead of tearing it down, so it can
+  // restore instantly rather than reload if the user comes back. Hitting
+  // Cancel on Paystack's page and landing back here via that cache
+  // restores the exact frozen state from the moment of navigating away —
+  // including upgrading: true — without re-running anything that would
+  // reset it, so the button was stuck spinning forever with nothing to
+  // click. `pageshow` fires on a real bfcache restore (event.persisted)
+  // as well as a normal load, so unconditionally resetting here is safe
+  // either way — on a normal load upgrading already starts false.
+  useEffect(() => {
+    const handlePageShow = () => setUpgrading(false);
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   // Read once via lazy init rather than inline in render — Date.now() is an
   // impure call the React Compiler flags if invoked directly during render.
   const [nowMs] = useState(() => Date.now());
