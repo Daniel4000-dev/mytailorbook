@@ -31,6 +31,7 @@ export default function Footer() {
 
         <div className={styles.linkCol}>
           <span className={styles.colLabel}>Legal</span>
+          <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
         </div>
       </div>

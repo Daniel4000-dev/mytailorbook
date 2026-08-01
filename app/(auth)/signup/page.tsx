@@ -150,6 +150,8 @@ export default function SignupPage() {
           />
           <span>
             I agree to the{' '}
+            <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
+            and{' '}
             <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
           </span>
         </label>

@@ -23,6 +23,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = `See ${portfolio.shop.name}'s finished work${
     portfolio.stats.completed > 0 ? ` — ${portfolio.stats.completed} garments completed` : ''
   }. Chat on WhatsApp to commission yours.`;
+  // A shop with no completed-work photos yet previously got no og:image at
+  // all — a shared link showed a blank preview instead of any branding.
+  // Falls back to the same site-wide logo image the root layout already
+  // uses, so there's always a real preview, personalized once real photos
+  // exist.
+  const previewImage = portfolio.photos[0]?.url || '/images/logo-full.png';
   return {
     title,
     description,
@@ -34,13 +40,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title,
       description,
       type: 'website',
-      images: portfolio.photos[0] ? [{ url: portfolio.photos[0].url }] : undefined,
+      images: [{ url: previewImage }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: portfolio.photos[0] ? [portfolio.photos[0].url] : undefined,
+      images: [previewImage],
     },
   };
 }
