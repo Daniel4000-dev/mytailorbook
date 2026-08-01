@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -31,6 +31,7 @@ import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css
 
 export default function SettingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isOwner, loading: authLoading, updateAvatar } = useAuth();
   const { currentShop, staffMembers, updateShop, shops, refreshBranches, refreshShop, isLoaded } = useData();
   const { showToast } = useToast();
@@ -75,6 +76,43 @@ export default function SettingsPage() {
   useEffect(() => {
     if (openSheet === 'plans') preloadPaystackScript();
   }, [openSheet]);
+
+  // Paystack's inline popup normally handles the whole charge in-page (see
+  // onSuccess below), but some mobile banks/browsers can't complete their
+  // OTP/3DS step inside that iframe and fall back to a full-page redirect
+  // to Paystack's hosted authorization page instead — which lands back
+  // here via the callback_url passed to transaction/initialize, appending
+  // ?payment=success&reference=... . That round trip is a real full page
+  // load: AuthProvider remounts and briefly shows the loading skeleton
+  // (the "flicker"), and since it's a fresh navigation, the popup's
+  // onSuccess handler never ran — nothing was verifying or activating the
+  // plan, so the page just settled back to "Upgrade" with nothing changed.
+  // This is the same activation the popup path does, just triggered from
+  // the redirect instead.
+  useEffect(() => {
+    if (searchParams.get('payment') !== 'success') return;
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
+    if (!reference) return;
+
+    // Strip the query params immediately so a refresh (or the effect
+    // re-running) can't replay this against a reference that's already
+    // been consumed.
+    router.replace('/settings');
+
+    confirmSubscriptionPayment(reference)
+      .then(() => {
+        showToast('Payment successful — activating your plan…', 'success');
+        refreshShop();
+      })
+      .catch((err) => {
+        console.error('confirmSubscriptionPayment (redirect path) failed:', err);
+        showToast('We could not confirm your payment yet — it may still be processing.', 'error');
+      });
+    // Deliberately only depends on searchParams — router/showToast/refreshShop
+    // are stable across renders and re-running this on their identity
+    // changing would risk replaying an already-consumed reference.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handleUpgrade = async (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
