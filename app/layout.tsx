@@ -42,8 +42,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Previously maximumScale: 1 + userScalable: false — blocks pinch-zoom
+  // entirely, which felt more "app-like" but fails WCAG 1.4.4 (flagged by
+  // Lighthouse) and genuinely blocks low-vision users from zooming in
+  // anywhere in the app, not just this page. Letting the browser's normal
+  // zoom behavior through is the accessible default.
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#F8F8FE' },
     { media: '(prefers-color-scheme: dark)', color: '#131220' },

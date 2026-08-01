@@ -39,7 +39,10 @@
 
 .tagline {
   font-size: var(--sf-text-sm);
-  color: var(--sf-text-tertiary);
+  /* --sf-text-tertiary fails WCAG contrast against --sf-bg-surface at this
+     size (flagged by Lighthouse) — secondary is the next step down and
+     passes. */
+  color: var(--sf-text-secondary);
   margin: 0;
 }
 
@@ -64,7 +67,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-text-tertiary);
+  /* See .tagline above — tertiary fails contrast at this size. */
+  color: var(--sf-text-secondary);
 }
 
 .bottom {
@@ -77,7 +81,8 @@
   justify-content: space-between;
   gap: var(--sf-space-md);
   font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
+  /* See .tagline above — tertiary fails contrast at this size. */
+  color: var(--sf-text-secondary);
 }
 
 @media (max-width: 900px) {
