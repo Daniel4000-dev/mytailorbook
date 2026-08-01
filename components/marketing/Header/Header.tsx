@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -31,8 +32,7 @@ export default function Header() {
       <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} onClick={() => setMenuOpen(false)}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logo-mark.png" alt="" className={styles.logo} />
+          <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.logo} brandLogoAuto`} />
           <span>{APP_CONFIG.name}</span>
         </Link>
 

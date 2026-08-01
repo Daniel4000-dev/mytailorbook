@@ -13,7 +13,7 @@
 }
 
 .sectionTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -34,7 +34,7 @@
 }
 
 .heroHeadline {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: clamp(2.25rem, 4.5vw, var(--sf-text-4xl));
   font-weight: 600;
   line-height: 1.15;
@@ -72,7 +72,7 @@
 }
 
 .bentoCard h2 {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -123,8 +123,12 @@
 }
 
 /* ── Heritage ── */
+/* Deliberately dark editorial section regardless of theme — the photo and
+   the white text/badges inside are tuned for a near-black backdrop, so
+   this is pinned rather than using --sf-text-primary (which flips to
+   near-white in dark mode and would wash out the white text on top). */
 .heritageSection {
-  background: var(--sf-text-primary);
+  background: #1C1A28;
   padding: var(--sf-space-3xl) var(--sf-margin-desktop);
 }
 
@@ -167,7 +171,7 @@
 }
 
 .heritageTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: #fff;
@@ -193,7 +197,7 @@
 }
 
 .finalCtaTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);

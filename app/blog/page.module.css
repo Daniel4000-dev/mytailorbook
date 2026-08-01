@@ -20,7 +20,7 @@
 }
 
 .title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: clamp(2rem, 4vw, var(--sf-text-4xl));
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -62,7 +62,7 @@
 }
 
 .postTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-xl);
   font-weight: 600;
   color: var(--sf-text-primary);

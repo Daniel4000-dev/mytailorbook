@@ -779,6 +779,30 @@
   align-items: center;
 }
 
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-sm) 0 0;
+  margin-top: var(--sf-space-sm);
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.toggleLabel {
+  display: block;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-primary);
+}
+
+.toggleHint {
+  display: block;
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}
+
 /* ── 10. Timeline ───────────────────────────────────────────── */
 .timeline {
   position: relative;

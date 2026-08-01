@@ -1,5 +1,6 @@
 'use server';
 
+import { cache } from 'react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
 import { sendPushToShop } from '@/lib/push';
@@ -96,6 +97,7 @@ export async function getPublicOrderView(orderId: string): Promise<{
         // see lib/subscription.ts) purely to drive the "Powered by" badge
         // on this public page; no other billing detail is exposed here.
         subscriptionStatus: isPremium ? 'active' : 'free',
+        defaultTrackingLinkEnabled: shopRow.default_tracking_link_enabled ?? true,
       }
     : null;
 
@@ -339,7 +341,12 @@ export interface PublicPortfolio {
   isPremium: boolean;
 }
 
-export async function getPublicShopPortfolio(slug: string): Promise<PublicPortfolio | null> {
+// Wrapped in React's cache() because app/studio/[slug]/page.tsx calls this
+// twice per request (once in generateMetadata, once in the page body) —
+// without memoization that's 2x the Supabase reads AND 2x the rate-limit
+// consumption for a single real pageview. cache() dedupes both calls to
+// one execution per unique slug within the same request/render pass.
+export const getPublicShopPortfolio = cache(async (slug: string): Promise<PublicPortfolio | null> => {
   const ip = await getRequestIp();
   const { allowed } = await checkRateLimit(`portfolio:${ip}`, READ_LIMIT);
   if (!allowed) return null;
@@ -456,4 +463,4 @@ export async function getPublicShopPortfolio(slug: string): Promise<PublicPortfo
     testimonials,
     isPremium,
   };
-}
+});

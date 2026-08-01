@@ -25,8 +25,6 @@ export default function DashboardPage() {
       profileMode={{
         greeting: timeGreeting,
         name: firstName,
-        avatarInitials: firstName ? firstName[0] : '',
-        avatarUrl: user?.avatarUrl,
       }}
     />
   );

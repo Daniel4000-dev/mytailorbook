@@ -69,6 +69,10 @@
   height: 96px;
   width: auto;
   margin-bottom: var(--sf-space-sm);
+  /* This sits over the editorial photo's dark scrim regardless of app
+     theme (not a theme-reactive background), so it's permanently flipped
+     white here rather than using the dark-mode-only brandLogoAuto class. */
+  filter: brightness(0) invert(1);
 }
 
 .logoAccent {
@@ -234,7 +238,7 @@
   }
 
   .editorialTitle {
-    font-family: 'Fraunces', serif;
+    font-family: var(--font-fraunces), serif;
     font-size: 2.8rem;
     font-weight: 600;
     line-height: 1.15;

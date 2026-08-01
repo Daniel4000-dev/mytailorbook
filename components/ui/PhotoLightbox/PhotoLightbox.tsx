@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import styles from './PhotoLightbox.module.css';
@@ -86,10 +87,11 @@ export default function PhotoLightbox({ src, originRect, alt = '', onClose }: Ph
   return createPortal(
     <div className={styles.overlay} style={{ opacity: isOpen ? 1 : 0 }} onClick={onClose}>
       <div className={styles.frame} style={frameStyle}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={renderedSrc}
           alt={alt}
+          fill
+          sizes="100vw"
           className={styles.img}
           style={{ objectFit: isOpen ? 'contain' : 'cover' }}
         />

@@ -13,7 +13,7 @@
 }
 
 .sectionTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -34,7 +34,7 @@
 }
 
 .heroHeadline {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: clamp(2.25rem, 4.5vw, var(--sf-text-4xl));
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -166,7 +166,7 @@
 }
 
 .planPrice {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -325,7 +325,7 @@
 }
 
 .finalCtaTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);

@@ -27,6 +27,7 @@ export const MOCK_SHOP: Shop = {
   portfolioAccent: 'indigo',
   portfolioSettings: {},
   subscriptionStatus: 'free',
+  defaultTrackingLinkEnabled: true,
 };
 
 export const MOCK_SHOPS: Shop[] = [MOCK_SHOP];

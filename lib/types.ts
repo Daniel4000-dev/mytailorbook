@@ -67,6 +67,11 @@ export interface Shop {
    *  deadline from migration 0026, after which the daily cron
    *  (app/api/cron/subscription-grace) demotes the shop to 'free'. */
   graceExpiresAt?: string;
+  /** Whether a new order's WhatsApp update messages include the public
+   *  tracking link by default. Each order can still override this
+   *  individually (see Order.includeTrackingLink) — this only sets what a
+   *  fresh order starts as. */
+  defaultTrackingLinkEnabled: boolean;
 }
 
 /** Owner-set visibility override for one photo (matched by URL) on the
@@ -283,6 +288,10 @@ export interface Order {
   /** When a customer last clicked "Send a reminder" on the public tracking
    *  page — rate-limited server-side to once per calendar day per order. */
   lastReminderAt?: string;
+  /** Per-order override for whether WhatsApp update messages include the
+   *  public tracking link. undefined/null means "inherit the shop's
+   *  defaultTrackingLinkEnabled" — most orders never set this explicitly. */
+  includeTrackingLink?: boolean | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { FaXmark, FaShareFromSquare, FaSquarePlus, FaDownload } from 'react-icons/fa6';
 import styles from './InstallPrompt.module.css';
 
@@ -104,7 +105,7 @@ export default function InstallPrompt() {
       </button>
 
       <div className={styles.iconWrapper}>
-        <img src="/images/logo-mark.png" alt="" className={styles.appIcon} />
+        <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.appIcon} brandLogoAuto`} />
       </div>
 
       <div className={styles.textWrapper}>

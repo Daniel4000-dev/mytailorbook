@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal } from '@/lib/marketingMotion';
@@ -87,8 +88,7 @@ export default function AboutPageContent() {
       <section className={styles.heritageSection}>
         <motion.div className={styles.heritageInner} {...reveal()}>
           <div className={styles.heritageImageWrap}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/marketing/adire-indigo-dyeing.jpg" alt="" className={styles.heritageImage} />
+            <Image src="/images/marketing/adire-indigo-dyeing.jpg" alt="" width={512} height={512} className={styles.heritageImage} />
           </div>
           <div className={styles.heritageText}>
             <span className={styles.heritageEyebrow}>Why Adire Indigo</span>

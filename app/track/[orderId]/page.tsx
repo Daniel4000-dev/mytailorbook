@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { getPublicOrderView, getPublicOrderComments, getPublicBatchSiblings } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
@@ -16,6 +17,14 @@ import styles from './page.module.css';
 // Private-by-link customer page (real names, order details) — must never
 // show up in search results even though it's technically public/unauthed.
 export const metadata: Metadata = { robots: { index: false, follow: false } };
+
+// A short cache window rather than none at all — this page gets repeat/
+// burst traffic (a shared link opened by several people around the same
+// time, or one customer refreshing to check status), and a stage change
+// only needs to show up within a minute, not instantly. Comments and
+// reminders are handled by their own client components with their own
+// optimistic UI, independent of this page-level cache.
+export const revalidate = 60;
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Completed'];
 
@@ -89,8 +98,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       <header className={styles.header}>
         <div className={styles.brandBlock}>
           <span className={styles.brandIcon}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo-mark.png" alt="" />
+            <Image src="/images/logo-mark.png" alt="" width={496} height={496} className="brandLogoAuto" />
           </span>
           <span className={styles.brandName}>{APP_CONFIG.name}</span>
         </div>

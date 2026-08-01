@@ -115,30 +115,44 @@
   color: var(--sf-text-primary);
 }
 
-.avatar {
+/* The dashboard's sidebar-toggle button — replaces both the old avatar
+   circle and the separate SidebarEdgeHandle tab on this page specifically
+   (see app/(app)/layout.tsx). Fixed white backdrop rather than a
+   theme-reactive token: the logo mark's ink is a fixed indigo, so it
+   needs a light circle behind it to stay legible in dark mode too. */
+.logoToggle {
   width: 40px;
   height: 40px;
   border-radius: var(--sf-radius-full);
-  background: linear-gradient(135deg, var(--sf-accent-emerald-light), var(--sf-accent-emerald-dark));
+  background: #FFFFFF;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sf-text-on-accent);
-  font-family: var(--sf-font-heading);
-  font-weight: var(--sf-weight-bold);
-  font-size: var(--sf-text-base);
-  text-transform: uppercase;
-  box-shadow: var(--sf-shadow-sm);
-  border: 2px solid var(--sf-bg-surface);
+  box-shadow: var(--sf-shadow-sm), 0 0 0 2px var(--sf-bg-surface);
+  cursor: pointer;
+  padding: 0;
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
-.avatarImage {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--sf-radius-full);
-  object-fit: cover;
-  box-shadow: var(--sf-shadow-sm);
-  border: 2px solid var(--sf-bg-surface);
+.logoToggle:hover {
+  transform: scale(1.06);
+  box-shadow: var(--sf-shadow-md), 0 0 0 2px var(--sf-bg-surface);
+}
+
+.logoToggle:active {
+  transform: scale(0.96);
+}
+
+.logoToggle:focus-visible {
+  outline: 2px solid var(--sf-accent-emerald);
+  outline-offset: 2px;
+}
+
+.logoToggleImg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 /* Desktop Styles */

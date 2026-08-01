@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './Footer.module.css';
 
@@ -8,8 +9,7 @@ export default function Footer() {
       <div className={styles.inner}>
         <div className={styles.brandCol}>
           <Link href="/" className={styles.brand}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo-mark.png" alt="" className={styles.logo} />
+            <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.logo} brandLogoAuto`} />
             <span>{APP_CONFIG.name}</span>
           </Link>
           <p className={styles.tagline}>{APP_CONFIG.tagline}</p>

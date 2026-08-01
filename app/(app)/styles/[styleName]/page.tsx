@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -115,7 +116,7 @@ export default function StyleDetailPage() {
       <div className={styles.uploadCard} onClick={() => fileInputRef.current?.click()}>
         {catalogEntry && (
           <div className={styles.catalogPhoto}>
-            <img src={catalogEntry.photoUrl} alt="" />
+            <Image src={catalogEntry.photoUrl} alt="" width={400} height={400} />
           </div>
         )}
         <div className={styles.uploadAction}>

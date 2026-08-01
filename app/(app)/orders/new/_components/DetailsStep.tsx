@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ORDER_STATUSES } from '@/lib/constants';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
@@ -158,8 +159,7 @@ export default function DetailsStep({
           <div className={styles.inspoRow}>
             {u.inspirationImages.map((url, idx) => (
               <span key={idx} className={styles.inspoThumb}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="Inspiration" />
+                <Image src={url} alt="Inspiration" width={200} height={200} />
                 <button
                   type="button"
                   aria-label="Remove inspiration photo"

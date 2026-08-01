@@ -44,6 +44,7 @@ function orderFromRow(row: any): Order {
     materialCost: row.material_cost || 0,
     otherCosts: row.other_costs || 0,
     lastReminderAt: row.last_reminder_at || undefined,
+    includeTrackingLink: row.include_tracking_link,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -73,6 +74,7 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.materialSuppliedBy !== undefined) row.material_supplied_by = o.materialSuppliedBy;
   if (o.materialCost !== undefined) row.material_cost = o.materialCost;
   if (o.otherCosts !== undefined) row.other_costs = o.otherCosts;
+  if (o.includeTrackingLink !== undefined) row.include_tracking_link = o.includeTrackingLink;
   return row;
 }
 
@@ -142,6 +144,7 @@ function shopFromRow(row: any): Shop {
     subscriptionPlan: row.subscription_plan || undefined,
     subscriptionStatus: row.subscription_status || 'free',
     graceExpiresAt: row.grace_expires_at || undefined,
+    defaultTrackingLinkEnabled: row.default_tracking_link_enabled ?? true,
   };
 }
 
@@ -153,13 +156,29 @@ function shopFromRow(row: any): Shop {
  *  `orgId` scopes customers, which are shared across every branch in the
  *  organization. For every org today (exactly one branch), these two ids
  *  point at the same underlying shop row, so behavior is unchanged. */
+// Stopgap, not real pagination: at current scale (few shops) this limit
+// never actually triggers, but without SOME ceiling here a single shop's
+// order/customer history grows forever and this query — already refetched
+// in full on every single order/customer/profile mutation via the
+// realtime subscription below — would eventually balloon unbounded. Real
+// pagination (loading history in pages instead of all-at-once) is the
+// proper fix once a shop's numbers genuinely approach this; this just
+// stops the worst case from being literally unbounded until then.
+const SHOP_BUNDLE_ROW_LIMIT = 2000;
+
 export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
   const [shopRes, customersRes, ordersRes, profilesRes] = await Promise.all([
-    supabase.from('shops').select('*').eq('id', shopId).single(),
-    supabase.from('customers').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
-    supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }),
-    supabase.from('profiles').select('*').eq('shop_id', shopId),
+    supabase.from('shops').select(
+      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, default_tracking_link_enabled'
+    ).eq('id', shopId).single(),
+    supabase.from('customers').select(
+      'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at'
+    ).eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
+    supabase.from('orders').select(
+      'id, shop_id, customer_id, customer_name, order_details, total_bill, deposit_paid, status, assigned_to, assigned_to_name, due_date, priority, measurements, images, inspiration_images, batch_id, last_comment_at, comments_seen_at, status_history, payments, style_name, material_supplied_by, material_cost, other_costs, last_reminder_at, include_tracking_link, created_at, updated_at'
+    ).eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
+    supabase.from('profiles').select('id, name, email, role, shop_id, org_id, active, avatar_url, created_at').eq('shop_id', shopId),
   ]);
 
   return {
@@ -614,6 +633,7 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.portfolioTemplate !== undefined) row.portfolio_template = updates.portfolioTemplate;
   if (updates.portfolioAccent !== undefined) row.portfolio_accent = updates.portfolioAccent;
   if (updates.portfolioSettings !== undefined) row.portfolio_settings = updates.portfolioSettings;
+  if (updates.defaultTrackingLinkEnabled !== undefined) row.default_tracking_link_enabled = updates.defaultTrackingLinkEnabled;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);

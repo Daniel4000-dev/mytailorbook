@@ -17,7 +17,7 @@
   min-height: 100dvh;
   background: var(--e-canvas);
   color: var(--e-ink);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-poppins), sans-serif;
   font-weight: 300;
   display: flex;
   flex-direction: column;
@@ -47,7 +47,7 @@
 }
 
 .miniName {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-weight: 700;
   font-size: 17px;
   overflow: hidden;
@@ -123,7 +123,7 @@
 }
 
 .heroName {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-weight: 700;
   font-size: 34px;
   line-height: 1.08;
@@ -164,7 +164,7 @@
 
 .storyBody strong {
   font-weight: 400;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-size: 16px;
 }
 
@@ -181,7 +181,7 @@
 }
 
 .statNum {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-weight: 700;
   font-size: 30px;
   line-height: 1;
@@ -230,7 +230,7 @@
 }
 
 .caption b {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-weight: 700;
   font-size: 16px;
   display: block;
@@ -264,7 +264,7 @@
 }
 
 .quote {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-style: italic;
   font-weight: 700;
   font-size: 17px;
@@ -291,7 +291,7 @@
 }
 
 .cta h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), serif;
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 12px;

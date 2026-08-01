@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { APP_CONFIG } from '@/lib/config';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
@@ -59,10 +60,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
              doesn't feel like a different product from what the visitor
              just saw on the homepage. */}
           <div className={styles.editorialPane}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={isSignup ? '/images/marketing/atelier-review.jpg' : '/images/marketing/hero-tailor-tablet.jpg'}
               alt=""
+              fill
+              sizes="50vw"
               className={styles.editorialImage}
             />
             <div className={styles.editorialScrim} />
@@ -81,7 +83,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <>
           {!isCustomAuth && (
             <div className={styles.branding}>
-              <img src="/images/logo-full.png" alt={APP_CONFIG.name} className={styles.logo} />
+              <Image src="/images/logo-full.png" alt={APP_CONFIG.name} width={1024} height={1024} className={styles.logo} />
               <p className={styles.tagline}>{APP_CONFIG.tagline}</p>
             </div>
           )}

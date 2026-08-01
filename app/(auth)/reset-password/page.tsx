@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
@@ -56,7 +57,7 @@ export default function ResetPasswordPage() {
     return (
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
-          <img src="/images/logo-mark.png" alt="MyStitchBook" className={styles.sewingMachineSvg} />
+          <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
         </div>
         <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
         <div className={styles.successWrapper}>
@@ -76,7 +77,7 @@ export default function ResetPasswordPage() {
   return (
     <div className={styles.container}>
       <div className={styles.logoWrapper}>
-        <img src="/images/logo-mark.png" alt="MyStitchBook" className={styles.sewingMachineSvg} />
+        <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
       </div>
       <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
 

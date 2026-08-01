@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
@@ -149,8 +150,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
             <button key={s.name} type="button" className={styles.pickerCard} onClick={() => setStyleName(s.name)}>
               <div className={styles.pickerPhoto}>
                 {stylePhotos[s.name] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={stylePhotos[s.name]} alt="" />
+                  <Image src={stylePhotos[s.name]} alt="" width={400} height={400} />
                 ) : (
                   <Symbol name="checkroom" size={28} />
                 )}

@@ -1,8 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy', '/robots.txt', '/sitemap.xml', '/blog', '/features', '/pricing', '/portfolio-examples', '/about'];
+const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy', '/robots.txt', '/sitemap.xml', '/blog', '/features', '/pricing', '/portfolio-examples', '/about', '/offline'];
 const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/studio/', '/auth/', '/blog/'];
+
+// The (marketing) route group's own pages — a logged-in visitor here gets
+// bounced to /dashboard instead of a sales pitch for a product they
+// already use. /blog and /privacy stay outside this list on purpose: they
+// should stay readable while logged in, not redirect away.
+const MARKETING_PATHS = ['/', '/features', '/pricing', '/about', '/portfolio-examples'];
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
@@ -46,7 +52,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (user && (isAuthPage || MARKETING_PATHS.includes(pathname))) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);

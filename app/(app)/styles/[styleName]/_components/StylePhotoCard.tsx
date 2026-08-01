@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatDate } from '@/lib/formatters';
 import type { StylePhotoSubmission } from '@/lib/types';
@@ -25,7 +26,7 @@ export default function StylePhotoCard({
   return (
     <div className={styles.photoCard}>
       <div className={styles.photoWrap}>
-        <img src={submission.photoUrl} alt="" />
+        <Image src={submission.photoUrl} alt="" width={400} height={400} />
         {isPending && (
           <span className={`${styles.expiryTag} ${daysLeft <= 3 ? styles.expiryTagSoon : ''}`}>
             {daysLeft <= 0 ? 'Expires today' : `${daysLeft}d left`}

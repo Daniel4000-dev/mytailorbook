@@ -24,7 +24,7 @@ export default function OwnPortfolioPage() {
 
   useEffect(() => {
     if (!currentShop) return;
-    getPublicShopPortfolio(currentShop.id)
+    getPublicShopPortfolio(currentShop.slug)
       .then(setPortfolio)
       .finally(() => setLoading(false));
   }, [currentShop]);

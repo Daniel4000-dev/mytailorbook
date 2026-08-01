@@ -15,6 +15,13 @@ export const FREE_MONTHLY_ORDER_LIMIT = 15;
 export const PREMIUM_MONTHLY_PRICE_NGN = 2500;
 export const PREMIUM_YEARLY_PRICE_NGN = 25000;
 
+/** Free tier caps per order (see migration 0032's DB trigger, which is the
+ *  real enforcement — these are duplicated here only so the UI can show a
+ *  friendly "limit reached" state instead of a raw insert error). Premium
+ *  is uncapped. */
+export const FREE_ORDER_PROGRESS_PHOTO_LIMIT = 5;
+export const FREE_ORDER_INSPIRATION_PHOTO_LIMIT = 3;
+
 function monthStartISO(): string {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();

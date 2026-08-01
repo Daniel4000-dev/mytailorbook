@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import Image from 'next/image';
 import { FaWhatsapp } from 'react-icons/fa6';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
@@ -38,8 +39,7 @@ export default function HeritageTemplate({ portfolio }: { portfolio: PublicPortf
       {/* 1. Hero + identity */}
       <section className={styles.hero}>
         {heroPhoto ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroPhoto.url} alt="" />
+          <Image src={heroPhoto.url} alt="" fill sizes="100vw" />
         ) : (
           <div className={styles.heroFallback} />
         )}
@@ -49,8 +49,7 @@ export default function HeritageTemplate({ portfolio }: { portfolio: PublicPortf
       <div className={styles.intro}>
         <div className={styles.crest}>
           {shop.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={shop.logoUrl} alt="" />
+            <Image src={shop.logoUrl} alt="" width={56} height={56} />
           ) : (
             shop.name[0]?.toUpperCase()
           )}
@@ -96,8 +95,7 @@ export default function HeritageTemplate({ portfolio }: { portfolio: PublicPortf
           <div className={styles.gallery}>
             {galleryPhotos.map((p, i) => (
               <div key={`${p.url}-${i}`} className={`${styles.galleryItem} ${i === 0 ? styles.tall : ''}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.url} alt={p.garment} />
+                <Image src={p.url} alt={p.garment} fill sizes="(max-width: 768px) 50vw, 400px" />
                 <span className={styles.galleryCap}>{p.caption || `${p.garment} · ${monthOf(p.takenAt)}`}</span>
               </div>
             ))}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { truncateText } from '@/lib/formatters';
 import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getNextStatus, getPreviousStatus } from '@/lib/constants';
@@ -133,8 +134,7 @@ export default function OrderListCard({
           card sits under, so no separate status pill on the photo. */}
       <div className={styles.photoArea} onClick={onOpen} role="button" tabIndex={0}>
         {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt={truncateText(order.orderDetails, 30)} className={styles.photoImg} />
+          <Image src={photo} alt={truncateText(order.orderDetails, 30)} fill sizes="(max-width: 768px) 50vw, 300px" className={styles.photoImg} />
         ) : (
           <div className={styles.photoFallback}>
             <Symbol name="content_cut" size={34} />

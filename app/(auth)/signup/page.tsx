@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
@@ -57,7 +58,7 @@ export default function SignupPage() {
     return (
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
-          <img src="/images/logo-mark.png" alt="MyStitchBook" className={styles.sewingMachineSvg} />
+          <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
         </div>
         <h1 className={styles.brandTitle}>My<span className={styles.brandAccent}>Stitch</span>Book</h1>
         <div className={styles.successWrapper}>
@@ -84,10 +85,12 @@ export default function SignupPage() {
     <div className={styles.container}>
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
-        <img
+        <Image
           src="/images/logo-mark.png"
           alt="MyStitchBook"
-          className={styles.sewingMachineSvg}
+          width={496}
+          height={496}
+          className={`${styles.sewingMachineSvg} brandLogoAuto`}
         />
       </div>
 

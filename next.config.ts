@@ -1,6 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // Every user-uploaded photo (garment progress shots, inspiration
+    // images, avatars, shop logos, style-gallery submissions) lives in
+    // Supabase Storage under this project — routing them through next/image
+    // lets Vercel's edge cache re-serve repeat views (portfolio pages,
+    // tracking pages) without hitting Supabase egress again each time.
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'dbbzgdklhxshgqhwrxoq.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+    // Required as of Next 16 — an explicit allowlist rather than open
+    // access. 75 is next/image's own default; 82 matches the JPEG quality
+    // compressImage.ts already re-encodes uploads at, so re-optimizing
+    // through next/image at the same quality doesn't double-degrade them.
+    qualities: [75, 82],
+  },
   experimental: {
     // Next's client router cache treats dynamic routes (order detail,
     // customer profile — both `ƒ` in the build output, since their params

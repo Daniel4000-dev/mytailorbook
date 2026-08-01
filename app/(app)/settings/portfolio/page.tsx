@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -208,7 +209,7 @@ export default function PortfolioCurationSettingsPage() {
                 setCaptionDraft(p.caption || '');
               }}
             >
-              <img src={p.url} alt="" className={p.hidden ? styles.hiddenPhoto : ''} />
+              <Image src={p.url} alt="" fill sizes="(max-width: 768px) 33vw, 200px" className={p.hidden ? styles.hiddenPhoto : ''} />
               {p.featured && <span className={styles.badge}>Featured</span>}
               {FEATURE_FLAGS.photoConsentTracking && !p.hidden && !p.consentConfirmed && <span className={styles.consentBadge}>Consent not confirmed</span>}
               {p.hidden && <span className={styles.hiddenOverlay}><Symbol name="visibility_off" size={20} /></span>}
@@ -220,7 +221,7 @@ export default function PortfolioCurationSettingsPage() {
       <BottomSheet isOpen={!!activePhoto} onClose={() => setActivePhoto(null)} title="Photo Options">
         {activePhoto && (
           <div className={styles.sheetBody}>
-            <img src={activePhoto.url} alt="" className={styles.sheetPhoto} />
+            <Image src={activePhoto.url} alt="" width={800} height={600} className={styles.sheetPhoto} />
             <Input
               label="Caption (optional)"
               placeholder="e.g. Finished in 4 days, silk-lined bodice"

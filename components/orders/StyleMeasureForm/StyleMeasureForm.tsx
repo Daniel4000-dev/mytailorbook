@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasureGuide from '@/components/orders/MeasureGuide/MeasureGuide';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import type { StyleMeasureSpec } from '@/lib/constants';
 import type { Measurements } from '@/lib/types';
 import styles from './StyleMeasureForm.module.css';
@@ -45,7 +46,7 @@ export default function StyleMeasureForm({
 
   return (
     <div className={styles.wrap}>
-      {spec.hasDiagram !== false && (
+      {FEATURE_FLAGS.measureGuideDiagram && spec.hasDiagram !== false && (
         <MeasureGuide
           spec={spec}
           activeKey={activeKey}

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal } from '@/lib/marketingMotion';
@@ -78,13 +79,15 @@ export default function FeaturesPageContent() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
+        <Image src="/images/marketing/moodboard.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
+        <div className={styles.heroScrim} />
         <motion.div
           className={styles.heroInner}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className={styles.eyebrow}>Everything in one place</span>
+          <span className={styles.heroEyebrow}>Everything in one place</span>
           <h1 className={styles.heroHeadline}>Master every stitch. Command your studio.</h1>
           <p className={styles.heroSubhead}>
             From the first measurement to the final delivery — and everything your customer sees along the way.
@@ -116,14 +119,15 @@ export default function FeaturesPageContent() {
               </ul>
             </div>
             <div className={styles.featureImageWrap}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={feature.image} alt="" className={styles.featureImage} />
+              <Image src={feature.image} alt="" width={800} height={600} className={styles.featureImage} />
             </div>
           </motion.div>
         ))}
       </section>
 
       <section className={styles.finalCta}>
+        <Image src="/images/marketing/tablet-indigo-fabric.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
+        <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>See what fits your shop.</h2>
           <p className={styles.finalCtaBody}>

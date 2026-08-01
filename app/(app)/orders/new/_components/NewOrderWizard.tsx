@@ -18,6 +18,7 @@ import {
 } from '@/lib/constants';
 import { getStylePhotos } from '@/lib/style-photos';
 import { formatCurrency } from '@/lib/formatters';
+import { FREE_ORDER_INSPIRATION_PHOTO_LIMIT } from '@/lib/subscription';
 import type { Customer, Measurements, Order, OrderStatus, Priority } from '@/lib/types';
 import CustomerStep from './CustomerStep';
 import GarmentStep from './GarmentStep';
@@ -375,6 +376,13 @@ export default function NewOrderWizard() {
   const handleInspoUpload = async (unitKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !user?.shopId) return;
+    const isPremium = currentShop?.subscriptionStatus === 'active';
+    const existingCount = units.find((u) => u.key === unitKey)?.inspirationImages.length || 0;
+    if (!isPremium && existingCount + files.length > FREE_ORDER_INSPIRATION_PHOTO_LIMIT) {
+      showToast(`Free plan limit: ${FREE_ORDER_INSPIRATION_PHOTO_LIMIT} inspiration photos per order. Upgrade to add more.`, 'error');
+      e.target.value = '';
+      return;
+    }
     setUploadingKey(unitKey);
     try {
       const supabase = createClient();
@@ -456,7 +464,7 @@ export default function NewOrderWizard() {
           {step === 'garments' && totalItems > 0 && <span className={styles.bagCount}>{totalItems}</span>}
         </span>
         <div className={styles.progressTrack}>
-          <div className={styles.progressFill} style={{ width: `${stepMeta[step].progress}%` }} />
+          <div className={styles.progressFill} style={{ transform: `scaleX(${stepMeta[step].progress / 100})` }} />
         </div>
       </header>
 

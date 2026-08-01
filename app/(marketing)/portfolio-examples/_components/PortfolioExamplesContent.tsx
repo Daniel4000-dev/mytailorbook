@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal } from '@/lib/marketingMotion';
@@ -49,8 +50,7 @@ export default function PortfolioExamplesContent() {
       <section className={styles.bentoGrid}>
         <motion.article className={`${styles.templateCard} ${styles.templateCardHero}`} {...reveal()}>
           <div className={styles.templateImageWrap}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/marketing/atelier-review.jpg" alt="" className={styles.templateImage} />
+            <Image src="/images/marketing/atelier-review.jpg" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" className={styles.templateImage} />
             <span className={styles.templateTag}>Clean &amp; Modern</span>
           </div>
           <div className={styles.templateBody}>
@@ -68,8 +68,7 @@ export default function PortfolioExamplesContent() {
 
         <motion.article className={`${styles.templateCard} ${styles.templateCardSide}`} {...reveal(0.08)}>
           <div className={styles.templateImageWrap}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/marketing/hero-tailor-tablet.jpg" alt="" className={styles.templateImage} />
+            <Image src="/images/marketing/hero-tailor-tablet.jpg" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" className={styles.templateImage} />
             <span className={styles.templateTag}>Bold &amp; Editorial</span>
           </div>
           <div className={styles.templateBody}>
@@ -87,8 +86,7 @@ export default function PortfolioExamplesContent() {
 
         <motion.article className={`${styles.templateCard} ${styles.templateCardWide}`} {...reveal(0.16)}>
           <div className={styles.templateImageWrap}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/marketing/moodboard.jpg" alt="" className={styles.templateImage} />
+            <Image src="/images/marketing/moodboard.jpg" alt="" fill sizes="100vw" className={styles.templateImage} />
             <span className={styles.templateTag}>Warm &amp; Story-Driven</span>
           </div>
           <div className={styles.templateBody}>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa6';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -157,7 +158,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
           transition={reduceMotion ? undefined : { duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className={styles.avatar}>
-            {shop.logoUrl ? <img src={shop.logoUrl} alt="" /> : shop.name[0]?.toUpperCase()}
+            {shop.logoUrl ? <Image src={shop.logoUrl} alt="" width={88} height={88} /> : shop.name[0]?.toUpperCase()}
           </div>
           <span className={styles.eyebrow}>Bespoke Tailoring{city ? ` · ${city}` : ''}</span>
           <h1 className={styles.heroName}>{shop.name}</h1>
@@ -242,8 +243,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
                 aria-label={`View ${p.garment}`}
                 {...reveal((i % 6) * 0.06)}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.url} alt={p.garment} loading={i > 3 ? 'lazy' : undefined} />
+                <Image src={p.url} alt={p.garment} fill sizes="(max-width: 768px) 50vw, 400px" loading={i > 3 ? 'lazy' : undefined} />
                 <span className={styles.bentoCaption}>
                   <b>{p.caption || styleOf(p.garment) || p.garment}</b>
                   <small>{monthOf(p.takenAt)}</small>
@@ -329,11 +329,13 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
           <button type="button" className={styles.lightboxClose} aria-label="Close" onClick={() => setLightboxIndex(null)}>
             <Symbol name="close" size={24} />
           </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={filteredPhotos[lightboxIndex].url}
             alt={filteredPhotos[lightboxIndex].garment}
+            width={1200}
+            height={900}
             onClick={(e) => e.stopPropagation()}
+            style={{ width: 'auto', height: 'auto' }}
           />
           <p className={styles.lightboxCaption} onClick={(e) => e.stopPropagation()}>
             {filteredPhotos[lightboxIndex].caption || filteredPhotos[lightboxIndex].garment} · {monthOf(filteredPhotos[lightboxIndex].takenAt)}

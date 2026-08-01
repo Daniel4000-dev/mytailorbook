@@ -13,4 +13,7 @@ export const FEATURE_FLAGS = {
   auditLog: false,
   photoConsentTracking: false,
   orgBranchMultiTenancy: false,
+  /** The schematic body-diagram guide above a style's measurement list —
+   *  hidden until it's replaced with proper per-style illustrations. */
+  measureGuideDiagram: false,
 } as const;

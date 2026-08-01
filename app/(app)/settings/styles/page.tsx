@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -92,7 +93,7 @@ export default function CustomStylesSettingsPage() {
           {customStyles.map((s) => (
             <button key={s.name} type="button" className={styles.card} onClick={() => openStyleSheet(s)}>
               <div className={styles.photo}>
-                {s.photoUrl ? <img src={s.photoUrl} alt="" /> : <Symbol name="checkroom" size={32} />}
+                {s.photoUrl ? <Image src={s.photoUrl} alt="" width={400} height={400} /> : <Symbol name="checkroom" size={32} />}
               </div>
               <div className={styles.label}>
                 <h3>{s.name}</h3>
@@ -106,7 +107,7 @@ export default function CustomStylesSettingsPage() {
         <div className={styles.sheetBody}>
           {activeStyle?.photoUrl && (
             <div className={styles.sheetPhoto}>
-              <img src={activeStyle.photoUrl} alt="" />
+              <Image src={activeStyle.photoUrl} alt="" width={800} height={600} />
             </div>
           )}
           <Input label="Style Name" value={editName} onChange={(e) => setEditName(e.target.value)} />

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
@@ -32,10 +33,12 @@ export default function ForgotPasswordPage() {
       <div className={styles.container}>
         {/* Sewing Machine Logo */}
         <div className={styles.logoWrapper}>
-          <img
+          <Image
             src="/images/logo-mark.png"
             alt="MyStitchBook"
-            className={styles.sewingMachineSvg}
+            width={496}
+            height={496}
+            className={`${styles.sewingMachineSvg} brandLogoAuto`}
           />
         </div>
 
@@ -66,10 +69,12 @@ export default function ForgotPasswordPage() {
     <div className={styles.container}>
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
-        <img
+        <Image
           src="/images/logo-mark.png"
           alt="MyStitchBook"
-          className={styles.sewingMachineSvg}
+          width={496}
+          height={496}
+          className={`${styles.sewingMachineSvg} brandLogoAuto`}
         />
       </div>
 

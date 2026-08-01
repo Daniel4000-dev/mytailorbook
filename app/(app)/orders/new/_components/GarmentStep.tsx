@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { Customer } from '@/lib/types';
 import styles from '../page.module.css';
@@ -61,8 +62,7 @@ export default function GarmentStep({
             >
               <div className={styles.garmentPhoto}>
                 {photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt={s.name} />
+                  <Image src={photo} alt={s.name} width={400} height={400} />
                 ) : s.subtitle === 'Custom item' ? (
                   <label
                     className={styles.addPhotoLabel}

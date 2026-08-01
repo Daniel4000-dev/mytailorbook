@@ -7,6 +7,7 @@ import { useData } from '@/contexts/DataContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { APP_CONFIG } from '@/lib/config';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
@@ -71,19 +72,23 @@ export default function SidebarMenu() {
             onClick={() => setShowProfile(true)} 
             ariaLabel="Profile Settings"
           />
-          <img
+          <Image
             src="/images/logo-mark.png"
             alt={shopName}
-            className={styles.mobileLogo}
+            width={496}
+            height={496}
+            className={`${styles.mobileLogo} brandLogoAuto`}
           />
         </div>
 
         {/* Desktop Branding (Logo & Shop Name) */}
         <div className={styles.desktopBranding}>
-          <img
+          <Image
             src="/images/logo-mark.png"
             alt={shopName}
-            className={styles.desktopLogo}
+            width={496}
+            height={496}
+            className={`${styles.desktopLogo} brandLogoAuto`}
           />
           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
         </div>

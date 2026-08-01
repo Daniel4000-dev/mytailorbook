@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -271,7 +272,7 @@ export default function CustomersPage() {
                 >
                   {s.photoUrl ? (
                     <div className={styles.styleFilterPhoto}>
-                      <img src={s.photoUrl} alt="" />
+                      <Image src={s.photoUrl} alt="" width={200} height={200} />
                     </div>
                   ) : (
                     <div className={styles.styleFilterPhoto} aria-hidden="true" />
@@ -313,7 +314,7 @@ export default function CustomersPage() {
                     onClick={() => setSelectedPhoto(p)}
                   >
                     <div className={styles.styleFilterPhoto}>
-                      <img src={p.photoUrl} alt="" />
+                      <Image src={p.photoUrl} alt="" width={200} height={200} />
                     </div>
                   </button>
                 ))}
@@ -379,7 +380,7 @@ export default function CustomersPage() {
                   </div>
                   {selectedPhoto && (
                     <div className={styles.queuePreviewPhoto}>
-                      <img src={selectedPhoto.photoUrl} alt="" />
+                      <Image src={selectedPhoto.photoUrl} alt="" width={200} height={200} />
                     </div>
                   )}
                   <p className={styles.queueNotePreview}>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import { FaEye, FaEyeSlash, FaCircleCheck } from 'react-icons/fa6';
 import { useData } from '@/contexts/DataContext';
 import { useNotifications } from '@/lib/hooks/useNotifications';
@@ -160,8 +161,7 @@ export default function OwnerDashboard({
           >
             <div className={styles.teamCardHeader}>
               {staff.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={staff.avatarUrl} alt="" className={styles.teamAvatarImage} />
+                <Image src={staff.avatarUrl} alt="" width={40} height={40} className={styles.teamAvatarImage} />
               ) : (
                 <div className={styles.teamAvatar}>{staff.name[0]}</div>
               )}

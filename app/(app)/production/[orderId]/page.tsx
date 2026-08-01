@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaWhatsapp, FaTrash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -26,6 +27,7 @@ import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from 
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
+import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT } from '@/lib/subscription';
 import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
 import styles from './page.module.css';
 
@@ -123,6 +125,8 @@ export default function OrderDetailPage() {
   const balanceOwed = getBalanceOwed(order);
   const orderRef = order.id.slice(0, 4).toUpperCase();
   const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}/track/${order.id}` : `/track/${order.id}`;
+  // null/undefined means "never overridden" — inherit the shop's own default.
+  const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
   const whatsAppMessage = customer
     ? getOrderProgressMessage({
         customerName: customer.fullName,
@@ -130,8 +134,15 @@ export default function OrderDetailPage() {
         status: order.status,
         trackingUrl,
         customTemplate: currentShop?.stageMessageTemplates?.[order.status],
+        includeTrackingLink,
       })
     : undefined;
+
+  const handleToggleTrackingLink = (checked: boolean) => {
+    updateOrder(order.id, { includeTrackingLink: checked }).catch(() => {
+      showToast('Could not update this setting', 'error');
+    });
+  };
 
   const handleAdvance = async () => {
     if (!next) return;
@@ -217,9 +228,16 @@ export default function OrderDetailPage() {
     }
   };
 
+  const isPremium = currentShop?.subscriptionStatus === 'active';
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (!isPremium && (order.images?.length || 0) + files.length > FREE_ORDER_PROGRESS_PHOTO_LIMIT) {
+      showToast(`Free plan limit: ${FREE_ORDER_PROGRESS_PHOTO_LIMIT} progress photos per order. Upgrade to add more.`, 'error');
+      e.target.value = '';
+      return;
+    }
     setUploadingPhoto(true);
     try {
       const uploaded: OrderPhoto[] = [];
@@ -248,6 +266,11 @@ export default function OrderDetailPage() {
   const handleInspoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    if (!isPremium && (order.inspirationImages?.length || 0) + files.length > FREE_ORDER_INSPIRATION_PHOTO_LIMIT) {
+      showToast(`Free plan limit: ${FREE_ORDER_INSPIRATION_PHOTO_LIMIT} inspiration photos per order. Upgrade to add more.`, 'error');
+      e.target.value = '';
+      return;
+    }
     setUploadingInspo(true);
     try {
       const uploadedUrls: string[] = [];
@@ -493,11 +516,15 @@ export default function OrderDetailPage() {
         <section className={styles.card + ' ' + styles.flushCard}>
           <div className={styles.capsHeader}>
             <h3 className={styles.capsTitle}>Inspiration</h3>
-            <label className={styles.addLink}>
-              <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
-              <Symbol name="add_photo_alternate" size={18} />
-              {uploadingInspo ? 'Uploading…' : 'Add'}
-            </label>
+            {!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT ? (
+              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
+            ) : (
+              <label className={styles.addLink}>
+                <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
+                <Symbol name="add_photo_alternate" size={18} />
+                {uploadingInspo ? 'Uploading…' : 'Add'}
+              </label>
+            )}
           </div>
           {(order.inspirationImages || []).length === 0 ? (
             <p className={styles.emptyNote}>No reference photo yet — add one if the customer has an inspo they want matched.</p>
@@ -505,10 +532,11 @@ export default function OrderDetailPage() {
             <div className={styles.inspoGrid}>
               {(order.inspirationImages || []).map((url, i) => (
                 <div key={i} className={styles.inspoThumb}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={url}
                     alt={`Inspiration ${i + 1}`}
+                    width={400}
+                    height={400}
                     onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
                     style={{ cursor: 'zoom-in' }}
                   />
@@ -547,11 +575,15 @@ export default function OrderDetailPage() {
         <section className={styles.card + ' ' + styles.flushCard}>
           <div className={styles.capsHeader}>
             <h3 className={styles.capsTitle}>Progress Gallery</h3>
-            <label className={styles.addLink}>
-              <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-              <Symbol name="add_a_photo" size={18} />
-              {uploadingPhoto ? 'Uploading…' : 'Add'}
-            </label>
+            {!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT ? (
+              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
+            ) : (
+              <label className={styles.addLink}>
+                <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                <Symbol name="add_a_photo" size={18} />
+                {uploadingPhoto ? 'Uploading…' : 'Add'}
+              </label>
+            )}
           </div>
           {(order.images || []).length === 0 ? (
             <p className={styles.emptyNote}>No progress photos yet — snap one as the garment moves through each stage.</p>
@@ -559,8 +591,7 @@ export default function OrderDetailPage() {
             <div className={styles.galleryGrid}>
               {(order.images || []).map((photo, i) => (
                 <div key={i} className={styles.galleryThumb}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.url} alt={`${photo.stage} progress`} />
+                  <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
                   <div className={styles.glassCaption}>
                     {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
                   </div>
@@ -772,6 +803,19 @@ export default function OrderDetailPage() {
               </button>
             </div>
           </div>
+          <label className={styles.toggleRow}>
+            <span>
+              <span className={styles.toggleLabel}>Include in WhatsApp updates</span>
+              <span className={styles.toggleHint}>
+                Adds the tracking link above to this order&apos;s WhatsApp stage messages.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={includeTrackingLink}
+              onChange={(e) => handleToggleTrackingLink(e.target.checked)}
+            />
+          </label>
         </section>
 
         {/* 10. Activity timeline — full pipeline, done/current/pending */}

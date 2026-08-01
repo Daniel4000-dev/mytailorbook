@@ -118,14 +118,14 @@
      Libre Caslon Text (heading) and Hanken Grotesk (body) in favor of
      this single, native-app-standard family (Linear/GitHub/Figma all
      use it) for a more "real app," less "web brochure" feel. */
-  --sf-font-heading: 'Inter', -apple-system, sans-serif;
-  --sf-font-body: 'Inter', -apple-system, sans-serif;
+  --sf-font-heading: var(--font-inter), -apple-system, sans-serif;
+  --sf-font-body: var(--font-inter), -apple-system, sans-serif;
   /* Rounder, softer terminals than Inter's numerals — used specifically
      for money/stat figures (Overview Analytics, Team Snapshot, etc.),
      the OPay-style "glanceable balance" numeral look. Kept as its own
      separately-validated choice, independent of the heading/body switch
      above. */
-  --sf-font-numeric: 'Manrope', 'Inter', -apple-system, sans-serif;
+  --sf-font-numeric: var(--font-manrope), var(--font-inter), -apple-system, sans-serif;
 
   --sf-text-2xs: 0.625rem;   /* 10px */
   --sf-text-xs: 0.75rem;     /* 12px */

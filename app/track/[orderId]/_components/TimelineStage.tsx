@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { OrderStatus, OrderPhoto } from '@/lib/types';
 import styles from '../page.module.css';
@@ -106,8 +107,7 @@ export default function TimelineStage({
                 Live Update
               </span>
             )}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo.url} alt={`Your garment during ${status}`} className={styles.stagePhoto} />
+            <Image src={photo.url} alt={`Your garment during ${status}`} width={800} height={600} className={styles.stagePhoto} />
             <div className={styles.photoCaption}>
               <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
               {isCurrent && assignedToName && (
@@ -117,8 +117,7 @@ export default function TimelineStage({
             {photos.length > 1 && (
               <div className={styles.photoStrip}>
                 {photos.slice(0, -1).map((p, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={p.url} alt={`${status} photo ${i + 1}`} />
+                  <Image key={i} src={p.url} alt={`${status} photo ${i + 1}`} width={72} height={72} />
                 ))}
               </div>
             )}

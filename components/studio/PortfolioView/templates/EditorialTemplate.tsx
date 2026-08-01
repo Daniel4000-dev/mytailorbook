@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Playfair_Display, Poppins } from 'next/font/google';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa6';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -9,6 +11,25 @@ import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { PublicPortfolio } from '@/app/public-actions';
 import styles from './EditorialTemplate.module.css';
+
+// Scoped to this template only — the "Editorial" portfolio style is one of
+// three a shop can pick, so most visitors (and every in-app screen) never
+// render this component at all. Loading these here instead of app-wide
+// (see app/layout.tsx) means their font files only download for shops
+// that actually chose this look.
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400'],
+  variable: '--font-poppins',
+  display: 'swap',
+});
 
 /** Curated accent palette — a tailor picks one of these in Settings, never
  *  a raw hex, so the page can't land on an unreadable combination. */
@@ -99,7 +120,7 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
 
   return (
     <div
-      className={styles.page}
+      className={`${styles.page} ${playfairDisplay.variable} ${poppins.variable}`}
       data-accent={shop.portfolioAccent}
       style={{ ['--e-accent' as string]: palette.accent, ['--e-accent-dark' as string]: palette.accentDark, ['--e-scrim' as string]: palette.scrim }}
     >
@@ -183,8 +204,7 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
               aria-label={`View ${p.garment}`}
               {...reveal((i % 4) * 0.08)}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt={p.garment} loading={i > 2 ? 'lazy' : undefined} />
+              <Image src={p.url} alt={p.garment} width={800} height={1000} loading={i > 2 ? 'lazy' : undefined} />
               <span className={styles.caption}>
                 <b>{p.caption || styleOf(p.garment) || p.garment}</b>
                 <small>{p.caption ? `${styleOf(p.garment) || p.garment} · ` : ''}{monthOf(p.takenAt)}</small>
@@ -243,8 +263,14 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
           <button type="button" className={styles.lightboxClose} aria-label="Close" onClick={() => setLightboxIndex(null)}>
             <Symbol name="close" size={24} />
           </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photos[lightboxIndex].url} alt={photos[lightboxIndex].garment} onClick={(e) => e.stopPropagation()} />
+          <Image
+            src={photos[lightboxIndex].url}
+            alt={photos[lightboxIndex].garment}
+            width={1200}
+            height={900}
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: 'auto', height: 'auto' }}
+          />
           <p className={styles.lightboxCaption} onClick={(e) => e.stopPropagation()}>
             {photos[lightboxIndex].caption || photos[lightboxIndex].garment} · {monthOf(photos[lightboxIndex].takenAt)}
           </p>

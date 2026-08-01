@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type UIEvent } from 'react';
+import Image from 'next/image';
 import { FaShareFromSquare, FaLocationDot, FaWhatsapp, FaRulerCombined, FaChevronRight } from 'react-icons/fa6';
 import styles from '../page.module.css';
 
@@ -79,7 +80,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
             </div>
             {card.image && (
               <div className={styles.discoverImageWrap}>
-                <img src={card.image} alt="" className={styles.discoverImage} />
+                <Image src={card.image} alt="" width={322} height={662} className={styles.discoverImage} />
               </div>
             )}
           </button>

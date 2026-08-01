@@ -48,11 +48,35 @@ export default function MessageTemplatesSettingsPage() {
     setDraft(DEFAULT_STAGE_MESSAGES[activeStage]);
   };
 
+  const handleToggleTrackingDefault = async (checked: boolean) => {
+    try {
+      await updateShop({ defaultTrackingLinkEnabled: checked });
+    } catch {
+      showToast('Could not update this setting', 'error');
+    }
+  };
+
   return (
     <PageLayout width="narrow" header={<TopBar title="Order Update Messages" showBack onBack={() => router.push('/settings')} />}>
       <p className={styles.intro}>
         Customize the WhatsApp update sent at each stage. Untouched stages keep the app&apos;s default wording.
       </p>
+
+      <div className={styles.card}>
+        <label className={styles.toggleRow}>
+          <span>
+            <span className={styles.toggleLabel}>Include tracking link by default</span>
+            <span className={styles.toggleHint}>
+              New orders start with this setting — each order can still override it individually.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={currentShop?.defaultTrackingLinkEnabled ?? true}
+            onChange={(e) => handleToggleTrackingDefault(e.target.checked)}
+          />
+        </label>
+      </div>
 
       <div className={styles.card}>
         {ORDER_STATUSES.map((stage) => (

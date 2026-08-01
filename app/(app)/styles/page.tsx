@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
@@ -56,7 +57,7 @@ export default function StyleGalleryPage() {
           return (
             <Link key={s.name} href={`/styles/${encodeURIComponent(s.name)}`} className={styles.card}>
               <div className={styles.photo}>
-                <img src={s.photoUrl} alt="" />
+                <Image src={s.photoUrl} alt="" width={400} height={400} />
                 {loaded && pending > 0 && <span className={styles.pendingBadge}>{pending} new</span>}
               </div>
               <div className={styles.label}>

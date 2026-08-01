@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { motion, useReducedMotion } from 'framer-motion';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal, slideInLeft, slideInRight, popIn } from '@/lib/marketingMotion';
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN } from '@/lib/subscription';
@@ -51,61 +52,68 @@ const FEATURES = [
 
 export default function HomePageContent() {
   const reveal = useReveal();
-  const reduceMotion = useReducedMotion();
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
+      {/* Hero — full-bleed editorial photo, headline overlaid directly on it */}
       <section className={styles.hero}>
-        <div className={styles.heroInner}>
-          <motion.div
-            className={styles.heroText}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <h1 className={styles.heroHeadline}>
-              Precision. <span className={styles.heroHeadlineAccent}>Elegance.</span> Flow.
-            </h1>
-            <p className={styles.heroSubhead}>
-              The business and customer-relationship platform built for tailors and fashion designers across
-              Nigeria and Africa — run your production, keep every measurement on file, and give your own
-              customers a premium experience, all in one place.
-            </p>
-            <div className={styles.heroActions}>
-              <Link href="/signup" className={styles.ctaPrimary}>
-                Start Free — No Card Required
-                <Symbol name="arrow_forward" size={18} />
-              </Link>
-              <Link href="/portfolio-examples" className={styles.ctaSecondary}>
-                <Symbol name="visibility" size={18} />
-                See a Live Portfolio Example
-              </Link>
-            </div>
-          </motion.div>
+        <Image
+          src="/images/marketing/hero-tailor-tablet.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroBg}
+        />
+        <div className={styles.heroScrim} />
+        <motion.div
+          className={styles.heroContent}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <span className={styles.heroEyebrow}>Bespoke Workshop Software</span>
+          <h1 className={styles.heroHeadline}>
+            Precision. <span className={styles.heroHeadlineAccent}>Elegance.</span> Flow.
+          </h1>
+          <p className={styles.heroSubhead}>
+            The business and customer-relationship platform built for tailors and fashion designers across
+            Nigeria and Africa — run your production, keep every measurement on file, and give your own
+            customers a premium experience, all in one place.
+          </p>
+          <div className={styles.heroActions}>
+            <Link href="/signup" className={styles.ctaPrimary}>
+              Start Free — No Card Required
+              <Symbol name="arrow_forward" size={18} />
+            </Link>
+            <Link href="/portfolio-examples" className={styles.ctaSecondaryOnPhoto}>
+              <Symbol name="visibility" size={18} />
+              See a Live Portfolio Example
+            </Link>
+          </div>
+        </motion.div>
+      </section>
 
+      {/* Proof strip — real product screenshots, not mockups, floating just
+          below the hero photo the way the reference templates showcase
+          actual UI instead of describing it in prose. */}
+      <section className={styles.proofStrip}>
+        {[
+          { src: '/images/marketing/product-tablet-desk.jpg', label: 'Production board' },
+          { src: '/images/marketing/product-client-profile.jpg', label: 'Client profiles' },
+          { src: '/images/marketing/product-portfolio-showcase-phone.jpg', label: 'Public portfolio' },
+        ].map((shot, i) => (
           <motion.div
-            className={styles.heroImageWrap}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              y: reduceMotion ? 0 : [0, -10, 0],
-            }}
-            transition={{
-              opacity: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 },
-              scale: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 },
-              y: reduceMotion ? {} : { duration: 5, ease: 'easeInOut', repeat: Infinity, delay: 0.85 },
-            }}
+            key={shot.src}
+            className={styles.proofCard}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 + i * 0.1 }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/marketing/hero-tailor-tablet.jpg"
-              alt="A tailor reviewing their production board on a tablet in front of indigo fabric swatches"
-              className={styles.heroImage}
-            />
+            <Image src={shot.src} alt="" width={640} height={420} className={styles.proofImage} />
+            <span className={styles.proofLabel}>{shot.label}</span>
           </motion.div>
-        </div>
+        ))}
       </section>
 
       {/* Pain points */}
@@ -145,8 +153,7 @@ export default function HomePageContent() {
                 className={styles.featureImageWrap}
                 {...reveal(0.1, reversed ? slideInLeft : slideInRight)}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={feature.image} alt="" className={styles.featureImage} />
+                <Image src={feature.image} alt="" width={800} height={600} className={styles.featureImage} />
               </motion.div>
             </div>
           );
@@ -159,20 +166,32 @@ export default function HomePageContent() {
         </motion.div>
       </section>
 
-      {/* Portfolio teaser */}
+      {/* Portfolio teaser — real screenshot, not just a text-on-color band */}
       <section className={styles.portfolioSection}>
-        <motion.div className={styles.portfolioInner} {...reveal()}>
-          <span className={styles.eyebrow}>Showcase</span>
-          <h2 className={styles.sectionTitle}>Your work deserves a stage.</h2>
-          <p className={styles.portfolioBody}>
-            Every shop gets a free public portfolio page — a beautiful, shareable showcase of your finished work,
-            built automatically from the orders you complete. Choose from three templates and make it yours.
-          </p>
-          <Link href="/portfolio-examples" className={styles.ctaSecondaryDark}>
-            View Portfolio Templates
-            <Symbol name="arrow_forward" size={18} />
-          </Link>
-        </motion.div>
+        <div className={styles.portfolioInner}>
+          <motion.div {...reveal(0, slideInLeft)}>
+            <span className={styles.eyebrow}>Showcase</span>
+            <h2 className={styles.sectionTitle}>Your work deserves a stage.</h2>
+            <p className={styles.portfolioBody}>
+              Every shop gets a free public portfolio page — a beautiful, shareable showcase of your finished
+              work, built automatically from the orders you complete. Choose from three templates and make it
+              yours.
+            </p>
+            <Link href="/portfolio-examples" className={styles.ctaSecondaryDark}>
+              View Portfolio Templates
+              <Symbol name="arrow_forward" size={18} />
+            </Link>
+          </motion.div>
+          <motion.div className={styles.portfolioShotWrap} {...reveal(0.1, slideInRight)}>
+            <Image
+              src="/images/marketing/product-portfolio-showcase-phone.jpg"
+              alt="A shop's public portfolio page, shown on a phone"
+              width={480}
+              height={600}
+              className={styles.portfolioShot}
+            />
+          </motion.div>
+        </div>
       </section>
 
       {/* Pricing teaser */}
@@ -219,8 +238,16 @@ export default function HomePageContent() {
         </motion.div>
       </section>
 
-      {/* Final CTA */}
+      {/* Final CTA — photo-backed close, bookending the hero's opening treatment */}
       <section className={styles.finalCta}>
+        <Image
+          src="/images/marketing/stitching-closeup.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className={styles.finalCtaBg}
+        />
+        <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal(0, popIn)}>
           <h2 className={styles.finalCtaTitle}>Ready to elevate your craft?</h2>
           <p className={styles.finalCtaBody}>

@@ -2,7 +2,9 @@
 
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FaArrowLeft } from 'react-icons/fa6';
+import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './TopBar.module.css';
 
 interface TopBarProps {
@@ -16,8 +18,6 @@ interface TopBarProps {
   profileMode?: {
     greeting: string;
     name: string;
-    avatarInitials: string;
-    avatarUrl?: string;
   };
 }
 
@@ -32,6 +32,7 @@ export default function TopBar({
   profileMode,
 }: TopBarProps) {
   const router = useRouter();
+  const { toggleMenu } = useSidebar();
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -53,12 +54,14 @@ export default function TopBar({
             </div>
           </div>
           <div className={styles.right}>
-            {profileMode.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profileMode.avatarUrl} alt="" className={styles.avatarImage} />
-            ) : (
-              <div className={styles.avatar}>{profileMode.avatarInitials}</div>
-            )}
+            <button
+              type="button"
+              className={styles.logoToggle}
+              onClick={toggleMenu}
+              aria-label="Open menu"
+            >
+              <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={styles.logoToggleImg} />
+            </button>
           </div>
         </div>
       ) : (

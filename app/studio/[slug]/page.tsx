@@ -3,6 +3,15 @@ import { getPublicShopPortfolio } from '@/app/public-actions';
 import PortfolioView from '@/components/studio/PortfolioView/PortfolioView';
 import styles from './page.module.css';
 
+// This page has no per-second freshness need — photos/testimonials/stats
+// don't change from one visitor to the next — but real traffic here comes
+// in bursts (a link shared in a WhatsApp group, many people opening it
+// around the same time). 2 minutes cuts that repeat load meaningfully
+// without making an owner's own quick post-edit check feel stale. The
+// in-app owner preview (app/(app)/portfolio) is a separate client-invoked
+// call, unaffected by this page-level cache.
+export const revalidate = 120;
+
 /** Rich link previews are half this page's job — it gets shared in
  *  WhatsApp chats, where the og card is the real first impression. */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

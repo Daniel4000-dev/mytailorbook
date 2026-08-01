@@ -164,13 +164,23 @@ export function getOrderProgressMessage(params: {
   status: OrderStatus;
   trackingUrl: string;
   customTemplate?: string;
+  /** Defaults to true. When false, the built-in closing sentence that
+   *  points at {link} is dropped entirely rather than left with a dangling
+   *  "here: " and nothing after it. A shop's own custom template (which
+   *  may phrase its closing differently) just has its {link} token blanked
+   *  instead, since we can't know how they worded it. */
+  includeTrackingLink?: boolean;
 }): string {
-  const { customerName, shopName, status, trackingUrl, customTemplate } = params;
+  const { customerName, shopName, status, trackingUrl, customTemplate, includeTrackingLink = true } = params;
   const firstName = customerName.trim().split(' ')[0] || customerName;
-  const template = customTemplate || DEFAULT_STAGE_MESSAGES[status];
+  let template = customTemplate || DEFAULT_STAGE_MESSAGES[status];
+
+  if (!includeTrackingLink && !customTemplate) {
+    template = template.replace(/\s*You can monitor its progress anytime here: \{link\}/i, '');
+  }
 
   return template
     .replace(/\{name\}/g, firstName)
     .replace(/\{shop\}/g, shopName)
-    .replace(/\{link\}/g, trackingUrl);
+    .replace(/\{link\}/g, includeTrackingLink ? trackingUrl : '');
 }

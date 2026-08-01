@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
@@ -38,7 +39,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
       <div className={styles.card}>
         <header className={styles.header}>
           <div className={styles.brandRow}>
-            {shop?.logoUrl && <img src={shop.logoUrl} alt="" className={styles.brandLogo} />}
+            {shop?.logoUrl && <Image src={shop.logoUrl} alt="" width={200} height={200} className={styles.brandLogo} />}
             <div>
               <h1 className={styles.brand}>{shop?.name || APP_CONFIG.name}</h1>
               {shop?.phone && <span className={styles.brandSub}>{formatPhone(shop.phone)}</span>}

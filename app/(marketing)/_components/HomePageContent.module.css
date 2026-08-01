@@ -13,7 +13,7 @@
 }
 
 .sectionTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -21,49 +21,146 @@
   margin: 0 0 var(--sf-space-lg);
 }
 
-/* ── Hero ── */
+/* ── Hero — full-bleed editorial photo, cinematic scrim, centered overlay
+   copy. Height is deliberately not full-viewport: the source photo is a
+   moderate-resolution lifestyle shot, not a 4K plate, so keeping the
+   section shorter than 100vh limits how much it has to be upscaled
+   before the scrim gradient (which does most of the legibility work
+   anyway) takes over. ── */
 .hero {
-  background:
-    radial-gradient(circle at 100% 0%, var(--sf-accent-emerald-glow) 0%, transparent 50%),
-    radial-gradient(circle at 0% 100%, var(--sf-accent-emerald-glow) 0%, transparent 50%);
-  padding: var(--sf-space-3xl) var(--sf-margin-desktop);
+  position: relative;
+  min-height: 78vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.heroInner {
-  max-width: var(--sf-max-width-desktop);
+.heroBg {
+  object-fit: cover;
+  object-position: center 30%;
+  z-index: -2;
+}
+
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(19, 18, 32, 0.55) 0%, rgba(19, 18, 32, 0.72) 55%, rgba(19, 18, 32, 0.92) 100%),
+    linear-gradient(90deg, rgba(24, 20, 60, 0.35) 0%, transparent 40%, transparent 60%, rgba(24, 20, 60, 0.35) 100%);
+}
+
+.heroContent {
+  max-width: 720px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sf-space-3xl);
-  align-items: center;
+  padding: var(--sf-space-3xl) var(--sf-margin-desktop);
+  text-align: center;
+}
+
+.heroEyebrow {
+  display: inline-block;
+  font-size: var(--sf-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: var(--sf-radius-full);
+  margin-bottom: var(--sf-space-lg);
 }
 
 .heroHeadline {
-  font-family: 'Fraunces', serif;
-  font-size: clamp(2.5rem, 5vw, var(--sf-text-4xl));
+  font-family: var(--font-fraunces), serif;
+  font-size: clamp(2.75rem, 6vw, 4.25rem);
   font-weight: 600;
-  line-height: 1.1;
-  color: var(--sf-text-primary);
+  line-height: 1.08;
+  color: #ffffff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.25);
   margin: 0 0 var(--sf-space-lg);
 }
 
 .heroHeadlineAccent {
-  color: var(--sf-accent-emerald);
+  color: var(--sf-accent-emerald-light, #a5b4fc);
   font-style: italic;
 }
 
 .heroSubhead {
   font-size: var(--sf-text-lg);
   line-height: var(--sf-leading-relaxed);
-  color: var(--sf-text-secondary);
-  max-width: 520px;
-  margin: 0 0 var(--sf-space-xl);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 560px;
+  margin: 0 auto var(--sf-space-xl);
 }
 
 .heroActions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--sf-space-md);
+}
+
+.ctaSecondaryOnPhoto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  height: 52px;
+  padding: 0 var(--sf-space-xl);
+  border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-semibold);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.ctaSecondaryOnPhoto:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+/* ── Proof strip — real product screenshots floating just under the hero,
+   Galilee-style overlapping cards proving the product instead of just
+   describing it. ── */
+.proofStrip {
+  max-width: var(--sf-max-width-desktop);
+  margin: -64px auto 0;
+  padding: 0 var(--sf-margin-desktop) var(--sf-space-2xl);
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sf-space-lg);
+}
+
+.proofCard {
+  border-radius: var(--sf-radius-xl);
+  overflow: hidden;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  box-shadow: var(--sf-shadow-xl);
+}
+
+.proofImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+  display: block;
+}
+
+.proofLabel {
+  display: block;
+  padding: var(--sf-space-md) var(--sf-space-lg);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
 }
 
 .ctaPrimary,
@@ -88,26 +185,6 @@
   box-shadow: 0 14px 32px rgba(67, 56, 202, 0.3);
 }
 
-.ctaSecondary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sf-space-sm);
-  height: 52px;
-  padding: 0 var(--sf-space-xl);
-  border-radius: var(--sf-radius-full);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-primary);
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
-  background: var(--sf-bg-surface);
-  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
-}
-
-.ctaSecondary:hover {
-  background: var(--sf-bg-surface-hover);
-  transform: translateY(-1px);
-}
-
 .ctaSecondaryDark {
   display: inline-flex;
   align-items: center;
@@ -124,20 +201,6 @@
 
 .ctaSecondaryDark:hover {
   transform: translateY(-2px) scale(1.02);
-}
-
-.heroImageWrap {
-  border-radius: var(--sf-radius-2xl);
-  overflow: hidden;
-  box-shadow: var(--sf-shadow-xl);
-}
-
-.heroImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  aspect-ratio: 4 / 5;
-  display: block;
 }
 
 /* ── Pain points ── */
@@ -209,7 +272,7 @@
 }
 
 .featureTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-2xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -256,12 +319,35 @@
 .portfolioSection {
   background: var(--sf-accent-emerald);
   padding: var(--sf-space-3xl) var(--sf-margin-desktop);
+  overflow: hidden;
 }
 
 .portfolioInner {
-  max-width: 640px;
+  max-width: var(--sf-max-width-desktop);
   margin: 0 auto;
-  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: var(--sf-space-3xl);
+  align-items: center;
+  text-align: left;
+}
+
+.portfolioShotWrap {
+  justify-self: center;
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--sf-radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--sf-shadow-xl);
+  border: 6px solid rgba(255, 255, 255, 0.12);
+}
+
+.portfolioShot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 4 / 5;
+  display: block;
 }
 
 .portfolioSection .eyebrow {
@@ -356,7 +442,7 @@
 
 .pricingCardPrice {
   display: block;
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-2xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -393,9 +479,29 @@
   font-weight: 700;
 }
 
-/* ── Final CTA ── */
+/* ── Final CTA — photo-backed, bookends the hero ── */
 .finalCta {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
   padding: var(--sf-space-3xl) var(--sf-margin-desktop);
+}
+
+.finalCtaBg {
+  object-fit: cover;
+  object-position: center;
+  z-index: -2;
+}
+
+.finalCtaScrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(19, 18, 32, 0.82) 0%, rgba(30, 26, 74, 0.88) 100%);
 }
 
 .finalCtaInner {
@@ -405,22 +511,21 @@
 }
 
 .finalCtaTitle {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-3xl);
   font-weight: 600;
-  color: var(--sf-text-primary);
+  color: #ffffff;
   margin: 0 0 var(--sf-space-md);
 }
 
 .finalCtaBody {
   font-size: var(--sf-text-base);
-  color: var(--sf-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0 0 var(--sf-space-xl);
 }
 
 /* ── Responsive ── */
 @media (max-width: 900px) {
-  .hero,
   .painSection,
   .featuresSection,
   .portfolioSection,
@@ -430,13 +535,18 @@
     padding-right: var(--sf-margin-mobile);
   }
 
-  .heroInner {
-    grid-template-columns: 1fr;
-    gap: var(--sf-space-xl);
+  .hero {
+    min-height: 88vh;
   }
 
-  .heroImageWrap {
-    order: -1;
+  .heroContent {
+    padding: var(--sf-space-xl) var(--sf-margin-mobile);
+  }
+
+  .proofStrip {
+    grid-template-columns: 1fr;
+    margin-top: -40px;
+    padding: 0 var(--sf-margin-mobile) var(--sf-space-xl);
   }
 
   .heroActions {
@@ -444,7 +554,7 @@
   }
 
   .ctaPrimary,
-  .ctaSecondary,
+  .ctaSecondaryOnPhoto,
   .ctaPrimaryLight {
     width: 100%;
     justify-content: center;
@@ -461,6 +571,15 @@
   }
 
   .featureImageWrap {
+    order: -1;
+  }
+
+  .portfolioInner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .portfolioShotWrap {
     order: -1;
   }
 

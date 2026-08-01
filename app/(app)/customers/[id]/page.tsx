@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FaWhatsapp, FaUserSlash, FaLocationDot, FaTrash } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -297,7 +298,7 @@ function CustomerProfileContent({
               const photoUrl = GARMENT_STYLES.find((g) => g.name === s)?.photoUrl;
               return (
                 <span key={s} className={`${styles.prefChip} ${photoUrl ? '' : styles.prefChipNoPhoto}`}>
-                  {photoUrl && <img src={photoUrl} alt="" className={styles.prefChipPhoto} />}
+                  {photoUrl && <Image src={photoUrl} alt="" width={64} height={64} className={styles.prefChipPhoto} />}
                   {s}
                 </span>
               );
@@ -358,8 +359,7 @@ function CustomerProfileContent({
               <div key={styleName} className={styles.profileCard}>
                 <div className={styles.profilePhoto}>
                   {stylePhotos[styleName] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={stylePhotos[styleName]} alt="" />
+                    <Image src={stylePhotos[styleName]} alt="" width={400} height={400} />
                   ) : (
                     <Symbol name="checkroom" size={28} />
                   )}

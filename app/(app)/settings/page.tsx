@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -256,7 +257,7 @@ export default function SettingsPage() {
               subtitle={currentShop?.logoUrl ? 'Set' : 'Not set'}
               meta={
                 currentShop?.logoUrl ? (
-                  <img src={currentShop.logoUrl} alt="" className={styles.logoThumb} />
+                  <Image src={currentShop.logoUrl} alt="" width={200} height={200} className={styles.logoThumb} />
                 ) : undefined
               }
               onClick={() => setOpenSheet('logo')}
@@ -555,7 +556,7 @@ export default function SettingsPage() {
         <div className={styles.sheetBody}>
           <div className={styles.logoPreviewWrap}>
             {currentShop?.logoUrl ? (
-              <img src={currentShop.logoUrl} alt="" className={styles.logoPreview} />
+              <Image src={currentShop.logoUrl} alt="" width={200} height={200} className={styles.logoPreview} />
             ) : (
               <div className={styles.logoPreviewEmpty}>
                 <Symbol name="storefront" size={36} />
