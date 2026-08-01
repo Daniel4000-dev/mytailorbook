@@ -7,6 +7,7 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
+import { trackEvent } from '@/lib/analytics';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
@@ -314,6 +315,7 @@ export default function NewOrderWizard() {
           : `Order created for ${customer.fullName}`,
         'success'
       );
+      trackEvent('order_created', { garment_count: units.length });
       router.replace('/production');
     } catch {
       setError('Failed to create the order — check your connection and try again.');

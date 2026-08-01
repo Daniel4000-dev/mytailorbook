@@ -8,6 +8,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import { isValidPhone } from '@/lib/formatters';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { trackEvent } from '@/lib/analytics';
 import styles from './page.module.css';
 
 import { GARMENT_STYLES } from '@/lib/constants';
@@ -69,6 +70,7 @@ export default function NewClientPage() {
         measurements: {},
       });
       showToast(`${customer.fullName} added to customers`, 'success');
+      trackEvent('customer_created');
       // Step 3: hand straight into the order wizard, pre-filled.
       router.replace(`/orders/new?customer=${customer.id}`);
     } catch {

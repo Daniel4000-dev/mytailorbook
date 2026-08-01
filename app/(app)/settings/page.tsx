@@ -21,6 +21,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { initializeSubscription, confirmSubscriptionPayment } from '@/app/actions/payments';
+import { trackEvent } from '@/lib/analytics';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
@@ -109,6 +110,7 @@ export default function SettingsPage() {
     confirmSubscriptionPayment(reference)
       .then(() => {
         showToast('Payment successful — you\'re now on Premium', 'success');
+        trackEvent('subscription_upgraded');
         refreshShop();
       })
       .catch((err) => {
@@ -123,6 +125,7 @@ export default function SettingsPage() {
 
   const handleUpgrade = (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
+    trackEvent('upgrade_checkout_started', { interval });
     initializeSubscription(interval)
       .then(({ authorizationUrl }) => {
         window.location.href = authorizationUrl;

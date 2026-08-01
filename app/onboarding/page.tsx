@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { FaRulerCombined, FaClipboardList } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
+import { trackEvent } from '@/lib/analytics';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
 
@@ -75,6 +76,7 @@ export default function OnboardingPage() {
     setSubmitting(true);
     try {
       await completeOnboarding(shopName, isGoogleAccount ? name : undefined);
+      trackEvent('onboarding_completed', { via: isGoogleAccount ? 'google' : 'email' });
       await refreshProfile();
       router.push('/dashboard');
     } catch (err) {
