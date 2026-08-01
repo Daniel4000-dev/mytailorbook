@@ -108,7 +108,7 @@ export default function SettingsPage() {
 
     confirmSubscriptionPayment(reference)
       .then(() => {
-        showToast('Payment successful — activating your plan…', 'success');
+        showToast('Payment successful — you\'re now on Premium', 'success');
         refreshShop();
       })
       .catch((err) => {
