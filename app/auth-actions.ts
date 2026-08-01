@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
 import { isOrgPremium } from '@/lib/subscription';
+import { isOwnerLikeRole } from '@/lib/types';
 
 /**
  * Runs for every first-time sign-in, Google or email — neither gives us a
@@ -74,7 +75,44 @@ export async function createStaffAccount(
   tempPassword: string,
   role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff'
 ): Promise<{ userId?: string; error?: string }> {
+  // This function had no caller-authorization check at all — only the admin
+  // bypass above, which is about RLS on the *insert* having nothing to
+  // check against, not about who's allowed to call this in the first
+  // place. Any caller could previously invoke this Server Action directly
+  // (it's just a POST endpoint; the client only hiding the "Add staff" UI
+  // from non-owners is not a security boundary) with an arbitrary shopId
+  // and role, creating an account with attacker-chosen credentials inside
+  // any org — including 'Accountant', which has financial-report access.
+  // Mirrors the same auth + org-membership pattern every other
+  // Owner-gated mutation in this codebase already uses (e.g.
+  // addBranchAction in app/actions.ts).
+  if (!(['Staff', 'BranchManager', 'Accountant'] as const).includes(role)) {
+    return { error: 'Invalid role' };
+  }
+
+  const supabase = await createClient();
+  const { data: { user: caller } } = await supabase.auth.getUser();
+  if (!caller) return { error: 'Not authenticated' };
+
+  const { data: callerProfile } = await supabase
+    .from('profiles')
+    .select('org_id, role')
+    .eq('id', caller.id)
+    .single();
+  if (!callerProfile || !isOwnerLikeRole(callerProfile.role)) {
+    return { error: 'Only the Owner can add staff' };
+  }
+
   const admin = createAdminClient();
+
+  const { data: targetShop } = await admin
+    .from('shops')
+    .select('org_id')
+    .eq('id', shopId)
+    .single();
+  if (!targetShop || targetShop.org_id !== callerProfile.org_id) {
+    return { error: 'Only the Owner can add staff' };
+  }
 
   const premium = await isOrgPremium(admin, shopId);
   if (!premium) {
@@ -97,17 +135,11 @@ export async function createStaffAccount(
     return { error: profileError.message };
   }
 
-  const supabase = await createClient();
-  const { data: { user: actorUser } } = await supabase.auth.getUser();
-  let actorName = 'Unknown';
-  if (actorUser) {
-    const { data: actorProfile } = await admin.from('profiles').select('name').eq('id', actorUser.id).single();
-    actorName = actorProfile?.name || actorName;
-  }
+  const { data: actorProfile } = await admin.from('profiles').select('name').eq('id', caller.id).single();
   await logAudit({
     shopId,
-    actorId: actorUser?.id ?? null,
-    actorName,
+    actorId: caller.id,
+    actorName: actorProfile?.name || 'Unknown',
     action: 'staff.created',
     entityType: 'profile',
     entityId: authData.user.id,

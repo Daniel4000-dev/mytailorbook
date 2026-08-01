@@ -76,7 +76,7 @@ export default function StaffSettingsPage() {
     if (!activeStaff || !user) return;
     setResettingPassword(true);
     try {
-      const result = await resetStaffPasswordAction(activeStaff.uid, user.uid, customPassword || undefined);
+      const result = await resetStaffPasswordAction(activeStaff.uid, customPassword || undefined);
       if (result.error) {
         showToast(result.error, 'error');
       } else if (result.password) {

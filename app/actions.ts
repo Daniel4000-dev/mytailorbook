@@ -735,13 +735,24 @@ export async function renameCustomStyleEverywhereAction(
  *  password when none is given. */
 export async function resetStaffPasswordAction(
   staffUid: string,
-  requestedBy: string,
   newPassword?: string
 ): Promise<{ password?: string; error?: string }> {
+  // Previously took `requestedBy` as a plain argument from the caller and
+  // trusted it as-is to look up "the owner requesting this" — nothing
+  // verified it actually matched the real authenticated session. Since
+  // Server Actions are directly callable (the client hiding this button
+  // from non-owners isn't a security boundary), anyone could call this
+  // with any Owner's user id as `requestedBy` and reset any staff
+  // account's password across any shop, unauthenticated. The caller's
+  // identity has to come from the session itself, never from an argument.
+  const supabase = await createClient();
+  const { data: { user: caller } } = await supabase.auth.getUser();
+  if (!caller) return { error: 'Not authenticated' };
+
   const admin = createAdminClient();
 
   const { data: staffProfile } = await admin.from('profiles').select('shop_id, name').eq('id', staffUid).single();
-  const { data: ownerProfile } = await admin.from('profiles').select('shop_id, role, name').eq('id', requestedBy).single();
+  const { data: ownerProfile } = await admin.from('profiles').select('shop_id, role, name').eq('id', caller.id).single();
   if (
     !staffProfile ||
     !ownerProfile ||
@@ -757,7 +768,7 @@ export async function resetStaffPasswordAction(
 
   await logAudit({
     shopId: ownerProfile.shop_id,
-    actorId: requestedBy,
+    actorId: caller.id,
     actorName: ownerProfile.name,
     action: 'staff.password_reset',
     entityType: 'profile',
