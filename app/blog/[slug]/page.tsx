@@ -79,7 +79,7 @@ export default async function BlogPost({ params }: Props) {
         // Post frontmatter is repo-controlled content, not user input, but
         // this still escapes "<" defensively — matches the same pattern
         // used for shop-entered content on the public portfolio page.
-        // eslint-disable-next-line react/no-danger
+         
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <Header />

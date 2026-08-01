@@ -1,7 +1,7 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { APP_CONFIG } from '@/lib/config';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 /** Starts a Paystack checkout for the current user's shop, returning the
@@ -48,6 +48,19 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
     throw new Error('Server configuration error');
   }
 
+  // Derived from the actual incoming request, not the hardcoded production
+  // domain — a shop testing this from localhost (or a Vercel preview URL)
+  // previously got redirected back to production after paying, where they
+  // have no session, and landed on /login instead of back in the app. The
+  // popup flow below doesn't navigate away at all (so this bug can't
+  // happen there), but Paystack's API still requires *some* callback_url,
+  // and older/unsupported clients fall back to the redirect flow, so this
+  // needs to be correct regardless.
+  const headersList = await headers();
+  const host = headersList.get('host');
+  const proto = headersList.get('x-forwarded-proto') || (host?.startsWith('localhost') ? 'http' : 'https');
+  const origin = host ? `${proto}://${host}` : undefined;
+
   // Paystack's transaction/initialize rejects the request with
   // "Invalid Amount Sent" if `amount` is omitted, even when a `plan` is
   // given — it doesn't infer the amount from the plan. Look it up so the
@@ -72,7 +85,7 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
       email: user.email,
       amount,
       plan: PLAN_CODE,
-      callback_url: `${APP_CONFIG.baseUrl}/settings?payment=success`,
+      ...(origin ? { callback_url: `${origin}/settings?payment=success` } : {}),
       metadata: {
         shop_id: profile.shop_id,
         user_id: user.id,
@@ -89,6 +102,11 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
 
   return {
     authorizationUrl: data.data.authorization_url as string,
+    // Lets the client resume this exact already-initialized transaction
+    // inside Paystack's inline popup instead of a full-page redirect — no
+    // navigation away from the app at all, so the redirect/session bug
+    // above can't happen through this path regardless of environment.
+    accessCode: data.data.access_code as string,
     reference: data.data.reference as string,
   };
 }

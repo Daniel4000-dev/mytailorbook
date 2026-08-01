@@ -82,7 +82,7 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
         // JSON.stringify doesn't escape "<", so without this a bio
         // containing "</script>" could break out of the tag and inject
         // arbitrary HTML/script into every visitor's page.
-        // eslint-disable-next-line react/no-danger
+         
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <PortfolioView portfolio={portfolio} />

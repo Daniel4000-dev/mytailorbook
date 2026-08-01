@@ -21,6 +21,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { initializeSubscription } from '@/app/actions/payments';
+import { openPaystackPopup } from '@/lib/paystack';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
@@ -31,7 +32,7 @@ import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css
 export default function SettingsPage() {
   const router = useRouter();
   const { user, isOwner, updateAvatar } = useAuth();
-  const { currentShop, staffMembers, updateShop, shops, refreshBranches, isLoaded } = useData();
+  const { currentShop, staffMembers, updateShop, shops, refreshBranches, refreshShop, isLoaded } = useData();
   const { showToast } = useToast();
 
   const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | 'plans' | null>(null);
@@ -68,8 +69,27 @@ export default function SettingsPage() {
   const handleUpgrade = async (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
     try {
-      const { authorizationUrl } = await initializeSubscription(interval);
-      window.location.href = authorizationUrl;
+      const { accessCode } = await initializeSubscription(interval);
+      await openPaystackPopup(accessCode, {
+        onSuccess: () => {
+          // The webhook (source of truth) flips subscription_status once
+          // Paystack confirms the charge — that can land a beat after this
+          // fires, so the realtime subscription in DataContext will also
+          // pick it up on its own; this just gets the UI there immediately
+          // instead of waiting on that round trip.
+          showToast('Payment successful — activating your plan…', 'success');
+          setOpenSheet(null);
+          refreshShop();
+          setUpgrading(false);
+        },
+        onCancel: () => {
+          setUpgrading(false);
+        },
+        onError: (error) => {
+          showToast(error.message || 'Payment failed', 'error');
+          setUpgrading(false);
+        },
+      });
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
       setUpgrading(false);

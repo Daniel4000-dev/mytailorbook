@@ -55,6 +55,13 @@ interface DataContextValue {
   activeBranchId: string | null;
   setActiveBranchId: (shopId: string) => void;
   refreshBranches: () => void;
+  /** Forces an immediate refetch of the whole shop bundle (orders,
+   *  customers, shop record) — the realtime subscription above already
+   *  does this reactively when the underlying rows change, but this is a
+   *  manual escalation for moments that can't wait on that, e.g. right
+   *  after a payment popup reports success, before the webhook may have
+   *  landed yet. */
+  refreshShop: () => void;
   isLoaded: boolean;
   addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<void>;
@@ -159,6 +166,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, () => mutate())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
+      // Picks up the Paystack webhook flipping subscription_status once a
+      // payment (popup or otherwise) actually clears — without this, the
+      // in-app UI would keep showing "Free" until something else happened
+      // to trigger a refetch, even though billing already activated.
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'shops', filter: `id=eq.${activeBranchId}` }, () => mutate())
       .subscribe();
 
     return () => {
@@ -359,6 +371,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       activeBranchId,
       setActiveBranchId,
       refreshBranches,
+      refreshShop: mutate,
       isLoaded,
       addOrder,
       addOrderBatch,
@@ -379,7 +392,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       upsertCustomStyle,
       renameCustomStyle,
     }),
-    [orders, customers, staffMembers, branches, currentShop, activeBranchId, setActiveBranchId, refreshBranches, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle]
+    [orders, customers, staffMembers, branches, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
