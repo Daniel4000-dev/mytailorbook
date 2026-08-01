@@ -21,7 +21,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
 import { initializeSubscription, confirmSubscriptionPayment } from '@/app/actions/payments';
-import { openPaystackPopup, preloadPaystackScript } from '@/lib/paystack';
+import { openPaystackPopup, preloadPaystackScript, isStandalonePwa } from '@/lib/paystack';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
@@ -59,7 +59,7 @@ export default function SettingsPage() {
 
   const [upgrading, setUpgrading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
-  const [checkout, setCheckout] = useState<{ accessCode: string; reference: string; interval: 'monthly' | 'yearly' } | null>(null);
+  const [checkout, setCheckout] = useState<{ accessCode: string; authorizationUrl: string; reference: string; interval: 'monthly' | 'yearly' } | null>(null);
 
   // Read once via lazy init rather than inline in render — Date.now() is an
   // impure call the React Compiler flags if invoked directly during render.
@@ -96,8 +96,8 @@ export default function SettingsPage() {
     preloadPaystackScript();
     let cancelled = false;
     initializeSubscription(billingInterval)
-      .then(({ accessCode, reference }) => {
-        if (!cancelled) setCheckout({ accessCode, reference, interval: billingInterval });
+      .then(({ accessCode, authorizationUrl, reference }) => {
+        if (!cancelled) setCheckout({ accessCode, authorizationUrl, reference, interval: billingInterval });
       })
       .catch((err) => {
         // Not fatal — handleUpgrade falls back to fetching it inline if
@@ -155,10 +155,10 @@ export default function SettingsPage() {
     // it just reintroduces the gap this whole prefetch exists to avoid.
     const ready = checkout && checkout.interval === interval
       ? Promise.resolve(checkout)
-      : initializeSubscription(interval).then(({ accessCode, reference }) => ({ accessCode, reference, interval }));
+      : initializeSubscription(interval).then(({ accessCode, authorizationUrl, reference }) => ({ accessCode, authorizationUrl, reference, interval }));
 
     ready
-      .then(({ accessCode, reference }) => {
+      .then(({ accessCode, authorizationUrl, reference }) => {
         setCheckout(null);
         // Close our own sheet before opening Paystack's popup. Paystack's
         // inline.js appends its checkout iframe directly to document.body —
@@ -167,6 +167,24 @@ export default function SettingsPage() {
         // locked for anything outside its own allow-listed content, and the
         // Paystack iframe inherits that lock and becomes fully unclickable.
         setOpenSheet(null);
+
+        // Installed home-screen PWAs on iOS run in a standalone WKWebView
+        // that's meaningfully more restrictive about "trusted user
+        // activation" than a real Safari tab — confirmed live: the same
+        // account that opened the popup fine on the first tap in Safari
+        // kept hitting "opens then cancels" every time from the home-
+        // screen icon, even with the prefetch that fixed it in Safari
+        // itself. Rather than chase gesture timing further in a context
+        // WebKit treats differently, skip the popup there entirely and use
+        // the plain full-page redirect to Paystack's hosted checkout — it
+        // doesn't depend on gesture timing at all, and the round trip back
+        // through ?payment=success&reference=... above already activates
+        // the plan the same way the popup's onSuccess does.
+        if (isStandalonePwa()) {
+          window.location.href = authorizationUrl;
+          return;
+        }
+
         return openPaystackPopup(accessCode, {
           onSuccess: async () => {
             showToast('Payment successful — activating your plan…', 'success');

@@ -20,6 +20,25 @@ declare global {
   }
 }
 
+/** True when running as an installed home-screen app (iOS "Add to Home
+ *  Screen" / Android/desktop PWA install), not a regular browser tab.
+ *  iOS's standalone WKWebView is meaningfully more restrictive about
+ *  treating an in-page action as "trusted user activation" than actual
+ *  mobile Safari is — confirmed live: the same account that opened the
+ *  popup fine on the first tap in a real Safari tab kept hitting the
+ *  "opens then cancels" failure every time from the home-screen icon,
+ *  even after the prefetch fix that resolved it in Safari. There's no
+ *  reliable way to make the popup itself trustworthy there, so checkout
+ *  falls back to a full-page redirect to Paystack's hosted checkout in
+ *  this mode instead (see openPaystackCheckout) — slower, but it doesn't
+ *  depend on gesture timing at all. */
+export function isStandalonePwa(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+}
+
 let loadPromise: Promise<void> | null = null;
 
 /** Loads Paystack's inline-checkout script exactly once, however many
