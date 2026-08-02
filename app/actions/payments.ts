@@ -95,6 +95,14 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
       email: user.email,
       amount,
       plan: PLAN_CODE,
+      // Card only — Paystack's hosted page otherwise offers bank transfer,
+      // USSD, etc. alongside card, but only a card payment creates a
+      // reusable authorization Paystack can auto-charge on renewal. A
+      // subscription paid for by transfer/USSD would have nothing to bill
+      // automatically next period, silently breaking auto-renewal for
+      // that shop. Restricting the channel here also skips the
+      // method-picker screen entirely — straight to card entry.
+      channels: ['card'],
       ...(origin ? { callback_url: `${origin}/settings?payment=success` } : {}),
       metadata: {
         shop_id: profile.shop_id,
