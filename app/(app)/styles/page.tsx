@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getPendingStyleCountsAction } from '@/app/actions';
@@ -37,6 +38,11 @@ export default function StyleGalleryPage() {
         <TopBar
           title="Style Gallery"
           subtitle="Photos worth showing your customers"
+          rightAction={
+            <div className={styles.headerActions}>
+              <NotificationBell />
+            </div>
+          }
         />
       }
     >

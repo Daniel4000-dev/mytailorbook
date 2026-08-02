@@ -9,6 +9,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
 import Avatar from '@/components/ui/Avatar/Avatar';
@@ -172,6 +173,11 @@ export default function SettingsPage() {
   const topBar = (
     <TopBar
       title="Settings"
+      rightAction={
+        <div className={styles.headerActions}>
+          <NotificationBell />
+        </div>
+      }
     />
   );
 

@@ -603,3 +603,9 @@
   color: #FBBF24;
   background: rgba(245, 158, 11, 0.16);
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}

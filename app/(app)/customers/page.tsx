@@ -9,6 +9,7 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -36,6 +37,11 @@ export default function CustomersPage() {
   const topBar = (
     <TopBar
       title="Customers"
+      rightAction={
+        <div className={styles.headerActions}>
+          <NotificationBell />
+        </div>
+      }
     />
   );
   const [search, setSearch] = useState('');

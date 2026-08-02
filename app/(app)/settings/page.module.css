@@ -344,3 +344,9 @@
   content: '–' !important;
   color: var(--sf-text-tertiary) !important;
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}

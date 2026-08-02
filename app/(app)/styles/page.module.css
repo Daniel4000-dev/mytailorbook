@@ -89,3 +89,9 @@
   color: var(--sf-text-tertiary);
   margin: 2px 0 0;
 }
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
