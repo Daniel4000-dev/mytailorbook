@@ -22,6 +22,7 @@ import MoneyInput from '@/components/ui/MoneyInput/MoneyInput';
 import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
+import { APP_CONFIG } from '@/lib/config';
 import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
@@ -125,7 +126,10 @@ export default function OrderDetailPage() {
   const next = getNextStatus(order.status);
   const balanceOwed = getBalanceOwed(order);
   const orderRef = order.id.slice(0, 4).toUpperCase();
-  const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}/track/${order.id}` : `/track/${order.id}`;
+  // Always the canonical production domain, not whatever host this
+  // request happened to come in on (e.g. a Vercel preview deployment) —
+  // this link goes straight into a WhatsApp message sent to the customer.
+  const trackingUrl = `${APP_CONFIG.baseUrl}/track/${order.id}`;
   // null/undefined means "never overridden" — inherit the shop's own default.
   const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
   const whatsAppMessage = customer

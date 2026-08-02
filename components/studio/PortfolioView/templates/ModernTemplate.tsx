@@ -95,10 +95,11 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
   }, [lightboxIndex, filteredPhotos.length]);
 
   const handleShare = async () => {
-    // Always the canonical public URL — this view can also render inside
-    // the authenticated app (a different route), where window.location.href
-    // would leak an in-app path a visitor couldn't open.
-    const url = `${window.location.origin}/studio/${shop.slug}`;
+    // Always the canonical production domain — this view can also render
+    // inside the authenticated app (a different route) or a preview
+    // deployment, where window.location.origin would leak an in-app path
+    // or the wrong domain that a visitor couldn't open/wouldn't recognize.
+    const url = `${APP_CONFIG.baseUrl}/studio/${shop.slug}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${shop.name} — Bespoke Tailoring`, url });
