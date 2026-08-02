@@ -31,7 +31,7 @@ type GenderFilter = 'all' | 'male' | 'female';
 
 export default function CustomersPage() {
   const router = useRouter();
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, loading: authLoading } = useAuth();
   const { currentShop, customers, orders, isLoaded } = useData();
   const { showToast } = useToast();
   const topBar = (
@@ -213,18 +213,24 @@ export default function CustomersPage() {
     setQueueIndex((i) => i + 1);
   }, [queueList, queueIndex, styleFilter, currentShop, user]);
 
-  if (!isOwner) {
+  // authLoading starts true on every mount/auth-state event and only
+  // flips once the profile (and its role) has actually resolved —
+  // checking isOwner before that resolves is checking a value that
+  // hasn't been determined yet, not a real "not the owner" answer. This
+  // previously flashed Access Denied at real owners on every reload,
+  // exactly like the same bug already fixed once on the Settings page.
+  if (authLoading || !isLoaded) {
     return (
       <PageLayout header={topBar}>
-        <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
+        <CustomersSkeleton />
       </PageLayout>
     );
   }
 
-  if (!isLoaded) {
+  if (!isOwner) {
     return (
       <PageLayout header={topBar}>
-        <CustomersSkeleton />
+        <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
       </PageLayout>
     );
   }
@@ -480,7 +486,7 @@ export default function CustomersPage() {
         {filtered.length === 0 ? (
           customers.length === 0 ? (
             <EmptyState
-              icon={<FaUserSlash />}
+              image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
               title="No customers yet"
               description="Your customer book starts with your first order — create one and the customer is saved here automatically."
             />

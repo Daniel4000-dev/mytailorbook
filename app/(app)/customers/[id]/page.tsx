@@ -39,21 +39,21 @@ interface Point {
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  const { isOwner } = useAuth();
+  const { isOwner, loading: authLoading } = useAuth();
   const { customers, orders, isLoaded, updateCustomerMeasurements } = useData();
+
+  if (authLoading || !isLoaded) {
+    return (
+      <PageLayout className={styles.page} header={<TopBar title="Customer Details" showBack />}>
+        <CustomerDetailSkeleton />
+      </PageLayout>
+    );
+  }
 
   if (!isOwner) {
     return (
       <PageLayout header={<TopBar title="Customer" showBack />}>
         <EmptyState icon={<FaUserSlash />} title="Access Denied" />
-      </PageLayout>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <PageLayout className={styles.page} header={<TopBar title="Customer Details" showBack />}>
-        <CustomerDetailSkeleton />
       </PageLayout>
     );
   }

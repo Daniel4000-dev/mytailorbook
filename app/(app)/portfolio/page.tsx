@@ -17,7 +17,7 @@ import styles from './page.module.css';
  *  Sharing from here still hands out that public URL, not this one. */
 export default function OwnPortfolioPage() {
   const router = useRouter();
-  const { isOwner } = useAuth();
+  const { isOwner, loading: authLoading } = useAuth();
   const { currentShop, isLoaded } = useData();
   const [portfolio, setPortfolio] = useState<PublicPortfolio | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +28,14 @@ export default function OwnPortfolioPage() {
       .then(setPortfolio)
       .finally(() => setLoading(false));
   }, [currentShop]);
+
+  if (authLoading) {
+    return (
+      <div className={styles.status}>
+        <p>Loading your portfolio…</p>
+      </div>
+    );
+  }
 
   if (!isOwner) {
     return (
