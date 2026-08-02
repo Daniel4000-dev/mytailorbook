@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { isOwnerLikeRole } from '@/lib/types';
 
 /** Starts a Paystack checkout for the current user's shop, returning the
  *  authorization URL to redirect the browser to. Uses the request-scoped
@@ -239,4 +240,87 @@ export async function confirmSubscriptionPayment(reference: string) {
     await admin.from('payment_webhook_events').delete().eq('body_hash', `confirm_subscription_payment:${reference}`);
     throw err;
   }
+}
+
+/** Cancels the caller's own org subscription. Deliberately does NOT flip
+ *  subscription_status away from 'active' immediately — the shop already
+ *  paid for its current billing period, so it keeps full Premium access
+ *  through current_period_end, same as cancelling a subscription
+ *  anywhere else reputable. Clearing paystack_subscription_code is what
+ *  actually stops the next renewal charge (via Paystack's own disable
+ *  call) and is also the signal app/api/cron/subscription-grace uses to
+ *  know this shop should drop to Free once its paid period actually ends,
+ *  rather than staying 'active' forever with nothing left to renew it. */
+export async function cancelSubscriptionAction(): Promise<{ success: true; accessUntil: string | null } | { error: string }> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id, role')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.shop_id) return { error: 'No shop profile found' };
+  if (!isOwnerLikeRole(profile.role)) {
+    return { error: 'Only the Owner can cancel the subscription' };
+  }
+
+  const { allowed } = await checkRateLimit(`cancel-subscription:${user.id}`, { limit: 10, windowSeconds: 3600 });
+  if (!allowed) return { error: 'Too many attempts — please try again in a few minutes.' };
+
+  const admin = createAdminClient();
+
+  const { data: shop } = await admin
+    .from('shops')
+    .select('id, paystack_subscription_code, current_period_end, is_primary, org_id')
+    .eq('id', profile.shop_id)
+    .single();
+  if (!shop) return { error: 'Shop not found' };
+
+  // Billing lives on the org's primary shop — resolve there if this call
+  // came from a non-primary branch, same as everywhere else in
+  // lib/subscription.ts.
+  const billingShop = shop.is_primary
+    ? shop
+    : (await admin.from('shops').select('id, paystack_subscription_code, current_period_end').eq('org_id', shop.org_id).eq('is_primary', true).single()).data;
+  if (!billingShop) return { error: 'Shop not found' };
+
+  if (!billingShop.paystack_subscription_code) {
+    return { error: 'No active subscription to cancel' };
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  if (!PAYSTACK_SECRET) return { error: 'Server configuration error' };
+
+  // Paystack requires the subscription's email_token (not our own secret
+  // key alone) to authorize disabling it — fetch it fresh rather than
+  // storing it, since it's only ever needed at cancellation time.
+  const subResponse = await fetch(`https://api.paystack.co/subscription/${billingShop.paystack_subscription_code}`, {
+    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+  });
+  const subData = await subResponse.json();
+  if (!subResponse.ok || !subData.status || !subData.data?.email_token) {
+    console.error('Paystack subscription lookup failed:', subData);
+    return { error: 'Could not look up your subscription — please try again' };
+  }
+
+  const disableResponse = await fetch('https://api.paystack.co/subscription/disable', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: billingShop.paystack_subscription_code, token: subData.data.email_token }),
+  });
+  const disableData = await disableResponse.json();
+  if (!disableResponse.ok || !disableData.status) {
+    console.error('Paystack subscription disable failed:', disableData);
+    return { error: 'Could not cancel your subscription — please try again' };
+  }
+
+  await admin
+    .from('shops')
+    .update({ paystack_subscription_code: null })
+    .eq('id', billingShop.id ?? profile.shop_id);
+
+  return { success: true, accessUntil: billingShop.current_period_end };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,7 +21,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from './_components/PushNotificationToggle';
 import { addBranchAction } from '@/app/actions';
-import { initializeSubscription, confirmSubscriptionPayment } from '@/app/actions/payments';
+import { initializeSubscription, confirmSubscriptionPayment, cancelSubscriptionAction } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, PREMIUM_STATUSES } from '@/lib/subscription';
@@ -34,10 +34,17 @@ export default function SettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isOwner, loading: authLoading, updateAvatar } = useAuth();
-  const { currentShop, staffMembers, updateShop, shops, refreshBranches, refreshShop, isLoaded } = useData();
+  const { currentShop, staffMembers, orders, updateShop, shops, refreshBranches, refreshShop, isLoaded } = useData();
   const { showToast } = useToast();
 
-  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | 'plans' | null>(null);
+  const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | 'plans' | 'cancelPlan' | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  // Two honest steps, not one click: first what they'd actually lose
+  // (their own real numbers, not a generic pitch), then — only if they
+  // still want to — a quick "why," since that's genuinely useful to know
+  // and costs the user one tap, not a maze.
+  const [cancelStep, setCancelStep] = useState<'why-stay' | 'why-leave'>('why-stay');
+  const [cancelReason, setCancelReason] = useState<string | null>(null);
 
   const [shopName, setShopName] = useState('');
   const [shopPhone, setShopPhone] = useState('');
@@ -77,6 +84,17 @@ export default function SettingsPage() {
     window.addEventListener('pageshow', handlePageShow);
     return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
+
+  // Real numbers for the cancel-flow retention screen — this month's
+  // count specifically, since that's what immediately reverts to the
+  // 15/month free cap the moment Premium actually ends. Computed above
+  // every early return below — hooks can't be called conditionally.
+  const ordersThisMonth = useMemo(() => {
+    const start = new Date();
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    return orders.filter((o) => new Date(o.createdAt) >= start).length;
+  }, [orders]);
 
   // Read once via lazy init rather than inline in render — Date.now() is an
   // impure call the React Compiler flags if invoked directly during render.
@@ -139,6 +157,35 @@ export default function SettingsPage() {
         showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
         setUpgrading(false);
       });
+  };
+
+  const openCancelFlow = () => {
+    setCancelStep('why-stay');
+    setCancelReason(null);
+    setOpenSheet('cancelPlan');
+  };
+
+  const handleConfirmCancel = async () => {
+    setCancelling(true);
+    try {
+      const result = await cancelSubscriptionAction();
+      if ('error' in result) {
+        showToast(result.error, 'error');
+        return;
+      }
+      trackEvent('subscription_canceled', { reason: cancelReason || 'not_given' });
+      const until = result.accessUntil ? new Date(result.accessUntil).toLocaleDateString('en-NG', { month: 'long', day: 'numeric' }) : null;
+      showToast(
+        until ? `Subscription canceled — Premium stays active until ${until}` : 'Subscription canceled',
+        'success'
+      );
+      setOpenSheet(null);
+      refreshShop();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not cancel — please try again', 'error');
+    } finally {
+      setCancelling(false);
+    }
   };
 
   // authLoading starts true on every mount/auth-state event and only flips
@@ -622,6 +669,74 @@ export default function SettingsPage() {
           <p className={styles.hintText}>
             Cancel anytime. If a renewal payment fails, you keep Premium features for a 3-day grace period with reminders before reverting to Free — your data is never locked either way.
           </p>
+
+          {currentShop?.subscriptionStatus === 'active' && (
+            <button type="button" className={styles.cancelPlanLink} onClick={openCancelFlow}>
+              Cancel subscription
+            </button>
+          )}
+        </div>
+      </BottomSheet>
+
+      <BottomSheet
+        isOpen={openSheet === 'cancelPlan'}
+        onClose={() => setOpenSheet(null)}
+        title={cancelStep === 'why-stay' ? 'Before you go' : "What's the reason?"}
+      >
+        <div className={styles.sheetBody}>
+          {cancelStep === 'why-stay' ? (
+            <>
+              <p className={styles.hintText}>
+                Here&apos;s what moving to Free changes for {currentShop?.name || 'your studio'}:
+              </p>
+              <ul className={styles.planFeatures}>
+                <li>
+                  <strong>{ordersThisMonth}</strong> order{ordersThisMonth === 1 ? '' : 's'} created this month — Free caps new orders at 15/month
+                </li>
+                {activeStaffCount > 0 && (
+                  <li>
+                    <strong>{activeStaffCount}</strong> staff account{activeStaffCount === 1 ? '' : 's'} will lose access
+                  </li>
+                )}
+                <li>Analytics &amp; insights go away</li>
+                <li>The &quot;Powered by MyStitchBook&quot; badge returns to your public pages</li>
+              </ul>
+              <p className={styles.hintText}>
+                None of this happens right away — you keep Premium until your current billing period ends, and your data is never deleted or locked either way.
+              </p>
+              <div className={styles.sheetActions}>
+                <Button variant="ghost" onClick={() => setOpenSheet(null)}>Never mind, keep my plan</Button>
+                <Button variant="ghost" onClick={() => setCancelStep('why-leave')}>Continue to cancel</Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={styles.hintText}>Optional, but it genuinely helps us fix what&apos;s not working:</p>
+              <div className={styles.cancelReasonList}>
+                {[
+                  'Too expensive',
+                  'Not using it enough',
+                  'Missing a feature I need',
+                  'Switching to another tool',
+                  'Something isn\'t working right',
+                  'Other',
+                ].map((reason) => (
+                  <button
+                    key={reason}
+                    type="button"
+                    className={`${styles.cancelReasonOption} ${cancelReason === reason ? styles.cancelReasonOptionActive : ''}`}
+                    onClick={() => setCancelReason(reason)}
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.sheetActions}>
+                <Button variant="ghost" onClick={() => setOpenSheet(null)}>Never mind, keep my plan</Button>
+                <Button variant="danger" loading={cancelling} onClick={handleConfirmCancel}>Cancel Subscription</Button>
+              </div>
+            </>
+          )}
         </div>
       </BottomSheet>
 

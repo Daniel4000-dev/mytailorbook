@@ -350,3 +350,50 @@
   align-items: center;
   gap: var(--sf-space-md);
 }
+
+/* Deliberately understated — findable inside the plan sheet for someone
+   actually looking to cancel, not a loud button competing with Upgrade. */
+.cancelPlanLink {
+  background: none;
+  border: none;
+  padding: var(--sf-space-xs);
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  text-decoration: underline;
+  text-align: center;
+  cursor: pointer;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.cancelPlanLink:hover {
+  color: var(--sf-text-secondary);
+}
+
+.cancelReasonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.cancelReasonOption {
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+  transition: border-color var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.cancelReasonOption:hover {
+  border-color: var(--sf-accent-emerald);
+}
+
+.cancelReasonOptionActive {
+  border-color: var(--sf-accent-emerald);
+  background: var(--sf-bg-surface-hover);
+  font-weight: 600;
+}
