@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaRulerCombined, FaClipboardList } from 'react-icons/fa6';
+import { FaClipboardList } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
 import { trackEvent } from '@/lib/analytics';
@@ -15,7 +15,9 @@ import styles from './page.module.css';
 // shareable tracking link), not generic onboarding copy.
 const WELCOME_SCREENS = [
   {
-    icon: <FaRulerCombined />,
+    image: '/images/onboarding/tape-measure.png',
+    imageWidth: 632,
+    imageHeight: 454,
     title: 'Say goodbye to paper measurements',
     subtitle: "Capture every customer's measurements once — they're remembered automatically for every order after.",
   },
@@ -93,7 +95,18 @@ export default function OnboardingPage() {
     return (
       <div className={styles.container}>
         <div className={styles.carousel} key={step}>
-          <div className={styles.carouselIcon}>{screen.icon}</div>
+          {screen.image ? (
+            <Image
+              src={screen.image}
+              alt=""
+              width={screen.imageWidth}
+              height={screen.imageHeight}
+              priority={step === 0}
+              className={styles.carouselImage}
+            />
+          ) : (
+            <div className={styles.carouselIcon}>{screen.icon}</div>
+          )}
           <h1 className={styles.carouselTitle}>{screen.title}</h1>
           <p className={styles.carouselSubtitle}>{screen.subtitle}</p>
         </div>
