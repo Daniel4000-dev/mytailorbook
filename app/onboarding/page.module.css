@@ -111,30 +111,36 @@
   align-items: center;
   text-align: center;
   animation: fadeInUp 0.4s ease both;
+  /* .carouselImageBleed breaks out to the left past this container's own
+     edge — without this, that overflow would force the whole page wider
+     and introduce horizontal scroll instead of just clipping at the
+     screen edge like a real bleed. Harmless when nothing bleeds. */
+  overflow-x: hidden;
 }
 
-.carouselIcon {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: var(--sf-accent-emerald-glow);
-  color: var(--sf-accent-emerald);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  margin-bottom: var(--sf-space-xl);
-  box-shadow: var(--sf-shadow-sm);
-}
-
-/* A full illustration reads better large and un-boxed, unlike the small
-   glyph .carouselIcon is built for — no background circle, just the
-   artwork itself with room to breathe above the copy. */
+/* A full illustration reads better large and un-boxed — no background
+   circle, just the artwork itself with room to breathe above the copy. */
 .carouselImage {
   width: 78%;
   max-width: 280px;
   height: auto;
   margin-bottom: var(--sf-space-xl);
+}
+
+/* Modifier, not every screen's illustration — only one whose composition
+   has a natural "leading edge" to bleed from (see WELCOME_SCREENS'
+   bleedLeft comment) should override the centered default above.
+   align-self: flex-start pulls it out of .carousel's centering so it can
+   bleed off the left edge — margin-left first cancels .container's own
+   24px padding (so the image reaches the actual screen edge), then goes
+   further negative so a slice of it sits outside the viewport, clipped
+   by the edge itself rather than just touching it. Reads as the
+   illustration entering from off-screen instead of floating centered. */
+.carouselImageBleed {
+  align-self: flex-start;
+  width: 82%;
+  max-width: 300px;
+  margin-left: -56px;
 }
 
 .carouselTitle {

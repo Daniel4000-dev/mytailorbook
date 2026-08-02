@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaClipboardList } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
 import { trackEvent } from '@/lib/analytics';
@@ -18,11 +17,19 @@ const WELCOME_SCREENS = [
     image: '/images/onboarding/tape-measure.png',
     imageWidth: 632,
     imageHeight: 454,
+    // Only this screen bleeds off the left edge — the tape's diagonal
+    // shape reads naturally as "entering from off-screen." The second
+    // screen's illustration is a centered, symmetrical composition (shirt
+    // + checkmarks + phone) that doesn't have a natural leading edge to
+    // bleed from, so it stays centered like the text under it.
+    bleedLeft: true,
     title: 'Say goodbye to paper measurements',
     subtitle: "Capture every customer's measurements once — they're remembered automatically for every order after.",
   },
   {
-    icon: <FaClipboardList />,
+    image: '/images/onboarding/production-tracking.png',
+    imageWidth: 759,
+    imageHeight: 548,
     title: 'Your studio, start to finish',
     subtitle: 'Track each order through cutting, sewing and delivery, assign staff, and share a live link so customers can watch their own progress.',
   },
@@ -95,18 +102,14 @@ export default function OnboardingPage() {
     return (
       <div className={styles.container}>
         <div className={styles.carousel} key={step}>
-          {screen.image ? (
-            <Image
-              src={screen.image}
-              alt=""
-              width={screen.imageWidth}
-              height={screen.imageHeight}
-              priority={step === 0}
-              className={styles.carouselImage}
-            />
-          ) : (
-            <div className={styles.carouselIcon}>{screen.icon}</div>
-          )}
+          <Image
+            src={screen.image}
+            alt=""
+            width={screen.imageWidth}
+            height={screen.imageHeight}
+            priority={step === 0}
+            className={`${styles.carouselImage} ${screen.bleedLeft ? styles.carouselImageBleed : ''}`}
+          />
           <h1 className={styles.carouselTitle}>{screen.title}</h1>
           <p className={styles.carouselSubtitle}>{screen.subtitle}</p>
         </div>
