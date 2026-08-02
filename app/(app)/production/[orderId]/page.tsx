@@ -28,7 +28,7 @@ import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from 
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
-import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT } from '@/lib/subscription';
+import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
 import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
 import styles from './page.module.css';
 
@@ -229,7 +229,7 @@ export default function OrderDetailPage() {
     }
   };
 
-  const isPremium = currentShop?.subscriptionStatus === 'active';
+  const isPremium = !!currentShop && PREMIUM_STATUSES.includes(currentShop.subscriptionStatus);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

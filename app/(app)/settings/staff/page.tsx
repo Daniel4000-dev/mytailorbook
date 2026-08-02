@@ -19,6 +19,7 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import type { User } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { PREMIUM_STATUSES } from '@/lib/subscription';
 import styles from './page.module.css';
 
 type StaffSheetView = 'actions' | 'edit' | 'password';
@@ -27,7 +28,7 @@ export default function StaffSettingsPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { currentShop, staffMembers, addStaff, updateStaff, isLoaded } = useData();
-  const isPremium = currentShop?.subscriptionStatus === 'active';
+  const isPremium = !!currentShop && PREMIUM_STATUSES.includes(currentShop.subscriptionStatus);
   const { showToast } = useToast();
 
   const [activeStaff, setActiveStaff] = useState<User | null>(null);

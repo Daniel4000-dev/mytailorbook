@@ -23,7 +23,7 @@ import { addBranchAction } from '@/app/actions';
 import { initializeSubscription, confirmSubscriptionPayment } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
+import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, PREMIUM_STATUSES } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
@@ -417,7 +417,7 @@ export default function SettingsPage() {
               icon="group"
               label="Staff"
               subtitle={`${activeStaffCount} active`}
-              meta={currentShop?.subscriptionStatus !== 'active' ? <span className={styles.premiumBadge}>Premium</span> : undefined}
+              meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
               onClick={() => router.push('/settings/staff')}
             />
           </div>

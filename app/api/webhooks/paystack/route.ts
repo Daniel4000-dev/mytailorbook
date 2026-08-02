@@ -105,12 +105,14 @@ export async function POST(req: Request) {
 
       case 'invoice.payment_failed': {
         // Renewal charge failed — start the 3-day grace window (see
-        // migration 0026). The shop drops to free-tier limits immediately
-        // (checkOrderQuota treats anything but 'active' as free), but stays
-        // reachable/undeleted through the grace period in case the retry
-        // or a manual re-auth succeeds. The daily cron in
-        // app/api/cron/subscription-grace fully demotes to 'free' once
-        // grace_expires_at passes without recovery.
+        // migration 0026). The shop keeps full Premium access through the
+        // whole grace window (lib/subscription.ts and the DB-level quota
+        // triggers in migration 0033 both treat 'past_due' the same as
+        // 'active') while Paystack retries the charge, or the owner fixes
+        // their card manually — a fresh charge.success/subscription.create
+        // webhook flips it straight back to 'active' if that succeeds. The
+        // daily cron in app/api/cron/subscription-grace fully demotes to
+        // 'free' only once grace_expires_at passes without recovery.
         const { customer } = event.data;
         const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
 

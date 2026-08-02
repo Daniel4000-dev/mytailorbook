@@ -19,7 +19,7 @@ import {
 } from '@/lib/constants';
 import { getStylePhotos } from '@/lib/style-photos';
 import { formatCurrency } from '@/lib/formatters';
-import { FREE_ORDER_INSPIRATION_PHOTO_LIMIT } from '@/lib/subscription';
+import { FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
 import type { Customer, Measurements, Order, OrderStatus, Priority } from '@/lib/types';
 import CustomerStep from './CustomerStep';
 import GarmentStep from './GarmentStep';
@@ -378,7 +378,7 @@ export default function NewOrderWizard() {
   const handleInspoUpload = async (unitKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !user?.shopId) return;
-    const isPremium = currentShop?.subscriptionStatus === 'active';
+    const isPremium = !!currentShop && PREMIUM_STATUSES.includes(currentShop.subscriptionStatus);
     const existingCount = units.find((u) => u.key === unitKey)?.inspirationImages.length || 0;
     if (!isPremium && existingCount + files.length > FREE_ORDER_INSPIRATION_PHOTO_LIMIT) {
       showToast(`Free plan limit: ${FREE_ORDER_INSPIRATION_PHOTO_LIMIT} inspiration photos per order. Upgrade to add more.`, 'error');

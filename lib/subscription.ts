@@ -6,11 +6,21 @@ type SupabaseAdminClient = ReturnType<typeof createAdminClient>;
 type AnySupabaseClient = SupabaseServerClient | SupabaseAdminClient;
 
 /** Free tier gets this many orders per calendar month (org-wide, across all
- *  branches) before creation is blocked. 'active' is unlimited — 'free',
- *  'past_due', and 'canceled' are all capped, since a lapsed subscription
- *  reverts to free-tier limits immediately, not just after the grace
- *  period fully expires (see app/api/webhooks/paystack). */
+ *  branches) before creation is blocked. 'active' AND 'past_due' are both
+ *  unlimited — a shop mid-retry on a failed renewal keeps full Premium
+ *  access for the entire 3-day grace window (see
+ *  app/api/webhooks/paystack and app/api/cron/subscription-grace), not
+ *  just until the first failed charge. Only once the grace period fully
+ *  expires (status flips to 'free') or the shop explicitly cancels
+ *  (status 'canceled') do free-tier limits actually apply. */
 export const FREE_MONTHLY_ORDER_LIMIT = 15;
+
+/** Statuses that count as premium access — kept as one source of truth so
+ *  server-side gates, the DB-level triggers (migration 0033), and every
+ *  client-side "is this shop premium" UI check all agree. Safe to import
+ *  client-side: the only server-only imports in this file are type-only
+ *  (`import type`), fully erased at build time. */
+export const PREMIUM_STATUSES = ['active', 'past_due'];
 
 export const PREMIUM_MONTHLY_PRICE_NGN = 2500;
 export const PREMIUM_YEARLY_PRICE_NGN = 25000;
@@ -72,7 +82,7 @@ export async function checkOrderQuota(
   if (shopError) throw new Error(shopError.message);
 
   const status = await getOrgSubscriptionStatus(supabase, shopId);
-  if (status === 'active') {
+  if (PREMIUM_STATUSES.includes(status)) {
     return { allowed: true, used: 0, limit: null };
   }
 
@@ -103,7 +113,7 @@ export async function checkOrderQuota(
  *  (premium) subscription at the org level. */
 export async function isOrgPremium(supabase: AnySupabaseClient, shopId: string): Promise<boolean> {
   const status = await getOrgSubscriptionStatus(supabase, shopId);
-  return status === 'active';
+  return PREMIUM_STATUSES.includes(status);
 }
 
 /** Same as isOrgPremium, but for callers that already have org_id on hand
@@ -117,5 +127,5 @@ export async function isOrgPremiumByOrgId(supabase: AnySupabaseClient, orgId: st
     .single();
 
   if (error) throw new Error(error.message);
-  return primary?.subscription_status === 'active';
+  return !!primary && PREMIUM_STATUSES.includes(primary.subscription_status);
 }
