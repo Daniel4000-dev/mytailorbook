@@ -16,6 +16,12 @@
   margin-bottom: var(--sf-space-sm);
 }
 
+.image {
+  width: 108px;
+  height: auto;
+  margin-bottom: var(--sf-space-sm);
+}
+
 .title {
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-lg);
