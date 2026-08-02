@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button/Button';
 import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
 import { useData } from '@/contexts/DataContext';
 import { STYLE_MEASUREMENTS, DEFAULT_MEASURE_SPEC, buildCustomStyleSpec } from '@/lib/constants';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import type { Customer, Measurements, Order, Shop } from '@/lib/types';
 import styles from '../page.module.css';
 
@@ -19,10 +20,12 @@ interface OrderMeasurementsSheetProps {
 }
 
 /** Corrects THIS order's own recorded measurements — e.g. after a fitting
- *  reveals the numbers taken at intake were off. Deliberately separate from
- *  both the customer's body profile and their saved style-profile template:
- *  fixing what was cut for one garment shouldn't silently rewrite either of
- *  those, any more than creating the order did (see NewOrderWizard). */
+ *  reveals the numbers taken at intake were off. order.measurements itself
+ *  is always a separate, frozen-at-intake snapshot regardless of the flag
+ *  below — only whether the "also update the saved profile" checkbox
+ *  writes to a per-style template or the shared body profile depends on
+ *  FEATURE_FLAGS.perStyleMeasurements (see NewOrderWizard for the same
+ *  split at order creation). */
 export default function OrderMeasurementsSheet({ isOpen, onClose, order, customer, currentShop, onSave }: OrderMeasurementsSheetProps) {
   const { updateCustomerStyleProfile, updateCustomerMeasurements } = useData();
   const [values, setValues] = useState<Record<string, string>>(() => {
@@ -62,10 +65,15 @@ export default function OrderMeasurementsSheet({ isOpen, onClose, order, custome
     try {
       await onSave(measurements);
       if (Object.keys(measurements).length > 0 && customer) {
-        if (saveStyleProfile && order.styleName) {
-          await updateCustomerStyleProfile(customer.id, order.styleName, measurements).catch(() => {});
-        }
-        if (updateBodyProfile) {
+        if (FEATURE_FLAGS.perStyleMeasurements) {
+          if (saveStyleProfile && order.styleName) {
+            await updateCustomerStyleProfile(customer.id, order.styleName, measurements).catch(() => {});
+          }
+          if (updateBodyProfile) {
+            await updateCustomerMeasurements(customer.id, { ...customer.measurements, ...measurements }).catch(() => {});
+          }
+        } else if (saveStyleProfile) {
+          // One shared profile while per-style is off.
           await updateCustomerMeasurements(customer.id, { ...customer.measurements, ...measurements }).catch(() => {});
         }
       }
@@ -93,7 +101,7 @@ export default function OrderMeasurementsSheet({ isOpen, onClose, order, custome
         activeKey={activeKey}
         onActiveKeyChange={setActiveKey}
         importSources={[
-          ...(order.styleName && customer?.styleMeasurements?.[order.styleName]
+          ...(FEATURE_FLAGS.perStyleMeasurements && order.styleName && customer?.styleMeasurements?.[order.styleName]
             ? [{
                 label: `Import from saved ${order.styleName} profile`,
                 icon: 'bookmark',
@@ -106,17 +114,28 @@ export default function OrderMeasurementsSheet({ isOpen, onClose, order, custome
         ]}
       />
 
-      {customer && order.styleName && (
-        <label className={styles.checkboxRow}>
-          <input type="checkbox" checked={saveStyleProfile} onChange={(e) => setSaveStyleProfile(e.target.checked)} />
-          Update {customer.fullName.split(' ')[0]}&rsquo;s saved {order.styleName} template with these numbers
-        </label>
-      )}
-      {customer && (
-        <label className={styles.checkboxRow}>
-          <input type="checkbox" checked={updateBodyProfile} onChange={(e) => setUpdateBodyProfile(e.target.checked)} />
-          Also update {customer.fullName.split(' ')[0]}&rsquo;s general body profile — only if these are actual body measurements
-        </label>
+      {FEATURE_FLAGS.perStyleMeasurements ? (
+        <>
+          {customer && order.styleName && (
+            <label className={styles.checkboxRow}>
+              <input type="checkbox" checked={saveStyleProfile} onChange={(e) => setSaveStyleProfile(e.target.checked)} />
+              Update {customer.fullName.split(' ')[0]}&rsquo;s saved {order.styleName} template with these numbers
+            </label>
+          )}
+          {customer && (
+            <label className={styles.checkboxRow}>
+              <input type="checkbox" checked={updateBodyProfile} onChange={(e) => setUpdateBodyProfile(e.target.checked)} />
+              Also update {customer.fullName.split(' ')[0]}&rsquo;s general body profile — only if these are actual body measurements
+            </label>
+          )}
+        </>
+      ) : (
+        customer && (
+          <label className={styles.checkboxRow}>
+            <input type="checkbox" checked={saveStyleProfile} onChange={(e) => setSaveStyleProfile(e.target.checked)} />
+            Update {customer.fullName.split(' ')[0]}&rsquo;s saved measurements with these numbers
+          </label>
+        )
       )}
     </BottomSheet>
   );

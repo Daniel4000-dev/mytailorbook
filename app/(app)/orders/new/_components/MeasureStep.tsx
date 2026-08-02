@@ -1,6 +1,7 @@
 import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
 import type { StyleMeasureSpec } from '@/lib/constants';
 import type { Customer, Measurements, Order } from '@/lib/types';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from '../page.module.css';
 
 interface MeasureStepProps {
@@ -53,8 +54,11 @@ export default function MeasureStep({
           // Most precise first: a deliberately saved, style-specific
           // profile beats a derived guess from a past order, which beats
           // the general body profile (which doesn't account for this
-          // garment's own fit/ease at all).
-          ...(currentStyle && customer?.styleMeasurements?.[currentStyle]
+          // garment's own fit/ease at all). While per-style profiles are
+          // off there's nothing distinct to offer here — "body profile"
+          // below already covers it, and offering it twice would be
+          // confusing since they're now the same values.
+          ...(FEATURE_FLAGS.perStyleMeasurements && currentStyle && customer?.styleMeasurements?.[currentStyle]
             ? [{
                 label: `Import from saved ${currentStyle} profile`,
                 icon: 'bookmark',
@@ -81,14 +85,26 @@ export default function MeasureStep({
         ]}
       />
 
-      <label className={styles.profileToggle}>
-        <input type="checkbox" checked={saveStyleProfile} onChange={(e) => onSaveStyleProfileChange(e.target.checked)} />
-        Save these as {customer?.fullName.split(' ')[0]}&rsquo;s {currentStyle} measurements, for next time
-      </label>
-      <label className={styles.profileToggle}>
-        <input type="checkbox" checked={updateBodyProfile} onChange={(e) => onUpdateBodyProfileChange(e.target.checked)} />
-        Also update {customer?.fullName.split(' ')[0]}&rsquo;s general body profile — only if these are actual body measurements, not this garment&rsquo;s fit
-      </label>
+      {FEATURE_FLAGS.perStyleMeasurements ? (
+        <>
+          <label className={styles.profileToggle}>
+            <input type="checkbox" checked={saveStyleProfile} onChange={(e) => onSaveStyleProfileChange(e.target.checked)} />
+            Save these as {customer?.fullName.split(' ')[0]}&rsquo;s {currentStyle} measurements, for next time
+          </label>
+          <label className={styles.profileToggle}>
+            <input type="checkbox" checked={updateBodyProfile} onChange={(e) => onUpdateBodyProfileChange(e.target.checked)} />
+            Also update {customer?.fullName.split(' ')[0]}&rsquo;s general body profile — only if these are actual body measurements, not this garment&rsquo;s fit
+          </label>
+        </>
+      ) : (
+        // One shared profile while per-style is off — saveStyleProfile
+        // alone drives whether NewOrderWizard writes back to it (see
+        // handleSubmit there), updateBodyProfile is unused in this mode.
+        <label className={styles.profileToggle}>
+          <input type="checkbox" checked={saveStyleProfile} onChange={(e) => onSaveStyleProfileChange(e.target.checked)} />
+          Save these as {customer?.fullName.split(' ')[0]}&rsquo;s measurements, for next time
+        </label>
+      )}
     </div>
   );
 }

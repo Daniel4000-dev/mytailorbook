@@ -11,6 +11,7 @@ import { GARMENT_STYLES, STYLE_MEASUREMENTS, DEFAULT_MEASURE_SPEC } from '@/lib/
 import { getStylePhotos } from '@/lib/style-photos';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import type { Customer, Measurements } from '@/lib/types';
 import styles from './StyleProfileSheet.module.css';
 
@@ -28,7 +29,7 @@ interface StyleProfileSheetProps {
  *  photo, gendered to the customer), then record/edit that style's saved
  *  measurement profile on the customer. */
 export default function StyleProfileSheet({ isOpen, onClose, customer, initialStyle }: StyleProfileSheetProps) {
-  const { updateCustomerStyleProfile, deleteCustomerStyleProfile } = useData();
+  const { updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile } = useData();
   const { showToast } = useToast();
   const [styleName, setStyleName] = useState<string | null>(initialStyle);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -45,7 +46,13 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
   if (isOpen && openKey !== prevOpenKey) {
     setPrevOpenKey(openKey);
     setStyleName(initialStyle);
-    const existing = initialStyle ? customer.styleMeasurements?.[initialStyle]?.measurements : undefined;
+    // While per-style profiles are off, this screen is really just the
+    // shared body profile — load/save the same customer.measurements
+    // every other measurement surface uses, regardless of which style is
+    // selected (the style only picks which fields to show).
+    const existing = FEATURE_FLAGS.perStyleMeasurements
+      ? (initialStyle ? customer.styleMeasurements?.[initialStyle]?.measurements : undefined)
+      : customer.measurements;
     const init: Record<string, string> = {};
     if (existing) {
       Object.entries(existing).forEach(([k, v]) => {
@@ -61,7 +68,15 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
   // Gendered — no mixed picker.
   const genderedStyles = useMemo(() => GARMENT_STYLES.filter((s) => s.gender === customer.gender), [customer.gender]);
   const stylePhotos = useMemo(() => getStylePhotos(genderedStyles), [genderedStyles]);
-  const profiledStyles = useMemo(() => new Set(Object.keys(customer.styleMeasurements || {})), [customer.styleMeasurements]);
+  // While per-style profiles are off, every style shares the one body
+  // profile, so "Saved" means "the body profile has anything at all" —
+  // not tracked per style name.
+  const hasBodyProfile = !!customer.measurements && Object.keys(customer.measurements).length > 0;
+  const profiledStyles = useMemo(
+    () => (FEATURE_FLAGS.perStyleMeasurements ? new Set(Object.keys(customer.styleMeasurements || {})) : null),
+    [customer.styleMeasurements]
+  );
+  const isStyleSaved = (name: string) => (profiledStyles ? profiledStyles.has(name) : hasBodyProfile);
 
   const pickableStyles = useMemo(() => {
     const extra = (customer.preferredStyles || [])
@@ -85,7 +100,15 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
     }
     setSaving(true);
     try {
-      await updateCustomerStyleProfile(customer.id, styleName, measurements);
+      if (FEATURE_FLAGS.perStyleMeasurements) {
+        await updateCustomerStyleProfile(customer.id, styleName, measurements);
+      } else {
+        // Merge into the existing body profile rather than overwrite it —
+        // unlike a per-style snapshot (isolated under its own key), this
+        // is the one shared record every measurement surface reads, so a
+        // field this style's spec doesn't happen to show must survive.
+        await updateCustomerMeasurements(customer.id, { ...customer.measurements, ...measurements });
+      }
       showToast(`${styleName} profile saved`, 'success');
       onClose();
     } catch {
@@ -119,7 +142,13 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
       footer={
         styleName ? (
           <div className={styles.footerRow}>
-            {profiledStyles.has(styleName) && (
+            {/* "Remove" only makes sense for a per-style profile — while
+                everything shares one body profile, deleting it from here
+                would clear it for every style at once, which isn't what
+                tapping "Remove" on a single style card implies. Clearing
+                the body profile stays available from the customer's own
+                profile page. */}
+            {profiledStyles?.has(styleName) && (
               <Button variant="ghost" onClick={() => setConfirmingDelete(true)}>
                 Remove
               </Button>
@@ -139,7 +168,10 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
           activeKey={activeKey}
           onActiveKeyChange={setActiveKey}
           importSources={
-            customer.measurements && Object.keys(customer.measurements).length > 0
+            // This form already IS the body profile while per-style
+            // profiles are off — offering to "import" it into itself
+            // would be a no-op that only confuses.
+            FEATURE_FLAGS.perStyleMeasurements && customer.measurements && Object.keys(customer.measurements).length > 0
               ? [{ label: 'Import from body profile', icon: 'person', measurements: customer.measurements }]
               : []
           }
@@ -156,7 +188,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
                 )}
               </div>
               <span className={styles.pickerName}>{s.name}</span>
-              {profiledStyles.has(s.name) && <span className={styles.pickerBadge}>Saved</span>}
+              {isStyleSaved(s.name) && <span className={styles.pickerBadge}>Saved</span>}
             </button>
           ))}
         </div>

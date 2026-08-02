@@ -20,6 +20,7 @@ import {
 import { getStylePhotos } from '@/lib/style-photos';
 import { formatCurrency } from '@/lib/formatters';
 import { FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import type { Customer, Measurements, Order, OrderStatus, Priority } from '@/lib/types';
 import CustomerStep from './CustomerStep';
 import GarmentStep from './GarmentStep';
@@ -286,20 +287,33 @@ export default function NewOrderWizard() {
 
       await addOrderBatch(garmentOrders);
 
-      // These are two independent stores on purpose — a style profile is
-      // meant to capture this specific garment's fit (which can and should
-      // differ from the client's actual body), while the body profile is
-      // the client's real measurements. Saving one must never overwrite
-      // the other.
-      if (saveStyleProfile) {
-        for (const s of basket) {
-          const styleValues = parsedMeasures(s.name);
-          if (styleValues && Object.keys(styleValues).length > 0) {
-            await updateCustomerStyleProfile(customer.id, s.name, styleValues).catch(() => {});
+      if (FEATURE_FLAGS.perStyleMeasurements) {
+        // These are two independent stores on purpose — a style profile is
+        // meant to capture this specific garment's fit (which can and
+        // should differ from the client's actual body), while the body
+        // profile is the client's real measurements. Saving one must
+        // never overwrite the other.
+        if (saveStyleProfile) {
+          for (const s of basket) {
+            const styleValues = parsedMeasures(s.name);
+            if (styleValues && Object.keys(styleValues).length > 0) {
+              await updateCustomerStyleProfile(customer.id, s.name, styleValues).catch(() => {});
+            }
           }
         }
-      }
-      if (updateBodyProfile) {
+        if (updateBodyProfile) {
+          const merged: Measurements = { ...(customer.measurements || {}) };
+          for (const s of basket) {
+            Object.assign(merged, parsedMeasures(s.name) || {});
+          }
+          if (Object.keys(merged).length > 0) {
+            await updateCustomerMeasurements(customer.id, merged).catch(() => {});
+          }
+        }
+      } else if (saveStyleProfile) {
+        // One shared profile while per-style is off — the (relabeled,
+        // generic) checkbox drives writing the merged values straight to
+        // the customer's single measurement profile instead.
         const merged: Measurements = { ...(customer.measurements || {}) };
         for (const s of basket) {
           Object.assign(merged, parsedMeasures(s.name) || {});
