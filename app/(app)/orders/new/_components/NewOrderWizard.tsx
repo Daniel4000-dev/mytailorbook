@@ -542,8 +542,6 @@ export default function NewOrderWizard() {
             onInspoUpload={handleInspoUpload}
             priority={priority}
             onPriorityChange={setPriority}
-            startingStage={startingStage}
-            onStartingStageChange={setStartingStage}
           />
         )}
       </main>
