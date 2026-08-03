@@ -120,6 +120,17 @@
   gap: var(--sf-space-sm);
 }
 
+/* The cancel-flow's own button pairs use long, unequal-length labels
+   ("Never mind, keep my plan" vs "Continue to cancel") that wrapped
+   awkwardly and looked like two competing links when squeezed into
+   .sheetActions' flex-end row. Stacked full-width buttons with the safe
+   option on top read as an actual decision instead of a jumble. */
+.cancelActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
 .readonlyEmail {
   font-size: var(--sf-text-sm);
   color: var(--sf-text-tertiary);
@@ -354,6 +365,20 @@
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
+}
+
+.currentPlanBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--sf-radius-sm);
+  background: color-mix(in srgb, var(--sf-success) 12%, transparent);
+  color: var(--sf-success);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
 }
 
 /* Deliberately understated — findable inside the plan sheet for someone

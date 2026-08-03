@@ -661,11 +661,21 @@ export default function SettingsPage() {
               <li>Badge removed from your public pages</li>
               <li>Priority support</li>
             </ul>
-            <Button variant="primary" loading={upgrading} onClick={() => handleUpgrade(billingInterval)} fullWidth>
-              {billingInterval === 'monthly'
-                ? `Upgrade — ₦${PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}/month`
-                : `Upgrade — ₦${PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}/year`}
-            </Button>
+            {currentShop?.subscriptionStatus === 'active' ? (
+              // Already subscribed — showing an actionable "Upgrade"
+              // button here would let them trigger a second charge for a
+              // plan they already have. This sheet doesn't yet support
+              // switching billing interval, so just confirm the state.
+              <div className={styles.currentPlanBadge}>
+                <Symbol name="check" size={18} /> Current Plan
+              </div>
+            ) : (
+              <Button variant="primary" loading={upgrading} onClick={() => handleUpgrade(billingInterval)} fullWidth>
+                {billingInterval === 'monthly'
+                  ? `Upgrade — ₦${PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}/month`
+                  : `Upgrade — ₦${PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}/year`}
+              </Button>
+            )}
           </div>
 
           <div className={styles.planCard}>
@@ -723,9 +733,9 @@ export default function SettingsPage() {
               <p className={styles.hintText}>
                 None of this happens right away — you keep Premium until your current billing period ends, and your data is never deleted or locked either way.
               </p>
-              <div className={styles.sheetActions}>
-                <Button variant="ghost" onClick={() => setOpenSheet(null)}>Never mind, keep my plan</Button>
-                <Button variant="ghost" onClick={() => setCancelStep('why-leave')}>Continue to cancel</Button>
+              <div className={styles.cancelActions}>
+                <Button variant="secondary" fullWidth onClick={() => setOpenSheet(null)}>Never mind, keep my plan</Button>
+                <Button variant="ghost" fullWidth onClick={() => setCancelStep('why-leave')}>Continue to cancel</Button>
               </div>
             </>
           ) : (
@@ -750,9 +760,9 @@ export default function SettingsPage() {
                   </button>
                 ))}
               </div>
-              <div className={styles.sheetActions}>
-                <Button variant="ghost" onClick={() => setOpenSheet(null)}>Never mind, keep my plan</Button>
-                <Button variant="danger" loading={cancelling} onClick={handleConfirmCancel}>Cancel Subscription</Button>
+              <div className={styles.cancelActions}>
+                <Button variant="secondary" fullWidth onClick={() => setOpenSheet(null)}>Never mind, keep my plan</Button>
+                <Button variant="danger" fullWidth loading={cancelling} onClick={handleConfirmCancel}>Cancel Subscription</Button>
               </div>
             </>
           )}
