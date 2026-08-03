@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: '/portfolio-examples', label: 'Portfolio Examples' },
   { href: '/about', label: 'About' },
   { href: '/blog', label: 'Blog' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 export default function Header() {
