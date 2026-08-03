@@ -26,7 +26,7 @@ export default function Footer() {
           <span className={styles.colLabel}>Company</span>
           <Link href="/about">About</Link>
           <Link href="/blog">Blog</Link>
-          <a href={`mailto:support@${APP_CONFIG.domain}`}>Contact</a>
+          <Link href="/contact">Contact</Link>
         </div>
 
         <div className={styles.linkCol}>

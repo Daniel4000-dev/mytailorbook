@@ -26,7 +26,7 @@ export default function AboutPage() {
     '@type': 'Organization',
     name: APP_CONFIG.name,
     url: APP_CONFIG.baseUrl,
-    founder: { '@type': 'Person', name: 'Adekunle Daniel' },
+    founder: { '@type': 'Group', name: 'DVCH' },
   };
 
   return (

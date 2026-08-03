@@ -62,7 +62,7 @@ export default function AboutPageContent() {
           <Symbol name="auto_stories" size={26} className={styles.bentoIcon} />
           <h2>The Origin</h2>
           <p>
-            Built by Adekunle Daniel, out of a simple observation: the software available to Nigerian tailors
+            Built by DVCH, out of a simple observation: the software available to Nigerian tailors
             either locked away the data that mattered most, or never took the business seriously enough to
             charge for it.
           </p>

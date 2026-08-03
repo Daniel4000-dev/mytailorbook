@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy', '/terms', '/robots.txt', '/sitemap.xml', '/blog', '/features', '/pricing', '/portfolio-examples', '/about', '/offline'];
+const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy', '/terms', '/robots.txt', '/sitemap.xml', '/blog', '/features', '/pricing', '/portfolio-examples', '/about', '/contact', '/offline'];
 const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/studio/', '/auth/', '/blog/'];
 
 // The (marketing) route group's own pages — a logged-in visitor here gets

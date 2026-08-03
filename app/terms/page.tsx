@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 };
 
 const LAST_UPDATED = 'August 1, 2026';
-const OPERATOR_NAME = 'Adekunle Daniel';
-const CONTACT_EMAIL = 'dadekunle31@gmail.com';
+const OPERATOR_NAME = 'DVCH';
+const CONTACT_EMAIL = 'support@mystitchbooks.com';
 
 export default function TermsOfServicePage() {
   return (
