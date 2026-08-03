@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { preload } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
@@ -72,6 +73,18 @@ export default function OnboardingPage() {
       router.replace('/login');
     }
   }, [loading, needsOnboarding, router]);
+
+  // Screen 1's <Image priority> only starts fetching once it actually
+  // mounts — by design, next/image never fetches an unmounted screen's
+  // asset early. Without this, screen 2's illustration only began
+  // downloading the moment the user clicked Next, so it visibly popped in
+  // instead of being ready. Both are tiny, so preload both unconditionally
+  // right away rather than waiting to see which screen renders first.
+  useEffect(() => {
+    for (const screen of WELCOME_SCREENS) {
+      preload(screen.image, { as: 'image' });
+    }
+  }, []);
 
   const isGoogleAccount = !!googleUserInfo?.isGoogleAccount;
 
