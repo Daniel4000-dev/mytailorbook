@@ -1,14 +1,12 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { FaWhatsapp } from 'react-icons/fa6';
-import { getPublicOrderView, getPublicOrderComments, getPublicBatchSiblings, hasOrderRatingAction } from '@/app/public-actions';
+import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
-import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
+import { formatCurrency } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import CommentBox from './_components/CommentBox/CommentBox';
 import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
@@ -59,8 +57,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   const { order, shop } = view;
   const isDelivered = order.status === 'Completed';
-  const [comments, batchSiblings, alreadyRated] = await Promise.all([
-    getPublicOrderComments(orderId),
+  const [batchSiblings, alreadyRated] = await Promise.all([
     getPublicBatchSiblings(orderId),
     isDelivered ? hasOrderRatingAction(orderId) : Promise.resolve(false),
   ]);
@@ -213,18 +210,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <ReminderButton orderId={order.id} initialLastReminderAt={order.lastReminderAt} />
         )}
 
-        {/* Customer comments */}
-        <CommentBox orderId={order.id} currentStage={order.status} initialComments={comments} />
 
-        {/* WhatsApp CTA */}
-        {shop?.phone && (
-          <div className={styles.whatsappBlock}>
-            <p className={styles.whatsappHint}>Prefer direct communication?</p>
-            <a href={getWhatsAppLink(shop.phone)} target="_blank" rel="noopener noreferrer" className={styles.whatsappBtn}>
-              <FaWhatsapp size={22} /> Chat with {shop.name}
-            </a>
-          </div>
-        )}
       </main>
 
       {shop?.subscriptionStatus !== 'active' && (

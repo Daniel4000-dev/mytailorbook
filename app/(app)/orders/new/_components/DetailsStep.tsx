@@ -1,9 +1,8 @@
 import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { ORDER_STATUSES } from '@/lib/constants';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { formatNumber } from '@/lib/formatters';
-import type { Customer, OrderStatus, Priority, User } from '@/lib/types';
+import type { Customer, Priority, User } from '@/lib/types';
 import styles from '../page.module.css';
 
 export interface UnitDraft {
@@ -31,8 +30,6 @@ interface DetailsStepProps {
   onInspoUpload: (unitKey: string, e: React.ChangeEvent<HTMLInputElement>) => void;
   priority: Priority;
   onPriorityChange: (priority: Priority) => void;
-  startingStage: OrderStatus;
-  onStartingStageChange: (stage: OrderStatus) => void;
 }
 
 export default function DetailsStep({
@@ -46,8 +43,6 @@ export default function DetailsStep({
   onInspoUpload,
   priority,
   onPriorityChange,
-  startingStage,
-  onStartingStageChange,
 }: DetailsStepProps) {
   return (
     <div className={styles.col}>
@@ -190,15 +185,10 @@ export default function DetailsStep({
         </div>
         <div className={styles.unitField}>
           <label className={styles.capsLabel}>Starting Stage</label>
-          <select
-            className={styles.unitInput}
-            value={startingStage}
-            onChange={(e) => onStartingStageChange(e.target.value as OrderStatus)}
-          >
-            {ORDER_STATUSES.filter((s) => s !== 'Completed').map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+          {/* Always locked to Documented — orders begin at the first stage. */}
+          <div className={styles.unitInput} style={{ display: 'flex', alignItems: 'center', color: 'var(--sf-text-tertiary)', userSelect: 'none' }}>
+            Documented
+          </div>
         </div>
       </section>
     </div>

@@ -251,7 +251,7 @@
 
 .billTable td {
   padding: 6px 0;
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-primary);
 }
 
 .balanceRow td {
@@ -278,7 +278,7 @@
 
 .paymentTable td {
   padding: 6px 0;
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-primary);
   font-size: 13px;
 }
 

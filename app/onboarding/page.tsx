@@ -70,7 +70,11 @@ export default function OnboardingPage() {
     if (loading || initialCheckDone.current) return;
     initialCheckDone.current = true;
     if (!needsOnboarding) {
-      router.replace('/login');
+      // If they have a profile already (returning user), send them to the
+      // app. If they're not authenticated at all, the middleware already
+      // guards /onboarding and would have sent them to /login before
+      // this page even rendered.
+      router.replace('/dashboard');
     }
   }, [loading, needsOnboarding, router]);
 

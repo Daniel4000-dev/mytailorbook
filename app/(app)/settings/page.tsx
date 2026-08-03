@@ -38,6 +38,15 @@ export default function SettingsPage() {
   const { showToast } = useToast();
 
   const [openSheet, setOpenSheet] = useState<'account' | 'studio' | 'logo' | 'note' | 'addBranch' | 'plans' | 'cancelPlan' | null>(null);
+
+  // Deep-link from other pages: /settings?sheet=plans opens the subscription
+  // modal directly (used by the staff upsell sheet in /settings/staff).
+  useEffect(() => {
+    const sheet = searchParams.get('sheet');
+    if (sheet === 'plans') {
+      setOpenSheet('plans');
+    }
+  }, [searchParams]);
   const [cancelling, setCancelling] = useState(false);
   // Two honest steps, not one click: first what they'd actually lose
   // (their own real numbers, not a generic pitch), then — only if they

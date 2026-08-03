@@ -332,7 +332,7 @@ export default function StaffSettingsPage() {
             variant="primary"
             onClick={() => {
               setIsUpsellOpen(false);
-              router.push('/settings');
+              router.push('/settings?sheet=plans');
             }}
           >
             View Plans

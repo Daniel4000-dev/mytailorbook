@@ -165,7 +165,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/confirm?next=/dashboard` },
+      // Land on /onboarding directly — first-time users need to complete
+      // shop setup before /dashboard is meaningful, and returning users
+      // are bounced to /dashboard by the onboarding page guard below.
+      options: { redirectTo: `${window.location.origin}/auth/confirm?next=/onboarding` },
     });
     if (error) throw new Error(error.message);
     // Browser navigates away to Google here — nothing else to do client-side.

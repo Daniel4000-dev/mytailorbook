@@ -566,11 +566,17 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
+  /* Prevent the native date picker from pushing outside its grid cell
+     on iOS Safari — the browser's minimum rendered width for date inputs
+     can exceed the column width, but overflow:hidden clips it cleanly. */
+  overflow: hidden;
 }
 
 .unitInput {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   height: 44px;
   padding: 0 12px;
   background: var(--sf-sand);
