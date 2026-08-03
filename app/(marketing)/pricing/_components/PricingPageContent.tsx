@@ -40,7 +40,7 @@ export default function PricingPageContent() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <Image src="/images/marketing/fabric-flatlay.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
+        <Image src="/images/marketing/pricing-hero-fabric.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
         <div className={styles.heroScrim} />
         <motion.div
           className={styles.heroInner}
@@ -49,7 +49,7 @@ export default function PricingPageContent() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <span className={styles.heroEyebrow}>Simple, honest pricing</span>
-          <h1 className={styles.heroHeadline}>A plan for every atelier.</h1>
+          <h1 className={styles.heroHeadline}>A plan for every workshop.</h1>
           <p className={styles.heroSubhead}>
             Unlimited customers and unlimited custom styles, on every plan, forever. Upgrade only once your shop
             has genuinely outgrown the free tier.
@@ -181,7 +181,7 @@ export default function PricingPageContent() {
       </section>
 
       <section className={styles.finalCta}>
-        <Image src="/images/marketing/product-tablet-desk.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
+        <Image src="/images/marketing/pricing-final-cta.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
         <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>Ready to elevate your craft?</h2>

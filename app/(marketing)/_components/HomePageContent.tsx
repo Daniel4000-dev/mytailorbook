@@ -11,18 +11,18 @@ import styles from './HomePageContent.module.css';
 const PAIN_POINTS = [
   {
     icon: 'sticky_note_2',
-    title: 'Lost Paper Trails',
-    text: 'Stop digging through notebooks. Digital client profiles keep measurements safe, searchable, and organized forever.',
+    title: 'The "Measure Twice" Fatigue',
+    text: 'Stop re-measuring customers you already know. Digital client profiles save every measurement once, safe and searchable forever.',
   },
   {
     icon: 'notification_important',
     title: 'The "Any Update?" Call',
-    text: 'Cut the phone calls. Give clients a public link to track their own order status in real time, no app download needed.',
+    text: "Zero visibility breeds distrust. Give clients a public link to track their own order in real time — no more calls asking if it's ready.",
   },
   {
-    icon: 'event_busy',
-    title: 'Missed Delivery Dates',
-    text: 'Your workshop, visualized. A production board keeps every order moving so nothing slips through the cracks.',
+    icon: 'payments',
+    title: 'Balances You Lose Track Of',
+    text: "Untracked payments cap what a workshop can grow into. Every order remembers what's owed, so nothing gets forgotten or shorted.",
   },
 ];
 
@@ -99,9 +99,9 @@ export default function HomePageContent() {
           actual UI instead of describing it in prose. */}
       <section className={styles.proofStrip}>
         {[
-          { src: '/images/marketing/product-tablet-desk.jpg', label: 'Production board' },
-          { src: '/images/marketing/product-client-profile.jpg', label: 'Client profiles' },
-          { src: '/images/marketing/product-portfolio-showcase-phone.jpg', label: 'Public portfolio' },
+          { src: '/images/marketing/proof-production-board.jpg', label: 'Production board' },
+          { src: '/images/marketing/proof-client-profiles.jpg', label: 'Client profiles' },
+          { src: '/images/marketing/proof-public-portfolio.jpg', label: 'Public portfolio' },
         ].map((shot, i) => (
           <motion.div
             key={shot.src}
@@ -184,8 +184,8 @@ export default function HomePageContent() {
           </motion.div>
           <motion.div className={styles.portfolioShotWrap} {...reveal(0.1, slideInRight)}>
             <Image
-              src="/images/marketing/product-portfolio-showcase-phone.jpg"
-              alt="A shop's public portfolio page, shown on a phone"
+              src="/images/marketing/proof-public-portfolio.jpg"
+              alt=""
               width={480}
               height={600}
               className={styles.portfolioShot}
@@ -200,7 +200,7 @@ export default function HomePageContent() {
           Simple, honest pricing
         </motion.span>
         <motion.h2 className={styles.sectionTitle} {...reveal(0.05)}>
-          A plan for every atelier.
+          A plan for every workshop.
         </motion.h2>
         <motion.p className={styles.pricingTeaserBody} {...reveal(0.08)}>
           Unlimited customers and unlimited custom styles, on every plan, forever. Free gets you{' '}
@@ -241,7 +241,7 @@ export default function HomePageContent() {
       {/* Final CTA — photo-backed close, bookending the hero's opening treatment */}
       <section className={styles.finalCta}>
         <Image
-          src="/images/marketing/stitching-closeup.jpg"
+          src="/images/marketing/home-final-cta-stitching.jpg"
           alt=""
           fill
           sizes="100vw"

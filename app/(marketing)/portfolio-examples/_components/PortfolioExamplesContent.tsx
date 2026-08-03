@@ -19,7 +19,7 @@ export default function PortfolioExamplesContent() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <Image src="/images/marketing/product-portfolio-showcase-phone.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
+        <Image src="/images/marketing/portfolio-hero.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
         <div className={styles.heroScrim} />
         <motion.div
           className={styles.heroInner}
@@ -52,7 +52,7 @@ export default function PortfolioExamplesContent() {
       <section className={styles.bentoGrid}>
         <motion.article className={`${styles.templateCard} ${styles.templateCardHero}`} {...reveal()}>
           <div className={styles.templateImageWrap}>
-            <Image src="/images/marketing/atelier-review.jpg" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" className={styles.templateImage} />
+            <Image src="/images/marketing/portfolio-template-modern.jpg" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" className={styles.templateImage} />
             <span className={styles.templateTag}>Clean &amp; Modern</span>
           </div>
           <div className={styles.templateBody}>
@@ -70,7 +70,7 @@ export default function PortfolioExamplesContent() {
 
         <motion.article className={`${styles.templateCard} ${styles.templateCardSide}`} {...reveal(0.08)}>
           <div className={styles.templateImageWrap}>
-            <Image src="/images/marketing/hero-tailor-tablet.jpg" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" className={styles.templateImage} />
+            <Image src="/images/marketing/portfolio-template-editorial.jpg" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" className={styles.templateImage} />
             <span className={styles.templateTag}>Bold &amp; Editorial</span>
           </div>
           <div className={styles.templateBody}>
@@ -88,7 +88,7 @@ export default function PortfolioExamplesContent() {
 
         <motion.article className={`${styles.templateCard} ${styles.templateCardWide}`} {...reveal(0.16)}>
           <div className={styles.templateImageWrap}>
-            <Image src="/images/marketing/moodboard.jpg" alt="" fill sizes="100vw" className={styles.templateImage} />
+            <Image src="/images/marketing/portfolio-template-heritage.jpg" alt="" fill sizes="100vw" className={styles.templateImage} />
             <span className={styles.templateTag}>Warm &amp; Story-Driven</span>
           </div>
           <div className={styles.templateBody}>
@@ -106,7 +106,7 @@ export default function PortfolioExamplesContent() {
       </section>
 
       <section className={styles.finalCta}>
-        <Image src="/images/marketing/product-home-phone.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
+        <Image src="/images/marketing/portfolio-final-cta.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
         <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>Ready to build yours?</h2>

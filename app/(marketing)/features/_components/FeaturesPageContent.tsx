@@ -32,7 +32,7 @@ const FEATURES = [
     title: 'Custom styles that match how you actually work',
     text: 'Set up your own style templates — Agbada, Kaftan, Senator, or anything you design — with the exact measurement fields each one needs. Unlimited, free, forever.',
     bullets: ['Unlimited custom styles', 'Per-style measurement fields', 'Reused instantly on new orders'],
-    image: '/images/marketing/stitching-closeup.jpg',
+    image: '/images/marketing/home-final-cta-stitching.jpg',
     premium: false,
   },
   {
@@ -41,7 +41,7 @@ const FEATURES = [
     title: 'A tracking link your customers actually want',
     text: 'Send a link over WhatsApp and let your customer follow their order as a photo timeline — no login, no app to download, no more "any update?" texts interrupting your day.',
     bullets: ['Public, no-login tracking page', 'Photo updates at every stage', 'You control what gets shared'],
-    image: '/images/marketing/hands-dark-fabric.jpg',
+    image: '/images/marketing/features-tracking-link.jpg',
     premium: false,
   },
   {
@@ -68,7 +68,7 @@ const FEATURES = [
     title: 'Staff accounts, when your team grows',
     text: "Bring on team members with their own logins, track who's handling each order, and keep everyone working from the same production board. This is where a shop that's genuinely grown pays for the software that got it there.",
     bullets: ['Individual staff logins', 'Role-based access (Staff, Branch Manager, Accountant)', 'Full activity visibility'],
-    image: '/images/marketing/moodboard.jpg',
+    image: '/images/marketing/features-staff-team.jpg',
     premium: true,
   },
 ];

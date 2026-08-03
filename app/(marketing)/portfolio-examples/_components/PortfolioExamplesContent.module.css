@@ -85,6 +85,20 @@
   transform: translateY(-2px) scale(1.02);
 }
 
+/* Every marketing CTA is a Next.js Link (an <a>) — without an explicit
+   color here, the global a:hover rule in app/globals.css overrides these
+   buttons' own text color to emerald on hover. .ctaPrimary needs white
+   text kept (its background is emerald); .ctaPrimaryLight is redefined
+   further down with an emerald-on-white look, so it needs the opposite
+   color kept on hover — split out since a shared rule can't satisfy both. */
+.ctaPrimary:hover {
+  color: var(--sf-text-on-accent);
+}
+
+.ctaPrimaryLight:hover {
+  color: var(--sf-accent-emerald);
+}
+
 /* ── Proof strip ── */
 .proofStrip {
   max-width: var(--sf-max-width-desktop);

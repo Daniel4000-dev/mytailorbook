@@ -123,6 +123,13 @@
 .ctaSecondaryOnPhoto:hover {
   background: rgba(255, 255, 255, 0.16);
   transform: translateY(-1px);
+  /* Without this, the global a:hover rule (app/globals.css) overrides
+     this link's own text color on hover — every marketing CTA is a
+     Next.js Link, i.e. an <a>, and a:hover's specificity beats a single
+     class selector. Left unset, hovering .ctaPrimary/.ctaPrimaryLight
+     below turns their text the same emerald as their background,
+     making it unreadable. */
+  color: #ffffff;
 }
 
 /* ── Proof strip — real product screenshots floating just under the hero,
@@ -183,6 +190,10 @@
 .ctaPrimaryLight:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 14px 32px rgba(67, 56, 202, 0.3);
+  /* See .ctaSecondaryOnPhoto:hover above — without this, the global
+     a:hover rule turns this text emerald on hover, same as the emerald
+     background, making it disappear. */
+  color: var(--sf-text-on-accent);
 }
 
 .ctaSecondaryDark {
@@ -201,6 +212,7 @@
 
 .ctaSecondaryDark:hover {
   transform: translateY(-2px) scale(1.02);
+  color: var(--sf-accent-emerald);
 }
 
 /* ── Pain points ── */

@@ -12,13 +12,13 @@ export const metadata: Metadata = {
     title: `Portfolio Templates — ${APP_CONFIG.name}`,
     description: 'Your work deserves a stage. Three free portfolio templates to choose from.',
     type: 'website',
-    images: [{ url: '/images/marketing/atelier-review.jpg' }],
+    images: [{ url: '/images/marketing/portfolio-hero.jpg' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `Portfolio Templates — ${APP_CONFIG.name}`,
     description: 'Your work deserves a stage. Three free portfolio templates to choose from.',
-    images: ['/images/marketing/atelier-review.jpg'],
+    images: ['/images/marketing/portfolio-hero.jpg'],
   },
 };
 

@@ -31,7 +31,7 @@ export default function AboutPageContent() {
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <Image src="/images/marketing/product-client-profile.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
+        <Image src="/images/marketing/about-hero-community.jpg" alt="" fill sizes="100vw" className={styles.heroBg} />
         <div className={styles.heroScrim} />
         <motion.div
           className={styles.heroInner}
@@ -109,7 +109,7 @@ export default function AboutPageContent() {
       </section>
 
       <section className={styles.finalCta}>
-        <Image src="/images/marketing/product-laptop-clothing-grid.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
+        <Image src="/images/marketing/about-final-cta-team.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
         <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>Come build with us.</h2>

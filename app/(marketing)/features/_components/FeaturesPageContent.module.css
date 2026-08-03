@@ -241,6 +241,11 @@
 .ctaPrimary:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 14px 32px rgba(67, 56, 202, 0.3);
+  /* Every marketing CTA is a Next.js Link (an <a>) — without this, the
+     global a:hover rule in app/globals.css overrides this button's own
+     text color to emerald on hover, matching its emerald background and
+     making the text disappear. */
+  color: var(--sf-text-on-accent);
 }
 
 .ctaSecondary {
@@ -261,6 +266,7 @@
 .ctaSecondary:hover {
   background: rgba(255, 255, 255, 0.16);
   transform: translateY(-1px);
+  color: #ffffff;
 }
 
 /* ── Responsive ── */
