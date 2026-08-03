@@ -33,8 +33,11 @@ export const metadata: Metadata = {
     title: APP_CONFIG.name,
   },
   icons: {
-    icon: '/favicon.ico?v=3',
-    apple: '/apple-touch-icon.png?v=3',
+    icon: [
+      { url: '/favicon.ico?v=5', media: '(prefers-color-scheme: light)' },
+      { url: '/favicon-dark.ico?v=5', media: '(prefers-color-scheme: dark)' },
+    ],
+    apple: '/apple-touch-icon.png?v=5',
   },
 };
 
