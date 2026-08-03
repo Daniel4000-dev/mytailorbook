@@ -11,6 +11,7 @@ import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
 import RatingForm from './_components/RatingForm/RatingForm';
+import CopyDomain from './_components/CopyDomain';
 import styles from './page.module.css';
 
 // Private-by-link customer page (real names, order details) — must never
@@ -100,7 +101,10 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <span className={styles.brandIcon}>
             <Image src="/images/logo-mark.png" alt="" width={496} height={496} className="brandLogoAuto" />
           </span>
-          <span className={styles.brandName}>{APP_CONFIG.name}</span>
+          <div className={styles.brandText}>
+            <span className={styles.brandName}>{APP_CONFIG.name}</span>
+            <CopyDomain domain="www.mystitchbooks.com" />
+          </div>
         </div>
         <span className={styles.liveBadge}>
           <span className={styles.liveDot} />
