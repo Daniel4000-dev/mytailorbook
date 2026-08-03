@@ -121,6 +121,18 @@ export default function SettingsPage() {
     const reference = searchParams.get('reference') || searchParams.get('trxref');
     if (!reference) return;
 
+    // The router.replace below strips the query so a refresh can't replay
+    // this, but it's not a strong enough guard on its own: a bfcache
+    // restore (see the pageshow handler above) or Next's Router Cache can
+    // resurrect a render still holding the pre-replace searchParams,
+    // re-running this whole effect against a reference already consumed.
+    // A sessionStorage flag keyed on the actual reference survives that
+    // resurrection, so the toast/confirm call only ever fires once per
+    // payment regardless of what URL state comes back.
+    const flagKey = `payment-confirmed-${reference}`;
+    if (sessionStorage.getItem(flagKey)) return;
+    sessionStorage.setItem(flagKey, '1');
+
     // Strip the query params immediately so a refresh (or the effect
     // re-running) can't replay this against a reference that's already
     // been consumed.
@@ -417,7 +429,14 @@ export default function SettingsPage() {
                 </span>
               </span>
               {currentShop?.subscriptionStatus === 'active' ? (
-                <span className={styles.proMemberBadge}>Pro Member</span>
+                // Was a plain non-interactive <span> — that made the plans
+                // sheet (and the "Cancel subscription" link inside it)
+                // completely unreachable for anyone already on Premium,
+                // since this badge replaces the Upgrade button that's the
+                // sheet's only other entry point.
+                <button type="button" className={styles.proMemberBadge} onClick={() => setOpenSheet('plans')}>
+                  Pro Member
+                </button>
               ) : (
                 <Button variant="primary" onClick={() => setOpenSheet('plans')} size="sm">
                   {currentShop?.subscriptionStatus === 'past_due' ? 'Fix Payment' : 'Upgrade'}
