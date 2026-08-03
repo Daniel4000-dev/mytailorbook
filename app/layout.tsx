@@ -34,8 +34,8 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico?v=5', media: '(prefers-color-scheme: light)' },
-      { url: '/favicon-dark.ico?v=5', media: '(prefers-color-scheme: dark)' },
+      { url: '/favicon.ico?v=6', media: '(prefers-color-scheme: light)' },
+      { url: '/favicon-dark.ico?v=6', media: '(prefers-color-scheme: dark)' },
     ],
     apple: '/apple-touch-icon.png?v=5',
   },
