@@ -552,7 +552,7 @@
   }
 
   .heroContent {
-    padding: var(--sf-space-xl) var(--sf-margin-mobile);
+    padding: var(--sf-space-xl) var(--sf-margin-mobile) 80px;
   }
 
   .proofStrip {
