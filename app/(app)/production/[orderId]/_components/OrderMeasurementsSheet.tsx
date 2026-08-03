@@ -89,7 +89,7 @@ export default function OrderMeasurementsSheet({ isOpen, onClose, order, custome
       onClose={onClose}
       title={`Edit ${order.styleName || 'Order'} Measurements`}
       footer={
-        <Button variant="primary" fullWidth onClick={handleSave} disabled={saving}>
+        <Button variant="primary" fullWidth onClick={handleSave} loading={saving}>
           {saving ? 'Saving…' : 'Save Measurements'}
         </Button>
       }

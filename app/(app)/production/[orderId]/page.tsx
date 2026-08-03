@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaWhatsapp, FaTrash } from 'react-icons/fa6';
+import { FaWhatsapp, FaTrash, FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -375,8 +375,16 @@ export default function OrderDetailPage() {
         {next && (
           <div className={styles.advanceRow}>
             <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
-              <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
-              Move to {STATUS_CONFIG[next].label}
+              {advancing ? (
+                <>
+                  <FaSpinner className="global-spinner" /> Moving…
+                </>
+              ) : (
+                <>
+                  <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
+                  Move to {STATUS_CONFIG[next].label}
+                </>
+              )}
             </button>
           </div>
         )}
@@ -569,7 +577,13 @@ export default function OrderDetailPage() {
             onClick={handleSaveNotes}
             disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
           >
-            {savingNotes ? 'Saving…' : 'Save Note'}
+            {savingNotes ? (
+              <>
+                <FaSpinner className="global-spinner" /> Saving…
+              </>
+            ) : (
+              'Save Note'
+            )}
           </button>
         </section>
 
@@ -729,7 +743,7 @@ export default function OrderDetailPage() {
                     clearFull ? setConfirmingFullPay(true) : handleRecordPayment(parseInt(paymentAmount) || 0)
                   }
                 >
-                  {recordingPayment ? 'Recording…' : 'Record Payment'}
+                  {recordingPayment ? <FaSpinner className="global-spinner" /> : 'Record Payment'}
                 </button>
               </div>
             )}
@@ -869,7 +883,15 @@ export default function OrderDetailPage() {
               disabled={recordingPayment}
               onClick={() => setConfirmingFullPay(true)}
             >
-              <Symbol name="check_circle" size={20} /> Mark Paid
+              {recordingPayment ? (
+                <>
+                  <FaSpinner className="global-spinner" /> Marking…
+                </>
+              ) : (
+                <>
+                  <Symbol name="check_circle" size={20} /> Mark Paid
+                </>
+              )}
             </button>
           </div>
         )}
@@ -891,11 +913,20 @@ export default function OrderDetailPage() {
                 background: 'var(--sf-error-bg)',
                 color: 'var(--sf-error)',
                 fontWeight: 'var(--sf-weight-medium)',
-                cursor: 'pointer',
+                cursor: deletingOrder ? 'not-allowed' : 'pointer',
+                opacity: deletingOrder ? 0.6 : 1,
                 marginTop: 'var(--sf-space-sm)',
               }}
             >
-              <FaTrash /> Delete Order
+              {deletingOrder ? (
+                <>
+                  <FaSpinner className="global-spinner" /> Deleting…
+                </>
+              ) : (
+                <>
+                  <FaTrash /> Delete Order
+                </>
+              )}
             </button>
           </section>
         )}

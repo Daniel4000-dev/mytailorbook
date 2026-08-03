@@ -153,8 +153,8 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
                 Remove
               </Button>
             )}
-            <Button variant="primary" fullWidth onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving…' : 'Save Profile'}
+            <Button variant="primary" fullWidth onClick={handleSave} loading={saving}>
+              {saving ? 'Saving…' : 'Save Styles'}
             </Button>
           </div>
         ) : undefined

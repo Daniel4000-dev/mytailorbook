@@ -103,7 +103,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       onClose={onClose}
       title="Edit Profile"
       footer={
-        <Button variant="primary" fullWidth onClick={handleSave} disabled={saving}>
+        <Button variant="primary" fullWidth onClick={handleSave} loading={saving}>
           {saving ? 'Saving…' : 'Save Changes'}
         </Button>
       }

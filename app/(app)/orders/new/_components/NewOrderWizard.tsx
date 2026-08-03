@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -592,8 +593,16 @@ export default function NewOrderWizard() {
                 </span>
               </div>
               <button type="button" className={styles.proceedBtn} disabled={submitting} onClick={handleCreate}>
-                {submitting ? 'Creating…' : units.length > 1 ? `Create ${units.length} Orders` : 'Create Order'}
-                <Symbol name="check_circle" size={20} fill />
+                {submitting ? (
+                  <>
+                    <FaSpinner className="global-spinner" /> Creating…
+                  </>
+                ) : (
+                  <>
+                    {units.length > 1 ? `Create ${units.length} Orders` : 'Create Order'}
+                    <Symbol name="check_circle" size={20} fill />
+                  </>
+                )}
               </button>
             </div>
           </div>

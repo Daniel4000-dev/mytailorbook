@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { FaSpinner } from 'react-icons/fa6';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import { isValidPhone } from '@/lib/formatters';
@@ -231,8 +232,16 @@ export default function NewClientPage() {
               Cancel
             </button>
             <button type="button" className={styles.createBtn} onClick={handleCreate} disabled={submitting}>
-              {submitting ? 'Creating…' : 'Create Profile & Proceed'}
-              <Symbol name="arrow_forward" size={22} />
+              {submitting ? (
+                <>
+                  <FaSpinner className="global-spinner" /> Creating…
+                </>
+              ) : (
+                <>
+                  Create Profile & Proceed
+                  <Symbol name="arrow_forward" size={22} />
+                </>
+              )}
             </button>
           </div>
         </div>

@@ -234,3 +234,13 @@ body.no-scroll {
   filter: brightness(0) invert(93%);
 }
 
+
+.global-spinner {
+  animation: global-spin 0.8s linear infinite;
+  display: inline-flex;
+  align-items: center;
+}
+@keyframes global-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp } from 'react-icons/fa6';
+import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp, FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -471,7 +471,15 @@ export default function CustomersPage() {
                       Skip
                     </button>
                     <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
-                      <Symbol name="ios_share" size={18} /> Share
+                      {sharing ? (
+                        <>
+                          <FaSpinner className="global-spinner" /> Sharing…
+                        </>
+                      ) : (
+                        <>
+                          <Symbol name="ios_share" size={18} /> Share
+                        </>
+                      )}
                     </button>
                   </div>
                   <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>
