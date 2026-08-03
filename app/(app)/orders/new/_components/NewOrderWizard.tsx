@@ -593,16 +593,11 @@ export default function NewOrderWizard() {
                 </span>
               </div>
               <button type="button" className={styles.proceedBtn} disabled={submitting} onClick={handleCreate}>
-                {submitting ? (
                   <>
-                    <FaSpinner className="global-spinner" /> Creating…
-                  </>
-                ) : (
-                  <>
+                    {submitting && <FaSpinner className="global-spinner" />}
                     {units.length > 1 ? `Create ${units.length} Orders` : 'Create Order'}
                     <Symbol name="check_circle" size={20} fill />
                   </>
-                )}
               </button>
             </div>
           </div>

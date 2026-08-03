@@ -100,10 +100,10 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
   return (
     <div className={`${styles.actions} noPrint`}>
       <button type="button" className={styles.actionBtn} onClick={handleShareImage} disabled={busy !== null}>
-        {busy === 'image' ? <FaSpinner className="global-spinner" /> : <FaImage />} {busy === 'image' ? 'Image' : 'Image'}
+        <FaImage /> {busy === 'image' && <FaSpinner className="global-spinner" />} Image
       </button>
       <button type="button" className={styles.actionBtn} onClick={handleSharePdf} disabled={busy !== null}>
-        {busy === 'pdf' ? <FaSpinner className="global-spinner" /> : <FaFilePdf />} {busy === 'pdf' ? 'PDF' : 'PDF'}
+        <FaFilePdf /> {busy === 'pdf' && <FaSpinner className="global-spinner" />} PDF
       </button>
       <button type="button" className={styles.printBtn} onClick={() => window.print()} disabled={busy !== null}>
         <FaPrint /> Print

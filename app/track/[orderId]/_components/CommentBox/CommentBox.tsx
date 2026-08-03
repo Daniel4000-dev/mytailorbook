@@ -54,7 +54,7 @@ export default function CommentBox({ orderId, currentStage, initialComments }: C
           maxLength={1000}
         />
         <button type="button" className={styles.sendBtn} onClick={handleSubmit} disabled={submitting || !message.trim()} aria-label="Send comment">
-          {submitting ? <FaSpinner className="global-spinner" /> : <FaPaperPlane />}
+          {submitting && <FaSpinner className="global-spinner" />} <FaPaperPlane />
         </button>
       </div>
       {error && <p className={styles.error}>{error}</p>}

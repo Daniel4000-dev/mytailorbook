@@ -183,13 +183,8 @@ export default function OnboardingPage() {
         />
 
         <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '12px' }}>
-          {submitting ? (
-            <>
-              <FaSpinner className="global-spinner" /> Setting up…
-            </>
-          ) : (
-            'Finish Setup'
-          )}
+          {submitting && <FaSpinner className="global-spinner" />}
+          {submitting ? 'Setting up...' : 'Finish Setup'}
         </button>
       </form>
     </div>

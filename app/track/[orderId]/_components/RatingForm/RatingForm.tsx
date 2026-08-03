@@ -83,13 +83,8 @@ export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFo
       {error && <p className={styles.error}>{error}</p>}
 
       <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
-        {submitting ? (
-          <>
-            <FaSpinner className="global-spinner" /> Sending…
-          </>
-        ) : (
-          'Send Review'
-        )}
+        {submitting && <FaSpinner className="global-spinner" />}
+        {submitting ? 'Sending...' : 'Send Review'}
       </button>
     </section>
   );

@@ -58,7 +58,7 @@ export default function StylePhotoCard({
             disabled={busy}
             onClick={() => onApprove(submission)}
           >
-            {busy ? <FaSpinner className="global-spinner" /> : <Symbol name="check" size={16} />} Approve
+            {busy && <FaSpinner className="global-spinner" />} <Symbol name="check" size={16} /> Approve
           </button>
         )}
         <button
@@ -67,7 +67,7 @@ export default function StylePhotoCard({
           disabled={busy}
           onClick={() => onDiscard(submission)}
         >
-          {busy ? <FaSpinner className="global-spinner" /> : <Symbol name="close" size={16} />} {isPending ? 'Discard' : 'Remove'}
+          {busy && <FaSpinner className="global-spinner" />} <Symbol name="close" size={16} /> {isPending ? 'Discard' : 'Remove'}
         </button>
       </div>
     </div>

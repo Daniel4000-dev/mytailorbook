@@ -471,15 +471,10 @@ export default function CustomersPage() {
                       Skip
                     </button>
                     <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
-                      {sharing ? (
-                        <>
-                          <FaSpinner className="global-spinner" /> Sharing…
-                        </>
-                      ) : (
-                        <>
-                          <Symbol name="ios_share" size={18} /> Share
-                        </>
-                      )}
+                      <>
+                        {sharing && <FaSpinner className="global-spinner" />}
+                        <Symbol name="ios_share" size={18} /> Share
+                      </>
                     </button>
                   </div>
                   <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>

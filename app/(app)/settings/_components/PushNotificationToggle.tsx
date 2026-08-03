@@ -101,8 +101,9 @@ export default function PushNotificationToggle() {
         cursor: working ? 'default' : 'pointer',
       }}
     >
-      {working ? <FaSpinner className="global-spinner" /> : <FaBell />}
-      {working ? 'Working…' : subscribed ? 'Disable Notifications' : 'Enable Notifications'}
+      {working && <FaSpinner className="global-spinner" />}
+      <FaBell />
+      {subscribed ? 'Disable Notifications' : 'Enable Notifications'}
     </button>
   );
 }

@@ -101,13 +101,8 @@ export default function ForgotPasswordPage() {
 
         {/* Primary Submit Button */}
         <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
-          {loading ? (
-            <>
-              <FaSpinner className="global-spinner" /> Sending Link…
-            </>
-          ) : (
-            'Send Reset Link'
-          )}
+          {loading && <FaSpinner className="global-spinner" />}
+          {loading ? 'Sending Link...' : 'Send Reset Link'}
         </button>
 
         {/* Footer separator */}

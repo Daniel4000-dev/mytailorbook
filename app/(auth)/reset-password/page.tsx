@@ -107,13 +107,8 @@ export default function ResetPasswordPage() {
         />
 
         <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
-          {loading ? (
-            <>
-              <FaSpinner className="global-spinner" /> Updating…
-            </>
-          ) : (
-            'Update Password'
-          )}
+          {loading && <FaSpinner className="global-spinner" />}
+          {loading ? 'Updating...' : 'Update Password'}
         </button>
       </form>
     </div>

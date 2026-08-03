@@ -232,16 +232,11 @@ export default function NewClientPage() {
               Cancel
             </button>
             <button type="button" className={styles.createBtn} onClick={handleCreate} disabled={submitting}>
-              {submitting ? (
                 <>
-                  <FaSpinner className="global-spinner" /> Creating…
-                </>
-              ) : (
-                <>
+                  {submitting && <FaSpinner className="global-spinner" />}
                   Create Profile & Proceed
                   <Symbol name="arrow_forward" size={22} />
                 </>
-              )}
             </button>
           </div>
         </div>

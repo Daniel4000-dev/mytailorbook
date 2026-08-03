@@ -375,16 +375,11 @@ export default function OrderDetailPage() {
         {next && (
           <div className={styles.advanceRow}>
             <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
-              {advancing ? (
-                <>
-                  <FaSpinner className="global-spinner" /> Moving…
-                </>
-              ) : (
-                <>
-                  <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
-                  Move to {STATUS_CONFIG[next].label}
-                </>
-              )}
+              <>
+                {advancing && <FaSpinner className="global-spinner" />}
+                <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
+                Move to {STATUS_CONFIG[next].label}
+              </>
             </button>
           </div>
         )}
@@ -577,13 +572,8 @@ export default function OrderDetailPage() {
             onClick={handleSaveNotes}
             disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
           >
-            {savingNotes ? (
-              <>
-                <FaSpinner className="global-spinner" /> Saving…
-              </>
-            ) : (
-              'Save Note'
-            )}
+            {savingNotes && <FaSpinner className="global-spinner" />}
+            Save Note
           </button>
         </section>
 
@@ -743,7 +733,7 @@ export default function OrderDetailPage() {
                     clearFull ? setConfirmingFullPay(true) : handleRecordPayment(parseInt(paymentAmount) || 0)
                   }
                 >
-                  {recordingPayment ? <FaSpinner className="global-spinner" /> : 'Record Payment'}
+                  {recordingPayment && <FaSpinner className="global-spinner" />} Record Payment
                 </button>
               </div>
             )}
@@ -883,15 +873,10 @@ export default function OrderDetailPage() {
               disabled={recordingPayment}
               onClick={() => setConfirmingFullPay(true)}
             >
-              {recordingPayment ? (
                 <>
-                  <FaSpinner className="global-spinner" /> Marking…
-                </>
-              ) : (
-                <>
+                  {recordingPayment && <FaSpinner className="global-spinner" />}
                   <Symbol name="check_circle" size={20} /> Mark Paid
                 </>
-              )}
             </button>
           </div>
         )}
@@ -918,15 +903,10 @@ export default function OrderDetailPage() {
                 marginTop: 'var(--sf-space-sm)',
               }}
             >
-              {deletingOrder ? (
                 <>
-                  <FaSpinner className="global-spinner" /> Deleting…
-                </>
-              ) : (
-                <>
+                  {deletingOrder && <FaSpinner className="global-spinner" />}
                   <FaTrash /> Delete Order
                 </>
-              )}
             </button>
           </section>
         )}
