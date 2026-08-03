@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { FaSpinner } from 'react-icons/fa6';
 import { createClient } from '@/lib/supabase/client';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
@@ -106,7 +107,13 @@ export default function ResetPasswordPage() {
         />
 
         <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
-          {loading ? 'Updating...' : 'Update Password'}
+          {loading ? (
+            <>
+              <FaSpinner className="global-spinner" /> Updating…
+            </>
+          ) : (
+            'Update Password'
+          )}
         </button>
       </form>
     </div>

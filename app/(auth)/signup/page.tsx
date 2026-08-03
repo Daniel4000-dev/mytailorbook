@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
@@ -163,7 +164,13 @@ export default function SignupPage() {
           disabled={loading || !agreedToPolicy}
           style={{ marginTop: '8px' }}
         >
-          {loading ? 'Creating Account...' : 'Create Account'}
+          {loading ? (
+            <>
+              <FaSpinner className="global-spinner" /> Creating Account…
+            </>
+          ) : (
+            'Create Account'
+          )}
         </button>
 
         {/* Divider */}

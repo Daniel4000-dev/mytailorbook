@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FaSpinner } from 'react-icons/fa6';
 import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
@@ -94,7 +95,13 @@ export default function LoginPage() {
 
         {/* Log in Button */}
         <button type="submit" className={styles.loginButton} disabled={loading}>
-          {loading ? 'Logging in...' : 'Log in'}
+          {loading ? (
+            <>
+              <FaSpinner className="global-spinner" /> Logging in…
+            </>
+          ) : (
+            'Log in'
+          )}
         </button>
 
         {/* Divider */}

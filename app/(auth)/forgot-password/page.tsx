@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import styles from './page.module.css';
@@ -100,7 +101,13 @@ export default function ForgotPasswordPage() {
 
         {/* Primary Submit Button */}
         <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
-          {loading ? 'Sending Link...' : 'Send Reset Link'}
+          {loading ? (
+            <>
+              <FaSpinner className="global-spinner" /> Sending Link…
+            </>
+          ) : (
+            'Send Reset Link'
+          )}
         </button>
 
         {/* Footer separator */}
