@@ -15,6 +15,19 @@ function isPublicPath(pathname: string) {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+// Supabase's SSR client names its session cookie(s) `sb-<project-ref>-auth-token`
+// (sometimes chunked into `.0`, `.1`, ...). No such cookie can only mean no
+// session, full stop — so on a page that's public either way (nothing to
+// protect, and nothing to redirect a logged-in visitor away from unless they
+// actually have one), skip the network round-trip to Supabase's Auth API
+// entirely rather than paying for a `getUser()` call whose answer is already
+// known. This is the common case: first-time visitors, search/social
+// traffic, and shared tracking/portfolio links almost never carry the
+// cookie, and they're the overwhelming majority of marketing-page traffic.
+function hasSupabaseAuthCookie(request: NextRequest) {
+  return request.cookies.getAll().some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+}
+
 /**
  * Runs on every request before it reaches a page. This is the real
  * authentication gate — previously, an unauthenticated visitor could
@@ -22,6 +35,13 @@ function isPublicPath(pathname: string) {
  * redirect (which runs after the page has already rendered once).
  */
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isPublic = isPublicPath(pathname) || pathname === '/';
+
+  if (isPublic && !hasSupabaseAuthCookie(request)) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -42,7 +62,6 @@ export async function proxy(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const { pathname } = request.nextUrl;
 
   const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
 
