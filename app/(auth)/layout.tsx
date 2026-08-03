@@ -70,7 +70,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className={styles.editorialScrim} />
             <div className={styles.editorialContent}>
               <div className={styles.tag}>Bespoke Workshop</div>
-              <h2 className={styles.editorialTitle}>Precision. Elegance. Flow.</h2>
+              <h2 className={styles.editorialTitle}>Manage orders, measurements, and clients.</h2>
               <p className={styles.editorialText}>
                 {isSignup
                   ? 'Set up your shop in under two minutes. Unlimited customers and custom styles, free forever — no card required.'

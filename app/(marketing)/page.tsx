@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: '/' },
   openGraph: {
-    title: `${APP_CONFIG.name} — Precision. Elegance. Flow.`,
+    title: `${APP_CONFIG.name} — Manage orders, measurements, and clients.`,
     description:
       'The business and customer-relationship platform built for tailors and fashion designers across Nigeria and Africa.',
     type: 'website',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${APP_CONFIG.name} — Precision. Elegance. Flow.`,
+    title: `${APP_CONFIG.name} — Manage orders, measurements, and clients.`,
     description:
       'The business and customer-relationship platform built for tailors and fashion designers across Nigeria and Africa.',
     images: ['/images/marketing/hero-tailor-tablet.jpg'],

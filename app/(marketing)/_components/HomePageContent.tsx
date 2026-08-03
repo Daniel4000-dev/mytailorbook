@@ -74,7 +74,7 @@ export default function HomePageContent() {
         >
           <span className={styles.heroEyebrow}>Bespoke Workshop Software</span>
           <h1 className={styles.heroHeadline}>
-            Precision. <span className={styles.heroHeadlineAccent}>Elegance.</span> Flow.
+            Manage orders, <span className={styles.heroHeadlineAccent}>measurements</span>, and clients.
           </h1>
           <p className={styles.heroSubhead}>
             The business and customer-relationship platform built for tailors and fashion designers across

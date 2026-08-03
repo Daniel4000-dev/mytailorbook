@@ -13,7 +13,7 @@ const domain = process.env.NEXT_PUBLIC_SITE_DOMAIN || 'mystitchbooks.com';
 
 export const APP_CONFIG = {
   name: 'MyStitchBook',
-  tagline: 'Precision. Elegance. Flow.',
+  tagline: 'Manage orders, measurements, and clients.',
   domain,
   baseUrl: `https://${domain}`,
   supportEmail: `support@${domain}`,
