@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaBell } from 'react-icons/fa6';
+import { FaBell, FaSpinner } from 'react-icons/fa6';
 import { submitOrderReminder } from '@/app/public-actions';
 import { canSendReminder } from '@/lib/types';
 import styles from './ReminderButton.module.css';
@@ -41,7 +41,15 @@ export default function ReminderButton({ orderId, initialLastReminderAt }: Remin
           : 'Reminder sent — you can send another tomorrow.'}
       </p>
       <button type="button" className={styles.sendBtn} onClick={handleClick} disabled={sending || !canSend}>
-        {sending ? 'Sending…' : canSend ? 'Send Reminder' : 'Reminder Sent'}
+        {sending ? (
+          <>
+            <FaSpinner className="global-spinner" /> Sending…
+          </>
+        ) : canSend ? (
+          'Send Reminder'
+        ) : (
+          'Reminder Sent'
+        )}
       </button>
       {error && <p className={styles.error}>{error}</p>}
     </section>

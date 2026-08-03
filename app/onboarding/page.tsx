@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { preload } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
 import { trackEvent } from '@/lib/analytics';
@@ -182,7 +183,13 @@ export default function OnboardingPage() {
         />
 
         <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '12px' }}>
-          {submitting ? 'Setting up...' : 'Finish Setup'}
+          {submitting ? (
+            <>
+              <FaSpinner className="global-spinner" /> Setting up…
+            </>
+          ) : (
+            'Finish Setup'
+          )}
         </button>
       </form>
     </div>

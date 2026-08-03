@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { FaSpinner } from 'react-icons/fa6';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatDate } from '@/lib/formatters';
 import type { StylePhotoSubmission } from '@/lib/types';
@@ -57,7 +58,7 @@ export default function StylePhotoCard({
             disabled={busy}
             onClick={() => onApprove(submission)}
           >
-            <Symbol name="check" size={16} /> Approve
+            {busy ? <FaSpinner className="global-spinner" /> : <Symbol name="check" size={16} />} Approve
           </button>
         )}
         <button
@@ -66,7 +67,7 @@ export default function StylePhotoCard({
           disabled={busy}
           onClick={() => onDiscard(submission)}
         >
-          <Symbol name="close" size={16} /> {isPending ? 'Discard' : 'Remove'}
+          {busy ? <FaSpinner className="global-spinner" /> : <Symbol name="close" size={16} />} {isPending ? 'Discard' : 'Remove'}
         </button>
       </div>
     </div>

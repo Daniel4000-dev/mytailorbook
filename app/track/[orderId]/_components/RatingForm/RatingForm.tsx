@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaStar } from 'react-icons/fa6';
+import { FaStar, FaSpinner } from 'react-icons/fa6';
 import { submitOrderRatingAction } from '@/app/public-actions';
 import styles from './RatingForm.module.css';
 
@@ -83,7 +83,13 @@ export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFo
       {error && <p className={styles.error}>{error}</p>}
 
       <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
-        {submitting ? 'Sending…' : 'Send Review'}
+        {submitting ? (
+          <>
+            <FaSpinner className="global-spinner" /> Sending…
+          </>
+        ) : (
+          'Send Review'
+        )}
       </button>
     </section>
   );

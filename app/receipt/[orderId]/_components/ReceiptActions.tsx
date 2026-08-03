@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaPrint, FaImage, FaFilePdf } from 'react-icons/fa6';
+import { FaPrint, FaImage, FaFilePdf, FaSpinner } from 'react-icons/fa6';
 import styles from './ReceiptActions.module.css';
 
 interface ReceiptActionsProps {
@@ -100,10 +100,10 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
   return (
     <div className={`${styles.actions} noPrint`}>
       <button type="button" className={styles.actionBtn} onClick={handleShareImage} disabled={busy !== null}>
-        <FaImage /> {busy === 'image' ? '…' : 'Image'}
+        {busy === 'image' ? <FaSpinner className="global-spinner" /> : <FaImage />} {busy === 'image' ? 'Image' : 'Image'}
       </button>
       <button type="button" className={styles.actionBtn} onClick={handleSharePdf} disabled={busy !== null}>
-        <FaFilePdf /> {busy === 'pdf' ? '…' : 'PDF'}
+        {busy === 'pdf' ? <FaSpinner className="global-spinner" /> : <FaFilePdf />} {busy === 'pdf' ? 'PDF' : 'PDF'}
       </button>
       <button type="button" className={styles.printBtn} onClick={() => window.print()} disabled={busy !== null}>
         <FaPrint /> Print

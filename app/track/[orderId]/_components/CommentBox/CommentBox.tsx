@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaRegCommentDots, FaPaperPlane } from 'react-icons/fa6';
+import { FaRegCommentDots, FaPaperPlane, FaSpinner } from 'react-icons/fa6';
 import { submitOrderComment } from '@/app/public-actions';
 import { formatDate } from '@/lib/formatters';
 import type { OrderComment, OrderStatus } from '@/lib/types';
@@ -54,7 +54,7 @@ export default function CommentBox({ orderId, currentStage, initialComments }: C
           maxLength={1000}
         />
         <button type="button" className={styles.sendBtn} onClick={handleSubmit} disabled={submitting || !message.trim()} aria-label="Send comment">
-          <FaPaperPlane />
+          {submitting ? <FaSpinner className="global-spinner" /> : <FaPaperPlane />}
         </button>
       </div>
       {error && <p className={styles.error}>{error}</p>}

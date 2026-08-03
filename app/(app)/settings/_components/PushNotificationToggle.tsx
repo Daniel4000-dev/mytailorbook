@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FaBell } from 'react-icons/fa6';
+import { FaBell, FaSpinner } from 'react-icons/fa6';
 import { useToast } from '@/contexts/ToastContext';
 import { savePushSubscriptionAction, removePushSubscriptionAction } from '@/app/actions';
 
@@ -101,7 +101,7 @@ export default function PushNotificationToggle() {
         cursor: working ? 'default' : 'pointer',
       }}
     >
-      <FaBell />
+      {working ? <FaSpinner className="global-spinner" /> : <FaBell />}
       {working ? 'Working…' : subscribed ? 'Disable Notifications' : 'Enable Notifications'}
     </button>
   );
