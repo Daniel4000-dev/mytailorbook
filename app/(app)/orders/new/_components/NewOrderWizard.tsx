@@ -18,6 +18,7 @@ import {
   DEFAULT_MEASURE_SPEC,
   buildCustomStyleSpec,
 } from '@/lib/constants';
+import { newOrderBatchSchema } from '@/lib/validations';
 import { getStylePhotos } from '@/lib/style-photos';
 import { formatCurrency } from '@/lib/formatters';
 import { FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
@@ -241,10 +242,14 @@ export default function NewOrderWizard() {
   const handleCreate = async () => {
     if (!customer) return;
     setError('');
-    if (units.some((u) => !u.details.trim() || !u.totalBill)) {
-      setError('Every garment needs a description and a total bill.');
+
+    const parsed = newOrderBatchSchema.safeParse({ units, priority });
+    if (!parsed.success) {
+      // Pick the first error message to display
+      setError(parsed.error.issues[0].message);
       return;
     }
+
     for (const u of units) {
       const total = parseInt(u.totalBill.replace(/,/g, '')) || 0;
       const deposit = parseInt(u.depositPaid.replace(/,/g, '')) || 0;

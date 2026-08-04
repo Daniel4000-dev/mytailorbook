@@ -1,44 +1,36 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { FaSpinner } from 'react-icons/fa6';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
+import { updatePasswordSchema, type UpdatePasswordInput } from '@/lib/validations';
 import styles from './page.module.css';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [password, setPassword] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
   const [done, setDone] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!password || !confirmPw) {
-      setError('Please fill in both fields');
-      return;
-    }
-    if (password !== confirmPw) {
-      setError('Passwords do not match');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UpdatePasswordInput>({
+    resolver: zodResolver(updatePasswordSchema),
+  });
 
+  const onSubmit = async (data: UpdatePasswordInput) => {
+    setApiError('');
     setLoading(true);
     try {
-      // Requires the recovery session established by clicking the emailed
-      // link (handled by /auth/confirm) — if that's missing or expired,
-      // this fails with a clear error rather than silently doing nothing.
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { error: updateError } = await supabase.auth.updateUser({ password: data.password });
       if (updateError) {
         if (updateError.message.toLowerCase().includes('session')) {
           throw new Error('This link has expired or is invalid. Please request a new password reset.');
@@ -48,7 +40,7 @@ export default function ResetPasswordPage() {
       setDone(true);
       setTimeout(() => router.push('/dashboard'), 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not reset password. The link may have expired — request a new one.');
+      setApiError(err instanceof Error ? err.message : 'Could not reset password. The link may have expired — request a new one.');
     } finally {
       setLoading(false);
     }
@@ -82,33 +74,36 @@ export default function ResetPasswordPage() {
       </div>
       <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <div className={styles.errorBanner}>{error}</div>}
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         <p className={styles.subheading}>Choose a new password for your account.</p>
 
-        <AuthInput
-          id="password"
-          type="password"
-          label="New Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          hasEyeIcon
-          required
-        />
-        <AuthInput
-          id="confirmPw"
-          type="password"
-          label="Confirm New Password"
-          value={confirmPw}
-          onChange={(e) => setConfirmPw(e.target.value)}
-          hasEyeIcon
-          required
-        />
+        <div>
+          <AuthInput
+            id="password"
+            type="password"
+            label="New Password"
+            hasEyeIcon
+            {...register('password')}
+          />
+          {errors.password && <div className={styles.errorText}>{errors.password.message}</div>}
+        </div>
 
-        <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
+        <div style={{ marginTop: '1rem' }}>
+          <AuthInput
+            id="confirmPw"
+            type="password"
+            label="Confirm Password"
+            hasEyeIcon
+            {...register('confirmPw')}
+          />
+          {errors.confirmPw && <div className={styles.errorText}>{errors.confirmPw.message}</div>}
+        </div>
+
+        <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '24px' }}>
           {loading && <FaSpinner className="global-spinner" />}
-          {loading ? 'Updating...' : 'Update Password'}
+          {loading ? 'Updating...' : 'Update password'}
         </button>
       </form>
     </div>

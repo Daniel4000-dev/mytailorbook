@@ -2,14 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { FaSpinner } from 'react-icons/fa6';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
-import { isValidPhone } from '@/lib/formatters';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { trackEvent } from '@/lib/analytics';
+import { customerSchema, type CustomerInput } from '@/lib/validations';
 import styles from './page.module.css';
 
 import { GARMENT_STYLES } from '@/lib/constants';
@@ -21,28 +23,42 @@ export default function NewClientPage() {
   const { addCustomer } = useData();
   const { showToast } = useToast();
 
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [gender, setGender] = useState<'male' | 'female'>('male');
-  const [styleSet, setStyleSet] = useState<string[]>([]);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<CustomerInput>({
+    resolver: zodResolver(customerSchema),
+    defaultValues: {
+      gender: 'male',
+      preferredStyles: [],
+    },
+  });
+
+  const gender = watch('gender');
+  const styleSet = watch('preferredStyles') || [];
 
   // Preset chips are gendered — no mixed picker. Style names from the
   // built-in catalog, filtered to whichever gender is currently selected.
   const STYLE_PRESETS = GARMENT_STYLES.filter((s) => s.gender === gender).map((s) => s.name);
   const [customStyle, setCustomStyle] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const toggleStyle = (style: string) => {
-    setStyleSet((prev) => (prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]));
+    const nextStyles = styleSet.includes(style) 
+      ? styleSet.filter((s) => s !== style) 
+      : [...styleSet, style];
+    setValue('preferredStyles', nextStyles);
   };
 
   const addCustomStyle = () => {
     const value = customStyle.trim();
     if (value && !styleSet.includes(value) && !STYLE_PRESETS.includes(value)) {
-      setStyleSet((prev) => [...prev, value]);
+      setValue('preferredStyles', [...styleSet, value]);
     }
     setCustomStyle('');
     setShowCustomInput(false);
@@ -50,24 +66,16 @@ export default function NewClientPage() {
 
   const customChips = styleSet.filter((s) => !STYLE_PRESETS.includes(s));
 
-  const handleCreate = async () => {
-    setError('');
-    if (!fullName.trim() || !phone.trim()) {
-      setError("Enter the client's name and phone number to continue.");
-      return;
-    }
-    if (!isValidPhone(phone)) {
-      setError('Enter a valid Nigerian phone number.');
-      return;
-    }
+  const onSubmit = async (data: CustomerInput) => {
+    setApiError('');
     setSubmitting(true);
     try {
       const customer = await addCustomer({
-        fullName: fullName.trim(),
-        whatsappNumber: phone.trim(),
-        gender,
-        address: address.trim() || undefined,
-        preferredStyles: styleSet,
+        fullName: data.fullName.trim(),
+        whatsappNumber: data.phone.trim(),
+        gender: data.gender,
+        address: data.address?.trim() || undefined,
+        preferredStyles: data.preferredStyles || [],
         measurements: {},
       });
       showToast(`${customer.fullName} added to customers`, 'success');
@@ -75,7 +83,7 @@ export default function NewClientPage() {
       // Step 3: hand straight into the order wizard, pre-filled.
       router.replace(`/orders/new?customer=${customer.id}`);
     } catch {
-      setError('Could not create the profile — check your connection and try again.');
+      setApiError('Could not create the profile — check your connection and try again.');
       setSubmitting(false);
     }
   };
@@ -106,7 +114,7 @@ export default function NewClientPage() {
               <p className={styles.sectionSub}>Enter the essential details for their atelier record.</p>
             </div>
 
-            {error && <div className={styles.errorBanner}>{error}</div>}
+            {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
             <div className={styles.field}>
               <label className={styles.capsLabel} htmlFor="fullName">Full Name</label>
@@ -116,11 +124,11 @@ export default function NewClientPage() {
                   type="text"
                   className={styles.input}
                   placeholder="e.g. Adebayo Ogunlesi"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  {...register('fullName')}
                 />
                 <Symbol name="person" size={22} className={styles.inputIcon} />
               </div>
+              {errors.fullName && <div className={styles.errorText} style={{ color: 'var(--red)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>{errors.fullName.message}</div>}
             </div>
 
             <div className={styles.field}>
@@ -132,10 +140,10 @@ export default function NewClientPage() {
                   type="tel"
                   className={`${styles.input} ${styles.phoneInput}`}
                   placeholder="803 000 0000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  {...register('phone')}
                 />
               </div>
+              {errors.phone && <div className={styles.errorText} style={{ color: 'var(--red)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>{errors.phone.message}</div>}
             </div>
 
             {FEATURE_FLAGS.customerAddress && (
@@ -147,11 +155,11 @@ export default function NewClientPage() {
                     type="text"
                     className={styles.input}
                     placeholder="e.g. 12 Adeola Street, Lagos"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    {...register('address')}
                   />
                   <Symbol name="location_on" size={22} className={styles.inputIcon} />
                 </div>
+                {errors.address && <div className={styles.errorText} style={{ color: 'var(--red)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>{errors.address.message}</div>}
               </div>
             )}
           </section>
@@ -171,10 +179,10 @@ export default function NewClientPage() {
                     aria-checked={gender === g}
                     className={`${styles.segmentBtn} ${gender === g ? styles.segmentBtnActive : ''}`}
                     onClick={() => {
-                      setGender(g);
+                      setValue('gender', g);
                       // Previously picked chips belong to the other gender's
                       // catalog — clear rather than leave a stale mismatch.
-                      setStyleSet([]);
+                      setValue('preferredStyles', []);
                     }}
                   >
                     {g === 'male' ? 'Male' : 'Female'}
@@ -231,7 +239,7 @@ export default function NewClientPage() {
             <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
               Cancel
             </button>
-            <button type="button" className={styles.createBtn} onClick={handleCreate} disabled={submitting}>
+            <button type="button" className={styles.createBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
                 <>
                   {submitting && <FaSpinner className="global-spinner" />}
                   Create Profile & Proceed

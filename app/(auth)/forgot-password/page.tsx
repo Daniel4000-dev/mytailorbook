@@ -1,31 +1,39 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaSpinner } from 'react-icons/fa6';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
+import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations';
 import styles from './page.module.css';
 
 export default function ForgotPasswordPage() {
   const { resetPassword, loading } = useAuth();
-  const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!email) {
-      setError('Please enter your email');
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+  });
+
+  const emailWatcher = watch('email');
+
+  const onSubmit = async (data: ResetPasswordInput) => {
+    setApiError('');
     try {
-      await resetPassword(email);
+      await resetPassword(data.email);
       setSent(true);
     } catch {
-      setError('Could not send reset link');
+      setApiError('Could not send reset link');
     }
   };
 
@@ -56,7 +64,7 @@ export default function ForgotPasswordPage() {
           <h2 className={styles.successHeading}>Check your email</h2>
           <p className={styles.successText}>
             We&apos;ve sent a password reset link to <br/>
-            <strong>{email}</strong>
+            <strong>{emailWatcher}</strong>
           </p>
           <Link href="/login" className={styles.registerButton} style={{ marginTop: '24px' }}>
             Back to Login
@@ -82,27 +90,28 @@ export default function ForgotPasswordPage() {
       {/* Brand Title */}
       <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <div className={styles.errorBanner}>{error}</div>}
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         <p className={styles.subheading}>
           Enter your email and we&apos;ll send you a password reset link.
         </p>
 
         {/* Email Field */}
-        <AuthInput
-          id="email"
-          type="email"
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div>
+          <AuthInput
+            id="email"
+            type="email"
+            label="Email"
+            {...register('email')}
+          />
+          {errors.email && <div className={styles.errorText}>{errors.email.message}</div>}
+        </div>
 
         {/* Primary Submit Button */}
-        <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '12px' }}>
+        <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '24px' }}>
           {loading && <FaSpinner className="global-spinner" />}
-          {loading ? 'Sending Link...' : 'Send Reset Link'}
+          {loading ? 'Sending link...' : 'Send reset link'}
         </button>
 
         {/* Footer separator */}

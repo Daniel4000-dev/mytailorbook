@@ -1,25 +1,35 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaSpinner } from 'react-icons/fa6';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
+import { signupSchema, type SignupInput } from '@/lib/validations';
 import styles from './page.module.css';
 
 export default function SignupPage() {
   const router = useRouter();
   const { signup, signInWithGoogle, loading } = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<SignupInput>({
+    resolver: zodResolver(signupSchema),
+  });
+
+  const emailWatcher = watch('email');
 
   useEffect(() => {
     const handleFocus = () => {
@@ -39,34 +49,21 @@ export default function SignupPage() {
       await signInWithGoogle();
     } catch (err) {
       setGoogleLoading(false);
-      setError(err instanceof Error ? err.message : 'Failed to sign up with Google');
+      setApiError(err instanceof Error ? err.message : 'Failed to sign up with Google');
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!name || !email || !password || !confirmPw) {
-      setError('Please fill in all fields');
-      return;
-    }
-    if (password !== confirmPw) {
-      setError('Passwords do not match');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+  const onSubmit = async (data: SignupInput) => {
+    setApiError('');
     try {
-      const { needsEmailConfirmation } = await signup(name, email, password);
+      const { needsEmailConfirmation } = await signup(data.name, data.email, data.password);
       if (needsEmailConfirmation) {
         setSubmitted(true);
       } else {
         router.push('/onboarding');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not create account');
+      setApiError(err instanceof Error ? err.message : 'Could not create account');
     }
   };
 
@@ -86,7 +83,7 @@ export default function SignupPage() {
           </div>
           <h2 className={styles.successHeading}>Check your email</h2>
           <p className={styles.successText}>
-            We&apos;ve sent a confirmation link to <br /><strong>{email}</strong><br />
+            We&apos;ve sent a confirmation link to <br /><strong>{emailWatcher}</strong><br />
             Click it to finish setting up your workspace.
           </p>
           <Link href="/login" className={styles.registerButton} style={{ marginTop: '24px' }}>
@@ -113,50 +110,54 @@ export default function SignupPage() {
       {/* Brand Title */}
       <h1 className={styles.brandTitle}>My<span className={styles.brandAccent}>Stitch</span>Book</h1>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <div className={styles.errorBanner}>{error}</div>}
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         {/* Full Name Field */}
-        <AuthInput
-          id="name"
-          type="text"
-          label="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        <div>
+          <AuthInput
+            id="name"
+            type="text"
+            label="Full Name"
+            {...register('name')}
+          />
+          {errors.name && <div className={styles.errorText}>{errors.name.message}</div>}
+        </div>
 
         {/* Email Field */}
-        <AuthInput
-          id="email"
-          type="email"
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div style={{ marginTop: '1rem' }}>
+          <AuthInput
+            id="email"
+            type="email"
+            label="Email"
+            {...register('email')}
+          />
+          {errors.email && <div className={styles.errorText}>{errors.email.message}</div>}
+        </div>
 
         {/* Password Field */}
-        <AuthInput
-          id="password"
-          type="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          hasEyeIcon
-          required
-        />
+        <div style={{ marginTop: '1rem' }}>
+          <AuthInput
+            id="password"
+            type="password"
+            label="Password"
+            hasEyeIcon
+            {...register('password')}
+          />
+          {errors.password && <div className={styles.errorText}>{errors.password.message}</div>}
+        </div>
 
         {/* Confirm Password Field */}
-        <AuthInput
-          id="confirmPw"
-          type="password"
-          label="Confirm Password"
-          value={confirmPw}
-          onChange={(e) => setConfirmPw(e.target.value)}
-          hasEyeIcon
-          required
-        />
+        <div style={{ marginTop: '1rem' }}>
+          <AuthInput
+            id="confirmPw"
+            type="password"
+            label="Confirm Password"
+            hasEyeIcon
+            {...register('confirmPw')}
+          />
+          {errors.confirmPw && <div className={styles.errorText}>{errors.confirmPw.message}</div>}
+        </div>
 
         <label className={styles.agreeRow}>
           <input

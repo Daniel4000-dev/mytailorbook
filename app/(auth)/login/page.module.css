@@ -43,8 +43,12 @@
   flex-direction: column;
 }
 
-
-
+.errorText {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
 .forgotPasswordWrapper {
   display: flex;
   justify-content: flex-end;

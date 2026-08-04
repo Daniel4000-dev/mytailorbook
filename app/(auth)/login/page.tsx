@@ -1,22 +1,31 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaSpinner } from 'react-icons/fa6';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
+import { loginSchema, type LoginInput } from '@/lib/validations';
 import styles from './page.module.css';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, signInWithGoogle, loading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
 
   useEffect(() => {
     const handleFocus = () => {
@@ -30,23 +39,18 @@ export default function LoginPage() {
     };
   }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
+  const onSubmit = async (data: LoginInput) => {
+    setApiError('');
     try {
-      await login(email, password);
+      await login(data.email, data.password);
       router.push('/dashboard');
     } catch (err) {
       if (isAuthRetryableFetchError(err)) {
-        setError('Could not reach the server — check your connection and try again.');
+        setApiError('Could not reach the server — check your connection and try again.');
       } else if (isAuthApiError(err) && err.code === 'invalid_credentials') {
-        setError('Invalid email or password');
+        setApiError('Invalid email or password');
       } else {
-        setError('Something went wrong — please try again.');
+        setApiError('Something went wrong — please try again.');
       }
     }
   };
@@ -57,7 +61,7 @@ export default function LoginPage() {
       await signInWithGoogle();
     } catch (err) {
       setGoogleLoading(false);
-      setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
+      setApiError(err instanceof Error ? err.message : 'Failed to sign in with Google');
     }
   };
 
@@ -77,29 +81,31 @@ export default function LoginPage() {
       {/* Brand Title */}
       <h1 className={styles.brandTitle}>My<span className={styles.brandAccent}>Stitch</span>Book</h1>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <div className={styles.errorBanner}>{error}</div>}
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         {/* Email Field */}
-        <AuthInput
-          id="email"
-          type="email"
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <div>
+          <AuthInput
+            id="email"
+            type="email"
+            label="Email"
+            {...register('email')}
+          />
+          {errors.email && <div className={styles.errorText}>{errors.email.message}</div>}
+        </div>
 
         {/* Password Field */}
-        <AuthInput
-          id="password"
-          type="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          hasEyeIcon
-          required
-        />
+        <div style={{ marginTop: '1rem' }}>
+          <AuthInput
+            id="password"
+            type="password"
+            label="Password"
+            hasEyeIcon
+            {...register('password')}
+          />
+          {errors.password && <div className={styles.errorText}>{errors.password.message}</div>}
+        </div>
 
         {/* Forgot Password */}
         <div className={styles.forgotPasswordWrapper}>

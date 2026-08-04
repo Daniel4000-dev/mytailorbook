@@ -7,8 +7,11 @@ import Image from 'next/image';
 import { FaSpinner } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { trackEvent } from '@/lib/analytics';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
+import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
 import styles from './page.module.css';
 
 // Welcome-tour screens shown before the setup form below — grounded in
@@ -40,74 +43,66 @@ const WELCOME_SCREENS = [
 export default function OnboardingPage() {
   const router = useRouter();
   const { googleUserInfo, needsOnboarding, loading, refreshProfile } = useAuth();
-  const [name, setName] = useState('');
-  const [shopName, setShopName] = useState('');
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   // 0/1 = welcome carousel screens, 2 = the actual setup form below.
   const [step, setStep] = useState(0);
 
+  const isGoogleAccount = !!googleUserInfo?.isGoogleAccount;
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<OnboardingInput>({
+    resolver: zodResolver(onboardingSchema),
+  });
+
   // Google gives us no signup form, so there's no name to carry over yet —
   // pre-fill from their Google profile and let them confirm/edit it here.
-  // Email signups already gave a name at signup, so this field is skipped
-  // entirely for them (see the conditional render below). Adjusted during
-  // render (guarded so it only fires once, when the async profile name
-  // actually arrives) rather than in an effect, so it never clobbers the
-  // user's own edits afterward.
   const [prefilledGoogleName, setPrefilledGoogleName] = useState<string | null>(null);
   if (googleUserInfo?.name && googleUserInfo.name !== prefilledGoogleName) {
     setPrefilledGoogleName(googleUserInfo.name);
-    setName(googleUserInfo.name);
+    if (isGoogleAccount) {
+      setValue('name', googleUserInfo.name);
+    }
   }
 
   // If someone lands here without an in-progress sign-in, send them
-  // back to login rather than showing a dead-end form. This must only ever
-  // check once, on the initial load — otherwise a *successful* submission
-  // (which also flips `needsOnboarding` to false, via refreshProfile) races
-  // this same effect against the handler's own `router.push('/dashboard')`,
-  // intermittently bouncing a freshly-onboarded user back to /login instead.
+  // back to login rather than showing a dead-end form.
   const initialCheckDone = useRef(false);
   useEffect(() => {
     if (loading || initialCheckDone.current) return;
     initialCheckDone.current = true;
     if (!needsOnboarding) {
-      // If they have a profile already (returning user), send them to the
-      // app. If they're not authenticated at all, the middleware already
-      // guards /onboarding and would have sent them to /login before
-      // this page even rendered.
       router.replace('/dashboard');
     }
   }, [loading, needsOnboarding, router]);
 
-  // Screen 1's <Image priority> only starts fetching once it actually
-  // mounts — by design, next/image never fetches an unmounted screen's
-  // asset early. Without this, screen 2's illustration only began
-  // downloading the moment the user clicked Next, so it visibly popped in
-  // instead of being ready. Both are tiny, so preload both unconditionally
-  // right away rather than waiting to see which screen renders first.
   useEffect(() => {
     for (const screen of WELCOME_SCREENS) {
       preload(screen.image, { as: 'image' });
     }
   }, []);
 
-  const isGoogleAccount = !!googleUserInfo?.isGoogleAccount;
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!shopName || (isGoogleAccount && !name)) {
-      setError('Please fill in all fields');
+  const onSubmit = async (data: OnboardingInput) => {
+    setApiError('');
+    
+    // For Google accounts, enforce name locally if required
+    if (isGoogleAccount && (!data.name || data.name.trim().length < 2)) {
+      setApiError('Please provide a valid name');
       return;
     }
+
     setSubmitting(true);
     try {
-      await completeOnboarding(shopName, isGoogleAccount ? name : undefined);
+      await completeOnboarding(data.shopName, isGoogleAccount ? data.name : undefined);
       trackEvent('onboarding_completed', { via: isGoogleAccount ? 'google' : 'email' });
       await refreshProfile();
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not finish setting up your workspace');
+      setApiError(err instanceof Error ? err.message : 'Could not finish setting up your workspace');
     } finally {
       setSubmitting(false);
     }
@@ -159,30 +154,32 @@ export default function OnboardingPage() {
         Almost there — tell us a bit about your studio to finish setting up your workspace.
       </p>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <div className={styles.errorBanner}>{error}</div>}
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         {isGoogleAccount && (
-          <AuthInput
-            id="name"
-            type="text"
-            label="Your Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+          <div>
+            <AuthInput
+              id="name"
+              type="text"
+              label="Your Full Name"
+              {...register('name')}
+            />
+            {errors.name && <div className={styles.errorText}>{errors.name.message}</div>}
+          </div>
         )}
 
-        <AuthInput
-          id="shopName"
-          type="text"
-          label="Shop / Studio Name"
-          value={shopName}
-          onChange={(e) => setShopName(e.target.value)}
-          required
-        />
+        <div style={{ marginTop: isGoogleAccount ? '1rem' : '0' }}>
+          <AuthInput
+            id="shopName"
+            type="text"
+            label="Shop / Studio Name"
+            {...register('shopName')}
+          />
+          {errors.shopName && <div className={styles.errorText}>{errors.shopName.message}</div>}
+        </div>
 
-        <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '12px' }}>
+        <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '24px' }}>
           {submitting && <FaSpinner className="global-spinner" />}
           {submitting ? 'Setting up...' : 'Finish Setup'}
         </button>

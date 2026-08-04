@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type InputHTMLAttributes } from 'react';
+import { useState, forwardRef, type InputHTMLAttributes } from 'react';
 import styles from './AuthInput.module.css';
 
 interface AuthInputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -9,14 +9,14 @@ interface AuthInputProps extends InputHTMLAttributes<HTMLInputElement> {
   hasEyeIcon?: boolean;
 }
 
-export default function AuthInput({
+const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(({
   label,
   id,
   type = 'text',
   hasEyeIcon = false,
   className,
   ...props
-}: AuthInputProps) {
+}, ref) => {
   const [showContent, setShowContent] = useState(false);
 
   // Toggle type between raw text and target type when visibility button is toggled
@@ -28,6 +28,7 @@ export default function AuthInput({
     <div className={styles.fieldGroup}>
       <div className={styles.inputWrapper}>
         <input
+          ref={ref}
           id={id}
           className={`${styles.input} ${className || ''}`}
           placeholder=" "
@@ -59,4 +60,6 @@ export default function AuthInput({
       </div>
     </div>
   );
-}
+});
+
+export default AuthInput;
