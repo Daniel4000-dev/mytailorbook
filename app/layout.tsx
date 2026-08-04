@@ -51,7 +51,7 @@ export const viewport: Viewport = {
   // anywhere in the app, not just this page. Letting the browser's normal
   // zoom behavior through is the accessible default.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F8F8FE' },
+    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
     { media: '(prefers-color-scheme: dark)', color: '#131220' },
   ],
 };
