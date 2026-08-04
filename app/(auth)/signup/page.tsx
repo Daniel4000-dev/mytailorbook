@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,6 +20,18 @@ export default function SignupPage() {
   const [submitted, setSubmitted] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      setGoogleLoading(false);
+    };
+    window.addEventListener('pageshow', handleFocus);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('pageshow', handleFocus);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
