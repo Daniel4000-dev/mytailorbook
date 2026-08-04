@@ -45,8 +45,9 @@ export default function SettingsPage() {
     const sheet = searchParams.get('sheet');
     if (sheet === 'plans') {
       setOpenSheet('plans');
+      router.replace('/settings', { scroll: false });
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
   const [cancelling, setCancelling] = useState(false);
   // Two honest steps, not one click: first what they'd actually lose
   // (their own real numbers, not a generic pitch), then — only if they
