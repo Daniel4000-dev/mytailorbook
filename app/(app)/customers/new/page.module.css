@@ -8,6 +8,13 @@
   min-height: 100dvh;
 }
 
+.errorText {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
 /* ── Header ─────────────────────────────────────────────────── */
 .header {
   position: relative;
