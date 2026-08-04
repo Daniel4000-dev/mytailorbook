@@ -128,7 +128,7 @@ export default function NewClientPage() {
                 />
                 <Symbol name="person" size={22} className={styles.inputIcon} />
               </div>
-              {errors.fullName && <div className={styles.errorText} style={{ color: 'var(--red)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>{errors.fullName.message}</div>}
+              {errors.fullName && <div className={styles.errorText}>{errors.fullName.message}</div>}
             </div>
 
             <div className={styles.field}>
@@ -143,7 +143,7 @@ export default function NewClientPage() {
                   {...register('phone')}
                 />
               </div>
-              {errors.phone && <div className={styles.errorText} style={{ color: 'var(--red)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>{errors.phone.message}</div>}
+              {errors.phone && <div className={styles.errorText}>{errors.phone.message}</div>}
             </div>
 
             {FEATURE_FLAGS.customerAddress && (
@@ -159,7 +159,7 @@ export default function NewClientPage() {
                   />
                   <Symbol name="location_on" size={22} className={styles.inputIcon} />
                 </div>
-                {errors.address && <div className={styles.errorText} style={{ color: 'var(--red)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>{errors.address.message}</div>}
+                {errors.address && <div className={styles.errorText}>{errors.address.message}</div>}
               </div>
             )}
           </section>
