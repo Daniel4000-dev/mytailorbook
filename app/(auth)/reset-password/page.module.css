@@ -45,7 +45,12 @@
   flex-direction: column;
 }
 
-
+.errorText {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
 
 .loginButton {
   width: 100%;
