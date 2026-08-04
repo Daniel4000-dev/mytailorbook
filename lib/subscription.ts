@@ -22,8 +22,8 @@ export const FREE_MONTHLY_ORDER_LIMIT = 15;
  *  (`import type`), fully erased at build time. */
 export const PREMIUM_STATUSES = ['active', 'past_due'];
 
-export const PREMIUM_MONTHLY_PRICE_NGN = 2500;
-export const PREMIUM_YEARLY_PRICE_NGN = 25000;
+export const PREMIUM_MONTHLY_PRICE_NGN = 2699;
+export const PREMIUM_YEARLY_PRICE_NGN = 26990;
 
 /** Free tier caps per order (see migration 0032's DB trigger, which is the
  *  real enforcement — these are duplicated here only so the UI can show a
