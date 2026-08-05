@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { isOwnerLikeRole } from '@/lib/types';
+import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
 
 /** Starts a Paystack checkout for the current user's shop, returning the
  *  authorization URL to redirect the browser to. Uses the request-scoped
@@ -72,20 +73,11 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
   const proto = headersList.get('x-forwarded-proto') || (host?.startsWith('localhost') ? 'http' : 'https');
   const origin = host ? `${proto}://${host}` : undefined;
 
-  // Paystack's transaction/initialize rejects the request with
-  // "Invalid Amount Sent" if `amount` is omitted, even when a `plan` is
-  // given — it doesn't infer the amount from the plan. Look it up so the
-  // price only has to be maintained in one place (the Paystack plan itself).
-  const planResponse = await fetch(`https://api.paystack.co/plan/${PLAN_CODE}`, {
-    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
-    cache: 'no-store',
-  });
-  const planData = await planResponse.json();
-  if (!planResponse.ok || !planData.status) {
-    console.error('Paystack plan lookup failed:', planData);
-    throw new Error('Server configuration error');
-  }
-  const amount = planData.data.amount as number;
+  // We pass the exact amount defined in the app UI to ensure users are
+  // charged exactly what they see. Paystack requires this amount to match
+  // the plan amount configured in the dashboard (in kobo). If they differ,
+  // Paystack correctly rejects the initialization with "Invalid Amount Sent".
+  const amount = (interval === 'yearly' ? PREMIUM_YEARLY_PRICE_NGN : PREMIUM_MONTHLY_PRICE_NGN) * 100;
 
   const response = await fetch('https://api.paystack.co/transaction/initialize', {
     method: 'POST',
