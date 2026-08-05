@@ -37,7 +37,7 @@ export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
 
 export const customerSchema = z.object({
   fullName: z.string().min(2, 'Client name must be at least 2 characters'),
-  phone: z.string().regex(/^(\+234|0)?\d{10}$/, 'Enter a valid Nigerian phone number (e.g. 08012345678)'),
+  phone: z.string().regex(/^(\+?234)?\s*0?\s*(\d\s*){10}$/, 'Enter a valid Nigerian phone number (e.g. 08012345678)'),
   address: z.string().optional(),
   gender: z.enum(['male', 'female']),
   preferredStyles: z.array(z.string()).optional(),
