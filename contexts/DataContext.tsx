@@ -269,22 +269,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
       customerId: string,
       updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
     ) => {
-      if (!orgId || !data) return;
+      if (!orgId) return;
       const normalized = updates.whatsappNumber !== undefined
         ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
         : updates;
       
-      const prevCustomers = data.customers;
-      mutate({ ...data, customers: data.customers.map((c) => (c.id === customerId ? { ...c, ...normalized } : c)) }, false);
+      mutate(
+        (current) => (current ? { ...current, customers: current.customers.map((c) => (c.id === customerId ? { ...c, ...normalized } : c)) } : current),
+        { revalidate: false }
+      );
       
       const updated = await updateCustomerProfileAction(customerId, normalized, orgId);
       if (updated) {
-        mutate({ ...data, customers: data.customers.map((c) => (c.id === customerId ? { ...c, ...updated } : c)) }, false);
+        mutate(
+          (current) => (current ? { ...current, customers: current.customers.map((c) => (c.id === customerId ? { ...c, ...updated } : c)) } : current),
+          { revalidate: false }
+        );
       } else {
-        mutate({ ...data, customers: prevCustomers }, false);
+        mutate();
       }
     },
-    [data, mutate, orgId]
+    [mutate, orgId]
   );
 
   const deleteCustomer = useCallback(
