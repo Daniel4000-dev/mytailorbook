@@ -34,8 +34,11 @@
   transition: background-color var(--sf-transition-fast), transform 120ms ease;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .backBtn:hover {
   background: var(--sf-surface-container-high);
+}
 }
 
 .backBtn:active {
@@ -205,8 +208,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .customerRow:hover {
   background: var(--sf-surface-container-high);
+}
 }
 
 .customerAvatar {
@@ -260,9 +266,12 @@
   transition: color var(--sf-transition-fast), background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .newClientLink:hover {
   color: var(--sf-accent-emerald);
   background: var(--sf-bg-surface-hover);
+}
 }
 
 /* ── Step: garments ─────────────────────────────────────────── */
@@ -457,9 +466,12 @@
   transition: color var(--sf-transition-fast), background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .customBtn:hover {
   color: var(--sf-accent-emerald);
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .customInput {
@@ -649,8 +661,11 @@
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .inspoAdd:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 .orderLevel {
@@ -755,8 +770,11 @@
   white-space: nowrap;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .proceedBtn:hover:not(:disabled) {
   background: var(--sf-accent-emerald-light);
+}
 }
 
 .proceedBtn:active:not(:disabled) {
@@ -777,8 +795,11 @@
   flex-shrink: 0;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .skipBtn:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 /* .header / .summaryBar are frosted-glass bars over the PAGE canvas

@@ -131,8 +131,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .showMoreBtn:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 .showMoreBtn:active {

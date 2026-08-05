@@ -231,8 +231,11 @@
   transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .segmentBtn:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .segmentBtnActive {
@@ -263,8 +266,11 @@
   transition: background-color var(--sf-transition-fast), transform 120ms ease;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .chip:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 .chip:active {
@@ -315,8 +321,11 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .cancelBtn:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 .createBtn {
@@ -335,8 +344,11 @@
   transition: transform 120ms ease, background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .createBtn:hover:not(:disabled) {
   background: var(--sf-accent-emerald-light);
+}
 }
 
 .createBtn:active:not(:disabled) {

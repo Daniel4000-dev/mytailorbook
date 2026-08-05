@@ -396,8 +396,11 @@
   margin: 0 auto;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .cancelPlanLink:hover {
   color: var(--sf-text-secondary);
+}
 }
 
 .cancelReasonList {
@@ -418,8 +421,11 @@
   transition: border-color var(--sf-transition-fast), background var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .cancelReasonOption:hover {
   border-color: var(--sf-accent-emerald);
+}
 }
 
 .cancelReasonOptionActive {

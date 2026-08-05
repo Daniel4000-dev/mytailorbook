@@ -91,8 +91,11 @@
   transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .segmentBtn:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .segmentBtnActive {
@@ -122,8 +125,11 @@
   font-size: var(--sf-text-base);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .chip:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 .chip:active {

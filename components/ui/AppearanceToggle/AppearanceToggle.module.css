@@ -18,8 +18,11 @@
   transition: border-color var(--sf-transition-fast), background var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .option:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .optionIcon {

@@ -128,8 +128,11 @@
   text-decoration: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .backLink:hover {
   color: var(--sf-text-primary);
+}
 }
 
 @media (max-width: 640px) {

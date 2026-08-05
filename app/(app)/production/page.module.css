@@ -56,9 +56,12 @@
   position: relative;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .notificationBtn:hover {
   background-color: var(--sf-bg-surface-elevated);
   border-color: var(--sf-text-tertiary);
+}
 }
 
 .bellIcon {

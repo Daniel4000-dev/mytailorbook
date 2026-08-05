@@ -43,8 +43,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .item:hover {
   opacity: 1;
+}
 }
 
 .item:active .icon {

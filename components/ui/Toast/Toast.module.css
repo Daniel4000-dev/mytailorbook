@@ -68,8 +68,11 @@
   padding: 4px 6px;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .actionBtn:hover {
   text-decoration: underline;
+}
 }
 
 .dismissBtn {

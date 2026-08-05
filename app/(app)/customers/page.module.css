@@ -24,8 +24,11 @@
   animation: fadeInUp 0.4s ease both;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .statCard:hover {
   border-color: #FDF4E8;
+}
 }
 
 .statValue {
@@ -127,8 +130,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .loadMoreBtn:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 .loadMoreBtn:active {
@@ -156,8 +162,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .mobileCard:hover {
   border-color: #FDF4E8;
+}
 }
 
 .mobileCard:active {
@@ -264,8 +273,11 @@
   animation: fadeInUp 0.4s ease both;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .tableRow:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .tableRow:active {
@@ -329,10 +341,13 @@
   gap: 6px;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .actionBtn:hover {
   background: var(--sf-bg-surface-hover);
   color: var(--sf-text-primary);
   border-color: #FDF4E8;
+}
 }
 
 @keyframes fadeInUp {
@@ -443,8 +458,11 @@
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .customerPickRow:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .pickContactedTag {

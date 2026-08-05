@@ -12,10 +12,13 @@
   box-shadow: var(--sf-shadow-xs);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .card:hover {
   border-color: var(--sf-text-tertiary);
   box-shadow: var(--sf-shadow-md);
   transform: translateY(-2px);
+}
 }
 
 .iconWrap {

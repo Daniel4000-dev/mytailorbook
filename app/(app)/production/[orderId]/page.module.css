@@ -58,8 +58,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .advanceBtn:hover {
   background: var(--sf-accent-emerald-light);
+}
 }
 
 .advanceBtn:disabled {
@@ -144,8 +147,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .callBtn:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 .flagRow {
@@ -242,9 +248,12 @@
   transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .metaEditBtn:hover {
   background: var(--sf-bg-surface-hover);
   color: var(--sf-accent-emerald);
+}
 }
 
 .editForm {
@@ -316,8 +325,11 @@
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .addLink:hover {
   text-decoration: underline;
+}
 }
 
 .emptyNote {
@@ -398,8 +410,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .saveNoteBtn:hover:not(:disabled) {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .saveNoteBtn:disabled {
@@ -565,8 +580,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .roundIconBtn:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .measureGrid {
@@ -690,8 +708,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .recordPayBtn:hover:not(:disabled) {
   background: var(--sf-accent-emerald-light);
+}
 }
 
 .recordPayBtn:disabled {
@@ -741,8 +762,11 @@
   font-weight: var(--sf-weight-bold);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .receiptLink:hover {
   text-decoration: underline;
+}
 }
 
 /* ── 9. Share & communicate ─────────────────────────────────── */
@@ -908,8 +932,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .markPaidBtn:hover:not(:disabled) {
   background: var(--sf-secondary-container);
+}
 }
 
 .markPaidBtn:disabled {
@@ -943,8 +970,11 @@
   backface-visibility: hidden;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .whatsappFab:hover {
   transform: translateZ(0) scale(1.05);
+}
 }
 
 @media (min-width: 1024px) {

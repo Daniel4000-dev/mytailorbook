@@ -80,15 +80,20 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .domainCopy:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 .copyIcon {
   opacity: 0.6;
 }
+@media (hover: hover) and (pointer: fine) {
 .domainCopy:hover .copyIcon {
   opacity: 1;
+}
 }
 
 .liveBadge {
@@ -370,15 +375,20 @@
   transition: transform var(--sf-transition-normal);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .stage:hover .photoCard,
 .stage:hover .storyCard {
   transform: translateY(-4px);
 }
+}
 
 @media (prefers-reduced-motion: reduce) {
+  @media (hover: hover) and (pointer: fine) {
   .stage:hover .photoCard,
   .stage:hover .storyCard {
     transform: none;
+  }
   }
 }
 
@@ -642,9 +652,12 @@
   transition: transform var(--sf-transition-fast), background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .whatsappBtn:hover {
   transform: scale(1.04);
   background: var(--sf-accent-emerald-light);
+}
 }
 
 .whatsappBtn:active {

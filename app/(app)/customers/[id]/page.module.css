@@ -19,8 +19,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .editBtn:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 /* ── Profile header ─────────────────────────────────────────── */
@@ -117,8 +120,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .quickActionBtn:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 /* ── Generic section shell ─────────────────────────────────── */
@@ -155,8 +161,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .newBtn:hover {
   background: var(--sf-surface-variant);
+}
 }
 
 .emptyHint {
@@ -273,8 +282,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .viewEditBtn:hover {
   background: var(--sf-accent-emerald-glow);
+}
 }
 
 /* ── Notes ──────────────────────────────────────────────────── */
@@ -323,8 +335,11 @@
   animation: fadeInUp 0.4s ease both;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .orderCard:hover {
   border-color: var(--sf-accent-emerald);
+}
 }
 
 .orderCard:active {

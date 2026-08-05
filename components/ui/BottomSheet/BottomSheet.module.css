@@ -60,9 +60,12 @@
   transition: all var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .closeBtn:hover {
   background-color: var(--sf-bg-surface-elevated);
   color: var(--sf-text-primary);
+}
 }
 
 .body {

@@ -53,8 +53,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .backBtn:hover {
   background: var(--sf-bg-surface-elevated);
+}
 }
 
 .backBtn:active {
@@ -135,9 +138,12 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .logoToggle:hover {
   transform: scale(1.06);
   box-shadow: var(--sf-shadow-md), 0 0 0 2px var(--sf-bg-surface);
+}
 }
 
 .logoToggle:active {

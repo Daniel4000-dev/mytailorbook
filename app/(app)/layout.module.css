@@ -159,8 +159,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .actionOption:hover {
   background: var(--sf-surface-container-high);
+}
 }
 
 .actionOptionIcon {
@@ -176,9 +179,12 @@
   transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .actionOption:hover .actionOptionIcon {
   background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
+}
 }
 
 .actionOptionText {
@@ -206,8 +212,11 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .actionOption:hover .actionOptionChevron {
   color: var(--sf-text-primary);
+}
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */

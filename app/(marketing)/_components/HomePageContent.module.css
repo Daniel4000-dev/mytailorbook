@@ -120,6 +120,8 @@
   transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaSecondaryOnPhoto:hover {
   background: rgba(255, 255, 255, 0.16);
   transform: translateY(-1px);
@@ -130,6 +132,7 @@
      below turns their text the same emerald as their background,
      making it unreadable. */
   color: #ffffff;
+}
 }
 
 /* ── Proof strip — real product screenshots floating just under the hero,
@@ -186,6 +189,8 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaPrimary:hover,
 .ctaPrimaryLight:hover {
   transform: translateY(-2px) scale(1.02);
@@ -194,6 +199,7 @@
      a:hover rule turns this text emerald on hover, same as the emerald
      background, making it disappear. */
   color: var(--sf-text-on-accent);
+}
 }
 
 .ctaSecondaryDark {
@@ -210,9 +216,12 @@
   transition: transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaSecondaryDark:hover {
   transform: translateY(-2px) scale(1.02);
   color: var(--sf-accent-emerald);
+}
 }
 
 /* ── Pain points ── */

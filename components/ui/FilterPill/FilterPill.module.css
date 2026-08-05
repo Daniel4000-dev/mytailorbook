@@ -28,8 +28,11 @@
   border-color: transparent;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .neutral:hover {
   background: var(--sf-surface-container-highest);
+}
 }
 
 .neutralActive {
@@ -45,8 +48,11 @@
   border-color: color-mix(in srgb, var(--pill-color) 30%, transparent);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .stage:hover {
   background: color-mix(in srgb, var(--pill-color) 20%, transparent);
+}
 }
 
 .stageActive {

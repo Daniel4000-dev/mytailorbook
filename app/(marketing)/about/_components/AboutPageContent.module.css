@@ -280,6 +280,8 @@
   transition: transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaPrimary:hover {
   transform: translateY(-2px) scale(1.02);
   /* Every marketing CTA is a Next.js Link (an <a>) — without this, the
@@ -287,6 +289,7 @@
      text color to emerald on hover, matching its emerald background and
      making the text disappear. */
   color: var(--sf-text-on-accent);
+}
 }
 
 /* ── Responsive ── */

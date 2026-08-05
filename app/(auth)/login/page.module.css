@@ -64,8 +64,11 @@
   font-family: var(--sf-font-body), sans-serif;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .forgotPasswordLink:hover {
   text-decoration: underline;
+}
 }
 
 .loginButton {
@@ -85,8 +88,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .loginButton:hover {
   background-color: var(--sf-accent-emerald-dark);
+}
 }
 
 .loginButton:disabled {
@@ -121,8 +127,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .registerButton:hover {
   background-color: var(--sf-surface-container-highest);
+}
 }
 
 .errorBanner {
@@ -198,9 +207,12 @@
   box-sizing: border-box;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .googleButton:hover {
   background-color: var(--sf-sand);
   border-color: var(--sf-text-secondary);
+}
 }
 
 .googleButton:disabled {

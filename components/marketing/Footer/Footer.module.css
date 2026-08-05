@@ -58,8 +58,11 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .linkCol a:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 .colLabel {

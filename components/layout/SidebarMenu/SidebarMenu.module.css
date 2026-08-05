@@ -114,10 +114,13 @@
   width: max-content;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .menuItem:hover {
   color: var(--sf-accent-emerald);
   background: var(--sf-bg-surface-hover);
   transform: translateX(4px);
+}
 }
 
 .menuItem:active {
@@ -148,8 +151,11 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .menuItem:hover .menuIcon {
   color: var(--sf-text-secondary);
+}
 }
 
 .menuItem.active .menuIcon {
@@ -183,9 +189,12 @@
   text-decoration: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .settingsBtn:hover {
   color: var(--sf-text-secondary);
   transform: translateX(4px);
+}
 }
 
 .settingsIcon {
@@ -194,8 +203,11 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .settingsBtn:hover .settingsIcon {
   color: var(--sf-text-secondary);
+}
 }
 
 .logoutBtn {
@@ -216,9 +228,12 @@
   width: max-content;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .logoutBtn:hover {
   color: #DE3B3B; /* Red highlight on logout */
   transform: translateX(4px);
+}
 }
 
 .logoutBtn:active {
@@ -232,8 +247,11 @@
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .logoutBtn:hover .logoutIcon {
   color: #DE3B3B;
+}
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */
@@ -306,10 +324,13 @@
     transition: all var(--sf-transition-fast);
   }
 
+  @media (hover: hover) and (pointer: fine) {
+
   .collapseToggle:hover {
     background-color: var(--sf-bg-surface-elevated);
     color: var(--sf-text-primary);
     transform: scale(1.05);
+  }
   }
 
   .newBtn {
@@ -332,10 +353,13 @@
     transition: all var(--sf-transition-fast);
   }
 
+  @media (hover: hover) and (pointer: fine) {
+
   .newBtn:hover {
     background: var(--sf-accent-emerald-dark);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(67, 56, 202, 0.32);
+  }
   }
 
   .newBtn:active {
@@ -391,14 +415,20 @@
     transition: all var(--sf-transition-fast);
   }
 
+  @media (hover: hover) and (pointer: fine) {
+
   .menuItem:hover {
     background-color: rgba(40, 25, 11, 0.03);
     color: var(--sf-text-primary);
     transform: none !important;
   }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
 
   .menuItem:hover .menuIcon {
     color: var(--sf-text-primary);
+  }
   }
 
   .menuItem.active {
@@ -423,14 +453,20 @@
     gap: 16px;
   }
 
+  @media (hover: hover) and (pointer: fine) {
+
   .settingsBtn:hover {
     background-color: rgba(40, 25, 11, 0.03);
     color: var(--sf-text-primary) !important;
     transform: none !important;
   }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
 
   .settingsBtn:hover .settingsIcon {
     color: var(--sf-text-primary) !important;
+  }
   }
 
   .logoutBtn {
@@ -441,14 +477,20 @@
     transition: all var(--sf-transition-fast);
   }
 
+  @media (hover: hover) and (pointer: fine) {
+
   .logoutBtn:hover {
     background-color: rgba(222, 59, 59, 0.05);
     color: #DE3B3B !important;
     transform: none !important;
   }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
 
   .logoutBtn:hover .logoutIcon {
     color: #DE3B3B !important;
+  }
   }
 
   /* Collapsed Sidebar State */

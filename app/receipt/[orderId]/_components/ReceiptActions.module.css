@@ -31,8 +31,11 @@
   color: var(--sf-text-on-accent);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .actionBtn:hover:not(:disabled) {
   filter: brightness(1.05);
+}
 }
 
 .printBtn {
@@ -41,8 +44,11 @@
   border: 1px solid var(--sf-border);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .printBtn:hover:not(:disabled) {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 @media (max-width: 480px) {

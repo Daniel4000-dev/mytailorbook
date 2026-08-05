@@ -129,10 +129,13 @@
   pointer-events: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .point:hover .pointLabel,
 .selected .pointLabel,
 .filled .pointLabel {
   opacity: 1;
+}
 }
 
 /* Filled state */

@@ -56,9 +56,12 @@
   transition: transform var(--sf-transition-normal), box-shadow var(--sf-transition-normal);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .postCard:hover {
   transform: translateY(-3px);
   box-shadow: var(--sf-shadow-md);
+}
 }
 
 .postTitle {

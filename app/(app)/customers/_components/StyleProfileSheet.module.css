@@ -23,9 +23,12 @@
   transition: border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .pickerCard:hover {
   border-color: var(--sf-accent-emerald);
   transform: translateY(-1px);
+}
 }
 
 .pickerPhoto {

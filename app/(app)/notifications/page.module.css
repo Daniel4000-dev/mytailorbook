@@ -14,8 +14,11 @@
   transition: box-shadow var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .markAllBtn:hover {
   box-shadow: var(--sf-shadow-md);
+}
 }
 
 .markAllBtn:active {
@@ -75,9 +78,12 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .row:hover {
   transform: translateY(-1px);
   box-shadow: var(--sf-shadow-md);
+}
 }
 
 .row:active {

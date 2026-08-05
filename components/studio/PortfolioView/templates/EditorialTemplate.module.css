@@ -325,9 +325,12 @@
   transition: background 250ms ease, color 250ms ease;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaBtn:hover {
   background: var(--e-ink);
   color: var(--e-canvas);
+}
 }
 
 .shareBtn {

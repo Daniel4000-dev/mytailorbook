@@ -10,8 +10,11 @@
   animation: cardIn 0.35s ease both;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .card:hover {
   box-shadow: var(--sf-shadow-md);
+}
 }
 
 .draggableCard {
@@ -238,8 +241,11 @@
   padding: 6px 4px;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .moveBackBtn:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 .moveNextBtn {
@@ -256,6 +262,9 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .moveNextBtn:hover {
   background: var(--sf-accent-emerald-light);
+}
 }

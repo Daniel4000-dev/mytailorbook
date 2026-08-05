@@ -21,8 +21,11 @@
   box-shadow: var(--sf-shadow-md);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .backBtn:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .status {

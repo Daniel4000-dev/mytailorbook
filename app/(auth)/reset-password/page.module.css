@@ -69,8 +69,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .loginButton:hover {
   background-color: var(--sf-accent-emerald-dark);
+}
 }
 
 .loginButton:disabled {
@@ -105,8 +108,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .registerButton:hover {
   background-color: var(--sf-surface-container-highest);
+}
 }
 
 .errorBanner {

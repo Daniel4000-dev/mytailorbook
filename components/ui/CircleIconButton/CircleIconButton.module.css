@@ -14,11 +14,14 @@
   transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast), color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .circleBtn:hover {
   background-color: var(--sf-bg-surface-hover);
   color: var(--sf-accent-emerald-dark);
   box-shadow: var(--sf-shadow-md);
   transform: scale(1.04);
+}
 }
 
 .circleBtn:active {

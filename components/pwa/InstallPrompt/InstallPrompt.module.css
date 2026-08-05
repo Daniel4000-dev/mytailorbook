@@ -106,8 +106,11 @@
   transition: background-color var(--sf-transition-fast), transform 120ms ease;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .installBtn:hover {
   background: var(--sf-accent-emerald-dark);
+}
 }
 
 .installBtn:active {

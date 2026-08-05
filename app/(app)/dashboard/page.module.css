@@ -332,9 +332,12 @@
   filter: drop-shadow(0 8px 14px rgba(27, 27, 34, 0.16));
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .discoverCard:hover {
   transform: translateY(-2px);
   box-shadow: var(--sf-shadow-md);
+}
 }
 
 .discoverCard:active {
@@ -511,8 +514,11 @@
   padding: 2px;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .cardPrivacyBtn:hover {
   color: var(--sf-text-secondary);
+}
 }
 
 /* ── Team Snapshot ── */
@@ -548,9 +554,12 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .teamCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
 }
 
 .teamCard:active {
@@ -671,9 +680,12 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .attentionRow:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
 }
 
 .attentionRow:active {
@@ -728,8 +740,11 @@
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .attentionSeeAll:hover {
   text-decoration: underline;
+}
 }
 
 .attentionTextGroup {

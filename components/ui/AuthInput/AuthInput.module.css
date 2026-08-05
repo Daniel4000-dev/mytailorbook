@@ -91,6 +91,9 @@
   z-index: 4;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .iconButton:hover {
   opacity: 0.8;
+}
 }

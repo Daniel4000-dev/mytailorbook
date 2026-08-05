@@ -72,8 +72,11 @@ a {
   transition: color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine){
+
 a:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 /* ── Form Elements ─────────────────────────────────────────── */
@@ -128,8 +131,11 @@ img, svg {
   border-radius: var(--sf-radius-full);
 }
 
+@media (hover: hover) and (pointer: fine){
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--sf-text-tertiary);
+}
 }
 
 /* ── Selection ─────────────────────────────────────────────── */

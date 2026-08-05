@@ -238,6 +238,8 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaPrimary:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 14px 32px rgba(67, 56, 202, 0.3);
@@ -246,6 +248,7 @@
      text color to emerald on hover, matching its emerald background and
      making the text disappear. */
   color: var(--sf-text-on-accent);
+}
 }
 
 .ctaSecondary {
@@ -263,10 +266,13 @@
   transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaSecondary:hover {
   background: rgba(255, 255, 255, 0.16);
   transform: translateY(-1px);
   color: #ffffff;
+}
 }
 
 /* ── Responsive ── */

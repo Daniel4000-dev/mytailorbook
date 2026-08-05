@@ -80,9 +80,12 @@
   transition: transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .ctaPrimary:hover,
 .ctaPrimaryLight:hover {
   transform: translateY(-2px) scale(1.02);
+}
 }
 
 /* Every marketing CTA is a Next.js Link (an <a>) — without an explicit
@@ -91,12 +94,17 @@
    text kept (its background is emerald); .ctaPrimaryLight is redefined
    further down with an emerald-on-white look, so it needs the opposite
    color kept on hover — split out since a shared rule can't satisfy both. */
+@media (hover: hover) and (pointer: fine) {
 .ctaPrimary:hover {
   color: var(--sf-text-on-accent);
 }
+}
+
+@media (hover: hover) and (pointer: fine) {
 
 .ctaPrimaryLight:hover {
   color: var(--sf-accent-emerald);
+}
 }
 
 /* ── Proof strip ── */
@@ -145,9 +153,12 @@
   flex-direction: column;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .templateCard:hover {
   transform: translateY(-4px);
   box-shadow: var(--sf-shadow-lg);
+}
 }
 
 .templateCardHero {

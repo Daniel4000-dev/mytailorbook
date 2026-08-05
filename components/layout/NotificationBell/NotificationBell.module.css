@@ -16,8 +16,11 @@
   color: var(--sf-text-secondary);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .bellBtn:hover {
   color: var(--sf-text-primary);
+}
 }
 
 .bellIcon {
@@ -96,8 +99,11 @@
   border-bottom: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .item:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 .itemIcon {
@@ -191,8 +197,11 @@
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .seeAllBtn:hover {
   background: var(--sf-bg-surface-hover);
+}
 }
 
 @media (prefers-color-scheme: dark) {

@@ -63,9 +63,12 @@
   transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .deleteBtn:hover {
   background: var(--sf-error-bg);
   color: var(--sf-error);
+}
 }
 
 .deleteBtn:active {
@@ -124,8 +127,11 @@
   transition: box-shadow var(--sf-transition-fast), transform var(--sf-transition-fast), opacity var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .addBtn:hover:not(:disabled) {
   box-shadow: var(--sf-shadow-md);
+}
 }
 
 .addBtn:active:not(:disabled) {

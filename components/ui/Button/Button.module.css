@@ -69,8 +69,11 @@
   color: var(--sf-text-on-accent);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .primary:hover:not(:disabled) {
   background: var(--sf-accent-emerald-dark);
+}
 }
 
 .secondary {

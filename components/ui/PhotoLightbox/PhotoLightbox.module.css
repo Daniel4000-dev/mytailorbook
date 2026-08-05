@@ -45,6 +45,9 @@
   transition: opacity 250ms ease, background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .closeBtn:hover {
   background: rgba(255, 255, 255, 0.25);
+}
 }

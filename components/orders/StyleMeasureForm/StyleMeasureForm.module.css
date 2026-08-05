@@ -23,8 +23,11 @@
   transition: background-color var(--sf-transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .importBtn:hover {
   background: var(--sf-surface-container-highest);
+}
 }
 
 .measureList {

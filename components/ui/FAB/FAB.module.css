@@ -21,10 +21,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+@media (hover: hover) and (pointer: fine) {
+
 .fab:hover {
   transform: scale(1.05);
   background: var(--sf-accent-emerald-light);
   box-shadow: var(--sf-shadow-xl);
+}
 }
 
 .fab:active {
