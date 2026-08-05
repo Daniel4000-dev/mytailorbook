@@ -7,6 +7,7 @@ import { FaPlus } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
@@ -46,6 +47,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
+  const { preference } = useTheme();
+
   // The new-client wizard is a focused, transactional flow — global nav
   // and the create-FAB get out of its way (it brings its own action bar).
   const isTransactional = pathname === '/customers/new' || pathname === '/orders/new';
@@ -63,17 +66,21 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   }, [authLoading, needsOnboarding, router]);
 
   useEffect(() => {
-    const color = isMenuOpen ? '#ECECFB' : '#F8F8FE';
-    let meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute('name', 'theme-color');
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', color);
-    document.documentElement.style.backgroundColor = color;
+    const isDark = preference === 'dark' || (preference === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    
+    const color = isMenuOpen 
+      ? (isDark ? '#1B1A2B' : '#E9E8F0') 
+      : (isDark ? '#131220' : '#FFFFFF');
+      
+    const lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]');
+    const darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]');
+    
+    if (lightMeta) lightMeta.setAttribute('content', color);
+    if (darkMeta) darkMeta.setAttribute('content', color);
+    
+    document.documentElement.style.backgroundColor = '';
     document.body.style.backgroundColor = color;
-  }, [isMenuOpen]);
+  }, [isMenuOpen, preference]);
 
   if (isLoggingOut) {
     return <LogoutOverlay />;
