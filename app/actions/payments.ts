@@ -78,6 +78,7 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
   // price only has to be maintained in one place (the Paystack plan itself).
   const planResponse = await fetch(`https://api.paystack.co/plan/${PLAN_CODE}`, {
     headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+    cache: 'no-store',
   });
   const planData = await planResponse.json();
   if (!planResponse.ok || !planData.status) {

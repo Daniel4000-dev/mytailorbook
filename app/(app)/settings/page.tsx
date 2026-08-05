@@ -45,9 +45,11 @@ export default function SettingsPage() {
     const sheet = searchParams.get('sheet');
     if (sheet === 'plans') {
       setOpenSheet('plans');
-      router.replace('/settings', { scroll: false });
+      // Clean up URL without triggering Next.js router state updates
+      // which might interfere with subsequent navigation/Paystack checkout.
+      window.history.replaceState(null, '', '/settings');
     }
-  }, [searchParams, router]);
+  }, [searchParams]);
   const [cancelling, setCancelling] = useState(false);
   // Two honest steps, not one click: first what they'd actually lose
   // (their own real numbers, not a generic pitch), then — only if they
