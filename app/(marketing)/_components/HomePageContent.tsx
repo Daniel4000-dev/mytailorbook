@@ -8,45 +8,40 @@ import { useReveal, slideInLeft, slideInRight, popIn } from '@/lib/marketingMoti
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN } from '@/lib/subscription';
 import styles from './HomePageContent.module.css';
 
-const PAIN_POINTS = [
-  {
-    icon: 'sticky_note_2',
-    title: 'The "Measure Twice" Fatigue',
-    text: 'Stop re-measuring customers you already know. Digital client profiles save every measurement once, safe and searchable forever.',
-  },
-  {
-    icon: 'notification_important',
-    title: 'The "Any Update?" Call',
-    text: "Zero visibility breeds distrust. Give clients a public link to track their own order in real time — no more calls asking if it's ready.",
-  },
-  {
-    icon: 'payments',
-    title: 'Balances You Lose Track Of',
-    text: "Untracked payments cap what a workshop can grow into. Every order remembers what's owed, so nothing gets forgotten or shorted.",
-  },
+const STRUGGLES = [
+  { icon: 'auto_stories', text: 'Notebook' },
+  { icon: 'event_busy', text: 'Missed delivery dates' },
+  { icon: 'call', text: 'Excess phone calls' },
+  { icon: 'receipt_long', text: 'Untracked balances' },
+  { icon: 'straighten', text: 'Lost customer measurements' },
+  { icon: 'bar_chart', text: 'Have trouble pricing customers' },
+  { icon: 'warning', text: 'Send my money back o' },
 ];
 
-const FEATURES = [
+const HOW_IT_WORKS = [
+  { icon: 'person_add', step: 'Step 1', title: 'Add your customer' },
+  { icon: 'straighten', step: 'Step 2', title: 'Save measurements once' },
+  { icon: 'add_circle', step: 'Step 3', title: 'Create an order' },
+  { icon: 'view_kanban', step: 'Step 4', title: 'Track progress' },
+  { icon: 'notification_important', step: 'Step 5', title: 'Customer gets updates automatically' },
+];
+
+const BENEFITS = [
   {
-    icon: 'view_kanban',
-    kicker: 'Workflow',
-    title: 'A production board built for tailoring',
-    text: 'Move every order through your own stages — Documented, Cutting, Sewing, Ready, Completed — and see exactly where each garment stands at a glance.',
-    image: '/images/marketing/sewing-machine-hands.jpg',
+    icon: 'verified_user',
+    text: 'Avoid customer frustration and embarrassment.',
   },
   {
-    icon: 'straighten',
-    kicker: 'Management',
-    title: 'Digital client profiles, done properly',
-    text: 'Full measurement sets, preferred styles, and fabric notes for every customer — unlimited customers, forever, on every plan.',
-    image: '/images/marketing/measuring-hands.jpg',
+    icon: 'cloud_sync',
+    text: "Never lose a customer's measurement again.",
   },
   {
-    icon: 'share',
-    kicker: 'Customer Experience',
-    title: 'A tracking link your customers actually want',
-    text: 'Send a link over WhatsApp and let your customer follow their order as a photo timeline — no login, no app, no more "any update?" texts.',
-    image: '/images/marketing/hands-dark-fabric.jpg',
+    icon: 'event',
+    text: 'Know exactly which outfits are due today.',
+  },
+  {
+    icon: 'workspace_premium',
+    text: 'Look more professional and get paid faster.',
   },
 ];
 
@@ -55,7 +50,7 @@ export default function HomePageContent() {
 
   return (
     <div className={styles.page}>
-      {/* Hero — full-bleed editorial photo, headline overlaid directly on it */}
+      {/* Hero */}
       <section className={styles.hero}>
         <Image
           src="/images/marketing/hero-tailor-tablet.jpg"
@@ -72,31 +67,26 @@ export default function HomePageContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className={styles.heroEyebrow}>Bespoke Workshop Software</span>
           <h1 className={styles.heroHeadline}>
-            Manage orders, <span className={styles.heroHeadlineAccent}>measurements</span>, and clients.
+            All-in-one business App for tailors.
           </h1>
           <p className={styles.heroSubhead}>
-            The business and customer-relationship platform built for tailors and fashion designers across
-            Nigeria and Africa — run your production, keep every measurement on file, and give your own
-            customers a premium experience, all in one place.
+            Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app.
           </p>
           <div className={styles.heroActions}>
             <Link href="/signup" className={styles.ctaPrimary}>
-              Start Free — No Card Required
+              Start Free
               <Symbol name="arrow_forward" size={18} />
             </Link>
             <Link href="/portfolio-examples" className={styles.ctaSecondaryOnPhoto}>
               <Symbol name="visibility" size={18} />
-              See a Live Portfolio Example
+              Watch Demo
             </Link>
           </div>
         </motion.div>
       </section>
 
-      {/* Proof strip — real product screenshots, not mockups, floating just
-          below the hero photo the way the reference templates showcase
-          actual UI instead of describing it in prose. */}
+      {/* Proof strip */}
       <section className={styles.proofStrip}>
         {[
           { src: '/images/marketing/proof-production-board.jpg', label: 'Production board' },
@@ -116,82 +106,88 @@ export default function HomePageContent() {
         ))}
       </section>
 
-      {/* Pain points */}
+      {/* SECTION 1: Still running your business like this? */}
       <section className={styles.painSection}>
-        <motion.span className={styles.eyebrow} {...reveal()}>
-          The struggle is real
-        </motion.span>
-        <motion.h2 className={styles.sectionTitle} {...reveal(0.05)}>
-          Stop losing measurements to a notebook.
+        <motion.h2 className={styles.sectionTitle} {...reveal(0.05)} style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          Still running your business like this?
         </motion.h2>
-        <div className={styles.painGrid}>
-          {PAIN_POINTS.map((point, i) => (
-            <motion.div key={point.title} className={styles.painCard} {...reveal(0.1 + i * 0.1, popIn)}>
-              <Symbol name={point.icon} size={28} className={styles.painIcon} />
-              <h3>{point.title}</h3>
-              <p>{point.text}</p>
+        <div className={styles.painGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+          {STRUGGLES.map((point, i) => (
+            <motion.div key={point.text} className={styles.painCard} {...reveal(0.1 + i * 0.1, popIn)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+              <div style={{ marginBottom: '1rem', color: 'var(--sf-accent-rose)' }}>
+                <Symbol name={point.icon} size={36} className={styles.painIcon} />
+              </div>
+              <p style={{ fontWeight: 600, fontSize: '1.1rem', margin: 0 }}>{point.text}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Feature highlights */}
-      <section className={styles.featuresSection}>
-        {FEATURES.map((feature, i) => {
-          const reversed = i % 2 === 1;
-          return (
-            <div
-              key={feature.title}
-              className={`${styles.featureRow} ${reversed ? styles.featureRowReverse : ''}`}
-            >
-              <motion.div className={styles.featureText} {...reveal(0, reversed ? slideInRight : slideInLeft)}>
-                <span className={styles.eyebrow}>{feature.kicker}</span>
-                <h2 className={styles.featureTitle}>{feature.title}</h2>
-                <p className={styles.featureBody}>{feature.text}</p>
-              </motion.div>
-              <motion.div
-                className={styles.featureImageWrap}
-                {...reveal(0.1, reversed ? slideInLeft : slideInRight)}
-              >
-                <Image src={feature.image} alt="" width={800} height={600} className={styles.featureImage} />
-              </motion.div>
-            </div>
-          );
-        })}
-        <motion.div className={styles.featureLinkRow} {...reveal()}>
-          <Link href="/features" className={styles.featureLink}>
-            See every feature
-            <Symbol name="arrow_forward" size={16} />
-          </Link>
-        </motion.div>
+      {/* SECTION 2: How MyStitchBook Works */}
+      <section className={styles.featuresSection} style={{ padding: '6rem 2rem', background: 'var(--sf-surface-elevated)' }}>
+        <div className={styles.portfolioInner} style={{ textAlign: 'center', marginBottom: '4rem', width: '100%' }}>
+          <motion.h2 className={styles.sectionTitle} {...reveal(0.05)}>
+            How MyStitchBook Works
+          </motion.h2>
+        </div>
+        
+        <div className={styles.painGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+          {HOW_IT_WORKS.map((step, i) => (
+            <motion.div key={step.step} className={styles.painCard} {...reveal(0.1 + i * 0.1, popIn)} style={{ textAlign: 'center', background: 'var(--sf-surface-main)', padding: '2rem' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--sf-accent-emerald)', color: 'white', width: 56, height: 56, borderRadius: '50%', marginBottom: '1.5rem' }}>
+                <Symbol name={step.icon} size={28} />
+              </div>
+              <span className={styles.eyebrow} style={{ marginBottom: '0.75rem', display: 'block' }}>{step.step}</span>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{step.title}</h3>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
-      {/* Portfolio teaser — real screenshot, not just a text-on-color band */}
-      <section className={styles.portfolioSection}>
-        <div className={styles.portfolioInner}>
-          <motion.div {...reveal(0, slideInLeft)}>
-            <span className={styles.eyebrow}>Showcase</span>
-            <h2 className={styles.sectionTitle}>Your work deserves a stage.</h2>
-            <p className={styles.portfolioBody}>
-              Every shop gets a free public portfolio page — a beautiful, shareable showcase of your finished
-              work, built automatically from the orders you complete. Choose from three templates and make it
-              yours.
-            </p>
-            <Link href="/portfolio-examples" className={styles.ctaSecondaryDark}>
-              View Portfolio Templates
-              <Symbol name="arrow_forward" size={18} />
-            </Link>
-          </motion.div>
-          <motion.div className={styles.portfolioShotWrap} {...reveal(0.1, slideInRight)}>
-            <Image
-              src="/images/marketing/proof-public-portfolio.jpg"
-              alt=""
-              width={480}
-              height={600}
-              className={styles.portfolioShot}
-            />
-          </motion.div>
+      {/* SECTION 3: Benefits */}
+      <section className={styles.painSection} style={{ padding: '6rem 2rem' }}>
+        <motion.h2 className={styles.sectionTitle} {...reveal(0.05)} style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          Benefits
+        </motion.h2>
+        <div className={styles.painGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+          {BENEFITS.map((benefit, i) => (
+            <motion.div key={benefit.text} className={styles.painCard} {...reveal(0.1 + i * 0.1, popIn)} style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', textAlign: 'left', padding: '2rem' }}>
+              <div style={{ flexShrink: 0, width: 48, height: 48, borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--sf-accent-emerald)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Symbol name={benefit.icon} size={28} />
+              </div>
+              <p style={{ fontSize: '1.15rem', fontWeight: 500, lineHeight: 1.4, margin: 0 }}>{benefit.text}</p>
+            </motion.div>
+          ))}
         </div>
+      </section>
+
+      {/* SECTION 4: Trust */}
+      <section className={styles.portfolioSection} style={{ background: '#f8fafc', padding: '8rem 2rem', textAlign: 'center' }}>
+        <motion.div {...reveal(0, popIn)} style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 800, color: '#0f172a', marginBottom: '4rem', lineHeight: 1.1 }}>
+            Built for Nigerian Tailors <span style={{ fontSize: '1.2em', verticalAlign: 'middle' }}>🇳🇬</span>
+          </h2>
+          
+          <div style={{ background: 'white', padding: '3.5rem', borderRadius: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.06)' }}>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', gap: '4px', color: '#fbbf24' }}>
+                {[1,2,3,4,5].map(star => <Symbol key={star} name="star" size={28} />)}
+              </div>
+            </div>
+            <p style={{ fontSize: '1.75rem', fontStyle: 'italic', color: '#1e293b', lineHeight: 1.5, marginBottom: '3rem', fontWeight: 500 }}>
+              "MyStitchBook has completely transformed how I run my tailoring workshop. I no longer lose customer measurements or miss delivery dates. My customers are so impressed with the automatic updates they get!"
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--sf-accent-emerald-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sf-accent-emerald)', fontWeight: 'bold', fontSize: '1.5rem' }}>
+                AO
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#0f172a' }}>Adebayo O.</div>
+                <div style={{ color: '#64748b', fontSize: '1rem' }}>Creative Director, Adebayo Stitches</div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Pricing teaser */}
@@ -238,7 +234,7 @@ export default function HomePageContent() {
         </motion.div>
       </section>
 
-      {/* Final CTA — photo-backed close, bookending the hero's opening treatment */}
+      {/* Final CTA */}
       <section className={styles.finalCta}>
         <Image
           src="/images/marketing/home-final-cta-stitching.jpg"
@@ -254,7 +250,7 @@ export default function HomePageContent() {
             It takes less than two minutes to set up your shop. No card required for the free plan.
           </p>
           <Link href="/signup" className={styles.ctaPrimaryLight}>
-            Start Free — No Card Required
+            Start Free
             <Symbol name="arrow_forward" size={18} />
           </Link>
         </motion.div>
