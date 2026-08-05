@@ -33,6 +33,8 @@ import {
   upsertCustomStyleAction,
   renameCustomStyleEverywhereAction,
   getStaff,
+  deleteCustomerAction,
+  deleteOrderAction,
 } from '@/app/actions';
 
 const ACTIVE_BRANCH_COOKIE = 'mtb_active_branch';
@@ -75,6 +77,8 @@ interface DataContextValue {
     customerId: string,
     updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
   ) => Promise<void>;
+  deleteCustomer: (customerId: string) => Promise<{ error?: string; deletedOrderCount?: number }>;
+  deleteOrder: (orderId: string) => Promise<{ error?: string }>;
   getCustomerOrders: (customerId: string) => Order[];
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
@@ -265,14 +269,67 @@ export function DataProvider({ children }: { children: ReactNode }) {
       customerId: string,
       updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
     ) => {
-      if (!orgId) return;
+      if (!orgId || !data) return;
       const normalized = updates.whatsappNumber !== undefined
         ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
         : updates;
+      
+      const prevCustomers = data.customers;
+      mutate({ ...data, customers: data.customers.map((c) => (c.id === customerId ? { ...c, ...normalized } : c)) }, false);
+      
       const updated = await updateCustomerProfileAction(customerId, normalized, orgId);
-      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+      if (updated) {
+        mutate({ ...data, customers: data.customers.map((c) => (c.id === customerId ? { ...c, ...updated } : c)) }, false);
+      } else {
+        mutate({ ...data, customers: prevCustomers }, false);
+      }
     },
-    [orgId, mutate]
+    [data, mutate, orgId]
+  );
+
+  const deleteCustomer = useCallback(
+    async (customerId: string) => {
+      mutate(
+        (current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            customers: current.customers.filter((c) => c.id !== customerId),
+            orders: current.orders.filter((o) => o.customerId !== customerId),
+          };
+        },
+        { revalidate: false }
+      );
+
+      const result = await deleteCustomerAction(customerId);
+      if (result.error) {
+        mutate();
+      }
+      return result;
+    },
+    [mutate]
+  );
+
+  const deleteOrder = useCallback(
+    async (orderId: string) => {
+      mutate(
+        (current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            orders: current.orders.filter((o) => o.id !== orderId),
+          };
+        },
+        { revalidate: false }
+      );
+
+      const result = await deleteOrderAction(orderId);
+      if (result.error) {
+        mutate();
+      }
+      return result;
+    },
+    [mutate]
   );
 
   const findOrCreateCustomer = useCallback(
@@ -377,11 +434,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addOrderBatch,
       updateOrderStatus,
       updateOrder,
+      deleteOrder,
       addCustomer,
       updateCustomerMeasurements,
       updateCustomerStyleProfile,
       deleteCustomerStyleProfile,
       updateCustomerProfile,
+      deleteCustomer,
       getCustomerOrders,
       getOrdersByStatus,
       getOrdersByStaff,

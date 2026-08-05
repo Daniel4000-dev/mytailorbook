@@ -25,7 +25,7 @@ import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from
 import { APP_CONFIG } from '@/lib/config';
 import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
-import { getOrderCommentsAction, getBatchOrdersAction, deleteOrderAction } from '@/app/actions';
+import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
 import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
@@ -39,7 +39,7 @@ export default function OrderDetailPage() {
   const { user } = useAuth();
   const userRole = user?.role || 'Staff';
   const isOwnerView = isOwnerLikeRole(userRole);
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder } = useData();
   const { showToast } = useToast();
 
   const order = orders.find((o) => o.id === orderId) || null;
@@ -63,7 +63,7 @@ export default function OrderDetailPage() {
 
   const handleDeleteOrder = async () => {
     setDeletingOrder(true);
-    const { error } = await deleteOrderAction(orderId);
+    const { error } = await deleteOrder(orderId);
     if (error) {
       showToast(error, 'error');
       setDeletingOrder(false);

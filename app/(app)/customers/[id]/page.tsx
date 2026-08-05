@@ -24,7 +24,6 @@ import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import { deleteCustomerAction } from '@/app/actions';
 import type { Measurements, Customer, Order } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import CustomerDetailSkeleton from './_components/CustomerDetailSkeleton';
@@ -40,7 +39,7 @@ interface Point {
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const { isOwner, loading: authLoading } = useAuth();
-  const { customers, orders, isLoaded, updateCustomerMeasurements } = useData();
+  const { customers, orders, isLoaded, updateCustomerMeasurements, deleteCustomer } = useData();
 
   if (authLoading || !isLoaded) {
     return (
@@ -73,6 +72,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
       customer={customer}
       orders={orders}
       updateCustomerMeasurements={updateCustomerMeasurements}
+      deleteCustomer={deleteCustomer}
     />
   );
 }
@@ -81,10 +81,12 @@ function CustomerProfileContent({
   customer,
   orders,
   updateCustomerMeasurements,
+  deleteCustomer,
 }: {
   customer: Customer;
   orders: Order[];
   updateCustomerMeasurements: ReturnType<typeof useData>['updateCustomerMeasurements'];
+  deleteCustomer: ReturnType<typeof useData>['deleteCustomer'];
 }) {
   const { showToast } = useToast();
   const router = useRouter();
@@ -98,7 +100,7 @@ function CustomerProfileContent({
 
   const handleDeleteCustomer = async () => {
     setDeletingCustomer(true);
-    const { error } = await deleteCustomerAction(customer.id);
+    const { error } = await deleteCustomer(customer.id);
     if (error) {
       showToast(error, 'error');
       setDeletingCustomer(false);
