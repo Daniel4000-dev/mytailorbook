@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--sf-radius-full);
-  background: rgba(248, 248, 254, 0.85);
+  background: color-mix(in srgb, var(--sf-bg-primary) 85%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: var(--sf-text-primary);

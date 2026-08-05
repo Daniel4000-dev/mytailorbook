@@ -20,7 +20,7 @@
   align-items: center;
   padding: 8px var(--sf-margin-mobile);
   min-height: var(--sf-touch-target);
-  background: rgba(248, 248, 254, 0.9);
+  background: color-mix(in srgb, var(--sf-bg-primary) 90%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--sf-border-light);
@@ -440,7 +440,7 @@
 
 .photoCaption {
   padding: var(--sf-space-md);
-  background: rgba(248, 248, 254, 0.85);
+  background: color-mix(in srgb, var(--sf-bg-primary) 85%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--sf-border-light);

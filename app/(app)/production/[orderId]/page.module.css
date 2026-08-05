@@ -441,10 +441,10 @@
   left: 0;
   right: 0;
   padding: var(--sf-space-sm);
-  background: rgba(248, 248, 254, 0.72);
+  background: color-mix(in srgb, var(--sf-bg-primary) 72%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1px solid var(--sf-border-light);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
