@@ -17,31 +17,20 @@ function updateMetaThemeColor(pref: ThemePreference | null) {
   const lightColor = '#FFFFFF';
   const darkColor = '#131220';
   
-  let lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]') as HTMLMetaElement;
-  let darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]') as HTMLMetaElement;
+  const lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]') as HTMLMetaElement | null;
+  const darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]') as HTMLMetaElement | null;
   
-  if (!lightMeta) {
-    lightMeta = document.createElement('meta');
-    lightMeta.name = 'theme-color';
-    lightMeta.media = '(prefers-color-scheme: light)';
-    document.head.appendChild(lightMeta);
-  }
-  if (!darkMeta) {
-    darkMeta = document.createElement('meta');
-    darkMeta.name = 'theme-color';
-    darkMeta.media = '(prefers-color-scheme: dark)';
-    document.head.appendChild(darkMeta);
-  }
-
-  if (pref === 'light') {
-    lightMeta.content = lightColor;
-    darkMeta.content = lightColor;
-  } else if (pref === 'dark') {
-    lightMeta.content = darkColor;
-    darkMeta.content = darkColor;
-  } else {
-    lightMeta.content = lightColor;
-    darkMeta.content = darkColor;
+  if (lightMeta && darkMeta) {
+    if (pref === 'light') {
+      lightMeta.content = lightColor;
+      darkMeta.content = lightColor;
+    } else if (pref === 'dark') {
+      lightMeta.content = darkColor;
+      darkMeta.content = darkColor;
+    } else {
+      lightMeta.content = lightColor;
+      darkMeta.content = darkColor;
+    }
   }
 }
 
@@ -97,26 +86,26 @@ export const THEME_ANTI_FLASH_SCRIPT = `
 (function() {
   try {
     var pref = localStorage.getItem('${STORAGE_KEY}');
-    var lightMeta = document.createElement('meta');
-    lightMeta.name = 'theme-color';
-    lightMeta.media = '(prefers-color-scheme: light)';
-    var darkMeta = document.createElement('meta');
-    darkMeta.name = 'theme-color';
-    darkMeta.media = '(prefers-color-scheme: dark)';
-    document.head.appendChild(lightMeta);
-    document.head.appendChild(darkMeta);
+    var lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]');
+    var darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]');
     
     if (pref === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
-      lightMeta.content = '#FFFFFF';
-      darkMeta.content = '#FFFFFF';
+      if (lightMeta && darkMeta) {
+        lightMeta.content = '#FFFFFF';
+        darkMeta.content = '#FFFFFF';
+      }
     } else if (pref === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
-      lightMeta.content = '#131220';
-      darkMeta.content = '#131220';
+      if (lightMeta && darkMeta) {
+        lightMeta.content = '#131220';
+        darkMeta.content = '#131220';
+      }
     } else {
-      lightMeta.content = '#FFFFFF';
-      darkMeta.content = '#131220';
+      if (lightMeta && darkMeta) {
+        lightMeta.content = '#FFFFFF';
+        darkMeta.content = '#131220';
+      }
     }
   } catch (e) {}
 })();

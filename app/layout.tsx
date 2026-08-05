@@ -50,6 +50,10 @@ export const viewport: Viewport = {
   // Lighthouse) and genuinely blocks low-vision users from zooming in
   // anywhere in the app, not just this page. Letting the browser's normal
   // zoom behavior through is the accessible default.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
+    { media: '(prefers-color-scheme: dark)', color: '#131220' },
+  ],
 };
 
 export default function RootLayout({
