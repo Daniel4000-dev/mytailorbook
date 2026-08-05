@@ -291,10 +291,10 @@
   left: 0;
   width: 100%;
   padding: var(--sf-space-md) var(--sf-margin-mobile) calc(var(--sf-space-xl) + var(--sf-safe-area-bottom));
-  background: linear-gradient(145deg, rgba(248, 248, 254, 0.75) 0%, rgba(248, 248, 254, 0.4) 100%);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--sf-bg-primary) 85%, transparent) 0%, color-mix(in srgb, var(--sf-bg-primary) 60%, transparent) 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1px solid var(--sf-border-light);
   z-index: var(--sf-z-sticky);
 }
 
