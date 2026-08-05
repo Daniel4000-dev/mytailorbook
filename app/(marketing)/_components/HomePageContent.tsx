@@ -45,6 +45,30 @@ const BENEFITS = [
   },
 ];
 
+const FEATURES = [
+  {
+    icon: 'view_kanban',
+    kicker: 'Workflow',
+    title: 'A production board built for tailoring',
+    text: 'Move every order through your own stages — Documented, Cutting, Sewing, Ready, Completed — and see exactly where each garment stands at a glance.',
+    image: '/images/marketing/sewing-machine-hands.jpg',
+  },
+  {
+    icon: 'straighten',
+    kicker: 'Management',
+    title: 'Digital client profiles, done properly',
+    text: 'Full measurement sets, preferred styles, and fabric notes for every customer — unlimited customers, forever, on every plan.',
+    image: '/images/marketing/measuring-hands.jpg',
+  },
+  {
+    icon: 'share',
+    kicker: 'Customer Experience',
+    title: 'A tracking link your customers actually want',
+    text: 'Send a link over WhatsApp and let your customer follow their order as a photo timeline — no login, no app, no more "any update?" texts.',
+    image: '/images/marketing/hands-dark-fabric.jpg',
+  },
+];
+
 export default function HomePageContent() {
   const reveal = useReveal();
 
@@ -142,6 +166,37 @@ export default function HomePageContent() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* Feature highlights (Restored) */}
+      <section className={styles.featuresSection}>
+        {FEATURES.map((feature, i) => {
+          const reversed = i % 2 === 1;
+          return (
+            <div
+              key={feature.title}
+              className={`${styles.featureRow} ${reversed ? styles.featureRowReverse : ''}`}
+            >
+              <motion.div className={styles.featureText} {...reveal(0, reversed ? slideInRight : slideInLeft)}>
+                <span className={styles.eyebrow}>{feature.kicker}</span>
+                <h2 className={styles.featureTitle}>{feature.title}</h2>
+                <p className={styles.featureBody}>{feature.text}</p>
+              </motion.div>
+              <motion.div
+                className={styles.featureImageWrap}
+                {...reveal(0.1, reversed ? slideInLeft : slideInRight)}
+              >
+                <Image src={feature.image} alt="" width={800} height={600} className={styles.featureImage} />
+              </motion.div>
+            </div>
+          );
+        })}
+        <motion.div className={styles.featureLinkRow} {...reveal()}>
+          <Link href="/features" className={styles.featureLink}>
+            See every feature
+            <Symbol name="arrow_forward" size={16} />
+          </Link>
+        </motion.div>
       </section>
 
       {/* SECTION 3: Benefits */}
