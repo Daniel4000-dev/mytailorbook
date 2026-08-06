@@ -3,23 +3,23 @@ import { APP_CONFIG } from '@/lib/config';
 import HomePageContent from './_components/HomePageContent';
 
 export const metadata: Metadata = {
-  title: `${APP_CONFIG.name} — Business Management & Customer Experience for Tailors`,
+  title: `${APP_CONFIG.name} — All-in-one business App for tailors`,
   description:
-    'Run your tailoring business and delight your customers in one place — unlimited customers and custom styles, a production board, public order tracking, and a free portfolio page. Free forever, no card required.',
+    'Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app. Free forever, no card required.',
   robots: { index: true, follow: true },
   alternates: { canonical: '/' },
   openGraph: {
-    title: `${APP_CONFIG.name} — Manage orders, measurements, and clients.`,
+    title: `${APP_CONFIG.name} — All-in-one business App for tailors`,
     description:
-      'The business and customer-relationship platform built for tailors and fashion designers across Nigeria and Africa.',
+      'Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app.',
     type: 'website',
     images: [{ url: '/images/marketing/hero-tailor-tablet.jpg' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${APP_CONFIG.name} — Manage orders, measurements, and clients.`,
+    title: `${APP_CONFIG.name} — All-in-one business App for tailors`,
     description:
-      'The business and customer-relationship platform built for tailors and fashion designers across Nigeria and Africa.',
+      'Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app.',
     images: ['/images/marketing/hero-tailor-tablet.jpg'],
   },
 };

@@ -10,9 +10,9 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${APP_CONFIG.domain}`),
-  title: `${APP_CONFIG.name} — Fashion Studio Workspace`,
+  title: `${APP_CONFIG.name} — All-in-one business App for tailors`,
   description:
-    'Premium workspace for managing orders, production, and clients in your fashion design studio.',
+    'Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app.',
   // Almost every route here is either auth-gated or a private-by-link
   // customer page (tracking/receipt) — default to noindex and let the
   // few genuinely public pages (portfolio, privacy) opt back in
