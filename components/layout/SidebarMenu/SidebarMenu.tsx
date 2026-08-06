@@ -18,13 +18,6 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './SidebarMenu.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
-const ICON_MAP: Record<string, React.ReactNode> = {
-  FaHouse: <FaHouse className={styles.menuIcon} />,
-  FaTableColumns: <FaTableColumns className={styles.menuIcon} />,
-  FaUsers: <Symbol name="group" className={styles.menuIcon} />,
-  FaGear: <FaGear className={styles.menuIcon} />,
-};
-
 export default function SidebarMenu() {
   const { logout, isOwner, loading: authLoading } = useAuth();
   const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
@@ -57,7 +50,7 @@ export default function SidebarMenu() {
         {/* Mobile Top Row (Profile Avatar and Close Button) */}
         <div className={styles.mobileTopRow}>
           <CircleIconButton 
-            icon={<FaRegUser className={styles.iconUser} />} 
+            icon={<Symbol name="person" className={styles.iconUser} />} 
             onClick={() => setShowProfile(true)} 
             ariaLabel="Profile Settings"
           />
@@ -120,7 +113,7 @@ export default function SidebarMenu() {
         onClick={toggleCollapse}
         aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
       >
-        {isCollapsed ? <Symbol name="chevron_right" /> : <FaChevronLeft />}
+        <Symbol name={isCollapsed ? "chevron_right" : "chevron_left"} />
       </button>
 
       {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
@@ -134,7 +127,7 @@ export default function SidebarMenu() {
             className={styles.menuItem}
             onClick={() => setMenuOpen(false)}
           >
-            <FaRegHeart className={styles.menuIcon} />
+            <Symbol name="favorite" className={styles.menuIcon} />
             <span className={styles.menuText}>My Portfolio</span>
           </Link>
           <Link
@@ -142,7 +135,7 @@ export default function SidebarMenu() {
             className={styles.menuItem}
             onClick={() => setMenuOpen(false)}
           >
-            <FaImages className={styles.menuIcon} />
+            <Symbol name="photo_library" className={styles.menuIcon} />
             <span className={styles.menuText}>Style Gallery</span>
           </Link>
         </div>
@@ -160,7 +153,7 @@ export default function SidebarMenu() {
               onClick={() => setMenuOpen(false)}
               title={isCollapsed ? item.label : undefined}
             >
-              {ICON_MAP[item.icon]}
+              <Symbol name={item.icon} className={styles.menuIcon} />
               <span className={styles.menuText}>{item.label}</span>
             </Link>
           );
@@ -173,7 +166,7 @@ export default function SidebarMenu() {
             className={styles.menuItem}
             title={isCollapsed ? 'My Portfolio' : undefined}
           >
-            <FaRegHeart className={styles.menuIcon} />
+            <Symbol name="favorite" className={styles.menuIcon} />
             <span className={styles.menuText}>My Portfolio</span>
           </Link>
         )}
@@ -183,7 +176,7 @@ export default function SidebarMenu() {
             className={styles.menuItem}
             title={isCollapsed ? 'Style Gallery' : undefined}
           >
-            <FaImages className={styles.menuIcon} />
+            <Symbol name="photo_library" className={styles.menuIcon} />
             <span className={styles.menuText}>Style Gallery</span>
           </Link>
         )}
@@ -196,7 +189,7 @@ export default function SidebarMenu() {
           onClick={handleLogout}
           title={isCollapsed ? "Logout" : undefined}
         >
-          <FaArrowRightFromBracket className={styles.logoutIcon} />
+          <Symbol name="logout" className={styles.logoutIcon} />
           <span className={styles.logoutText}>Logout</span>
         </button>
       </div>
@@ -230,7 +223,7 @@ export default function SidebarMenu() {
               cursor: 'pointer'
             }}
           >
-            <FaArrowRightFromBracket />
+            <Symbol name="logout" />
             Logout
           </button>
 

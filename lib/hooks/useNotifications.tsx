@@ -2,7 +2,6 @@
 
 import { useMemo } from 'react';
 import useSWR from 'swr';
-import { FaFireFlameCurved, FaClock, FaBoxOpen, FaSackDollar } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
@@ -21,7 +20,7 @@ const STAGE_ICON: Record<OrderStatus, React.ReactNode> = {
   Cutting: <Symbol name="content_cut" />,
   Sewing: <Symbol name="settings" />,
   Ready: <Symbol name="check_circle" />,
-  Completed: <FaBoxOpen />,
+  Completed: <Symbol name="inventory_2" />,
 };
 
 export interface NotificationItem {
@@ -83,7 +82,7 @@ export function useNotifications() {
       } else if (isDueToday(o)) {
         items.push({
           id: `due-${o.id}`,
-          icon: <FaClock />,
+          icon: <Symbol name="schedule" />,
           tone: 'warning',
           title: `${o.customerName}'s order is due today`,
           subtitle: `Status: ${o.status}`,
@@ -93,7 +92,7 @@ export function useNotifications() {
       } else if (o.priority === 'rush' || o.priority === 'urgent') {
         items.push({
           id: `rush-${o.id}`,
-          icon: <FaFireFlameCurved />,
+          icon: <Symbol name="local_fire_department" />,
           tone: 'alert',
           title: `${o.customerName}'s order is marked ${o.priority === 'rush' ? 'Rush' : 'Urgent'}`,
           subtitle: `Status: ${o.status}`,
@@ -172,7 +171,7 @@ export function useNotifications() {
       if (lastPayment && new Date(lastPayment.timestamp).getTime() >= threeDaysAgo) {
         items.push({
           id: `payment-${o.id}-${lastPayment.id}`,
-          icon: <FaSackDollar />,
+          icon: <Symbol name="payments" />,
           tone: 'info',
           title: `Payment recorded for ${o.customerName}'s order`,
           subtitle: `${formatCurrency(lastPayment.amount)} — by ${lastPayment.recordedByName}`,
