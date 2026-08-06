@@ -72,19 +72,19 @@ export const PRIORITY_CONFIG: Record<
     color: 'var(--sf-text-secondary)',
     bgColor: 'transparent',
     label: 'Normal',
-    icon: 'FaMinus',
+    icon: 'remove',
   },
   urgent: {
     color: 'var(--sf-warning)',
     bgColor: 'var(--sf-warning-bg)',
     label: 'Urgent',
-    icon: 'FaExclamation',
+    icon: 'error',
   },
   rush: {
     color: 'var(--sf-error)',
     bgColor: 'var(--sf-error-bg)',
     label: 'Rush',
-    icon: 'FaFireFlameCurved',
+    icon: 'local_fire_department',
   },
 };
 

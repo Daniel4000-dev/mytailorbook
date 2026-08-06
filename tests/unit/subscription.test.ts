@@ -139,7 +139,7 @@ describe('checkOrderQuota', () => {
     expect(result.allowed).toBe(false);
   });
 
-  it('treats past_due the same as free — capped, not unlimited', async () => {
+  it('treats past_due the same as active — unlimited', async () => {
     const client = makeFakeClient({
       shops: [
         { data: { org_id: 'org-1' }, error: null },
@@ -149,7 +149,7 @@ describe('checkOrderQuota', () => {
       orders: [{ count: 15, error: null }],
     });
     const result = await checkOrderQuota(client, 'shop-1');
-    expect(result.allowed).toBe(false);
+    expect(result.allowed).toBe(true);
   });
 });
 
