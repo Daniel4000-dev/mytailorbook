@@ -90,7 +90,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     if (!order) return;
     const next = getNextStatus(order.status);
     if (!next) return;
-    await updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
+    updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
     showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success', {
       label: 'Undo',
       onClick: () => {
@@ -103,7 +103,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
     const prev = getPreviousStatus(order.status);
-    if (prev) await updateOrderStatus(orderId, prev, user?.uid || '', user?.name || '');
+    if (prev) updateOrderStatus(orderId, prev, user?.uid || '', user?.name || '');
   }, [orders, updateOrderStatus, user]);
 
   // Desktop Kanban columns: drop onto any column to set that status
@@ -117,7 +117,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     const order = orders.find((o) => o.id === orderId);
     if (!order || order.status === targetStatus) return;
     const fromStatus = order.status;
-    await updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
+    updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
     showToast(`Moved to ${STATUS_CONFIG[targetStatus].label}`, 'success', {
       label: 'Undo',
       onClick: () => {
@@ -129,7 +129,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const handleReassign = useCallback(async (orderId: string, staffUid: string, staffName: string) => {
     // '' rather than undefined for unassigning — the update mapper treats
     // undefined as "leave unchanged", so undefined would silently no-op.
-    await updateOrder(orderId, {
+    updateOrder(orderId, {
       assignedTo: staffUid,
       assignedToName: staffUid ? staffName : '',
     });

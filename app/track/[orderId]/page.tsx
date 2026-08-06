@@ -214,7 +214,18 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <ReminderButton orderId={order.id} initialLastReminderAt={order.lastReminderAt} />
         )}
 
-
+        {/* Promotional CTA */}
+        <section className={styles.ctaCard}>
+          <Symbol name="auto_awesome" size={32} className={styles.ctaIcon} />
+          <h3 className={styles.ctaTitle}>Are you a tailor?</h3>
+          <p className={styles.ctaText}>
+            Give your own customers this exact world-class tracking experience. Manage orders, sizes, and payments effortlessly.
+          </p>
+          <a href="https://www.mystitchbooks.com" target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
+            Get MyStitchBook
+            <Symbol name="arrow_forward" size={16} />
+          </a>
+        </section>
       </main>
 
       {shop?.subscriptionStatus !== 'active' && (

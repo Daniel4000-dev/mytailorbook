@@ -153,7 +153,7 @@ export default function OrderDetailPage() {
     if (!next) return;
     setAdvancing(true);
     try {
-      await updateOrderStatus(order.id, next, user?.uid || '', user?.name || '');
+      updateOrderStatus(order.id, next, user?.uid || '', user?.name || '');
       showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success');
     } finally {
       setAdvancing(false);
@@ -164,7 +164,7 @@ export default function OrderDetailPage() {
     if (notesDraft === null || notesDraft.trim() === '') return;
     setSavingNotes(true);
     try {
-      await updateOrder(order.id, { orderDetails: notesDraft.trim() });
+      updateOrder(order.id, { orderDetails: notesDraft.trim() });
       setNotesDraft(null);
       showToast('Order notes saved', 'success');
     } finally {
@@ -187,7 +187,7 @@ export default function OrderDetailPage() {
     setSavingEdit(true);
     try {
       const assignee = staffMembers.find((s) => s.uid === editAssignedTo);
-      await updateOrder(order.id, {
+      updateOrder(order.id, {
         // Pass '' rather than undefined for "cleared" fields — the update
         // mapper treats undefined as "leave unchanged", so undefined here
         // would silently fail to actually clear the due date/assignee.

@@ -90,6 +90,8 @@ interface DataContextValue {
   renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
 }
 
+
+
 const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: ReactNode }) {
@@ -209,8 +211,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
       if (!activeBranchId) return;
-      const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
-      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
+      await mutate(
+        async (current) => {
+          if (!current) return current;
+          const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
+          return { ...current, orders: updated };
+        },
+        {
+          optimisticData: (current) => {
+            const state = current || EMPTY_BUNDLE;
+            return {
+              ...state,
+              orders: state.orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
+            };
+          },
+          rollbackOnError: true,
+          revalidate: false,
+        }
+      );
     },
     [activeBranchId, mutate]
   );
@@ -218,8 +236,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
       if (!activeBranchId) return;
-      const updated = await updateOrderAction(orderId, updates, activeBranchId);
-      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
+      await mutate(
+        async (current) => {
+          if (!current) return current;
+          const updated = await updateOrderAction(orderId, updates, activeBranchId);
+          return { ...current, orders: updated };
+        },
+        {
+          optimisticData: (current) => {
+            const state = current || EMPTY_BUNDLE;
+            return {
+              ...state,
+              orders: state.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
+            };
+          },
+          rollbackOnError: true,
+          revalidate: false,
+        }
+      );
     },
     [activeBranchId, mutate]
   );
@@ -240,8 +274,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
       if (!orgId) return;
-      const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
-      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+      await mutate(
+        async (current) => {
+          if (!current) return current;
+          const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
+          return { ...current, customers: updated };
+        },
+        {
+          optimisticData: (current) => {
+            const state = current || EMPTY_BUNDLE;
+            return {
+              ...state,
+              customers: state.customers.map((c) =>
+                c.id === customerId ? { ...c, measurements: { ...c.measurements, ...measurements } } : c
+              ),
+            };
+          },
+          rollbackOnError: true,
+          revalidate: false,
+        }
+      );
     },
     [orgId, mutate]
   );
@@ -249,8 +301,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string, measurements: Measurements) => {
       if (!orgId) return;
-      const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, orgId);
-      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+      await mutate(
+        async (current) => {
+          if (!current) return current;
+          const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, orgId);
+          return { ...current, customers: updated };
+        },
+        {
+          optimisticData: (current) => {
+            const state = current || EMPTY_BUNDLE;
+            return {
+              ...state,
+              customers: state.customers.map((c) => {
+                if (c.id !== customerId) return c;
+                return {
+                  ...c,
+                  styleMeasurements: {
+                    ...(c.styleMeasurements || {}),
+                    [styleName]: { ...((c.styleMeasurements || {})[styleName] || {}), ...measurements },
+                  },
+                };
+              }),
+            };
+          },
+          rollbackOnError: true,
+          revalidate: false,
+        }
+      );
     },
     [orgId, mutate]
   );
@@ -258,8 +335,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string) => {
       if (!orgId) return;
-      const updated = await deleteCustomerStyleProfileAction(customerId, styleName, orgId);
-      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+      await mutate(
+        async (current) => {
+          if (!current) return current;
+          const updated = await deleteCustomerStyleProfileAction(customerId, styleName, orgId);
+          return { ...current, customers: updated };
+        },
+        {
+          optimisticData: (current) => {
+            const state = current || EMPTY_BUNDLE;
+            return {
+              ...state,
+              customers: state.customers.map((c) => {
+                if (c.id !== customerId) return c;
+                const newProfiles = { ...(c.styleMeasurements || {}) };
+                delete newProfiles[styleName];
+                return { ...c, styleMeasurements: newProfiles };
+              }),
+            };
+          },
+          rollbackOnError: true,
+          revalidate: false,
+        }
+      );
     },
     [orgId, mutate]
   );
@@ -270,24 +368,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
     ) => {
       if (!orgId) return;
-      const normalized = updates.whatsappNumber !== undefined
-        ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
-        : updates;
-      
-      mutate(
-        (current) => (current ? { ...current, customers: current.customers.map((c) => (c.id === customerId ? { ...c, ...normalized } : c)) } : current),
-        { revalidate: false }
-      );
-      
-      const updated = await updateCustomerProfileAction(customerId, normalized, orgId);
-      if (updated) {
-        mutate(
-          (current) => (current ? { ...current, customers: current.customers.map((c) => (c.id === customerId ? { ...c, ...updated } : c)) } : current),
-          { revalidate: false }
-        );
-      } else {
-        mutate();
-      }
+      const normalized =
+        updates.whatsappNumber !== undefined
+          ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
+          : updates;
+
+      await mutate(
+        async (current) => {
+          if (!current) return current;
+          const updated = await updateCustomerProfileAction(customerId, normalized, orgId);
+          if (updated) {
+            return {
+              ...current,
+              customers: current.customers.map((c) => (c.id === customerId ? { ...c, ...updated } : c)),
+            };
+          }
+          return current; // if update fails and doesn't throw, we could trigger a revalidate, but rollbackOnError expects a throw.
+        },
+        {
+          optimisticData: (current) => {
+            const state = current || EMPTY_BUNDLE;
+            return {
+              ...state,
+              customers: state.customers.map((c) => (c.id === customerId ? { ...c, ...normalized } : c)),
+            };
+          },
+          rollbackOnError: true,
+          revalidate: false,
+        }
+      ).catch(() => mutate()); // Revalidate if action throws
     },
     [mutate, orgId]
   );
@@ -296,11 +405,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (customerId: string) => {
       mutate(
         (current) => {
-          if (!current) return current;
+          const state = current || EMPTY_BUNDLE;
           return {
-            ...current,
-            customers: current.customers.filter((c) => c.id !== customerId),
-            orders: current.orders.filter((o) => o.customerId !== customerId),
+            ...state,
+            customers: state.customers.filter((c) => c.id !== customerId),
+            orders: state.orders.filter((o) => o.customerId !== customerId),
           };
         },
         { revalidate: false }
@@ -319,10 +428,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (orderId: string) => {
       mutate(
         (current) => {
-          if (!current) return current;
+          const state = current || EMPTY_BUNDLE;
           return {
-            ...current,
-            orders: current.orders.filter((o) => o.id !== orderId),
+            ...state,
+            orders: state.orders.filter((o) => o.id !== orderId),
           };
         },
         { revalidate: false }

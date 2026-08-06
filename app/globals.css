@@ -100,6 +100,14 @@ select {
   outline: none;
 }
 
+@supports (-webkit-touch-callout: none) {
+  /* Prevent iOS Safari from auto-zooming on focus by enforcing >=16px text. 
+     This is the accessible alternative to user-scalable=no. */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--sf-text-tertiary);
