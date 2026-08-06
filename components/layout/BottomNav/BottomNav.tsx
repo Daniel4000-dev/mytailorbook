@@ -7,14 +7,6 @@ import { NAV_ITEMS } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './BottomNav.module.css';
 
-/** NAV_ITEMS icon keys → Material Symbols names (new design icon set). */
-const SYMBOL_MAP: Record<string, string> = {
-  FaHouse: 'dashboard',
-  FaTableColumns: 'precision_manufacturing',
-  FaUsers: 'group',
-  FaGear: 'settings',
-};
-
 /** Must be a descendant of <Link> — useLinkStatus only reports the pending
  *  state of whichever Link it's nested inside. Highlighting on `pending`
  *  (not just the matched pathname) makes the tap feel instant instead of
@@ -49,7 +41,7 @@ export default function BottomNav() {
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
         return (
           <Link key={item.href} href={item.href} className={styles.linkReset}>
-            <NavItemContent icon={SYMBOL_MAP[item.icon] || 'circle'} label={item.label} isActive={isActive} />
+            <NavItemContent icon={item.icon} label={item.label} isActive={isActive} />
           </Link>
         );
       })}
