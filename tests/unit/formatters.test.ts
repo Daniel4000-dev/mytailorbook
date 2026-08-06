@@ -56,22 +56,30 @@ describe('formatPhone', () => {
     expect(formatPhone('08012345678')).toBe('+234 801 234 5678');
   });
 
-  it('falls back to a bare +prefix for a too-short number', () => {
-    expect(formatPhone('123')).toBe('+234123');
+  it('falls back to a bare +prefix for a generic number', () => {
+    expect(formatPhone('+447700900000')).toBe('+447700900000');
   });
 });
 
 describe('isValidPhone', () => {
-  it('accepts a valid 13-digit normalized Nigerian number', () => {
+  it('returns true for a properly formatted Nigerian number', () => {
     expect(isValidPhone('08012345678')).toBe(true);
   });
 
-  it('rejects a number that is too short', () => {
-    expect(isValidPhone('080123')).toBe(false);
+  it('returns true for an international number', () => {
+    expect(isValidPhone('+447700900000')).toBe(true);
   });
 
-  it('rejects a number with the wrong country prefix', () => {
-    expect(isValidPhone('14155552671')).toBe(false);
+  it('returns false for an empty string', () => {
+    expect(isValidPhone('')).toBe(false);
+  });
+
+  it('rejects a number that is too short', () => {
+    expect(isValidPhone('123')).toBe(false);
+  });
+
+  it('accepts a number with a different country prefix', () => {
+    expect(isValidPhone('14155552671')).toBe(true);
   });
 });
 

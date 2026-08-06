@@ -37,10 +37,17 @@ export function formatNumber(amount: number): string {
  * Example: "08012345678" → "2348012345678"
  */
 export function normalizePhone(phone: string): string {
+  if (!phone) return '';
+  const isExplicitInternational = phone.startsWith('+');
   let cleaned = phone.replace(/\D/g, '');
+  
+  if (isExplicitInternational) {
+    return cleaned;
+  }
+
   if (cleaned.startsWith('0')) {
     cleaned = PHONE_PREFIX + cleaned.slice(1);
-  } else if (!cleaned.startsWith(PHONE_PREFIX)) {
+  } else if (cleaned.length === 10 && !cleaned.startsWith(PHONE_PREFIX)) {
     cleaned = PHONE_PREFIX + cleaned;
   }
   return cleaned;
@@ -51,9 +58,15 @@ export function normalizePhone(phone: string): string {
  * Example: "2348012345678" → "+234 801 234 5678"
  */
 export function formatPhone(phone: string): string {
+  if (!phone) return '';
   const normalized = normalizePhone(phone);
-  if (normalized.length < 13) return `+${normalized}`;
-  return `+${normalized.slice(0, 3)} ${normalized.slice(3, 6)} ${normalized.slice(6, 9)} ${normalized.slice(9)}`;
+  
+  if (normalized.startsWith('234') && normalized.length === 13) {
+    return `+${normalized.slice(0, 3)} ${normalized.slice(3, 6)} ${normalized.slice(6, 9)} ${normalized.slice(9)}`;
+  }
+  
+  // Generic international fallback format
+  return `+${normalized}`;
 }
 
 /**
@@ -61,7 +74,7 @@ export function formatPhone(phone: string): string {
  */
 export function isValidPhone(phone: string): boolean {
   const normalized = normalizePhone(phone);
-  return normalized.length === 13 && normalized.startsWith(PHONE_PREFIX);
+  return normalized.length >= 7 && normalized.length <= 15;
 }
 
 /**

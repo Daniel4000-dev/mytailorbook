@@ -10,6 +10,7 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import type { Customer } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import styles from './EditCustomerSheet.module.css';
 
 interface EditCustomerSheetProps {
@@ -25,7 +26,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(customer.fullName);
-  const [phone, setPhone] = useState(formatPhone(customer.whatsappNumber).replace(/^\+?234\s?/, ''));
+  const [phone, setPhone] = useState(formatPhone(customer.whatsappNumber));
   const [gender, setGender] = useState(customer.gender);
   const [address, setAddress] = useState(customer.address || '');
   const [styleSet, setStyleSet] = useState<string[]>(customer.preferredStyles || []);
@@ -45,7 +46,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   if (isOpen && openId !== prevOpenId) {
     setPrevOpenId(openId);
     setFullName(customer.fullName);
-    setPhone(formatPhone(customer.whatsappNumber).replace(/^\+?234\s?/, ''));
+    setPhone(formatPhone(customer.whatsappNumber));
     setGender(customer.gender);
     setAddress(customer.address || '');
     setStyleSet(customer.preferredStyles || []);
@@ -76,7 +77,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       return;
     }
     if (!isValidPhone(phone)) {
-      setError('Enter a valid Nigerian phone number.');
+      setError('Enter a valid phone number.');
       return;
     }
     setSaving(true);
@@ -124,16 +125,11 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
 
         <div className={styles.field}>
           <label className={styles.capsLabel} htmlFor="edit-phone">Phone Number (WhatsApp)</label>
-          <div className={styles.phoneRow}>
-            <span className={styles.phonePrefix}>🇳🇬 +234</span>
-            <input
-              id="edit-phone"
-              type="tel"
-              className={`${styles.input} ${styles.phoneInput}`}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
+          <PhoneInput
+            id="edit-phone"
+            value={phone}
+            onChange={setPhone}
+          />
         </div>
 
         {FEATURE_FLAGS.customerAddress && (

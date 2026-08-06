@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -12,6 +12,7 @@ import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPort
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { trackEvent } from '@/lib/analytics';
 import { customerSchema, type CustomerInput } from '@/lib/validations';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import styles from './page.module.css';
 
 import { GARMENT_STYLES } from '@/lib/constants';
@@ -25,6 +26,7 @@ export default function NewClientPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
@@ -142,16 +144,17 @@ export default function NewClientPage() {
 
             <div className={styles.field}>
               <label className={styles.capsLabel} htmlFor="phone">Phone Number (WhatsApp)</label>
-              <div className={styles.phoneRow}>
-                <span className={styles.phonePrefix}>🇳🇬 +234</span>
-                <input
-                  id="phone"
-                  type="tel"
-                  className={`${styles.input} ${styles.phoneInput}`}
-                  placeholder="803 000 0000"
-                  {...register('phone')}
-                />
-              </div>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="phone"
+                    placeholder="803 000 0000"
+                    {...field}
+                  />
+                )}
+              />
               {errors.phone && <div className={styles.errorText}>{errors.phone.message}</div>}
             </div>
 
