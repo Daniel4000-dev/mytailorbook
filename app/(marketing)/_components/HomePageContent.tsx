@@ -220,7 +220,7 @@ export default function HomePageContent() {
       <section className={styles.portfolioSection} style={{ background: '#f8fafc', padding: '8rem 2rem', textAlign: 'center' }}>
         <motion.div {...reveal(0, popIn)} style={{ maxWidth: '900px', margin: '0 auto' }}>
           <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 800, color: '#0f172a', marginBottom: '4rem', lineHeight: 1.1 }}>
-            Built for Nigerian Tailors <span style={{ fontSize: '1.2em', verticalAlign: 'middle' }}>🇳🇬</span>
+            Built for Modern Tailors <span style={{ fontSize: '1.2em', verticalAlign: 'middle' }}>✂️</span>
           </h2>
           
           <div style={{ background: 'white', padding: '3.5rem', borderRadius: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.06)' }}>
