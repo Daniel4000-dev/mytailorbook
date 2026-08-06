@@ -20,7 +20,7 @@ import { GARMENT_STYLES } from '@/lib/constants';
  *  into a New Order pre-filled with the freshly created client. */
 export default function NewClientPage() {
   const router = useRouter();
-  const { addCustomer } = useData();
+  const { addCustomer, customers } = useData();
   const { showToast } = useToast();
 
   const {
@@ -70,9 +70,18 @@ export default function NewClientPage() {
     setApiError('');
     setSubmitting(true);
     try {
+      const normalizedPhone = data.phone.trim();
+      const duplicate = customers.find((c) => c.whatsappNumber === normalizedPhone);
+
+      if (duplicate) {
+        setApiError(`A client with the number ${normalizedPhone} already exists (${duplicate.fullName}).`);
+        setSubmitting(false);
+        return;
+      }
+
       const customer = await addCustomer({
         fullName: data.fullName.trim(),
-        whatsappNumber: data.phone.trim(),
+        whatsappNumber: normalizedPhone,
         gender: data.gender,
         address: data.address?.trim() || undefined,
         preferredStyles: data.preferredStyles || [],
