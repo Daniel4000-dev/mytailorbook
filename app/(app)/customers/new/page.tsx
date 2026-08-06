@@ -122,7 +122,7 @@ export default function NewClientPage() {
           <section className={styles.section}>
             <div>
               <h2 className={styles.sectionTitle}>Client Profile</h2>
-              <p className={styles.sectionSub}>Enter the essential details for their atelier record.</p>
+              <p className={styles.sectionSub}>Enter the essential details for their client record.</p>
             </div>
 
             {apiError && <div className={styles.errorBanner}>{apiError}</div>}
