@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/formatters';
@@ -134,7 +134,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
         <span className={styles.miniName}>{shop.name}</span>
         {whatsappHref && (
           <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.miniCta}>
-            <FaWhatsapp size={18} /> WhatsApp
+            <WhatsappIcon size={18} /> WhatsApp
           </a>
         )}
       </header>
@@ -167,7 +167,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
           <div className={styles.heroCtas}>
             {whatsappHref && (
               <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.ctaPrimary}>
-                <FaWhatsapp size={20} /> Chat on WhatsApp
+                <WhatsappIcon size={20} /> Chat on WhatsApp
               </a>
             )}
             <button type="button" className={styles.ctaGlass} onClick={handleShare}>
@@ -304,7 +304,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
             <h2>Ready to sew something?</h2>
             <p>Send a reference photo{city ? ` or visit us in ${city}` : ''} — every order is measured to you and tracked live.</p>
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.ctaCardBtn}>
-              <FaWhatsapp size={20} /> Start a Conversation
+              <WhatsappIcon size={20} /> Start a Conversation
             </a>
             <ul className={styles.guaranteeList}>
               <li>Doesn&apos;t match your measurements — free re-fit within 7 days</li>

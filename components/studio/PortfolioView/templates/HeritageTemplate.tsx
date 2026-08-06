@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { PublicPortfolio } from '@/app/public-actions';
@@ -137,7 +137,7 @@ export default function HeritageTemplate({ portfolio }: { portfolio: PublicPortf
             <h2>Ready to sew something?</h2>
             <p>Send a reference photo{city ? ` or visit us in ${city}` : ''} — every order is measured to you and tracked live.</p>
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.ctaBtn}>
-              <FaWhatsapp size={20} /> Start a Conversation
+              <WhatsappIcon size={20} /> Start a Conversation
             </a>
             <span className={styles.guarantee}>Not right the first time? We re-fit for free within 7 days.</span>
             {shop.address && <span className={styles.ctaAddress}>{shop.address}</span>}

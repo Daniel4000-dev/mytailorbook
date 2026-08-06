@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -923,7 +923,7 @@ export default function OrderDetailPage() {
             className={styles.whatsappFab}
             aria-label={`WhatsApp ${customer.fullName}`}
           >
-            <FaWhatsapp color="#FFFFFF" size={28} />
+            <WhatsappIcon color="#FFFFFF" size={28} />
           </a>
         </FixedBottomPortal>
       )}

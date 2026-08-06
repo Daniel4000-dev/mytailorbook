@@ -2,7 +2,7 @@
 
 import { useState, type UIEvent } from 'react';
 import Image from 'next/image';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import styles from '../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
@@ -31,7 +31,7 @@ const DISCOVER_CARDS = [
     href: '/production',
   },
   {
-    icon: <FaWhatsapp />,
+    icon: <WhatsappIcon />,
     image: '/images/discover/whatsapp.png',
     title: 'Automatic WhatsApp updates',
     description: 'Ready-to-send stage updates, worded the way your shop actually talks.',

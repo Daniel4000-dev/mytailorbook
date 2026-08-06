@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -578,7 +578,7 @@ export default function CustomersPage() {
                               <Symbol name="call" />
                             </a>
                             <a href={`https://wa.me/${c.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className={styles.actionBtn} aria-label="WhatsApp">
-                              <FaWhatsapp /> WhatsApp
+                              <WhatsappIcon /> WhatsApp
                             </a>
                           </div>
                         </td>

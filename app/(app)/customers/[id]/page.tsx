@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -319,7 +319,7 @@ function CustomerProfileContent({
             rel="noopener noreferrer"
             className={styles.quickActionBtn}
           >
-            <FaWhatsapp size={20} />
+            <WhatsappIcon size={20} />
             <span>WhatsApp</span>
           </a>
         </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Playfair_Display, Poppins } from 'next/font/google';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { FaWhatsapp } from 'react-icons/fa6';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/formatters';
@@ -129,7 +129,7 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
         <span className={styles.miniName}>{shop.name}</span>
         {whatsappHref && (
           <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.miniCta}>
-            <FaWhatsapp size={16} /> WhatsApp
+            <WhatsappIcon size={16} /> WhatsApp
           </a>
         )}
       </header>
@@ -241,7 +241,7 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
         <div className={styles.ctaActions}>
           {whatsappHref && (
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.ctaBtn}>
-              <FaWhatsapp size={18} /> Start a Conversation
+              <WhatsappIcon size={18} /> Start a Conversation
             </a>
           )}
           <button type="button" className={styles.shareBtn} onClick={handleShare}>
