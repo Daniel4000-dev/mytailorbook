@@ -11,7 +11,6 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
-import { FaRegUser, FaRegHeart, FaImages, FaArrowRightFromBracket, FaHouse, FaTableColumns, FaGear, FaChevronLeft } from 'react-icons/fa6';
 import { NAV_ITEMS } from '@/lib/constants';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
