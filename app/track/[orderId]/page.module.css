@@ -240,7 +240,11 @@
 }
 
 .stagePending {
-  opacity: 0.6;
+  /* Using specific colors rather than a blanket opacity that destroys contrast in light mode */
+}
+
+.stagePending .stageTitle {
+  color: var(--sf-text-secondary);
 }
 
 .stageMeta {
