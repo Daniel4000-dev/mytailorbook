@@ -158,6 +158,12 @@ img, svg {
   outline-offset: 2px;
 }
 
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
 /* ── Utility: Prevent body scroll when sheet/modal open ───── */
 body.no-scroll {
   overflow: hidden;
