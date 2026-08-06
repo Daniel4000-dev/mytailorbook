@@ -56,3 +56,106 @@
 .input::placeholder {
   color: var(--sf-text-tertiary);
 }
+
+.countryBtn {
+  appearance: none;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border);
+  border-right: none;
+  border-radius: var(--sf-radius-md) 0 0 var(--sf-radius-md);
+  padding: 0 var(--sf-space-sm) 0 var(--sf-space-md);
+  color: var(--sf-text-primary);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  height: 48px;
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+}
+
+.countryBtn:focus {
+  outline: none;
+  border-color: var(--sf-accent-emerald);
+}
+
+.searchWrap {
+  padding: var(--sf-space-md);
+  position: sticky;
+  top: 0;
+  background: var(--sf-bg-surface);
+  z-index: 10;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.searchInput {
+  width: 100%;
+  height: 44px;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: 0 var(--sf-space-md) 0 40px;
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--sf-accent-emerald);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sf-text-secondary);
+}
+
+.countryList {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.countryItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-md) var(--sf-space-lg);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--sf-border);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-base);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--sf-transition-fast);
+}
+
+.countryItem:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.countryItem:last-child {
+  border-bottom: none;
+}
+
+.countryName {
+  flex: 1;
+}
+
+.countryDialCode {
+  color: var(--sf-text-secondary);
+}
+
+.emptyState {
+  padding: var(--sf-space-xl);
+  text-align: center;
+  color: var(--sf-text-secondary);
+}

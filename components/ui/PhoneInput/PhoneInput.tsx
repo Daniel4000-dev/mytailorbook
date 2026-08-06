@@ -1,5 +1,7 @@
-import React, { forwardRef, ChangeEvent } from 'react';
-import { COUNTRIES } from './countries';
+import React, { forwardRef, ChangeEvent, useState } from 'react';
+import { COUNTRIES, type Country } from './countries';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './PhoneInput.module.css';
 
 interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
@@ -9,6 +11,9 @@ interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElemen
 
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
   ({ value = '', onChange, className, ...props }, ref) => {
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
     // 1. Determine the country code and local number from the incoming value
     let matchedCountry = COUNTRIES[0]; // Default: NG
     let digits = value.replace(/\D/g, '');
@@ -33,14 +38,13 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
       }
     }
 
-    const handleCountryChange = (e: ChangeEvent<HTMLSelectElement>) => {
-      const code = e.target.value;
-      const country = COUNTRIES.find(c => c.code === code) || COUNTRIES[0];
+    const handleCountrySelect = (country: Country) => {
       if (onChange) {
         const cleanLocal = localNumber.replace(/\D/g, '');
-        // When changing country, ensure we pass the combined value
         onChange(cleanLocal ? `+${country.dialCode}${cleanLocal}` : `+${country.dialCode}`);
       }
+      setIsSheetOpen(false);
+      setSearchQuery('');
     };
 
     const handleNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -56,23 +60,22 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
       }
     };
 
+    const filteredCountries = COUNTRIES.filter(c => 
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      c.dialCode.includes(searchQuery)
+    );
+
     return (
       <div className={`${styles.container} ${className || ''}`}>
-        <select 
-          className={styles.countrySelect}
-          value={matchedCountry.code}
-          onChange={handleCountryChange}
-          aria-label="Country Code"
+        <button 
+          type="button" 
+          className={styles.countryBtn} 
+          onClick={() => setIsSheetOpen(true)}
+          aria-label="Select Country"
         >
-          {COUNTRIES.map(c => (
-            <option key={c.code} value={c.code}>
-              {c.flag} +{c.dialCode}
-            </option>
-          ))}
-        </select>
-        <span className={styles.chevron}>
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>expand_more</span>
-        </span>
+          {matchedCountry.flag} +{matchedCountry.dialCode}
+          <Symbol name="expand_more" size={18} className={styles.chevron} />
+        </button>
         <input
           {...props}
           ref={ref}
@@ -81,6 +84,42 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           value={localNumber}
           onChange={handleNumberChange}
         />
+
+        <BottomSheet 
+          isOpen={isSheetOpen} 
+          onClose={() => setIsSheetOpen(false)}
+          title="Select Country"
+        >
+          <div className={styles.searchWrap}>
+            <Symbol name="search" size={20} className={styles.searchIcon} />
+            <input 
+              type="text" 
+              className={styles.searchInput} 
+              placeholder="Search country or code..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className={styles.countryList}>
+            {filteredCountries.length > 0 ? (
+              filteredCountries.map(c => (
+                <button 
+                  key={c.code} 
+                  type="button" 
+                  className={styles.countryItem}
+                  onClick={() => handleCountrySelect(c)}
+                >
+                  <span>{c.flag}</span>
+                  <span className={styles.countryName}>{c.name}</span>
+                  <span className={styles.countryDialCode}>+{c.dialCode}</span>
+                </button>
+              ))
+            ) : (
+              <div className={styles.emptyState}>No countries found</div>
+            )}
+          </div>
+        </BottomSheet>
       </div>
     );
   }
