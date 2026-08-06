@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaWhatsapp, FaUserSlash, FaLocationDot, FaTrash } from 'react-icons/fa6';
+import { FaWhatsapp } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -52,7 +52,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   if (!isOwner) {
     return (
       <PageLayout header={<TopBar title="Customer" showBack />}>
-        <EmptyState icon={<FaUserSlash />} title="Access Denied" />
+        <EmptyState icon={<Symbol name="person_off" />} title="Access Denied" />
       </PageLayout>
     );
   }
@@ -62,7 +62,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   if (!customer) {
     return (
       <PageLayout header={<TopBar title="Customer" showBack />}>
-        <EmptyState icon={<FaUserSlash />} title="Customer not found" />
+        <EmptyState icon={<Symbol name="person_off" />} title="Customer not found" />
       </PageLayout>
     );
   }
@@ -288,7 +288,7 @@ function CustomerProfileContent({
         <h2 className={styles.name}>{customer.fullName}</h2>
         {FEATURE_FLAGS.customerAddress && customer.address && (
           <span className={styles.customerAddress}>
-            <FaLocationDot size={12} /> {customer.address}
+            <Symbol name="location_on" size={12} /> {customer.address}
           </span>
         )}
 
@@ -457,7 +457,7 @@ function CustomerProfileContent({
 
       <section className={styles.actionBar}>
         <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
-          <FaTrash /> Delete Customer
+          <Symbol name="delete" /> Delete Customer
         </Button>
       </section>
 

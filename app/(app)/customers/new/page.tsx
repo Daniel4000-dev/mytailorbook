@@ -6,7 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { FaSpinner } from 'react-icons/fa6';
+
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
@@ -253,7 +253,7 @@ export default function NewClientPage() {
             </button>
             <button type="button" className={styles.createBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
                 <>
-                  {submitting && <FaSpinner className="global-spinner" />}
+                  {submitting && <Symbol name="progress_activity" className="global-spinner" />}
                   Create Profile & Proceed
                   <Symbol name="arrow_forward" size={22} />
                 </>

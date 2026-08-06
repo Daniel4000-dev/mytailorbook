@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaSpinner } from 'react-icons/fa6';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js';
@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { loginSchema, type LoginInput } from '@/lib/validations';
 import styles from './page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -116,7 +117,7 @@ export default function LoginPage() {
 
         {/* Log in Button */}
         <button type="submit" className={styles.loginButton} disabled={loading}>
-          {loading && <FaSpinner className="global-spinner" />}
+          {loading && <Symbol name="progress_activity" className="global-spinner" />}
           {loading ? 'Logging in...' : 'Log in'}
         </button>
 
@@ -134,7 +135,7 @@ export default function LoginPage() {
           onClick={handleGoogle}
           disabled={loading || googleLoading}
         >
-          {googleLoading && <FaSpinner className="global-spinner" />}
+          {googleLoading && <Symbol name="progress_activity" className="global-spinner" />}
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

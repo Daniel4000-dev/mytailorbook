@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode, ButtonHTMLAttributes } from 'react';
-import { FaSpinner } from 'react-icons/fa6';
+
 import styles from './Button.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -39,7 +40,7 @@ export default function Button({
     <button className={cls} disabled={disabled || loading} {...props}>
       {loading ? (
         <span className={styles.spinner}>
-          <FaSpinner />
+          <Symbol name="progress_activity" />
         </span>
       ) : (
         <>

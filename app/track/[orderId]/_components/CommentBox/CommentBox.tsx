@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { FaRegCommentDots, FaPaperPlane, FaSpinner } from 'react-icons/fa6';
+
 import { submitOrderComment } from '@/app/public-actions';
 import { formatDate } from '@/lib/formatters';
 import type { OrderComment, OrderStatus } from '@/lib/types';
 import styles from './CommentBox.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface CommentBoxProps {
   orderId: string;
@@ -40,7 +41,7 @@ export default function CommentBox({ orderId, currentStage, initialComments }: C
   return (
     <section className={styles.card}>
       <h3 className={styles.sectionTitle}>
-        <FaRegCommentDots style={{ marginRight: 6 }} /> Leave a Comment
+        <Symbol name="chat" style={{ marginRight: 6 }} /> Leave a Comment
       </h3>
       <p className={styles.hint}>Have a note about your garment? It&apos;s shared with the shop right away.</p>
 
@@ -54,7 +55,7 @@ export default function CommentBox({ orderId, currentStage, initialComments }: C
           maxLength={1000}
         />
         <button type="button" className={styles.sendBtn} onClick={handleSubmit} disabled={submitting || !message.trim()} aria-label="Send comment">
-          {submitting && <FaSpinner className="global-spinner" />} <FaPaperPlane />
+          {submitting && <Symbol name="progress_activity" className="global-spinner" />} <Symbol name="send" />
         </button>
       </div>
       {error && <p className={styles.error}>{error}</p>}

@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FaBell, FaSpinner } from 'react-icons/fa6';
+
 import { useToast } from '@/contexts/ToastContext';
 import { savePushSubscriptionAction, removePushSubscriptionAction } from '@/app/actions';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -101,8 +102,8 @@ export default function PushNotificationToggle() {
         cursor: working ? 'default' : 'pointer',
       }}
     >
-      {working && <FaSpinner className="global-spinner" />}
-      <FaBell />
+      {working && <Symbol name="progress_activity" className="global-spinner" />}
+      <Symbol name="notifications" />
       {subscribed ? 'Disable Notifications' : 'Enable Notifications'}
     </button>
   );

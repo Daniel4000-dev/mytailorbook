@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { FaStar, FaSpinner } from 'react-icons/fa6';
+
 import { submitOrderRatingAction } from '@/app/public-actions';
 import styles from './RatingForm.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface RatingFormProps {
   orderId: string;
@@ -42,7 +43,7 @@ export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFo
     return (
       <section className={styles.card}>
         <div className={styles.doneIcon}>
-          <FaStar />
+          <Symbol name="star" />
         </div>
         <h3 className={styles.doneTitle}>Thank you for your feedback!</h3>
         <p className={styles.doneText}>Your review helps {shopName} — and other customers deciding to work with them.</p>
@@ -66,7 +67,7 @@ export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFo
             onClick={() => setRating(n)}
             aria-label={`${n} star${n === 1 ? '' : 's'}`}
           >
-            <FaStar className={n <= (hoverRating || rating) ? styles.starFilled : styles.starEmpty} />
+            <Symbol name="star" className={n <= (hoverRating || rating) ? styles.starFilled : styles.starEmpty} />
           </button>
         ))}
       </div>
@@ -83,7 +84,7 @@ export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFo
       {error && <p className={styles.error}>{error}</p>}
 
       <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={submitting}>
-        {submitting && <FaSpinner className="global-spinner" />}
+        {submitting && <Symbol name="progress_activity" className="global-spinner" />}
         {submitting ? 'Sending...' : 'Send Review'}
       </button>
     </section>

@@ -2,9 +2,10 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import { Drawer } from 'vaul';
-import { FaXmark } from 'react-icons/fa6';
+
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import styles from './BottomSheet.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ export default function BottomSheet({ isOpen, onClose, title, subHeader, childre
           <div className={styles.header}>
             {title && <Drawer.Title className={styles.title}>{title}</Drawer.Title>}
             <button className={styles.closeBtn} onClick={onClose} aria-label="Close details">
-              <FaXmark />
+              <Symbol name="close" />
             </button>
           </div>
           {subHeader && <div className={styles.subHeader}>{subHeader}</div>}

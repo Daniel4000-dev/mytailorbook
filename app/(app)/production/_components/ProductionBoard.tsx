@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FaXmark, FaMagnifyingGlass } from 'react-icons/fa6';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -15,6 +15,7 @@ import KanbanColumns from './desktop/KanbanColumns';
 import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
 import ProductionBoardSkeleton from './ProductionBoardSkeleton';
 import styles from './ProductionBoard.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface ProductionBoardProps {
   userRole: Role;
@@ -194,7 +195,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     <>
       {/* Search */}
       <div className={styles.searchBar}>
-        <FaMagnifyingGlass className={styles.searchIcon} />
+        <Symbol name="search" className={styles.searchIcon} />
         <input
           type="text"
           className={styles.searchInput}
@@ -204,7 +205,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         />
         {searchQuery && (
           <button type="button" className={styles.searchClearBtn} onClick={() => setSearchQuery('')} aria-label="Clear search">
-            <FaXmark />
+            <Symbol name="close" />
           </button>
         )}
       </div>
@@ -231,7 +232,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         <div className={styles.staffFilterChip}>
           <span>Viewing orders assigned to <strong>{staffFilterName || 'staff member'}</strong></span>
           <button type="button" onClick={() => setStaffFilterId(null)} aria-label="Clear filter">
-            <FaXmark />
+            <Symbol name="close" />
           </button>
         </div>
       )}

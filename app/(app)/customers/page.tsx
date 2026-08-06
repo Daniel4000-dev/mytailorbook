@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaUserSlash, FaPhone, FaChevronRight, FaWhatsapp, FaSpinner } from 'react-icons/fa6';
+import { FaWhatsapp } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -230,7 +230,7 @@ export default function CustomersPage() {
   if (!isOwner) {
     return (
       <PageLayout header={topBar}>
-        <EmptyState icon={<FaUserSlash />} title="Access Denied" description="Only owners can view the customer directory." />
+        <EmptyState icon={<Symbol name="person_off" />} title="Access Denied" description="Only owners can view the customer directory." />
       </PageLayout>
     );
   }
@@ -472,7 +472,7 @@ export default function CustomersPage() {
                     </button>
                     <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
                       <>
-                        {sharing && <FaSpinner className="global-spinner" />}
+                        {sharing && <Symbol name="progress_activity" className="global-spinner" />}
                         <Symbol name="ios_share" size={18} /> Share
                       </>
                     </button>
@@ -494,7 +494,7 @@ export default function CustomersPage() {
               description="Your customer book starts with your first order — create one and the customer is saved here automatically."
             />
           ) : (
-            <EmptyState icon={<FaUserSlash />} title="No customers found" description="Try a different search or filter" />
+            <EmptyState icon={<Symbol name="person_off" />} title="No customers found" description="Try a different search or filter" />
           )
         ) : (
           <>
@@ -518,7 +518,7 @@ export default function CustomersPage() {
                       </div>
                       {stats.totalBalance > 0 && <span className={styles.owesBadge}>Owes {formatCurrency(stats.totalBalance)}</span>}
                       <div className={styles.cardActionIcon}>
-                        <FaChevronRight />
+                        <Symbol name="chevron_right" />
                       </div>
                     </div>
                   </div>
@@ -575,7 +575,7 @@ export default function CustomersPage() {
                         <td className={styles.alignRight}>
                           <div className={styles.rowActions} onClick={(e) => e.stopPropagation()}>
                             <a href={`tel:${c.whatsappNumber}`} className={styles.actionBtn} aria-label="Call">
-                              <FaPhone />
+                              <Symbol name="call" />
                             </a>
                             <a href={`https://wa.me/${c.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className={styles.actionBtn} aria-label="WhatsApp">
                               <FaWhatsapp /> WhatsApp

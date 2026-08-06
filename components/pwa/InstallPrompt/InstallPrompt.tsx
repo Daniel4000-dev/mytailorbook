@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { FaXmark, FaShareFromSquare, FaSquarePlus, FaDownload } from 'react-icons/fa6';
+
 import styles from './InstallPrompt.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 const DISMISS_KEY = 'mtb_install_prompt_dismissed_at';
 const RESHOW_AFTER_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
@@ -101,7 +102,7 @@ export default function InstallPrompt() {
   return (
     <div className={styles.banner} role="dialog" aria-label="Install MyStitchBook">
       <button type="button" className={styles.closeBtn} onClick={dismiss} aria-label="Dismiss">
-        <FaXmark />
+        <Symbol name="close" />
       </button>
 
       <div className={styles.iconWrapper}>
@@ -114,15 +115,15 @@ export default function InstallPrompt() {
           <span className={styles.subtitle}>Add it to your home screen for the full app experience.</span>
         ) : (
           <span className={styles.subtitle}>
-            Tap <FaShareFromSquare className={styles.inlineIcon} /> Share, then{' '}
-            <FaSquarePlus className={styles.inlineIcon} /> &ldquo;Add to Home Screen&rdquo;.
+            Tap <Symbol name="ios_share" className={styles.inlineIcon} /> Share, then{' '}
+            <Symbol name="add_box" className={styles.inlineIcon} /> &ldquo;Add to Home Screen&rdquo;.
           </span>
         )}
       </div>
 
       {platform === 'android' && deferredPrompt && (
         <button type="button" className={styles.installBtn} onClick={handleInstallClick} disabled={installing}>
-          <FaDownload />
+          <Symbol name="download" />
           {installing ? 'Installing…' : 'Install'}
         </button>
       )}

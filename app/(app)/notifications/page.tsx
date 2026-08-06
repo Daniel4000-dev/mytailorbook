@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaBellSlash, FaCheckDouble } from 'react-icons/fa6';
+
 import { useNotifications, type NotificationItem } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
 import { formatDate } from '@/lib/formatters';
@@ -11,6 +11,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import styles from './page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 type FilterMode = 'all' | 'unread' | 'read';
 
@@ -75,7 +76,7 @@ export default function NotificationsPage() {
                 onClick={() => markAllRead(notifications.map((n) => n.id))}
                 title="Mark all as read"
               >
-                <FaCheckDouble />
+                <Symbol name="done_all" />
               </button>
             ) : undefined
           }
@@ -92,7 +93,7 @@ export default function NotificationsPage() {
 
       {groups.length === 0 ? (
         <div className={styles.emptyState}>
-          <FaBellSlash className={styles.emptyIcon} />
+          <Symbol name="notifications_off" className={styles.emptyIcon} />
           <span>
             {!isLoaded
               ? 'Loading your notifications…'

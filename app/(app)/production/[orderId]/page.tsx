@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaWhatsapp, FaTrash, FaSpinner } from 'react-icons/fa6';
+import { FaWhatsapp } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -376,7 +376,7 @@ export default function OrderDetailPage() {
           <div className={styles.advanceRow}>
             <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
               <>
-                {advancing && <FaSpinner className="global-spinner" />}
+                {advancing && <Symbol name="progress_activity" className="global-spinner" />}
                 <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
                 Move to {STATUS_CONFIG[next].label}
               </>
@@ -572,7 +572,7 @@ export default function OrderDetailPage() {
             onClick={handleSaveNotes}
             disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
           >
-            {savingNotes && <FaSpinner className="global-spinner" />}
+            {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
             Save Note
           </button>
         </section>
@@ -733,7 +733,7 @@ export default function OrderDetailPage() {
                     clearFull ? setConfirmingFullPay(true) : handleRecordPayment(parseInt(paymentAmount) || 0)
                   }
                 >
-                  {recordingPayment && <FaSpinner className="global-spinner" />} Record Payment
+                  {recordingPayment && <Symbol name="progress_activity" className="global-spinner" />} Record Payment
                 </button>
               </div>
             )}
@@ -874,7 +874,7 @@ export default function OrderDetailPage() {
               onClick={() => setConfirmingFullPay(true)}
             >
                 <>
-                  {recordingPayment && <FaSpinner className="global-spinner" />}
+                  {recordingPayment && <Symbol name="progress_activity" className="global-spinner" />}
                   <Symbol name="check_circle" size={20} /> Mark Paid
                 </>
             </button>
@@ -904,8 +904,8 @@ export default function OrderDetailPage() {
               }}
             >
                 <>
-                  {deletingOrder && <FaSpinner className="global-spinner" />}
-                  <FaTrash /> Delete Order
+                  {deletingOrder && <Symbol name="progress_activity" className="global-spinner" />}
+                  <Symbol name="delete" /> Delete Order
                 </>
             </button>
           </section>

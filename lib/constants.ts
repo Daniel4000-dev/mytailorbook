@@ -34,31 +34,31 @@ export const STATUS_CONFIG: Record<
   Documented: {
     color: 'var(--sf-stage-documented)',
     bgColor: 'var(--sf-stage-documented-bg)',
-    icon: 'FaClipboardList',
+    icon: 'assignment',
     label: 'Documented',
   },
   Cutting: {
     color: 'var(--sf-stage-cutting)',
     bgColor: 'var(--sf-stage-cutting-bg)',
-    icon: 'FaScissors',
+    icon: 'content_cut',
     label: 'Cutting',
   },
   Sewing: {
     color: 'var(--sf-stage-sewing)',
     bgColor: 'var(--sf-stage-sewing-bg)',
-    icon: 'FaGears',
+    icon: 'settings',
     label: 'Sewing',
   },
   Ready: {
     color: 'var(--sf-stage-ready)',
     bgColor: 'var(--sf-stage-ready-bg)',
-    icon: 'FaCheck',
+    icon: 'check',
     label: 'Ready',
   },
   Completed: {
     color: 'var(--sf-stage-completed)',
     bgColor: 'var(--sf-stage-completed-bg)',
-    icon: 'FaCircleCheck',
+    icon: 'check_circle',
     label: 'Delivered',
   },
 };
@@ -487,6 +487,6 @@ export const DEFAULT_MEASURE_SPEC: StyleMeasureSpec = {
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'FaHouse' },
   { label: 'Production', href: '/production', icon: 'FaTableColumns' },
-  { label: 'Customers', href: '/customers', icon: 'FaUsers', ownerOnly: true },
+  { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true },
   { label: 'Settings', href: '/settings', icon: 'FaGear', ownerOnly: true },
 ];

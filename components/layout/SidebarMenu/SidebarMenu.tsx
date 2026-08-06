@@ -11,28 +11,17 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
-import {
-  FaRegUser,
-  FaRegHeart,
-  FaImages,
-  FaPlus,
-  FaArrowRightFromBracket,
-  FaHouse,
-  FaTableColumns,
-  FaUsers,
-  FaGear,
-  FaChevronLeft,
-  FaChevronRight,
-} from 'react-icons/fa6';
+import { FaRegUser, FaRegHeart, FaImages, FaArrowRightFromBracket, FaHouse, FaTableColumns, FaGear, FaChevronLeft } from 'react-icons/fa6';
 import { NAV_ITEMS } from '@/lib/constants';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './SidebarMenu.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   FaHouse: <FaHouse className={styles.menuIcon} />,
   FaTableColumns: <FaTableColumns className={styles.menuIcon} />,
-  FaUsers: <FaUsers className={styles.menuIcon} />,
+  FaUsers: <Symbol name="group" className={styles.menuIcon} />,
   FaGear: <FaGear className={styles.menuIcon} />,
 };
 
@@ -121,7 +110,7 @@ export default function SidebarMenu() {
         onClick={openCreateMenu}
         title={isCollapsed ? 'New' : undefined}
       >
-        <FaPlus className={styles.newIcon} />
+        <Symbol name="add" className={styles.newIcon} />
         <span className={styles.menuText}>New</span>
       </button>
 
@@ -131,7 +120,7 @@ export default function SidebarMenu() {
         onClick={toggleCollapse}
         aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
       >
-        {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+        {isCollapsed ? <Symbol name="chevron_right" /> : <FaChevronLeft />}
       </button>
 
       {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the

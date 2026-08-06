@@ -1,17 +1,18 @@
 'use client';
 
-import { FaScissors, FaGears, FaCheck, FaCircleCheck, FaChartLine, FaMoneyBill, FaUsers, FaBoxesStacked } from 'react-icons/fa6';
+
 import styles from './StatCard.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  FaScissors: <FaScissors />,
-  FaGears: <FaGears />,
-  FaCheck: <FaCheck />,
-  FaCircleCheck: <FaCircleCheck />,
-  FaChartLine: <FaChartLine />,
-  FaMoneyBill: <FaMoneyBill />,
-  FaUsers: <FaUsers />,
-  FaBoxesStacked: <FaBoxesStacked />,
+  FaScissors: <Symbol name="content_cut" />,
+  FaGears: <Symbol name="settings" />,
+  FaCheck: <Symbol name="check" />,
+  FaCircleCheck: <Symbol name="check_circle" />,
+  FaChartLine: <Symbol name="bar_chart" />,
+  FaMoneyBill: <Symbol name="payments" />,
+  FaUsers: <Symbol name="group" />,
+  FaBoxesStacked: <Symbol name="inventory_2" />,
 };
 
 interface StatCardProps {
@@ -22,7 +23,7 @@ interface StatCardProps {
 }
 
 export default function StatCard({ label, value, icon, accentColor }: StatCardProps) {
-  const iconElement = ICON_MAP[icon] || <FaChartLine />;
+  const iconElement = ICON_MAP[icon] || <Symbol name="bar_chart" />;
 
   return (
     <div className={styles.card}>

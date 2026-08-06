@@ -3,7 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaPlus } from 'react-icons/fa6';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
@@ -140,7 +140,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {!isMenuOpen && showFab && (
         <FAB
           onClick={openCreateMenu}
-          icon={<FaPlus />}
+          icon={<Symbol name="add" />}
           label="Create action"
         />
       )}

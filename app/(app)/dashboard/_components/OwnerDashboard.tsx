@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { FaEye, FaEyeSlash, FaCircleCheck } from 'react-icons/fa6';
+
 import { useData } from '@/contexts/DataContext';
 import { useNotifications } from '@/lib/hooks/useNotifications';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
@@ -11,6 +11,7 @@ import { getBalanceOwed, isOverdue } from '@/lib/types';
 import type { Order } from '@/lib/types';
 import DiscoverCarousel from './DiscoverCarousel';
 import styles from '../page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 // ============================================================
 // Owner Dashboard
@@ -112,7 +113,7 @@ export default function OwnerDashboard({
               className={styles.cardPrivacyBtn}
               title={hideCollected ? 'Show Balance' : 'Hide Balance'}
             >
-              {hideCollected ? <FaEyeSlash /> : <FaEye />}
+              {hideCollected ? <Symbol name="visibility_off" /> : <Symbol name="visibility" />}
             </button>
           </div>
           <span className={styles.cardValue}>
@@ -129,7 +130,7 @@ export default function OwnerDashboard({
               className={styles.cardPrivacyBtn}
               title={hideProjected ? 'Show Balance' : 'Hide Balance'}
             >
-              {hideProjected ? <FaEyeSlash /> : <FaEye />}
+              {hideProjected ? <Symbol name="visibility_off" /> : <Symbol name="visibility" />}
             </button>
           </div>
           <span className={styles.cardValue}>
@@ -191,7 +192,7 @@ export default function OwnerDashboard({
 
       {visibleAttentionItems.length === 0 ? (
         <div className={styles.emptyState}>
-          <FaCircleCheck className={styles.emptyStateIcon} />
+          <Symbol name="check_circle" className={styles.emptyStateIcon} />
           <span>Nothing overdue or rushed — production is on track.</span>
         </div>
       ) : (

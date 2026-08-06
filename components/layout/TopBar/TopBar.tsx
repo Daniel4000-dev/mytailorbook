@@ -3,9 +3,10 @@
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaArrowLeft } from 'react-icons/fa6';
+
 import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './TopBar.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface TopBarProps {
   title?: string;
@@ -71,7 +72,7 @@ export default function TopBar({
             {leftAction}
             {showBack && (
               <button className={styles.backBtn} onClick={handleBack} aria-label="Go back">
-                <FaArrowLeft />
+                <Symbol name="arrow_back" />
               </button>
             )}
           </div>

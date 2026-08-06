@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { FaTriangleExclamation, FaCircleCheck, FaScissors, FaClipboardList } from 'react-icons/fa6';
+
 import Badge from '@/components/ui/Badge/Badge';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { isOverdue, isDueSoon } from '@/lib/types';
 import { getInitials } from '@/lib/formatters';
 import type { Order } from '@/lib/types';
 import styles from '../page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 // ============================================================
 // Staff Dashboard
@@ -82,14 +83,14 @@ export default function StaffDashboard({
 
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>
-          <FaClipboardList style={{ marginRight: 6 }} />
+          <Symbol name="assignment" style={{ marginRight: 6 }} />
           My Tasks
         </span>
       </div>
 
       {myTasks.length === 0 ? (
         <div className={styles.emptyState}>
-          <FaClipboardList className={styles.emptyStateIcon} />
+          <Symbol name="assignment" className={styles.emptyStateIcon} />
           <span>No orders assigned to you right now.</span>
         </div>
       ) : (
@@ -105,10 +106,10 @@ export default function StaffDashboard({
               </div>
               <div className={styles.attentionMeta}>
                 <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'}>
-                  {order.status === 'Cutting' ? <FaScissors /> : order.status === 'Ready' ? <FaCircleCheck /> : null}
+                  {order.status === 'Cutting' ? <Symbol name="content_cut" /> : order.status === 'Ready' ? <Symbol name="check_circle" /> : null}
                   {' '}{STATUS_CONFIG[order.status].label}
                 </Badge>
-                {isOverdue(order) && <Badge variant="default"><FaTriangleExclamation /> Overdue</Badge>}
+                {isOverdue(order) && <Badge variant="default"><Symbol name="warning" /> Overdue</Badge>}
                 {!isOverdue(order) && isDueSoon(order) && <Badge variant="gold">Due Soon</Badge>}
               </div>
             </button>

@@ -1,7 +1,8 @@
 'use client';
 
-import { FaWifi } from 'react-icons/fa6';
+
 import styles from './page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 /** Last-resort fallback the service worker serves from its own cache when
  *  a navigation fails offline AND that specific page was never visited
@@ -13,7 +14,7 @@ export default function OfflinePage() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.iconWrapper}>
-          <FaWifi />
+          <Symbol name="wifi" />
         </div>
         <h1 className={styles.title}>You&apos;re offline</h1>
         <p className={styles.message}>

@@ -1,7 +1,8 @@
 'use client';
 
-import { FaMagnifyingGlass, FaXmark } from 'react-icons/fa6';
+
 import styles from './SearchBar.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface SearchBarProps {
   value: string;
@@ -12,7 +13,7 @@ interface SearchBarProps {
 export default function SearchBar({ value, onChange, placeholder = 'Search...' }: SearchBarProps) {
   return (
     <div className={styles.wrapper}>
-      <FaMagnifyingGlass className={styles.icon} />
+      <Symbol name="search" className={styles.icon} />
       <input
         type="text"
         className={styles.input}
@@ -22,7 +23,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Search...' }
       />
       {value && (
         <button className={styles.clear} onClick={() => onChange('')} aria-label="Clear search">
-          <FaXmark />
+          <Symbol name="close" />
         </button>
       )}
     </div>

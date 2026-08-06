@@ -2,8 +2,9 @@
 
 import { useState, type UIEvent } from 'react';
 import Image from 'next/image';
-import { FaShareFromSquare, FaLocationDot, FaWhatsapp, FaRulerCombined, FaChevronRight } from 'react-icons/fa6';
+import { FaWhatsapp } from 'react-icons/fa6';
 import styles from '../page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 // ============================================================
 // Discover Carousel — a swipeable pointer to features that add real
@@ -14,7 +15,7 @@ import styles from '../page.module.css';
 
 const DISCOVER_CARDS = [
   {
-    icon: <FaShareFromSquare />,
+    icon: <Symbol name="ios_share" />,
     image: '/images/discover/portfolio.png',
     title: 'Share your portfolio',
     description: 'A public page with your best work — send the link to new customers.',
@@ -22,7 +23,7 @@ const DISCOVER_CARDS = [
     href: '/settings/portfolio',
   },
   {
-    icon: <FaLocationDot />,
+    icon: <Symbol name="location_on" />,
     image: '/images/discover/tracking.png',
     title: 'Customers can track their own order',
     description: 'Every order gets a live photo-story link — no app for them to install.',
@@ -38,7 +39,7 @@ const DISCOVER_CARDS = [
     href: '/settings/messages',
   },
   {
-    icon: <FaRulerCombined />,
+    icon: <Symbol name="straighten" />,
     image: '/images/discover/measurement-builder.png',
     title: 'Build your own measurement sheet',
     description: "For anything off-catalog — name the fields you measure, once, and reuse them every time.",
@@ -75,7 +76,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
               <span className={styles.discoverTitle}>{card.title}</span>
               <span className={styles.discoverDesc}>{card.description}</span>
               <span className={styles.discoverCta}>
-                {card.cta} <FaChevronRight />
+                {card.cta} <Symbol name="chevron_right" />
               </span>
             </div>
             {card.image && (

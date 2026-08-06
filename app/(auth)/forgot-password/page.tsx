@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaSpinner } from 'react-icons/fa6';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations';
 import styles from './page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 export default function ForgotPasswordPage() {
   const { resetPassword, loading } = useAuth();
@@ -110,7 +111,7 @@ export default function ForgotPasswordPage() {
 
         {/* Primary Submit Button */}
         <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '24px' }}>
-          {loading && <FaSpinner className="global-spinner" />}
+          {loading && <Symbol name="progress_activity" className="global-spinner" />}
           {loading ? 'Sending link...' : 'Send reset link'}
         </button>
 

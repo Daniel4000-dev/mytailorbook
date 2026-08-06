@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaTriangleExclamation, FaDownload } from 'react-icons/fa6';
+
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { deleteOwnShopAction, deleteOwnStaffAccountAction, exportShopDataAction } from '@/app/actions';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 export function ExportDataButton({ shopName }: { shopName: string }) {
   const { showToast } = useToast();
@@ -51,7 +52,7 @@ export function ExportDataButton({ shopName }: { shopName: string }) {
         cursor: exporting ? 'default' : 'pointer',
       }}
     >
-      <FaDownload />
+      <Symbol name="download" />
       {exporting ? 'Preparing export…' : 'Export My Data'}
     </button>
   );
@@ -110,7 +111,7 @@ export function AccountDangerZone({ isOwner, onClosingProfile }: { isOwner: bool
           padding: 0,
         }}
       >
-        <FaTriangleExclamation style={{ color: 'var(--sf-error)' }} />
+        <Symbol name="warning" style={{ color: 'var(--sf-error)' }} />
         Danger Zone
       </button>
 

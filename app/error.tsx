@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { FaTriangleExclamation } from 'react-icons/fa6';
+
 import styles from './error.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.iconWrapper}>
-          <FaTriangleExclamation />
+          <Symbol name="warning" />
         </div>
         <h1 className={styles.title}>Something went wrong</h1>
         <p className={styles.message}>

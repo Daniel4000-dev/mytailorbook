@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { preload } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaSpinner } from 'react-icons/fa6';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
 import { useForm } from 'react-hook-form';
@@ -13,6 +13,7 @@ import { trackEvent } from '@/lib/analytics';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
 import styles from './page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 // Welcome-tour screens shown before the setup form below — grounded in
 // features that actually ship (measurement reuse, the production board +
@@ -180,7 +181,7 @@ export default function OnboardingPage() {
         </div>
 
         <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '24px' }}>
-          {submitting && <FaSpinner className="global-spinner" />}
+          {submitting && <Symbol name="progress_activity" className="global-spinner" />}
           {submitting ? 'Setting up...' : 'Finish Setup'}
         </button>
       </form>

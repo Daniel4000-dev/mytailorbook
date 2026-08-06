@@ -2,20 +2,7 @@
 
 import { useMemo } from 'react';
 import useSWR from 'swr';
-import {
-  FaTriangleExclamation,
-  FaFireFlameCurved,
-  FaClock,
-  FaClipboardList,
-  FaScissors,
-  FaGears,
-  FaCircleCheck,
-  FaBoxOpen,
-  FaRegCommentDots,
-  FaSackDollar,
-  FaBell,
-  FaImage,
-} from 'react-icons/fa6';
+import { FaFireFlameCurved, FaClock, FaBoxOpen, FaSackDollar } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
@@ -23,16 +10,17 @@ import type { Order, OrderStatus } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { getPendingStylePhotoSubmissions } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 /** One icon per production stage — "moved to X" used to show the same
  *  generic checkmark for every stage, which made the activity feed
  *  unreadable at a glance. Mirrors the icon names already assigned to
  *  each stage in STATUS_CONFIG (lib/constants.ts). */
 const STAGE_ICON: Record<OrderStatus, React.ReactNode> = {
-  Documented: <FaClipboardList />,
-  Cutting: <FaScissors />,
-  Sewing: <FaGears />,
-  Ready: <FaCircleCheck />,
+  Documented: <Symbol name="assignment" />,
+  Cutting: <Symbol name="content_cut" />,
+  Sewing: <Symbol name="settings" />,
+  Ready: <Symbol name="check_circle" />,
   Completed: <FaBoxOpen />,
 };
 
@@ -85,7 +73,7 @@ export function useNotifications() {
       if (isOverdue(o)) {
         items.push({
           id: `overdue-${o.id}`,
-          icon: <FaTriangleExclamation />,
+          icon: <Symbol name="warning" />,
           tone: 'alert',
           title: `${o.customerName}'s order is overdue`,
           subtitle: o.dueDate ? `Was due ${new Date(o.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}` : 'No due date set',
@@ -123,7 +111,7 @@ export function useNotifications() {
       if (hasUnreadComment(o)) {
         items.push({
           id: `comment-${o.id}-${o.lastCommentAt}`,
-          icon: <FaRegCommentDots />,
+          icon: <Symbol name="chat" />,
           tone: 'warning',
           title: `${o.customerName} left a comment`,
           subtitle: 'Tap to read and reply',
@@ -140,7 +128,7 @@ export function useNotifications() {
     (pendingStylePhotos || []).forEach((s) => {
       items.push({
         id: `style-photo-${s.id}`,
-        icon: <FaImage />,
+        icon: <Symbol name="image" />,
         tone: 'warning',
         title: `A photo for "${s.styleName}" needs your approval`,
         subtitle: `Uploaded by ${s.uploadedByName}`,
@@ -164,7 +152,7 @@ export function useNotifications() {
       if (last && new Date(last.timestamp).getTime() >= threeDaysAgo) {
         items.push({
           id: `activity-${o.id}-${last.timestamp}`,
-          icon: STAGE_ICON[last.to] ?? <FaCircleCheck />,
+          icon: STAGE_ICON[last.to] ?? <Symbol name="check_circle" />,
           tone: 'info',
           title: `${o.customerName}'s order moved to ${last.to}`,
           subtitle: `By ${last.changedByName}`,
@@ -206,7 +194,7 @@ export function useNotifications() {
       if (o.lastReminderAt && new Date(o.lastReminderAt).getTime() >= threeDaysAgo) {
         items.push({
           id: `reminder-${o.id}-${o.lastReminderAt}`,
-          icon: <FaBell />,
+          icon: <Symbol name="notifications" />,
           tone: 'info',
           title: `${o.customerName} sent a reminder about their order`,
           subtitle: `Status: ${o.status}`,

@@ -1,13 +1,14 @@
 'use client';
 
-import { FaCircleCheck, FaCircleExclamation, FaCircleInfo, FaXmark } from 'react-icons/fa6';
+
 import type { ToastItem } from '@/contexts/ToastContext';
 import styles from './Toast.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 const ICONS = {
-  success: <FaCircleCheck />,
-  error: <FaCircleExclamation />,
-  info: <FaCircleInfo />,
+  success: <Symbol name="check_circle" />,
+  error: <Symbol name="error" />,
+  info: <Symbol name="info" />,
 };
 
 export default function ToastViewport({
@@ -43,7 +44,7 @@ export default function ToastViewport({
             onClick={() => onDismiss(toast.id)}
             aria-label="Dismiss notification"
           >
-            <FaXmark />
+            <Symbol name="close" />
           </button>
         </div>
       ))}

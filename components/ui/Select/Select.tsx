@@ -1,8 +1,9 @@
 'use client';
 
 import { type SelectHTMLAttributes, useId } from 'react';
-import { FaChevronDown } from 'react-icons/fa6';
+
 import styles from './Select.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface SelectOption {
   value: string;
@@ -71,7 +72,7 @@ export default function Select({
             </option>
           ))}
         </select>
-        <FaChevronDown className={styles.chevron} />
+        <Symbol name="expand_more" className={styles.chevron} />
       </div>
       {error && (
         <span id={`${id}-error`} className={styles.errorMessage} role="alert">

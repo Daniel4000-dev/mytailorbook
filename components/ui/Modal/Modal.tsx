@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
-import { FaXmark } from 'react-icons/fa6';
+
 import styles from './Modal.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
         <div className={styles.header}>
           {title && <h3 className={styles.title}>{title}</h3>}
           <button className={styles.close} onClick={onClose} aria-label="Close">
-            <FaXmark />
+            <Symbol name="close" />
           </button>
         </div>
         <div className={styles.body}>{children}</div>

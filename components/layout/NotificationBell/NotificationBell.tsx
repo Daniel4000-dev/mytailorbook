@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaBell } from 'react-icons/fa6';
+
 import { useNotifications, type NotificationItem } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
 import { formatDate } from '@/lib/formatters';
 import styles from './NotificationBell.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 export default function NotificationBell() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function NotificationBell() {
         title="Notifications"
       >
         {unreadAlertCount > 0 && <span className={styles.badgeCount}>{unreadAlertCount}</span>}
-        <FaBell className={styles.bellIcon} />
+        <Symbol name="notifications" className={styles.bellIcon} />
       </button>
 
       {open && (

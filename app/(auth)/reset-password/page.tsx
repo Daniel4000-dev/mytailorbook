@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { FaSpinner } from 'react-icons/fa6';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { updatePasswordSchema, type UpdatePasswordInput } from '@/lib/validations';
 import styles from './page.module.css';
+import Symbol from '@/components/ui/Symbol/Symbol';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -102,7 +103,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '24px' }}>
-          {loading && <FaSpinner className="global-spinner" />}
+          {loading && <Symbol name="progress_activity" className="global-spinner" />}
           {loading ? 'Updating...' : 'Update password'}
         </button>
       </form>
