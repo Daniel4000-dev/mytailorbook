@@ -8,6 +8,7 @@ interface SymbolProps {
   /** Font size in px (Material Symbols are square glyphs) */
   size?: number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -15,7 +16,7 @@ interface SymbolProps {
  * Renders from the self-hosted "Material Symbols Outlined" variable font;
  * `fill` flips the FILL axis for active/selected states.
  */
-export default function Symbol({ name, fill = false, size = 24, className = '' }: SymbolProps) {
+export default function Symbol({ name, fill = false, size = 24, className = '', style }: SymbolProps) {
   return (
     <span
       className={`material-symbols-outlined ${styles.symbol} ${className}`}
@@ -24,6 +25,7 @@ export default function Symbol({ name, fill = false, size = 24, className = '' }
         width: size,
         height: size,
         fontVariationSettings: fill ? "'FILL' 1" : undefined,
+        ...style,
       }}
       aria-hidden="true"
     >
