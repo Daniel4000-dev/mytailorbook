@@ -84,6 +84,7 @@
 .searchWrap {
   padding: var(--sf-space-md);
   background: var(--sf-bg-surface);
+  position: relative;
 }
 
 .searchInput {

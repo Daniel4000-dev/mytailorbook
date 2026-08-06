@@ -74,7 +74,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           aria-label="Select Country"
         >
           {matchedCountry.flag} +{matchedCountry.dialCode}
-          <Symbol name="expand_more" size={18} className={styles.chevron} />
+          <Symbol name="expand_more" size={18} />
         </button>
         <input
           {...props}
