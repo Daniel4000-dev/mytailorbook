@@ -44,8 +44,8 @@
 }
 
 .errorText {
-  color: #ef4444;
-  font-size: 13px;
+  color: var(--sf-error);
+  font-size: var(--sf-text-xs);
   margin-top: 4px;
   padding-left: 4px;
 }

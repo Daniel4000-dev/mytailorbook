@@ -158,7 +158,8 @@
 }
 
 .errorText {
-  color: #DC2626;
+  color: var(--sf-error);
   font-size: var(--sf-text-xs);
-  margin: 0;
+  margin-top: 4px;
+  padding-left: 4px;
 }
