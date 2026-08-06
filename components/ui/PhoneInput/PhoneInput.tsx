@@ -89,18 +89,20 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           isOpen={isSheetOpen} 
           onClose={() => setIsSheetOpen(false)}
           title="Select Country"
+          noPadding
+          subHeader={
+            <div className={styles.searchWrap}>
+              <Symbol name="search" size={20} className={styles.searchIcon} />
+              <input 
+                type="text" 
+                className={styles.searchInput} 
+                placeholder="Search country or code..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          }
         >
-          <div className={styles.searchWrap}>
-            <Symbol name="search" size={20} className={styles.searchIcon} />
-            <input 
-              type="text" 
-              className={styles.searchInput} 
-              placeholder="Search country or code..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-            />
-          </div>
           <div className={styles.countryList}>
             {filteredCountries.length > 0 ? (
               filteredCountries.map(c => (

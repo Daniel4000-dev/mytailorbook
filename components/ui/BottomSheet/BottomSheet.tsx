@@ -10,11 +10,13 @@ interface BottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  subHeader?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  noPadding?: boolean;
 }
 
-export default function BottomSheet({ isOpen, onClose, title, children, footer }: BottomSheetProps) {
+export default function BottomSheet({ isOpen, onClose, title, subHeader, children, footer, noPadding }: BottomSheetProps) {
   const [direction, setDirection] = useState<'bottom' | 'right'>('bottom');
   const mounted = useHasMounted();
 
@@ -48,7 +50,8 @@ export default function BottomSheet({ isOpen, onClose, title, children, footer }
               <FaXmark />
             </button>
           </div>
-          <div className={styles.body}>{children}</div>
+          {subHeader && <div className={styles.subHeader}>{subHeader}</div>}
+          <div className={`${styles.body} ${noPadding ? styles.noPadding : ''}`}>{children}</div>
           {footer && <div className={styles.footer}>{footer}</div>}
         </Drawer.Content>
       </Drawer.Portal>

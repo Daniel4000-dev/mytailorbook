@@ -83,11 +83,7 @@
 
 .searchWrap {
   padding: var(--sf-space-md);
-  position: sticky;
-  top: 0;
   background: var(--sf-bg-surface);
-  z-index: 10;
-  border-bottom: 1px solid var(--sf-border);
 }
 
 .searchInput {
@@ -119,8 +115,6 @@
   flex-direction: column;
   padding: 0;
   margin: 0;
-  max-height: 50vh;
-  overflow-y: auto;
 }
 
 .countryItem {
