@@ -512,7 +512,7 @@ export const DEFAULT_MEASURE_SPEC: StyleMeasureSpec = {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home' },
-  { label: 'Production', href: '/production', icon: 'view_kanban' },
+  { label: 'Production', href: '/production', icon: 'precision_manufacturing' },
   { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true },
   { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true },
 ];

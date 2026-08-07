@@ -15,6 +15,7 @@ export function formatCurrency(amount: number, currencyCode: string = 'NGN'): st
   return new Intl.NumberFormat('en', {
     style: 'currency',
     currency: currencyCode,
+    currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -28,6 +29,7 @@ export function getCurrencySymbol(currencyCode: string = 'NGN'): string {
   const parts = new Intl.NumberFormat('en', {
     style: 'currency',
     currency: currencyCode,
+    currencyDisplay: 'narrowSymbol',
   }).formatToParts(0);
   return parts.find((p) => p.type === 'currency')?.value || currencyCode;
 }

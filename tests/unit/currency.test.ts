@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { formatCurrency, getCurrencySymbol } from '../../lib/formatters';
 
 describe('currency formatter', () => {
