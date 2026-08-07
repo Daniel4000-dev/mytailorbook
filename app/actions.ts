@@ -616,6 +616,7 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
   if (updates.name !== undefined) row.name = updates.name;
+  if (updates.currency !== undefined) row.currency = updates.currency;
   if (updates.active !== undefined) row.active = updates.active;
   if (updates.avatarUrl !== undefined) row.avatar_url = updates.avatarUrl || null;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
@@ -627,6 +628,7 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
   if (updates.name !== undefined) row.name = updates.name;
+  if (updates.currency !== undefined) row.currency = updates.currency;
   if (updates.phone !== undefined) row.phone = updates.phone;
   if (updates.address !== undefined) row.address = updates.address;
   if (updates.customStyles !== undefined) row.custom_styles = updates.customStyles;
