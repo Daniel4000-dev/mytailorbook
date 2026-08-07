@@ -8,16 +8,28 @@ import { PHONE_PREFIX } from './constants';
 import type { OrderStatus } from './types';
 
 /**
- * Formats a number as Nigerian Naira with commas.
- * Example: 1500000 → "₦1,500,000"
+ * Formats a number as currency with commas.
+ * Example: 1500000 → "₦1,500,000" (if NGN)
  */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-NG', {
+export function formatCurrency(amount: number, currencyCode: string = 'NGN'): string {
+  return new Intl.NumberFormat('en', {
     style: 'currency',
-    currency: 'NGN',
+    currency: currencyCode,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+/**
+ * Extracts the raw currency symbol for a given currency code.
+ * Example: 'NGN' → '₦', 'USD' → '$'
+ */
+export function getCurrencySymbol(currencyCode: string = 'NGN'): string {
+  const parts = new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: currencyCode,
+  }).formatToParts(0);
+  return parts.find((p) => p.type === 'currency')?.value || currencyCode;
 }
 
 /**

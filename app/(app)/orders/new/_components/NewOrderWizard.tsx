@@ -594,7 +594,7 @@ export default function NewOrderWizard() {
               <div className={styles.summaryLeft}>
                 <span className={styles.summaryText}>
                   <small>Order Total</small>
-                  <b className={styles.summaryTotal}>{formatCurrency(orderTotal)}</b>
+                  <b className={styles.summaryTotal}>{formatCurrency(orderTotal, currentShop?.currency)}</b>
                 </span>
               </div>
               <button type="button" className={styles.proceedBtn} disabled={submitting} onClick={handleCreate}>

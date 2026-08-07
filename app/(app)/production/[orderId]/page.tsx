@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
       });
       setPaymentAmount('');
       setClearFull(false);
-      showToast(`Payment of ${formatCurrency(amount)} recorded`, 'success');
+      showToast(`Payment of ${formatCurrency(amount, currentShop?.currency)} recorded`, 'success');
     } finally {
       setRecordingPayment(false);
     }
@@ -692,15 +692,15 @@ export default function OrderDetailPage() {
             <div className={styles.payRows}>
               <div className={styles.payRow}>
                 <span className={styles.payLabel}>Total Bill</span>
-                <span className={styles.payValue}>{formatCurrency(order.totalBill)}</span>
+                <span className={styles.payValue}>{formatCurrency(order.totalBill, currentShop?.currency)}</span>
               </div>
               <div className={styles.payRow}>
                 <span className={styles.payLabel}>Deposit Paid</span>
-                <span className={styles.payValueAccent}>-{formatCurrency(order.depositPaid)}</span>
+                <span className={styles.payValueAccent}>-{formatCurrency(order.depositPaid, currentShop?.currency)}</span>
               </div>
               <div className={styles.payRowTotal}>
                 <span>Balance Owed</span>
-                <span className={balanceOwed > 0 ? styles.balanceDue : undefined}>{formatCurrency(balanceOwed)}</span>
+                <span className={balanceOwed > 0 ? styles.balanceDue : undefined}>{formatCurrency(balanceOwed, currentShop?.currency)}</span>
               </div>
             </div>
 
@@ -723,7 +723,7 @@ export default function OrderDetailPage() {
                     checked={clearFull}
                     onChange={(e) => setClearFull(e.target.checked)}
                   />
-                  Clear Full Balance ({formatCurrency(balanceOwed)})
+                  Clear Full Balance ({formatCurrency(balanceOwed, currentShop?.currency)})
                 </label>
                 <button
                   type="button"
@@ -743,7 +743,7 @@ export default function OrderDetailPage() {
                 <span className={styles.capsLabel}>Payment History</span>
                 {order.payments.slice().reverse().map((p) => (
                   <div key={p.id} className={styles.payHistoryRow}>
-                    <span className={styles.payHistoryAmount}>{formatCurrency(p.amount)}</span>
+                    <span className={styles.payHistoryAmount}>{formatCurrency(p.amount, currentShop?.currency)}</span>
                     <span className={styles.payHistoryMeta}>{formatDate(p.timestamp)} · {p.recordedByName}</span>
                   </div>
                 ))}
@@ -767,17 +767,17 @@ export default function OrderDetailPage() {
                 <div className={styles.payRow}>
                   <span className={styles.payLabel}>Material Cost</span>
                   <span className={styles.payValueAccent}>
-                    -{formatCurrency(order.materialSuppliedBy === 'customer' ? 0 : order.materialCost || 0)}
+                    -{formatCurrency(order.materialSuppliedBy === 'customer' ? 0 : order.materialCost || 0, currentShop?.currency)}
                   </span>
                 </div>
                 <div className={styles.payRow}>
                   <span className={styles.payLabel}>Other Costs</span>
-                  <span className={styles.payValueAccent}>-{formatCurrency(order.otherCosts || 0)}</span>
+                  <span className={styles.payValueAccent}>-{formatCurrency(order.otherCosts || 0, currentShop?.currency)}</span>
                 </div>
                 <div className={styles.payRowTotal}>
                   <span>Margin</span>
                   <span>
-                    {formatCurrency(getMargin(order))}
+                    {formatCurrency(getMargin(order), currentShop?.currency)}
                     {order.totalBill > 0 && ` (${Math.round((getMargin(order) / order.totalBill) * 100)}%)`}
                   </span>
                 </div>
@@ -936,7 +936,7 @@ export default function OrderDetailPage() {
           setConfirmingFullPay(false);
         }}
         title="Clear full balance?"
-        description={`This marks the remaining ${formatCurrency(balanceOwed)} as paid in full. Make sure the payment has actually been received before confirming.`}
+        description={`This marks the remaining ${formatCurrency(balanceOwed, currentShop?.currency)} as paid in full. Make sure the payment has actually been received before confirming.`}
         confirmLabel="Clear Balance"
         loading={recordingPayment}
       />

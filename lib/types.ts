@@ -28,6 +28,7 @@ export interface Shop {
    *  never regenerated on rename so shared links keep working. */
   slug: string;
   name: string;
+  currency?: string;
   phone?: string;
   address?: string;
   ownerUid: string;

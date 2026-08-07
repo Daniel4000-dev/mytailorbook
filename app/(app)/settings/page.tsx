@@ -12,6 +12,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
+import Select from '@/components/ui/Select/Select';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
@@ -24,6 +25,7 @@ import { addBranchAction } from '@/app/actions';
 import { initializeSubscription, confirmSubscriptionPayment, cancelSubscriptionAction } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { SUPPORTED_CURRENCIES } from '@/lib/constants';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, PREMIUM_STATUSES } from '@/lib/subscription';
 import { compressImage } from '@/lib/compressImage';
 import SettingsSkeleton from './_components/SettingsSkeleton';
@@ -61,6 +63,7 @@ export default function SettingsPage() {
   const [shopName, setShopName] = useState('');
   const [shopPhone, setShopPhone] = useState('');
   const [shopAddress, setShopAddress] = useState('');
+  const [shopCurrency, setShopCurrency] = useState('NGN');
   const [savingShop, setSavingShop] = useState(false);
 
   const [branchName, setBranchName] = useState('');
@@ -264,13 +267,14 @@ export default function SettingsPage() {
     setShopName(currentShop?.name || '');
     setShopPhone(currentShop?.phone || '');
     setShopAddress(currentShop?.address || '');
+    setShopCurrency(currentShop?.currency || 'NGN');
     setOpenSheet('studio');
   };
 
   const handleSaveShop = async () => {
     setSavingShop(true);
     try {
-      await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined });
+      await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined, currency: shopCurrency });
       setOpenSheet(null);
       showToast('Studio profile updated', 'success');
     } finally {
@@ -609,6 +613,12 @@ export default function SettingsPage() {
       <BottomSheet isOpen={openSheet === 'studio'} onClose={() => setOpenSheet(null)} title="Studio Profile">
         <div className={styles.sheetBody}>
           <Input label="Shop / Studio Name" value={shopName} onChange={(e) => setShopName(e.target.value)} required />
+          <Select
+            label="Shop Currency"
+            value={shopCurrency}
+            onChange={(e) => setShopCurrency(e.target.value)}
+            options={SUPPORTED_CURRENCIES.map(c => ({ value: c.code, label: c.label }))}
+          />
           <Input label="Phone (shown on receipts)" value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="08012345678" />
           <Input label="Address" value={shopAddress} onChange={(e) => setShopAddress(e.target.value)} placeholder="Shop address" />
           <div className={styles.sheetActions}>

@@ -6,6 +6,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { sendPushToShop } from '@/lib/push';
+import { formatCurrency } from '@/lib/formatters';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
@@ -126,6 +127,7 @@ function shopFromRow(row: any): Shop {
     id: row.id,
     slug: row.slug,
     name: row.name,
+    currency: row.currency,
     phone: row.phone || undefined,
     address: row.address || undefined,
     ownerUid: row.owner_id,
@@ -465,9 +467,10 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     });
     if (lastPayment) {
       const { data: orderRow } = await supabase.from('orders').select('customer_name').eq('id', orderId).single();
+      const { data: shopRow } = await supabase.from('shops').select('currency').eq('id', shopId).single();
       sendPushToShop(shopId, actorId, {
         title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
-        body: `₦${lastPayment.amount.toLocaleString()} — by ${actorName}`,
+        body: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
         orderId,
       }).catch(() => {});
     }

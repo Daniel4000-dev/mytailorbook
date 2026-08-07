@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import { formatNumber } from '@/lib/formatters';
+import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
+import { useData } from '@/contexts/DataContext';
 import type { Customer, Priority, User } from '@/lib/types';
 import styles from '../page.module.css';
 
@@ -44,6 +45,9 @@ export default function DetailsStep({
   priority,
   onPriorityChange,
 }: DetailsStepProps) {
+  const { currentShop } = useData();
+  const currencySymbol = getCurrencySymbol(currentShop?.currency);
+
   return (
     <div className={styles.col}>
       <div>
@@ -66,7 +70,7 @@ export default function DetailsStep({
           </header>
           <div className={styles.unitGrid}>
             <div className={styles.unitField}>
-              <label className={styles.capsLabel}>Total Bill (₦)</label>
+              <label className={styles.capsLabel}>Total Bill ({currencySymbol})</label>
               <input
                 className={styles.unitInput}
                 inputMode="numeric"
@@ -76,7 +80,7 @@ export default function DetailsStep({
               />
             </div>
             <div className={styles.unitField}>
-              <label className={styles.capsLabel}>Deposit Paid (₦)</label>
+              <label className={styles.capsLabel}>Deposit Paid ({currencySymbol})</label>
               <input
                 className={styles.unitInput}
                 inputMode="numeric"
@@ -129,7 +133,7 @@ export default function DetailsStep({
                 </div>
                 {u.materialSuppliedBy === 'shop' && (
                   <div className={styles.unitField}>
-                    <label className={styles.capsLabel}>Material Cost (₦)</label>
+                    <label className={styles.capsLabel}>Material Cost ({currencySymbol})</label>
                     <input
                       className={styles.unitInput}
                       inputMode="numeric"
@@ -140,7 +144,7 @@ export default function DetailsStep({
                   </div>
                 )}
                 <div className={styles.unitField}>
-                  <label className={styles.capsLabel}>Other Costs (₦)</label>
+                  <label className={styles.capsLabel}>Other Costs ({currencySymbol})</label>
                   <input
                     className={styles.unitInput}
                     inputMode="numeric"

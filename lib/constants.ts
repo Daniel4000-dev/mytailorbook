@@ -26,6 +26,32 @@ export const USER_ROLES: readonly Role[] = ['OrgAdmin', 'BranchManager', 'Staff'
 
 export const PHONE_PREFIX = '234';
 
+export interface CurrencyConfig {
+  code: string;
+  label: string;
+}
+
+export const SUPPORTED_CURRENCIES: CurrencyConfig[] = [
+  { code: 'NGN', label: 'NGN (₦) - Nigeria' },
+  { code: 'USD', label: 'USD ($) - United States' },
+  { code: 'GBP', label: 'GBP (£) - United Kingdom' },
+  { code: 'EUR', label: 'EUR (€) - Eurozone' },
+  { code: 'GHS', label: 'GHS (₵) - Ghana' },
+  { code: 'KES', label: 'KES (KSh) - Kenya' },
+  { code: 'ZAR', label: 'ZAR (R) - South Africa' },
+  { code: 'TZS', label: 'TZS (TSh) - Tanzania' },
+  { code: 'UGX', label: 'UGX (USh) - Uganda' },
+  { code: 'RWF', label: 'RWF (FRw) - Rwanda' },
+  { code: 'CAD', label: 'CAD ($) - Canada' },
+  { code: 'AUD', label: 'AUD ($) - Australia' },
+  { code: 'INR', label: 'INR (₹) - India' },
+  { code: 'XAF', label: 'XAF (FCFA) - Central Africa' },
+  { code: 'XOF', label: 'XOF (CFA) - West Africa' },
+  { code: 'EGP', label: 'EGP (E£) - Egypt' },
+  { code: 'MAD', label: 'MAD (DH) - Morocco' },
+  { code: 'ZMW', label: 'ZMW (ZK) - Zambia' },
+  { code: 'ZWL', label: 'ZWL (Z$) - Zimbabwe' },
+];
 /** Maps each order status to its visual properties */
 export const STATUS_CONFIG: Record<
   OrderStatus,

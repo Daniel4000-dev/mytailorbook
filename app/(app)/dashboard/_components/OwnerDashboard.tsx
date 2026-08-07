@@ -26,6 +26,7 @@ export default function OwnerDashboard({
   staffMembers: ReturnType<typeof useData>['staffMembers'];
   onNavigate: (href: string) => void;
 }) {
+  const { currentShop } = useData();
   // Persisted across refresh/logout/login — a hidden balance shouldn't
   // reveal itself just because the tab reloaded or the session changed.
   const [hideCollected, setHideCollected] = useState(() => getClientCookie('mtb_hide_collected') === '1');
@@ -117,7 +118,7 @@ export default function OwnerDashboard({
             </button>
           </div>
           <span className={styles.cardValue}>
-            {hideCollected ? '******' : formatCurrency(collected)}
+            {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
           </span>
         </div>
 
@@ -134,7 +135,7 @@ export default function OwnerDashboard({
             </button>
           </div>
           <span className={styles.cardValue}>
-            {hideProjected ? '******' : formatCurrency(projected)}
+            {hideProjected ? '******' : formatCurrency(projected, currentShop?.currency)}
           </span>
         </div>
 
