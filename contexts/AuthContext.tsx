@@ -186,6 +186,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Otherwise the next person to use this device/browser would get
     // folded into the previous user's identity.
     resetAnalytics();
+    // Clear offline SWR cache so another user on this device does not see it.
+    localStorage.removeItem('mtb-swr-cache');
   }, [supabase]);
 
   const resetPassword = useCallback(async (email: string) => {

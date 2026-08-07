@@ -16,6 +16,7 @@ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton'
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import styles from './SidebarMenu.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import OnlineIndicator from '@/components/ui/OnlineIndicator/OnlineIndicator';
 
 export default function SidebarMenu() {
   const { logout, isOwner, loading: authLoading } = useAuth();
@@ -72,6 +73,7 @@ export default function SidebarMenu() {
             className={`${styles.desktopLogo} brandLogoAuto`}
           />
           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
+          {!isCollapsed && <OnlineIndicator />}
         </div>
       </div>
 
@@ -181,8 +183,11 @@ export default function SidebarMenu() {
         )}
       </nav>
 
-      {/* Footer Navigation (Logout only) */}
+      {/* Footer Navigation (Logout + connection indicator) */}
       <div className={styles.footer}>
+        {/* Show inline on mobile; desktop shows it under the shop name in the
+            branding area (hidden when collapsed). */}
+        <OnlineIndicator className={styles.mobileOnlineIndicator} />
         <button 
           className={styles.logoutBtn} 
           onClick={handleLogout}

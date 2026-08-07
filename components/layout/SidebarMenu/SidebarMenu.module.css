@@ -563,4 +563,9 @@
     display: flex;
     align-items: center;
   }
+
+  /* Desktop has the indicator in the branding block — hide the footer copy. */
+  .mobileOnlineIndicator {
+    display: none;
+  }
 }

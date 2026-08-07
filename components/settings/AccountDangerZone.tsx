@@ -76,6 +76,7 @@ export function AccountDangerZone({ isOwner, onClosingProfile }: { isOwner: bool
     }
     onClosingProfile();
     const supabase = createClient();
+    localStorage.removeItem('mtb-swr-cache');
     await supabase.auth.signOut();
     router.push('/login?deleted=1');
   };
@@ -90,6 +91,7 @@ export function AccountDangerZone({ isOwner, onClosingProfile }: { isOwner: bool
     }
     onClosingProfile();
     const supabase = createClient();
+    localStorage.removeItem('mtb-swr-cache');
     await supabase.auth.signOut();
     router.push('/login?deleted=1');
   };

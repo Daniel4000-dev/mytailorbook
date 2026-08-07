@@ -3,6 +3,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider, THEME_ANTI_FLASH_SCRIPT } from '@/contexts/ThemeContext';
 import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar/ServiceWorkerRegistrar';
+import AppSWRConfig from '@/components/pwa/AppSWRConfig/AppSWRConfig';
+import NetworkMonitor from '@/components/pwa/NetworkMonitor/NetworkMonitor';
 import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
 import { inter, fraunces, manrope } from '@/lib/fonts';
 import { APP_CONFIG } from '@/lib/config';
@@ -112,9 +114,12 @@ export default function RootLayout({
         <AnalyticsProvider />
         <ThemeProvider>
           <ToastProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+            <NetworkMonitor />
+            <AppSWRConfig>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </AppSWRConfig>
           </ToastProvider>
         </ThemeProvider>
       </body>
