@@ -57,9 +57,9 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
           <div className={styles.amountHero}>
             <span className={styles.amountHeroLabel}>Total Bill</span>
-            <span className={styles.amountHeroValue}>{formatCurrency(order.totalBill, shop.currency)}</span>
+            <span className={styles.amountHeroValue}>{formatCurrency(order.totalBill, shop?.currency)}</span>
             <span className={`${styles.statusPill} ${balanceOwed <= 0 ? styles.statusPillPaid : styles.statusPillDue}`}>
-              {balanceOwed <= 0 ? 'Paid in Full' : `${formatCurrency(balanceOwed, shop.currency)} Balance Due`}
+              {balanceOwed <= 0 ? 'Paid in Full' : `${formatCurrency(balanceOwed, shop?.currency)} Balance Due`}
             </span>
           </div>
 
@@ -82,7 +82,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
                     {order.orderDetails}
                     <span className={styles.lineItemMeta}>{STATUS_CONFIG[order.status].label}</span>
                   </td>
-                  <td className={styles.amountCol}>{formatCurrency(order.totalBill, shop.currency)}</td>
+                  <td className={styles.amountCol}>{formatCurrency(order.totalBill, shop?.currency)}</td>
                 </tr>
               </tbody>
             </table>
@@ -94,15 +94,15 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
             <tbody>
               <tr>
                 <td>Total Bill</td>
-                <td className={styles.amountCol}>{formatCurrency(order.totalBill, shop.currency)}</td>
+                <td className={styles.amountCol}>{formatCurrency(order.totalBill, shop?.currency)}</td>
               </tr>
               <tr>
                 <td>Amount Paid</td>
-                <td className={styles.amountCol}>{formatCurrency(order.depositPaid, shop.currency)}</td>
+                <td className={styles.amountCol}>{formatCurrency(order.depositPaid, shop?.currency)}</td>
               </tr>
               <tr className={styles.balanceRow}>
                 <td>Balance Due</td>
-                <td className={styles.amountCol}>{formatCurrency(balanceOwed, shop.currency)}</td>
+                <td className={styles.amountCol}>{formatCurrency(balanceOwed, shop?.currency)}</td>
               </tr>
             </tbody>
           </table>
@@ -125,7 +125,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
                       <tr key={p.id}>
                         <td>{new Date(p.timestamp).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                         <td>{p.recordedByName}</td>
-                        <td className={styles.amountCol}>{formatCurrency(p.amount, shop.currency)}</td>
+                        <td className={styles.amountCol}>{formatCurrency(p.amount, shop?.currency)}</td>
                       </tr>
                     ))}
                   </tbody>
