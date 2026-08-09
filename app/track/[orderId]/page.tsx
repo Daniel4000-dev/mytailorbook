@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
@@ -99,7 +99,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       <header className={styles.header}>
         <div className={styles.brandBlock}>
           <span className={styles.brandIcon}>
-            <Image src="/images/logo-mark.png" alt="" width={496} height={496} className="brandLogoAuto" />
+            <BrandIcon />
           </span>
           <div className={styles.brandText}>
             <span className={styles.brandName}>{APP_CONFIG.name}</span>

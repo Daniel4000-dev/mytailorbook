@@ -153,6 +153,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
         isOpen={isCreateMenuOpen}
         onClose={closeCreateMenu}
         title="New Order"
+        variant="modal"
       >
         <div className={styles.actionMenu}>
           <p className={styles.actionMenuHint}>Select the client profile to begin.</p>
@@ -198,7 +199,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
            never block the public marketing site, auth pages, or customer-
            facing public pages, only the actual in-app screens this
            mobile-first UI was built for. */}
-        <DesktopGate />
+        {/* TEMP: DesktopGate disabled locally to build/audit desktop views — restore before ship */}
+        {/* <DesktopGate /> */}
         <AppLayoutContent>{children}</AppLayoutContent>
       </SidebarProvider>
     </DataProvider>

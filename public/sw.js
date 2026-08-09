@@ -15,15 +15,15 @@
 // resolution and is a separate, much bigger feature. This is read-only
 // resilience for a dropped connection, nothing more.
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v3';
 const SHELL_CACHE = `mtb-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `mtb-runtime-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline';
 
 const SHELL_ASSETS = [
   OFFLINE_URL,
-  '/images/logo-mark.png',
-  '/images/logo-full.png',
+  '/images/logo.png',
+  '/images/og-image.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/manifest.webmanifest',

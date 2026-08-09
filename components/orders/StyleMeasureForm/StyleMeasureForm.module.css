@@ -110,3 +110,23 @@
   letter-spacing: var(--sf-tracking-caps);
   margin-bottom: 4px;
 }
+
+/* ── Desktop override ──────────────────────────────────────────
+   A single garment can have 20-30+ measurement fields — a one-per-row
+   stack turns into a very long scroll for no reason once there's width
+   to spare. 2 columns (not 3): each card already packs label + hint +
+   a large numeric input + unit tag horizontally, and labels like
+   "Shoulder to Bust" need real room. Placed last so source order wins
+   against the earlier unconditional .measureList rule. */
+@media (min-width: 1024px) {
+  .measureList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+  }
+
+  /* Flat/plain on desktop only — mobile keeps its card shadow. */
+  .measureCard {
+    box-shadow: none;
+  }
+}

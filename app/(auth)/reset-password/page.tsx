@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,7 @@ import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { updatePasswordSchema, type UpdatePasswordInput } from '@/lib/validations';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -51,9 +52,11 @@ export default function ResetPasswordPage() {
     return (
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
-          <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
+          <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
         </div>
-        <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+        <div className={styles.brandTitle}>
+          <BrandWordmark height={32} />
+        </div>
         <div className={styles.successWrapper}>
           <div className={styles.successIconWrapper}>
             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -71,9 +74,11 @@ export default function ResetPasswordPage() {
   return (
     <div className={styles.container}>
       <div className={styles.logoWrapper}>
-        <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
+        <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
       </div>
-      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+      <div className={styles.brandTitle}>
+        <BrandWordmark height={32} />
+      </div>
 
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}

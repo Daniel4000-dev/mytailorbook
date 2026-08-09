@@ -127,7 +127,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--sf-radius-full);
-  background: #FFFFFF;
+  background: var(--sf-bg-surface-elevated);
   border: none;
   display: flex;
   align-items: center;
@@ -161,6 +161,12 @@
   object-fit: contain;
 }
 
+/* Desktop-only duplicate of the sidebar's "New" action (see TopBar.tsx) —
+   hidden on mobile, where .logoToggle is the real menu control. */
+.newAction {
+  display: none;
+}
+
 /* Desktop Styles */
 @media (min-width: 1024px) {
   .topBar {
@@ -187,5 +193,54 @@
 
   .profileName {
     font-size: var(--sf-text-2xl);
+  }
+
+  /* The sidebar is permanently open on desktop — nothing for this button
+     to toggle — so it's replaced by .newAction here. */
+  .logoToggle {
+    display: none;
+  }
+
+  .newAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px;
+    border: none;
+    border-radius: var(--sf-radius-lg);
+    background: var(--sf-accent-emerald);
+    color: var(--sf-text-on-accent);
+    font-family: var(--sf-font-body), sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
+    transition: all var(--sf-transition-fast);
+  }
+
+  .newActionIcon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .newAction:hover {
+    background: var(--sf-accent-emerald-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 56, 202, 0.32);
+  }
+}
+
+@media (min-width: 1024px) {
+  .newAction:active {
+    transform: scale(0.97);
+  }
+
+  .newAction:focus-visible {
+    outline: 2px solid var(--sf-accent-emerald);
+    outline-offset: 2px;
   }
 }

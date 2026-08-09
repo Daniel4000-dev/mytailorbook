@@ -1,0 +1,33 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+/* Team Snapshot (wider, the actionable column) beside Needs Attention
+   (narrower, a scannable feed) — a real two-column dashboard instead of
+   one long stack, now that there's width to spare. */
+.twoCol {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: var(--sf-space-xl);
+  align-items: start;
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sf-space-md);
+}

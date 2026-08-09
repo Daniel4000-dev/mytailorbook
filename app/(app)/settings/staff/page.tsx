@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { resetStaffPasswordAction } from '@/app/actions';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
@@ -30,6 +31,7 @@ export default function StaffSettingsPage() {
   const { currentShop, staffMembers, addStaff, updateStaff, isLoaded } = useData();
   const isPremium = !!currentShop && PREMIUM_STATUSES.includes(currentShop.subscriptionStatus);
   const { showToast } = useToast();
+  const isDesktop = useIsDesktop();
 
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
   const [sheetView, setSheetView] = useState<StaffSheetView>('actions');
@@ -135,7 +137,7 @@ export default function StaffSettingsPage() {
       header={
         <TopBar
           title="Staff"
-          showBack
+          showBack={!isDesktop}
           onBack={() => router.push('/settings')}
           rightAction={
             <CircleIconButton
@@ -321,7 +323,7 @@ export default function StaffSettingsPage() {
         </form>
       </BottomSheet>
 
-      <BottomSheet isOpen={isUpsellOpen} onClose={() => setIsUpsellOpen(false)} title="Staff Accounts">
+      <BottomSheet isOpen={isUpsellOpen} onClose={() => setIsUpsellOpen(false)} title="Staff Accounts" variant="modal">
         <div className={styles.sheetBody}>
           <p className={styles.hintText}>
             Adding team members is a Premium feature. Upgrade to give staff their own login, track who&apos;s handling

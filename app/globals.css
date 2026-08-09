@@ -230,29 +230,32 @@ body.no-scroll {
 /* ── Responsive Container ──────────────────────────────────── */
 /* Removed center alignment to allow full-width desktop layout */
 
-/* ── Brand logo, dark-mode aware ──────────────────────────────
-   The logo mark/wordmark PNGs are baked-in indigo ink — fine on the
-   near-white light-mode canvas, but low-contrast once the surface behind
-   them flips to a dark background in dark mode. Flips the whole mark to
-   solid white there instead of shipping a second asset. Apply this class
-   alongside any module's own sizing class on every <img src="logo-mark…"
-   or "logo-full…"> that sits on a theme-reactive background. */
-.brandLogoAuto {
-  transition: filter var(--sf-transition-fast, 0.15s ease);
+/* ── Brand icon, dark-mode aware ───────────────────────────────
+   Used by components/ui/BrandIcon — two source images (logo.png /
+   logo-dark.png), toggled by theme, instead of a CSS filter. A filter can
+   only flatten the whole icon to one flat tone, which lost the
+   fill/stitch-detail two-tone contrast that logo-dark.png's own
+   recoloring preserves. */
+.brandIconDark {
+  display: none;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .brandLogoAuto {
-    /* brightness(0) flattens the ink to a black silhouette (alpha kept);
-       invert(93%) then lifts it to ~#EDEDF5 — the same near-white the
-       in-app nav route labels use in dark mode (--sf-text-primary),
-       rather than a stark pure white that doesn't match. */
-    filter: brightness(0) invert(93%);
+  :root:not([data-theme="light"]) .brandIconLight {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]) .brandIconDark {
+    display: block;
   }
 }
 
-:root[data-theme="dark"] .brandLogoAuto {
-  filter: brightness(0) invert(93%);
+:root[data-theme="dark"] .brandIconLight {
+  display: none;
+}
+
+:root[data-theme="dark"] .brandIconDark {
+  display: block;
 }
 
 

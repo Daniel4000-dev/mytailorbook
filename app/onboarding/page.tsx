@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { preload } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
@@ -148,7 +149,7 @@ export default function OnboardingPage() {
   return (
     <div className={styles.container}>
       <div className={styles.logoWrapper}>
-        <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
+        <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
       </div>
       <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
       <p className={styles.subheading}>

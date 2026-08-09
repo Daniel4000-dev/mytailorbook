@@ -6,6 +6,18 @@
   width: 100%;
 }
 
+/* Side padding matches TopBar's own desktop padding (var(--sf-space-lg),
+   see TopBar.module.css) exactly, so the greeting bar and the cards below
+   it line up to the same edges instead of the header looking wider. No
+   max-width cap: content should fill the space next to the sidebar, not
+   float a narrower column inside it with dead margins on wide monitors. */
+@media (min-width: 1024px) {
+  .pageGrid {
+    padding: var(--sf-space-lg) var(--sf-space-lg) var(--sf-space-2xl);
+    gap: 0;
+  }
+}
+
 /* ── Animations ── */
 @keyframes fluidReveal {
   from { opacity: 0; transform: translateY(20px) scale(0.98); }
@@ -801,4 +813,19 @@
 :root[data-theme="dark"] .attentionAvatar_warning {
   background: rgba(245, 158, 11, 0.16);
   color: #FBBF24;
+}
+
+/* Flat/plain on desktop only — mobile keeps its card shadow. Placed last
+   so source order wins against the earlier unconditional base rules. */
+@media (min-width: 1024px) {
+  .financeCard,
+  .teamCard,
+  .attentionRow {
+    box-shadow: none;
+  }
+
+  .teamCard:hover,
+  .attentionRow:hover {
+    box-shadow: none;
+  }
 }

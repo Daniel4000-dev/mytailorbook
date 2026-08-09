@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
@@ -26,6 +27,7 @@ export default function PortfolioCurationSettingsPage() {
   const router = useRouter();
   const { currentShop, updateShop } = useData();
   const { showToast } = useToast();
+  const isDesktop = useIsDesktop();
 
   const [photos, setPhotos] = useState<PortfolioCurationPhoto[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -131,7 +133,7 @@ export default function PortfolioCurationSettingsPage() {
       header={
         <TopBar
           title="Manage Portfolio"
-          showBack
+          showBack={!isDesktop}
           onBack={() => router.push('/settings')}
           rightAction={
             currentShop && (

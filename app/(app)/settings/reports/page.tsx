@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFinancialReport, type FinancialReport } from '@/app/actions';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import { formatCurrency } from '@/lib/formatters';
@@ -29,6 +30,7 @@ function fromDateFor(range: RangeKey): string | undefined {
 
 export default function ReportsPage() {
   const router = useRouter();
+  const isDesktop = useIsDesktop();
   const [range, setRange] = useState<RangeKey>('month');
   const [report, setReport] = useState<FinancialReport | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export default function ReportsPage() {
   }, [range]);
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Reports" showBack onBack={() => router.push('/settings')} />}>
+    <PageLayout width="narrow" header={<TopBar title="Reports" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
       <p className={styles.intro}>Revenue, outstanding balance, and margin across your organization.</p>
 
       <div className={styles.rangeRow}>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,11 +11,13 @@ import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
 
 export default function ForgotPasswordPage() {
-  const { resetPassword, loading } = useAuth();
+  const { resetPassword } = useAuth();
   const [sent, setSent] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
@@ -30,11 +32,14 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setApiError('');
+    setSubmitting(true);
     try {
       await resetPassword(data.email);
       setSent(true);
     } catch {
       setApiError('Could not send reset link');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -43,17 +48,13 @@ export default function ForgotPasswordPage() {
       <div className={styles.container}>
         {/* Sewing Machine Logo */}
         <div className={styles.logoWrapper}>
-          <Image
-            src="/images/logo-mark.png"
-            alt="MyStitchBook"
-            width={496}
-            height={496}
-            className={`${styles.sewingMachineSvg} brandLogoAuto`}
-          />
+          <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
         </div>
 
         {/* Brand Title */}
-        <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+        <div className={styles.brandTitle}>
+          <BrandWordmark height={32} />
+        </div>
 
         <div className={styles.successWrapper}>
           <div className={styles.successIconWrapper}>
@@ -79,17 +80,13 @@ export default function ForgotPasswordPage() {
     <div className={styles.container}>
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
-        <Image
-          src="/images/logo-mark.png"
-          alt="MyStitchBook"
-          width={496}
-          height={496}
-          className={`${styles.sewingMachineSvg} brandLogoAuto`}
-        />
+        <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
+      <div className={styles.brandTitle}>
+        <BrandWordmark height={32} />
+      </div>
 
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}
@@ -110,9 +107,9 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Primary Submit Button */}
-        <button type="submit" className={styles.loginButton} disabled={loading} style={{ marginTop: '24px' }}>
-          {loading && <Symbol name="progress_activity" className="global-spinner" />}
-          {loading ? 'Sending link...' : 'Send reset link'}
+        <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '24px' }}>
+          {submitting && <Symbol name="progress_activity" className="global-spinner" />}
+          {submitting ? 'Sending link...' : 'Send reset link'}
         </button>
 
         {/* Footer separator */}

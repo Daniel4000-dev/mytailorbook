@@ -16,6 +16,21 @@
   min-width: 0;
 }
 
+/* Desktop-split wrappers (see the bottom of this file for the actual
+   @media (min-width: 1024px) column/grid switch) — on mobile these are
+   just plain flex-column stacks so the gap between cards doesn't collapse
+   now that they sit one level deeper than .detailWrapper's direct
+   children. */
+.topBand,
+.twoColGrid,
+.colPhotos,
+.colText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  min-width: 0;
+}
+
 .card {
   position: relative;
   background: var(--sf-bg-surface);
@@ -981,5 +996,58 @@
   .whatsappFab {
     bottom: var(--sf-space-xl);
     right: var(--sf-margin-desktop);
+  }
+}
+
+/* Destructive action gets its own visually-separated card, not just
+   another section with equal weight to everything above it — same
+   treatment as the Customer detail page's Danger Zone. */
+.dangerZone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-lg);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--sf-radius-md);
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.dangerZoneTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: #DC2626;
+}
+
+.dangerZoneHint {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+}
+
+/* ── Desktop overrides ──────────────────────────────────────────
+   Placed last on purpose — CSS source order decides the winner when
+   specificity ties against earlier unconditional rules (.detailWrapper
+   above sets max-width: 896px unconditionally; this must come after it
+   to actually win). Header/meta/timeline stay a single full-width band;
+   the rest splits into two columns — photos on the left, text/data on
+   the right, so the tall photo grids don't end up under the fixed
+   WhatsApp shortcut that sits bottom-right. Extra right padding on the
+   wrapper keeps every full-width section below the columns (Payment
+   Summary, Danger Zone, etc.) clear of that same fixed button too. */
+@media (min-width: 1024px) {
+  .detailWrapper {
+    max-width: none;
+    padding-right: 100px;
+  }
+
+  .twoColGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  /* Flat/plain on desktop only — mobile keeps its card shadow. */
+  .card {
+    box-shadow: none;
   }
 }

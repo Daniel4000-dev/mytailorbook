@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { getPublicShopPortfolio } from '@/app/public-actions';
+import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
+import JsonLd from '@/components/seo/JsonLd';
 import PortfolioView from '@/components/studio/PortfolioView/PortfolioView';
 import styles from './page.module.css';
 
@@ -28,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Falls back to the same site-wide logo image the root layout already
   // uses, so there's always a real preview, personalized once real photos
   // exist.
-  const previewImage = portfolio.photos[0]?.url || '/images/logo-full.png';
+  const previewImage = portfolio.photos[0]?.url || '/images/og-image.png';
   return {
     title,
     description,
@@ -67,8 +69,11 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   }
 
   // Structured data for local-business discovery — only real fields the
-  // shop actually has are included, nothing fabricated (no rating/review
-  // counts, no fake hours).
+  // shop actually has are included, nothing fabricated (no fake hours).
+  // The rating/review data below is real too: ratingSummary is computed
+  // from every approved order_ratings row for this shop (not just the
+  // capped/ordered testimonials list), so the AggregateRating claim always
+  // matches what a customer could independently verify.
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'ClothingStore',
@@ -79,18 +84,34 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
   if (portfolio.shop.logoUrl) jsonLd.image = portfolio.shop.logoUrl;
   else if (portfolio.photos[0]) jsonLd.image = portfolio.photos[0].url;
   if (portfolio.shop.bio) jsonLd.description = portfolio.shop.bio;
+  if (portfolio.ratingSummary) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: Number(portfolio.ratingSummary.average.toFixed(1)),
+      reviewCount: portfolio.ratingSummary.count,
+      bestRating: 5,
+      worstRating: 1,
+    };
+  }
+  if (portfolio.testimonials.length > 0) {
+    jsonLd.review = portfolio.testimonials.slice(0, 10).map((t) => ({
+      '@type': 'Review',
+      author: { '@type': 'Person', name: t.customerName },
+      datePublished: t.submittedAt,
+      reviewRating: { '@type': 'Rating', ratingValue: t.rating, bestRating: 5, worstRating: 1 },
+      ...(t.comment ? { reviewBody: t.comment } : {}),
+    }));
+  }
+
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: portfolio.shop.name, path: `/studio/${portfolio.shop.slug}` },
+  ]);
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        // shop name/bio/address are owner-entered content, not trusted —
-        // JSON.stringify doesn't escape "<", so without this a bio
-        // containing "</script>" could break out of the tag and inject
-        // arbitrary HTML/script into every visitor's page.
-         
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={breadcrumbs} />
       <PortfolioView portfolio={portfolio} />
     </>
   );

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './TopBar.module.css';
@@ -33,7 +33,7 @@ export default function TopBar({
   profileMode,
 }: TopBarProps) {
   const router = useRouter();
-  const { toggleMenu } = useSidebar();
+  const { toggleMenu, openCreateMenu } = useSidebar();
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -55,13 +55,26 @@ export default function TopBar({
             </div>
           </div>
           <div className={styles.right}>
+            {/* Mobile: opens the slide-in menu. On desktop the sidebar is
+               always visible (nothing to toggle open), so this button is
+               replaced by .newAction below — see TopBar.module.css. The
+               dashboard is the one place this desktop "New" shortcut
+               lives; it doesn't need FAB-style everywhere-reachability. */}
             <button
               type="button"
               className={styles.logoToggle}
               onClick={toggleMenu}
               aria-label="Open menu"
             >
-              <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={styles.logoToggleImg} />
+              <BrandIcon className={styles.logoToggleImg} />
+            </button>
+            <button
+              type="button"
+              className={styles.newAction}
+              onClick={openCreateMenu}
+            >
+              <Symbol name="add" className={styles.newActionIcon} />
+              <span>New</span>
             </button>
           </div>
         </div>

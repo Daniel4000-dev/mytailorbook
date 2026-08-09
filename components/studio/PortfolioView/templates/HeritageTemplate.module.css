@@ -172,10 +172,24 @@
 .galleryItem.tall {
   grid-row: span 2;
 }
-.galleryItem img {
+/* Full garment always visible — blurred cover copy fills the frame,
+   the real photo sits on top at contain, never cropped. */
+.galleryBackdrop {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: blur(28px) brightness(0.7) saturate(1.15);
+  transform: scale(1.2);
+}
+
+.galleryItem img:not(.galleryBackdrop) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
 }
 .galleryCap {

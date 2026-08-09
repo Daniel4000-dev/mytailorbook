@@ -53,7 +53,22 @@
   border-radius: var(--sf-radius-xl);
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
+  overflow: hidden;
   transition: transform var(--sf-transition-normal), box-shadow var(--sf-transition-normal);
+}
+
+.thumbWrap {
+  position: relative;
+  width: calc(100% + var(--sf-space-xl) * 2);
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  margin: calc(-1 * var(--sf-space-xl)) calc(-1 * var(--sf-space-xl)) var(--sf-space-lg);
+  background: var(--sf-bg-primary);
+}
+
+.thumb {
+  object-fit: cover;
+  object-position: top;
 }
 
 @media (hover: hover) and (pointer: fine) {

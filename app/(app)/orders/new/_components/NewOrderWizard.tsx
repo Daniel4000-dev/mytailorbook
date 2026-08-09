@@ -337,8 +337,8 @@ export default function NewOrderWizard() {
       );
       trackEvent('order_created', { garment_count: units.length });
       router.replace('/production');
-    } catch {
-      setError('Failed to create the order — check your connection and try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create the order — check your connection and try again.');
       setSubmitting(false);
     }
   };

@@ -64,7 +64,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <>
           {!isCustomAuth && (
             <div className={styles.branding}>
-              <Image src="/images/logo-full.png" alt={APP_CONFIG.name} width={1024} height={1024} className={styles.logo} />
+              <Image src="/images/og-image.png" alt={APP_CONFIG.name} width={1200} height={630} className={styles.logo} />
               <p className={styles.tagline}>{APP_CONFIG.tagline}</p>
             </div>
           )}

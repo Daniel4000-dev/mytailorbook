@@ -7,7 +7,7 @@ import { useData } from '@/contexts/DataContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { APP_CONFIG } from '@/lib/config';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { useRouter, usePathname } from 'next/navigation';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
@@ -22,7 +22,7 @@ export default function SidebarMenu() {
   const { logout, isOwner, loading: authLoading } = useAuth();
   const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
   const shopName = currentShop?.name || APP_CONFIG.name;
-  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse, openCreateMenu } = useSidebar();
+  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
   const [showProfile, setShowProfile] = useState(false);
@@ -54,24 +54,12 @@ export default function SidebarMenu() {
             onClick={() => setShowProfile(true)} 
             ariaLabel="Profile Settings"
           />
-          <Image
-            src="/images/logo-mark.png"
-            alt={shopName}
-            width={496}
-            height={496}
-            className={`${styles.mobileLogo} brandLogoAuto`}
-          />
+          <BrandIcon alt={shopName} className={styles.mobileLogo} />
         </div>
 
         {/* Desktop Branding (Logo & Shop Name) */}
         <div className={styles.desktopBranding}>
-          <Image
-            src="/images/logo-mark.png"
-            alt={shopName}
-            width={496}
-            height={496}
-            className={`${styles.desktopLogo} brandLogoAuto`}
-          />
+          <BrandIcon alt={shopName} className={styles.desktopLogo} />
           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
           {!isCollapsed && <OnlineIndicator />}
         </div>
@@ -93,20 +81,6 @@ export default function SidebarMenu() {
           ))}
         </select>
       )}
-
-      {/* Desktop's equivalent of the mobile FAB — a floating "+" belongs to
-          a bottom-nav app, not a persistent sidebar shell, so desktop gets
-          the same New Order/New Customer sheet from a button in the rail
-          instead (see SidebarContext's isCreateMenuOpen). */}
-      <button
-        type="button"
-        className={styles.newBtn}
-        onClick={openCreateMenu}
-        title={isCollapsed ? 'New' : undefined}
-      >
-        <Symbol name="add" className={styles.newIcon} />
-        <span className={styles.menuText}>New</span>
-      </button>
 
       {/* Collapse Toggle Button for Desktop */}
       <button 

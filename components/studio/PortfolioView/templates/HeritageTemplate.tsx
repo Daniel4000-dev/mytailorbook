@@ -95,6 +95,7 @@ export default function HeritageTemplate({ portfolio }: { portfolio: PublicPortf
           <div className={styles.gallery}>
             {galleryPhotos.map((p, i) => (
               <div key={`${p.url}-${i}`} className={`${styles.galleryItem} ${i === 0 ? styles.tall : ''}`}>
+                <Image src={p.url} alt="" aria-hidden fill sizes="(max-width: 768px) 50vw, 400px" className={styles.galleryBackdrop} />
                 <Image src={p.url} alt={p.garment} fill sizes="(max-width: 768px) 50vw, 400px" />
                 <span className={styles.galleryCap}>{p.caption || `${p.garment} · ${monthOf(p.takenAt)}`}</span>
               </div>

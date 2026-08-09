@@ -8,6 +8,18 @@
   padding-bottom: var(--sf-space-xl);
 }
 
+/* On mobile these are just plain stacking blocks — same visual order as
+   before the desktop split existed. */
+.profileBar,
+.twoColGrid,
+.colA,
+.colB {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+  min-width: 0;
+}
+
 .editBtn {
   display: flex;
   align-items: center;
@@ -412,7 +424,74 @@
   }
 }
 
+/* Destructive action gets its own visually-separated card, not just
+   another section with equal weight to "Create New Order" above it. */
+.dangerZone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-md);
+  padding: var(--sf-space-lg);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--sf-radius-md);
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.dangerZoneTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: #DC2626;
+}
+
+.dangerZoneHint {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin-bottom: var(--sf-space-xs);
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Desktop overrides ──────────────────────────────────────────
+   Placed last on purpose — CSS source order decides the winner when
+   specificity ties against earlier unconditional base rules, so this
+   block must come after every base rule it touches, not just be wrapped
+   in a media query.
+
+   The top band (.profileBar) is deliberately left untouched otherwise —
+   same centered avatar/name/quick-actions stack as mobile, just a
+   full-width bordered card instead of a 640px-capped column. Financial
+   Summary moved down into the two-column split below (see page.tsx) —
+   it's no longer part of this band at all. */
+@media (min-width: 1024px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-xl);
+    max-width: none;
+    margin: 0;
+  }
+
+  .profileBar {
+    background: var(--sf-bg-surface);
+    border: 1px solid var(--sf-border-light);
+    border-radius: var(--sf-radius-xl);
+    padding: var(--sf-space-xl) var(--sf-space-lg);
+  }
+
+  .twoColGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sf-space-xl);
+    align-items: start;
+  }
+
+  /* Flat/plain on desktop only — mobile keeps its original shadow. */
+  .orderCard,
+  .profileCard {
+    box-shadow: none;
+  }
 }

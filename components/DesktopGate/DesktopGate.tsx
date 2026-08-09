@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import styles from './DesktopGate.module.css';
 
 /** Temporary launch gate: blocks every page (in-app and public) above the
@@ -8,7 +8,7 @@ import styles from './DesktopGate.module.css';
 export default function DesktopGate() {
   return (
     <div className={styles.overlay}>
-      <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.logo} brandLogoAuto`} />
+      <BrandIcon className={styles.logo} />
       <p className={styles.message}>Temporarily unavailable.</p>
       <p className={styles.submessage}>Access using a mobile device.</p>
     </div>

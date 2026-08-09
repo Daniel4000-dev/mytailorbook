@@ -6,9 +6,37 @@ import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar/Serv
 import AppSWRConfig from '@/components/pwa/AppSWRConfig/AppSWRConfig';
 import NetworkMonitor from '@/components/pwa/NetworkMonitor/NetworkMonitor';
 import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
+import JsonLd from '@/components/seo/JsonLd';
 import { inter, fraunces, manrope } from '@/lib/fonts';
 import { APP_CONFIG } from '@/lib/config';
 import './globals.css';
+
+// Site-wide entity graph — present on every page (including auth-gated
+// ones, which cost nothing extra since they're already noindex) so any
+// crawler or AI agent only ever needs to resolve one canonical
+// Organization/WebSite pair, referenced by @id from page-level schema
+// (e.g. the ClothingStore's publisher, or a future Review's itemReviewed)
+// instead of every page re-describing the company from scratch.
+const ORGANIZATION_JSONLD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${APP_CONFIG.baseUrl}/#organization`,
+      name: APP_CONFIG.name,
+      url: APP_CONFIG.baseUrl,
+      logo: `${APP_CONFIG.baseUrl}/images/og-image.png`,
+      founder: { '@type': 'Group', name: 'DVCH' },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${APP_CONFIG.baseUrl}/#website`,
+      url: APP_CONFIG.baseUrl,
+      name: APP_CONFIG.name,
+      publisher: { '@id': `${APP_CONFIG.baseUrl}/#organization` },
+    },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${APP_CONFIG.domain}`),
@@ -24,7 +52,7 @@ export const metadata: Metadata = {
     siteName: APP_CONFIG.name,
     type: 'website',
     locale: APP_CONFIG.locale.replace('-', '_'),
-    images: [{ url: '/images/logo-full.png', width: 760, height: 530 }],
+    images: [{ url: '/images/og-image.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -36,10 +64,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/app-icon-light.ico?v=8', media: '(prefers-color-scheme: light)' },
-      { url: '/app-icon-dark.ico?v=8', media: '(prefers-color-scheme: dark)' },
+      { url: '/app-icon-light.ico?v=10', media: '(prefers-color-scheme: light)' },
+      { url: '/app-icon-dark.ico?v=10', media: '(prefers-color-scheme: dark)' },
     ],
-    apple: '/apple-touch-icon.png?v=5',
+    apple: '/apple-touch-icon.png?v=6',
   },
 };
 
@@ -108,6 +136,7 @@ export default function RootLayout({
         {/* Sets data-theme before first paint if the user has forced a
             theme — otherwise they'd see a flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_ANTI_FLASH_SCRIPT }} />
+        <JsonLd data={ORGANIZATION_JSONLD} />
       </head>
       <body>
         <ServiceWorkerRegistrar />

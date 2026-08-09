@@ -110,6 +110,13 @@
   gap: var(--sf-space-lg);
 }
 
+/* On mobile this is invisible to layout — its two .field children act as
+   plain direct children of .section, same as before this wrapper existed.
+   Only becomes a real 2-column row at desktop (see bottom of file). */
+.fieldRow {
+  display: contents;
+}
+
 .sectionTitle {
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-2xl);
@@ -357,4 +364,24 @@
 
 .createBtn:disabled {
   opacity: 0.6;
+}
+
+/* ── Desktop overrides ──────────────────────────────────────────
+   Placed last on purpose — source order beats media-query specificity
+   when a later unconditional rule ties. This is a focused single-task
+   form (like the New Order wizard), so it stays a centered column on
+   desktop rather than going full-bleed — just wider than the
+   mobile-sized 448px, with Name+Phone paired into a row like a real
+   desktop form (matches the codebase's own "Employee Details"-style
+   2-column reference used for the New Order measurement grid). */
+@media (min-width: 1024px) {
+  .formCol {
+    max-width: 640px;
+  }
+
+  .fieldRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sf-space-lg);
+  }
 }

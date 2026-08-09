@@ -841,3 +841,23 @@
 :root[data-theme="dark"] .summaryBar {
   background: rgba(27, 26, 43, 0.92);
 }
+
+/* ── Desktop overrides ──────────────────────────────────────────
+   Placed last on purpose — source order beats media-query specificity
+   when a later unconditional rule ties, so any desktop change has to
+   come after every base rule it touches. This wizard intentionally
+   hides the sidebar (a focused, no-distractions flow) and stays a
+   centered column on desktop rather than going full-bleed — 820px is
+   sized backward from .garmentGrid's own 3-column breakpoint (three
+   ~262px cards + two 16px gaps = 820px), not a round number. */
+@media (min-width: 1024px) {
+  .col {
+    max-width: 820px;
+  }
+
+  /* Flat/plain on desktop only — mobile keeps its card shadow. */
+  .garmentCard,
+  .unitCard {
+    box-shadow: none;
+  }
+}

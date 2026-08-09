@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { APP_CONFIG } from '@/lib/config';
+import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
+import JsonLd from '@/components/seo/JsonLd';
 import ContactPageContent from './_components/ContactPageContent';
 
 export const metadata: Metadata = {
@@ -20,5 +22,15 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactPageContent />;
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Contact', path: '/contact' },
+  ]);
+
+  return (
+    <>
+      <JsonLd data={breadcrumbs} />
+      <ContactPageContent />
+    </>
+  );
 }

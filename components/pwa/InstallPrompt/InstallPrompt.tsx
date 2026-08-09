@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import styles from './InstallPrompt.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -106,7 +106,7 @@ export default function InstallPrompt() {
       </button>
 
       <div className={styles.iconWrapper}>
-        <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.appIcon} brandLogoAuto`} />
+        <BrandIcon className={styles.appIcon} />
       </div>
 
       <div className={styles.textWrapper}>

@@ -371,6 +371,13 @@ export default function OrderDetailPage() {
       }
     >
       <div className={styles.detailWrapper}>
+        {/* Desktop: header/meta/timeline span the full width as one band —
+           "where is this order right now" — then documentation splits into
+           two columns below (photos left, text/data right — keeps the
+           photo grid clear of the page's fixed WhatsApp shortcut, which
+           sits bottom-right). Mobile: plain stacking blocks, same order as
+           always. */}
+        <div className={styles.topBand}>
         {/* 1. Move to next stage */}
         {next && (
           <div className={styles.advanceRow}>
@@ -517,6 +524,50 @@ export default function OrderDetailPage() {
           )}
         </section>
 
+        {/* Activity timeline — full pipeline, done/current/pending. Lives
+           in the top band (moved here from the bottom of the page) since
+           it's the same "where is this order right now" question as the
+           status badge in the header above. */}
+        <section className={styles.card}>
+          <h3 className={styles.sectionTitle}>Activity Timeline</h3>
+          <div className={styles.timeline}>
+            {ORDER_STATUSES.map((status) => {
+              const entry = order.statusHistory.filter((h) => h.to === status).pop();
+              const currentIndex = ORDER_STATUSES.indexOf(order.status);
+              const stepIndex = ORDER_STATUSES.indexOf(status);
+              // The final stage (Completed/"Delivered") has no "next" to
+              // move on to — once reached it's done, not still "current"
+              // with an in-progress spinner.
+              const isTerminal = status === 'Completed' && order.status === 'Completed';
+              const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
+              return (
+                <div key={status} className={styles.timelineStep}>
+                  <div className={styles.timelineLine} />
+                  <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
+                    <Symbol
+                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Completed' ? 'check_circle' : 'hourglass_empty'}
+                      size={14}
+                    />
+                  </div>
+                  <div>
+                    <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
+                      {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
+                    </p>
+                    <p className={styles.timelineMeta}>
+                      {entry
+                        ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
+                        : state === 'pending' ? 'Pending' : '—'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        </div>
+
+        <div className={styles.twoColGrid}>
+        <div className={styles.colPhotos}>
         {/* 4. Inspiration */}
         <section className={styles.card + ' ' + styles.flushCard}>
           <div className={styles.capsHeader}>
@@ -554,29 +605,6 @@ export default function OrderDetailPage() {
           )}
         </section>
 
-        {/* 5. Order notes */}
-        <section className={styles.card}>
-          <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-            <h3 className={styles.capsTitle}>Order Notes</h3>
-            <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
-          </div>
-          <textarea
-            className={styles.notesArea}
-            value={notesDraft ?? order.orderDetails}
-            onChange={(e) => setNotesDraft(e.target.value)}
-            placeholder="Add garment details and tailor notes here…"
-          />
-          <button
-            type="button"
-            className={styles.saveNoteBtn}
-            onClick={handleSaveNotes}
-            disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
-          >
-            {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
-            Save Note
-          </button>
-        </section>
-
         {/* 6. Progress gallery */}
         <section className={styles.card + ' ' + styles.flushCard}>
           <div className={styles.capsHeader}>
@@ -608,6 +636,31 @@ export default function OrderDetailPage() {
               ))}
             </div>
           )}
+        </section>
+        </div>
+
+        <div className={styles.colText}>
+        {/* 5. Order notes */}
+        <section className={styles.card}>
+          <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
+            <h3 className={styles.capsTitle}>Order Notes</h3>
+            <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
+          </div>
+          <textarea
+            className={styles.notesArea}
+            value={notesDraft ?? order.orderDetails}
+            onChange={(e) => setNotesDraft(e.target.value)}
+            placeholder="Add garment details and tailor notes here…"
+          />
+          <button
+            type="button"
+            className={styles.saveNoteBtn}
+            onClick={handleSaveNotes}
+            disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
+          >
+            {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
+            Save Note
+          </button>
         </section>
 
         {/* Customer comments (from the public tracking page) */}
@@ -684,6 +737,8 @@ export default function OrderDetailPage() {
             </>
           )}
         </section>
+        </div>
+        </div>
 
         {/* 8. Payment summary (owner only) */}
         {isOwnerView && (
@@ -824,44 +879,6 @@ export default function OrderDetailPage() {
           </label>
         </section>
 
-        {/* 10. Activity timeline — full pipeline, done/current/pending */}
-        <section className={styles.card}>
-          <h3 className={styles.sectionTitle}>Activity Timeline</h3>
-          <div className={styles.timeline}>
-            {ORDER_STATUSES.map((status) => {
-              const entry = order.statusHistory.filter((h) => h.to === status).pop();
-              const currentIndex = ORDER_STATUSES.indexOf(order.status);
-              const stepIndex = ORDER_STATUSES.indexOf(status);
-              // The final stage (Completed/"Delivered") has no "next" to
-              // move on to — once reached it's done, not still "current"
-              // with an in-progress spinner.
-              const isTerminal = status === 'Completed' && order.status === 'Completed';
-              const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
-              return (
-                <div key={status} className={styles.timelineStep}>
-                  <div className={styles.timelineLine} />
-                  <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
-                    <Symbol
-                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Completed' ? 'check_circle' : 'hourglass_empty'}
-                      size={14}
-                    />
-                  </div>
-                  <div>
-                    <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
-                      {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
-                    </p>
-                    <p className={styles.timelineMeta}>
-                      {entry
-                        ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
-                        : state === 'pending' ? 'Pending' : '—'}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
         {/* Footer actions — the "advance to next stage" action already lives
              at the top of the page (section 1), so only Mark Paid (unique,
              not shown elsewhere) belongs here. */}
@@ -882,8 +899,9 @@ export default function OrderDetailPage() {
         )}
 
         {isOwnerView && (
-          <section className={styles.card}>
-            <h3 className={styles.sectionTitle}>Danger Zone</h3>
+          <section className={styles.dangerZone}>
+            <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
+            <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
             <button
               type="button"
               onClick={() => setConfirmingDelete(true)}

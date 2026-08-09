@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { APP_CONFIG } from '@/lib/config';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
 import styles from './Header.module.css';
 
 const NAV_LINKS = [
@@ -25,8 +25,8 @@ export default function Header() {
       <header className={styles.header}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} onClick={() => setMenuOpen(false)}>
-          <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.logo} brandLogoAuto`} />
-          <span>{APP_CONFIG.name}</span>
+          <BrandIcon className={styles.logo} />
+          <BrandWordmark />
         </Link>
 
         <nav className={styles.nav} aria-label="Main navigation">

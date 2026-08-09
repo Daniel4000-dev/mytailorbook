@@ -244,7 +244,8 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
                 aria-label={`View ${p.garment}`}
                 {...reveal((i % 6) * 0.06)}
               >
-                <Image src={p.url} alt={p.garment} fill sizes="(max-width: 768px) 50vw, 400px" loading={i > 3 ? 'lazy' : undefined} />
+                <Image src={p.url} alt="" aria-hidden fill sizes="(max-width: 768px) 50vw, 400px" className={styles.bentoBackdrop} loading={i > 3 ? 'lazy' : undefined} />
+                <Image src={p.url} alt={p.garment} fill sizes="(max-width: 768px) 50vw, 400px" className={styles.bentoImg} loading={i > 3 ? 'lazy' : undefined} />
                 <span className={styles.bentoCaption}>
                   <b>{p.caption || styleOf(p.garment) || p.garment}</b>
                   <small>{monthOf(p.takenAt)}</small>

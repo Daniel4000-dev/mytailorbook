@@ -34,7 +34,7 @@ export default function AppearanceToggle() {
         subtitle={LABELS[preference]}
         onClick={() => setOpen(true)}
       />
-      <BottomSheet isOpen={open} onClose={() => setOpen(false)} title="Appearance">
+      <BottomSheet isOpen={open} onClose={() => setOpen(false)} title="Appearance" variant="modal">
         <div className={styles.list}>
           {OPTIONS.map((opt) => (
             <button

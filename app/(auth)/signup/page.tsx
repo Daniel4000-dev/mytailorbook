@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,14 +12,16 @@ import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { signupSchema, type SignupInput } from '@/lib/validations';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup, signInWithGoogle, loading } = useAuth();
+  const { signup, signInWithGoogle } = useAuth();
   const [apiError, setApiError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
@@ -56,6 +58,7 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupInput) => {
     setApiError('');
+    setSubmitting(true);
     try {
       const { needsEmailConfirmation } = await signup(data.name, data.email, data.password);
       if (needsEmailConfirmation) {
@@ -65,6 +68,8 @@ export default function SignupPage() {
       }
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Could not create account');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -72,9 +77,11 @@ export default function SignupPage() {
     return (
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
-          <Image src="/images/logo-mark.png" alt="MyStitchBook" width={496} height={496} className={`${styles.sewingMachineSvg} brandLogoAuto`} />
+          <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
         </div>
-        <h1 className={styles.brandTitle}>My<span className={styles.brandAccent}>Stitch</span>Book</h1>
+        <div className={styles.brandTitle}>
+          <BrandWordmark height={30} />
+        </div>
         <div className={styles.successWrapper}>
           <div className={styles.successIconWrapper}>
             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -99,17 +106,13 @@ export default function SignupPage() {
     <div className={styles.container}>
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
-        <Image
-          src="/images/logo-mark.png"
-          alt="MyStitchBook"
-          width={496}
-          height={496}
-          className={`${styles.sewingMachineSvg} brandLogoAuto`}
-        />
+        <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>My<span className={styles.brandAccent}>Stitch</span>Book</h1>
+      <div className={styles.brandTitle}>
+        <BrandWordmark height={30} />
+      </div>
 
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}
@@ -178,11 +181,11 @@ export default function SignupPage() {
         <button
           type="submit"
           className={styles.loginButton}
-          disabled={loading || !agreedToPolicy}
+          disabled={submitting || !agreedToPolicy}
           style={{ marginTop: '8px' }}
         >
-          {loading && <Symbol name="progress_activity" className="global-spinner" />}
-          {loading ? 'Creating Account...' : 'Create Account'}
+          {submitting && <Symbol name="progress_activity" className="global-spinner" />}
+          {submitting ? 'Creating Account...' : 'Create Account'}
         </button>
 
         {/* Divider */}
@@ -197,7 +200,7 @@ export default function SignupPage() {
           type="button"
           className={styles.googleButton}
           onClick={handleGoogle}
-          disabled={loading || googleLoading || !agreedToPolicy}
+          disabled={submitting || googleLoading || !agreedToPolicy}
         >
           {googleLoading && <Symbol name="progress_activity" className="global-spinner" />}
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">

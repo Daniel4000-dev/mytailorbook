@@ -337,6 +337,12 @@ export interface PublicPortfolio {
     stylesCount: number;
   };
   testimonials: PortfolioTestimonial[];
+  /** Average + count across ALL approved ratings (not just the capped
+   *  `testimonials` list above) — needed for an honest AggregateRating in
+   *  the page's structured data. Null when there are no approved ratings
+   *  yet, so the schema can omit the field rather than claim a 0-review
+   *  average. */
+  ratingSummary: { average: number; count: number } | null;
   /** Premium shops get the "Powered by" badge removed from this page. */
   isPremium: boolean;
 }
@@ -417,6 +423,21 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
     submittedAt: r.submitted_at,
   }));
 
+  // Separate from the capped/ordered `ratingRows` above (limit 20, sorted
+  // for display) — this is the true average and count across every
+  // approved rating, which is what an AggregateRating claim has to reflect
+  // to stay honest (and within Google's structured-data guidelines).
+  const { data: allApprovedRatings } = await admin
+    .from('order_ratings')
+    .select('rating')
+    .eq('shop_id', shopId)
+    .eq('approved', true);
+  const ratingCount = allApprovedRatings?.length || 0;
+  const ratingSummary =
+    ratingCount > 0
+      ? { average: allApprovedRatings!.reduce((sum, r) => sum + r.rating, 0) / ratingCount, count: ratingCount }
+      : null;
+
   const completedOrders = orders.filter((o) => o.status === 'Completed');
   const withDue = completedOrders.filter((o) => o.due_date);
   const onTime = withDue.filter((o) => {
@@ -461,6 +482,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       stylesCount: styleSet.size,
     },
     testimonials,
+    ratingSummary,
     isPremium,
   };
 });

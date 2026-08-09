@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { getAuditLogAction } from '@/app/actions';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
@@ -40,6 +41,7 @@ function describeEntry(entry: AuditLogEntry): string {
 export default function ActivityLogPage() {
   const router = useRouter();
   const { currentShop } = useData();
+  const isDesktop = useIsDesktop();
   const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function ActivityLogPage() {
   }, [currentShop?.id]);
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Activity Log" showBack onBack={() => router.push('/settings')} />}>
+    <PageLayout width="narrow" header={<TopBar title="Activity Log" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
       <p className={styles.intro}>Recent account activity — who did what, and when.</p>
 
       {entries === null ? (

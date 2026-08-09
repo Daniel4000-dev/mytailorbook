@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { APP_CONFIG } from '@/lib/config';
+import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
+import JsonLd from '@/components/seo/JsonLd';
 import PortfolioExamplesContent from './_components/PortfolioExamplesContent';
 
 export const metadata: Metadata = {
@@ -23,5 +25,15 @@ export const metadata: Metadata = {
 };
 
 export default function PortfolioExamplesPage() {
-  return <PortfolioExamplesContent />;
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Portfolio Templates', path: '/portfolio-examples' },
+  ]);
+
+  return (
+    <>
+      <JsonLd data={breadcrumbs} />
+      <PortfolioExamplesContent />
+    </>
+  );
 }

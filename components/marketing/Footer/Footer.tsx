@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './Footer.module.css';
 
@@ -9,7 +9,7 @@ export default function Footer() {
       <div className={styles.inner}>
         <div className={styles.brandCol}>
           <Link href="/" className={styles.brand}>
-            <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.logo} brandLogoAuto`} />
+            <BrandIcon className={styles.logo} />
             <span>{APP_CONFIG.name}</span>
           </Link>
           <p className={styles.tagline}>{APP_CONFIG.tagline}</p>

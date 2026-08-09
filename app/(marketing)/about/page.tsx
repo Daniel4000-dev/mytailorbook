@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { APP_CONFIG } from '@/lib/config';
+import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
+import JsonLd from '@/components/seo/JsonLd';
 import AboutPageContent from './_components/AboutPageContent';
 
 export const metadata: Metadata = {
@@ -21,21 +23,17 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: APP_CONFIG.name,
-    url: APP_CONFIG.baseUrl,
-    founder: { '@type': 'Group', name: 'DVCH' },
-  };
+  // The Organization entity itself (name, url, logo, founder) lives once,
+  // site-wide, in the root layout — this page only adds its own position
+  // in the site hierarchy.
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'About', path: '/about' },
+  ]);
 
   return (
     <>
-      <script
-        type="application/ld+json"
-         
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <JsonLd data={breadcrumbs} />
       <AboutPageContent />
     </>
   );

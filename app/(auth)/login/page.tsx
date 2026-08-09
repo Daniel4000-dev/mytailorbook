@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,10 +13,12 @@ import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { loginSchema, type LoginInput } from '@/lib/validations';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, signInWithGoogle, loading } = useAuth();
+  const { login, signInWithGoogle } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
@@ -42,6 +44,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginInput) => {
     setApiError('');
+    setSubmitting(true);
     try {
       await login(data.email, data.password);
       router.push('/dashboard');
@@ -53,6 +56,8 @@ export default function LoginPage() {
       } else {
         setApiError('Something went wrong — please try again.');
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -70,17 +75,13 @@ export default function LoginPage() {
     <div className={styles.container}>
       {/* Sewing Machine Logo */}
       <div className={styles.logoWrapper}>
-        <Image
-          src="/images/logo-mark.png"
-          alt="MyStitchBook"
-          width={496}
-          height={496}
-          className={`${styles.sewingMachineSvg} brandLogoAuto`}
-        />
+        <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
       </div>
 
       {/* Brand Title */}
-      <h1 className={styles.brandTitle}>My<span className={styles.brandAccent}>Stitch</span>Book</h1>
+      <div className={styles.brandTitle}>
+        <BrandWordmark height={30} />
+      </div>
 
       <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}
@@ -116,9 +117,9 @@ export default function LoginPage() {
         </div>
 
         {/* Log in Button */}
-        <button type="submit" className={styles.loginButton} disabled={loading}>
-          {loading && <Symbol name="progress_activity" className="global-spinner" />}
-          {loading ? 'Logging in...' : 'Log in'}
+        <button type="submit" className={styles.loginButton} disabled={submitting}>
+          {submitting && <Symbol name="progress_activity" className="global-spinner" />}
+          {submitting ? 'Logging in...' : 'Log in'}
         </button>
 
         {/* Divider */}
@@ -133,7 +134,7 @@ export default function LoginPage() {
           type="button"
           className={styles.googleButton}
           onClick={handleGoogle}
-          disabled={loading || googleLoading}
+          disabled={submitting || googleLoading}
         >
           {googleLoading && <Symbol name="progress_activity" className="global-spinner" />}
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">

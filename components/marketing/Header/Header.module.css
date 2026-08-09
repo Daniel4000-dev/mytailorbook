@@ -33,10 +33,6 @@
   display: flex;
   align-items: center;
   gap: var(--sf-space-sm);
-  font-family: var(--font-fraunces), serif;
-  font-size: var(--sf-text-xl);
-  font-weight: 600;
-  color: var(--sf-text-primary);
   flex-shrink: 0;
 }
 
@@ -45,6 +41,7 @@
   height: 32px;
   object-fit: contain;
 }
+
 
 .nav {
   display: flex;

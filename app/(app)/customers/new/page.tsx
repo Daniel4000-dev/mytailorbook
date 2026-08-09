@@ -93,8 +93,18 @@ export default function NewClientPage() {
       trackEvent('customer_created');
       // Step 3: hand straight into the order wizard, pre-filled.
       router.replace(`/orders/new?customer=${customer.id}`);
-    } catch {
-      setApiError('Could not create the profile — check your connection and try again.');
+    } catch (err) {
+      // The client-side duplicate check above reads from the local (SWR)
+      // customer list, which can be a beat stale — e.g. another staff
+      // member just added the same number. The DB's own unique constraint
+      // (unique_shop_whatsapp) is the real guard; surface ITS rejection
+      // with the same friendly wording instead of a raw Postgres error.
+      const message = err instanceof Error ? err.message : '';
+      if (message.toLowerCase().includes('unique_shop_whatsapp') || message.toLowerCase().includes('duplicate key')) {
+        setApiError(`A client with the number ${data.phone.trim()} already exists.`);
+      } else {
+        setApiError(message || 'Could not create the profile — check your connection and try again.');
+      }
       setSubmitting(false);
     }
   };
@@ -127,35 +137,37 @@ export default function NewClientPage() {
 
             {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
-            <div className={styles.field}>
-              <label className={styles.capsLabel} htmlFor="fullName">Full Name</label>
-              <div className={styles.inputWrap}>
-                <input
-                  id="fullName"
-                  type="text"
-                  className={styles.input}
-                  placeholder="e.g. Adebayo Ogunlesi"
-                  {...register('fullName')}
-                />
-                <Symbol name="person" size={22} className={styles.inputIcon} />
-              </div>
-              {errors.fullName && <div className={styles.errorText}>{errors.fullName.message}</div>}
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.capsLabel} htmlFor="phone">Phone Number (WhatsApp)</label>
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <PhoneInput
-                    id="phone"
-                    placeholder="803 000 0000"
-                    {...field}
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label className={styles.capsLabel} htmlFor="fullName">Full Name</label>
+                <div className={styles.inputWrap}>
+                  <input
+                    id="fullName"
+                    type="text"
+                    className={styles.input}
+                    placeholder="e.g. Adebayo Ogunlesi"
+                    {...register('fullName')}
                   />
-                )}
-              />
-              {errors.phone && <div className={styles.errorText}>{errors.phone.message}</div>}
+                  <Symbol name="person" size={22} className={styles.inputIcon} />
+                </div>
+                {errors.fullName && <div className={styles.errorText}>{errors.fullName.message}</div>}
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.capsLabel} htmlFor="phone">Phone Number (WhatsApp)</label>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="phone"
+                      placeholder="803 000 0000"
+                      {...field}
+                    />
+                  )}
+                />
+                {errors.phone && <div className={styles.errorText}>{errors.phone.message}</div>}
+              </div>
             </div>
 
             {FEATURE_FLAGS.customerAddress && (

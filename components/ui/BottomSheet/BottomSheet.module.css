@@ -101,6 +101,67 @@
   .handle {
     display: none;
   }
+
+  /* variant="modal" — a small centered dialog instead of a full-height
+     side panel, for a quick single choice or single-field edit. */
+  .contentModal {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    width: min(90vw, 440px);
+    height: auto;
+    max-height: 80dvh;
+    border-radius: var(--sf-radius-lg);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+  }
+
+  /* vaul adds a same-background ::after stretching 200% past the panel's
+     trailing edge (direction="right") so drag-overshoot never reveals a
+     gap. The modal variant never drags, so this just shows up as a solid
+     bar connecting the dialog to the edge of the screen — remove it. */
+  .contentModal::after {
+    display: none;
+  }
+
+  /* vaul's base [data-vaul-drawer] rule animates via `slideFromRight`/
+     `slideToRight` keyframes, which set their own `transform` and fight
+     the centering transform above — the panel would slide in from the
+     edge, then jump-snap into the centered position. Override with a
+     higher-specificity selector (class + every attribute vaul's own
+     rule matches) and a centered fade/scale animation instead. */
+  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='open'].contentModal {
+    animation-name: modalCenterIn;
+    animation-duration: 0.25s;
+  }
+
+  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='closed'].contentModal {
+    animation-name: modalCenterOut;
+    animation-duration: 0.2s;
+  }
+
+  @keyframes modalCenterIn {
+    from {
+      transform: translate(-50%, -50%) scale(0.96);
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes modalCenterOut {
+    from {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(0.96);
+      opacity: 0;
+    }
+  }
 }
 
 

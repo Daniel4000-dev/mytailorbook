@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Input from '@/components/ui/Input/Input';
@@ -27,6 +28,7 @@ export default function CustomStylesSettingsPage() {
   const router = useRouter();
   const { currentShop, updateShop, renameCustomStyle, upsertCustomStyle, isLoaded } = useData();
   const { showToast } = useToast();
+  const isDesktop = useIsDesktop();
 
   const customStyles = currentShop?.customStyles || [];
   const [activeStyle, setActiveStyle] = useState<CustomStyle | null>(null);
@@ -76,7 +78,7 @@ export default function CustomStylesSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack onBack={() => router.push('/settings')} />}>
+    <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
       {!isLoaded ? (
         <div className={styles.grid}>
           <Skeleton height={120} />

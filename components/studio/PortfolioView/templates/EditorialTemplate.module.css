@@ -217,11 +217,32 @@
   width: 100%;
 }
 
-.photo img {
-  width: 100%;
-  display: block;
+.photo {
   aspect-ratio: 4 / 5;
+  position: relative;
+  overflow: hidden;
+  background: var(--e-line, #e5e0d8);
+}
+
+/* Full garment always visible — blurred cover copy fills the frame,
+   the real photo sits on top at contain, never cropped. */
+.photoBackdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  filter: blur(28px) brightness(0.7) saturate(1.15);
+  transform: scale(1.2);
+}
+
+.photo img:not(.photoBackdrop) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .caption {

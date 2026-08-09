@@ -1,0 +1,70 @@
+/* Desktop-only shell — this whole file only ever applies when
+   SettingsLayout renders it (gated by useIsDesktop in the component
+   itself), so nothing here needs its own media query. */
+.shell {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sf-space-2xl);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--sf-space-lg) var(--sf-space-xl);
+}
+
+.nav {
+  position: sticky;
+  top: calc(72px + var(--sf-space-lg));
+  flex-shrink: 0;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-xl);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  padding: 0 var(--sf-space-sm) var(--sf-space-md);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: 10px var(--sf-space-sm);
+  border-radius: var(--sf-radius-sm);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.navItem:hover {
+  background: var(--sf-bg-surface-hover);
+  color: var(--sf-text-primary);
+}
+
+.navIcon {
+  flex-shrink: 0;
+  color: var(--sf-text-tertiary);
+  transition: color var(--sf-transition-fast);
+}
+
+.navItem:hover .navIcon {
+  color: var(--sf-text-secondary);
+}
+
+.navItemActive {
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
+}
+
+.navItemActive .navIcon {
+  color: var(--sf-accent-emerald);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}

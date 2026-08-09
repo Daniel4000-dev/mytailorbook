@@ -36,7 +36,29 @@
 .date {
   color: var(--sf-text-tertiary);
   font-size: var(--sf-text-sm);
+  margin: 0 0 var(--sf-space-lg);
+}
+
+.coverImageWrap {
+  position: relative;
+  width: 100%;
+  /* Most source photos here are portrait-orientation people shots (see
+     content/blog/*.mdx coverImage picks) — a fixed aspect-ratio box keeps
+     the hero from taking over the whole viewport on a narrow column while
+     still using next/image's `fill` (which needs a sized parent). Taller
+     than a typical 4:3 landscape crop on purpose: a 4:3 box cropped a
+     portrait photo down to mostly background + face, cutting off the
+     fabric/outfit the photo (and post) is actually about. */
+  aspect-ratio: 3 / 4;
+  border-radius: var(--sf-radius-lg);
+  overflow: hidden;
   margin: 0 0 var(--sf-space-2xl);
+  background: var(--sf-bg-surface);
+}
+
+.coverImage {
+  object-fit: cover;
+  object-position: center 25%;
 }
 
 /* Prose styling for the rendered MDX body — the app has no other
@@ -83,4 +105,69 @@
 
 .prose :global(a) {
   color: var(--sf-accent-emerald);
+}
+
+/* In-body images (plain markdown ![]() inside the .mdx source) render as
+   a bare <img> — next-mdx-remote/rsc has no component override wired up
+   for image swap to next/image, so this is a raw <img>, not the
+   coverImage hero above. */
+.prose :global(img) {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--sf-radius-lg);
+  margin: var(--sf-space-lg) 0 var(--sf-space-xs);
+}
+
+/* Convention used in the .mdx source: an image is immediately followed by
+   an italicized caption paragraph (`*Photo: ...*`) — style that paragraph
+   as a caption rather than body text. */
+.prose :global(p:has(> img) + p:has(> em:only-child)) {
+  margin-top: calc(-1 * var(--sf-space-lg) + var(--sf-space-xs));
+  margin-bottom: var(--sf-space-2xl);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+  text-align: center;
+}
+
+.authorBio {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+  margin-top: var(--sf-space-2xl);
+  padding-top: var(--sf-space-xl);
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.authorAvatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
+  font-family: var(--font-fraunces), serif;
+  font-size: var(--sf-text-lg);
+  font-weight: 600;
+}
+
+.authorName {
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.authorTitle {
+  font-weight: var(--sf-weight-normal);
+  color: var(--sf-text-tertiary);
+}
+
+.authorBioText {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  margin: var(--sf-space-2xs) 0 0;
 }

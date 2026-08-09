@@ -1,0 +1,87 @@
+.identityStrip {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+  width: 100%;
+  padding: var(--sf-space-sm) 0;
+  margin-top: var(--sf-space-sm);
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.identityName {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-lg);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.identityRole {
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  margin-top: 2px;
+}
+
+.readonlyEmail {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+  margin: 0 0 var(--sf-space-lg);
+}
+
+/* Unpadded — for self-contained row components like AppearanceToggle
+   that already include their own SettingsRow padding. */
+.groupCard {
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  box-shadow: var(--sf-shadow-xs);
+  margin-bottom: var(--sf-space-xl);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-lg);
+  box-shadow: var(--sf-shadow-xs);
+  margin-bottom: var(--sf-space-xl);
+}
+
+.uploadBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--sf-touch-target);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.uploadBtn:active {
+  background: var(--sf-bg-surface-hover);
+}
+
+/* Desktop-only — flat instead of shadowed, matching the rest of the app. */
+@media (min-width: 1024px) {
+  .card,
+  .groupCard {
+    box-shadow: none;
+  }
+}

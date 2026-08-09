@@ -91,8 +91,8 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       });
       showToast('Profile updated', 'success');
       onClose();
-    } catch {
-      setError('Could not save — check your connection and try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save — check your connection and try again.');
     } finally {
       setSaving(false);
     }

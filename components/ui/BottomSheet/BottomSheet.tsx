@@ -15,15 +15,24 @@ interface BottomSheetProps {
   children: ReactNode;
   footer?: ReactNode;
   noPadding?: boolean;
+  /** Desktop-only distinction — mobile is always the bottom sheet either
+   *  way. 'panel' (default) slides in from the right, for anything with
+   *  multiple fields, a list, or photo+form content. 'modal' is a small
+   *  centered dialog, for a quick single choice or single-field edit
+   *  where a full-height side panel would be oversized. */
+  variant?: 'panel' | 'modal';
 }
 
-export default function BottomSheet({ isOpen, onClose, title, subHeader, children, footer, noPadding }: BottomSheetProps) {
+export default function BottomSheet({ isOpen, onClose, title, subHeader, children, footer, noPadding, variant = 'panel' }: BottomSheetProps) {
   const [direction, setDirection] = useState<'bottom' | 'right'>('bottom');
+  const [isDesktop, setIsDesktop] = useState(false);
   const mounted = useHasMounted();
 
   useEffect(() => {
     const handleResize = () => {
-      setDirection(window.innerWidth >= 1024 ? 'right' : 'bottom');
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      setDirection(desktop ? 'right' : 'bottom');
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -33,17 +42,19 @@ export default function BottomSheet({ isOpen, onClose, title, subHeader, childre
   // Don't render until client-side so direction and vaul styles never mismatch SSR
   if (!mounted) return null;
 
+  const isModal = isDesktop && variant === 'modal';
+
   return (
     <Drawer.Root
       open={isOpen}
       onOpenChange={(open) => !open && onClose()}
       direction={direction}
-      dismissible={false}
+      dismissible={isModal}
       noBodyStyles
     >
       <Drawer.Portal>
         <Drawer.Overlay className={styles.overlay} />
-        <Drawer.Content className={styles.content}>
+        <Drawer.Content className={`${styles.content} ${isModal ? styles.contentModal : ''}`}>
           <div className={styles.handle} />
           <div className={styles.header}>
             {title && <Drawer.Title className={styles.title}>{title}</Drawer.Title>}

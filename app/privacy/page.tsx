@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
@@ -22,7 +22,7 @@ export default function PrivacyPolicyPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link href="/login" className={styles.brand}>
-          <Image src="/images/logo-mark.png" alt="" width={496} height={496} className={`${styles.logo} brandLogoAuto`} />
+          <BrandIcon className={styles.logo} />
           <span>{APP_CONFIG.name.toUpperCase()}</span>
         </Link>
       </header>

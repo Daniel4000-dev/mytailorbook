@@ -40,6 +40,15 @@
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
+/* All markup inside (SVG, point coordinates) is percentage/viewBox-based,
+   so this scales cleanly — the 380px cap was sized for a phone screen and
+   left the diagram small and lonely in a much wider desktop right column. */
+@media (min-width: 1024px) {
+  .anatomyContainer {
+    max-width: 480px;
+  }
+}
+
 .anatomyInner {
   position: absolute;
   inset: 2%;

@@ -205,7 +205,8 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
               aria-label={`View ${p.garment}`}
               {...reveal((i % 4) * 0.08)}
             >
-              <Image src={p.url} alt={p.garment} width={800} height={1000} loading={i > 2 ? 'lazy' : undefined} />
+              <Image src={p.url} alt="" aria-hidden fill sizes="(max-width: 768px) 50vw, 400px" className={styles.photoBackdrop} loading={i > 2 ? 'lazy' : undefined} />
+              <Image src={p.url} alt={p.garment} fill sizes="(max-width: 768px) 50vw, 400px" loading={i > 2 ? 'lazy' : undefined} />
               <span className={styles.caption}>
                 <b>{p.caption || styleOf(p.garment) || p.garment}</b>
                 <small>{p.caption ? `${styleOf(p.garment) || p.garment} · ` : ''}{monthOf(p.takenAt)}</small>

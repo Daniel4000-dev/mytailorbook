@@ -11,11 +11,21 @@ export type BlogPost = {
   excerpt: string;
   content: string;
   /** Optional per-post OG/Twitter card image — falls back to the site
-   *  default (root layout's openGraph.images) when a post doesn't set one. */
+   *  default (root layout's openGraph.images) when a post doesn't set one.
+   *  Also rendered as the in-page hero image when present. */
   coverImage?: string;
+  /** Required alongside coverImage — describes what's actually in the
+   *  photo (not just repeating the title) for screen readers and for the
+   *  rare case the image fails to load. */
+  coverImageAlt?: string;
   /** Optional byline — falls back to APP_CONFIG.name in Article JSON-LD
    *  when a post doesn't set one. */
   author?: string;
+  /** Role/title shown next to the author name (e.g. "Editor, MyStitchBook").
+   *  Only meaningful alongside `author` — ignored otherwise. */
+  authorTitle?: string;
+  /** One-line author bio, rendered under the byline on the post page. */
+  authorBio?: string;
 };
 
 export function getBlogSlugs() {
@@ -44,7 +54,10 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
       excerpt: data.excerpt || '',
       content,
       coverImage: data.coverImage || undefined,
+      coverImageAlt: data.coverImageAlt || undefined,
       author: data.author || undefined,
+      authorTitle: data.authorTitle || undefined,
+      authorBio: data.authorBio || undefined,
     };
   } catch {
     return null;

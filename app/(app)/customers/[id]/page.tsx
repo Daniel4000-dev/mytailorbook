@@ -282,6 +282,11 @@ function CustomerProfileContent({
         />
       }
     >
+      {/* Desktop: identity + quick stats span the full width as one band up
+         top, then the record detail (styles/measurements/notes/orders)
+         splits into two columns below it. Mobile: all wrappers are plain
+         blocks, so nothing about the visual order changes there. */}
+      <div className={styles.profileBar}>
       {/* Profile header */}
       <section className={styles.profileHeader}>
         <Avatar name={customer.fullName} size="lg" />
@@ -324,28 +329,10 @@ function CustomerProfileContent({
           </a>
         </div>
       </section>
+      </div>
 
-      {/* Financial Summary */}
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Financial Summary</h3>
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>Total Spent</span>
-            <span className={styles.statValue}>{formatCurrency(totalSpend)}</span>
-          </div>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>Pending Bal.</span>
-            <span className={`${styles.statValue} ${totalOwed > 0 ? styles.warn : ''}`}>
-              {formatCurrency(totalOwed)}
-            </span>
-          </div>
-          <div className={`${styles.statCard} ${styles.statCardWide}`}>
-            <span className={styles.statLabel}>Lifetime Orders</span>
-            <span className={styles.statValue}>{custOrders.length}</span>
-          </div>
-        </div>
-      </section>
-
+      <div className={styles.twoColGrid}>
+      <div className={styles.colA}>
       {/* Measurement Profiles */}
       <section className={styles.section}>
         <div className={styles.sectionTitleRow}>
@@ -395,6 +382,29 @@ function CustomerProfileContent({
           onPointSelect={handlePointSelect}
           onValueChange={handleMeasurementChange}
         />
+      </section>
+      </div>
+
+      <div className={styles.colB}>
+      {/* Financial Summary */}
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Financial Summary</h3>
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Total Spent</span>
+            <span className={styles.statValue}>{formatCurrency(totalSpend)}</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Pending Bal.</span>
+            <span className={`${styles.statValue} ${totalOwed > 0 ? styles.warn : ''}`}>
+              {formatCurrency(totalOwed)}
+            </span>
+          </div>
+          <div className={`${styles.statCard} ${styles.statCardWide}`}>
+            <span className={styles.statLabel}>Lifetime Orders</span>
+            <span className={styles.statValue}>{custOrders.length}</span>
+          </div>
+        </div>
       </section>
 
       {/* Notes */}
@@ -455,11 +465,15 @@ function CustomerProfileContent({
         </Button>
       </section>
 
-      <section className={styles.actionBar}>
+      <section className={styles.dangerZone}>
+        <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
+        <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
         <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
           <Symbol name="delete" /> Delete Customer
         </Button>
       </section>
+      </div>
+      </div>
 
       <ConfirmDialog
         isOpen={confirmingDelete}
@@ -475,7 +489,7 @@ function CustomerProfileContent({
         loading={deletingCustomer}
       />
 
-      <BottomSheet isOpen={!!selectedPoint} onClose={() => setSelectedPoint(null)}>
+      <BottomSheet isOpen={!!selectedPoint} onClose={() => setSelectedPoint(null)} variant="modal">
         <div style={{ padding: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-md)' }}>
           <div>
             <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>Selected point</p>

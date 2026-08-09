@@ -1,0 +1,25 @@
+.wordmark {
+  display: block;
+}
+
+.wordmarkDark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wordmarkLight {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]) .wordmarkDark {
+    display: block;
+  }
+}
+
+:root[data-theme="dark"] .wordmarkLight {
+  display: none;
+}
+
+:root[data-theme="dark"] .wordmarkDark {
+  display: block;
+}

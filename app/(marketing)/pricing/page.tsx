@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { APP_CONFIG } from '@/lib/config';
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
+import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
+import JsonLd from '@/components/seo/JsonLd';
 import PricingPageContent from './_components/PricingPageContent';
 
 export const metadata: Metadata = {
@@ -45,14 +47,15 @@ export default function PricingPage() {
       acceptedAnswer: { '@type': 'Answer', text: item.a },
     })),
   };
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Pricing', path: '/pricing' },
+  ]);
 
   return (
     <>
-      <script
-        type="application/ld+json"
-         
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={breadcrumbs} />
       <PricingPageContent />
     </>
   );
