@@ -7,6 +7,7 @@ import { getBlogPostBySlug, getBlogSlugs } from '@/lib/blog';
 import { APP_CONFIG } from '@/lib/config';
 import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
 import JsonLd from '@/components/seo/JsonLd';
+import MdxImage from '@/components/blog/MdxImage';
 import Header from '@/components/marketing/Header/Header';
 import Footer from '@/components/marketing/Footer/Footer';
 import styles from './page.module.css';
@@ -123,7 +124,7 @@ export default async function BlogPost({ params }: Props) {
           )}
 
           <div className={styles.prose}>
-            <MDXRemote source={post.content} />
+            <MDXRemote source={post.content} components={{ img: MdxImage }} />
           </div>
 
           {post.author && (

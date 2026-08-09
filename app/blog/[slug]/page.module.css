@@ -107,10 +107,11 @@
   color: var(--sf-accent-emerald);
 }
 
-/* In-body images (plain markdown ![]() inside the .mdx source) render as
-   a bare <img> — next-mdx-remote/rsc has no component override wired up
-   for image swap to next/image, so this is a raw <img>, not the
-   coverImage hero above. */
+/* In-body images (plain markdown ![]() inside the .mdx source) render via
+   next/image — see components/blog/MdxImage.tsx, wired up as the `img`
+   override passed to MDXRemote below. next/image still outputs a plain
+   <img> element (no wrapper) when used with explicit width/height instead
+   of `fill`, so this selector and the caption rule below still apply. */
 .prose :global(img) {
   display: block;
   width: 100%;
