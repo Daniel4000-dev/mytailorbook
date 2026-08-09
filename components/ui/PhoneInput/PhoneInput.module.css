@@ -133,8 +133,10 @@
   transition: background var(--sf-transition-fast);
 }
 
-.countryItem:hover {
-  background: var(--sf-bg-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .countryItem:hover {
+    background: var(--sf-bg-surface-hover);
+  }
 }
 
 .countryItem:last-child {

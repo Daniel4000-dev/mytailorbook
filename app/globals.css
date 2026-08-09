@@ -70,6 +70,11 @@ a {
   color: var(--sf-accent-emerald-light);
   text-decoration: none;
   transition: color var(--sf-transition-fast);
+  /* Without this, a rapid second tap on a link-styled button can be read
+     as a double-tap-to-zoom gesture on iOS Safari instead of a second
+     click — this disables that specific gesture on the element itself,
+     not the page's overall pinch-zoom (which WCAG 1.4.4 requires we keep). */
+  touch-action: manipulation;
 }
 
 @media (hover: hover) and (pointer: fine){
@@ -87,6 +92,9 @@ button {
   background: none;
   color: inherit;
   font-size: inherit;
+  /* Same reasoning as the `a` rule above — keeps a quick second tap from
+     being swallowed as a double-tap-to-zoom gesture. */
+  touch-action: manipulation;
 }
 
 input,
