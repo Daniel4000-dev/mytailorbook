@@ -524,46 +524,6 @@ export default function OrderDetailPage() {
           )}
         </section>
 
-        {/* Activity timeline — full pipeline, done/current/pending. Lives
-           in the top band (moved here from the bottom of the page) since
-           it's the same "where is this order right now" question as the
-           status badge in the header above. */}
-        <section className={styles.card}>
-          <h3 className={styles.sectionTitle}>Activity Timeline</h3>
-          <div className={styles.timeline}>
-            {ORDER_STATUSES.map((status) => {
-              const entry = order.statusHistory.filter((h) => h.to === status).pop();
-              const currentIndex = ORDER_STATUSES.indexOf(order.status);
-              const stepIndex = ORDER_STATUSES.indexOf(status);
-              // The final stage (Completed/"Delivered") has no "next" to
-              // move on to — once reached it's done, not still "current"
-              // with an in-progress spinner.
-              const isTerminal = status === 'Completed' && order.status === 'Completed';
-              const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
-              return (
-                <div key={status} className={styles.timelineStep}>
-                  <div className={styles.timelineLine} />
-                  <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
-                    <Symbol
-                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Completed' ? 'check_circle' : 'hourglass_empty'}
-                      size={14}
-                    />
-                  </div>
-                  <div>
-                    <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
-                      {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
-                    </p>
-                    <p className={styles.timelineMeta}>
-                      {entry
-                        ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
-                        : state === 'pending' ? 'Pending' : '—'}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
         </div>
 
         <div className={styles.twoColGrid}>
@@ -877,6 +837,44 @@ export default function OrderDetailPage() {
               onChange={(e) => handleToggleTrackingLink(e.target.checked)}
             />
           </label>
+        </section>
+
+        {/* Activity timeline — full pipeline, done/current/pending. */}
+        <section className={styles.card}>
+          <h3 className={styles.sectionTitle}>Activity Timeline</h3>
+          <div className={styles.timeline}>
+            {ORDER_STATUSES.map((status) => {
+              const entry = order.statusHistory.filter((h) => h.to === status).pop();
+              const currentIndex = ORDER_STATUSES.indexOf(order.status);
+              const stepIndex = ORDER_STATUSES.indexOf(status);
+              // The final stage (Completed/"Delivered") has no "next" to
+              // move on to — once reached it's done, not still "current"
+              // with an in-progress spinner.
+              const isTerminal = status === 'Completed' && order.status === 'Completed';
+              const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
+              return (
+                <div key={status} className={styles.timelineStep}>
+                  <div className={styles.timelineLine} />
+                  <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
+                    <Symbol
+                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Completed' ? 'check_circle' : 'hourglass_empty'}
+                      size={14}
+                    />
+                  </div>
+                  <div>
+                    <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
+                      {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
+                    </p>
+                    <p className={styles.timelineMeta}>
+                      {entry
+                        ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
+                        : state === 'pending' ? 'Pending' : '—'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {/* Footer actions — the "advance to next stage" action already lives
