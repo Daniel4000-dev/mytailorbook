@@ -1,6 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import { getBalanceOwed, getMargin, hasCostData, hasUnreadComment, isOverdue, isDueSoon, canSendReminder } from '@/lib/types';
-import type { Order } from '@/lib/types';
+import { getBalanceOwed, getMargin, hasCostData, hasUnreadComment, isOverdue, isDueSoon, canSendReminder, isOwnerLikeRole } from '@/lib/types';
+import type { Order, Role } from '@/lib/types';
+
+// isOwnerLikeRole is the single source of truth every owner-only gate in
+// the app (Settings/Customers nav, staff management, etc.) checks against —
+// misclassifying a role here is a real permissions bug, not just a UI quirk.
+describe('isOwnerLikeRole', () => {
+  it('is true for OrgAdmin', () => {
+    expect(isOwnerLikeRole('OrgAdmin')).toBe(true);
+  });
+
+  it('is true for BranchManager', () => {
+    expect(isOwnerLikeRole('BranchManager')).toBe(true);
+  });
+
+  it('is false for Staff', () => {
+    expect(isOwnerLikeRole('Staff')).toBe(false);
+  });
+
+  it('is false for Accountant', () => {
+    expect(isOwnerLikeRole('Accountant')).toBe(false);
+  });
+
+  it('is false for an undefined role (logged out / not yet loaded)', () => {
+    expect(isOwnerLikeRole(undefined)).toBe(false);
+  });
+
+  it('covers every declared Role value with an explicit answer', () => {
+    const roles: Role[] = ['OrgAdmin', 'BranchManager', 'Staff', 'Accountant'];
+    for (const role of roles) {
+      expect(typeof isOwnerLikeRole(role)).toBe('boolean');
+    }
+  });
+});
 
 function makeOrder(overrides: Partial<Order> = {}): Order {
   return {

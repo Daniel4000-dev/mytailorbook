@@ -9,13 +9,14 @@ import { useToast } from '@/contexts/ToastContext';
 
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
+import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { trackEvent } from '@/lib/analytics';
 import { customerSchema, type CustomerInput } from '@/lib/validations';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import styles from './page.module.css';
 
-import { GARMENT_STYLES } from '@/lib/constants';
+import { GARMENT_STYLES, FULL_BODY_MEASUREMENTS } from '@/lib/constants';
 
 /** Step 2 of the walk-in ritual: FAB choice → this profile → straight
  *  into a New Order pre-filled with the freshly created client. */
@@ -49,6 +50,12 @@ export default function NewClientPage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // Second screen of this same step: full-body measurements, entirely
+  // optional — every field can be left blank and Skip moves on exactly
+  // like Continue does, just without saving any numbers.
+  const [screen, setScreen] = useState<'profile' | 'measurements'>('profile');
+  const [bodyMeasurements, setBodyMeasurements] = useState<Record<string, string>>({});
+  const bodySpec = FULL_BODY_MEASUREMENTS[gender];
 
   const toggleStyle = (style: string) => {
     const nextStyles = styleSet.includes(style) 
@@ -81,13 +88,18 @@ export default function NewClientPage() {
         return;
       }
 
+      const measurements: Record<string, number> = {};
+      for (const [key, value] of Object.entries(bodyMeasurements)) {
+        const num = parseFloat(value);
+        if (!isNaN(num)) measurements[key] = num;
+      }
       const customer = await addCustomer({
         fullName: data.fullName.trim(),
         whatsappNumber: normalizedPhone,
         gender: data.gender,
         address: data.address?.trim() || undefined,
         preferredStyles: data.preferredStyles || [],
-        measurements: {},
+        measurements,
       });
       showToast(`${customer.fullName} added to customers`, 'success');
       trackEvent('customer_created');
@@ -113,12 +125,17 @@ export default function NewClientPage() {
     <div className={styles.page}>
       {/* Transactional header */}
       <header className={styles.header}>
-        <button type="button" className={styles.backBtn} onClick={() => router.back()} aria-label="Go back">
+        <button
+          type="button"
+          className={styles.backBtn}
+          onClick={() => (screen === 'measurements' ? setScreen('profile') : router.back())}
+          aria-label="Go back"
+        >
           <Symbol name="arrow_back" size={28} />
         </button>
         <div className={styles.headerCenter}>
           <span className={styles.stepLabel}>Step 2 of 3</span>
-          <h1 className={styles.headerTitle}>New Client</h1>
+          <h1 className={styles.headerTitle}>{screen === 'profile' ? 'New Client' : 'Body Measurements'}</h1>
         </div>
         <span className={styles.headerSpacer} />
         <div className={styles.progressTrack}>
@@ -126,6 +143,26 @@ export default function NewClientPage() {
         </div>
       </header>
 
+      {screen === 'measurements' ? (
+        <main className={styles.scroll}>
+          <div className={styles.formCol}>
+            <section className={styles.section}>
+              <div>
+                <h2 className={styles.sectionTitle}>Full-Body Measurements</h2>
+                <p className={styles.sectionSub}>
+                  Optional — tap a card to fill it in, or skip the whole thing and take these at fitting instead.
+                  Whatever you save here pre-fills every garment&apos;s measurements for {watch('fullName') || 'this client'} from now on.
+                </p>
+              </div>
+              <StyleMeasureForm
+                spec={bodySpec}
+                values={bodyMeasurements}
+                onChange={(key, value) => setBodyMeasurements((prev) => ({ ...prev, [key]: value }))}
+              />
+            </section>
+          </div>
+        </main>
+      ) : (
       <main className={styles.scroll}>
         <div className={styles.formCol}>
           {/* Personal details */}
@@ -254,22 +291,35 @@ export default function NewClientPage() {
           </section>
         </div>
       </main>
+      )}
 
       {/* Fixed glass action bar — portaled straight to document.body, see
           FixedBottomPortal for why. */}
       <FixedBottomPortal>
         <div className={styles.actionBar}>
           <div className={styles.actionBarInner}>
-            <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
-              Cancel
-            </button>
-            <button type="button" className={styles.createBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
-                <>
+            {screen === 'measurements' ? (
+              <>
+                <button type="button" className={styles.cancelBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
+                  Skip for now
+                </button>
+                <button type="button" className={styles.createBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
                   {submitting && <Symbol name="progress_activity" className="global-spinner" />}
                   Create Profile & Proceed
                   <Symbol name="arrow_forward" size={22} />
-                </>
-            </button>
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
+                  Cancel
+                </button>
+                <button type="button" className={styles.createBtn} onClick={handleSubmit(() => setScreen('measurements'))} disabled={submitting}>
+                  Continue
+                  <Symbol name="arrow_forward" size={22} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </FixedBottomPortal>

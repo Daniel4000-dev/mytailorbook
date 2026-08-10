@@ -510,6 +510,80 @@ export const DEFAULT_MEASURE_SPEC: StyleMeasureSpec = {
   ],
 };
 
+/** The full-body point set collected once during onboarding (or later
+ *  from a customer's profile), gendered because the two genders' garments
+ *  care about different landmarks (bust/underBust vs. chest/stomach).
+ *  Field keys match MeasurementAnatomy.tsx's point lists exactly, so
+ *  values collected here and values collected via the profile's Visual
+ *  Anatomy tab land in the same Measurements keys. No body-diagram here —
+ *  this step is the source those per-garment diagrams get their pins
+ *  filled from, not a diagram itself. */
+export const FULL_BODY_MEASUREMENTS: Record<'male' | 'female', StyleMeasureSpec> = {
+  male: {
+    variant: 'tunic',
+    hasDiagram: false,
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 0, gy: 0 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 0, gy: 0 },
+      { key: 'crossFront', label: 'Across Front', hint: 'Chest, armpit to armpit', gx: 0, gy: 0 },
+      { key: 'crossBack', label: 'Across Back', hint: 'Back, armpit to armpit', gx: 0, gy: 0 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 0, gy: 0 },
+      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 0, gy: 0 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 0, gy: 0 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 0, gy: 0 },
+      { key: 'crotch', label: 'Crotch', hint: 'Waist to crotch, seated', gx: 0, gy: 0 },
+      { key: 'armhole', label: 'Armhole', hint: 'Around the arm socket', gx: 0, gy: 0 },
+      { key: 'bicep', label: 'Bicep', hint: 'Around the fullest part of the upper arm', gx: 0, gy: 0 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 0, gy: 0 },
+      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 0, gy: 0 },
+      { key: 'backLength', label: 'Back Length', hint: 'Nape to natural waist', gx: 0, gy: 0 },
+      { key: 'shirtLength', label: 'Shirt Length', hint: 'Shoulder to shirt hem', gx: 0, gy: 0 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 0, gy: 0 },
+      { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 0, gy: 0 },
+      { key: 'knee', label: 'Knee', hint: 'Around the knee', gx: 0, gy: 0 },
+      { key: 'calf', label: 'Calf', hint: 'Around the fullest part of the calf', gx: 0, gy: 0 },
+      { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 0, gy: 0 },
+      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 0, gy: 0 },
+      { key: 'outseam', label: 'Outseam', hint: 'Waist to ankle, outer leg', gx: 0, gy: 0 },
+    ],
+  },
+  female: {
+    variant: 'gown',
+    hasDiagram: false,
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 0, gy: 0 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 0, gy: 0 },
+      { key: 'crossFront', label: 'Across Front', hint: 'Chest, armpit to armpit', gx: 0, gy: 0 },
+      { key: 'crossBack', label: 'Across Back', hint: 'Back, armpit to armpit', gx: 0, gy: 0 },
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 0, gy: 0 },
+      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 0, gy: 0 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 0, gy: 0 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 0, gy: 0 },
+      { key: 'armhole', label: 'Armhole', hint: 'Around the arm socket', gx: 0, gy: 0 },
+      { key: 'bicep', label: 'Bicep', hint: 'Around the fullest part of the upper arm', gx: 0, gy: 0 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 0, gy: 0 },
+      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 0, gy: 0 },
+      { key: 'napeToWaist', label: 'Nape to Waist', hint: 'Base of neck to natural waist', gx: 0, gy: 0 },
+      { key: 'frontLength', label: 'Front Length', hint: 'Shoulder to natural waist, front', gx: 0, gy: 0 },
+      { key: 'dressLength', label: 'Dress Length', hint: 'Shoulder to hem', gx: 0, gy: 0 },
+      { key: 'gownLength', label: 'Gown Length', hint: 'Shoulder to hem', gx: 0, gy: 0 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 0, gy: 0 },
+      { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 0, gy: 0 },
+      { key: 'knee', label: 'Knee', hint: 'Around the knee', gx: 0, gy: 0 },
+      { key: 'calf', label: 'Calf', hint: 'Around the fullest part of the calf', gx: 0, gy: 0 },
+      { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 0, gy: 0 },
+      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 0, gy: 0 },
+      { key: 'outseam', label: 'Outseam', hint: 'Waist to ankle, outer leg', gx: 0, gy: 0 },
+      { key: 'crotch', label: 'Crotch', hint: 'Waist to crotch, seated', gx: 0, gy: 0 },
+      { key: 'halfLength', label: 'Half Length', hint: 'Shoulder to waist (gathers start)', gx: 0, gy: 0 },
+      { key: 'shoulderToBustPoint', label: 'Shoulder to Bust Point', hint: 'Shoulder seam to bust point', gx: 0, gy: 0 },
+      { key: 'nippleToNipple', label: 'Nipple to Nipple', hint: 'Across the bust points', gx: 0, gy: 0 },
+      { key: 'shoulderToWaist', label: 'Shoulder to Waist', hint: 'Shoulder seam to natural waist', gx: 0, gy: 0 },
+      { key: 'shoulderToHips', label: 'Shoulder to Hips', hint: 'Shoulder seam to widest hip point', gx: 0, gy: 0 },
+    ],
+  },
+};
+
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home' },
   { label: 'Production', href: '/production', icon: 'precision_manufacturing' },

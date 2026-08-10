@@ -16,8 +16,11 @@ import {
   GARMENT_STYLES,
   STYLE_MEASUREMENTS,
   DEFAULT_MEASURE_SPEC,
+  FULL_BODY_MEASUREMENTS,
   buildCustomStyleSpec,
+  type StyleMeasureSpec,
 } from '@/lib/constants';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { newOrderBatchSchema } from '@/lib/validations';
 import { getStylePhotos } from '@/lib/style-photos';
 import { formatCurrency } from '@/lib/formatters';
@@ -71,6 +74,17 @@ export default function NewOrderWizard() {
   const [saveStyleProfile, setSaveStyleProfile] = useState(true);
   const [updateBodyProfile, setUpdateBodyProfile] = useState(false);
   const [activeMeasureKey, setActiveMeasureKey] = useState<string | null>(null);
+  // Keys auto-filled from the customer's body profile for the style
+  // currently being measured — locked (read-only) until the tailor
+  // explicitly unchecks that field. Keyed by style name so switching
+  // between garments in the same order doesn't lose each one's lock state.
+  const [lockedKeysByStyle, setLockedKeysByStyle] = useState<Record<string, Set<string>>>({});
+  // Ad-hoc measurement fields the tailor typed in for a style this order,
+  // not (yet) part of that style's saved spec — see specFor above and
+  // handleAddField below.
+  const [sessionExtraFields, setSessionExtraFields] = useState<Record<string, { id: string; label: string }[]>>({});
+  const [saveFieldPrompt, setSaveFieldPrompt] = useState<{ style: string; field: { id: string; label: string } } | null>(null);
+  const [savingField, setSavingField] = useState(false);
   const [units, setUnits] = useState<UnitDraft[]>([]);
   const [priority, setPriority] = useState<Priority>('normal');
   const [startingStage, setStartingStage] = useState<OrderStatus>('Documented');
@@ -129,17 +143,44 @@ export default function NewOrderWizard() {
   const totalItems = basket.reduce((sum, s) => sum + s.count, 0);
   const basketSummary = basket.map((s) => `${s.name} (${s.count})`).join(', ');
 
-  const specFor = (styleName: string) => {
-    if (STYLE_MEASUREMENTS[styleName]) return STYLE_MEASUREMENTS[styleName];
+  // Fields the tailor added ad hoc this order, keyed by style name — kept
+  // separate from the shop's saved custom-style fields (sessionExtraFields)
+  // so declining "save to template" doesn't silently persist anything.
+  const specFor = (styleName: string): StyleMeasureSpec => {
+    const base = STYLE_MEASUREMENTS[styleName];
     const custom = allCustomStyles.find((s) => s.name === styleName);
-    if (custom?.measurementFields && custom.measurementFields.length > 0) {
-      return buildCustomStyleSpec(custom.measurementFields);
+    const extraByKey = new Map<string, { id: string; label: string }>();
+    for (const f of custom?.measurementFields || []) extraByKey.set(f.id, f);
+    for (const f of sessionExtraFields[styleName] || []) extraByKey.set(f.id, f);
+    const extra = [...extraByKey.values()];
+
+    if (base) {
+      if (extra.length === 0) return base;
+      const existingKeys = new Set(base.points.map((p) => p.key));
+      const extraPoints = extra
+        .filter((f) => !existingKeys.has(f.id))
+        .map((f) => ({ key: f.id, label: f.label, hint: '', gx: 0, gy: 0 }));
+      return { ...base, points: [...base.points, ...extraPoints] };
     }
+    if (extra.length > 0) return buildCustomStyleSpec(extra);
     return DEFAULT_MEASURE_SPEC;
   };
   const currentStyle = basket[measureIndex]?.name;
   const currentSpec = currentStyle ? specFor(currentStyle) : DEFAULT_MEASURE_SPEC;
   const currentValues = (currentStyle && measures[currentStyle]) || {};
+
+  // Points from the customer's full body-measurement catalog that this
+  // style's spec doesn't already have — the picker list for "Add a
+  // measurement", so new fields stay canonical keys instead of freely
+  // typed labels (and so a matching body-profile value can be imported).
+  const availableExtraFields = useMemo(() => {
+    if (!customer) return [];
+    const bodySpec = FULL_BODY_MEASUREMENTS[customer.gender];
+    const existingKeys = new Set(currentSpec.points.map((p) => p.key));
+    return bodySpec.points
+      .filter((p) => !existingKeys.has(p.key))
+      .map((p) => ({ key: p.key, label: p.label, hasBodyValue: !!customer.measurements?.[p.key] }));
+  }, [customer, currentSpec]);
 
   /* ── Import sources for the measure step ───────────────────── */
   const lastSameStyleOrder = useMemo(() => {
@@ -164,6 +205,77 @@ export default function NewOrderWizard() {
   const setMeasureValue = (key: string, value: string) => {
     if (!currentStyle) return;
     setMeasures((prev) => ({ ...prev, [currentStyle]: { ...(prev[currentStyle] || {}), [key]: value } }));
+  };
+
+  // Auto-fill each style's fields from the customer's body profile the
+  // first time that style is reached, and lock exactly those fields —
+  // runs once per style (guarded by lockedKeysByStyle already having an
+  // entry) so it never fights a tailor who's already unlocked/edited one.
+  useEffect(() => {
+    if (step !== 'measure' || !currentStyle || lockedKeysByStyle[currentStyle]) return;
+    const body = customer?.measurements;
+    const existing = measures[currentStyle] || {};
+    const locked = new Set<string>();
+    const fills: Record<string, string> = {};
+    if (body) {
+      for (const point of currentSpec.points) {
+        if (existing[point.key]) continue;
+        const bodyVal = body[point.key];
+        if (bodyVal === undefined || bodyVal === null || bodyVal === '') continue;
+        fills[point.key] = String(bodyVal);
+        locked.add(point.key);
+      }
+    }
+    if (Object.keys(fills).length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMeasures((prev) => ({ ...prev, [currentStyle]: { ...(prev[currentStyle] || {}), ...fills } }));
+    }
+    setLockedKeysByStyle((prev) => ({ ...prev, [currentStyle]: locked }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, currentStyle]);
+
+  const toggleMeasureLock = (key: string) => {
+    if (!currentStyle) return;
+    setLockedKeysByStyle((prev) => {
+      const next = new Set(prev[currentStyle] || []);
+      next.delete(key);
+      return { ...prev, [currentStyle]: next };
+    });
+  };
+
+  const handleAddField = (picked: { key: string; label: string }) => {
+    if (!currentStyle) return;
+    const field = { id: picked.key, label: picked.label };
+    setSessionExtraFields((prev) => ({ ...prev, [currentStyle]: [...(prev[currentStyle] || []), field] }));
+    // Same key the customer's body profile already uses — import that
+    // value immediately and lock it, exactly like the auto-prefill effect
+    // does for a style's built-in points.
+    const bodyVal = customer?.measurements?.[picked.key];
+    if (bodyVal !== undefined && bodyVal !== null && bodyVal !== '') {
+      setMeasureValue(picked.key, String(bodyVal));
+      setLockedKeysByStyle((prev) => ({
+        ...prev,
+        [currentStyle]: new Set([...(prev[currentStyle] || []), picked.key]),
+      }));
+    }
+    setSaveFieldPrompt({ style: currentStyle, field });
+  };
+
+  const confirmSaveFieldToTemplate = async () => {
+    if (!saveFieldPrompt) return;
+    setSavingField(true);
+    try {
+      const { style, field } = saveFieldPrompt;
+      const existing = allCustomStyles.find((s) => s.name === style);
+      const nextFields = [...(existing?.measurementFields || []), field];
+      await upsertCustomStyle(style, existing?.photoUrl, nextFields);
+      showToast(`${field.label} added to your ${style} template`, 'success');
+      setSaveFieldPrompt(null);
+    } catch {
+      showToast('Could not save to the template — the field still applies to this order', 'error');
+    } finally {
+      setSavingField(false);
+    }
   };
 
   /* ── Step transitions ──────────────────────────────────────── */
@@ -533,6 +645,10 @@ export default function NewOrderWizard() {
             onSaveStyleProfileChange={setSaveStyleProfile}
             updateBodyProfile={updateBodyProfile}
             onUpdateBodyProfileChange={setUpdateBodyProfile}
+            lockedKeys={lockedKeysByStyle[currentStyle]}
+            onToggleLock={toggleMeasureLock}
+            addableFields={availableExtraFields}
+            onAddField={handleAddField}
           />
         )}
 
@@ -615,6 +731,22 @@ export default function NewOrderWizard() {
         initialFields={(fieldBuilderStyle && allCustomStyles.find((s) => s.name === fieldBuilderStyle)?.measurementFields) || []}
         onClose={() => setFieldBuilderStyle(null)}
         onSave={(fields) => fieldBuilderStyle && handleSaveCustomFields(fieldBuilderStyle, fields)}
+      />
+
+      <ConfirmDialog
+        isOpen={!!saveFieldPrompt}
+        onClose={() => setSaveFieldPrompt(null)}
+        onConfirm={confirmSaveFieldToTemplate}
+        title="Save this to the template?"
+        description={
+          saveFieldPrompt
+            ? `Add "${saveFieldPrompt.field.label}" to every future ${saveFieldPrompt.style} order, or keep it just for this one.`
+            : undefined
+        }
+        confirmLabel="Save to template"
+        cancelLabel="Just this order"
+        destructive={false}
+        loading={savingField}
       />
     </div>
   );

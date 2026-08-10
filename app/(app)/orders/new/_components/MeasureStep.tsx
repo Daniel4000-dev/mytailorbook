@@ -18,6 +18,10 @@ interface MeasureStepProps {
   onSaveStyleProfileChange: (value: boolean) => void;
   updateBodyProfile: boolean;
   onUpdateBodyProfileChange: (value: boolean) => void;
+  lockedKeys?: Set<string>;
+  onToggleLock?: (key: string) => void;
+  addableFields?: { key: string; label: string; hasBodyValue: boolean }[];
+  onAddField?: (field: { key: string; label: string }) => void;
 }
 
 export default function MeasureStep({
@@ -34,6 +38,10 @@ export default function MeasureStep({
   onSaveStyleProfileChange,
   updateBodyProfile,
   onUpdateBodyProfileChange,
+  lockedKeys,
+  onToggleLock,
+  addableFields,
+  onAddField,
 }: MeasureStepProps) {
   return (
     <div className={styles.col}>
@@ -50,6 +58,10 @@ export default function MeasureStep({
         onChange={onMeasureValueChange}
         activeKey={activeMeasureKey}
         onActiveKeyChange={onActiveMeasureKeyChange}
+        lockedKeys={lockedKeys}
+        onToggleLock={onToggleLock}
+        addableFields={addableFields}
+        onAddField={onAddField}
         importSources={[
           // Most precise first: a deliberately saved, style-specific
           // profile beats a derived guess from a past order, which beats
