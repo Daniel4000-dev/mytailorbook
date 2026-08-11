@@ -68,6 +68,7 @@ export async function proxy(request: NextRequest) {
   if (!user && !isPublicPath(pathname) && pathname !== '/') {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
+    url.search = ''; // Clear query params (like OAuth codes) so they don't leak into the URL
     const redirectResponse = NextResponse.redirect(url);
     // Crucial: preserve any refreshed session cookies on the redirect
     response.headers.forEach((value, key) => {
@@ -81,6 +82,7 @@ export async function proxy(request: NextRequest) {
   if (user && (isAuthPage || MARKETING_PATHS.includes(pathname))) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
+    url.search = ''; // Clear query params (like OAuth codes) so they don't leak into the URL
     const redirectResponse = NextResponse.redirect(url);
     // Crucial: preserve any refreshed session cookies on the redirect
     response.headers.forEach((value, key) => {
