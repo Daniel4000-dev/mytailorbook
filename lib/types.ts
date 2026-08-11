@@ -352,6 +352,8 @@ export interface NavItem {
   href: string;
   icon: string;
   ownerOnly?: boolean;
+  /** Sidebar only — omit from the mobile bottom nav to prevent crowding */
+  hideFromBottomNav?: boolean;
 }
 
 export interface StatCardData {

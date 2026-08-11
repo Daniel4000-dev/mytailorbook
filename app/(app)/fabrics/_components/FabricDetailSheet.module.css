@@ -1,0 +1,177 @@
+/* ── Hero photo ──────────────────────────────── */
+
+.heroWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--sf-sand);
+  overflow: hidden;
+  border-radius: var(--sf-radius-xl) var(--sf-radius-xl) 0 0;
+}
+
+.heroPhoto {
+  object-fit: cover;
+}
+
+.heroNoPhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  height: 100%;
+}
+
+.heroNoPhotoIcon {
+  color: var(--sf-border);
+}
+
+.heroNoPhotoLabel {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-tertiary);
+}
+
+/* Status badge on hero */
+
+.statusBadge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.status_Documented {
+  background: rgba(67, 56, 202, 0.75);
+  color: #fff;
+}
+
+.status_Cutting {
+  background: rgba(67, 56, 202, 0.80);
+  color: #fff;
+}
+
+.status_Sewing {
+  background: rgba(67, 56, 202, 0.85);
+  color: #fff;
+}
+
+.status_Ready {
+  background: rgba(67, 56, 202, 0.92);
+  color: #fff;
+}
+
+.status_Completed {
+  background: rgba(27, 27, 34, 0.72);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Body ────────────────────────────────────── */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sf-space-md);
+  gap: var(--sf-space-md);
+}
+
+.divider {
+  height: 1px;
+  background: var(--sf-border-light);
+}
+
+/* ── Section / Rows ──────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sf-space-sm);
+}
+
+.rowIcon {
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.rowContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rowLabel {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  font-weight: var(--sf-weight-medium);
+}
+
+.rowValue {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-medium);
+  line-height: var(--sf-leading-normal);
+}
+
+.overdueIcon {
+  color: #DC2626;
+}
+
+.overdueText {
+  color: #DC2626;
+}
+
+.priorityValue {
+  color: var(--sf-accent-emerald);
+}
+
+/* ── CTA button ──────────────────────────────── */
+
+.openOrderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  padding: 14px var(--sf-space-md);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: none;
+  cursor: pointer;
+  transition:
+    background var(--sf-transition-fast),
+    transform var(--sf-transition-fast),
+    box-shadow var(--sf-transition-fast);
+  box-shadow: var(--sf-shadow-emerald);
+  margin-top: var(--sf-space-xs);
+  touch-action: manipulation;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .openOrderBtn:hover {
+    background: var(--sf-accent-emerald-dark);
+    box-shadow: 0 12px 32px rgba(67, 56, 202, 0.3);
+  }
+}
+
+.openOrderBtn:active {
+  transform: scale(0.98);
+}

@@ -33,7 +33,7 @@ export default function BottomNav() {
   // nav reads far better than items jumping sideways under the user's thumb.
   if (loading) return null;
 
-  const visibleItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
+  const visibleItems = NAV_ITEMS.filter((item) => (!item.ownerOnly || isOwner) && !item.hideFromBottomNav);
 
   return (
     <nav className={styles.nav}>

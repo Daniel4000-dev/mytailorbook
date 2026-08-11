@@ -168,6 +168,10 @@
   gap: 12px;
 }
 
+.mobileOnlineIndicator {
+  margin-left: 14px; /* Align with the 14px left padding of the menu items/logout button */
+}
+
 .settingsBtn {
   display: flex;
   align-items: center;

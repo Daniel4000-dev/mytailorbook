@@ -1,0 +1,251 @@
+/* ── Search bar ─────────────────────────────── */
+
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-xl);
+  padding: 0 var(--sf-space-md);
+  gap: var(--sf-space-sm);
+  box-shadow: var(--sf-shadow-xs);
+  margin-bottom: var(--sf-space-md);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.searchWrap:focus-within {
+  border-color: var(--sf-border-focus);
+  box-shadow: 0 0 0 3px var(--sf-accent-emerald-glow);
+}
+
+.searchIcon {
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  height: 44px;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+/* Override iOS 16px zoom prevention — search is read-only-style usage */
+@supports (-webkit-touch-callout: none) {
+  .searchInput {
+    font-size: 16px !important;
+  }
+}
+
+.clearBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-tertiary);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .clearBtn:hover {
+    background: var(--sf-border);
+  }
+}
+
+/* ── Filter pills row ────────────────────────── */
+
+.filtersRow {
+  display: flex;
+  gap: var(--sf-space-xs);
+  overflow-x: auto;
+  padding-bottom: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-md);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Bleed to edges on mobile to align with content */
+  margin-left: calc(-1 * var(--sf-margin-mobile));
+  padding-left: var(--sf-margin-mobile);
+  padding-right: var(--sf-margin-mobile);
+}
+
+.filtersRow::-webkit-scrollbar {
+  display: none;
+}
+
+.pill {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  transition:
+    background var(--sf-transition-fast),
+    color var(--sf-transition-fast),
+    border-color var(--sf-transition-fast),
+    box-shadow var(--sf-transition-fast);
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover {
+    background: var(--sf-surface-variant);
+    border-color: var(--sf-border);
+  }
+}
+
+.pillActive {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  border-color: var(--sf-accent-emerald);
+  box-shadow: var(--sf-shadow-emerald);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pillActive:hover {
+    background: var(--sf-accent-emerald-dark);
+    border-color: var(--sf-accent-emerald-dark);
+  }
+}
+
+/* ── Gallery grid ────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-sm);
+  animation: fadeInUp 250ms ease both;
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sf-space-md);
+  }
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Loading skeleton cards ──────────────────── */
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+/* ── Empty state ─────────────────────────────── */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--sf-space-3xl) var(--sf-space-lg);
+  gap: var(--sf-space-sm);
+  animation: fadeIn 300ms ease;
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-sand);
+  color: var(--sf-border);
+  margin-bottom: var(--sf-space-xs);
+}
+
+.emptyTitle {
+  font-size: var(--sf-text-lg);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.emptyDesc {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  max-width: 280px;
+  line-height: var(--sf-leading-relaxed);
+  margin-top: 2px;
+}
+
+.toggleNoPhotoBtn {
+  margin-top: var(--sf-space-md);
+  height: 38px;
+  padding: 0 var(--sf-space-md);
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border);
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast);
+  touch-action: manipulation;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toggleNoPhotoBtn:hover {
+    background: var(--sf-surface-variant);
+    border-color: var(--sf-border);
+  }
+}
+
+/* ── No-photo toggle (inline when grid has items) ── */
+
+.noPhotoToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-md);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.noPhotoCheckbox {
+  accent-color: var(--sf-accent-emerald);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}

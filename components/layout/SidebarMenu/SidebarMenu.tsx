@@ -113,6 +113,16 @@ export default function SidebarMenu() {
             <Symbol name="photo_library" className={styles.menuIcon} />
             <span className={styles.menuText}>Style Gallery</span>
           </Link>
+          {isOwner && (
+            <Link
+              href="/settings"
+              className={styles.menuItem}
+              onClick={() => setMenuOpen(false)}
+            >
+              <Symbol name="settings" className={styles.menuIcon} />
+              <span className={styles.menuText}>Settings</span>
+            </Link>
+          )}
         </div>
       )}
 
