@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import FabricCard from './_components/FabricCard';
@@ -42,6 +43,7 @@ export default function FabricsPage() {
         <TopBar
           title="Fabric Board"
           subtitle="Tap any fabric to find its order"
+          rightAction={<NotificationBell />}
         />
       }
     >

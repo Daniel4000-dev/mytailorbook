@@ -12,7 +12,6 @@ import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
-import SidebarEdgeHandle from '@/components/layout/SidebarEdgeHandle/SidebarEdgeHandle';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
 import DesktopGate from '@/components/DesktopGate/DesktopGate';
@@ -132,11 +131,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           real viewport during scroll until something forces a reflow
           (e.g. reopening the sidebar), which is exactly the "bottom nav
           disappears until I open the sidebar again" bug this fixes. */}
-      {/* Dashboard's own header logo doubles as the sidebar toggle (see
-          TopBar's profileMode), so the edge handle would be a redundant
-          second way to open the same menu there — every other page keeps
-          it since they don't have that logo button. */}
-      {!isMenuOpen && pathname !== '/dashboard' && <SidebarEdgeHandle />}
+      {/* Create Action Menu — opened by the FAB on mobile, or by the
+          equivalent button in SidebarMenu on desktop (see SidebarContext). */}
       {!isMenuOpen && showFab && (
         <FAB
           onClick={openCreateMenu}

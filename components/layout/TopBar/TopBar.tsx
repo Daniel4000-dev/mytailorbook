@@ -2,8 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
-
 import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -48,26 +46,16 @@ export default function TopBar({
         // Profile Greeting Layout (for Dashboard)
         <div className={styles.profileHeaderContent}>
           <div className={styles.left}>
+            <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu">
+              <Symbol name="menu" size={24} />
+            </button>
             {leftAction}
+          </div>
+          <div className={styles.right}>
             <div className={styles.greetingWrapper}>
               <span className={styles.greetingText}>{profileMode.greeting},</span>
               <span className={styles.profileName}>{profileMode.name}</span>
             </div>
-          </div>
-          <div className={styles.right}>
-            {/* Mobile: opens the slide-in menu. On desktop the sidebar is
-               always visible (nothing to toggle open), so this button is
-               replaced by .newAction below — see TopBar.module.css. The
-               dashboard is the one place this desktop "New" shortcut
-               lives; it doesn't need FAB-style everywhere-reachability. */}
-            <button
-              type="button"
-              className={styles.logoToggle}
-              onClick={toggleMenu}
-              aria-label="Open menu"
-            >
-              <BrandIcon className={styles.logoToggleImg} />
-            </button>
             <button
               type="button"
               className={styles.newAction}
@@ -83,9 +71,13 @@ export default function TopBar({
         <>
           <div className={styles.left}>
             {leftAction}
-            {showBack && (
+            {showBack ? (
               <button className={styles.backBtn} onClick={handleBack} aria-label="Go back">
-                <Symbol name="arrow_back" />
+                <Symbol name="arrow_back" size={24} />
+              </button>
+            ) : (
+              <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu">
+                <Symbol name="menu" size={24} />
               </button>
             )}
           </div>

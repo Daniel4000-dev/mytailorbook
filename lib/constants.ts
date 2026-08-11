@@ -587,7 +587,7 @@ export const FULL_BODY_MEASUREMENTS: Record<'male' | 'female', StyleMeasureSpec>
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home' },
   { label: 'Production', href: '/production', icon: 'precision_manufacturing' },
-  { label: 'Fabrics', href: '/fabrics', icon: 'checkroom' },
+  { label: 'Fabrics', href: '/fabrics', icon: 'texture' },
   { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true },
   { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true, hideFromBottomNav: true },
 ];

@@ -103,6 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  text-align: right;
 }
 
 .greetingText {
@@ -118,47 +119,30 @@
   color: var(--sf-text-primary);
 }
 
-/* The dashboard's sidebar-toggle button — replaces both the old avatar
-   circle and the separate SidebarEdgeHandle tab on this page specifically
-   (see app/(app)/layout.tsx). Fixed white backdrop rather than a
-   theme-reactive token: the logo mark's ink is a fixed indigo, so it
-   needs a light circle behind it to stay legible in dark mode too. */
-.logoToggle {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface-elevated);
-  border: none;
+/* Hamburger button to open the sidebar on mobile */
+.hamburgerBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--sf-shadow-sm), 0 0 0 2px var(--sf-bg-surface);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sf-radius-full);
+  background: transparent;
+  color: var(--sf-text-primary);
+  border: none;
   cursor: pointer;
-  padding: 0;
-  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: background var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.logoToggle:hover {
-  transform: scale(1.06);
-  box-shadow: var(--sf-shadow-md), 0 0 0 2px var(--sf-bg-surface);
-}
+  .hamburgerBtn:hover {
+    background: var(--sf-bg-surface-elevated);
+  }
 }
 
-.logoToggle:active {
-  transform: scale(0.96);
-}
-
-.logoToggle:focus-visible {
-  outline: 2px solid var(--sf-accent-emerald);
-  outline-offset: 2px;
-}
-
-.logoToggleImg {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+.hamburgerBtn:active {
+  background: var(--sf-bg-surface-hover);
 }
 
 /* Desktop-only duplicate of the sidebar's "New" action (see TopBar.tsx) —
@@ -197,7 +181,7 @@
 
   /* The sidebar is permanently open on desktop — nothing for this button
      to toggle — so it's replaced by .newAction here. */
-  .logoToggle {
+  .hamburgerBtn {
     display: none;
   }
 

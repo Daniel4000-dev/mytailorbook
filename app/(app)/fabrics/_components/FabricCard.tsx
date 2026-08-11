@@ -53,7 +53,7 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
           />
         ) : (
           <div className={styles.noPhoto}>
-            <Symbol name="checkroom" size={32} className={styles.noPhotoIcon} />
+            <Symbol name="texture" size={32} className={styles.noPhotoIcon} />
           </div>
         )}
 
