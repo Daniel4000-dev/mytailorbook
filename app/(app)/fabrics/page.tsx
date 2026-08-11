@@ -13,32 +13,20 @@ import type { Order, OrderStatus } from '@/lib/types';
 import { filterFabricOrders } from './utils';
 import styles from './page.module.css';
 
-const STATUS_FILTERS: { label: string; value: OrderStatus | 'All' }[] = [
-  { label: 'All Uncut', value: 'All' },
-  { label: 'Documented', value: 'Documented' },
-  { label: 'Cutting', value: 'Cutting' },
-];
-
 export default function FabricsPage() {
   const { orders, isLoaded } = useData();
-  const [activeFilter, setActiveFilter] = useState<OrderStatus | 'All'>('All');
   const [search, setSearch] = useState('');
   const [showNoPhoto, setShowNoPhoto] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const filtered = useMemo(() => {
-    return filterFabricOrders(orders, { activeFilter, search, showNoPhoto });
-  }, [orders, activeFilter, search, showNoPhoto]);
+    return filterFabricOrders(orders, { search, showNoPhoto });
+  }, [orders, search, showNoPhoto]);
 
   const ordersWithPhoto = useMemo(
     () =>
       orders.filter(
-        (o) =>
-          o.status !== 'Completed' &&
-          o.status !== 'Sewing' &&
-          o.status !== 'Ready' &&
-          o.images &&
-          o.images.length > 0
+        (o) => o.status === 'Documented' && o.images && o.images.length > 0
       ).length,
     [orders]
   );
@@ -75,20 +63,6 @@ export default function FabricsPage() {
             <Symbol name="close" size={16} />
           </button>
         )}
-      </div>
-
-      {/* Filter pills */}
-      <div className={styles.filtersRow}>
-        {STATUS_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            className={`${styles.pill} ${activeFilter === f.value ? styles.pillActive : ''}`}
-            onClick={() => setActiveFilter(f.value)}
-          >
-            {f.label}
-          </button>
-        ))}
       </div>
 
       {/* Loading skeleton */}

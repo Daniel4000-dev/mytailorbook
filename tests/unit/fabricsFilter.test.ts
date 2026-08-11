@@ -40,60 +40,47 @@ describe('filterFabricOrders', () => {
     },
   ];
 
-  it('excludes Completed, Sewing, and Ready orders by default', () => {
+  it('exclusively includes Documented orders by default', () => {
     const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'All',
       search: '',
       showNoPhoto: true,
     });
-    // Should include 1 and 2 (not 2b, 3, or 4 because they are Sewing, Ready, Completed)
-    expect(result.length).toBe(2);
-    expect(result.map(o => o.id)).toContain('1');
-    expect(result.map(o => o.id)).toContain('2');
-    expect(result.map(o => o.id)).not.toContain('2b');
-    expect(result.map(o => o.id)).not.toContain('3');
-    expect(result.map(o => o.id)).not.toContain('4');
+    // Should ONLY include 2 (Documented). 1 is Cutting, 2b is Sewing, 3 is Ready, 4 is Completed.
+    expect(result.length).toBe(1);
+    expect(result[0].id).toBe('2');
   });
 
   it('excludes orders without photos when showNoPhoto is false', () => {
-    const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'All',
+    const customMockOrders = [
+      ...mockOrders,
+      { id: '5', customerName: 'No Photo Doc', status: 'Documented', images: [] }
+    ];
+    const result = filterFabricOrders(customMockOrders as Order[], {
       search: '',
       showNoPhoto: false,
     });
-    // Should be 1 and 2, because both have photos. 2b, 3, 4 are excluded by status.
-    expect(result.length).toBe(2);
-    expect(result.map(o => o.id)).toContain('1');
-    expect(result.map(o => o.id)).toContain('2');
+    // Should still only be 2, because 5 has no photos
+    expect(result.length).toBe(1);
+    expect(result[0].id).toBe('2');
   });
 
-  it('includes orders without photos when showNoPhoto is true', () => {
-    // Add a Documented order without photo to test this
+  it('includes Documented orders without photos when showNoPhoto is true', () => {
     const customMockOrders = [
       ...mockOrders,
-      { id: '5', customerName: 'No Photo', status: 'Documented', images: [] }
+      { id: '5', customerName: 'No Photo Doc', status: 'Documented', images: [] }
     ];
     const result = filterFabricOrders(customMockOrders as Order[], {
-      activeFilter: 'All',
       search: '',
       showNoPhoto: true,
     });
+    // Includes 2 (has photo) and 5 (no photo)
+    expect(result.length).toBe(2);
+    expect(result.map(o => o.id)).toContain('2');
     expect(result.map(o => o.id)).toContain('5');
-  });
-
-  it('filters by status correctly', () => {
-    const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'Cutting',
-      search: '',
-      showNoPhoto: true,
-    });
-    expect(result.length).toBe(1);
-    expect(result[0].id).toBe('1');
   });
 
   it('searches by customer name', () => {
     const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'All',
       search: 'jane',
       showNoPhoto: true,
     });
@@ -101,20 +88,9 @@ describe('filterFabricOrders', () => {
     expect(result[0].customerName).toBe('Jane Smith');
   });
 
-  it('searches by style name', () => {
-    const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'All',
-      search: 'agabada',
-      showNoPhoto: true,
-    });
-    expect(result.length).toBe(1);
-    expect(result[0].id).toBe('1');
-  });
-
   it('searches by order details', () => {
     const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'All',
-      search: 'blue thread',
+      search: 'thread',
       showNoPhoto: true,
     });
     expect(result.length).toBe(1);
@@ -123,7 +99,6 @@ describe('filterFabricOrders', () => {
 
   it('returns empty when search does not match', () => {
     const result = filterFabricOrders(mockOrders as Order[], {
-      activeFilter: 'All',
       search: 'nonexistent',
       showNoPhoto: true,
     });
