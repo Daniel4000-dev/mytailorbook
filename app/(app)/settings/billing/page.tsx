@@ -9,6 +9,7 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { scrollContentToTop } from '@/lib/scrollToTop';
 import { initializeSubscription, confirmSubscriptionPayment, cancelSubscriptionAction } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
@@ -26,6 +27,10 @@ export default function BillingSettingsPage() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelStep, setCancelStep] = useState<'plans' | 'why-stay' | 'why-leave'>('plans');
   const [cancelReason, setCancelReason] = useState<string | null>(null);
+
+  useEffect(() => {
+    scrollContentToTop();
+  }, [cancelStep]);
 
   // See original comment in settings/page.tsx (now removed from there): a
   // bfcache restore after a Paystack redirect can resurrect this page with

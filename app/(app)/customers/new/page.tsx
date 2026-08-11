@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 
+import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
@@ -56,6 +57,12 @@ export default function NewClientPage() {
   const [screen, setScreen] = useState<'profile' | 'measurements'>('profile');
   const [bodyMeasurements, setBodyMeasurements] = useState<Record<string, string>>({});
   const bodySpec = FULL_BODY_MEASUREMENTS[gender];
+
+  // Same page, two full content swaps — reset scroll on each so Continue
+  // doesn't land the measurements screen mid-scroll from the profile form.
+  useEffect(() => {
+    scrollContentToTop();
+  }, [screen]);
 
   const toggleStyle = (style: string) => {
     const nextStyles = styleSet.includes(style) 

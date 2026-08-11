@@ -15,6 +15,7 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatPhone, formatCurrency, formatShortMonthYear, formatDate, getWhatsAppLink } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
@@ -71,6 +72,13 @@ export default function CustomersPage() {
   const [includeContacted, setIncludeContacted] = useState(false);
   const [selectionMode, setSelectionMode] = useState<'everyone' | 'choose'>('everyone');
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
+
+  // Compose → queue is a full content swap inside the same open sheet,
+  // and the queue itself pages one customer at a time (queueIndex) —
+  // reset the sheet's own scroll on each so it doesn't carry over.
+  useEffect(() => {
+    if (isOutreachSheetOpen) scrollContentToTop();
+  }, [isOutreachSheetOpen, outreachStep, queueIndex]);
 
   // Reset immediately when the active style changes — adjusted during
   // render rather than in the effect below, which only handles the actual

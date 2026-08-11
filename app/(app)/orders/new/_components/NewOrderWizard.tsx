@@ -9,6 +9,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { trackEvent } from '@/lib/analytics';
+import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
@@ -91,6 +92,15 @@ export default function NewOrderWizard() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Every step (and every garment within the measure step) is a full
+  // content swap on one long-scrolling page, not a real navigation — the
+  // browser has no reason to reset scroll on its own, so a tailor who
+  // scrolled down picking garments would land mid-page on the next step
+  // otherwise.
+  useEffect(() => {
+    scrollContentToTop();
+  }, [step, measureIndex]);
 
   // ?customer=<id> (from the new-client wizard or a profile page) skips
   // straight to garments once data is in.

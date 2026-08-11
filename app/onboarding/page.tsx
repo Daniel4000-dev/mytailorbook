@@ -5,6 +5,7 @@ import { preload } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+import { scrollContentToTop } from '@/lib/scrollToTop';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { completeOnboarding } from '@/app/auth-actions';
@@ -49,6 +50,13 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   // 0/1 = welcome carousel screens, 2 = the actual setup form below.
   const [step, setStep] = useState(0);
+
+  // The carousel-to-form transition is a full content swap on one page,
+  // not a real navigation — reset scroll so the (potentially long) setup
+  // form doesn't open mid-scroll from wherever the carousel left off.
+  useEffect(() => {
+    scrollContentToTop();
+  }, [step]);
 
   const isGoogleAccount = !!googleUserInfo?.isGoogleAccount;
 
