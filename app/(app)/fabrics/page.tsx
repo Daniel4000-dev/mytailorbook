@@ -14,11 +14,9 @@ import { filterFabricOrders } from './utils';
 import styles from './page.module.css';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'All' }[] = [
-  { label: 'All', value: 'All' },
-  { label: 'Cutting', value: 'Cutting' },
-  { label: 'Sewing', value: 'Sewing' },
-  { label: 'Ready', value: 'Ready' },
+  { label: 'All Uncut', value: 'All' },
   { label: 'Documented', value: 'Documented' },
+  { label: 'Cutting', value: 'Cutting' },
 ];
 
 export default function FabricsPage() {
@@ -33,7 +31,15 @@ export default function FabricsPage() {
   }, [orders, activeFilter, search, showNoPhoto]);
 
   const ordersWithPhoto = useMemo(
-    () => orders.filter((o) => o.status !== 'Completed' && o.images && o.images.length > 0).length,
+    () =>
+      orders.filter(
+        (o) =>
+          o.status !== 'Completed' &&
+          o.status !== 'Sewing' &&
+          o.status !== 'Ready' &&
+          o.images &&
+          o.images.length > 0
+      ).length,
     [orders]
   );
 

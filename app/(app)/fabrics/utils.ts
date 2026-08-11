@@ -11,8 +11,9 @@ export function filterFabricOrders(orders: Order[], options: FilterOptions): Ord
   const lowerSearch = search.trim().toLowerCase();
 
   return orders.filter((o) => {
-    // Exclude completed orders by default
-    if (o.status === 'Completed') return false;
+    // Exclude completed, sewing, and ready orders by default since the fabric board
+    // is for identifying raw/uncut fabrics (Documented and Cutting phases).
+    if (o.status === 'Completed' || o.status === 'Sewing' || o.status === 'Ready') return false;
 
     // Exclude orders with no photo unless toggled on
     if (!showNoPhoto && (!o.images || o.images.length === 0)) return false;
