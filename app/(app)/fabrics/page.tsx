@@ -94,17 +94,17 @@ export default function FabricsPage() {
           ) : (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>
-                <Symbol name="checkroom" size={40} />
+                <Symbol name="texture" size={40} />
               </div>
               <h3 className={styles.emptyTitle}>
-                {search ? 'No fabrics match your search' : 'No fabrics to show'}
+                {search ? 'No fabrics match your search' : 'No uncut fabrics waiting'}
               </h3>
               <p className={styles.emptyDesc}>
                 {search
                   ? 'Try a different name or style.'
                   : ordersWithPhoto === 0
-                  ? 'Add a photo when logging or updating an order and it will appear here.'
-                  : 'All fabrics for this stage are here once a photo is added.'}
+                  ? 'When new fabrics are documented with a photo, they will appear here until they are cut.'
+                  : 'All uncut fabrics with photos are shown here.'}
               </p>
               {!showNoPhoto && ordersWithPhoto === 0 && (
                 <button
