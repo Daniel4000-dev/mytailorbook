@@ -68,13 +68,27 @@ export async function proxy(request: NextRequest) {
   if (!user && !isPublicPath(pathname) && pathname !== '/') {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    // Crucial: preserve any refreshed session cookies on the redirect
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        redirectResponse.headers.append('set-cookie', value);
+      }
+    });
+    return redirectResponse;
   }
 
   if (user && (isAuthPage || MARKETING_PATHS.includes(pathname))) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    // Crucial: preserve any refreshed session cookies on the redirect
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        redirectResponse.headers.append('set-cookie', value);
+      }
+    });
+    return redirectResponse;
   }
 
   return response;
