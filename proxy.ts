@@ -110,7 +110,10 @@ export const config = {
      * - api/ (API routes handle their own auth — e.g. the cron keep-alive
      *   endpoint is called by Vercel's scheduler with no browser session,
      *   and would otherwise get redirected to /login before it ever ran)
+     * - google*.html (Search Console site-verification files in public/ —
+     *   Googlebot has no session cookie and must see the raw file, not a
+     *   /login redirect)
      */
-    '/((?!_next/static|_next/image|favicon.ico|app-icon-light.ico|app-icon-dark.ico|apple-touch-icon.png|images/|icons/|manifest.webmanifest|api/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|app-icon-light.ico|app-icon-dark.ico|apple-touch-icon.png|images/|icons/|manifest.webmanifest|api/|google[a-z0-9]+\\.html).*)',
   ],
 };
