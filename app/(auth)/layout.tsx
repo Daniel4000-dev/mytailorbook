@@ -42,7 +42,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
              just saw on the homepage. */}
           <div className={styles.editorialPane}>
             <Image
-              src={isSignup ? '/images/marketing/atelier-review.jpg' : '/images/marketing/hero-tailor-tablet.jpg'}
+              src="/images/marketing/hero-tailor-tablet.jpg"
               alt=""
               fill
               sizes="50vw"
