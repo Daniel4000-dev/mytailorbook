@@ -20,6 +20,7 @@ import {
   discardStylePhotoSubmissionAction,
 } from '@/app/actions';
 import type { StylePhotoSubmission } from '@/lib/types';
+import { ROUTES } from '@/lib/routes';
 import StylePhotoCard from './_components/StylePhotoCard';
 import styles from './page.module.css';
 
@@ -116,7 +117,7 @@ export default function StyleDetailPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title={styleName} showBack onBack={() => router.push('/styles')} />}>
+    <PageLayout width="narrow" header={<TopBar title={styleName} showBack onBack={() => router.push(ROUTES.styles)} />}>
       <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleUpload} />
 
       <div className={styles.uploadCard} onClick={() => fileInputRef.current?.click()}>

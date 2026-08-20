@@ -13,6 +13,7 @@ import type { User } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { identifyUser, resetAnalytics } from '@/lib/analytics';
+import { ROUTES } from '@/lib/routes';
 
 interface AuthContextValue {
   user: User | null;
@@ -146,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm?next=/onboarding`,
+            emailRedirectTo: `${window.location.origin}${ROUTES.authConfirm(ROUTES.onboarding)}`,
             data: { name },
           },
         });
@@ -168,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Land on /onboarding directly — first-time users need to complete
       // shop setup before /dashboard is meaningful, and returning users
       // are bounced to /dashboard by the onboarding page guard below.
-      options: { redirectTo: `${window.location.origin}/auth/confirm?next=/onboarding` },
+      options: { redirectTo: `${window.location.origin}${ROUTES.authConfirm(ROUTES.onboarding)}` },
     });
     if (error) throw new Error(error.message);
     // Browser navigates away to Google here — nothing else to do client-side.
@@ -192,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/confirm?next=/reset-password`,
+      redirectTo: `${window.location.origin}${ROUTES.authConfirm(ROUTES.resetPassword)}`,
     });
     if (error) throw new Error(error.message);
   }, [supabase]);

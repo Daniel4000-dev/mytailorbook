@@ -9,6 +9,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import type { PublicPortfolio } from '@/app/public-actions';
 import styles from './EditorialTemplate.module.css';
 
@@ -94,7 +95,7 @@ export default function EditorialTemplate({ portfolio }: { portfolio: PublicPort
     // inside the authenticated app (a different route) or a preview
     // deployment, where window.location.origin would leak an in-app path
     // or the wrong domain that a visitor couldn't open/wouldn't recognize.
-    const url = `${APP_CONFIG.baseUrl}/studio/${shop.slug}`;
+    const url = `${APP_CONFIG.baseUrl}${ROUTES.studio(shop.slug)}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${shop.name} — Bespoke Tailoring`, url });

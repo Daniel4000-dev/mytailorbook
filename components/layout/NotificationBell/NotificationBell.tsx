@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useNotifications, type NotificationItem } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
 import { formatDate } from '@/lib/formatters';
+import { ROUTES } from '@/lib/routes';
 import styles from './NotificationBell.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
@@ -40,7 +41,7 @@ export default function NotificationBell() {
 
   const handleSeeAll = () => {
     setOpen(false);
-    router.push('/notifications');
+    router.push(ROUTES.notifications);
   };
 
   return (

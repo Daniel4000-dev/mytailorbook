@@ -16,6 +16,7 @@ import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
 import ProductionBoardSkeleton from './ProductionBoardSkeleton';
 import styles from './ProductionBoard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { ROUTES } from '@/lib/routes';
 
 interface ProductionBoardProps {
   userRole: Role;
@@ -62,7 +63,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     const staffId = searchParams.get('staff');
 
     if (orderId) {
-      router.replace(`/production/${orderId}`);
+      router.replace(ROUTES.productionOrder(orderId));
       return;
     }
     if (staffId && isOwnerLikeRole(userRole)) {
@@ -70,7 +71,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         setStaffFilterId(staffId);
         setFilterMyTasks(false);
       });
-      router.replace('/production');
+      router.replace(ROUTES.production);
     }
   }, [isLoaded, searchParams, userRole, router]);
 
@@ -182,7 +183,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     setStageVisibleCounts((prev) => ({ ...prev, [status]: (prev[status] ?? STAGE_PAGE_SIZE) + STAGE_PAGE_SIZE }));
   }, []);
 
-  const handleOpen = useCallback((orderId: string) => router.push(`/production/${orderId}`), [router]);
+  const handleOpen = useCallback((orderId: string) => router.push(ROUTES.productionOrder(orderId)), [router]);
 
   if (!isLoaded) {
     return <ProductionBoardSkeleton />;

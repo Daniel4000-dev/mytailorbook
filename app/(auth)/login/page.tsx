@@ -11,6 +11,7 @@ import { isAuthRetryableFetchError, isAuthApiError } from '@supabase/supabase-js
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { loginSchema, type LoginInput } from '@/lib/validations';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
@@ -47,7 +48,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(data.email, data.password);
-      router.push('/dashboard');
+      router.push(ROUTES.dashboard);
     } catch (err) {
       if (isAuthRetryableFetchError(err)) {
         setApiError('Could not reach the server — check your connection and try again.');
@@ -111,7 +112,7 @@ export default function LoginPage() {
 
         {/* Forgot Password */}
         <div className={styles.forgotPasswordWrapper}>
-          <Link href="/forgot-password" className={styles.forgotPasswordLink}>
+          <Link href={ROUTES.forgotPassword} className={styles.forgotPasswordLink}>
             Forgot password?
           </Link>
         </div>
@@ -162,7 +163,7 @@ export default function LoginPage() {
         <div className={styles.footerLabel}>Don’t have an account?</div>
 
         {/* Register Link */}
-        <Link href="/signup" className={styles.registerButton}>
+        <Link href={ROUTES.signup} className={styles.registerButton}>
           Register
         </Link>
       </form>

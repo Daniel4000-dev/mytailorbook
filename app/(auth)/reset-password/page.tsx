@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { updatePasswordSchema, type UpdatePasswordInput } from '@/lib/validations';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
@@ -40,7 +41,7 @@ export default function ResetPasswordPage() {
         throw new Error(updateError.message);
       }
       setDone(true);
-      setTimeout(() => router.push('/dashboard'), 1500);
+      setTimeout(() => router.push(ROUTES.dashboard), 1500);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Could not reset password. The link may have expired — request a new one.');
     } finally {

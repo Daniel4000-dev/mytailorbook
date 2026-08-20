@@ -6,15 +6,16 @@ import { usePathname } from 'next/navigation';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
+import { ROUTES } from '@/lib/routes';
 import styles from './Header.module.css';
 
 const NAV_LINKS = [
-  { href: '/features', label: 'Features' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/portfolio-examples', label: 'Portfolio Examples' },
-  { href: '/about', label: 'About' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
+  { href: ROUTES.features, label: 'Features' },
+  { href: ROUTES.pricing, label: 'Pricing' },
+  { href: ROUTES.portfolioExamples, label: 'Portfolio Examples' },
+  { href: ROUTES.about, label: 'About' },
+  { href: ROUTES.blog, label: 'Blog' },
+  { href: ROUTES.contact, label: 'Contact' },
 ];
 
 export default function Header() {
@@ -24,7 +25,7 @@ export default function Header() {
     <>
       <header className={styles.header}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.brand} onClick={() => setMenuOpen(false)}>
+        <Link href={ROUTES.home} className={styles.brand} onClick={() => setMenuOpen(false)}>
           <BrandIcon className={styles.logo} />
           <BrandWordmark />
         </Link>
@@ -42,10 +43,10 @@ export default function Header() {
         </nav>
 
         <div className={styles.actions}>
-          <Link href="/login" className={styles.loginLink}>
+          <Link href={ROUTES.login} className={styles.loginLink}>
             Log In
           </Link>
-          <Link href="/signup" className={styles.ctaButton}>
+          <Link href={ROUTES.signup} className={styles.ctaButton}>
             Start Free
           </Link>
         </div>
@@ -74,10 +75,10 @@ export default function Header() {
             </Link>
           ))}
           <div className={styles.mobileActions}>
-            <Link href="/login" className={styles.loginLink} onClick={() => setMenuOpen(false)}>
+            <Link href={ROUTES.login} className={styles.loginLink} onClick={() => setMenuOpen(false)}>
               Log In
             </Link>
-            <Link href="/signup" className={styles.ctaButton} onClick={() => setMenuOpen(false)}>
+            <Link href={ROUTES.signup} className={styles.ctaButton} onClick={() => setMenuOpen(false)}>
               Start Free
             </Link>
           </div>

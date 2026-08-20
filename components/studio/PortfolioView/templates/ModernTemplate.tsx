@@ -8,14 +8,19 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import type { PublicPortfolio } from '@/app/public-actions';
 import styles from './ModernTemplate.module.css';
 
+/** Mirrors the real order stages a customer sees on their own tracking page
+ *  (see app/track/[orderId]/_components/TimelineStage.tsx) — same names,
+ *  icons, and voice, so the promise made here is the product a buyer
+ *  actually gets, not a separate marketing story. */
 const PROCESS_STEPS = [
-  { icon: 'straighten', title: 'Measured', text: 'Taken in person, kept on file' },
-  { icon: 'content_cut', title: 'Fabric Cut', text: 'Cut to your exact numbers' },
-  { icon: 'apparel', title: 'Sewn with Care', text: 'Finished by hand, checked twice' },
-  { icon: 'radar', title: 'Track it Live', text: 'Follow every stage from your phone' },
+  { icon: 'assignment', title: 'Documented', text: 'Every measurement logged the day you order — nothing left to memory' },
+  { icon: 'content_cut', title: 'Cutting', text: 'Patterns drafted, fabric cut to your exact numbers' },
+  { icon: 'apparel', title: 'Sewing', text: 'Stitched seam by seam, checked as it goes' },
+  { icon: 'inventory_2', title: 'Delivered', text: 'Pressed, packaged, and tracked live to your phone' },
 ];
 
 /** Curated accent palette — a tailor picks one of these in Settings, never
@@ -99,7 +104,7 @@ export default function ModernTemplate({ portfolio }: { portfolio: PublicPortfol
     // inside the authenticated app (a different route) or a preview
     // deployment, where window.location.origin would leak an in-app path
     // or the wrong domain that a visitor couldn't open/wouldn't recognize.
-    const url = `${APP_CONFIG.baseUrl}/studio/${shop.slug}`;
+    const url = `${APP_CONFIG.baseUrl}${ROUTES.studio(shop.slug)}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: `${shop.name} — Bespoke Tailoring`, url });

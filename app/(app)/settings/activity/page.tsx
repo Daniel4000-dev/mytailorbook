@@ -10,6 +10,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { AuditLogEntry } from '@/lib/types';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -50,7 +51,7 @@ export default function ActivityLogPage() {
   }, [currentShop?.id]);
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Activity Log" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Activity Log" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <p className={styles.intro}>Recent account activity — who did what, and when.</p>
 
       {entries === null ? (

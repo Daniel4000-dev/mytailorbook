@@ -17,6 +17,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { compressImage } from '@/lib/compressImage';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
 import SettingsSkeleton from '../_components/SettingsSkeleton';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 export default function StudioSettingsPage() {
@@ -95,14 +96,14 @@ export default function StudioSettingsPage() {
 
   if (!isLoaded) {
     return (
-      <PageLayout width="narrow" header={<TopBar title="Your Studio" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+      <PageLayout width="narrow" header={<TopBar title="Your Studio" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
         <SettingsSkeleton />
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Your Studio" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Your Studio" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Studio Profile</h3>
         <div className={styles.card}>

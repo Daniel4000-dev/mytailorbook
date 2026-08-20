@@ -20,6 +20,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
+import { ROUTES } from '@/lib/routes';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
 import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css';
@@ -44,7 +45,7 @@ export default function SettingsPage() {
   // render entirely on desktop, not just redirecting afterward, is what
   // actually prevents that flash.
   useEffect(() => {
-    if (isDesktop) router.replace('/settings/account');
+    if (isDesktop) router.replace(ROUTES.settingsAccount);
   }, [isDesktop, router]);
 
   const [addBranchOpen, setAddBranchOpen] = useState(false);
@@ -132,7 +133,7 @@ export default function SettingsPage() {
 
   return (
     <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
-      <button type="button" className={styles.identityStrip} onClick={() => router.push('/settings/account')}>
+      <button type="button" className={styles.identityStrip} onClick={() => router.push(ROUTES.settingsAccount)}>
         <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
         <div className={styles.identityText}>
           <span className={styles.identityName}>{user?.name}</span>
@@ -156,7 +157,7 @@ export default function SettingsPage() {
               icon="storefront"
               label="Studio Profile"
               subtitle={currentShop?.name || 'Unnamed Studio'}
-              onClick={() => router.push('/settings/studio')}
+              onClick={() => router.push(ROUTES.settingsStudio)}
             />
             <SettingsRow
               icon="image"
@@ -167,7 +168,7 @@ export default function SettingsPage() {
                   <Image src={currentShop.logoUrl} alt="" width={200} height={200} className={styles.logoThumb} />
                 ) : undefined
               }
-              onClick={() => router.push('/settings/studio')}
+              onClick={() => router.push(ROUTES.settingsStudio)}
             />
           </div>
         </div>
@@ -192,11 +193,11 @@ export default function SettingsPage() {
                 </span>
               </span>
               {currentShop?.subscriptionStatus === 'active' ? (
-                <button type="button" className={styles.proMemberBadge} onClick={() => router.push('/settings/billing')}>
+                <button type="button" className={styles.proMemberBadge} onClick={() => router.push(ROUTES.settingsBilling)}>
                   Pro Member
                 </button>
               ) : (
-                <Button variant="primary" onClick={() => router.push('/settings/billing')} size="sm">
+                <Button variant="primary" onClick={() => router.push(ROUTES.settingsBilling)} size="sm">
                   {currentShop?.subscriptionStatus === 'past_due' ? 'Fix Payment' : 'Upgrade'}
                 </Button>
               )}
@@ -240,7 +241,7 @@ export default function SettingsPage() {
               label="Staff"
               subtitle={`${activeStaffCount} active`}
               meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
-              onClick={() => router.push('/settings/staff')}
+              onClick={() => router.push(ROUTES.settingsStaff)}
             />
           </div>
         </div>
@@ -252,7 +253,7 @@ export default function SettingsPage() {
               icon="checkroom"
               label="Custom Styles"
               subtitle={customStylesCount > 0 ? `${customStylesCount} added` : 'None yet'}
-              onClick={() => router.push('/settings/styles')}
+              onClick={() => router.push(ROUTES.settingsStyles)}
             />
           </div>
         </div>
@@ -267,7 +268,7 @@ export default function SettingsPage() {
               icon="forum"
               label="Messages &amp; Templates"
               subtitle="Reach-out note and per-stage WhatsApp wording"
-              onClick={() => router.push('/settings/messages')}
+              onClick={() => router.push(ROUTES.settingsMessages)}
             />
           </div>
         </div>
@@ -279,7 +280,7 @@ export default function SettingsPage() {
               icon="photo_library"
               label="Manage Portfolio Photos"
               subtitle="Choose what customers see"
-              onClick={() => router.push('/settings/portfolio')}
+              onClick={() => router.push(ROUTES.settingsPortfolio)}
             />
           </div>
         </div>
@@ -292,7 +293,7 @@ export default function SettingsPage() {
                 icon="bar_chart"
                 label="Reports"
                 subtitle="Revenue, outstanding balance, and margin"
-                onClick={() => router.push('/settings/reports')}
+                onClick={() => router.push(ROUTES.settingsReports)}
               />
             </div>
           </div>
@@ -306,7 +307,7 @@ export default function SettingsPage() {
               icon="history"
               label="Activity Log"
               subtitle="See who did what, and when"
-              onClick={() => router.push('/settings/activity')}
+              onClick={() => router.push(ROUTES.settingsActivity)}
             />
           </div>
         </div>

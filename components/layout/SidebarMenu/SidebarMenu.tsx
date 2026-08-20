@@ -14,6 +14,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import { NAV_ITEMS } from '@/lib/constants';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { ROUTES } from '@/lib/routes';
 import styles from './SidebarMenu.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import OnlineIndicator from '@/components/ui/OnlineIndicator/OnlineIndicator';
@@ -32,7 +33,7 @@ export default function SidebarMenu() {
   const handleLogout = async () => {
     setMenuOpen(false);
     await logout();
-    router.push('/login');
+    router.push(ROUTES.login);
   };
 
   // Both the real shop name and the Portfolio/Style Gallery links depend on
@@ -98,7 +99,7 @@ export default function SidebarMenu() {
       {currentShop && (
         <div className={styles.mobileOnlyNav}>
           <Link
-            href="/portfolio"
+            href={ROUTES.portfolio}
             className={styles.menuItem}
             onClick={() => setMenuOpen(false)}
           >
@@ -106,7 +107,7 @@ export default function SidebarMenu() {
             <span className={styles.menuText}>My Portfolio</span>
           </Link>
           <Link
-            href="/styles"
+            href={ROUTES.styles}
             className={styles.menuItem}
             onClick={() => setMenuOpen(false)}
           >
@@ -115,7 +116,7 @@ export default function SidebarMenu() {
           </Link>
           {isOwner && (
             <Link
-              href="/settings"
+              href={ROUTES.settings}
               className={styles.menuItem}
               onClick={() => setMenuOpen(false)}
             >
@@ -147,7 +148,7 @@ export default function SidebarMenu() {
             hands out the actual public /studio/[slug] link to visitors. */}
         {currentShop && (
           <Link
-            href="/portfolio"
+            href={ROUTES.portfolio}
             className={styles.menuItem}
             title={isCollapsed ? 'My Portfolio' : undefined}
           >
@@ -157,7 +158,7 @@ export default function SidebarMenu() {
         )}
         {currentShop && (
           <Link
-            href="/styles"
+            href={ROUTES.styles}
             className={styles.menuItem}
             title={isCollapsed ? 'Style Gallery' : undefined}
           >

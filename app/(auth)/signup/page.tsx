@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { signupSchema, type SignupInput } from '@/lib/validations';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
@@ -63,7 +64,7 @@ export default function SignupPage() {
       if (needsEmailConfirmation) {
         setSubmitted(true);
       } else {
-        router.push('/onboarding');
+        router.push(ROUTES.onboarding);
       }
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Could not create account');
@@ -93,7 +94,7 @@ export default function SignupPage() {
             We&apos;ve sent a confirmation link to <br /><strong>{emailWatcher}</strong><br />
             Click it to finish setting up your workspace.
           </p>
-          <Link href="/login" className={styles.registerButton} style={{ marginTop: '24px' }}>
+          <Link href={ROUTES.login} className={styles.registerButton} style={{ marginTop: '24px' }}>
             Back to Login
           </Link>
         </div>
@@ -211,16 +212,16 @@ export default function SignupPage() {
 
         <p className={styles.agreeRow}>
           By signing up, you agree to our{' '}
-          <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
+          <Link href={ROUTES.terms} target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
           and{' '}
-          <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+          <Link href={ROUTES.privacy} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
         </p>
 
         {/* Footer label */}
         <div className={styles.footerLabel}>Already have an account?</div>
 
         {/* Secondary Link to Login */}
-        <Link href="/login" className={styles.registerButton}>
+        <Link href={ROUTES.login} className={styles.registerButton}>
           Log in
         </Link>
       </form>

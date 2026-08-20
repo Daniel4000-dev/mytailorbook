@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatPhone } from '@/lib/formatters';
+import { ROUTES } from '@/lib/routes';
 import type { Customer } from '@/lib/types';
 import styles from '../page.module.css';
 
@@ -49,7 +50,7 @@ export default function CustomerStep({ customerQuery, onQueryChange, filteredCus
           <p className={styles.emptyNote}>No client matches “{customerQuery}”.</p>
         )}
       </div>
-      <Link href="/customers/new" className={styles.newClientLink}>
+      <Link href={ROUTES.customerNew} className={styles.newClientLink}>
         <Symbol name="person_add" size={20} /> Walk-in? Register a new client
       </Link>
     </div>

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal } from '@/lib/marketingMotion';
+import { ROUTES } from '@/lib/routes';
 import styles from './AboutPageContent.module.css';
 
 const VALUES = [
@@ -116,7 +117,7 @@ export default function AboutPageContent() {
           <p className={styles.finalCtaBody}>
             Set up your shop in under two minutes — free, forever, no card required.
           </p>
-          <Link href="/signup" className={styles.ctaPrimary}>
+          <Link href={ROUTES.signup} className={styles.ctaPrimary}>
             Start Free — No Card Required
             <Symbol name="arrow_forward" size={18} />
           </Link>

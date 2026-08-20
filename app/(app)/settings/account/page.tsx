@@ -18,6 +18,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
 import PushNotificationToggle from '../_components/PushNotificationToggle';
 import { compressImage } from '@/lib/compressImage';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 export default function AccountSettingsPage() {
@@ -62,7 +63,7 @@ export default function AccountSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Your Account" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Your Account" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <div className={styles.identityStrip}>
         <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
         <div className={styles.identityText}>
@@ -93,7 +94,7 @@ export default function AccountSettingsPage() {
         {FEATURE_FLAGS.dataExport && <ExportDataButton shopName={currentShop?.name || 'shop'} />}
       </div>
 
-      <AccountDangerZone isOwner={isOwner} onClosingProfile={() => router.push('/settings')} />
+      <AccountDangerZone isOwner={isOwner} onClosingProfile={() => router.push(ROUTES.settings)} />
 
       <ConfirmDialog
         isOpen={confirmRemoveAvatar}

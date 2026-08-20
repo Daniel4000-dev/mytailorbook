@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { ROUTES } from '@/lib/routes';
 import { DataProvider } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -60,7 +61,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   // profile yet (OAuth gave no chance to ask for a shop name up front).
   useEffect(() => {
     if (!authLoading && needsOnboarding) {
-      router.replace('/onboarding');
+      router.replace(ROUTES.onboarding);
     }
   }, [authLoading, needsOnboarding, router]);
 
@@ -87,7 +88,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
   // Render nothing while the onboarding redirect is in flight — otherwise
   // the page's own children (e.g. the dashboard) mount and fetch data for a
-  // frame before router.replace('/onboarding') above takes effect, flashing
+  // frame before router.replace(ROUTES.onboarding) above takes effect, flashing
   // a skeleton the user will never actually get to use.
   if (!authLoading && needsOnboarding) {
     return null;
@@ -154,7 +155,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
         <div className={styles.actionMenu}>
           <p className={styles.actionMenuHint}>Select the client profile to begin.</p>
           <Link
-            href="/orders/new"
+            href={ROUTES.orderNew}
             className={styles.actionOption}
             onClick={closeCreateMenu}
           >
@@ -168,7 +169,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
             <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
           </Link>
           <Link
-            href="/customers/new"
+            href={ROUTES.customerNew}
             className={styles.actionOption}
             onClick={closeCreateMenu}
           >

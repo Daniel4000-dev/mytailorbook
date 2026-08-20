@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal, slideInLeft, slideInRight, popIn } from '@/lib/marketingMotion';
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN } from '@/lib/subscription';
+import { ROUTES } from '@/lib/routes';
 import styles from './HomePageContent.module.css';
 
 const STRUGGLES = [
@@ -98,11 +99,11 @@ export default function HomePageContent() {
             Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app.
           </p>
           <div className={styles.heroActions}>
-            <Link href="/signup" className={styles.ctaPrimary}>
+            <Link href={ROUTES.signup} className={styles.ctaPrimary}>
               Start Free
               <Symbol name="arrow_forward" size={18} />
             </Link>
-            <Link href="/portfolio-examples" className={styles.ctaSecondaryOnPhoto}>
+            <Link href={ROUTES.portfolioExamples} className={styles.ctaSecondaryOnPhoto}>
               <Symbol name="visibility" size={18} />
               Watch Demo
             </Link>
@@ -192,7 +193,7 @@ export default function HomePageContent() {
           );
         })}
         <motion.div className={styles.featureLinkRow} {...reveal()}>
-          <Link href="/features" className={styles.featureLink}>
+          <Link href={ROUTES.features} className={styles.featureLink}>
             See every feature
             <Symbol name="arrow_forward" size={16} />
           </Link>
@@ -282,7 +283,7 @@ export default function HomePageContent() {
           </div>
         </motion.div>
         <motion.div {...reveal(0.16)}>
-          <Link href="/pricing" className={styles.featureLink}>
+          <Link href={ROUTES.pricing} className={styles.featureLink}>
             See full pricing details
             <Symbol name="arrow_forward" size={16} />
           </Link>
@@ -304,7 +305,7 @@ export default function HomePageContent() {
           <p className={styles.finalCtaBody}>
             It takes less than two minutes to set up your shop. No card required for the free plan.
           </p>
-          <Link href="/signup" className={styles.ctaPrimaryLight}>
+          <Link href={ROUTES.signup} className={styles.ctaPrimaryLight}>
             Start Free
             <Symbol name="arrow_forward" size={18} />
           </Link>

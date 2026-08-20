@@ -21,6 +21,7 @@ import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import type { User } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 type StaffSheetView = 'actions' | 'edit' | 'password';
@@ -138,7 +139,7 @@ export default function StaffSettingsPage() {
         <TopBar
           title="Staff"
           showBack={!isDesktop}
-          onBack={() => router.push('/settings')}
+          onBack={() => router.push(ROUTES.settings)}
           rightAction={
             <CircleIconButton
               icon={<Symbol name="person_add" size={18} />}
@@ -334,7 +335,7 @@ export default function StaffSettingsPage() {
             variant="primary"
             onClick={() => {
               setIsUpsellOpen(false);
-              router.push('/settings?sheet=plans');
+              router.push(ROUTES.settingsWithPlansSheet());
             }}
           >
             View Plans

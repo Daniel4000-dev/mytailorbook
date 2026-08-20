@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal } from '@/lib/marketingMotion';
+import { ROUTES } from '@/lib/routes';
 import styles from './PortfolioExamplesContent.module.css';
 
 const PROOF_POINTS = [
@@ -33,7 +34,7 @@ export default function PortfolioExamplesContent() {
             Every shop gets a free public portfolio page — a beautiful, shareable showcase of your finished work.
             Pick the template that fits how you present your craft.
           </p>
-          <Link href="/signup" className={styles.ctaPrimary}>
+          <Link href={ROUTES.signup} className={styles.ctaPrimary}>
             Start Free — No Card Required
             <Symbol name="arrow_forward" size={18} />
           </Link>
@@ -61,7 +62,7 @@ export default function PortfolioExamplesContent() {
               A clean, grid-based showcase built for everyday bespoke work — ideal for tailors with a steady
               stream of finished pieces who want a straightforward, professional gallery.
             </p>
-            <Link href="/signup" className={styles.templateCta}>
+            <Link href={ROUTES.signup} className={styles.templateCta}>
               Preview Modern
               <Symbol name="arrow_forward" size={16} />
             </Link>
@@ -79,7 +80,7 @@ export default function PortfolioExamplesContent() {
               Magazine-style layout with bold typography — perfect for high-fashion designers who want their
               portfolio to feel like a lookbook, not a catalog.
             </p>
-            <Link href="/signup" className={styles.templateCta}>
+            <Link href={ROUTES.signup} className={styles.templateCta}>
               Preview Editorial
               <Symbol name="arrow_forward" size={16} />
             </Link>
@@ -97,7 +98,7 @@ export default function PortfolioExamplesContent() {
               A warm, story-driven layout with room for your founding year and your shop&apos;s story — built for
               legacy family studios and tailors whose craft is part of a longer tradition.
             </p>
-            <Link href="/signup" className={styles.templateCtaOutline}>
+            <Link href={ROUTES.signup} className={styles.templateCtaOutline}>
               Preview Heritage
               <Symbol name="arrow_forward" size={16} />
             </Link>
@@ -113,7 +114,7 @@ export default function PortfolioExamplesContent() {
           <p className={styles.finalCtaBody}>
             Your portfolio fills itself in as you complete orders — no separate website needed.
           </p>
-          <Link href="/signup" className={styles.ctaPrimaryLight}>
+          <Link href={ROUTES.signup} className={styles.ctaPrimaryLight}>
             Start Free — No Card Required
             <Symbol name="arrow_forward" size={18} />
           </Link>

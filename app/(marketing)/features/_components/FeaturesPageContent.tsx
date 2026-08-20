@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useReveal } from '@/lib/marketingMotion';
+import { ROUTES } from '@/lib/routes';
 import styles from './FeaturesPageContent.module.css';
 
 const FEATURES = [
@@ -134,11 +135,11 @@ export default function FeaturesPageContent() {
             Every feature above except staff accounts is free, forever, with no card required to start.
           </p>
           <div className={styles.finalCtaActions}>
-            <Link href="/signup" className={styles.ctaPrimary}>
+            <Link href={ROUTES.signup} className={styles.ctaPrimary}>
               Start Free — No Card Required
               <Symbol name="arrow_forward" size={18} />
             </Link>
-            <Link href="/pricing" className={styles.ctaSecondary}>
+            <Link href={ROUTES.pricing} className={styles.ctaSecondary}>
               Compare Plans
             </Link>
           </div>

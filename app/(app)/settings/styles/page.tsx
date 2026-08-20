@@ -16,6 +16,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 interface CustomStyle {
@@ -78,7 +79,7 @@ export default function CustomStylesSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       {!isLoaded ? (
         <div className={styles.grid}>
           <Skeleton height={120} />

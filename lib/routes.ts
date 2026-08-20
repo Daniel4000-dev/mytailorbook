@@ -94,12 +94,20 @@ export const ROUTES = {
   customerNew: '/customers/new',
   customerDetail: (id: string) => `/customers/${id}`,
   orderNew: '/orders/new',
+  orderNewForCustomer: (customerId: string) => `/orders/new?customer=${customerId}`,
   /** No bare /orders page exists — this is a prefix-only entry (used by
    *  APP_PREFIXES below) so /orders/new and any future /orders/[id] stay
    *  grouped as one auth/domain rule in proxy.ts. */
   ordersPrefix: '/orders',
   production: '/production',
   productionOrder: (orderId: string) => `/production/${orderId}`,
+  /** Was missing from every classification list below until this refactor
+   *  found it (proxy.ts's default-protect-everything-not-public behavior
+   *  meant it was still auth-gated, but it stayed on the marketing domain
+   *  instead of moving to app.<domain>, and was crawlable/indexable since
+   *  robots.ts never knew it existed). Exactly the class of bug this file
+   *  exists to prevent — see the blast-radius notes at the top. */
+  fabrics: '/fabrics',
   onboarding: '/onboarding',
   notifications: '/notifications',
   styles: '/styles',
@@ -171,7 +179,7 @@ export function isPublicPath(pathname: string) {
  *  what lives at app.<domain> once the two are split by hostname. Auth
  *  pages count as app-side even though they're unauthenticated, since
  *  they're part of getting into the app, not marketing content. */
-export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, '/auth'];
+export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, '/auth'];
 
 export function isAppPath(pathname: string) {
   if ((AUTH_PAGES as readonly string[]).includes(pathname)) return true;
@@ -198,6 +206,7 @@ export const SEARCH_DISALLOW = [
   ROUTES.styles,
   ROUTES.notifications,
   ROUTES.onboarding,
+  ROUTES.fabrics,
   ROUTES.login,
   ROUTES.signup,
   ROUTES.forgotPassword,

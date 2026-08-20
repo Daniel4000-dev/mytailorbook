@@ -15,6 +15,7 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { trackEvent } from '@/lib/analytics';
 import { customerSchema, type CustomerInput } from '@/lib/validations';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 import { GARMENT_STYLES, FULL_BODY_MEASUREMENTS } from '@/lib/constants';
@@ -111,7 +112,7 @@ export default function NewClientPage() {
       showToast(`${customer.fullName} added to customers`, 'success');
       trackEvent('customer_created');
       // Step 3: hand straight into the order wizard, pre-filled.
-      router.replace(`/orders/new?customer=${customer.id}`);
+      router.replace(ROUTES.orderNewForCustomer(customer.id));
     } catch (err) {
       // The client-side duplicate check above reads from the local (SWR)
       // customer list, which can be a beat stale — e.g. another staff

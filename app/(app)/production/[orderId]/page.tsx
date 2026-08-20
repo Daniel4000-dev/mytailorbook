@@ -23,6 +23,7 @@ import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
@@ -71,7 +72,7 @@ export default function OrderDetailPage() {
       return;
     }
     showToast('Order deleted', 'success');
-    router.push('/production');
+    router.push(ROUTES.production);
   };
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -129,7 +130,7 @@ export default function OrderDetailPage() {
   // Always the canonical production domain, not whatever host this
   // request happened to come in on (e.g. a Vercel preview deployment) —
   // this link goes straight into a WhatsApp message sent to the customer.
-  const trackingUrl = `${APP_CONFIG.baseUrl}/track/${order.id}`;
+  const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
   // null/undefined means "never overridden" — inherit the shop's own default.
   const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
   const whatsAppMessage = customer
@@ -365,7 +366,7 @@ export default function OrderDetailPage() {
         <TopBar
           title={`Order #${orderRef}`}
           showBack
-          onBack={() => router.push('/production')}
+          onBack={() => router.push(ROUTES.production)}
           rightAction={<NotificationBell />}
         />
       }
@@ -653,7 +654,7 @@ export default function OrderDetailPage() {
             </div>
             <div className={styles.batchList}>
               {batchSiblings.map((sibling) => (
-                <Link key={sibling.id} href={`/production/${sibling.id}`} className={styles.batchRow}>
+                <Link key={sibling.id} href={ROUTES.productionOrder(sibling.id)} className={styles.batchRow}>
                   <span className={styles.batchDetails}>{sibling.orderDetails}</span>
                   <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
                     {sibling.status}
@@ -766,7 +767,7 @@ export default function OrderDetailPage() {
             )}
 
             <div className={styles.receiptRow}>
-              <a href={`/receipt/${order.id}`} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
+              <a href={ROUTES.receipt(order.id)} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
                 <Symbol name="receipt" size={16} /> View/Print Receipt
               </a>
             </div>

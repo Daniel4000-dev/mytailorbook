@@ -12,6 +12,7 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
 import RatingForm from './_components/RatingForm/RatingForm';
 import CopyDomain from './_components/CopyDomain';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 // Private-by-link customer page (real names, order details) — must never
@@ -175,7 +176,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             <h3 className={styles.sectionTitle}>Also From Your Visit</h3>
             <div className={styles.siblingList}>
               {batchSiblings.map((sibling) => (
-                <a key={sibling.id} href={`/track/${sibling.id}`} className={styles.siblingRow}>
+                <a key={sibling.id} href={ROUTES.track(sibling.id)} className={styles.siblingRow}>
                   <span className={styles.siblingDetails}>
                     {sibling.orderDetails.length > 60 ? sibling.orderDetails.slice(0, 60) + '…' : sibling.orderDetails}
                   </span>

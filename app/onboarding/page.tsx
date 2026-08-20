@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { trackEvent } from '@/lib/analytics';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
@@ -86,7 +87,7 @@ export default function OnboardingPage() {
     if (loading || initialCheckDone.current) return;
     initialCheckDone.current = true;
     if (!needsOnboarding) {
-      router.replace('/dashboard');
+      router.replace(ROUTES.dashboard);
     }
   }, [loading, needsOnboarding, router]);
 
@@ -110,7 +111,7 @@ export default function OnboardingPage() {
       await completeOnboarding(data.shopName, isGoogleAccount ? data.name : undefined);
       trackEvent('onboarding_completed', { via: isGoogleAccount ? 'google' : 'email' });
       await refreshProfile();
-      router.push('/dashboard');
+      router.push(ROUTES.dashboard);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Could not finish setting up your workspace');
     } finally {

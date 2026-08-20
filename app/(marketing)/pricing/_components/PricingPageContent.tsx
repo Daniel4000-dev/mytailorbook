@@ -11,6 +11,7 @@ import {
   PREMIUM_MONTHLY_PRICE_NGN,
   PREMIUM_YEARLY_PRICE_NGN,
 } from '@/lib/subscription';
+import { ROUTES } from '@/lib/routes';
 import styles from './PricingPageContent.module.css';
 
 const FAQS = [
@@ -111,7 +112,7 @@ export default function PricingPageContent() {
               <li className={styles.planFeatureMuted}>No staff accounts</li>
               <li className={styles.planFeatureMuted}>No analytics</li>
             </ul>
-            <Link href="/signup" className={styles.ctaSecondary}>
+            <Link href={ROUTES.signup} className={styles.ctaSecondary}>
               Start for Free
             </Link>
           </div>
@@ -151,7 +152,7 @@ export default function PricingPageContent() {
               <li>Badge removed from your public pages</li>
               <li>Priority support</li>
             </ul>
-            <Link href="/signup" className={styles.ctaPrimary}>
+            <Link href={ROUTES.signup} className={styles.ctaPrimary}>
               Go Premium
             </Link>
           </div>
@@ -186,7 +187,7 @@ export default function PricingPageContent() {
         <motion.div className={styles.finalCtaInner} {...reveal()}>
           <h2 className={styles.finalCtaTitle}>Ready to elevate your craft?</h2>
           <p className={styles.finalCtaBody}>Set up your shop in under two minutes. No card required.</p>
-          <Link href="/signup" className={styles.ctaPrimary}>
+          <Link href={ROUTES.signup} className={styles.ctaPrimary}>
             Start Free — No Card Required
             <Symbol name="arrow_forward" size={18} />
           </Link>

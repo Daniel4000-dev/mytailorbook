@@ -1,6 +1,7 @@
 import { type EmailOtpType } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { ROUTES } from '@/lib/routes';
 
 /**
  * Where every "click the link in your email" flow AND the Google OAuth
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
-  let next = searchParams.get('next') ?? '/dashboard';
+  let next = searchParams.get('next') ?? ROUTES.dashboard;
 
   const supabase = await createClient();
 
@@ -30,9 +31,9 @@ export async function GET(request: NextRequest) {
       // has a profiles row, so send them straight to /dashboard instead of
       // flashing the onboarding form before the client-side guard bounces
       // them off it.
-      if (next === '/onboarding' && data.user) {
+      if (next === ROUTES.onboarding && data.user) {
         const { data: profile } = await supabase.from('profiles').select('id').eq('id', data.user.id).single();
-        if (profile) next = '/dashboard';
+        if (profile) next = ROUTES.dashboard;
       }
       return NextResponse.redirect(`${origin}${next}`);
     }
@@ -41,5 +42,5 @@ export async function GET(request: NextRequest) {
     if (!error) return NextResponse.redirect(`${origin}${next}`);
   }
 
-  return NextResponse.redirect(`${origin}/login?error=confirmation_failed`);
+  return NextResponse.redirect(`${origin}${ROUTES.login}?error=confirmation_failed`);
 }

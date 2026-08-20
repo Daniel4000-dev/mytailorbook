@@ -25,6 +25,7 @@ import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreac
 import type { StylePhotoSubmission } from '@/lib/types';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 40;
@@ -339,7 +340,7 @@ export default function CustomersPage() {
               <span>Reach out to {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
             </button>
           ) : (
-            <a href={`/styles/${encodeURIComponent(styleFilter)}`} className={styles.reachOutHint}>
+            <a href={ROUTES.styleDetail(styleFilter)} className={styles.reachOutHint}>
               No approved photos yet for {styleFilter} — add one in Style Gallery
             </a>
           )
@@ -511,7 +512,7 @@ export default function CustomersPage() {
               {filtered.slice(0, visibleCount).map((c, i) => {
                 const stats = customerStats[c.id];
                 return (
-                  <div key={c.id} className={styles.mobileCard} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(`/customers/${c.id}`)}>
+                  <div key={c.id} className={styles.mobileCard} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(ROUTES.customerDetail(c.id))}>
                     <div className={styles.cardHeader}>
                       <Avatar name={c.fullName} size="md" />
                       <div className={styles.cardInfo}>
@@ -551,7 +552,7 @@ export default function CustomersPage() {
                   {filtered.slice(0, visibleCount).map((c, i) => {
                     const stats = customerStats[c.id];
                     return (
-                      <tr key={c.id} className={styles.tableRow} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(`/customers/${c.id}`)}>
+                      <tr key={c.id} className={styles.tableRow} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(ROUTES.customerDetail(c.id))}>
                         <td>
                           <div className={styles.customerCell}>
                             <Avatar name={c.fullName} size="sm" />

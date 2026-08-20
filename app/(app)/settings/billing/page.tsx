@@ -13,6 +13,7 @@ import { scrollContentToTop } from '@/lib/scrollToTop';
 import { initializeSubscription, confirmSubscriptionPayment, cancelSubscriptionAction } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 export default function BillingSettingsPage() {
@@ -64,7 +65,7 @@ export default function BillingSettingsPage() {
     if (sessionStorage.getItem(flagKey)) return;
     sessionStorage.setItem(flagKey, '1');
 
-    router.replace('/settings/billing');
+    router.replace(ROUTES.settingsBilling);
 
     confirmSubscriptionPayment(reference)
       .then(() => {
@@ -121,7 +122,7 @@ export default function BillingSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Billing & Subscription" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Billing & Subscription" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       {cancelStep === 'plans' && (
         <>
           <div className={styles.intervalToggle} role="tablist" aria-label="Billing interval">

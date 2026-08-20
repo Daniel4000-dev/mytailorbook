@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 // A real, legitimately public legal page — opts back in to indexing
@@ -21,7 +22,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Link href="/login" className={styles.brand}>
+        <Link href={ROUTES.login} className={styles.brand}>
           <BrandIcon className={styles.logo} />
           <span>{APP_CONFIG.name.toUpperCase()}</span>
         </Link>
@@ -204,7 +205,7 @@ export default function PrivacyPolicyPage() {
           qualified lawyer, particularly before wider commercial launch.
         </p>
 
-        <Link href="/login" className={styles.backLink}>← Back to {APP_CONFIG.name}</Link>
+        <Link href={ROUTES.login} className={styles.backLink}>← Back to {APP_CONFIG.name}</Link>
       </div>
     </div>
   );

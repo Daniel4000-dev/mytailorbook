@@ -10,6 +10,7 @@ import NotificationBell from '@/components/layout/NotificationBell/NotificationB
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getPendingStyleCountsAction } from '@/app/actions';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 type GenderFilter = 'all' | 'male' | 'female';
@@ -61,7 +62,7 @@ export default function StyleGalleryPage() {
         {visibleStyles.map((s) => {
           const pending = pendingCounts[s.name] || 0;
           return (
-            <Link key={s.name} href={`/styles/${encodeURIComponent(s.name)}`} className={styles.card}>
+            <Link key={s.name} href={ROUTES.styleDetail(s.name)} className={styles.card}>
               <div className={styles.photo}>
                 <Image src={s.photoUrl} alt="" width={400} height={400} />
                 {loaded && pending > 0 && <span className={styles.pendingBadge}>{pending} new</span>}

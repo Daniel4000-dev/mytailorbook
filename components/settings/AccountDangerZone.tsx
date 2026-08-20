@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { deleteOwnShopAction, deleteOwnStaffAccountAction, exportShopDataAction } from '@/app/actions';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { ROUTES } from '@/lib/routes';
 
 export function ExportDataButton({ shopName }: { shopName: string }) {
   const { showToast } = useToast();
@@ -78,7 +79,7 @@ export function AccountDangerZone({ isOwner, onClosingProfile }: { isOwner: bool
     const supabase = createClient();
     localStorage.removeItem('mtb-swr-cache');
     await supabase.auth.signOut();
-    router.push('/login?deleted=1');
+    router.push(ROUTES.loginWithDeletedNotice());
   };
 
   const handleDeleteStaffAccount = async () => {
@@ -93,7 +94,7 @@ export function AccountDangerZone({ isOwner, onClosingProfile }: { isOwner: bool
     const supabase = createClient();
     localStorage.removeItem('mtb-swr-cache');
     await supabase.auth.signOut();
-    router.push('/login?deleted=1');
+    router.push(ROUTES.loginWithDeletedNotice());
   };
 
   return (

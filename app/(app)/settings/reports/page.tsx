@@ -7,6 +7,7 @@ import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import { formatCurrency } from '@/lib/formatters';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 type RangeKey = 'month' | '30d' | 'all';
@@ -53,7 +54,7 @@ export default function ReportsPage() {
   }, [range]);
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Reports" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Reports" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <p className={styles.intro}>Revenue, outstanding balance, and margin across your organization.</p>
 
       <div className={styles.rangeRow}>

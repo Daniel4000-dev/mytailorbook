@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -8,7 +9,7 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brandCol}>
-          <Link href="/" className={styles.brand}>
+          <Link href={ROUTES.home} className={styles.brand}>
             <BrandIcon className={styles.logo} />
             <span>{APP_CONFIG.name}</span>
           </Link>
@@ -17,22 +18,22 @@ export default function Footer() {
 
         <div className={styles.linkCol}>
           <span className={styles.colLabel}>Product</span>
-          <Link href="/features">Features</Link>
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/portfolio-examples">Portfolio Examples</Link>
+          <Link href={ROUTES.features}>Features</Link>
+          <Link href={ROUTES.pricing}>Pricing</Link>
+          <Link href={ROUTES.portfolioExamples}>Portfolio Examples</Link>
         </div>
 
         <div className={styles.linkCol}>
           <span className={styles.colLabel}>Company</span>
-          <Link href="/about">About</Link>
-          <Link href="/blog">Blog</Link>
-          <Link href="/contact">Contact</Link>
+          <Link href={ROUTES.about}>About</Link>
+          <Link href={ROUTES.blog}>Blog</Link>
+          <Link href={ROUTES.contact}>Contact</Link>
         </div>
 
         <div className={styles.linkCol}>
           <span className={styles.colLabel}>Legal</span>
-          <Link href="/terms">Terms</Link>
-          <Link href="/privacy">Privacy</Link>
+          <Link href={ROUTES.terms}>Terms</Link>
+          <Link href={ROUTES.privacy}>Privacy</Link>
         </div>
       </div>
 

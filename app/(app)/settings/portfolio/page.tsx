@@ -19,6 +19,7 @@ import type { Shop } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TemplatePicker, { TEMPLATE_DEFAULT_ACCENT, TEMPLATE_ACCENTS } from './_components/TemplatePicker';
 import ReviewsSection from './_components/ReviewsSection';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 const MIN_FOUNDED_YEAR = 1950;
@@ -134,7 +135,7 @@ export default function PortfolioCurationSettingsPage() {
         <TopBar
           title="Manage Portfolio"
           showBack={!isDesktop}
-          onBack={() => router.push('/settings')}
+          onBack={() => router.push(ROUTES.settings)}
           rightAction={
             currentShop && (
               <CircleIconButton

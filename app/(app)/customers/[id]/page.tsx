@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { useAuth } from '@/contexts/AuthContext';
+import { ROUTES } from '@/lib/routes';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -108,7 +109,7 @@ function CustomerProfileContent({
       return;
     }
     showToast('Customer deleted', 'success');
-    router.push('/customers');
+    router.push(ROUTES.customers);
   };
 
   // Initialize from customer measurements — this component only mounts once
@@ -429,7 +430,7 @@ function CustomerProfileContent({
                 key={o.id}
                 className={styles.orderCard}
                 style={{ animationDelay: `${i * 0.05}s` }}
-                onClick={() => router.push(`/production/${o.id}`)}
+                onClick={() => router.push(ROUTES.productionOrder(o.id))}
               >
                 <div className={styles.orderHeader}>
                   <div className={styles.orderMeta}>
@@ -457,7 +458,7 @@ function CustomerProfileContent({
 
       {/* Bottom actions */}
       <section className={styles.actionBar}>
-        <Button variant="primary" fullWidth onClick={() => router.push(`/orders/new?customer=${customer.id}`)}>
+        <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}>
           <Symbol name="add_circle" size={20} /> Create New Order
         </Button>
         <Button variant="secondary" fullWidth onClick={() => setStyleSheet({ open: true, style: null })}>

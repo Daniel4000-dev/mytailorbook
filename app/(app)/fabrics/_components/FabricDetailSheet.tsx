@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { Order } from '@/lib/types';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { ROUTES } from '@/lib/routes';
 import styles from './FabricDetailSheet.module.css';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -44,7 +45,7 @@ export default function FabricDetailSheet({ order, isOpen, onClose }: FabricDeta
 
   const handleOpenOrder = () => {
     onClose();
-    router.push(`/production/${order.id}`);
+    router.push(ROUTES.productionOrder(order.id));
   };
 
   return (

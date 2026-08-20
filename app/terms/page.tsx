@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { APP_CONFIG } from '@/lib/config';
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 // A real, legitimately public legal page — opts back in to indexing
@@ -22,7 +23,7 @@ export default function TermsOfServicePage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Link href="/login" className={styles.brand}>
+        <Link href={ROUTES.login} className={styles.brand}>
           <BrandIcon className={styles.logo} />
           <span>{APP_CONFIG.name.toUpperCase()}</span>
         </Link>
@@ -50,7 +51,7 @@ export default function TermsOfServicePage() {
         <p>
           {APP_CONFIG.name} is operated by {OPERATOR_NAME}. For any question about these terms, contact{' '}
           <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. For how we handle personal data, see our{' '}
-          <Link href="/privacy">Privacy Policy</Link>.
+          <Link href={ROUTES.privacy}>Privacy Policy</Link>.
         </p>
 
         <h2>2. Accounts</h2>
@@ -117,7 +118,7 @@ export default function TermsOfServicePage() {
           You (and your studio&apos;s customers, through you) retain ownership of the data you enter into{' '}
           {APP_CONFIG.name} — customer records, measurements, order details, photos, and everything else.
           We store and process it to provide the service, as described in our{' '}
-          <Link href="/privacy">Privacy Policy</Link>. We don&apos;t claim ownership of your content and don&apos;t
+          <Link href={ROUTES.privacy}>Privacy Policy</Link>. We don&apos;t claim ownership of your content and don&apos;t
           use it for anything beyond running the platform for you.
         </p>
 
@@ -154,7 +155,7 @@ export default function TermsOfServicePage() {
         <p>
           You may stop using {APP_CONFIG.name} and close your account at any time. We may suspend or
           terminate an account that violates these terms, or if required by law. On closure, your data is
-          handled as described in our <Link href="/privacy">Privacy Policy</Link>.
+          handled as described in our <Link href={ROUTES.privacy}>Privacy Policy</Link>.
         </p>
 
         <h2>10. Changes to These Terms</h2>
@@ -180,7 +181,7 @@ export default function TermsOfServicePage() {
           qualified lawyer, particularly before wider commercial launch.
         </p>
 
-        <Link href="/login" className={styles.backLink}>← Back to {APP_CONFIG.name}</Link>
+        <Link href={ROUTES.login} className={styles.backLink}>← Back to {APP_CONFIG.name}</Link>
       </div>
     </div>
   );

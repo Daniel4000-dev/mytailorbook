@@ -10,6 +10,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import MdxImage from '@/components/blog/MdxImage';
 import Header from '@/components/marketing/Header/Header';
 import Footer from '@/components/marketing/Footer/Footer';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 interface Props {
@@ -103,7 +104,7 @@ export default async function BlogPost({ params }: Props) {
       <Header />
       <main className={styles.page}>
         <article className={styles.content}>
-          <Link href="/blog" className={styles.back}>
+          <Link href={ROUTES.blog} className={styles.back}>
             &larr; Back to Blog
           </Link>
 

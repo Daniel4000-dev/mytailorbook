@@ -7,6 +7,7 @@ import { breadcrumbJsonLd } from '@/lib/breadcrumbJsonLd';
 import JsonLd from '@/components/seo/JsonLd';
 import Header from '@/components/marketing/Header/Header';
 import Footer from '@/components/marketing/Footer/Footer';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -40,7 +41,7 @@ export default function BlogIndex() {
           ) : (
             <div className={styles.grid}>
               {posts.map((post) => (
-                <Link key={post.slug} href={`/blog/${post.slug}`} className={styles.postCard}>
+                <Link key={post.slug} href={ROUTES.blogPost(post.slug)} className={styles.postCard}>
                   <article>
                     {post.coverImage && (
                       <div className={styles.thumbWrap}>

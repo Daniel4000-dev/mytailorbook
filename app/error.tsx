@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 
+import { ROUTES } from '@/lib/routes';
 import styles from './error.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
@@ -27,7 +28,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <button type="button" className={styles.retryBtn} onClick={() => reset()}>
             Try Again
           </button>
-          <Link href="/dashboard" className={styles.homeLink}>
+          <Link href={ROUTES.dashboard} className={styles.homeLink}>
             Go to Dashboard
           </Link>
         </div>

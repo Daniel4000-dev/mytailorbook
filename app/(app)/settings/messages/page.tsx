@@ -14,6 +14,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { ORDER_STATUSES, STATUS_CONFIG } from '@/lib/constants';
 import { DEFAULT_STAGE_MESSAGES } from '@/lib/formatters';
 import type { OrderStatus } from '@/lib/types';
+import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 export default function MessageTemplatesSettingsPage() {
@@ -79,7 +80,7 @@ export default function MessageTemplatesSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Order Update Messages" showBack={!isDesktop} onBack={() => router.push("/settings")} />}>
+    <PageLayout width="narrow" header={<TopBar title="Order Update Messages" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <p className={styles.intro}>
         Customize the WhatsApp update sent at each stage. Untouched stages keep the app&apos;s default wording.
       </p>
