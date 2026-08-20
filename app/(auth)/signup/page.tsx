@@ -19,7 +19,6 @@ export default function SignupPage() {
   const { signup, signInWithGoogle } = useAuth();
   const [apiError, setApiError] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -163,30 +162,23 @@ export default function SignupPage() {
           {errors.confirmPw && <div className={styles.errorText}>{errors.confirmPw.message}</div>}
         </div>
 
-        <label className={styles.agreeRow}>
-          <input
-            type="checkbox"
-            checked={agreedToPolicy}
-            onChange={(e) => setAgreedToPolicy(e.target.checked)}
-          />
-          <span>
-            I agree to the{' '}
-            <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
-            and{' '}
-            <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
-          </span>
-        </label>
-
         {/* Primary Submit Button */}
         <button
           type="submit"
           className={styles.loginButton}
-          disabled={submitting || !agreedToPolicy}
+          disabled={submitting}
           style={{ marginTop: '8px' }}
         >
           {submitting && <Symbol name="progress_activity" className="global-spinner" />}
           {submitting ? 'Creating Account...' : 'Create Account'}
         </button>
+
+        <p className={styles.agreeRow}>
+          By signing up, you agree to our{' '}
+          <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
+          and{' '}
+          <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+        </p>
 
         {/* Divider */}
         <div className={styles.divider}>
@@ -200,7 +192,7 @@ export default function SignupPage() {
           type="button"
           className={styles.googleButton}
           onClick={handleGoogle}
-          disabled={submitting || googleLoading || !agreedToPolicy}
+          disabled={submitting || googleLoading}
         >
           {googleLoading && <Symbol name="progress_activity" className="global-spinner" />}
           <svg className={styles.googleIcon} viewBox="0 0 24 24" width="20" height="20">
