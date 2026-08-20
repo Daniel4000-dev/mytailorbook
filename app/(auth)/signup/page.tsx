@@ -173,13 +173,6 @@ export default function SignupPage() {
           {submitting ? 'Creating Account...' : 'Create Account'}
         </button>
 
-        <p className={styles.agreeRow}>
-          By signing up, you agree to our{' '}
-          <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
-          and{' '}
-          <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
-        </p>
-
         {/* Divider */}
         <div className={styles.divider}>
           <span className={styles.dividerLine} />
@@ -215,6 +208,13 @@ export default function SignupPage() {
           </svg>
           Sign up with Google
         </button>
+
+        <p className={styles.agreeRow}>
+          By signing up, you agree to our{' '}
+          <Link href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
+          and{' '}
+          <Link href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+        </p>
 
         {/* Footer label */}
         <div className={styles.footerLabel}>Already have an account?</div>

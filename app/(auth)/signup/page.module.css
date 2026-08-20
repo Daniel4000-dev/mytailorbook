@@ -106,27 +106,12 @@
 }
 
 .agreeRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 8px;
-  cursor: pointer;
+  margin-top: 12px;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--sf-text-secondary);
   font-family: var(--sf-font-body), sans-serif;
-}
-
-.agreeRow input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
-  flex-shrink: 0;
-  accent-color: var(--sf-accent-emerald);
-  cursor: pointer;
-}
-
-.agreeRow span {
-  line-height: 1.4;
+  text-align: center;
 }
 
 .agreeRow a {
