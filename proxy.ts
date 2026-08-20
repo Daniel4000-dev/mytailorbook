@@ -1,32 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { APP_CONFIG } from '@/lib/config';
-
-const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy', '/terms', '/robots.txt', '/sitemap.xml', '/llms.txt', '/blog', '/features', '/pricing', '/portfolio-examples', '/about', '/contact', '/offline'];
-const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/studio/', '/auth/', '/blog/'];
-
-// The (marketing) route group's own pages — a logged-in visitor here gets
-// bounced to /dashboard instead of a sales pitch for a product they
-// already use. /blog, /privacy, and /terms stay outside this list on
-// purpose: they should stay readable while logged in, not redirect away.
-const MARKETING_PATHS = ['/', '/features', '/pricing', '/about', '/portfolio-examples'];
-
-function isPublicPath(pathname: string) {
-  if (PUBLIC_PATHS.includes(pathname)) return true;
-  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
-
-// The "app" (as opposed to marketing/public) side of the product — this is
-// what lives at app.<domain> once the two are split by hostname. Auth pages
-// count as app-side even though they're unauthenticated, since they're
-// part of getting into the app, not marketing content.
-const AUTH_PAGES = ['/login', '/signup', '/forgot-password', '/reset-password'];
-const APP_PREFIXES = ['/dashboard', '/customers', '/orders', '/production', '/settings', '/styles', '/notifications', '/onboarding', '/portfolio', '/auth'];
-
-function isAppPath(pathname: string) {
-  if (AUTH_PAGES.includes(pathname)) return true;
-  return APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
+import { ROUTES, isPublicPath, isAppPath, MARKETING_PATHS } from '@/lib/routes';
 
 const ROOT_DOMAIN = APP_CONFIG.domain;
 const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
@@ -72,7 +47,7 @@ export async function proxy(request: NextRequest) {
   const domainRedirect = crossDomainRedirect(request);
   if (domainRedirect) return domainRedirect;
 
-  const isPublic = isPublicPath(pathname) || pathname === '/';
+  const isPublic = isPublicPath(pathname) || pathname === ROUTES.home;
 
   if (isPublic && !hasSupabaseAuthCookie(request)) {
     return NextResponse.next({ request });
@@ -99,11 +74,14 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
+  // Deliberately excludes /reset-password — a logged-in user following a
+  // password-reset link should still be able to reset it, not get bounced
+  // to /dashboard before they can.
+  const isAuthPage = ([ROUTES.login, ROUTES.signup, ROUTES.forgotPassword] as readonly string[]).includes(pathname);
 
-  if (!user && !isPublicPath(pathname) && pathname !== '/') {
+  if (!user && !isPublicPath(pathname) && pathname !== ROUTES.home) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = ROUTES.login;
     url.search = ''; // Clear query params (like OAuth codes) so they don't leak into the URL
     const redirectResponse = NextResponse.redirect(url);
     // Crucial: preserve any refreshed session cookies on the redirect
@@ -115,9 +93,9 @@ export async function proxy(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && (isAuthPage || MARKETING_PATHS.includes(pathname))) {
+  if (user && (isAuthPage || (MARKETING_PATHS as readonly string[]).includes(pathname))) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = ROUTES.dashboard;
     url.search = ''; // Clear query params (like OAuth codes) so they don't leak into the URL
     const redirectResponse = NextResponse.redirect(url);
     // Crucial: preserve any refreshed session cookies on the redirect

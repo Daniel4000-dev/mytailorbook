@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES, SEARCH_DISALLOW } from '@/lib/routes';
 
 /** The public marketing site (home, features, pricing, portfolio-examples,
  *  about, blog) plus each shop's public portfolio and the privacy policy
@@ -22,32 +23,16 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      disallow: [
-        '/dashboard',
-        '/customers',
-        '/orders',
-        '/production',
-        '/settings',
-        '/styles',
-        '/notifications',
-        '/onboarding',
-        '/login',
-        '/signup',
-        '/forgot-password',
-        '/reset-password',
-        '/offline',
-        '/track/',
-        '/receipt/',
-        '/auth/',
-        // /portfolio (the owner's own private view) is deliberately absent —
-        // as a bare prefix it would also match /portfolio-examples, the
-        // marketing page this whole file exists to keep crawlable. It's
-        // already auth-gated server-side by proxy.ts (unlike /track/ and
-        // /receipt/, which are real public-by-link pages technically
-        // fetchable without a session), so a crawler that ignores this file
-        // entirely still can't reach anything there.
-      ],
+      // See SEARCH_DISALLOW in lib/routes.ts for the full list and why
+      // /portfolio (the owner's own private view) is deliberately absent —
+      // as a bare prefix it would also match /portfolio-examples, the
+      // marketing page this whole file exists to keep crawlable. It's
+      // already auth-gated server-side by proxy.ts (unlike /track/ and
+      // /receipt/, which are real public-by-link pages technically
+      // fetchable without a session), so a crawler that ignores this file
+      // entirely still can't reach anything there.
+      disallow: SEARCH_DISALLOW,
     },
-    sitemap: `https://${APP_CONFIG.domain}/sitemap.xml`,
+    sitemap: `https://${APP_CONFIG.domain}${ROUTES.sitemapXml}`,
   };
 }

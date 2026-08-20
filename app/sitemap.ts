@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { APP_CONFIG } from '@/lib/config';
 import { getBlogSlugs, getBlogPostBySlug } from '@/lib/blog';
+import { ROUTES } from '@/lib/routes';
 
 /** Dynamic — the only real indexable content here is each shop's public
  *  portfolio, and that's tenant data, not something a static file can list.
@@ -29,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogUrls = blogSlugs.map((slug) => {
     const post = getBlogPostBySlug(slug);
     return {
-      url: `${base}/blog/${slug.replace(/\.mdx$/, '')}`,
+      url: `${base}${ROUTES.blogPost(slug.replace(/\.mdx$/, ''))}`,
       lastModified: new Date(post?.date || new Date()),
       changeFrequency: 'monthly' as const,
       priority: 0.7,
@@ -43,42 +44,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${base}/features`,
+      url: `${base}${ROUTES.features}`,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
-      url: `${base}/pricing`,
+      url: `${base}${ROUTES.pricing}`,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
-      url: `${base}/portfolio-examples`,
+      url: `${base}${ROUTES.portfolioExamples}`,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${base}/about`,
+      url: `${base}${ROUTES.about}`,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
-      url: `${base}/contact`,
+      url: `${base}${ROUTES.contact}`,
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: `${base}/privacy`,
+      url: `${base}${ROUTES.privacy}`,
       changeFrequency: 'yearly',
       priority: 0.2,
     },
     {
-      url: `${base}/terms`,
+      url: `${base}${ROUTES.terms}`,
       changeFrequency: 'yearly',
       priority: 0.2,
     },
     {
-      url: `${base}/blog`,
+      url: `${base}${ROUTES.blog}`,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
@@ -86,7 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...Array.from(shopLastPhoto.entries())
       .filter(([shopId]) => slugById.has(shopId))
       .map(([shopId, lastPhotoAt]) => ({
-        url: `${base}/studio/${slugById.get(shopId)}`,
+        url: `${base}${ROUTES.studio(slugById.get(shopId)!)}`,
         lastModified: new Date(lastPhotoAt),
         changeFrequency: 'weekly' as const,
         priority: 0.8,
