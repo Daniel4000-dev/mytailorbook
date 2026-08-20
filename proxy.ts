@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { APP_CONFIG } from '@/lib/config';
 
 const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/privacy', '/terms', '/robots.txt', '/sitemap.xml', '/llms.txt', '/blog', '/features', '/pricing', '/portfolio-examples', '/about', '/contact', '/offline'];
 const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/studio/', '/auth/', '/blog/'];
@@ -13,6 +14,37 @@ const MARKETING_PATHS = ['/', '/features', '/pricing', '/about', '/portfolio-exa
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+// The "app" (as opposed to marketing/public) side of the product — this is
+// what lives at app.<domain> once the two are split by hostname. Auth pages
+// count as app-side even though they're unauthenticated, since they're
+// part of getting into the app, not marketing content.
+const AUTH_PAGES = ['/login', '/signup', '/forgot-password', '/reset-password'];
+const APP_PREFIXES = ['/dashboard', '/customers', '/orders', '/production', '/settings', '/styles', '/notifications', '/onboarding', '/portfolio', '/auth'];
+
+function isAppPath(pathname: string) {
+  if (AUTH_PAGES.includes(pathname)) return true;
+  return APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+const ROOT_DOMAIN = APP_CONFIG.domain;
+const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
+
+// Keeps app.<domain> and the bare marketing domain each showing only their
+// own half of the site. Only fires when the host is exactly one of our two
+// production hostnames, so localhost/preview deployments are unaffected.
+function crossDomainRedirect(request: NextRequest): NextResponse | null {
+  const host = request.headers.get('host');
+  const { pathname, search } = request.nextUrl;
+
+  if (host === ROOT_DOMAIN && isAppPath(pathname)) {
+    return NextResponse.redirect(new URL(`https://${APP_DOMAIN}${pathname}${search}`), 308);
+  }
+  if (host === APP_DOMAIN && !isAppPath(pathname)) {
+    return NextResponse.redirect(new URL(`https://${ROOT_DOMAIN}${pathname}${search}`), 308);
+  }
+  return null;
 }
 
 // Supabase's SSR client names its session cookie(s) `sb-<project-ref>-auth-token`
@@ -36,6 +68,10 @@ function hasSupabaseAuthCookie(request: NextRequest) {
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  const domainRedirect = crossDomainRedirect(request);
+  if (domainRedirect) return domainRedirect;
+
   const isPublic = isPublicPath(pathname) || pathname === '/';
 
   if (isPublic && !hasSupabaseAuthCookie(request)) {
