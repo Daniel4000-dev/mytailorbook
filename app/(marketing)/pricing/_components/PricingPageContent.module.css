@@ -4,6 +4,7 @@
 
 .sectionTitle {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -59,6 +60,7 @@
 
 .heroHeadline {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: clamp(2.25rem, 4.5vw, var(--sf-text-4xl));
   font-weight: 600;
   color: #ffffff;
@@ -192,6 +194,7 @@
 
 .planPrice {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -278,6 +281,11 @@
 }
 }
 
+.ctaPrimary:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease-out;
+}
+
 .ctaSecondary {
   display: inline-flex;
   align-items: center;
@@ -298,6 +306,11 @@
   background: var(--sf-bg-surface-hover);
   color: var(--sf-text-primary);
 }
+}
+
+.ctaSecondary:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease-out;
 }
 
 /* ── FAQ ── */
@@ -381,6 +394,7 @@
 
 .finalCtaTitle {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: #ffffff;

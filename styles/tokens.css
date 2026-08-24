@@ -148,6 +148,9 @@
 
   /* label-caps utility: 12/16, +5% tracking, bold, uppercase */
   --sf-tracking-caps: 0.05em;
+  /* Large display/heading text reads loose at fixed 0 tracking as it
+     scales up — apply to headings sf-text-2xl and above. */
+  --sf-tracking-display: -0.015em;
 
   /* ── Border Radius (tightened for a more structured, premium feel) ── */
   --sf-radius-xs: 4px;

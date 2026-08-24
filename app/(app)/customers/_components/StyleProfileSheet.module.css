@@ -31,6 +31,11 @@
 }
 }
 
+.pickerCard:active {
+  border-color: var(--sf-accent-emerald);
+  transform: scale(0.98);
+}
+
 .pickerPhoto {
   width: 100%;
   aspect-ratio: 1;

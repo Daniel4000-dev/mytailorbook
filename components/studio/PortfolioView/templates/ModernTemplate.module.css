@@ -411,6 +411,10 @@
 }
 }
 
+.bentoItem:active .bentoImg {
+  transform: scale(0.97);
+}
+
 @media (prefers-reduced-motion: reduce) {
   @media (hover: hover) and (pointer: fine) {
   .bentoItem:hover .bentoImg { transform: none; }

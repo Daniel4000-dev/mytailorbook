@@ -50,6 +50,7 @@
 
 .heroHeadline {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: clamp(2.25rem, 4.5vw, var(--sf-text-4xl));
   font-weight: 600;
   color: #ffffff;
@@ -107,6 +108,12 @@
 }
 }
 
+.ctaPrimary:active,
+.ctaPrimaryLight:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease-out;
+}
+
 /* ── Proof strip ── */
 .proofStrip {
   max-width: var(--sf-max-width-desktop);
@@ -159,6 +166,11 @@
   transform: translateY(-4px);
   box-shadow: var(--sf-shadow-lg);
 }
+}
+
+.templateCard:active {
+  transform: scale(0.98);
+  box-shadow: var(--sf-shadow-lg);
 }
 
 .templateCardHero {
@@ -222,6 +234,7 @@
 
 .templateName {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: var(--sf-text-2xl);
   font-weight: 600;
   color: var(--sf-text-primary);
@@ -285,6 +298,7 @@
 
 .finalCtaTitle {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: var(--sf-text-3xl);
   font-weight: 600;
   color: #ffffff;

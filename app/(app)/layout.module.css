@@ -156,7 +156,7 @@
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-md);
   text-align: left;
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -164,6 +164,11 @@
 .actionOption:hover {
   background: var(--sf-surface-container-high);
 }
+}
+
+.actionOption:active {
+  background: var(--sf-surface-container-high);
+  transform: scale(0.98);
 }
 
 .actionOptionIcon {

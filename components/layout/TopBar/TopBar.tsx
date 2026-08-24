@@ -60,9 +60,11 @@ export default function TopBar({
               type="button"
               className={styles.newAction}
               onClick={openCreateMenu}
+              aria-label="Create new order"
+              title="Create new order"
             >
               <Symbol name="add" className={styles.newActionIcon} />
-              <span>New</span>
+              <span className={styles.newActionLabel}>New</span>
             </button>
           </div>
         </div>

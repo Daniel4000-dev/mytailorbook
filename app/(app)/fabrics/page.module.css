@@ -58,13 +58,17 @@
   border: none;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--sf-transition-fast);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .clearBtn:hover {
     background: var(--sf-border);
   }
+}
+
+.clearBtn:active {
+  transform: scale(0.9);
 }
 
 /* ── Filter pills row ────────────────────────── */
@@ -150,6 +154,23 @@
   }
 }
 
+/* A photo gallery grid should use a wide desktop screen's real estate
+   rather than stopping at the same 4 columns as a tablet — more, smaller
+   tiles read as a considered gallery wall instead of a mobile grid just
+   given more horizontal room. */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--sf-space-md);
+  }
+}
+
+@media (min-width: 1440px) {
+  .grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -218,7 +239,7 @@
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-medium);
   cursor: pointer;
-  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast);
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
   touch-action: manipulation;
 }
 
@@ -227,6 +248,11 @@
     background: var(--sf-surface-variant);
     border-color: var(--sf-border);
   }
+}
+
+.toggleNoPhotoBtn:active {
+  transform: scale(0.97);
+  background: var(--sf-surface-variant);
 }
 
 /* ── No-photo toggle (inline when grid has items) ── */

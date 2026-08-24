@@ -15,7 +15,7 @@
 .statCard {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: 6px;
+  border-radius: var(--sf-radius-sm);
   padding: var(--sf-space-md);
   display: flex;
   flex-direction: column;
@@ -27,7 +27,7 @@
 @media (hover: hover) and (pointer: fine) {
 
 .statCard:hover {
-  border-color: #FDF4E8;
+  border-color: var(--sf-border);
 }
 }
 
@@ -151,7 +151,7 @@
 .mobileCard {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: 6px;
+  border-radius: var(--sf-radius-sm);
   padding: var(--sf-space-md);
   display: flex;
   flex-direction: column;
@@ -165,7 +165,7 @@
 @media (hover: hover) and (pointer: fine) {
 
 .mobileCard:hover {
-  border-color: #FDF4E8;
+  border-color: var(--sf-border);
 }
 }
 
@@ -232,7 +232,7 @@
   display: none;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: 6px;
+  border-radius: var(--sf-radius-sm);
   overflow: hidden;
 }
 
@@ -252,7 +252,7 @@
 }
 
 .desktopTable th {
-  padding: var(--sf-space-md);
+  padding: 10px var(--sf-space-md);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   color: var(--sf-text-secondary);
@@ -261,8 +261,14 @@
   white-space: nowrap;
 }
 
+/* Tightened vertical padding (16px -> 10px) — same density move already
+   applied to the Dashboard's Team Snapshot cards and the Fabrics grid.
+   A data table meant to be scanned row-by-row benefits from more rows
+   fitting per screen more than it needs mobile-style breathing room;
+   horizontal padding stays put since that's what keeps columns from
+   feeling cramped side-to-side. */
 .desktopTable td {
-  padding: var(--sf-space-md);
+  padding: 10px var(--sf-space-md);
   border-bottom: 1px solid var(--sf-border-light);
   vertical-align: middle;
 }
@@ -311,7 +317,7 @@
 }
 
 .currencyCell.hasBalance {
-  color: var(--sf-color-warning);
+  color: var(--sf-warning);
 }
 
 .alignRight {
@@ -332,7 +338,7 @@
   padding: 6px 12px;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: 6px;
+  border-radius: var(--sf-radius-sm);
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-medium);
@@ -346,13 +352,26 @@
 .actionBtn:hover {
   background: var(--sf-bg-surface-hover);
   color: var(--sf-text-primary);
-  border-color: #FDF4E8;
+  border-color: var(--sf-border);
 }
+}
+
+.actionBtn:active {
+  transform: scale(0.95);
+  background: var(--sf-surface-variant);
 }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statCard,
+  .mobileCard,
+  .tableRow {
+    animation: none;
+  }
 }
 
 /* ── Outreach ─────────────────────────────────────────────── */
@@ -456,6 +475,7 @@
   font-size: var(--sf-text-sm);
   color: var(--sf-text-primary);
   cursor: pointer;
+  transition: background-color var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -463,6 +483,10 @@
 .customerPickRow:hover {
   background: var(--sf-bg-surface-hover);
 }
+}
+
+.customerPickRow:active {
+  background: var(--sf-surface-variant);
 }
 
 .pickContactedTag {

@@ -79,6 +79,11 @@
 }
 }
 
+.postCard:active {
+  transform: scale(0.98);
+  box-shadow: var(--sf-shadow-md);
+}
+
 .postTitle {
   font-family: var(--font-fraunces), serif;
   font-size: var(--sf-text-xl);

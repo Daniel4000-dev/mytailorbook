@@ -31,6 +31,23 @@
   }
 }
 
+/* Same fix already applied to Fabrics this session — a gallery grid
+   capped at the same 3 columns from tablet through any desktop width
+   wastes a wide screen's real estate instead of reading as a
+   considered gallery wall. */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sf-space-lg);
+  }
+}
+
+@media (min-width: 1440px) {
+  .grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
 .card {
   display: block;
   text-decoration: none;

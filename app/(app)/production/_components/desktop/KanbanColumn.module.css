@@ -14,12 +14,20 @@
   border-radius: var(--sf-radius-md);
   padding: var(--sf-space-md);
   max-height: 100%;
-  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast);
+  /* Tried adding shadow-xs here for consistency with the app's stated
+     "shadows carry separation" rule — an independent review measured it
+     live and found it genuinely imperceptible against the existing 1px
+     border (4% opacity is below the visibility threshold at this size).
+     Consistency with a written rule isn't worth a change nobody can
+     see, so left as border-only. The dropTarget state below keeps its
+     shadow — that one's confirmed visible and useful. */
+  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .column.dropTarget {
   background: var(--sf-accent-emerald-glow);
   border-color: var(--sf-accent-emerald);
+  box-shadow: var(--sf-shadow-emerald);
 }
 
 .columnHeader {
@@ -80,7 +88,7 @@
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-xs);
   flex-shrink: 0;
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -88,5 +96,10 @@
 .showMoreBtn:hover {
   background: var(--sf-surface-variant);
 }
+}
+
+.showMoreBtn:active {
+  transform: scale(0.98);
+  background: var(--sf-surface-variant);
 }
 

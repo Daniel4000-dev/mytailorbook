@@ -30,6 +30,10 @@
 }
 }
 
+.importBtn:active {
+  background: var(--sf-surface-container-highest);
+}
+
 .measureList {
   display: flex;
   flex-direction: column;
@@ -149,6 +153,10 @@
   .addFieldOption:hover {
     background: var(--sf-surface-variant);
   }
+}
+
+.addFieldOption:active {
+  background: var(--sf-surface-variant);
 }
 
 .addFieldRecorded {

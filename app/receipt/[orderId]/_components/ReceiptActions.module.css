@@ -38,6 +38,11 @@
 }
 }
 
+.actionBtn:active:not(:disabled) {
+  filter: brightness(0.95);
+  transform: scale(0.98);
+}
+
 .printBtn {
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
@@ -49,6 +54,11 @@
 .printBtn:hover:not(:disabled) {
   background: var(--sf-bg-surface-hover);
 }
+}
+
+.printBtn:active:not(:disabled) {
+  background: var(--sf-bg-surface-hover);
+  transform: scale(0.98);
 }
 
 @media (max-width: 480px) {

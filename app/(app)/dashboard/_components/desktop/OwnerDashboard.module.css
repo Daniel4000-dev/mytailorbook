@@ -4,6 +4,229 @@
   gap: var(--sf-space-md);
 }
 
+/* ── Hero panel ─────────────────────────────────────────────────
+   var(--sf-nav) is the same dark chrome color already used for toasts
+   elsewhere in the app — reused here, not a new color. Everything else
+   (accent, text, danger red) is the same token every other card on this
+   screen already uses. */
+.hero {
+  background: var(--sf-nav);
+  border-radius: var(--sf-radius-xl);
+  padding: var(--sf-space-xl) var(--sf-space-xl) var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--sf-shadow-lg);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -20%;
+  width: 60%;
+  height: 160%;
+  background: radial-gradient(circle, var(--sf-accent-emerald-glow) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.heroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.heroIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroEyebrow {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-nav-icon);
+}
+
+.heroShopName {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: var(--sf-text-xl);
+  font-weight: 600;
+  letter-spacing: var(--sf-tracking-display);
+  color: #ffffff;
+}
+
+/* The app's one consistent "create" action shape — reuse this exact
+   treatment anywhere else a primary create action is needed, rather than
+   inventing another shape per screen. */
+.heroCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 var(--sf-space-lg);
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.heroCta:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heroCta:hover {
+    background: var(--sf-accent-emerald-dark);
+    transform: translateY(-1px);
+  }
+}
+
+.heroMain {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sf-space-xl);
+  position: relative;
+  z-index: 1;
+}
+
+.heroPrimaryStat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.heroPrimaryLabelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.heroPrimaryLabel {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-nav-icon);
+}
+
+.heroPrivacyBtn {
+  background: transparent;
+  border: none;
+  color: var(--sf-nav-icon);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heroPrivacyBtn:hover {
+    color: #ffffff;
+  }
+}
+
+.heroPrivacyBtn:active {
+  transform: scale(0.9);
+}
+
+/* The one number per screen allowed to be this large — everything else
+   on the page reads as detail beside it. Uses --sf-font-numeric
+   (Manrope), the same "glanceable balance" numeral face already used
+   for every other money figure in the app — the hero never actually
+   picked that up before, it was on the generic heading font. A
+   business-critical number stays on the app's most legible numeral
+   face; craft goes on the shop name below instead, not on the figure
+   someone's reading to make a payment decision. */
+.heroPrimaryValue {
+  font-family: var(--sf-font-numeric);
+  font-size: 3.5rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: #ffffff;
+}
+
+.heroStatRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-lg);
+  padding-bottom: 2px;
+}
+
+.heroStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heroStatLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.heroStatLabel {
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-nav-icon);
+}
+
+.heroStatValue {
+  font-family: var(--sf-font-numeric);
+  font-size: var(--sf-text-xl);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Same red already used for .alertCard elsewhere on this page — not a
+   new color, just reused for the same "needs attention" meaning. */
+.heroStatDanger {
+  color: #F87171;
+}
+
+.heroStatDue {
+  color: var(--sf-text-gold);
+}
+
+.heroStatPrivacyBtn {
+  background: transparent;
+  border: none;
+  color: var(--sf-nav-icon);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.heroStatPrivacyBtn:active {
+  transform: scale(0.9);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heroStatPrivacyBtn:hover {
+    color: #ffffff;
+  }
+}
+
+.heroStatDivider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
 /* Team Snapshot (wider, the actionable column) beside Needs Attention
    (narrower, a scannable feed) — a real two-column dashboard instead of
    one long stack, now that there's width to spare. */

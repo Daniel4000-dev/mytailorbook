@@ -3,6 +3,7 @@
 import Image from 'next/image';
 
 import { useData } from '@/contexts/DataContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import type { Order } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
@@ -32,6 +33,7 @@ export default function OwnerDashboard({
   onNavigate: (href: string) => void;
 }) {
   const { currentShop } = useData();
+  const { openCreateMenu } = useSidebar();
   const {
     hideCollected,
     hideProjected,
@@ -48,56 +50,76 @@ export default function OwnerDashboard({
 
   return (
     <div className={styles.content}>
+      {/* Hero: one dominant focal point instead of four equal-weight cards.
+          Uses only tokens already in the app's own two-color system —
+          var(--sf-nav), the same dark chrome color already used for
+          toasts, and the existing indigo accent — nothing new. */}
+      <div className={styles.hero}>
+        <div className={styles.heroTop}>
+          <div className={styles.heroIdentity}>
+            <span className={styles.heroEyebrow}>Studio Pulse</span>
+            <span className={styles.heroShopName}>{currentShop?.name || 'Your Studio'}</span>
+          </div>
+          <button type="button" className={styles.heroCta} onClick={openCreateMenu}>
+            <Symbol name="add" size={18} />
+            New Order
+          </button>
+        </div>
+
+        <div className={styles.heroMain}>
+          <div className={styles.heroPrimaryStat}>
+            <div className={styles.heroPrimaryLabelRow}>
+              <span className={styles.heroPrimaryLabel}>Collected</span>
+              <button
+                type="button"
+                onClick={toggleHideCollected}
+                className={styles.heroPrivacyBtn}
+                title={hideCollected ? 'Show Balance' : 'Hide Balance'}
+              >
+                {hideCollected ? <Symbol name="visibility_off" size={16} /> : <Symbol name="visibility" size={16} />}
+              </button>
+            </div>
+            <span className={styles.heroPrimaryValue}>
+              {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
+            </span>
+          </div>
+
+          <div className={styles.heroStatRow}>
+            <div className={styles.heroStat}>
+              <div className={styles.heroStatLabelRow}>
+                <span className={styles.heroStatLabel}>Projected</span>
+                <button
+                  type="button"
+                  onClick={toggleHideProjected}
+                  className={styles.heroStatPrivacyBtn}
+                  title={hideProjected ? 'Show Balance' : 'Hide Balance'}
+                >
+                  {hideProjected ? <Symbol name="visibility_off" size={12} /> : <Symbol name="visibility" size={12} />}
+                </button>
+              </div>
+              <span className={styles.heroStatValue}>
+                {hideProjected ? '******' : formatCurrency(projected, currentShop?.currency)}
+              </span>
+            </div>
+            <div className={styles.heroStatDivider} />
+            <div className={styles.heroStat}>
+              <span className={styles.heroStatLabel}>Overdue</span>
+              <span className={`${styles.heroStatValue} ${urgentCount > 0 ? styles.heroStatDanger : ''}`}>
+                {urgentCount}
+              </span>
+            </div>
+            <div className={styles.heroStatDivider} />
+            <div className={styles.heroStat}>
+              <span className={styles.heroStatLabel}>Due Today</span>
+              <span className={`${styles.heroStatValue} ${dueTodayCount > 0 ? styles.heroStatDue : ''}`}>
+                {dueTodayCount}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <DiscoverBanner onNavigate={onNavigate} />
-
-      <div className={pageStyles.sectionHeader}>
-        <span className={pageStyles.sectionTitle}>Overview Analytics</span>
-      </div>
-
-      <div className={pageStyles.financeGrid}>
-        <div className={`${pageStyles.financeCard} ${pageStyles.collectedCard}`}>
-          <div className={pageStyles.cardHeaderRow}>
-            <span className={pageStyles.cardLabel}>Collected</span>
-            <button
-              type="button"
-              onClick={toggleHideCollected}
-              className={pageStyles.cardPrivacyBtn}
-              title={hideCollected ? 'Show Balance' : 'Hide Balance'}
-            >
-              {hideCollected ? <Symbol name="visibility_off" /> : <Symbol name="visibility" />}
-            </button>
-          </div>
-          <span className={pageStyles.cardValue}>
-            {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
-          </span>
-        </div>
-
-        <div className={`${pageStyles.financeCard} ${pageStyles.projectedCard}`}>
-          <div className={pageStyles.cardHeaderRow}>
-            <span className={pageStyles.cardLabel}>Projected</span>
-            <button
-              type="button"
-              onClick={toggleHideProjected}
-              className={pageStyles.cardPrivacyBtn}
-              title={hideProjected ? 'Show Balance' : 'Hide Balance'}
-            >
-              {hideProjected ? <Symbol name="visibility_off" /> : <Symbol name="visibility" />}
-            </button>
-          </div>
-          <span className={pageStyles.cardValue}>
-            {hideProjected ? '******' : formatCurrency(projected, currentShop?.currency)}
-          </span>
-        </div>
-
-        <div className={`${pageStyles.financeCard} ${urgentCount > 0 ? pageStyles.alertCard : ''}`}>
-          <span className={pageStyles.cardLabel}>Overdue</span>
-          <span className={pageStyles.cardValue}>{urgentCount}</span>
-        </div>
-        <div className={`${pageStyles.financeCard} ${dueTodayCount > 0 ? pageStyles.dueCard : ''}`}>
-          <span className={pageStyles.cardLabel}>Due Today</span>
-          <span className={pageStyles.cardValue}>{dueTodayCount}</span>
-        </div>
-      </div>
 
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>

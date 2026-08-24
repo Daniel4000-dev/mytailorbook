@@ -68,6 +68,21 @@
   }
 }
 
+/* Same fix as Fabrics/Style Gallery this session — don't cap a photo
+   grid at tablet density all the way through a wide desktop screen. */
+@media (min-width: 1024px) {
+  .photoGrid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--sf-space-lg);
+  }
+}
+
+@media (min-width: 1440px) {
+  .photoGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
 .photoCard {
   background: var(--sf-sand);
   border: 1px solid var(--sf-border-light);

@@ -63,7 +63,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--sf-font-body), sans-serif;
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -71,6 +71,11 @@
 .loginButton:hover {
   background-color: var(--sf-accent-emerald-dark);
 }
+}
+
+.loginButton:active:not(:disabled) {
+  transform: scale(0.98);
+  background-color: var(--sf-accent-emerald-dark);
 }
 
 .loginButton:disabled {
@@ -102,7 +107,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--sf-font-body), sans-serif;
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -110,6 +115,11 @@
 .registerButton:hover {
   background-color: var(--sf-surface-container-highest);
 }
+}
+
+.registerButton:active {
+  transform: scale(0.98);
+  background-color: var(--sf-surface-container-highest);
 }
 
 .errorBanner {

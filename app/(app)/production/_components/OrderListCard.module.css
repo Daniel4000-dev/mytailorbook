@@ -237,7 +237,7 @@
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-medium);
   color: var(--sf-text-secondary);
-  transition: color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), opacity var(--sf-transition-fast);
   padding: 6px 4px;
 }
 
@@ -246,6 +246,14 @@
 .moveBackBtn:hover {
   color: var(--sf-accent-emerald);
 }
+}
+
+/* Mobile-only — this is the real "advance order status" control on a
+   phone (desktop drags cards between kanban columns instead), so
+   press feedback here matters more than almost anywhere else in the
+   app, not less. */
+.moveBackBtn:active {
+  opacity: 0.6;
 }
 
 .moveNextBtn {
@@ -259,7 +267,7 @@
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
   box-shadow: var(--sf-shadow-sm);
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -267,4 +275,9 @@
 .moveNextBtn:hover {
   background: var(--sf-accent-emerald-light);
 }
+}
+
+.moveNextBtn:active {
+  transform: scale(0.95);
+  background: var(--sf-accent-emerald-dark);
 }

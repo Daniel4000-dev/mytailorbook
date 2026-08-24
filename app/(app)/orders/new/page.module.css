@@ -2,6 +2,21 @@
    quantity), style-matched measurement intake, and a details step.
    Colors follow the two-color rule. */
 
+/* Mobile: plain wrapper, .stepRail stays hidden and .page behaves
+   exactly as it always did. Desktop (≥1024px, see the block at the
+   bottom of this file): a real grid — step rail + form pane — replacing
+   the mobile progress-bar pattern with macOS Setup Assistant's
+   always-visible, clickable step list. */
+.wizardShell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.stepRail {
+  display: none;
+}
+
 .page {
   display: flex;
   flex-direction: column;
@@ -13,14 +28,24 @@
   position: sticky;
   top: 0;
   z-index: var(--sf-z-sticky);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   height: 68px;
-  padding: 0 var(--sf-margin-mobile);
   background: color-mix(in srgb, var(--sf-bg-primary) 85%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+/* Below 640px this is identical to the old flat .header rule (max-width
+   never engages); above it, this is what keeps title/back/progress
+   aligned with the body column and the floating action bar. */
+.headerInner {
+  position: relative;
+  height: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 var(--sf-margin-mobile);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .backBtn {
@@ -205,7 +230,12 @@
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   text-align: left;
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.customerRow:active {
+  transform: scale(0.98);
+  background: var(--sf-surface-container-high);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -264,6 +294,11 @@
   color: var(--sf-text-secondary);
   font-weight: var(--sf-weight-semibold);
   transition: color var(--sf-transition-fast), background-color var(--sf-transition-fast);
+}
+
+.newClientLink:active {
+  color: var(--sf-accent-emerald);
+  background: var(--sf-bg-surface-hover);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -463,7 +498,12 @@
   border-radius: var(--sf-radius-md);
   color: var(--sf-text-secondary);
   font-weight: var(--sf-weight-semibold);
-  transition: color var(--sf-transition-fast), background-color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.customBtn:active {
+  transform: scale(0.98);
+  background: var(--sf-surface-variant);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -659,6 +699,11 @@
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
+  transition: color var(--sf-transition-fast);
+}
+
+.inspoAdd:active {
+  color: var(--sf-accent-emerald);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -790,9 +835,13 @@
   padding: 0 var(--sf-space-md);
   color: var(--sf-text-secondary);
   font-weight: var(--sf-weight-semibold);
-  transition: color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), opacity var(--sf-transition-fast);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.skipBtn:active {
+  opacity: 0.6;
 }
 
 @media (max-width: 400px) {
@@ -845,13 +894,26 @@
 /* ── Desktop overrides ──────────────────────────────────────────
    Placed last on purpose — source order beats media-query specificity
    when a later unconditional rule ties, so any desktop change has to
-   come after every base rule it touches. This wizard intentionally
-   hides the sidebar (a focused, no-distractions flow) and stays a
-   centered column on desktop rather than going full-bleed — 820px is
-   sized backward from .garmentGrid's own 3-column breakpoint (three
-   ~262px cards + two 16px gaps = 820px), not a round number. */
+   come after every base rule it touches. The app's own sidebar (280px,
+   see app/(app)/layout.module.css .appShell) stays visible here same as
+   every other screen — an earlier comment above claiming this wizard
+   "hides the sidebar" didn't match the actual layout and has been
+   corrected. 820px is sized backward from .garmentGrid's own 3-column
+   breakpoint (three ~262px cards + two 16px gaps = 820px), not a round
+   number — every other desktop-only width below matches it so the
+   rail's title, the body column, and the floating action bar all read
+   as one aligned pane instead of three different widths (a real bug an
+   earlier pass here shipped and a review caught: .headerInner was left
+   at 640px while .col jumped to 820px at this exact breakpoint). */
 @media (min-width: 1024px) {
-  .col {
+  .wizardShell {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100dvh;
+  }
+
+  .col,
+  .headerInner {
     max-width: 820px;
   }
 
@@ -859,5 +921,116 @@
   .garmentCard,
   .unitCard {
     box-shadow: none;
+  }
+
+  /* ── Step rail — macOS Setup Assistant / Installer.app pattern:
+     every step visible at once with done/current/upcoming state,
+     completed steps stay clickable (goToStep in NewOrderWizard.tsx),
+     instead of a mobile progress bar that only shows a percentage and
+     hides everywhere you've already been. */
+  .stepRail {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--sf-space-xl) var(--sf-space-md);
+    border-right: 1px solid var(--sf-border-light);
+  }
+
+  .stepRailTitle {
+    font-family: var(--sf-font-heading);
+    font-size: var(--sf-text-lg);
+    font-weight: var(--sf-weight-bold);
+    color: var(--sf-text-primary);
+    padding: 0 var(--sf-space-sm);
+    margin-bottom: var(--sf-space-lg);
+  }
+
+  .stepRailItem {
+    display: flex;
+    align-items: center;
+    gap: var(--sf-space-sm);
+    padding: 10px var(--sf-space-sm);
+    border-radius: var(--sf-radius-sm);
+    font-size: var(--sf-text-sm);
+    font-weight: var(--sf-weight-medium);
+    color: var(--sf-text-tertiary);
+    text-align: left;
+    transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+  }
+
+  .stepRailItem:disabled {
+    cursor: default;
+  }
+
+  .stepRailItem[data-state='current'] {
+    background: var(--sf-accent-emerald-glow);
+    color: var(--sf-text-primary);
+    font-weight: var(--sf-weight-semibold);
+  }
+
+  .stepRailItem[data-state='done'] {
+    color: var(--sf-text-secondary);
+    cursor: pointer;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .stepRailItem[data-state='done']:hover {
+      background: var(--sf-bg-surface-hover);
+      color: var(--sf-text-primary);
+    }
+  }
+
+  .stepRailGlyph {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--sf-text-2xs);
+    font-weight: var(--sf-weight-bold);
+    background: var(--sf-surface-variant);
+    color: var(--sf-text-tertiary);
+  }
+
+  .stepRailItem[data-state='current'] .stepRailGlyph {
+    background: var(--sf-accent-emerald);
+    color: var(--sf-text-on-accent);
+  }
+
+  .stepRailItem[data-state='done'] .stepRailGlyph {
+    background: var(--sf-accent-emerald-glow);
+    color: var(--sf-accent-emerald);
+  }
+
+  /* The floating action bar is portaled straight to document.body (see
+     FixedBottomPortal), so its fixed positioning is relative to the
+     true viewport — it needs to know about both the app's own sidebar
+     (280px) and this wizard's step rail (220px) to actually center
+     under the form pane instead of the whole screen. */
+  /* right:0 instead of a computed width — a review measured a 2px drift
+     between this and .col/.headerInner at 1440px, traced to width:
+     calc(100% - Npx) resolving against the true viewport while normal-
+     flow content resolves against the scrollbar-gutter-adjusted layout
+     viewport (a few px narrower). right:0 anchors to the same edge
+     normal-flow content does, so it can't drift regardless of scrollbar
+     width. */
+  .summaryBarWrap {
+    left: calc(280px + 220px);
+    right: 0;
+    width: auto;
+  }
+
+  /* Matches the sidebar's own collapsed-width breakpoint (see
+     app/(app)/layout.module.css .appShell.sidebarCollapsed) — read via
+     useSidebar() and passed down as data-collapsed since this element is
+     portaled outside the sidebar's own DOM subtree. */
+  .summaryBarWrap[data-collapsed='true'] {
+    left: calc(80px + 220px);
+  }
+
+  .summaryBar {
+    max-width: 820px;
   }
 }

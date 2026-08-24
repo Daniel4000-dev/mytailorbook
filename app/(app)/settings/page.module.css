@@ -99,8 +99,8 @@
 .premiumBadge {
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
-  color: var(--sf-accent-indigo, #4338CA);
-  background: rgba(67, 56, 202, 0.12);
+  color: var(--sf-accent-emerald);
+  background: var(--sf-accent-emerald-glow);
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
@@ -213,8 +213,8 @@
   gap: 8px;
   padding: 10px 12px;
   margin: 0 var(--sf-space-md) var(--sf-space-md);
-  background: var(--sf-accent-amber-glow, rgba(245, 158, 11, 0.12));
-  color: var(--sf-accent-amber, #b45309);
+  background: var(--sf-warning-bg);
+  color: var(--sf-warning);
   border-radius: var(--sf-radius-sm);
   font-size: var(--sf-text-xs);
   line-height: 1.4;
@@ -275,8 +275,8 @@
 }
 
 .planCardHighlight {
-  border-color: var(--sf-accent-indigo, #4338CA);
-  box-shadow: 0 0 0 1px var(--sf-accent-indigo, #4338CA);
+  border-color: var(--sf-accent-emerald);
+  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
 }
 
 .planCardHeader {
@@ -293,7 +293,7 @@
 }
 
 .planBadge {
-  background: var(--sf-accent-indigo, #4338CA);
+  background: var(--sf-accent-emerald);
   color: #fff;
   font-size: 10px;
   font-weight: var(--sf-weight-semibold);
@@ -403,6 +403,11 @@
 }
 }
 
+.cancelPlanLink:active {
+  color: var(--sf-text-secondary);
+  opacity: 0.7;
+}
+
 .cancelReasonList {
   display: flex;
   flex-direction: column;
@@ -426,6 +431,11 @@
 .cancelReasonOption:hover {
   border-color: var(--sf-accent-emerald);
 }
+}
+
+.cancelReasonOption:active {
+  border-color: var(--sf-accent-emerald);
+  background: var(--sf-bg-surface-hover);
 }
 
 .cancelReasonOptionActive {

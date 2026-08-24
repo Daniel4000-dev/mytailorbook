@@ -354,6 +354,12 @@
 }
 }
 
+.ctaBtn:active {
+  background: var(--e-ink);
+  color: var(--e-canvas);
+  transform: scale(0.97);
+}
+
 .shareBtn {
   display: inline-flex;
   align-items: center;

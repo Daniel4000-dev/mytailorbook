@@ -197,6 +197,11 @@
 }
 }
 
+.settingsBtn:active {
+  opacity: 0.6;
+  transform: scale(0.97);
+}
+
 .settingsIcon {
   font-size: 20px;
   color: var(--sf-text-primary);
@@ -261,7 +266,16 @@
     opacity: 1 !important;
     pointer-events: auto !important;
     position: fixed;
-    background-color: var(--sf-bg-surface); /* Premium white sidebar */
+    /* Deliberately opaque, not translucent — tried a blurred material
+       here and an independent review caught the real problem: nothing
+       ever scrolls behind this fixed, dedicated-width panel, so the
+       blur cost real render performance for zero visible payoff (it
+       rendered indistinguishable from a flat fill) and skipped the
+       required prefers-reduced-transparency fallback. Reserve
+       translucency for transient overlays (popovers, sheets) the way
+       Linear/Notion/VS Code do — a permanently-docked sidebar with a
+       static backdrop stays flat. */
+    background-color: var(--sf-bg-surface);
     border-right: 1px solid var(--sf-border);
     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 100 !important;
@@ -317,7 +331,7 @@
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border: 1px solid var(--sf-border);
-    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.08);
+    box-shadow: var(--sf-shadow-sm);
     color: var(--sf-text-secondary);
     cursor: pointer;
     z-index: 100;
@@ -331,6 +345,12 @@
     color: var(--sf-text-primary);
     transform: scale(1.05);
   }
+  }
+
+  .collapseToggle:active {
+    background-color: var(--sf-bg-surface-elevated);
+    color: var(--sf-text-primary);
+    transform: scale(0.92);
   }
 
   .footer {
@@ -369,7 +389,7 @@
   @media (hover: hover) and (pointer: fine) {
 
   .menuItem:hover {
-    background-color: rgba(40, 25, 11, 0.03);
+    background-color: var(--sf-bg-surface-hover);
     color: var(--sf-text-primary);
     transform: none !important;
   }
@@ -382,11 +402,19 @@
   }
   }
 
+  /* One committed treatment instead of two competing ones (a colored
+     glow pill AND a neutral border, stacked). A soft rounded highlight
+     behind the active item is the exact look of a stock/generated
+     dashboard template — considered desktop software (Linear, Vercel's
+     own dashboard, VS Code's activity list) tends to commit to a single
+     confident signal instead: flat background, bold weight, one solid
+     accent mark. Text stays aligned with every inactive item — only the
+     accent bar and weight change, nothing shifts position. */
   .menuItem.active {
-    background-color: var(--sf-accent-emerald-glow);
+    background-color: transparent;
     color: var(--sf-accent-emerald) !important;
-    font-weight: 600;
-    box-shadow: inset 3px 0 0 var(--sf-border);
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
   }
 
   .menuItem.active .menuIcon {
@@ -407,7 +435,7 @@
   @media (hover: hover) and (pointer: fine) {
 
   .settingsBtn:hover {
-    background-color: rgba(40, 25, 11, 0.03);
+    background-color: var(--sf-bg-surface-hover);
     color: var(--sf-text-primary) !important;
     transform: none !important;
   }

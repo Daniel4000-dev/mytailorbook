@@ -15,7 +15,7 @@
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg);
   text-align: left;
-  transition: border-color var(--sf-transition-fast), background var(--sf-transition-fast);
+  transition: border-color var(--sf-transition-fast), background var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -23,6 +23,11 @@
 .option:hover {
   background: var(--sf-bg-surface-hover);
 }
+}
+
+.option:active {
+  background: var(--sf-bg-surface-hover);
+  transform: scale(0.99);
 }
 
 .optionIcon {

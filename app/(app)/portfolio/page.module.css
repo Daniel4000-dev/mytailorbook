@@ -28,6 +28,11 @@
 }
 }
 
+.backBtn:active {
+  background: var(--sf-bg-surface-hover);
+  transform: scale(0.9);
+}
+
 .status {
   display: flex;
   align-items: center;

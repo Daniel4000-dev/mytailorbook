@@ -68,6 +68,11 @@
 }
 }
 
+.closeBtn:active {
+  background-color: var(--sf-bg-surface-elevated);
+  transform: scale(0.92);
+}
+
 .body {
   padding: var(--sf-space-lg);
   overflow-y: auto;
@@ -164,6 +169,14 @@
   }
 }
 
+
+@media (prefers-reduced-motion: reduce) {
+  .content,
+  .content[data-vaul-drawer] {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 
 .subHeader {
   flex-shrink: 0;

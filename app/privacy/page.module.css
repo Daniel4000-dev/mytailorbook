@@ -135,6 +135,11 @@
 }
 }
 
+.backLink:active {
+  color: var(--sf-text-primary);
+  opacity: 0.7;
+}
+
 @media (max-width: 640px) {
   .content {
     margin-top: 0;

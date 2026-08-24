@@ -108,6 +108,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.point:active .pointDot {
+  transform: scale(1.3);
+}
+
 .pointDot {
   width: 10px;
   height: 10px;

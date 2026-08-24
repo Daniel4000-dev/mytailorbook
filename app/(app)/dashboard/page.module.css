@@ -522,7 +522,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
   padding: 2px;
 }
 
@@ -531,6 +531,10 @@
 .cardPrivacyBtn:hover {
   color: var(--sf-text-secondary);
 }
+}
+
+.cardPrivacyBtn:active {
+  transform: scale(0.85);
 }
 
 /* ── Team Snapshot ── */
@@ -750,6 +754,7 @@
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
+  transition: opacity var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -757,6 +762,10 @@
 .attentionSeeAll:hover {
   text-decoration: underline;
 }
+}
+
+.attentionSeeAll:active {
+  opacity: 0.6;
 }
 
 .attentionTextGroup {
@@ -827,5 +836,17 @@
   .teamCard:hover,
   .attentionRow:hover {
     box-shadow: none;
+  }
+
+  /* Mobile's generous card padding left unchanged for desktop was the
+     exact "mobile app stretched wide" tell — a cursor-driven surface
+     with a border for separation doesn't need the same breathing room a
+     thumb-target list does. Tightened here, desktop only. */
+  .teamCard {
+    padding: var(--sf-space-md);
+  }
+
+  .attentionRow {
+    padding: 10px var(--sf-space-md);
   }
 }

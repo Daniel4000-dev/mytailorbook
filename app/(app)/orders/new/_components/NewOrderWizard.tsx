@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
@@ -47,6 +48,11 @@ export default function NewOrderWizard() {
   const { user } = useAuth();
   const { customers, orders, staffMembers, currentShop, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile, upsertCustomStyle } = useData();
   const { showToast } = useToast();
+  // FixedBottomPortal escapes to document.body, so its fixed positioning
+  // can't rely on CSS descendant selectors to know whether the app's own
+  // sidebar is collapsed (280px vs 80px) — read the same state the
+  // sidebar itself uses and pass it through as a data attribute instead.
+  const { isCollapsed } = useSidebar();
 
   const [step, setStep] = useState<Step>('customer');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -326,6 +332,19 @@ export default function NewOrderWizard() {
     setStep('details');
   };
 
+  // Desktop step-rail navigation (see .stepRail below) — jump straight to
+  // any step that's already been reached, the way macOS Setup Assistant's
+  // step list lets you revisit a completed step instead of forcing a
+  // strict one-at-a-time Back chain. Only ever moves to a step at or
+  // before the current one; the rail never renders upcoming steps as
+  // clickable (see stepOrder/currentIndex below), so this never needs to
+  // guard against skipping ahead into an unpopulated step.
+  const goToStep = (target: Step) => {
+    setError('');
+    if (target === 'measure') setMeasureIndex(0);
+    setStep(target);
+  };
+
   const stepBack = () => {
     setError('');
     if (step === 'details') {
@@ -589,6 +608,20 @@ export default function NewOrderWizard() {
     details: { label: 'Order Details', progress: 92 },
   };
 
+  // Desktop step rail (see .stepRail — hidden below 1024px, mobile keeps
+  // the header progress bar unchanged). All 4 steps visible at once with
+  // done/current/upcoming state, matching how macOS Setup Assistant and
+  // Installer.app show a determinate step list instead of a mobile-style
+  // percentage bar — "where am I, what's left" answered by one glance.
+  const STEP_ORDER: Step[] = ['customer', 'garments', 'measure', 'details'];
+  const STEP_RAIL_LABEL: Record<Step, string> = {
+    customer: 'Customer',
+    garments: 'Garments',
+    measure: 'Measurements',
+    details: 'Details',
+  };
+  const currentStepIndex = STEP_ORDER.indexOf(step);
+
   const filteredCustomers = customerQuery.trim()
     ? customers.filter(
         (c) => c.fullName.toLowerCase().includes(customerQuery.toLowerCase()) || c.whatsappNumber.includes(customerQuery)
@@ -596,20 +629,53 @@ export default function NewOrderWizard() {
     : customers;
 
   return (
+    <div className={styles.wizardShell}>
+      {/* Desktop-only step rail — CSS-hidden below 1024px, so this is
+          purely additive on mobile (no layout cost, nothing removed). */}
+      <nav className={styles.stepRail} aria-label="Order steps">
+        <span className={styles.stepRailTitle}>New Order</span>
+        {STEP_ORDER.map((s, i) => {
+          const state = i < currentStepIndex ? 'done' : i === currentStepIndex ? 'current' : 'upcoming';
+          return (
+            <button
+              key={s}
+              type="button"
+              className={styles.stepRailItem}
+              data-state={state}
+              disabled={state === 'upcoming'}
+              onClick={() => goToStep(s)}
+            >
+              <span className={styles.stepRailGlyph}>
+                {state === 'done' ? <Symbol name="check" size={14} /> : i + 1}
+              </span>
+              {STEP_RAIL_LABEL[s]}
+            </button>
+          );
+        })}
+      </nav>
+
     <div className={styles.page}>
       <header className={styles.header}>
-        <button type="button" className={styles.backBtn} onClick={stepBack} aria-label="Go back">
-          <Symbol name="arrow_back" size={26} />
-        </button>
-        <div className={styles.headerCenter}>
-          <h1 className={styles.headerTitle}>New Order</h1>
-          <span className={styles.stepLabel}>{stepMeta[step].label}</span>
-        </div>
-        <span className={styles.headerSpacer}>
-          {step === 'garments' && totalItems > 0 && <span className={styles.bagCount}>{totalItems}</span>}
-        </span>
-        <div className={styles.progressTrack}>
-          <div className={styles.progressFill} style={{ transform: `scaleX(${stepMeta[step].progress / 100})` }} />
+        {/* Content aligns to the same measure as the body column and the
+            floating action bar below — the header used to span edge to
+            edge while everything else in the wizard sat in a centered
+            640px column, so title/progress drifted out of alignment with
+            the content they describe. max-width + margin:auto is a no-op
+            below 640px, so mobile is pixel-identical to before. */}
+        <div className={styles.headerInner}>
+          <button type="button" className={styles.backBtn} onClick={stepBack} aria-label="Go back">
+            <Symbol name="arrow_back" size={26} />
+          </button>
+          <div className={styles.headerCenter}>
+            <h1 className={styles.headerTitle}>New Order</h1>
+            <span className={styles.stepLabel}>{stepMeta[step].label}</span>
+          </div>
+          <span className={styles.headerSpacer}>
+            {step === 'garments' && totalItems > 0 && <span className={styles.bagCount}>{totalItems}</span>}
+          </span>
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ transform: `scaleX(${stepMeta[step].progress / 100})` }} />
+          </div>
         </div>
       </header>
 
@@ -683,7 +749,7 @@ export default function NewOrderWizard() {
            document.body, see FixedBottomPortal for why. ────────── */}
       {step === 'garments' && (
         <FixedBottomPortal>
-          <div className={styles.summaryBarWrap}>
+          <div className={styles.summaryBarWrap} data-collapsed={isCollapsed}>
             <div className={styles.summaryBar}>
               <div className={styles.summaryLeft}>
                 <span className={styles.summaryCount}>{totalItems}</span>
@@ -701,7 +767,7 @@ export default function NewOrderWizard() {
       )}
       {step === 'measure' && (
         <FixedBottomPortal>
-          <div className={styles.summaryBarWrap}>
+          <div className={styles.summaryBarWrap} data-collapsed={isCollapsed}>
             <div className={styles.summaryBar}>
               <button type="button" className={styles.skipBtn} onClick={measureNext}>
                 Skip for now
@@ -716,7 +782,7 @@ export default function NewOrderWizard() {
       )}
       {step === 'details' && (
         <FixedBottomPortal>
-          <div className={styles.summaryBarWrap}>
+          <div className={styles.summaryBarWrap} data-collapsed={isCollapsed}>
             <div className={styles.summaryBar}>
               <div className={styles.summaryLeft}>
                 <span className={styles.summaryText}>
@@ -759,6 +825,7 @@ export default function NewOrderWizard() {
         destructive={false}
         loading={savingField}
       />
+    </div>
     </div>
   );
 }

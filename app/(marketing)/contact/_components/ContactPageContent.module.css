@@ -28,6 +28,7 @@
 
 .heroHeadline {
   font-family: var(--font-fraunces), serif;
+  letter-spacing: var(--sf-tracking-display);
   font-size: clamp(2rem, 4vw, var(--sf-text-3xl));
   font-weight: 600;
   color: var(--sf-text-primary);

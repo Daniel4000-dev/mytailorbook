@@ -14,6 +14,7 @@
   justify-content: center;
   cursor: pointer;
   color: var(--sf-text-secondary);
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -21,6 +22,10 @@
 .bellBtn:hover {
   color: var(--sf-text-primary);
 }
+}
+
+.bellBtn:active {
+  transform: scale(0.9);
 }
 
 .bellIcon {
@@ -104,6 +109,10 @@
 .item:hover {
   background: var(--sf-bg-surface-hover);
 }
+}
+
+.item:active {
+  background: var(--sf-bg-surface-hover);
 }
 
 .itemIcon {
@@ -202,6 +211,10 @@
 .seeAllBtn:hover {
   background: var(--sf-bg-surface-hover);
 }
+}
+
+.seeAllBtn:active {
+  background: var(--sf-bg-surface-hover);
 }
 
 @media (prefers-color-scheme: dark) {

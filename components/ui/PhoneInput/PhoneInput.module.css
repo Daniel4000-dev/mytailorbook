@@ -139,6 +139,10 @@
   }
 }
 
+.countryItem:active {
+  background: var(--sf-bg-surface-hover);
+}
+
 .countryItem:last-child {
   border-bottom: none;
 }

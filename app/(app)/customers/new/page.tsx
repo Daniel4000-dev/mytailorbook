@@ -6,6 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -26,6 +27,12 @@ export default function NewClientPage() {
   const router = useRouter();
   const { addCustomer, customers } = useData();
   const { showToast } = useToast();
+  // FixedBottomPortal escapes to document.body, so its fixed positioning
+  // can't rely on CSS descendant selectors to know whether the app's own
+  // sidebar is collapsed (280px vs 80px) — read the same state the
+  // sidebar itself uses and pass it through as a data attribute instead
+  // (same pattern as the New Order wizard's .summaryBarWrap).
+  const { isCollapsed } = useSidebar();
 
   const {
     register,
@@ -129,23 +136,69 @@ export default function NewClientPage() {
     }
   };
 
+  // Desktop-only step rail — this page is itself just step 2 of the
+  // larger walk-in ritual (FAB → this profile → New Order), but it has
+  // two full-screen swaps of its own (profile, then optional
+  // measurements). Two entries is thin for a dedicated sidebar-style
+  // rail, so rather than mechanically cloning the 4-step order wizard's
+  // rail, this stays a compact two-pill strip inline in the header —
+  // still answers "where am I / what's next" and lets the tailor jump
+  // back to Profile without a Back click, but doesn't burn 220px of
+  // desktop width on a two-item list.
+  const SCREEN_ORDER: Array<'profile' | 'measurements'> = ['profile', 'measurements'];
+  const SCREEN_LABEL: Record<'profile' | 'measurements', string> = {
+    profile: 'Profile',
+    measurements: 'Measurements',
+  };
+  const currentScreenIndex = SCREEN_ORDER.indexOf(screen);
+
   return (
     <div className={styles.page}>
       {/* Transactional header */}
       <header className={styles.header}>
-        <button
-          type="button"
-          className={styles.backBtn}
-          onClick={() => (screen === 'measurements' ? setScreen('profile') : router.back())}
-          aria-label="Go back"
-        >
-          <Symbol name="arrow_back" size={28} />
-        </button>
-        <div className={styles.headerCenter}>
-          <span className={styles.stepLabel}>Step 2 of 3</span>
-          <h1 className={styles.headerTitle}>{screen === 'profile' ? 'New Client' : 'Body Measurements'}</h1>
+        {/* Content aligns to the same measure as the body column and the
+            floating action bar below — max-width + margin:auto is a no-op
+            below the desktop breakpoint, so mobile stays pixel-identical. */}
+        <div className={styles.headerInner}>
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={() => (screen === 'measurements' ? setScreen('profile') : router.back())}
+            aria-label="Go back"
+          >
+            <Symbol name="arrow_back" size={28} />
+          </button>
+          <div className={styles.headerCenter}>
+            <span className={styles.stepLabel}>Step 2 of 3</span>
+            <h1 className={styles.headerTitle}>{screen === 'profile' ? 'New Client' : 'Body Measurements'}</h1>
+          </div>
+          <span className={styles.headerSpacer} />
+          {/* Desktop-only — CSS-hidden below 1024px (see .screenRail), so
+              this is purely additive on mobile: nothing removed, nothing
+              re-flowed. Positioned absolutely within .headerInner so it
+              doesn't disturb the backBtn/headerCenter/headerSpacer
+              space-between balance that centers the title on mobile. */}
+          <nav className={styles.screenRail} aria-label="New client screens">
+            {SCREEN_ORDER.map((s, i) => {
+              const state = i < currentScreenIndex ? 'done' : i === currentScreenIndex ? 'current' : 'upcoming';
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  className={styles.screenRailItem}
+                  data-state={state}
+                  disabled={state !== 'done'}
+                  onClick={() => state === 'done' && setScreen(s)}
+                >
+                  <span className={styles.screenRailGlyph}>
+                    {state === 'done' ? <Symbol name="check" size={12} /> : i + 1}
+                  </span>
+                  {SCREEN_LABEL[s]}
+                </button>
+              );
+            })}
+          </nav>
         </div>
-        <span className={styles.headerSpacer} />
         <div className={styles.progressTrack}>
           <div className={styles.progressFill} />
         </div>
@@ -304,7 +357,7 @@ export default function NewClientPage() {
       {/* Fixed glass action bar — portaled straight to document.body, see
           FixedBottomPortal for why. */}
       <FixedBottomPortal>
-        <div className={styles.actionBar}>
+        <div className={styles.actionBar} data-collapsed={isCollapsed}>
           <div className={styles.actionBarInner}>
             {screen === 'measurements' ? (
               <>

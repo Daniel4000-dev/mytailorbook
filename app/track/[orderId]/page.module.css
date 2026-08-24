@@ -77,7 +77,11 @@
   color: var(--sf-text-secondary);
   font-family: var(--sf-font-body);
   cursor: pointer;
-  transition: color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), opacity var(--sf-transition-fast);
+}
+
+.domainCopy:active {
+  opacity: 0.6;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -124,7 +128,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .liveDot { animation: none; }
+  .liveDot,
+  .nodePulse,
+  .liveTagDot {
+    animation: none;
+  }
 }
 
 /* ── Layout ─────────────────────────────────────────────────── */
@@ -170,6 +178,7 @@
   font-family: var(--sf-font-heading);
   font-size: clamp(24px, 4.5vw, 32px);
   line-height: 1.3;
+  letter-spacing: var(--sf-tracking-display);
   color: var(--sf-text-primary);
   max-width: 40ch;
   text-wrap: balance;
@@ -313,6 +322,7 @@
   font-family: var(--sf-font-heading);
   font-size: 20px;
   line-height: 1.4;
+  letter-spacing: var(--sf-tracking-display);
   color: var(--sf-text-primary);
 }
 
@@ -547,6 +557,11 @@
   padding: 12px 0;
   border-bottom: 1px solid var(--sf-border-light);
   text-decoration: none;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.siblingRow:active {
+  opacity: 0.6;
 }
 
 .siblingRow:last-child {
@@ -722,7 +737,12 @@
 
 /* ── Promotional CTA ────────────────────────────────────────── */
 .ctaCard {
-  background: linear-gradient(135deg, var(--sf-accent-emerald), #059669);
+  /* Was linear-gradient(135deg, var(--sf-accent-emerald), #059669) — a
+     hardcoded real green, an actual second hue slipped into the most
+     prominent promotional surface on the page. Replaced with the
+     existing dark-indigo token so the gradient still has depth without
+     leaving the two-color system. */
+  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
   border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-xl) var(--sf-space-lg);
   display: flex;
@@ -795,5 +815,9 @@
     transform: translateY(-2px);
     box-shadow: var(--sf-shadow-md);
   }
+}
+
+.ctaButton:active {
+  transform: scale(0.96);
 }
 

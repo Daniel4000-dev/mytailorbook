@@ -98,6 +98,10 @@
 }
 }
 
+.segmentBtn:active {
+  background: var(--sf-bg-surface-hover);
+}
+
 .segmentBtnActive {
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);

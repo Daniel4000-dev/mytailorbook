@@ -55,17 +55,22 @@
   line-height: 1.4;
 }
 
+/* Was color: #FCD34D — an actual hardcoded amber, on the app's most
+   frequently-seen shared component (every toast, including the
+   production board's "Undo" action). Replaced with the existing light-
+   indigo accent variant, readable on this toast's dark background. */
 .actionBtn {
   flex-shrink: 0;
   background: none;
   border: none;
-  color: #FCD34D;
+  color: var(--sf-accent-emerald-light);
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   cursor: pointer;
   padding: 4px 6px;
+  transition: opacity var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -73,6 +78,10 @@
 .actionBtn:hover {
   text-decoration: underline;
 }
+}
+
+.actionBtn:active {
+  opacity: 0.7;
 }
 
 .dismissBtn {
@@ -88,6 +97,11 @@
   border: none;
   font-size: 10px;
   cursor: pointer;
+  transition: background-color var(--sf-transition-fast);
+}
+
+.dismissBtn:active {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 @keyframes toastIn {

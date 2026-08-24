@@ -1,24 +1,28 @@
+/* Demoted on purpose — this used to sit above the real business numbers;
+   now it's a quiet aside below the hero. Same indigo accent as
+   everything else, just lighter-weight chrome (dashed border, no fill)
+   so it doesn't compete with the hero's CTA for attention. */
 .banner {
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
-  background: var(--sf-sand);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-md) var(--sf-space-lg);
+  background: transparent;
+  border: 1px dashed var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-sm) var(--sf-space-lg);
 }
 
 .icon {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--sf-bg-surface-elevated);
+  background: var(--sf-accent-gold-soft);
   color: var(--sf-accent-emerald);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .text {
@@ -48,19 +52,14 @@
 .cta {
   flex-shrink: 0;
   background: none;
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-full);
-  padding: 6px 14px;
+  border: none;
+  padding: 6px 4px;
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
   color: var(--sf-accent-emerald);
   cursor: pointer;
-  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast);
-}
-
-.cta:hover {
-  background: var(--sf-bg-surface-elevated);
-  border-color: var(--sf-accent-emerald);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .dismiss {
@@ -81,4 +80,10 @@
 .dismiss:hover {
   background: var(--sf-bg-surface-elevated);
   color: var(--sf-text-secondary);
+}
+
+.dismiss:active {
+  background: var(--sf-bg-surface-elevated);
+  color: var(--sf-text-secondary);
+  transform: scale(0.9);
 }

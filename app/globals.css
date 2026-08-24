@@ -97,6 +97,19 @@ button {
   touch-action: manipulation;
 }
 
+/* Guaranteed-minimum press feedback — see components/system/PressFeedback.
+   A safety net alongside each component's own hand-tuned :active rule:
+   real clicks are often faster than a single paint cycle, so :active can
+   be applied and reverted between two frames without ever rendering.
+   This holds a subtle universal opacity dip for a guaranteed minimum
+   duration instead. Opacity-only so it never overwrites a component's own
+   transform-based hover/active state (translateX slides, scale pops,
+   translateZ compositing, etc). */
+[data-sf-pressed='true'] {
+  opacity: 0.72;
+  transition: opacity 70ms ease-out;
+}
+
 input,
 textarea,
 select {

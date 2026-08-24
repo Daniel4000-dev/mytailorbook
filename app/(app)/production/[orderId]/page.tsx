@@ -367,7 +367,26 @@ export default function OrderDetailPage() {
           title={`Order #${orderRef}`}
           showBack
           onBack={() => router.push(ROUTES.production)}
-          rightAction={<NotificationBell />}
+          rightAction={
+            <>
+              {/* Desktop counterpart to the mobile WhatsApp FAB below — a
+                  floating thumb-reachable bubble is a phone pattern; on a
+                  mouse-driven screen the same action belongs in the
+                  toolbar next to the other header actions instead. */}
+              {customer && (
+                <a
+                  href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.whatsappTopBarBtn}
+                  aria-label={`WhatsApp ${customer.fullName}`}
+                >
+                  <WhatsappIcon size={18} />
+                </a>
+              )}
+              <NotificationBell />
+            </>
+          }
         />
       }
     >

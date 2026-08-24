@@ -18,13 +18,23 @@
 /* ── Header ─────────────────────────────────────────────────── */
 .header {
   position: relative;
+  height: 72px;
+  background: var(--sf-bg-primary);
+  flex-shrink: 0;
+}
+
+/* Below the desktop breakpoint this is a no-op (max-width never engages)
+   so mobile stays pixel-identical to before; above it, this is what
+   keeps the title/back-button aligned with the body column (.formCol)
+   and the floating action bar (.actionBarInner) instead of centering
+   across the full viewport while the content sits in a narrower column. */
+.headerInner {
+  position: relative;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
   padding: 0 var(--sf-margin-mobile);
-  background: var(--sf-bg-primary);
-  flex-shrink: 0;
 }
 
 .backBtn {
@@ -67,6 +77,13 @@
 .headerSpacer {
   width: var(--sf-touch-target);
   height: var(--sf-touch-target);
+}
+
+/* Desktop-only compact step indicator — see "Desktop overrides" at the
+   bottom of this file for the visible/positioned version. Hidden here so
+   mobile is untouched. */
+.screenRail {
+  display: none;
 }
 
 .progressTrack {
@@ -238,6 +255,10 @@
   transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
 }
 
+.segmentBtn:active {
+  background: var(--sf-bg-surface-hover);
+}
+
 @media (hover: hover) and (pointer: fine) {
 
 .segmentBtn:hover {
@@ -325,7 +346,11 @@
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-base);
   font-weight: var(--sf-weight-semibold);
-  transition: color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), opacity var(--sf-transition-fast);
+}
+
+.cancelBtn:active {
+  opacity: 0.6;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -368,20 +393,129 @@
 
 /* ── Desktop overrides ──────────────────────────────────────────
    Placed last on purpose — source order beats media-query specificity
-   when a later unconditional rule ties. This is a focused single-task
+   when a later unconditional rule ties, so any desktop change has to
+   come after every base rule it touches. This is a focused single-task
    form (like the New Order wizard), so it stays a centered column on
    desktop rather than going full-bleed — just wider than the
    mobile-sized 448px, with Name+Phone paired into a row like a real
    desktop form (matches the codebase's own "Employee Details"-style
-   2-column reference used for the New Order measurement grid). */
+   2-column reference used for the New Order measurement grid).
+
+   .headerInner and .actionBarInner both get the SAME 640px so the
+   title, the form column, and the floating action bar read as one
+   aligned pane instead of drifting apart — the New Order wizard shipped
+   a version where .headerInner was left narrower than the body column
+   and a review had to catch it; matching all three here up front avoids
+   repeating that. */
 @media (min-width: 1024px) {
-  .formCol {
+  .headerInner,
+  .formCol,
+  .actionBarInner {
     max-width: 640px;
+    margin: 0 auto;
   }
 
   .fieldRow {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--sf-space-lg);
+  }
+
+  /* This page has no 4-step rail (see the .screenRail JSX comment in
+     page.tsx for why a full sidebar-style rail wasn't warranted for just
+     2 screens) — but the app's own 280px sidebar is still on screen here
+     like every other page, and .actionBar previously ignored it
+     entirely (left:0 / width:100%), so the floating action bar spanned
+     underneath the sidebar and its centered 448px inner content sat
+     off-center relative to the actual visible content area. */
+  .actionBar {
+    left: 280px;
+    width: calc(100% - 280px);
+  }
+
+  /* Matches the sidebar's own collapsed-width breakpoint (see
+     app/(app)/layout.module.css .appShell.sidebarCollapsed) — read via
+     useSidebar() and passed down as data-collapsed since this element is
+     portaled outside the sidebar's own DOM subtree (FixedBottomPortal). */
+  .actionBar[data-collapsed='true'] {
+    left: 80px;
+    width: calc(100% - 80px);
+  }
+
+  /* Compact two-pill step indicator — see the JSX comment above
+     .screenRail for why this is an inline strip rather than a cloned
+     220px sidebar rail: two screens don't carry enough content to
+     justify burning that much desktop width. Absolutely positioned so
+     it doesn't participate in .headerInner's space-between balance
+     (backBtn / headerCenter / headerSpacer), which is what keeps the
+     title centered. */
+  .screenRail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: absolute;
+    right: var(--sf-margin-mobile);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .screenRailItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: var(--sf-radius-full);
+    font-size: var(--sf-text-xs);
+    font-weight: var(--sf-weight-medium);
+    color: var(--sf-text-tertiary);
+    background: var(--sf-surface-variant);
+    transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+  }
+
+  .screenRailItem:disabled {
+    cursor: default;
+  }
+
+  .screenRailItem[data-state='current'] {
+    background: var(--sf-accent-emerald-glow);
+    color: var(--sf-text-primary);
+    font-weight: var(--sf-weight-semibold);
+  }
+
+  .screenRailItem[data-state='done'] {
+    color: var(--sf-text-secondary);
+    cursor: pointer;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .screenRailItem[data-state='done']:hover {
+      background: var(--sf-bg-surface-hover);
+      color: var(--sf-text-primary);
+    }
+  }
+
+  .screenRailGlyph {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: var(--sf-weight-bold);
+    background: var(--sf-bg-surface);
+    color: var(--sf-text-tertiary);
+  }
+
+  .screenRailItem[data-state='current'] .screenRailGlyph {
+    background: var(--sf-accent-emerald);
+    color: var(--sf-text-on-accent);
+  }
+
+  .screenRailItem[data-state='done'] .screenRailGlyph {
+    background: var(--sf-bg-surface);
+    color: var(--sf-accent-emerald);
   }
 }

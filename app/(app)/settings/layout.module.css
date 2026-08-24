@@ -37,12 +37,17 @@
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-medium);
-  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 .navItem:hover {
   background: var(--sf-bg-surface-hover);
   color: var(--sf-text-primary);
+}
+
+.navItem:active {
+  transform: scale(0.98);
+  background: var(--sf-bg-surface-hover);
 }
 
 .navIcon {

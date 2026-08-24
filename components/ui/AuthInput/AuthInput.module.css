@@ -97,3 +97,7 @@
   opacity: 0.8;
 }
 }
+
+.iconButton:active {
+  opacity: 0.6;
+}

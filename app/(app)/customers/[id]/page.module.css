@@ -28,7 +28,7 @@
   height: var(--sf-touch-target);
   border-radius: var(--sf-radius-full);
   color: var(--sf-accent-emerald);
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -36,6 +36,11 @@
 .editBtn:hover {
   background: var(--sf-surface-variant);
 }
+}
+
+.editBtn:active {
+  background: var(--sf-surface-variant);
+  transform: scale(0.9);
 }
 
 /* ── Profile header ─────────────────────────────────────────── */
@@ -129,7 +134,7 @@
   font-weight: var(--sf-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -137,6 +142,11 @@
 .quickActionBtn:hover {
   background: var(--sf-surface-variant);
 }
+}
+
+.quickActionBtn:active {
+  background: var(--sf-surface-variant);
+  transform: scale(0.97);
 }
 
 /* ── Generic section shell ─────────────────────────────────── */
@@ -170,7 +180,7 @@
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
   border-radius: var(--sf-radius-sm);
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -178,6 +188,11 @@
 .newBtn:hover {
   background: var(--sf-surface-variant);
 }
+}
+
+.newBtn:active {
+  background: var(--sf-surface-variant);
+  transform: scale(0.95);
 }
 
 .emptyHint {
@@ -291,7 +306,7 @@
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
-  transition: background-color var(--sf-transition-fast);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -299,6 +314,11 @@
 .viewEditBtn:hover {
   background: var(--sf-accent-emerald-glow);
 }
+}
+
+.viewEditBtn:active {
+  background: var(--sf-accent-emerald-glow);
+  transform: scale(0.96);
 }
 
 /* ── Notes ──────────────────────────────────────────────────── */
