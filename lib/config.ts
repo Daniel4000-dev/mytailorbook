@@ -20,4 +20,8 @@ export const APP_CONFIG = {
   currency: 'NGN',
   locale: 'en-NG',
   phonePrefix: '234',
+  social: {
+    instagram: 'https://www.instagram.com/mystitchbook_',
+    facebook: 'https://web.facebook.com/people/Mystitchbook/61593656157347/',
+  },
 } as const;

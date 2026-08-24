@@ -59,14 +59,42 @@ export default function AboutPageContent() {
             never overshadows it.
           </p>
         </motion.div>
-        <motion.div className={styles.bentoCard} {...reveal(0.08)}>
-          <Symbol name="auto_stories" size={26} className={styles.bentoIcon} />
-          <h2>The Origin</h2>
-          <p>
-            Built by DVCH, out of a simple observation: the software available to Nigerian tailors
-            either locked away the data that mattered most, or never took the business seriously enough to
-            charge for it.
-          </p>
+      </section>
+
+      <section className={styles.originSection}>
+        <motion.div className={styles.originInner} {...reveal()}>
+          <span className={styles.eyebrow}>How We Started</span>
+          <h2 className={styles.sectionTitle}>It started with a shirt.</h2>
+          <div className={styles.originBody}>
+            <p>
+              One of us placed a simple order, with a simple deadline. Days passed. Then a week. No update, no
+              message — just silence. When the piece finally arrived, it wasn&apos;t quite right, and by then,
+              neither was our trust.
+            </p>
+            <p>
+              A month later, we ran into the same tailor by chance. The explanation was honest: days of power
+              outages, orders piling up, no time left to keep anyone updated.
+            </p>
+            <p>
+              That&apos;s when it clicked — this wasn&apos;t a bad tailor. This was a good tailor carrying too much,
+              with nowhere to put it down. Every order, every promise, every measurement, living in one
+              overworked memory instead of somewhere safe.
+            </p>
+            <p className={styles.originPullQuote}>
+              The silence wasn&apos;t rudeness. It was a system missing.
+            </p>
+            <p>
+              When we shared the story with the rest of our team, everyone had their own version of it — some
+              from the customer&apos;s side, wondering; some from the tailor&apos;s side, drowning quietly while
+              doing their best. This wasn&apos;t one bad shop having a bad day. It was happening everywhere, on
+              both sides of the counter.
+            </p>
+            <p>
+              So we built MyStitchBook — a simple place to keep every order, every customer, and every promise
+              somewhere everyone can actually see. Not because tailors need to be told how to sew. Because
+              everyone, on both sides, deserves to stop wondering.
+            </p>
+          </div>
         </motion.div>
       </section>
 

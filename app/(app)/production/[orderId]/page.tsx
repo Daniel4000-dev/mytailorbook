@@ -391,16 +391,16 @@ export default function OrderDetailPage() {
       }
     >
       <div className={styles.detailWrapper}>
-        {/* Desktop: header/meta/timeline span the full width as one band —
-           "where is this order right now" — then documentation splits into
-           two columns below (photos left, text/data right — keeps the
-           photo grid clear of the page's fixed WhatsApp shortcut, which
-           sits bottom-right). Mobile: plain stacking blocks, same order as
-           always. */}
-        <div className={styles.topBand}>
+        {/* Desktop: a real two-column detail view — main column (the
+           actual work: photos, notes, measurements) on the left, a
+           persistent rail (order properties, money, history, destructive
+           action) on the right — the same split Linear/GitHub issue views
+           use. Placement is pure CSS grid-area, fully decoupled from DOM
+           order, so mobile's flex-column stacking below is completely
+           untouched — same source order as always. */}
         {/* 1. Move to next stage */}
         {next && (
-          <div className={styles.advanceRow}>
+          <div className={styles.advanceRow + ' ' + styles.gaAdvance}>
             <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
               <>
                 {advancing && <Symbol name="progress_activity" className="global-spinner" />}
@@ -412,7 +412,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* 2. Order / customer header */}
-        <section className={styles.card}>
+        <section className={styles.card + ' ' + styles.gaHeader}>
           <div className={styles.headerRow}>
             <div className={styles.headerLeft}>
               <div className={styles.avatarLarge}>{order.customerName ? order.customerName[0].toUpperCase() : '?'}</div>
@@ -446,8 +446,184 @@ export default function OrderDetailPage() {
           )}
         </section>
 
+        {/* 4. Inspiration */}
+        <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaInspo}>
+          <div className={styles.capsHeader}>
+            <h3 className={styles.capsTitle}>Inspiration</h3>
+            {!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT ? (
+              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
+            ) : (
+              <label className={styles.addLink}>
+                <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
+                <Symbol name="add_photo_alternate" size={18} />
+                {uploadingInspo ? 'Uploading…' : 'Add'}
+              </label>
+            )}
+          </div>
+          {(order.inspirationImages || []).length === 0 ? (
+            <p className={styles.emptyNote}>No reference photo yet — add one if the customer has an inspo they want matched.</p>
+          ) : (
+            <div className={styles.inspoGrid}>
+              {(order.inspirationImages || []).map((url, i) => (
+                <div key={i} className={styles.inspoThumb}>
+                  <Image
+                    src={url}
+                    alt={`Inspiration ${i + 1}`}
+                    width={400}
+                    height={400}
+                    onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
+                    style={{ cursor: 'zoom-in' }}
+                  />
+                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
+                    <Symbol name="close" size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 6. Progress gallery */}
+        <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaGallery}>
+          <div className={styles.capsHeader}>
+            <h3 className={styles.capsTitle}>Progress Gallery</h3>
+            {!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT ? (
+              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
+            ) : (
+              <label className={styles.addLink}>
+                <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                <Symbol name="add_a_photo" size={18} />
+                {uploadingPhoto ? 'Uploading…' : 'Add'}
+              </label>
+            )}
+          </div>
+          {(order.images || []).length === 0 ? (
+            <p className={styles.emptyNote}>No progress photos yet — snap one as the garment moves through each stage.</p>
+          ) : (
+            <div className={styles.galleryGrid}>
+              {(order.images || []).map((photo, i) => (
+                <div key={i} className={styles.galleryThumb}>
+                  <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
+                  <div className={styles.glassCaption}>
+                    {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                  </div>
+                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
+                    <Symbol name="close" size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+        {/* 5. Order notes */}
+        <section className={styles.card + ' ' + styles.gaNotes}>
+          <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
+            <h3 className={styles.capsTitle}>Order Notes</h3>
+            <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
+          </div>
+          <textarea
+            className={styles.notesArea}
+            value={notesDraft ?? order.orderDetails}
+            onChange={(e) => setNotesDraft(e.target.value)}
+            placeholder="Add garment details and tailor notes here…"
+          />
+          <button
+            type="button"
+            className={styles.saveNoteBtn}
+            onClick={handleSaveNotes}
+            disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
+          >
+            {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
+            Save Note
+          </button>
+        </section>
+
+        {/* Customer comments (from the public tracking page) */}
+        {comments.length > 0 && (
+          <section className={styles.card + ' ' + styles.gaComments}>
+            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
+              <h3 className={styles.capsTitle}>Customer Comments</h3>
+              <Symbol name="chat_bubble" size={16} className={styles.capsIcon} />
+            </div>
+            <div className={styles.commentList}>
+              {comments.map((c) => (
+                <div key={c.id} className={styles.commentRow}>
+                  <div className={styles.commentMeta}>
+                    <span className={styles.commentStage}>{c.stage}</span>
+                    <span className={styles.commentDate}>{formatDate(c.createdAt)}</span>
+                  </div>
+                  <p className={styles.commentMessage}>{c.message}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Batch siblings */}
+        {batchSiblings.length > 0 && (
+          <section className={styles.card + ' ' + styles.gaBatch}>
+            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
+              <h3 className={styles.capsTitle}>From the Same Visit ({batchSiblings.length + 1} items)</h3>
+              <Symbol name="layers" size={16} className={styles.capsIcon} />
+            </div>
+            <div className={styles.batchList}>
+              {batchSiblings.map((sibling) => (
+                <Link key={sibling.id} href={ROUTES.productionOrder(sibling.id)} className={styles.batchRow}>
+                  <span className={styles.batchDetails}>{sibling.orderDetails}</span>
+                  <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
+                    {sibling.status}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 7. Measurements */}
+        <section className={styles.card + ' ' + styles.gaMeasure}>
+          <div className={styles.sectionHeaderRow}>
+            <h3 className={styles.sectionTitle}>
+              {usingOrderMeasurements ? 'Measurements (this order)' : "Measurements (customer's body profile)"}
+            </h3>
+            <button
+              type="button"
+              className={styles.roundIconBtn}
+              aria-label="Edit this order's measurements"
+              onClick={() => setEditingMeasurements(true)}
+            >
+              <Symbol name="edit" size={20} />
+            </button>
+          </div>
+          {measurementEntries.length === 0 ? (
+            <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
+          ) : (
+            <>
+              <div className={styles.measureGrid}>
+                {measurementEntries.map(([key, value]) => (
+                  <div key={key} className={styles.measureRow}>
+                    <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
+                    <span className={styles.measureValue}>{value}&quot;</span>
+                  </div>
+                ))}
+              </div>
+              {!usingOrderMeasurements && (
+                <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
+              )}
+            </>
+          )}
+        </section>
+
+        {/* Rail: everything that's about this order rather than the work
+           on it — properties, money, comms, history, the destructive
+           action — as one persistent column next to the main content, the
+           same split Linear/GitHub use. On mobile this wrapper is
+           `display: contents` (it disappears from layout entirely) and
+           every child below carries an explicit `order` so the visual
+           sequence stays byte-identical to before this section existed —
+           only its markup position moved, nothing the user sees did. */}
+        <div className={styles.railWrap}>
         {/* 3. Metadata */}
-        <section className={styles.card}>
+        <section className={styles.card + ' ' + styles.gaMeta + ' ' + styles.orderMeta}>
           <div className={styles.metaGrid}>
             <div className={styles.metaItem}>
               <span className={styles.metaLabel}>Assigned To</span>
@@ -544,185 +720,9 @@ export default function OrderDetailPage() {
           )}
         </section>
 
-        </div>
-
-        <div className={styles.twoColGrid}>
-        <div className={styles.colPhotos}>
-        {/* 4. Inspiration */}
-        <section className={styles.card + ' ' + styles.flushCard}>
-          <div className={styles.capsHeader}>
-            <h3 className={styles.capsTitle}>Inspiration</h3>
-            {!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT ? (
-              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
-            ) : (
-              <label className={styles.addLink}>
-                <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
-                <Symbol name="add_photo_alternate" size={18} />
-                {uploadingInspo ? 'Uploading…' : 'Add'}
-              </label>
-            )}
-          </div>
-          {(order.inspirationImages || []).length === 0 ? (
-            <p className={styles.emptyNote}>No reference photo yet — add one if the customer has an inspo they want matched.</p>
-          ) : (
-            <div className={styles.inspoGrid}>
-              {(order.inspirationImages || []).map((url, i) => (
-                <div key={i} className={styles.inspoThumb}>
-                  <Image
-                    src={url}
-                    alt={`Inspiration ${i + 1}`}
-                    width={400}
-                    height={400}
-                    onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
-                    style={{ cursor: 'zoom-in' }}
-                  />
-                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
-                    <Symbol name="close" size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* 6. Progress gallery */}
-        <section className={styles.card + ' ' + styles.flushCard}>
-          <div className={styles.capsHeader}>
-            <h3 className={styles.capsTitle}>Progress Gallery</h3>
-            {!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT ? (
-              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
-            ) : (
-              <label className={styles.addLink}>
-                <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-                <Symbol name="add_a_photo" size={18} />
-                {uploadingPhoto ? 'Uploading…' : 'Add'}
-              </label>
-            )}
-          </div>
-          {(order.images || []).length === 0 ? (
-            <p className={styles.emptyNote}>No progress photos yet — snap one as the garment moves through each stage.</p>
-          ) : (
-            <div className={styles.galleryGrid}>
-              {(order.images || []).map((photo, i) => (
-                <div key={i} className={styles.galleryThumb}>
-                  <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
-                  <div className={styles.glassCaption}>
-                    {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
-                  </div>
-                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
-                    <Symbol name="close" size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-        </div>
-
-        <div className={styles.colText}>
-        {/* 5. Order notes */}
-        <section className={styles.card}>
-          <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-            <h3 className={styles.capsTitle}>Order Notes</h3>
-            <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
-          </div>
-          <textarea
-            className={styles.notesArea}
-            value={notesDraft ?? order.orderDetails}
-            onChange={(e) => setNotesDraft(e.target.value)}
-            placeholder="Add garment details and tailor notes here…"
-          />
-          <button
-            type="button"
-            className={styles.saveNoteBtn}
-            onClick={handleSaveNotes}
-            disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
-          >
-            {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
-            Save Note
-          </button>
-        </section>
-
-        {/* Customer comments (from the public tracking page) */}
-        {comments.length > 0 && (
-          <section className={styles.card}>
-            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-              <h3 className={styles.capsTitle}>Customer Comments</h3>
-              <Symbol name="chat_bubble" size={16} className={styles.capsIcon} />
-            </div>
-            <div className={styles.commentList}>
-              {comments.map((c) => (
-                <div key={c.id} className={styles.commentRow}>
-                  <div className={styles.commentMeta}>
-                    <span className={styles.commentStage}>{c.stage}</span>
-                    <span className={styles.commentDate}>{formatDate(c.createdAt)}</span>
-                  </div>
-                  <p className={styles.commentMessage}>{c.message}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Batch siblings */}
-        {batchSiblings.length > 0 && (
-          <section className={styles.card}>
-            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-              <h3 className={styles.capsTitle}>From the Same Visit ({batchSiblings.length + 1} items)</h3>
-              <Symbol name="layers" size={16} className={styles.capsIcon} />
-            </div>
-            <div className={styles.batchList}>
-              {batchSiblings.map((sibling) => (
-                <Link key={sibling.id} href={ROUTES.productionOrder(sibling.id)} className={styles.batchRow}>
-                  <span className={styles.batchDetails}>{sibling.orderDetails}</span>
-                  <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
-                    {sibling.status}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 7. Measurements */}
-        <section className={styles.card}>
-          <div className={styles.sectionHeaderRow}>
-            <h3 className={styles.sectionTitle}>
-              {usingOrderMeasurements ? 'Measurements (this order)' : "Measurements (customer's body profile)"}
-            </h3>
-            <button
-              type="button"
-              className={styles.roundIconBtn}
-              aria-label="Edit this order's measurements"
-              onClick={() => setEditingMeasurements(true)}
-            >
-              <Symbol name="edit" size={20} />
-            </button>
-          </div>
-          {measurementEntries.length === 0 ? (
-            <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
-          ) : (
-            <>
-              <div className={styles.measureGrid}>
-                {measurementEntries.map(([key, value]) => (
-                  <div key={key} className={styles.measureRow}>
-                    <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
-                    <span className={styles.measureValue}>{value}&quot;</span>
-                  </div>
-                ))}
-              </div>
-              {!usingOrderMeasurements && (
-                <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
-              )}
-            </>
-          )}
-        </section>
-        </div>
-        </div>
-
         {/* 8. Payment summary (owner only) */}
         {isOwnerView && (
-          <section className={styles.card}>
+          <section className={styles.card + ' ' + styles.gaPayment}>
             <h3 className={styles.sectionTitle}>Payment Summary</h3>
             <div className={styles.payRows}>
               <div className={styles.payRow}>
@@ -795,7 +795,7 @@ export default function OrderDetailPage() {
 
         {/* 8b. Cost & margin (owner only) */}
         {isOwnerView && FEATURE_FLAGS.costMarginTracking && (
-          <section className={styles.card}>
+          <section className={styles.card + ' ' + styles.gaMargin}>
             <h3 className={styles.sectionTitle}>Cost &amp; Margin</h3>
             {hasCostData(order) ? (
               <div className={styles.payRows}>
@@ -833,7 +833,7 @@ export default function OrderDetailPage() {
         {/* 9. Share & communicate — the WhatsApp FAB already covers sending
              this exact stage update (same link/message), so no separate
              button is needed here. */}
-        <section className={styles.card}>
+        <section className={styles.card + ' ' + styles.gaShare}>
           <h3 className={styles.sectionTitle}>Share &amp; Communicate</h3>
           <div className={styles.trackBlock}>
             <span className={styles.capsLabel}>Public Tracking Link</span>
@@ -860,7 +860,7 @@ export default function OrderDetailPage() {
         </section>
 
         {/* Activity timeline — full pipeline, done/current/pending. */}
-        <section className={styles.card}>
+        <section className={styles.card + ' ' + styles.gaTimeline}>
           <h3 className={styles.sectionTitle}>Activity Timeline</h3>
           <div className={styles.timeline}>
             {ORDER_STATUSES.map((status) => {
@@ -946,6 +946,7 @@ export default function OrderDetailPage() {
             </button>
           </section>
         )}
+        </div>
       </div>
 
       {/* Floating WhatsApp shortcut — portaled straight to document.body,

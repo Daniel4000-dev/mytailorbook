@@ -8,17 +8,42 @@
   padding-bottom: var(--sf-space-xl);
 }
 
-/* On mobile these are just plain stacking blocks — same visual order as
+/* On mobile this is just a plain stacking block — same visual order as
    before the desktop split existed. */
-.profileBar,
-.twoColGrid,
-.colA,
-.colB {
+.profileBar {
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-xl);
   min-width: 0;
 }
+
+/* .railWrap wraps Financial Summary, the primary action buttons, Notes,
+   and Danger Zone — mobile: `display: contents` makes this wrapper
+   invisible to layout, so its children stack via .page's own flex gap
+   exactly as if this div didn't exist (see the order block below for why
+   the *sequence* still comes out right). Desktop: it becomes one real box
+   occupying the full height of the right column. */
+.railWrap {
+  display: contents;
+}
+
+/* .railWrap is `display: contents` on mobile, so its children become
+   direct flex items of .page right alongside Measurement Profiles/
+   Full-Body/Recent Orders. Without an explicit order they'd fall back to
+   DOM position, which is now wrong (Financial Summary/actions/notes/
+   danger moved next to each other in the markup so desktop can make them
+   one real spanning rail item). These values just restore mobile's
+   original visual sequence — each number matches the item's old position
+   in the file. On desktop this has no visible effect (.railWrap stops
+   being `display: contents` there, so order no longer needs to reach
+   across it) but is harmless to leave on. */
+.gaProfiles { order: 1; }
+.gaBody { order: 2; }
+.orderFinancial { order: 3; }
+.orderNotes { order: 4; }
+.gaOrders { order: 5; }
+.orderActions { order: 6; }
+.dangerZone { order: 7; }
 
 .editBtn {
   display: flex;
@@ -483,30 +508,65 @@
 
    The top band (.profileBar) is deliberately left untouched otherwise —
    same centered avatar/name/quick-actions stack as mobile, just a
-   full-width bordered card instead of a 640px-capped column. Financial
-   Summary moved down into the two-column split below (see page.tsx) —
-   it's no longer part of this band at all. */
+   full-width bordered card instead of a 640px-capped column.
+
+   Below it: a real two-column detail view, the same split the Order
+   Detail page uses. Main column (grid-column: 1) carries the substantial
+   content — Measurement Profiles, the Full-Body diagram, Recent Orders.
+   .railWrap becomes one real box spanning the full height of the 340px
+   right column — everything about the customer rather than their garment
+   record: financial glance, primary actions, notes, the destructive
+   action. Using one real spanning box (not grid-template-areas pairing
+   rail items against specific main-column rows) avoids a bug hit on the
+   Order Detail page: when a main-column row had no content, the grid's
+   row-sizing algorithm dumped the rail's leftover height into that empty
+   row, opening a large blank gap. */
 @media (min-width: 1024px) {
   .page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sf-space-xl);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    /* Needed for .railWrap's `grid-row: 1 / -1` below to mean anything —
+       without an explicit row count, line -1 has no defined target. 4
+       rows = profileBar (its own full-width row) + the 3 main-column
+       items (Measurement Profiles/Full-Body/Recent Orders). */
+    grid-template-rows: auto repeat(3, auto);
+    column-gap: var(--sf-space-xl);
+    row-gap: var(--sf-space-xl);
+    align-items: start;
     max-width: none;
     margin: 0;
   }
 
   .profileBar {
+    grid-column: 1 / -1;
     background: var(--sf-bg-surface);
     border: 1px solid var(--sf-border-light);
     border-radius: var(--sf-radius-xl);
     padding: var(--sf-space-xl) var(--sf-space-lg);
   }
 
-  .twoColGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .gaProfiles,
+  .gaBody,
+  .gaOrders {
+    grid-column: 1;
+  }
+
+  .railWrap {
+    display: flex;
+    flex-direction: column;
     gap: var(--sf-space-xl);
-    align-items: start;
+    grid-column: 2;
+    grid-row: 2 / -1;
+    min-width: 0;
+  }
+
+  /* .actionBar's own 640px breakpoint predates this rail — it switches
+     to a row layout for any viewport ≥640px, with no idea it might now
+     be squeezed into a 340px column instead of the full page width.
+     Force it back to a stacked column here, sized for the rail's actual
+     width. */
+  .orderActions {
+    flex-direction: column;
   }
 
   /* Flat/plain on desktop only — mobile keeps its original shadow. */

@@ -83,6 +83,12 @@ export default function NotificationsPage() {
         />
       }
     >
+      {/* A flat chronological feed doesn't benefit from a two-pane split
+         the way a detail page does — it just needs a sane reading-width
+         cap so it doesn't stretch edge-to-edge on a wide desktop window.
+         640px is a no-op on any real phone viewport, so mobile is
+         unaffected. */}
+      <div className={styles.page}>
       <SearchBar value={query} onChange={setQuery} placeholder="Search notifications..." />
 
       <div className={styles.pillRow}>
@@ -133,6 +139,7 @@ export default function NotificationsPage() {
           </div>
         ))
       )}
+      </div>
     </PageLayout>
   );
 }

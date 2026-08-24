@@ -149,13 +149,13 @@ export default function HomePageContent() {
       </section>
 
       {/* SECTION 2: How MyStitchBook Works */}
-      <section className={styles.featuresSection} style={{ padding: '6rem 2rem', background: 'var(--sf-surface-elevated)' }}>
-        <div className={styles.portfolioInner} style={{ textAlign: 'center', marginBottom: '4rem', width: '100%' }}>
+      <section className={styles.featuresSection} style={{ padding: '6rem 2rem', background: 'var(--sf-bg-surface-elevated)' }}>
+        <div style={{ textAlign: 'center', marginBottom: '4rem', width: '100%' }}>
           <motion.h2 className={styles.sectionTitle} {...reveal(0.05)}>
             How MyStitchBook Works
           </motion.h2>
         </div>
-        
+
         <div className={styles.painGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
           {HOW_IT_WORKS.map((step, i) => (
             <motion.div key={step.step} className={styles.painCard} {...reveal(0.1 + i * 0.1, popIn)} style={{ textAlign: 'center', background: 'var(--sf-surface-main)', padding: '2rem' }}>
@@ -169,8 +169,16 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* Feature highlights (Restored) */}
+      {/* Feature highlights */}
       <section className={styles.featuresSection}>
+        <div style={{ textAlign: 'center', width: '100%' }}>
+          <motion.span className={styles.eyebrow} {...reveal(0.05)} style={{ textAlign: 'center' }}>
+            Inside the app
+          </motion.span>
+          <motion.h2 className={styles.sectionTitle} {...reveal(0.08)}>
+            Everything you need, built in.
+          </motion.h2>
+        </div>
         {FEATURES.map((feature, i) => {
           const reversed = i % 2 === 1;
           return (
@@ -215,35 +223,6 @@ export default function HomePageContent() {
             </motion.div>
           ))}
         </div>
-      </section>
-
-      {/* SECTION 4: Trust */}
-      <section className={styles.portfolioSection} style={{ background: '#f8fafc', padding: '8rem 2rem', textAlign: 'center' }}>
-        <motion.div {...reveal(0, popIn)} style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 800, color: '#0f172a', marginBottom: '4rem', lineHeight: 1.1 }}>
-            Built for Modern Tailors <span style={{ fontSize: '1.2em', verticalAlign: 'middle' }}>✂️</span>
-          </h2>
-          
-          <div style={{ background: 'white', padding: '3.5rem', borderRadius: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.06)' }}>
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
-              <div style={{ display: 'flex', gap: '4px', color: '#fbbf24' }}>
-                {[1,2,3,4,5].map(star => <Symbol key={star} name="star" size={28} />)}
-              </div>
-            </div>
-            <p style={{ fontSize: '1.75rem', fontStyle: 'italic', color: '#1e293b', lineHeight: 1.5, marginBottom: '3rem', fontWeight: 500 }}>
-              "MyStitchBook has completely transformed how I run my tailoring workshop. I no longer lose customer measurements or miss delivery dates. My customers are so impressed with the automatic updates they get!"
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--sf-accent-emerald-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sf-accent-emerald)', fontWeight: 'bold', fontSize: '1.5rem' }}>
-                AO
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#0f172a' }}>Adebayo O.</div>
-                <div style={{ color: '#64748b', fontSize: '1rem' }}>Creative Director, Adebayo Stitches</div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </section>
 
       {/* Pricing teaser */}

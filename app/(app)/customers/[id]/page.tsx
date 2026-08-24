@@ -332,10 +332,15 @@ function CustomerProfileContent({
       </section>
       </div>
 
-      <div className={styles.twoColGrid}>
-      <div className={styles.colA}>
+      {/* Desktop: a real two-column detail view — main column (the
+         substantial content: order history, measurement profiles, the
+         full-body diagram) on the left, a persistent rail (financial
+         glance, primary actions, notes, the destructive action) on the
+         right, the same split the Order Detail page uses. Placement below
+         is pure CSS grid-area/order, decoupled from DOM position, so
+         mobile's visual sequence stays exactly what it always was. */}
       {/* Measurement Profiles */}
-      <section className={styles.section}>
+      <section className={styles.section + ' ' + styles.gaProfiles}>
         <div className={styles.sectionTitleRow}>
           <h3 className={styles.sectionTitle}>Measurement Profiles</h3>
           <button type="button" className={styles.newBtn} onClick={() => setStyleSheet({ open: true, style: null })}>
@@ -374,7 +379,7 @@ function CustomerProfileContent({
       </section>
 
       {/* Full-body reference profile */}
-      <section className={styles.section}>
+      <section className={styles.section + ' ' + styles.gaBody}>
         <h3 className={styles.sectionTitle}>Full-Body Profile</h3>
         <MeasurementAnatomy
           gender={customer.gender || 'female'}
@@ -384,11 +389,16 @@ function CustomerProfileContent({
           onValueChange={handleMeasurementChange}
         />
       </section>
-      </div>
 
-      <div className={styles.colB}>
+      {/* Rail: everything about this customer rather than their garment
+         record — financial glance, the primary actions, notes, the
+         destructive action — as one persistent column. On mobile this
+         wrapper is `display: contents` (invisible to layout) and every
+         child carries an explicit `order` so the visual sequence stays
+         byte-identical to before this wrapper existed. */}
+      <div className={styles.railWrap}>
       {/* Financial Summary */}
-      <section className={styles.section}>
+      <section className={styles.section + ' ' + styles.orderFinancial}>
         <h3 className={styles.sectionTitle}>Financial Summary</h3>
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
@@ -408,8 +418,18 @@ function CustomerProfileContent({
         </div>
       </section>
 
+      {/* Bottom actions */}
+      <section className={styles.actionBar + ' ' + styles.orderActions}>
+        <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}>
+          <Symbol name="add_circle" size={20} /> Create New Order
+        </Button>
+        <Button variant="secondary" fullWidth onClick={() => setStyleSheet({ open: true, style: null })}>
+          <Symbol name="straighten" size={20} /> Record Measurements
+        </Button>
+      </section>
+
       {/* Notes */}
-      <section className={styles.section}>
+      <section className={styles.section + ' ' + styles.orderNotes}>
         <h3 className={styles.sectionTitle}>Customer Notes</h3>
         <textarea
           className={styles.notesTextarea}
@@ -420,8 +440,17 @@ function CustomerProfileContent({
         />
       </section>
 
+      <section className={styles.dangerZone}>
+        <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
+        <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
+        <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
+          <Symbol name="delete" /> Delete Customer
+        </Button>
+      </section>
+      </div>
+
       {/* Order History */}
-      <section className={styles.section}>
+      <section className={styles.section + ' ' + styles.gaOrders}>
         <h3 className={styles.sectionTitle}>Recent Orders</h3>
         {custOrders.length > 0 ? (
           <div className={styles.orderList}>
@@ -455,26 +484,6 @@ function CustomerProfileContent({
           <p className={styles.emptyHint}>No orders yet for this customer.</p>
         )}
       </section>
-
-      {/* Bottom actions */}
-      <section className={styles.actionBar}>
-        <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}>
-          <Symbol name="add_circle" size={20} /> Create New Order
-        </Button>
-        <Button variant="secondary" fullWidth onClick={() => setStyleSheet({ open: true, style: null })}>
-          <Symbol name="straighten" size={20} /> Record Measurements
-        </Button>
-      </section>
-
-      <section className={styles.dangerZone}>
-        <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
-        <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
-        <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
-          <Symbol name="delete" /> Delete Customer
-        </Button>
-      </section>
-      </div>
-      </div>
 
       <ConfirmDialog
         isOpen={confirmingDelete}
