@@ -570,6 +570,37 @@
   padding: var(--sf-space-lg);
 }
 
+/* This section's horizontal-scroll strip is a phone pattern — it reads
+   fine as a peek-and-swipe carousel on a narrow screen, but on desktop
+   a single review (or two) just sits stuck at the left edge with a wall
+   of empty space beside it, no different from an accidental leftover.
+   Wrap into a centered row instead, sized as real cards rather than a
+   percentage of the viewport. */
+@media (min-width: 900px) {
+  .reviewsSection {
+    padding-right: var(--sf-margin-desktop);
+  }
+
+  .reviewsRow {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    justify-content: center;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-right: 0;
+  }
+
+  .reviewCard {
+    flex: 0 1 320px;
+  }
+
+  .reviewsSub {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 .reviewStars {
   color: var(--m-accent);
   font-size: 13px;

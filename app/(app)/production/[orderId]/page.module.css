@@ -16,15 +16,13 @@
   min-width: 0;
 }
 
-/* Desktop-split wrappers (see the bottom of this file for the actual
-   @media (min-width: 1024px) column/grid switch) — on mobile these are
-   just plain flex-column stacks so the gap between cards doesn't collapse
-   now that they sit one level deeper than .detailWrapper's direct
-   children. */
-.topBand,
-.twoColGrid,
-.colPhotos,
-.colText {
+/* Rail wrapper (see the bottom of this file for the desktop grid switch)
+   — on mobile this is just a plain flex-column stack so the gap between
+   cards doesn't collapse now that they sit one level deeper than
+   .detailWrapper's direct children. Its own children are exactly the
+   elements that already sat at the end of .detailWrapper, in the same
+   order — this wrapper changes nothing about mobile's stacking. */
+.railTail {
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-lg);
@@ -1110,26 +1108,112 @@
   color: var(--sf-text-secondary);
 }
 
+/* ── Rail order restoration ───────────────────────────────────────
+   .railWrap (below) is `display: contents` on mobile, so its children —
+   the metadata card plus everything after it — become direct flex items
+   of .detailWrapper right alongside the main-column sections. Without an
+   explicit order they'd fall back to DOM position, which is now wrong
+   (metadata moved next to Payment/Danger/etc. in the markup so desktop
+   can make it one real spanning rail item — see the comment by
+   .railWrap below). These `order` values just put mobile's visual
+   sequence back exactly the way it always was; every number here matches
+   the item's old position in the file. On desktop this has no visible
+   effect (.railWrap stops being `display: contents` there, so order no
+   longer needs to reach across it) but is harmless to leave on. */
+.gaAdvance { order: 1; }
+.gaHeader { order: 2; }
+.orderMeta { order: 3; }
+.gaInspo { order: 4; }
+.gaNotes { order: 5; }
+.gaGallery { order: 6; }
+.gaComments { order: 7; }
+.gaBatch { order: 8; }
+.gaMeasure { order: 9; }
+.gaPayment { order: 10; }
+.gaMargin { order: 11; }
+.gaShare { order: 12; }
+.gaTimeline { order: 13; }
+.footerActions { order: 14; }
+.dangerZone { order: 15; }
+
+/* .railWrap wraps the metadata card plus everything from Payment Summary
+   down to Danger Zone — mobile: `display: contents` makes this wrapper
+   invisible to layout, so its children stack via .detailWrapper's own
+   flex gap exactly as if this div didn't exist (see the order block
+   above for why the *sequence* still comes out right). Desktop: it
+   becomes one real box occupying the full height of the right column —
+   see the grid rules below. */
+.railWrap {
+  display: contents;
+}
+
 /* ── Desktop overrides ──────────────────────────────────────────
    Placed last on purpose — CSS source order decides the winner when
    specificity ties against earlier unconditional rules (.detailWrapper
    above sets max-width: 896px unconditionally; this must come after it
-   to actually win). Header/meta/timeline stay a single full-width band;
-   the rest splits into two columns — photos on the left, text/data on
-   the right, so the tall photo grids don't end up under the fixed
-   WhatsApp shortcut that sits bottom-right. Extra right padding on the
-   wrapper keeps every full-width section below the columns (Payment
-   Summary, Danger Zone, etc.) clear of that same fixed button too. */
+   to actually win).
+
+   A real two-column detail view instead of mobile's cards reflowed into
+   two equal columns: a main working column (header, advance action,
+   photos, notes, measurements) in column 1, and .railWrap — everything
+   that's about the order rather than the work on it: properties, money,
+   comms, history, the destructive action — as one persistent box
+   spanning the full height of column 2. The same split Linear/GitHub use
+   for issue detail views.
+
+   Earlier version of this used grid-template-areas pairing each rail
+   item against a specific main-column row — broke as soon as a
+   conditional main-column section (Comments/Batch) didn't render: the
+   grid's row-sizing algorithm dumped the rail's leftover height into
+   that now-empty row, opening a large blank gap in the main column.
+   .railWrap as one real spanning box sidesteps that entirely — its
+   height no longer has to be distributed across rows shared with main
+   content. The WhatsApp FAB is hidden on desktop (replaced by the
+   toolbar button next to NotificationBell — see .whatsappTopBarBtn), so
+   the old padding-right dodge for it is gone too. */
 @media (min-width: 1024px) {
   .detailWrapper {
-    max-width: none;
-    padding-right: 100px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    /* Needed for .railWrap's `grid-row: 1 / -1` below to mean anything —
+       without an explicit row count, line -1 has no defined target and
+       the browser was generating implicit rows in the wrong place,
+       pushing the entire main column hundreds of pixels down the page.
+       8 rows = the 8 main-column items (advance/header/inspo/notes/
+       gallery/comments/batch/measure), auto-placed in `order` sequence. */
+    grid-template-rows: repeat(8, auto);
+    column-gap: var(--sf-space-xl);
+    align-items: start;
+    max-width: 1400px;
   }
 
-  .twoColGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: start;
+  .gaAdvance,
+  .gaHeader,
+  .gaInspo,
+  .gaGallery,
+  .gaNotes,
+  .gaComments,
+  .gaBatch,
+  .gaMeasure {
+    grid-column: 1;
+  }
+
+  .railWrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sf-space-lg);
+    grid-column: 2;
+    grid-row: 1 / -1;
+    min-width: 0;
+  }
+
+  /* The 768px breakpoint below still applies at desktop widths (media
+     queries don't know this card now lives in a 340px rail, not a
+     full-width band) — 4 columns there crams "Assigned To / Due Date /
+     Created / Stage Entry" into slivers that collide with the edit
+     button. Back to 2 columns, sized for the rail's actual width. */
+  .orderMeta .metaGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   /* Flat/plain on desktop only — mobile keeps its card shadow. */

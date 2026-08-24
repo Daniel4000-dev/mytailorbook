@@ -355,56 +355,6 @@
   color: var(--sf-accent-emerald);
 }
 
-/* ── Portfolio teaser ── */
-.portfolioSection {
-  background: var(--sf-accent-emerald);
-  padding: var(--sf-space-3xl) var(--sf-margin-desktop);
-  overflow: hidden;
-}
-
-.portfolioInner {
-  max-width: var(--sf-max-width-desktop);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 0.8fr;
-  gap: var(--sf-space-3xl);
-  align-items: center;
-  text-align: left;
-}
-
-.portfolioShotWrap {
-  justify-self: center;
-  width: 100%;
-  max-width: 320px;
-  border-radius: var(--sf-radius-2xl);
-  overflow: hidden;
-  box-shadow: var(--sf-shadow-xl);
-  border: 6px solid rgba(255, 255, 255, 0.12);
-}
-
-.portfolioShot {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  aspect-ratio: 4 / 5;
-  display: block;
-}
-
-.portfolioSection .eyebrow {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.portfolioSection .sectionTitle {
-  color: var(--sf-text-on-accent);
-}
-
-.portfolioBody {
-  font-size: var(--sf-text-base);
-  line-height: var(--sf-leading-relaxed);
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 var(--sf-space-xl);
-}
-
 /* ── Pricing teaser ── */
 .pricingTeaser {
   max-width: var(--sf-max-width-desktop);
