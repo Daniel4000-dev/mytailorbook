@@ -17,7 +17,9 @@
 
 /* ── Header ─────────────────────────────────────────────────── */
 .header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: var(--sf-z-sticky);
   height: 72px;
   background: var(--sf-bg-primary);
   flex-shrink: 0;
