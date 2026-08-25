@@ -1,0 +1,29 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-bg-primary);
+  opacity: 1;
+  transition: opacity 400ms ease;
+  pointer-events: auto;
+}
+
+.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mark {
+  width: 168px;
+  height: 173px;
+}
+
+@media (max-width: 480px) {
+  .mark {
+    width: 128px;
+    height: 132px;
+  }
+}

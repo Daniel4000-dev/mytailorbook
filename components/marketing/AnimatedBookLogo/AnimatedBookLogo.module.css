@@ -1,0 +1,62 @@
+/* Pixel-traced book mark (see AnimatedBookLogo.tsx) — colors sampled
+   directly from logo.png / logo-dark.png, same tri-state theme pattern
+   used elsewhere (e.g. PortfolioTemplate.module.css). */
+
+.logo {
+  width: 120px;
+  height: 124px;
+  overflow: visible;
+  color: #36129A; /* pageL, light */
+}
+
+.pageR { color: #5121D7; }
+.stitchGroup { color: #ffffff; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo,
+  :root:not([data-theme="light"]) .pageR {
+    color: #E9E9F4;
+  }
+  :root:not([data-theme="light"]) .stitchGroup {
+    color: #6366F1;
+  }
+}
+:root[data-theme="dark"] .logo,
+:root[data-theme="dark"] .pageR {
+  color: #E9E9F4;
+}
+:root[data-theme="dark"] .stitchGroup {
+  color: #6366F1;
+}
+
+.pageL, .pageR, .stitchGroup {
+  transform-origin: 321px 331px;
+}
+
+/* Always plays on mount — this component is only ever mounted at the
+   moment it should play (once per marketing-layout mount), not reused
+   as a static icon elsewhere, so there's no separate trigger class. */
+.pageL { animation: openL 850ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pageR { animation: openR 850ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.stitchGroup { animation: stitchIn 450ms ease-out 480ms both; }
+
+@keyframes openL {
+  0%   { transform: scaleX(0.05); }
+  58%  { transform: scaleX(1.05); }
+  100% { transform: scaleX(1); }
+}
+@keyframes openR {
+  0%   { transform: scaleX(0.05); }
+  58%  { transform: scaleX(1.05); }
+  100% { transform: scaleX(1); }
+}
+@keyframes stitchIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageL, .pageR, .stitchGroup {
+    animation: none !important;
+  }
+}

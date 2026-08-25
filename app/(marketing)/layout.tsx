@@ -1,5 +1,6 @@
 import Header from '@/components/marketing/Header/Header';
 import Footer from '@/components/marketing/Footer/Footer';
+import MarketingSplash from '@/components/marketing/MarketingSplash/MarketingSplash';
 
 /** Shared shell for the public marketing site (home, features, pricing,
  *  about, portfolio-examples). The logged-in-visitor-redirects-to-dashboard
@@ -14,6 +15,7 @@ import Footer from '@/components/marketing/Footer/Footer';
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <MarketingSplash />
       <Header />
       <main>{children}</main>
       <Footer />
