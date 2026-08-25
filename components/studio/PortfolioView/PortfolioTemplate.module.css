@@ -1,7 +1,8 @@
-/* Public shop portfolio — the tailor's shareable website. Elevated from
-   the Stitch mockup; --m-accent/-dark/-light are set inline per shop from
-   a curated palette (see ModernTemplate.tsx ACCENTS), defaulting to this
-   template's original indigo so existing shops see no visual change. */
+/* Public shop portfolio — the tailor's shareable website. Single
+   consolidated template (replaced the old Modern/Editorial/Heritage
+   3-way split — see git history for those). --m-accent/-dark/-light are
+   set inline per shop from a curated palette (see PortfolioTemplate.tsx
+   ACCENTS), defaulting to indigo. */
 
 .page {
   min-height: 100dvh;
@@ -10,53 +11,15 @@
   font-family: var(--sf-font-body);
   display: flex;
   flex-direction: column;
+  /* Mobile persistent bottom bar needs room so it never covers the
+     footer/last section. */
+  padding-bottom: 76px;
 }
 
-/* ── Mini header ────────────────────────────────────────────── */
-.miniHeader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 60;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px var(--sf-margin-mobile);
-  background: rgba(248, 248, 254, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--sf-border-light);
-  transform: translateY(-110%);
-  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.miniHeaderShown {
-  transform: translateY(0);
-}
-
-.miniName {
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-xl);
-  color: var(--m-accent);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.miniCta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 var(--sf-space-lg);
-  border-radius: var(--sf-radius-full);
-  background: var(--m-accent);
-  color: var(--sf-text-on-accent);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
-  text-decoration: none;
-  flex-shrink: 0;
+@media (min-width: 1024px) {
+  .page {
+    padding-bottom: 0;
+  }
 }
 
 /* ── Hero ───────────────────────────────────────────────────── */
@@ -154,23 +117,20 @@
   margin: var(--sf-space-sm) 0 0;
 }
 
-.heroCtas {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
-  width: 100%;
+/* The hero's own WhatsApp button is mobile-only — desktop already has
+   the persistent sticky rail right there in the viewport, so a second
+   identical CTA a few pixels above it would just be clutter. */
+.heroMobileOnly {
   margin-top: var(--sf-space-xl);
 }
 
-@media (min-width: 640px) {
-  .heroCtas {
-    flex-direction: row;
-    justify-content: center;
+@media (min-width: 1024px) {
+  .heroMobileOnly {
+    display: none;
   }
 }
 
-.ctaPrimary,
-.ctaGlass {
+.ctaPrimary {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,40 +142,177 @@
   font-weight: var(--sf-weight-semibold);
   text-decoration: none;
   transition: transform 150ms ease, background-color var(--sf-transition-fast);
-  flex: 1;
-}
-
-.ctaPrimary {
   background: var(--m-accent);
   color: var(--sf-text-on-accent);
   box-shadow: 0 10px 25px color-mix(in srgb, var(--m-accent) 35%, transparent);
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.ctaPrimary:hover {
-  background: var(--m-accent-light);
+  .ctaPrimary:hover {
+    background: var(--m-accent-light);
+  }
 }
-}
 
-.ctaPrimary:active,
-.ctaGlass:active {
+.ctaPrimary:active {
   transform: scale(0.96);
 }
 
-.ctaGlass {
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #ffffff;
+/* ── Layout: single column on mobile, main + sticky rail on desktop ── */
+.layout {
+  display: block;
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.ctaGlass:hover {
-  background: rgba(255, 255, 255, 0.28);
+@media (min-width: 1024px) {
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--sf-space-2xl);
+    align-items: start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--sf-margin-desktop);
+  }
 }
+
+.mainCol {
+  min-width: 0;
+}
+
+/* ── Sticky CTA rail (desktop only) ────────────────────────── */
+.ctaRail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ctaRail {
+    display: block;
+    position: sticky;
+    top: var(--sf-space-xl);
+  }
+}
+
+.ctaRailCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-xl);
+  box-shadow: var(--sf-shadow-md);
+  margin-top: calc(-1 * var(--sf-space-2xl));
+}
+
+.ctaRailTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-xl);
+  margin-bottom: var(--sf-space-sm);
+}
+
+.ctaRailHint {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--sf-space-lg);
+}
+
+.ctaRailBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--sf-touch-target);
+  border-radius: var(--sf-radius-full);
+  background: var(--m-accent);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  text-decoration: none;
+  margin-bottom: var(--sf-space-lg);
+}
+
+.ctaRailList {
+  list-style: none;
+  margin: 0 0 var(--sf-space-lg);
+  padding: var(--sf-space-md) 0 0;
+  border-top: 1px solid var(--sf-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ctaRailList li {
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  padding-left: 18px;
+  position: relative;
+}
+
+.ctaRailList li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--m-accent);
+  font-weight: 900;
+}
+
+.ctaRailAddress {
+  display: block;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-tertiary);
+  margin-bottom: var(--sf-space-md);
+}
+
+.ctaRailShare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: var(--sf-space-sm);
+  border-radius: var(--sf-radius-md);
+  background: none;
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+}
+
+/* ── Mobile persistent bottom bar ───────────────────────────── */
+.mobileBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  padding: 10px var(--sf-margin-mobile) calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--sf-bg-surface);
+  border-top: 1px solid var(--sf-border);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 1024px) {
+  .mobileBar {
+    display: none;
+  }
+}
+
+.mobileBarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--sf-touch-target);
+  border-radius: var(--sf-radius-full);
+  background: var(--m-accent);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  text-decoration: none;
 }
 
 /* ── Our Craft — story block ───────────────────────────────── */
@@ -223,6 +320,14 @@
   padding: var(--sf-space-xl) var(--sf-margin-mobile);
   background: var(--sf-bg-surface-elevated);
   text-align: center;
+  border-radius: var(--sf-radius-lg);
+}
+
+@media (min-width: 1024px) {
+  .storySection {
+    padding: var(--sf-space-xl);
+    margin-top: var(--sf-space-lg);
+  }
 }
 
 .storyEyebrow {
@@ -249,6 +354,14 @@
   justify-content: center;
   padding: var(--sf-space-2xl) var(--sf-margin-mobile);
   background: var(--sf-bg-surface-elevated);
+  border-radius: var(--sf-radius-lg);
+}
+
+@media (min-width: 1024px) {
+  .proofStrip {
+    padding: var(--sf-space-xl);
+    margin-top: var(--sf-space-lg);
+  }
 }
 
 .proofItem {
@@ -297,12 +410,12 @@
 /* ── Gallery ────────────────────────────────────────────────── */
 .gallerySection {
   padding: var(--sf-space-2xl) var(--sf-margin-mobile);
-  background: var(--sf-sand);
-  border-radius: 32px 32px 0 0;
-  margin-top: -24px;
-  position: relative;
-  z-index: 2;
-  box-shadow: 0 -8px 24px rgba(27, 27, 34, 0.05);
+}
+
+@media (min-width: 1024px) {
+  .gallerySection {
+    padding: var(--sf-space-2xl) 0 0;
+  }
 }
 
 .sectionTitle {
@@ -313,62 +426,33 @@
   margin-bottom: var(--sf-space-lg);
 }
 
-.filterRow {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: var(--sf-space-lg);
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.filterRow::-webkit-scrollbar {
-  display: none;
-}
-
-.filterPill {
-  flex-shrink: 0;
-  height: 44px;
-  padding: 0 24px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-primary);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
-  transition: background-color var(--sf-transition-fast), transform 120ms ease;
-}
-
-.filterPill:active {
-  transform: scale(0.95);
-}
-
-.filterPillActive {
-  background: var(--m-accent);
-  border-color: var(--m-accent);
-  color: var(--sf-text-on-accent);
-  box-shadow: var(--sf-shadow-sm);
+@media (min-width: 1024px) {
+  .sectionTitle {
+    text-align: left;
+  }
 }
 
 .bento {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  grid-auto-rows: 180px;
-  grid-auto-flow: dense;
-  max-width: 896px;
-  margin: 0 auto;
 }
 
 @media (min-width: 768px) {
   .bento {
     grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: 220px;
   }
 }
 
-.bentoItem {
+.outfitTile {
   position: relative;
+}
+
+.outfitTileBtn {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
   border-radius: var(--sf-radius-md);
   overflow: hidden;
   box-shadow: var(--sf-shadow-sm);
@@ -378,93 +462,84 @@
   background: var(--sf-surface-container-highest);
 }
 
-.bentoLarge {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
-/* Full garment always visible — a cropped hem or collar defeats the point
-   of a tailoring portfolio. Blurred cover copy behind fills the frame;
-   the real photo sits on top at contain, never cropped. */
-.bentoBackdrop {
-  position: absolute;
-  inset: 0;
+.outfitTileImg {
   object-fit: cover;
-  filter: blur(28px) brightness(0.65) saturate(1.15);
-  transform: scale(1.2);
-}
-
-.bentoImg {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
   transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.bentoItem:hover .bentoImg {
-  transform: scale(1.05);
-}
-}
-
-.bentoItem:active .bentoImg {
-  transform: scale(0.97);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  @media (hover: hover) and (pointer: fine) {
-  .bentoItem:hover .bentoImg { transform: none; }
+  .outfitTileBtn:hover .outfitTileImg {
+    transform: scale(1.05);
   }
 }
 
-.bentoCaption {
+.outfitTileBtn:active .outfitTileImg {
+  transform: scale(0.97);
+}
+
+.photoCountBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+}
+
+.outfitTileCaption {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   background: linear-gradient(to top, rgba(15, 14, 36, 0.82), rgba(15, 14, 36, 0));
-  text-align: left;
-}
-
-.bentoCaption b {
   color: #ffffff;
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
+  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
 }
 
-.bentoCaption small {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
-  text-transform: uppercase;
+.storyBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px;
+  border-radius: var(--sf-radius-md);
+  background: none;
+  border: 1px dashed var(--sf-border);
+  color: var(--m-accent);
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
 }
 
 /* ── Process strip ──────────────────────────────────────────── */
 .processSection {
   padding: var(--sf-space-2xl) var(--sf-margin-mobile);
-  background: var(--sf-bg-primary);
+}
+
+@media (min-width: 1024px) {
+  .processSection {
+    padding: var(--sf-space-2xl) 0;
+  }
 }
 
 .processGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--sf-space-lg);
-  max-width: 896px;
-  margin: 0 auto;
 }
 
 @media (min-width: 768px) {
@@ -493,10 +568,9 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.processStep:hover .processIcon {
-  transform: scale(1.1);
-}
+  .processStep:hover .processIcon {
+    transform: scale(1.1);
+  }
 }
 
 .processStep h3 {
@@ -511,94 +585,36 @@
   color: var(--sf-text-secondary);
 }
 
-/* ── Specialties ────────────────────────────────────────────── */
-.chipsSection {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  padding: 0 var(--sf-margin-mobile) var(--sf-space-2xl);
-  background: var(--sf-bg-primary);
-}
-
-.specialtyChip {
-  padding: 10px 20px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-surface-variant);
-  color: var(--m-accent);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
-  text-transform: uppercase;
-}
-
 /* ── Real reviews ───────────────────────────────────────────── */
 .reviewsSection {
-  padding: var(--sf-space-2xl) 0 var(--sf-space-2xl) var(--sf-margin-mobile);
-  background: var(--sf-bg-primary);
+  padding: 0 var(--sf-margin-mobile) var(--sf-space-2xl);
+}
+
+@media (min-width: 1024px) {
+  .reviewsSection {
+    padding: 0 0 var(--sf-space-2xl);
+  }
 }
 
 .reviewsSub {
-  text-align: center;
   font-size: var(--sf-text-xs);
   color: var(--sf-text-tertiary);
-  margin: calc(-1 * var(--sf-space-md)) var(--sf-margin-mobile) var(--sf-space-lg) 0;
+  margin: calc(-1 * var(--sf-space-md)) 0 var(--sf-space-lg);
 }
 
 .reviewsRow {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  overflow-x: auto;
-  padding-right: var(--sf-margin-mobile);
-  padding-bottom: 4px;
-  scroll-snap-type: x mandatory;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.reviewsRow::-webkit-scrollbar {
-  display: none;
 }
 
 .reviewCard {
-  flex: 0 0 78%;
+  flex: 1 1 260px;
   max-width: 320px;
-  scroll-snap-align: start;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-md);
   padding: var(--sf-space-lg);
-}
-
-/* This section's horizontal-scroll strip is a phone pattern — it reads
-   fine as a peek-and-swipe carousel on a narrow screen, but on desktop
-   a single review (or two) just sits stuck at the left edge with a wall
-   of empty space beside it, no different from an accidental leftover.
-   Wrap into a centered row instead, sized as real cards rather than a
-   percentage of the viewport. */
-@media (min-width: 900px) {
-  .reviewsSection {
-    padding-right: var(--sf-margin-desktop);
-  }
-
-  .reviewsRow {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    justify-content: center;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding-right: 0;
-  }
-
-  .reviewCard {
-    flex: 0 1 320px;
-  }
-
-  .reviewsSub {
-    max-width: 1100px;
-    margin-left: auto;
-    margin-right: auto;
-  }
 }
 
 .reviewStars {
@@ -622,117 +638,12 @@
   color: var(--sf-text-secondary);
 }
 
-/* ── Final CTA ──────────────────────────────────────────────── */
-.ctaSection {
-  padding: 0 var(--sf-margin-mobile) var(--sf-space-2xl);
-  background: var(--sf-bg-primary);
-  display: flex;
-  justify-content: center;
-}
-
-.ctaCard {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-  background: linear-gradient(150deg, var(--m-accent) 0%, var(--m-accent-dark) 100%);
-  border-radius: 32px;
-  padding: var(--sf-space-2xl) var(--sf-space-xl);
-  text-align: center;
-  overflow: hidden;
-  box-shadow: 0 20px 40px color-mix(in srgb, var(--m-accent) 28%, transparent);
-}
-
-.ctaCard h2 {
-  position: relative;
-  font-family: var(--sf-font-heading);
-  font-size: clamp(28px, 6vw, 40px);
-  line-height: 1.2;
-  color: #ffffff;
-  margin-bottom: var(--sf-space-md);
-  text-wrap: balance;
-}
-
-.ctaCard p {
-  position: relative;
-  color: rgba(255, 255, 255, 0.82);
-  margin-bottom: var(--sf-space-xl);
-}
-
-.ctaCardBtn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: var(--sf-touch-target);
-  border-radius: var(--sf-radius-full);
-  background: #ffffff;
-  color: var(--m-accent);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-bold);
-  text-decoration: none;
-  box-shadow: var(--sf-shadow-lg);
-  transition: transform 150ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-.ctaCardBtn:hover {
-  transform: scale(1.02);
-}
-}
-
-.ctaCardBtn:active {
-  transform: scale(0.97);
-}
-
-.guaranteeList {
-  position: relative;
-  list-style: none;
-  margin: var(--sf-space-lg) 0 0;
-  padding: var(--sf-space-md) 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  text-align: left;
-}
-
-.guaranteeList li {
-  font-size: 11px;
-  font-weight: var(--sf-weight-semibold);
-  color: rgba(255, 255, 255, 0.85);
-  padding-left: 18px;
-  position: relative;
-}
-
-.guaranteeList li::before {
-  content: '✓';
-  position: absolute;
-  left: 0;
-  color: #ffffff;
-  font-weight: 900;
-}
-
-.ctaAddress {
-  position: relative;
-  display: block;
-  margin-top: var(--sf-space-lg);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-}
-
 /* ── Footer ─────────────────────────────────────────────────── */
 .footer {
   margin-top: auto;
   padding: var(--sf-space-lg);
   text-align: center;
   border-top: 1px solid var(--sf-border-light);
-  background: var(--sf-bg-primary);
 }
 
 .footer p {
@@ -754,8 +665,9 @@
   text-transform: none;
 }
 
-/* ── Lightbox ───────────────────────────────────────────────── */
-.lightbox {
+/* ── Lightbox (photo + story share the same chrome) ────────── */
+.lightbox,
+.storyOverlay {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -787,6 +699,7 @@
   color: rgba(255, 255, 255, 0.85);
   font-size: var(--sf-text-sm);
   text-align: center;
+  text-transform: capitalize;
 }
 
 .lightboxClose {
@@ -801,6 +714,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 .lightboxNav {
@@ -825,18 +739,58 @@
   right: var(--sf-space-sm);
 }
 
+/* ── Story viewer ───────────────────────────────────────────── */
+.storyPanel {
+  width: 100%;
+  max-width: 560px;
+  max-height: 84dvh;
+  overflow-y: auto;
+  background: var(--sf-bg-primary);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-xl);
+}
+
+.storyPanelTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-xl);
+  margin-bottom: var(--sf-space-sm);
+}
+
+.storyPanelCaption {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--sf-space-lg);
+}
+
+.storySequence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.storyFrame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+}
+
+.storyFrame img {
+  object-fit: cover;
+}
+
 /* ── Dark mode ──────────────────────────────────────────────
    Most of this page already flows through the app's own --sf-* tokens
    (see styles/tokens.css), which already have dark variants — canvas,
    surfaces, text and borders adapt automatically with zero changes here.
-   What's left: --m-accent/-dark/-light are set inline per shop (see
-   ModernTemplate.tsx's ACCENTS lookup, keyed by the data-accent attribute
-   also set there), so they're fixed light-mode hex values regardless of
-   theme and need !important to win over that inline style. Lightened
-   per accent for contrast against a dark canvas, same relationship
-   tokens.css used for its own indigo (#4338CA → #6366F1). Also: the
-   mini-header's light glass background needs its own dark equivalent —
-   it's the one hardcoded (non-token) color in this file. */
+   --m-accent/-dark/-light are set inline per shop (see
+   PortfolioTemplate.tsx's ACCENTS lookup, keyed by data-accent), so
+   they're fixed light-mode hex values regardless of theme — lightened
+   per accent for contrast against a dark canvas for the original four
+   colors that predate the accent-set expansion; the newer accents already
+   read reasonably against a dark background without an override. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .page {
     --m-accent: #6366F1 !important;
@@ -857,9 +811,6 @@
     --m-accent: #FBBF24 !important;
     --m-accent-dark: #B8860B !important;
     --m-accent-light: #FDE68A !important;
-  }
-  :root:not([data-theme="light"]) .miniHeader {
-    background: rgba(19, 18, 32, 0.85);
   }
 }
 
@@ -882,7 +833,4 @@
   --m-accent: #FBBF24 !important;
   --m-accent-dark: #B8860B !important;
   --m-accent-light: #FDE68A !important;
-}
-:root[data-theme="dark"] .miniHeader {
-  background: rgba(19, 18, 32, 0.85);
 }

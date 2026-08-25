@@ -1,75 +1,36 @@
 import Symbol from '@/components/ui/Symbol/Symbol';
-import type { Shop } from '@/lib/types';
 import styles from './TemplatePicker.module.css';
 
-type Template = Shop['portfolioTemplate'];
-
-export const TEMPLATE_ACCENTS: Record<Template, { id: string; hex: string }[]> = {
-  modern: [
-    { id: 'indigo', hex: '#4338CA' },
-    { id: 'coral', hex: '#E8532A' },
-    { id: 'emerald', hex: '#0F9960' },
-    { id: 'amber', hex: '#B8860B' },
-  ],
-  editorial: [
-    { id: 'brass', hex: '#8B6F47' },
-    { id: 'olive', hex: '#6B7B5E' },
-    { id: 'oxblood', hex: '#8A4A4A' },
-    { id: 'slate', hex: '#4A5C6B' },
-    { id: 'indigo', hex: '#4338CA' },
-  ],
-  heritage: [
-    { id: 'terracotta', hex: '#B4552E' },
-    { id: 'sage', hex: '#5B7A6B' },
-    { id: 'umber', hex: '#8A6C46' },
-    { id: 'plum', hex: '#6B5B7A' },
-  ],
-};
-
-export const TEMPLATE_DEFAULT_ACCENT: Record<Template, string> = {
-  modern: 'indigo',
-  editorial: 'brass',
-  heritage: 'terracotta',
-};
-
-const TEMPLATES: { id: Template; title: string; description: string }[] = [
-  { id: 'modern', title: 'Bold & Modern', description: 'Punchy colors, a confident photo grid.' },
-  { id: 'editorial', title: 'Elevated & Cinematic', description: 'Full-bleed photography, quiet luxury.' },
-  { id: 'heritage', title: 'Warm & Personal', description: "A story-first journey, family-run feel." },
+/** One unified accent set — matches components/studio/PortfolioView/
+ *  PortfolioTemplate.tsx's ACCENTS exactly, since there's only one public
+ *  template now (see git history for the retired Modern/Editorial/
+ *  Heritage split). A tailor personalizes color, not layout. */
+export const ACCENTS = [
+  { id: 'indigo', hex: '#4338CA' },
+  { id: 'coral', hex: '#E8532A' },
+  { id: 'emerald', hex: '#0F9960' },
+  { id: 'amber', hex: '#B8860B' },
+  { id: 'brass', hex: '#9C7A3C' },
+  { id: 'olive', hex: '#6B7A3A' },
+  { id: 'oxblood', hex: '#7A2E2E' },
+  { id: 'slate', hex: '#3F4A5A' },
+  { id: 'terracotta', hex: '#B85C38' },
+  { id: 'sage', hex: '#7C9070' },
+  { id: 'umber', hex: '#6E5240' },
+  { id: 'plum', hex: '#6B3F5C' },
 ];
 
-interface TemplatePickerProps {
-  template: Template;
+interface AccentPickerProps {
   accent: string;
-  onSelectTemplate: (template: Template) => void;
   onSelectAccent: (accent: string) => void;
 }
 
-export default function TemplatePicker({ template, accent, onSelectTemplate, onSelectAccent }: TemplatePickerProps) {
-  const accents = TEMPLATE_ACCENTS[template];
-
+export default function TemplatePicker({ accent, onSelectAccent }: AccentPickerProps) {
   return (
     <div>
-      <div className={styles.cards}>
-        {TEMPLATES.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`${styles.card} ${template === t.id ? styles.cardActive : ''}`}
-            onClick={() => onSelectTemplate(t.id)}
-          >
-            <span className={styles.cardTitle}>
-              {t.title}
-              {template === t.id && <Symbol name="check_circle" size={16} className={styles.cardCheck} />}
-            </span>
-            <span className={styles.cardDesc}>{t.description}</span>
-          </button>
-        ))}
-      </div>
-
       <span className={styles.accentLabel}>Accent color</span>
       <div className={styles.swatchRow}>
-        {accents.map((a) => (
+        {ACCENTS.map((a) => (
           <button
             key={a.id}
             type="button"

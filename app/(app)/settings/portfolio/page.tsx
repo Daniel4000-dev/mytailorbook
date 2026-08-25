@@ -16,7 +16,7 @@ import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import TemplatePicker, { TEMPLATE_DEFAULT_ACCENT, TEMPLATE_ACCENTS } from './_components/TemplatePicker';
+import TemplatePicker from './_components/TemplatePicker';
 import ReviewsSection from './_components/ReviewsSection';
 import OutfitBuilder from './_components/OutfitBuilder';
 import {
@@ -29,7 +29,6 @@ import {
   type PortfolioPoolPhoto,
   type PortfolioOutfit,
 } from './actions';
-import type { Shop } from '@/lib/types';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -136,17 +135,6 @@ export default function PortfolioCurationSettingsPage() {
     }
   };
 
-  const handleSelectTemplate = async (template: Shop['portfolioTemplate']) => {
-    if (!currentShop) return;
-    const fallbackAccent = TEMPLATE_DEFAULT_ACCENT[template];
-    const stillValid = TEMPLATE_ACCENTS[template].some((a) => a.id === currentShop.portfolioAccent);
-    try {
-      await updateShop({ portfolioTemplate: template, portfolioAccent: stillValid ? currentShop.portfolioAccent : fallbackAccent });
-    } catch {
-      showToast('Could not change template', 'error');
-    }
-  };
-
   const handleSelectAccent = async (accent: string) => {
     try {
       await updateShop({ portfolioAccent: accent });
@@ -200,12 +188,7 @@ export default function PortfolioCurationSettingsPage() {
       {currentShop && (
         <>
           <h3 className={styles.sectionTitle}>Choose a Look</h3>
-          <TemplatePicker
-            template={currentShop.portfolioTemplate}
-            accent={currentShop.portfolioAccent}
-            onSelectTemplate={handleSelectTemplate}
-            onSelectAccent={handleSelectAccent}
-          />
+          <TemplatePicker accent={currentShop.portfolioAccent} onSelectAccent={handleSelectAccent} />
 
           <h3 className={styles.sectionTitle}>Your Story</h3>
           <div className={styles.storyForm}>

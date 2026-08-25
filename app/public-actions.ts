@@ -299,14 +299,28 @@ export async function getPublicBatchSiblings(orderId: string): Promise<
    gallery + computed proof stats. Customer-identifying fields and
    financials are deliberately never exposed here. */
 
+/** Minimal shape kept only for OG/JsonLd image fallbacks — the actual
+ *  gallery is outfit-based now (see PortfolioOutfit below), not a flat
+ *  photo list. */
 export interface PortfolioPhoto {
   url: string;
-  /** Garment description the photo belongs to (safe: no customer info) */
-  garment: string;
-  /** ISO date the photo was taken */
-  takenAt: string;
-  /** Owner-entered story/caption for this specific photo. */
-  caption?: string;
+}
+
+export interface PortfolioOutfitPhoto {
+  url: string;
+  angle: 'front' | 'back' | 'side' | 'detail' | null;
+}
+
+export interface PortfolioOutfit {
+  id: string;
+  title: string | null;
+  displayPhotos: PortfolioOutfitPhoto[];
+  storyModeEnabled: boolean;
+  storyCaption: string | null;
+  /** Chronological — cutting, sewing, fitting, in whatever order the
+   *  tailor uploaded them. No angle tagging; a story is a sequence, not
+   *  a product shot. */
+  storyPhotos: string[];
 }
 
 export interface PortfolioTestimonial {
@@ -324,12 +338,15 @@ export interface PublicPortfolio {
     phone?: string;
     address?: string;
     logoUrl?: string;
-    portfolioTemplate: 'modern' | 'editorial' | 'heritage';
     portfolioAccent: string;
     tagline?: string;
     bio?: string;
     foundedYear?: number;
   };
+  outfits: PortfolioOutfit[];
+  /** Every outfit's cover photo, cover-first — only used for the OG/
+   *  Twitter card image and the ClothingStore JsonLd's fallback `image`,
+   *  never rendered directly (the template renders from `outfits`). */
   photos: PortfolioPhoto[];
   stats: {
     completed: number;
@@ -361,7 +378,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, slug, name, phone, address, logo_url, portfolio_template, portfolio_accent, portfolio_settings, org_id')
+    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id')
     .eq('slug', slug)
     .single();
   if (shopErr || !shopRow) return null;
@@ -372,41 +389,63 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
 
   const { data: orderRows } = await admin
     .from('orders')
-    .select('order_details, status, due_date, images, status_history, created_at')
+    .select('order_details, status, due_date, status_history, created_at')
     .eq('shop_id', shopId)
     .order('created_at', { ascending: false })
     .limit(300);
 
   const orders = orderRows || [];
 
-  const { data: overrideRows } = await admin
-    .from('portfolio_photo_overrides')
-    .select('photo_url, hidden, featured, caption')
-    .eq('shop_id', shopId);
-  const overrides = new Map((overrideRows || []).map((r) => [r.photo_url, r]));
+  // Gallery: real, explicitly-published outfits only (see
+  // 0040_portfolio_outfits.sql) — nothing here is computed from raw order
+  // photos anymore. sort_order on both the outfit and its photos governs
+  // display order; angle is null for story-mode shots.
+  const { data: outfitRows } = await admin
+    .from('portfolio_outfits')
+    .select('id, title, story_mode_enabled, story_caption, sort_order')
+    .eq('shop_id', shopId)
+    .order('sort_order', { ascending: true });
 
-  // Gallery: featured photos first, then finished-stage (Ready/Completed —
-  // the actual showcase), padded with the freshest in-progress shots if
-  // sparse. Anything explicitly hidden by the Owner never appears here.
-  const featured: PortfolioPhoto[] = [];
-  const finished: PortfolioPhoto[] = [];
-  const inProgress: PortfolioPhoto[] = [];
-  for (const o of orders) {
-    for (const p of (o.images || []) as { url: string; stage: string; uploadedAt: string }[]) {
-      const override = overrides.get(p.url);
-      if (override?.hidden) continue;
-      const entry: PortfolioPhoto = {
-        url: p.url,
-        garment: o.order_details,
-        takenAt: p.uploadedAt,
-        caption: override?.caption || undefined,
-      };
-      if (override?.featured) featured.push(entry);
-      else if (p.stage === 'Ready' || p.stage === 'Delivered') finished.push(entry);
-      else inProgress.push(entry);
+  let outfits: PortfolioOutfit[] = [];
+  if (outfitRows && outfitRows.length > 0) {
+    const outfitIds = outfitRows.map((o) => o.id);
+    const { data: photoRows } = await admin
+      .from('portfolio_outfit_photos')
+      .select('outfit_id, kind, angle, sort_order, portfolio_photos!inner(image_url)')
+      .in('outfit_id', outfitIds)
+      .order('sort_order', { ascending: true });
+
+    const displayByOutfit = new Map<string, PortfolioOutfitPhoto[]>();
+    const storyByOutfit = new Map<string, string[]>();
+    for (const row of photoRows || []) {
+      const url = (row.portfolio_photos as unknown as { image_url: string }).image_url;
+      if (row.kind === 'display') {
+        const list = displayByOutfit.get(row.outfit_id) ?? [];
+        list.push({ url, angle: row.angle });
+        displayByOutfit.set(row.outfit_id, list);
+      } else {
+        const list = storyByOutfit.get(row.outfit_id) ?? [];
+        list.push(url);
+        storyByOutfit.set(row.outfit_id, list);
+      }
     }
+
+    outfits = outfitRows
+      .map((o) => ({
+        id: o.id,
+        title: o.title,
+        displayPhotos: displayByOutfit.get(o.id) ?? [],
+        storyModeEnabled: o.story_mode_enabled,
+        storyCaption: o.story_caption,
+        storyPhotos: storyByOutfit.get(o.id) ?? [],
+      }))
+      // An outfit with zero display photos (e.g. its only photo was
+      // deleted from the pool after publishing) has nothing to show —
+      // drop it rather than render an empty gallery tile.
+      .filter((o) => o.displayPhotos.length > 0);
   }
-  const photos = [...featured, ...finished, ...inProgress].slice(0, 30);
+
+  const photos: PortfolioPhoto[] = outfits.map((o) => ({ url: o.displayPhotos[0].url }));
 
   const { data: ratingRows } = await admin
     .from('order_ratings')
@@ -469,12 +508,12 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       phone: shopRow.phone || undefined,
       address: shopRow.address || undefined,
       logoUrl: shopRow.logo_url || undefined,
-      portfolioTemplate: shopRow.portfolio_template || 'modern',
       portfolioAccent: shopRow.portfolio_accent || 'indigo',
       tagline: settings.tagline || undefined,
       bio: settings.bio || undefined,
       foundedYear: settings.foundedYear || undefined,
     },
+    outfits,
     photos,
     stats: {
       completed: completedOrders.length,
