@@ -15,16 +15,22 @@
 -- get_branch_stats() SQL function from 0021_scale_phase3.sql.
 -- ============================================================
 
+-- Constraints must come off before the data moves — the original
+-- constraint (0001_init.sql) allows 'Completed' but not 'Delivered' yet,
+-- so renaming existing rows first would violate it, and adding the new,
+-- stricter constraint first would reject every row still on 'Completed'.
+-- Drop, migrate data, then re-add.
 alter table orders drop constraint if exists orders_status_check;
-alter table orders add constraint orders_status_check
-  check (status in ('Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'));
-
 alter table order_comments drop constraint if exists order_comments_stage_check;
-alter table order_comments add constraint order_comments_stage_check
-  check (stage in ('Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'));
 
 update orders set status = 'Delivered' where status = 'Completed';
 update order_comments set stage = 'Delivered' where stage = 'Completed';
+
+alter table orders add constraint orders_status_check
+  check (status in ('Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'));
+
+alter table order_comments add constraint order_comments_stage_check
+  check (stage in ('Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'));
 
 -- status_history is a jsonb array of {from, to, at} objects — a plain
 -- text replace of the quoted string is safe here since 'Completed' only
