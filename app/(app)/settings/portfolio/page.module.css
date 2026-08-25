@@ -137,3 +137,143 @@
   color: var(--sf-text-tertiary);
   margin-top: 2px;
 }
+
+.outfitsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--sf-space-xl) 0 var(--sf-space-md);
+}
+
+.outfitsHeader .sectionTitle {
+  margin: 0;
+}
+
+.newOutfitBtn,
+.uploadBtn {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  border: none;
+  border-radius: var(--sf-radius-full);
+  padding: 8px 18px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.uploadBtn {
+  margin-bottom: var(--sf-space-md);
+}
+
+.newOutfitBtn:disabled,
+.uploadBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.outfitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.outfitCard {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: var(--sf-surface-container-highest);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.outfitCard img {
+  object-fit: cover;
+}
+
+.outfitCardEmpty {
+  width: 100%;
+  height: 100%;
+  background: var(--sf-surface-container-highest);
+}
+
+.outfitCardFooter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-xs);
+  padding: var(--sf-space-sm);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.outfitCardTitle {
+  color: #ffffff;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storyBadge {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-full);
+  flex-shrink: 0;
+}
+
+.deleteOutfitBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.poolCard {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  background: var(--sf-surface-container-highest);
+}
+
+.poolCard img {
+  object-fit: cover;
+}
+
+.poolDeleteBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

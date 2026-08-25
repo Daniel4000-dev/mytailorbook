@@ -1,24 +1,35 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
+import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/compressImage';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
-import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import { getPortfolioCurationPhotosAction, setPortfolioPhotoOverrideAction, type PortfolioCurationPhoto } from '@/app/actions';
-import type { Shop } from '@/lib/types';
-import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TemplatePicker, { TEMPLATE_DEFAULT_ACCENT, TEMPLATE_ACCENTS } from './_components/TemplatePicker';
 import ReviewsSection from './_components/ReviewsSection';
+import OutfitBuilder from './_components/OutfitBuilder';
+import {
+  syncAutoPortfolioPhotosAction,
+  addManualPortfolioPhotoAction,
+  deletePortfolioPhotoAction,
+  getPortfolioPoolAction,
+  getPortfolioOutfitsAction,
+  deleteOutfitAction,
+  type PortfolioPoolPhoto,
+  type PortfolioOutfit,
+} from './actions';
+import type { Shop } from '@/lib/types';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -27,13 +38,17 @@ const MIN_FOUNDED_YEAR = 1950;
 export default function PortfolioCurationSettingsPage() {
   const router = useRouter();
   const { currentShop, updateShop } = useData();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [photos, setPhotos] = useState<PortfolioCurationPhoto[]>([]);
+  const [pool, setPool] = useState<PortfolioPoolPhoto[]>([]);
+  const [outfits, setOutfits] = useState<PortfolioOutfit[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [activePhoto, setActivePhoto] = useState<PortfolioCurationPhoto | null>(null);
-  const [captionDraft, setCaptionDraft] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [editingOutfit, setEditingOutfit] = useState<PortfolioOutfit | undefined>(undefined);
 
   const [tagline, setTagline] = useState('');
   const [bio, setBio] = useState('');
@@ -51,41 +66,75 @@ export default function PortfolioCurationSettingsPage() {
     setFoundedYear(currentShop.portfolioSettings.foundedYear ? String(currentShop.portfolioSettings.foundedYear) : '');
   }
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     if (!currentShop?.id) return;
-    getPortfolioCurationPhotosAction(currentShop.id)
-      .then((p) => {
-        setPhotos(p);
-        setIsLoaded(true);
-      })
-      .catch((err) => {
-        showToast(err instanceof Error ? err.message : 'Could not load portfolio photos', 'error');
-        setIsLoaded(true);
-      });
+    try {
+      await syncAutoPortfolioPhotosAction(currentShop.id);
+      const [poolPhotos, outfitList] = await Promise.all([
+        getPortfolioPoolAction(currentShop.id),
+        getPortfolioOutfitsAction(currentShop.id),
+      ]);
+      setPool(poolPhotos);
+      setOutfits(outfitList);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not load your portfolio', 'error');
+    } finally {
+      setIsLoaded(true);
+    }
   }, [currentShop, showToast]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  const handleToggle = async (updates: { hidden?: boolean; featured?: boolean; consentConfirmed?: boolean; caption?: string }) => {
-    if (!activePhoto || !currentShop?.id) return;
-    const reverted = activePhoto;
-    const next = { ...activePhoto, ...updates };
-    setActivePhoto(next);
-    setPhotos((prev) => prev.map((p) => (p.url === activePhoto.url ? next : p)));
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !currentShop?.id || !user) return;
+    setUploading(true);
     try {
-      await setPortfolioPhotoOverrideAction(currentShop.id, activePhoto.url, updates);
-    } catch {
-      showToast('Could not update this photo', 'error');
-      // Roll the sheet's own state back too — otherwise its checkboxes
-      // keep showing the failed optimistic value until closed/reopened.
-      setActivePhoto(reverted);
-      setPhotos((prev) => prev.map((p) => (p.url === reverted.url ? reverted : p)));
+      const file = await compressImage(rawFile);
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${currentShop.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('portfolio-photos').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw new Error(uploadError.message);
+      const imageUrl = supabase.storage.from('portfolio-photos').getPublicUrl(path).data.publicUrl;
+      await addManualPortfolioPhotoAction(currentShop.id, imageUrl);
+      await load();
+      showToast('Photo added to your pool', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
     }
   };
 
-  const handleSaveCaption = () => handleToggle({ caption: captionDraft.trim() || undefined });
+  const handleDeletePhoto = async (photo: PortfolioPoolPhoto) => {
+    if (photo.usedInOutfitIds.length > 0) {
+      showToast('Remove this photo from its outfit(s) first', 'error');
+      return;
+    }
+    try {
+      await deletePortfolioPhotoAction(photo.id);
+      setPool((prev) => prev.filter((p) => p.id !== photo.id));
+    } catch {
+      showToast('Could not remove this photo', 'error');
+    }
+  };
+
+  const handleDeleteOutfit = async (outfitId: string) => {
+    try {
+      await deleteOutfitAction(outfitId);
+      setOutfits((prev) => prev.filter((o) => o.id !== outfitId));
+      load();
+    } catch {
+      showToast('Could not delete this outfit', 'error');
+    }
+  };
 
   const handleSelectTemplate = async (template: Shop['portfolioTemplate']) => {
     if (!currentShop) return;
@@ -188,89 +237,102 @@ export default function PortfolioCurationSettingsPage() {
           <h3 className={styles.sectionTitle}>Reviews</h3>
           <ReviewsSection shopId={currentShop.id} />
 
-          <h3 className={styles.sectionTitle}>Photos</h3>
+          <div className={styles.outfitsHeader}>
+            <h3 className={styles.sectionTitle}>Outfits</h3>
+            <button
+              type="button"
+              className={styles.newOutfitBtn}
+              disabled={pool.length === 0}
+              onClick={() => {
+                setEditingOutfit(undefined);
+                setBuilderOpen(true);
+              }}
+            >
+              + New Outfit
+            </button>
+          </div>
+          <p className={styles.intro}>
+            An outfit is what visitors see as one gallery entry — pick photos from your pool below and tag their angles.
+          </p>
+
+          {isLoaded && outfits.length === 0 ? (
+            <EmptyState
+              icon={<Symbol name="checkroom" size={40} />}
+              title="No outfits published yet"
+              description="Build one from the photos in your pool below to add it to your public portfolio."
+            />
+          ) : (
+            <div className={styles.outfitGrid}>
+              {outfits.map((o) => {
+                const cover = o.photos.find((p) => p.kind === 'display');
+                return (
+                  <button key={o.id} type="button" className={styles.outfitCard} onClick={() => { setEditingOutfit(o); setBuilderOpen(true); }}>
+                    {cover ? (
+                      <Image src={cover.imageUrl} alt="" fill sizes="200px" />
+                    ) : (
+                      <div className={styles.outfitCardEmpty} />
+                    )}
+                    <div className={styles.outfitCardFooter}>
+                      <span className={styles.outfitCardTitle}>{o.title || 'Untitled outfit'}</span>
+                      {o.storyModeEnabled && <span className={styles.storyBadge}>Story</span>}
+                    </div>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className={styles.deleteOutfitBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteOutfit(o.id);
+                      }}
+                    >
+                      <Symbol name="delete" size={16} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <h3 className={styles.sectionTitle}>Photo Pool</h3>
+          <p className={styles.intro}>Every photo available to build outfits from — delivered orders add photos automatically, or upload your own.</p>
+
+          <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleUpload} />
+          <button type="button" className={styles.uploadBtn} disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+            {uploading ? 'Uploading…' : '+ Upload Photo'}
+          </button>
+
+          {isLoaded && pool.length === 0 ? (
+            <EmptyState
+              icon={<Symbol name="photo_library" size={40} />}
+              title="No photos yet"
+              description="Delivered orders with photos will appear here automatically, or upload one above."
+            />
+          ) : (
+            <div className={styles.grid}>
+              {pool.map((p) => (
+                <div key={p.id} className={styles.poolCard}>
+                  <Image src={p.imageUrl} alt="" fill sizes="(max-width: 768px) 33vw, 200px" />
+                  {p.usedInOutfitIds.length > 0 && <span className={styles.badge}>In use</span>}
+                  <button type="button" className={styles.poolDeleteBtn} onClick={() => handleDeletePhoto(p)} aria-label="Remove photo">
+                    <Symbol name="close" size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
-      <p className={styles.intro}>Choose which photos customers see on your public portfolio page.</p>
-
-      {isLoaded && photos.length === 0 ? (
-        <EmptyState
-          icon={<Symbol name="photo_library" size={40} />}
-          title="No photos yet"
-          description="Delivered orders with photos will appear here automatically."
+      {currentShop && (
+        <OutfitBuilder
+          isOpen={builderOpen}
+          onClose={() => setBuilderOpen(false)}
+          shopId={currentShop.id}
+          pool={pool}
+          editingOutfit={editingOutfit}
+          onSaved={load}
         />
-      ) : (
-        <div className={styles.grid}>
-          {photos.map((p) => (
-            <button
-              key={p.url}
-              type="button"
-              className={styles.card}
-              onClick={() => {
-                setActivePhoto(p);
-                setCaptionDraft(p.caption || '');
-              }}
-            >
-              <Image src={p.url} alt="" fill sizes="(max-width: 768px) 33vw, 200px" className={p.hidden ? styles.hiddenPhoto : ''} />
-              {p.featured && <span className={styles.badge}>Featured</span>}
-              {FEATURE_FLAGS.photoConsentTracking && !p.hidden && !p.consentConfirmed && <span className={styles.consentBadge}>Consent not confirmed</span>}
-              {p.hidden && <span className={styles.hiddenOverlay}><Symbol name="visibility_off" size={20} /></span>}
-            </button>
-          ))}
-        </div>
       )}
-
-      <BottomSheet isOpen={!!activePhoto} onClose={() => setActivePhoto(null)} title="Photo Options">
-        {activePhoto && (
-          <div className={styles.sheetBody}>
-            <Image src={activePhoto.url} alt="" width={800} height={600} className={styles.sheetPhoto} />
-            <Input
-              label="Caption (optional)"
-              placeholder="e.g. Finished in 4 days, silk-lined bodice"
-              value={captionDraft}
-              maxLength={120}
-              onChange={(e) => setCaptionDraft(e.target.value)}
-              onBlur={handleSaveCaption}
-            />
-            <label className={styles.toggleRow}>
-              <span>
-                <span className={styles.toggleLabel}>Feature this photo</span>
-                <span className={styles.toggleHint}>Shows first on your public portfolio</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={activePhoto.featured}
-                onChange={(e) => handleToggle({ featured: e.target.checked })}
-              />
-            </label>
-            <label className={styles.toggleRow}>
-              <span>
-                <span className={styles.toggleLabel}>Hide from portfolio</span>
-                <span className={styles.toggleHint}>Stops showing publicly, stays in the order&apos;s history</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={activePhoto.hidden}
-                onChange={(e) => handleToggle({ hidden: e.target.checked })}
-              />
-            </label>
-            {FEATURE_FLAGS.photoConsentTracking && (
-              <label className={styles.toggleRow}>
-                <span>
-                  <span className={styles.toggleLabel}>Customer consented to public use</span>
-                  <span className={styles.toggleHint}>Confirm you&apos;ve checked with the customer before this shows publicly</span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={activePhoto.consentConfirmed}
-                  onChange={(e) => handleToggle({ consentConfirmed: e.target.checked })}
-                />
-              </label>
-            )}
-          </div>
-        )}
-      </BottomSheet>
     </PageLayout>
   );
 }

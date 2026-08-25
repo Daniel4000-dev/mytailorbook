@@ -1,0 +1,111 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+}
+
+.sectionLabel {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  margin-bottom: 2px;
+}
+
+.sectionHint {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin-bottom: var(--sf-space-sm);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--sf-space-sm);
+}
+
+.photoTile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.photoBtn {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: var(--sf-bg-surface-elevated);
+}
+
+.photoBtn img {
+  object-fit: cover;
+}
+
+.photoBtnSelected {
+  border-color: var(--sf-accent-emerald);
+}
+
+.checkBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.angleSelect {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-xs);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+}
+
+.toggleLabel {
+  display: block;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.toggleHint {
+  display: block;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+.saveBtn {
+  width: 100%;
+  padding: var(--sf-space-md);
+  border: none;
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-base);
+  cursor: pointer;
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
