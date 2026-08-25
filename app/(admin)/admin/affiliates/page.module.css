@@ -1,0 +1,120 @@
+.heading {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  margin-bottom: var(--sf-space-xs);
+}
+
+.subheading {
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-xl);
+  flex-wrap: wrap;
+}
+
+.input {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
+}
+
+.submitButton {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border: none;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.formError {
+  color: var(--sf-color-danger, #c0392b);
+  font-size: var(--sf-text-sm);
+}
+
+.empty {
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: var(--sf-text-sm);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.table th {
+  color: var(--sf-text-secondary);
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  font-size: var(--sf-text-xs);
+  letter-spacing: var(--sf-tracking-caps);
+}
+
+.toggleButton {
+  padding: 4px var(--sf-space-sm);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-xs);
+  cursor: pointer;
+}
+
+.toggleButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.nameButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.nameForm {
+  display: inline-block;
+}
+
+.nameInput {
+  padding: 2px var(--sf-space-xs);
+  border: 1px solid var(--sf-accent-emerald);
+  border-radius: var(--sf-radius-sm);
+  font: inherit;
+  font-size: var(--sf-text-sm);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
+}

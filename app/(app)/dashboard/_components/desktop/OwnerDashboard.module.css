@@ -10,7 +10,13 @@
    (accent, text, danger red) is the same token every other card on this
    screen already uses. */
 .hero {
-  background: var(--sf-nav);
+  /* A deep indigo gradient, not flat neutral dark chrome — the previous
+     background (--sf-nav, a plain near-black gray) had nothing tying it
+     to the brand accent besides the small radial glow layered on top, so
+     it read as generic "dark mode card" rather than deliberately ours.
+     Both stops stay within the app's one accent hue (see --sf-accent-
+     emerald-dark), just at different depths — no new color introduced. */
+  background: linear-gradient(160deg, var(--sf-accent-emerald-dark) 0%, var(--sf-nav) 100%);
   border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-xl) var(--sf-space-xl) var(--sf-space-lg);
   display: flex;

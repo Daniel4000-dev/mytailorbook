@@ -103,7 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  text-align: right;
+  text-align: left;
 }
 
 .greetingText {
@@ -145,15 +145,15 @@
   background: var(--sf-bg-surface-hover);
 }
 
-/* Desktop-only duplicate of the sidebar's "New" action (see TopBar.tsx) —
-   hidden on mobile, where .logoToggle is the real menu control. */
-.newAction {
-  display: none;
-}
-
 /* Desktop Styles */
 @media (min-width: 1024px) {
-  .topBar {
+  /* Also targets the same :has() compound selector above — a bare
+     `.topBar` here loses to it on specificity (a :has() pseudo-class
+     counts like an extra class) regardless of source order, which was
+     silently keeping this bar at its mobile auto-height/small-padding
+     even on desktop. */
+  .topBar,
+  .topBar:has(.profileHeaderContent) {
     height: 72px; /* standard dashboard topbar height */
     padding: 0 var(--sf-space-lg);
     background-color: var(--sf-bg-primary) !important;
@@ -194,60 +194,8 @@
   }
 
   /* The sidebar is permanently open on desktop — nothing for this button
-     to toggle — so it's replaced by .newAction here. */
+     to toggle. */
   .hamburgerBtn {
     display: none;
-  }
-
-  /* The dashboard hero panel now owns the full "+ New Order" CTA (wired
-     to this same openCreateMenu action) — keeping the old full-width
-     pill here too would just be a second, visually competing copy of
-     the same button. But an independent review caught a real
-     regression in dropping it outright: the hero isn't sticky (this
-     app's page-transition wrapper breaks position:sticky at any offset
-     other than the very top — see the note on Order Detail's advanceRow
-     for the root cause), so once someone scrolls a tall dashboard the
-     create action disappeared with it. This TopBar sits inside the one
-     element that *is* reliably sticky (top: 0), so a compact icon-only
-     version stays here as the always-reachable fallback — quiet enough
-     not to duplicate the hero's CTA, present enough that the app's most
-     frequent action is never more than one click away regardless of
-     scroll position. */
-  .newAction {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: var(--sf-accent-emerald);
-    color: var(--sf-text-on-accent);
-    cursor: pointer;
-    transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
-  }
-
-  .newActionLabel {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-  }
-
-  .newActionIcon {
-    font-size: 20px;
-  }
-
-  .newAction:active {
-    transform: scale(0.9);
-  }
-}
-
-@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
-  .newAction:hover {
-    background: var(--sf-accent-emerald-dark);
   }
 }

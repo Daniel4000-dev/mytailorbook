@@ -1,5 +1,6 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
@@ -53,6 +54,34 @@ export async function completeOnboarding(shopName: string, nameOverride?: string
   if (profileError) {
     throw new Error(profileError.message);
   }
+
+  await attributeReferral(admin, shop.org_id);
+}
+
+/**
+ * Best-effort affiliate attribution, kept out of the shop/profile insert
+ * above deliberately: `organizations` is created implicitly by the
+ * `shops_auto_create_org()` trigger (see
+ * supabase/migrations/0020_org_branch_tenant_redesign.sql), not an
+ * explicit insert this function controls, so the referral code can only
+ * be attached as a follow-up update once `shop.org_id` comes back. Never
+ * throws — a missing/invalid ref code should never block onboarding.
+ */
+async function attributeReferral(admin: ReturnType<typeof createAdminClient>, orgId: string) {
+  const ref = (await cookies()).get('mtb_ref')?.value;
+  if (!ref) return;
+
+  const { data: affiliate } = await admin
+    .from('affiliates')
+    .select('id')
+    .eq('code', ref)
+    .eq('active', true)
+    .maybeSingle();
+
+  await admin
+    .from('organizations')
+    .update({ referred_by_affiliate_id: affiliate?.id ?? null, referral_code_raw: ref })
+    .eq('id', orgId);
 }
 
 /**

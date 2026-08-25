@@ -1,0 +1,112 @@
+.shell {
+  min-height: 100dvh;
+  background: var(--sf-bg-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 var(--sf-space-md);
+  background: var(--sf-nav);
+  color: #fff;
+}
+
+.brand {
+  font-family: var(--sf-font-heading);
+  font-size: 11px;
+  font-weight: var(--sf-weight-bold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adminName {
+  font-size: var(--sf-text-xs);
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: var(--sf-space-sm);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--sf-max-width-desktop);
+  margin: 0 auto;
+}
+
+/* Mobile default: a horizontal, scrollable tab strip under the header —
+   a fixed-width side column has no room on a phone screen, and this repo's
+   own components (SidebarMenu) already gate their desktop-only layout
+   behind min-width: 1024px, so this admin shell follows the same
+   mobile-first convention rather than inventing a new breakpoint scheme. */
+.sidebar {
+  display: flex;
+  flex-direction: row;
+  gap: var(--sf-space-xs);
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.navLink {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.navLink:hover {
+  background: var(--sf-bg-secondary);
+}
+
+.navLinkActive {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sf-space-lg) var(--sf-space-md);
+}
+
+@media (min-width: 1024px) {
+  .header {
+    height: 56px;
+    padding: 0 var(--sf-space-lg);
+  }
+
+  .brand {
+    font-size: var(--sf-text-sm);
+  }
+
+  .adminName {
+    font-size: var(--sf-text-sm);
+  }
+
+  .body {
+    flex-direction: row;
+  }
+
+  .sidebar {
+    flex-direction: column;
+    width: 200px;
+    flex-shrink: 0;
+    padding: var(--sf-space-xl) var(--sf-space-md);
+    overflow-x: visible;
+    border-bottom: none;
+  }
+
+  .main {
+    padding: var(--sf-space-xl) var(--sf-space-lg);
+  }
+}

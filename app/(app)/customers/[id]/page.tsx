@@ -374,7 +374,10 @@ function CustomerProfileContent({
             ))}
           </div>
         ) : (
-          <p className={styles.emptyHint}>No measurement profiles yet — tap + NEW to add one.</p>
+          <div className={styles.emptyHint}>
+            <Symbol name="checkroom" className={styles.emptyHintIcon} />
+            <span>No measurement profiles yet — tap + NEW to add one.</span>
+          </div>
         )}
       </section>
 
@@ -481,7 +484,10 @@ function CustomerProfileContent({
             ))}
           </div>
         ) : (
-          <p className={styles.emptyHint}>No orders yet for this customer.</p>
+          <div className={styles.emptyHint}>
+            <Symbol name="receipt_long" className={styles.emptyHintIcon} />
+            <span>No orders yet for this customer.</span>
+          </div>
         )}
       </section>
 

@@ -402,23 +402,20 @@
   }
   }
 
-  /* One committed treatment instead of two competing ones (a colored
-     glow pill AND a neutral border, stacked). A soft rounded highlight
-     behind the active item is the exact look of a stock/generated
-     dashboard template — considered desktop software (Linear, Vercel's
-     own dashboard, VS Code's activity list) tends to commit to a single
-     confident signal instead: flat background, bold weight, one solid
-     accent mark. Text stays aligned with every inactive item — only the
-     accent bar and weight change, nothing shifts position. */
+  /* A solid filled pill, not a bare left border on a transparent row —
+     the border-only treatment (tried first) read as generic/templated in
+     practice, not "confident." A real committed fill (same move Vercel's
+     own dashboard and Linear both make for their active nav item) is what
+     actually reads as designed rather than default. */
   .menuItem.active {
-    background-color: transparent;
-    color: var(--sf-accent-emerald) !important;
-    font-weight: 700;
-    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
+    background-color: var(--sf-accent-emerald);
+    color: var(--sf-text-on-accent) !important;
+    font-weight: 600;
+    box-shadow: var(--sf-shadow-sm);
   }
 
   .menuItem.active .menuIcon {
-    color: var(--sf-accent-emerald) !important;
+    color: var(--sf-text-on-accent) !important;
   }
 
   .settingsBtn {
@@ -543,8 +540,13 @@
     align-items: center;
   }
 
-  /* Desktop has the indicator in the branding block — hide the footer copy. */
-  .mobileOnlineIndicator {
+  /* Desktop has the indicator in the branding block — hide the footer copy.
+     Scoped by parent (not just the bare class) on purpose: OnlineIndicator's
+     own .indicator rule sets `display: inline-flex` unconditionally with
+     the exact same specificity as a bare `.mobileOnlineIndicator` selector,
+     so whichever CSS module happened to bundle later was silently winning
+     and this never actually hid on desktop. */
+  .footer .mobileOnlineIndicator {
     display: none;
   }
 }

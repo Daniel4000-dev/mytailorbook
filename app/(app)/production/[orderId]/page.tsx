@@ -461,7 +461,10 @@ export default function OrderDetailPage() {
             )}
           </div>
           {(order.inspirationImages || []).length === 0 ? (
-            <p className={styles.emptyNote}>No reference photo yet — add one if the customer has an inspo they want matched.</p>
+            <div className={styles.emptyPhotoHint}>
+              <Symbol name="add_photo_alternate" className={styles.emptyPhotoIcon} />
+              <span>No reference photo yet — add one if the customer has an inspo they want matched.</span>
+            </div>
           ) : (
             <div className={styles.inspoGrid}>
               {(order.inspirationImages || []).map((url, i) => (
@@ -498,7 +501,10 @@ export default function OrderDetailPage() {
             )}
           </div>
           {(order.images || []).length === 0 ? (
-            <p className={styles.emptyNote}>No progress photos yet — snap one as the garment moves through each stage.</p>
+            <div className={styles.emptyPhotoHint}>
+              <Symbol name="add_a_photo" className={styles.emptyPhotoIcon} />
+              <span>No progress photos yet — snap one as the garment moves through each stage.</span>
+            </div>
           ) : (
             <div className={styles.galleryGrid}>
               {(order.images || []).map((photo, i) => (

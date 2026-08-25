@@ -379,6 +379,23 @@
   font-style: italic;
 }
 
+.emptyPhotoHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: var(--sf-space-lg);
+  text-align: center;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-sm);
+}
+
+.emptyPhotoIcon {
+  font-size: 26px;
+  color: var(--sf-accent-emerald);
+  opacity: 0.5;
+}
+
 /* ── 4. Inspiration ─────────────────────────────────────────── */
 .inspoGrid {
   display: grid;

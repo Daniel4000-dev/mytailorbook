@@ -1,0 +1,95 @@
+.heading {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  margin-bottom: var(--sf-space-xs);
+}
+
+.subheading {
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.searchForm {
+  display: flex;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-lg);
+}
+
+.searchInput {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
+  min-width: 240px;
+}
+
+.searchButton {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-bg-secondary);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+}
+
+.empty {
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: var(--sf-text-sm);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.table th {
+  color: var(--sf-text-secondary);
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  font-size: var(--sf-text-xs);
+  letter-spacing: var(--sf-tracking-caps);
+}
+
+.rowLink {
+  color: var(--sf-accent-emerald);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sf-space-xs);
+  margin-top: var(--sf-space-lg);
+}
+
+.pageLink {
+  padding: 4px var(--sf-space-sm);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+}
+
+.pageLinkActive {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  border-color: var(--sf-accent-emerald);
+}

@@ -221,10 +221,20 @@
 }
 
 .emptyHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sf-space-sm);
   font-size: var(--sf-text-sm);
   color: var(--sf-text-tertiary);
   text-align: center;
   padding: var(--sf-space-lg) 0;
+}
+
+.emptyHintIcon {
+  font-size: 26px;
+  color: var(--sf-accent-emerald);
+  opacity: 0.5;
 }
 
 /* ── Financial summary ─────────────────────────────────────── */

@@ -130,7 +130,14 @@ export default function OwnerDashboard({
           {teamSnapshot.length === 0 ? (
             <div className={pageStyles.emptyState}>
               <Symbol name="group" className={pageStyles.emptyStateIcon} />
-              <span>No staff added yet — invite your team from Settings.</span>
+              <span>No staff added yet — invite your team to see them here.</span>
+              <button
+                type="button"
+                className={pageStyles.emptyStateAction}
+                onClick={() => onNavigate('/settings/staff')}
+              >
+                Invite Team
+              </button>
             </div>
           ) : (
             <div className={styles.teamGrid}>

@@ -128,6 +128,10 @@ export const ROUTES = {
   settingsStudio: '/settings/studio',
   settingsStyles: '/settings/styles',
 
+  // ---- Internal admin (app.<domain>, platform-admin only — see
+  //      lib/admin/requireAdmin.ts; not a shop-tenant route) ----
+  admin: '/admin',
+
   // ---- Public-by-link (bare domain, not indexed) ----
   track: (orderId: string) => `/track/${orderId}`,
   receipt: (orderId: string) => `/receipt/${orderId}`,
@@ -179,7 +183,7 @@ export function isPublicPath(pathname: string) {
  *  what lives at app.<domain> once the two are split by hostname. Auth
  *  pages count as app-side even though they're unauthenticated, since
  *  they're part of getting into the app, not marketing content. */
-export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, '/auth'];
+export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.admin, '/auth'];
 
 export function isAppPath(pathname: string) {
   if ((AUTH_PAGES as readonly string[]).includes(pathname)) return true;
@@ -207,6 +211,7 @@ export const SEARCH_DISALLOW = [
   ROUTES.notifications,
   ROUTES.onboarding,
   ROUTES.fabrics,
+  ROUTES.admin,
   ROUTES.login,
   ROUTES.signup,
   ROUTES.forgotPassword,

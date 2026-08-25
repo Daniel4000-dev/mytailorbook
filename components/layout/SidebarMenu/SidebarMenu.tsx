@@ -127,15 +127,18 @@ export default function SidebarMenu() {
         </div>
       )}
 
-      {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) */}
+      {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) —
+          Settings is deliberately excluded from this map and rendered last,
+          after My Portfolio / Style Gallery, matching the order the mobile
+          sidebar already uses (see mobileOnlyNav above). */}
       <nav className={styles.mainNav}>
-        {visibleNavItems.map((item) => {
+        {visibleNavItems.filter((item) => item.href !== ROUTES.settings).map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
-            <Link 
+            <Link
               href={item.href}
-              key={item.href} 
-              className={`${styles.menuItem} ${isActive ? styles.active : ''}`} 
+              key={item.href}
+              className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
               onClick={() => setMenuOpen(false)}
               title={isCollapsed ? item.label : undefined}
             >
@@ -164,6 +167,16 @@ export default function SidebarMenu() {
           >
             <Symbol name="photo_library" className={styles.menuIcon} />
             <span className={styles.menuText}>Style Gallery</span>
+          </Link>
+        )}
+        {isOwner && (
+          <Link
+            href={ROUTES.settings}
+            className={`${styles.menuItem} ${pathname.startsWith(ROUTES.settings) ? styles.active : ''}`}
+            title={isCollapsed ? 'Settings' : undefined}
+          >
+            <Symbol name="settings" className={styles.menuIcon} />
+            <span className={styles.menuText}>Settings</span>
           </Link>
         )}
       </nav>

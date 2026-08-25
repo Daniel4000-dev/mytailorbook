@@ -1,15 +1,18 @@
 /* Production board — mockup layout: search, pill filter rows, then
    stage sections (banner + vertical list of compact cards). */
 
-/* Desktop-only real Kanban: all stages as columns side by side, filling
-   the remaining viewport height so each column scrolls independently
-   rather than the whole page. */
+/* Desktop-only real Kanban. Previously clamped to `calc(100dvh - Npx)` —
+   deliberately sized to fit exactly within the viewport, so only each
+   column's own card list scrolled and the page itself never did. That
+   meant only ~1 card was visible per column before its internal scroll
+   kicked in. A fixed, generous height instead: tall enough to show a
+   couple of cards at a glance per column, with the *page* scrolling past
+   it (via .main's own overflow-y, same as every other page) rather than
+   each column scrolling independently in a cramped viewport-height box. */
 .columnsRow {
   display: flex;
   gap: var(--sf-space-md);
-  flex: 1;
-  min-height: 0;
-  height: calc(100dvh - 260px);
+  height: 760px;
   overflow-x: auto;
   padding-bottom: var(--sf-space-sm);
 }
