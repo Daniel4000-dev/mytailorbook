@@ -59,7 +59,7 @@
 
 .table {
   width: 100%;
-  min-width: 640px;
+  min-width: 760px;
   border-collapse: collapse;
   font-size: var(--sf-text-sm);
 }
@@ -117,4 +117,16 @@
   font-size: var(--sf-text-sm);
   background: var(--sf-bg-primary);
   color: var(--sf-text-primary);
+}
+
+.copyButton {
+  padding: 4px var(--sf-space-sm);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
 }

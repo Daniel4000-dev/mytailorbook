@@ -64,11 +64,20 @@
 }
 
 .chart {
+  display: block;
   width: 100%;
-  height: 160px;
+  /* Matches the SVG's viewBox (1000x460) so the browser scales it
+     uniformly — a fixed pixel height here (with the old
+     preserveAspectRatio="none") was what stretched every label
+     horizontally the wider the container got. Taller than the section's
+     other cards on purpose: this is the one chart on the page, it should
+     read as the visual anchor of the Overview, not a cramped strip. */
+  aspect-ratio: 1000 / 460;
+  height: auto;
+  min-height: 320px;
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-sm);
+  padding: var(--sf-space-md);
   background: var(--sf-bg-primary);
 }
 
@@ -76,14 +85,44 @@
   fill: var(--sf-accent-emerald);
 }
 
-.chartLabel {
-  font-size: 6px;
-  fill: var(--sf-text-secondary);
+.chartBar:hover {
+  opacity: 0.8;
+}
+
+.chartValueLabel {
+  font-size: 14px;
+  /* A fixed, theme-independent color rather than a text token — the
+     secondary/primary text tokens are tuned for body copy on the page
+     background, not for small SVG labels sitting on this card's own
+     background, and came out too low-contrast in practice. White reads
+     clearly against the brand-purple bars in both themes. */
+  fill: #ffffff;
+  font-weight: 700;
+}
+
+.chartAxisLabel {
+  font-size: 13px;
+  fill: var(--sf-text-primary);
+  opacity: 0.65;
 }
 
 .chartAxis {
-  stroke: var(--sf-border);
+  stroke: var(--sf-text-primary);
+  opacity: 0.35;
+  stroke-width: 1.5;
+}
+
+.chartGridline {
+  stroke: var(--sf-text-primary);
   stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.15;
+}
+
+.chartNote {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin-top: var(--sf-space-sm);
 }
 
 .empty {

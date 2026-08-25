@@ -1,7 +1,9 @@
 import { getAffiliatePerformance } from '@/lib/admin/queries';
+import { APP_CONFIG } from '@/lib/config';
 import AffiliateForm from './AffiliateForm';
 import AffiliateToggle from './AffiliateToggle';
 import AffiliateName from './AffiliateName';
+import CopyLinkButton from './CopyLinkButton';
 import styles from './page.module.css';
 
 export default async function AffiliatesPage() {
@@ -26,6 +28,7 @@ export default async function AffiliatesPage() {
               <tr>
                 <th>Name</th>
                 <th>Code</th>
+                <th>Link</th>
                 <th>Signups</th>
                 <th>Premium conversions</th>
                 <th>Status</th>
@@ -40,6 +43,9 @@ export default async function AffiliatesPage() {
                   </td>
                   <td>
                     <code>{affiliate.code}</code>
+                  </td>
+                  <td>
+                    <CopyLinkButton link={`https://app.${APP_CONFIG.domain}/signup?ref=${affiliate.code}`} />
                   </td>
                   <td>{affiliate.signups}</td>
                   <td>{affiliate.premiumConversions}</td>
