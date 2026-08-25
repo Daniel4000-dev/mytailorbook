@@ -202,14 +202,6 @@
   display: block;
 }
 
-.proofLabel {
-  display: block;
-  padding: var(--sf-space-md) var(--sf-space-lg);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-primary);
-}
-
 .ctaPrimary,
 .ctaPrimaryLight {
   display: inline-flex;

@@ -121,9 +121,8 @@ export default function HomePageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 + i * 0.1 }}
           >
-            <Image src={shot.src} alt="" width={960} height={540} className={`${styles.proofImage} ${styles.proofImageLight}`} />
-            <Image src={shot.darkSrc} alt="" width={960} height={540} className={`${styles.proofImage} ${styles.proofImageDark}`} />
-            <span className={styles.proofLabel}>{shot.label}</span>
+            <Image src={shot.src} alt={shot.label} width={960} height={540} className={`${styles.proofImage} ${styles.proofImageLight}`} />
+            <Image src={shot.darkSrc} alt={shot.label} width={960} height={540} className={`${styles.proofImage} ${styles.proofImageDark}`} />
           </motion.div>
         ))}
       </section>
