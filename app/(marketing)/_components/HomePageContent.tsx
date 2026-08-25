@@ -103,10 +103,6 @@ export default function HomePageContent() {
               Start Free
               <Symbol name="arrow_forward" size={18} />
             </Link>
-            <Link href={ROUTES.portfolioExamples} className={styles.ctaSecondaryOnPhoto}>
-              <Symbol name="visibility" size={18} />
-              Watch Demo
-            </Link>
           </div>
         </motion.div>
       </section>
@@ -114,9 +110,9 @@ export default function HomePageContent() {
       {/* Proof strip */}
       <section className={styles.proofStrip}>
         {[
-          { src: '/images/marketing/proof-production-board.jpg', label: 'Production board' },
-          { src: '/images/marketing/proof-client-profiles.jpg', label: 'Client profiles' },
-          { src: '/images/marketing/proof-public-portfolio.jpg', label: 'Public portfolio' },
+          { src: '/images/marketing/proof-dashboard-home.jpg', darkSrc: '/images/marketing/proof-dashboard-home-dark.jpg', label: 'Dashboard overview' },
+          { src: '/images/marketing/proof-production-board.jpg', darkSrc: '/images/marketing/proof-production-board-dark.jpg', label: 'Production board' },
+          { src: '/images/marketing/proof-client-profiles.jpg', darkSrc: '/images/marketing/proof-client-profiles-dark.jpg', label: 'Client profiles' },
         ].map((shot, i) => (
           <motion.div
             key={shot.src}
@@ -125,7 +121,8 @@ export default function HomePageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 + i * 0.1 }}
           >
-            <Image src={shot.src} alt="" width={640} height={420} className={styles.proofImage} />
+            <Image src={shot.src} alt="" width={960} height={540} className={`${styles.proofImage} ${styles.proofImageLight}`} />
+            <Image src={shot.darkSrc} alt="" width={960} height={540} className={`${styles.proofImage} ${styles.proofImageDark}`} />
             <span className={styles.proofLabel}>{shot.label}</span>
           </motion.div>
         ))}
