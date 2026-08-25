@@ -7,12 +7,33 @@
 .subheading {
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-sm);
-  margin-bottom: var(--sf-space-lg);
 }
 
-.searchForm {
+.headingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  margin-bottom: var(--sf-space-lg);
+  flex-wrap: wrap;
+}
+
+.exportLink {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-bg-secondary);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  white-space: nowrap;
+}
+
+.filterForm {
   display: flex;
   gap: var(--sf-space-sm);
+  flex-wrap: wrap;
+  align-items: center;
   margin-bottom: var(--sf-space-lg);
 }
 
@@ -23,7 +44,17 @@
   font-size: var(--sf-text-sm);
   background: var(--sf-bg-primary);
   color: var(--sf-text-primary);
-  min-width: 240px;
+  min-width: 220px;
+}
+
+.select,
+.dateInput {
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  background: var(--sf-bg-primary);
+  color: var(--sf-text-primary);
 }
 
 .searchButton {
@@ -35,6 +66,12 @@
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
+}
+
+.clearLink {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  text-decoration: underline;
 }
 
 .empty {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getOverviewStats, getSignupSeries, getAffiliatePerformance } from '@/lib/admin/queries';
+import { getOverviewStats, getSignupSeries, getAffiliatePerformance, getRateLimitHotspots } from '@/lib/admin/queries';
 import { ROUTES } from '@/lib/routes';
 import SignupChart from './SignupChart';
 import styles from './page.module.css';
@@ -9,10 +9,11 @@ function formatNaira(amount: number) {
 }
 
 export default async function AdminOverviewPage() {
-  const [stats, signupSeries, affiliates] = await Promise.all([
+  const [stats, signupSeries, affiliates, hotspots] = await Promise.all([
     getOverviewStats(),
     getSignupSeries(30),
     getAffiliatePerformance(),
+    getRateLimitHotspots(),
   ]);
 
   const cards = [
@@ -20,6 +21,8 @@ export default async function AdminOverviewPage() {
     { label: 'Shops / branches', value: stats.totalShops },
     { label: 'Premium subscriptions', value: stats.premiumCount },
     { label: 'Estimated MRR', value: formatNaira(stats.mrrEstimateNgn) },
+    { label: 'Revenue (last 30d)', value: formatNaira(stats.revenueLast30dNgn) },
+    { label: 'Cancellations (30d)', value: stats.cancellations30d },
     { label: 'Customers', value: stats.totalCustomers },
     { label: 'Orders (all-time)', value: stats.totalOrders },
     { label: 'Orders (last 30d)', value: stats.ordersLast30d },
@@ -75,6 +78,38 @@ export default async function AdminOverviewPage() {
                     <td>{a.signups}</td>
                     <td>{a.premiumConversions}</td>
                     <td>{a.active ? 'Active' : 'Inactive'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>Rate-limit hotspots — last 24h</h2>
+        <p className={styles.sectionHint}>
+          Top hit keys against public routes (/track, /studio, /receipt). A key repeatedly near the limit may be scraping,
+          not a real visitor.
+        </p>
+        {hotspots.length === 0 ? (
+          <p className={styles.empty}>No rate-limit activity in the last 24 hours.</p>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Hits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hotspots.map((h) => (
+                  <tr key={h.key}>
+                    <td>
+                      <code>{h.key}</code>
+                    </td>
+                    <td>{h.hits}</td>
                   </tr>
                 ))}
               </tbody>

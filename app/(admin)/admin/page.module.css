@@ -50,6 +50,13 @@
   margin-bottom: var(--sf-space-md);
 }
 
+.sectionHint {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  margin-bottom: var(--sf-space-md);
+  margin-top: calc(-1 * var(--sf-space-sm));
+}
+
 .sectionLink {
   font-size: var(--sf-text-sm);
   color: var(--sf-accent-emerald);

@@ -94,6 +94,36 @@ export default async function OrganizationDetailPage({ params }: { params: Promi
           </table>
         </div>
       </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>Billing history</h2>
+        {org.billingEvents.length === 0 ? (
+          <p className={styles.empty}>No billing events recorded yet.</p>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Resulting status</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {org.billingEvents.map((e, i) => (
+                  <tr key={i}>
+                    <td>{e.eventType}</td>
+                    <td>{statusLabel(e.status)}</td>
+                    <td>{e.amountKobo != null ? `₦${(e.amountKobo / 100).toLocaleString('en-NG')}` : '—'}</td>
+                    <td>{formatDate(e.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
