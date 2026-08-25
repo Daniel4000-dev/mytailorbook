@@ -221,8 +221,18 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             </motion.section>
           )}
 
-          {/* 4. Gallery — one tile per published outfit, not one per photo */}
-          {outfits.length > 0 && (
+          {/* 4. Gallery — one tile per published outfit, not one per photo.
+              A brand-new shop with nothing published yet still gets a
+              branded section here, not a silent gap in the page. */}
+          {outfits.length === 0 ? (
+            <motion.section className={styles.galleryEmpty} {...reveal()}>
+              <Symbol name="checkroom" size={36} className={styles.galleryEmptyIcon} />
+              <h2 className={styles.galleryEmptyTitle}>Work In Progress</h2>
+              <p className={styles.galleryEmptyBody}>
+                {shop.name} is still building their gallery here — finished pieces get added as orders are completed. Reach out below to be one of the first shown.
+              </p>
+            </motion.section>
+          ) : (
             <section className={styles.gallerySection}>
               <motion.h2 className={styles.sectionTitle} {...reveal()}>Our Work</motion.h2>
               <div className={styles.bento}>
