@@ -17,8 +17,8 @@ function formatShortDate(iso: string) {
 export default function SignupChart({ data }: { data: SignupDay[] }) {
   const width = 1000;
   const height = 460;
-  const marginLeft = 44;
-  const marginRight = 12;
+  const marginLeft = 36;
+  const marginRight = 4;
   const marginTop = 24;
   const marginBottom = 40;
   const plotWidth = width - marginLeft - marginRight;
@@ -29,7 +29,7 @@ export default function SignupChart({ data }: { data: SignupDay[] }) {
   // whole, sensible values (0 / 2 / 4 instead of 0 / 1.3 / 2.7).
   const axisMax = Math.max(Math.ceil(max / 2) * 2, 2);
 
-  const barGap = 3;
+  const barGap = 2;
   const barWidth = data.length > 0 ? plotWidth / data.length - barGap : 0;
 
   const yTicks = [0, axisMax / 2, axisMax];
@@ -58,12 +58,24 @@ export default function SignupChart({ data }: { data: SignupDay[] }) {
         })}
 
         {data.map((d, i) => {
-          const barHeight = (d.count / axisMax) * plotHeight;
+          // A day with zero signups gets a small flat stub instead of
+          // rendering nothing — with real height=0 those days were
+          // literally invisible, which made whole stretches of the chart
+          // read as dead empty space rather than "zero, on purpose."
+          const ZERO_STUB_HEIGHT = 5;
+          const barHeight = d.count > 0 ? (d.count / axisMax) * plotHeight : ZERO_STUB_HEIGHT;
           const x = marginLeft + i * (barWidth + barGap);
           const y = marginTop + plotHeight - barHeight;
           return (
             <g key={d.date}>
-              <rect x={x} y={y} width={Math.max(barWidth, 1)} height={Math.max(barHeight, 0)} rx={2} className={styles.chartBar}>
+              <rect
+                x={x}
+                y={y}
+                width={Math.max(barWidth, 1)}
+                height={barHeight}
+                rx={2}
+                className={d.count > 0 ? styles.chartBar : styles.chartBarEmpty}
+              >
                 <title>
                   {formatShortDate(d.date)}: {d.count} signup{d.count === 1 ? '' : 's'}
                 </title>

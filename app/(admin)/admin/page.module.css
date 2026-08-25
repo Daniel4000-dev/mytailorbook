@@ -77,7 +77,7 @@
   min-height: 320px;
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
+  padding: var(--sf-space-sm) var(--sf-space-xs);
   background: var(--sf-bg-primary);
 }
 
@@ -87,6 +87,11 @@
 
 .chartBar:hover {
   opacity: 0.8;
+}
+
+.chartBarEmpty {
+  fill: var(--sf-text-primary);
+  opacity: 0.15;
 }
 
 .chartValueLabel {
