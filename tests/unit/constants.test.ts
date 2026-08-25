@@ -15,17 +15,17 @@ describe('getNextStatus', () => {
     expect(getNextStatus('Documented')).toBe('Cutting');
     expect(getNextStatus('Cutting')).toBe('Sewing');
     expect(getNextStatus('Sewing')).toBe('Ready');
-    expect(getNextStatus('Ready')).toBe('Completed');
+    expect(getNextStatus('Ready')).toBe('Delivered');
   });
 
   it('returns null once the order is Completed — nothing comes after delivery', () => {
-    expect(getNextStatus('Completed')).toBeNull();
+    expect(getNextStatus('Delivered')).toBeNull();
   });
 });
 
 describe('getPreviousStatus', () => {
   it('steps back through the pipeline in order', () => {
-    expect(getPreviousStatus('Completed')).toBe('Ready');
+    expect(getPreviousStatus('Delivered')).toBe('Ready');
     expect(getPreviousStatus('Ready')).toBe('Sewing');
     expect(getPreviousStatus('Sewing')).toBe('Cutting');
     expect(getPreviousStatus('Cutting')).toBe('Documented');

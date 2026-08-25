@@ -8,7 +8,7 @@ const STAGE_ICONS: Record<OrderStatus, string> = {
   Cutting: 'content_cut',
   Sewing: 'apparel',
   Ready: 'inventory_2',
-  Completed: 'check_circle',
+  Delivered: 'check_circle',
 };
 
 const STAGE_HEADLINES: Record<OrderStatus, string> = {
@@ -16,7 +16,7 @@ const STAGE_HEADLINES: Record<OrderStatus, string> = {
   Cutting: 'Cutting',
   Sewing: 'Sewing',
   Ready: 'Ready',
-  Completed: 'Delivered',
+  Delivered: 'Delivered',
 };
 
 const STAGE_STORIES: Record<OrderStatus, string> = {
@@ -24,7 +24,7 @@ const STAGE_STORIES: Record<OrderStatus, string> = {
   Cutting: 'Patterns drafted and your fabric precision-cut to your exact measurements.',
   Sewing: 'On the machine — every seam stitched with care by your tailor.',
   Ready: 'Finished, pressed and packaged. Ready for pickup or delivery!',
-  Completed: 'Delivered. Thank you for trusting us with your style!',
+  Delivered: 'Delivered. Thank you for trusting us with your style!',
 };
 
 const PENDING_NOTES: Record<OrderStatus, string> = {
@@ -32,7 +32,7 @@ const PENDING_NOTES: Record<OrderStatus, string> = {
   Cutting: 'Awaiting pattern drafting and fabric cutting.',
   Sewing: 'Awaiting the sewing bench.',
   Ready: 'Awaiting final finishing and quality checks.',
-  Completed: 'Awaiting handover.',
+  Delivered: 'Awaiting handover.',
 };
 
 function formatStageDate(d: Date): string {
@@ -88,7 +88,7 @@ export default function TimelineStage({
           </span>
           <h3 className={styles.stageTitle}>{STAGE_HEADLINES[status]}</h3>
           <span className={`${styles.stagePill} ${isCompleted ? styles.pillDone : isCurrent ? styles.pillNow : styles.pillWait}`}>
-            {isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'}
+            {isCompleted ? 'Delivered' : isCurrent ? 'In Progress' : 'Pending'}
           </span>
         </div>
       </div>

@@ -175,7 +175,7 @@ export const DEFAULT_STAGE_MESSAGES: Record<OrderStatus, string> = {
   Cutting: `Hi {name}, good news from {shop}! We've started working on your outfit — it's currently in the cutting stage. You can monitor its progress anytime here: {link}`,
   Sewing: `Hi {name}, quick update from {shop} — your outfit is now being sewn together. You can monitor its progress anytime here: {link}`,
   Ready: `Hi {name}, exciting news from {shop}! Your outfit is ready, just some final touches away from being set for you. You can monitor its progress anytime here: {link}`,
-  Completed: `Hi {name}, your outfit is complete and ready for you from {shop}! Thank you for your patience. You can monitor its progress anytime here: {link}`,
+  Delivered: `Hi {name}, your outfit is complete and ready for you from {shop}! Thank you for your patience. You can monitor its progress anytime here: {link}`,
 };
 
 /**

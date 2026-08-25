@@ -10,11 +10,11 @@ const STATUS_LABELS: Record<string, string> = {
   Cutting: 'Cutting',
   Sewing: 'Sewing',
   Ready: 'Ready',
-  Completed: 'Completed',
+  Delivered: 'Delivered',
 };
 
 function isOverdue(order: Order): boolean {
-  if (!order.dueDate || order.status === 'Completed') return false;
+  if (!order.dueDate || order.status === 'Delivered') return false;
   return new Date(order.dueDate) < new Date();
 }
 

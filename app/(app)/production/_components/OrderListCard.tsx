@@ -199,7 +199,7 @@ export default function OrderListCard({
       </div>
 
       {/* Move actions */}
-      {!hideFooterActions && (prev || next) && order.status !== 'Completed' && (
+      {!hideFooterActions && (prev || next) && order.status !== 'Delivered' && (
         <div className={styles.footer}>
           {prev && onRevert ? (
             <button type="button" className={styles.moveBackBtn} onClick={onRevert}>
@@ -223,7 +223,7 @@ export default function OrderListCard({
 
 /** "Due: Tomorrow"-style line; urgent reads in the accent, quiet otherwise. */
 function DueLine({ order }: { order: Order }) {
-  if (!order.dueDate || order.status === 'Completed') {
+  if (!order.dueDate || order.status === 'Delivered') {
     return order.status === 'Ready' ? <p className={styles.dueQuiet}>Awaiting Pickup</p> : null;
   }
 

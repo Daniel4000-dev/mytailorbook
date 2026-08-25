@@ -53,7 +53,7 @@
   color: var(--sf-stage-ready);
 }
 
-.completed {
+.delivered {
   background: var(--sf-stage-completed-bg);
   color: var(--sf-stage-completed);
 }

@@ -12,7 +12,7 @@ interface StageBannerProps {
 export default function StageBanner({ status, count }: StageBannerProps) {
   return (
     <div className={styles.banner}>
-      <h3 className={styles.title}>{status === 'Completed' ? 'Completed' : `${STATUS_CONFIG[status].label} Phase`}</h3>
+      <h3 className={styles.title}>{status === 'Delivered' ? 'Delivered' : `${STATUS_CONFIG[status].label} Phase`}</h3>
       <span className={styles.countChip}>
         {count} {count === 1 ? 'Order' : 'Orders'} Total
       </span>

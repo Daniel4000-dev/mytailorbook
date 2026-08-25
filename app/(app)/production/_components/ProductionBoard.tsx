@@ -22,7 +22,7 @@ interface ProductionBoardProps {
   userRole: Role;
 }
 
-const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Completed');
+const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Delivered');
 const STAGE_PAGE_SIZE = 15;
 
 export default function ProductionBoard({ userRole }: ProductionBoardProps) {
@@ -83,7 +83,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   // very large board doesn't fire off an unbounded burst of requests.
   useEffect(() => {
     if (!isLoaded) return;
-    const active = orders.filter((o) => o.status !== 'Completed').slice(0, 40);
+    const active = orders.filter((o) => o.status !== 'Delivered').slice(0, 40);
     active.forEach((o) => router.prefetch(`/production/${o.id}`));
   }, [isLoaded, orders, router]);
 
@@ -216,13 +216,13 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         <div className={styles.pillRow}>
           <FilterPill
             label="All Orders"
-            count={orders.filter((o) => o.status !== 'Completed').length}
+            count={orders.filter((o) => o.status !== 'Delivered').length}
             active={!filterMyTasks}
             onClick={() => setFilterMyTasks(false)}
           />
           <FilterPill
             label="My Orders"
-            count={orders.filter((o) => o.assignedTo === user?.uid && o.status !== 'Completed').length}
+            count={orders.filter((o) => o.assignedTo === user?.uid && o.status !== 'Delivered').length}
             active={filterMyTasks}
             onClick={() => setFilterMyTasks(true)}
           />

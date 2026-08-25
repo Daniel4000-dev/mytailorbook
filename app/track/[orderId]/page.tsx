@@ -27,14 +27,14 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 // optimistic UI, independent of this page-level cache.
 export const revalidate = 60;
 
-const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Completed'];
+const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'];
 
 const STAGE_HEADLINES: Record<OrderStatus, string> = {
   Documented: 'Documented',
   Cutting: 'Cutting',
   Sewing: 'Sewing',
   Ready: 'Ready',
-  Completed: 'Delivered',
+  Delivered: 'Delivered',
 };
 
 function stageDate(history: StatusChange[], status: OrderStatus): Date | null {
@@ -58,7 +58,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   }
 
   const { order, shop } = view;
-  const isDelivered = order.status === 'Completed';
+  const isDelivered = order.status === 'Delivered';
   const [batchSiblings, alreadyRated] = await Promise.all([
     getPublicBatchSiblings(orderId),
     isDelivered ? hasOrderRatingAction(orderId) : Promise.resolve(false),
@@ -87,7 +87,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   // The story stops at "Ready" until it's actually reached — an endless
   // pending tail reads like a delay.
   const visibleStages = STATUS_ORDER.filter(
-    (s, i) => s !== 'Completed' || i <= currentStepIndex
+    (s, i) => s !== 'Delivered' || i <= currentStepIndex
   );
 
   const photosFor = (status: OrderStatus): OrderPhoto[] =>
@@ -125,7 +125,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             Hello {order.customerName.split(' ')[0]} — watch your piece come to life
             {shop ? ` at ${shop.name}` : ''}. Every major step of the process is documented here.
           </p>
-          {order.dueDate && order.status !== 'Completed' && (
+          {order.dueDate && order.status !== 'Delivered' && (
             <div className={styles.dueRow}>
               <Symbol name="event" size={18} className={styles.dueIcon} />
               <span>
@@ -149,8 +149,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <section className={styles.timeline}>
             <div className={styles.timelineRail} aria-hidden="true" />
             {visibleStages.map((status, index) => {
-              const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Completed');
-              const isCurrent = index === currentStepIndex && status !== 'Completed';
+              const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Delivered');
+              const isCurrent = index === currentStepIndex && status !== 'Delivered';
               const isPending = index > currentStepIndex;
 
               return (

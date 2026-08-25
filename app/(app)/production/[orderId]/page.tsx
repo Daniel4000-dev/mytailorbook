@@ -876,14 +876,14 @@ export default function OrderDetailPage() {
               // The final stage (Completed/"Delivered") has no "next" to
               // move on to — once reached it's done, not still "current"
               // with an in-progress spinner.
-              const isTerminal = status === 'Completed' && order.status === 'Completed';
+              const isTerminal = status === 'Delivered' && order.status === 'Delivered';
               const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
               return (
                 <div key={status} className={styles.timelineStep}>
                   <div className={styles.timelineLine} />
                   <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
                     <Symbol
-                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Completed' ? 'check_circle' : 'hourglass_empty'}
+                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
                       size={14}
                     />
                   </div>

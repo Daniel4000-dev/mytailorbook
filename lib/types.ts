@@ -92,7 +92,7 @@ export interface PortfolioPhotoOverride {
   createdAt: string;
 }
 
-export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Completed';
+export type OrderStatus = 'Documented' | 'Cutting' | 'Sewing' | 'Ready' | 'Delivered';
 
 /** A garment photo tagged with the production stage it was taken at —
  *  lets the tracking page show an actual visual story, not one flat gallery. */
@@ -334,13 +334,13 @@ export function canSendReminder(order: Pick<Order, 'lastReminderAt'>): boolean {
 
 /** Check if an order is overdue */
 export function isOverdue(order: Order): boolean {
-  if (!order.dueDate || order.status === 'Completed') return false;
+  if (!order.dueDate || order.status === 'Delivered') return false;
   return new Date(order.dueDate) < new Date();
 }
 
 /** Check if an order is due within N days */
 export function isDueSoon(order: Order, days: number = 2): boolean {
-  if (!order.dueDate || order.status === 'Completed') return false;
+  if (!order.dueDate || order.status === 'Delivered') return false;
   const due = new Date(order.dueDate);
   const now = new Date();
   const diff = (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);

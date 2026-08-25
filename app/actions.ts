@@ -1523,7 +1523,7 @@ function rollup(rows: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' 
 
   for (const row of rows) {
     collected += row.deposit_paid || 0;
-    if (row.status !== 'Completed') outstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
+    if (row.status !== 'Delivered') outstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
 
     const materialCost = row.material_cost || 0;
     const otherCosts = row.other_costs || 0;

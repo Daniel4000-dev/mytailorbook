@@ -134,7 +134,7 @@ describe('isOverdue', () => {
   });
 
   it('is false once the order is marked Completed, even past due', () => {
-    expect(isOverdue(makeOrder({ dueDate: '2020-01-01T00:00:00Z', status: 'Completed' }))).toBe(false);
+    expect(isOverdue(makeOrder({ dueDate: '2020-01-01T00:00:00Z', status: 'Delivered' }))).toBe(false);
   });
 
   it('is false when the due date is in the future', () => {
@@ -166,7 +166,7 @@ describe('isDueSoon', () => {
 
   it('is false once the order is Completed', () => {
     const soon = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString();
-    expect(isDueSoon(makeOrder({ dueDate: soon, status: 'Completed' }))).toBe(false);
+    expect(isDueSoon(makeOrder({ dueDate: soon, status: 'Delivered' }))).toBe(false);
   });
 });
 

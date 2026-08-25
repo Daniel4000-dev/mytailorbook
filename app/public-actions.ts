@@ -243,7 +243,7 @@ export async function submitOrderRatingAction(
     .eq('id', orderId)
     .single();
   if (fetchError || !order) return { success: false, error: 'Order not found.' };
-  if (order.status !== 'Completed') {
+  if (order.status !== 'Delivered') {
     return { success: false, error: 'You can leave a review once your order is complete.' };
   }
 
@@ -402,7 +402,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
         caption: override?.caption || undefined,
       };
       if (override?.featured) featured.push(entry);
-      else if (p.stage === 'Ready' || p.stage === 'Completed') finished.push(entry);
+      else if (p.stage === 'Ready' || p.stage === 'Delivered') finished.push(entry);
       else inProgress.push(entry);
     }
   }
@@ -438,11 +438,11 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       ? { average: allApprovedRatings!.reduce((sum, r) => sum + r.rating, 0) / ratingCount, count: ratingCount }
       : null;
 
-  const completedOrders = orders.filter((o) => o.status === 'Completed');
+  const completedOrders = orders.filter((o) => o.status === 'Delivered');
   const withDue = completedOrders.filter((o) => o.due_date);
   const onTime = withDue.filter((o) => {
     const history = (o.status_history || []) as { to: string; timestamp: string }[];
-    const done = history.filter((h) => h.to === 'Completed').pop();
+    const done = history.filter((h) => h.to === 'Delivered').pop();
     if (!done) return true;
     const doneDay = new Date(done.timestamp);
     const dueDay = new Date(o.due_date);

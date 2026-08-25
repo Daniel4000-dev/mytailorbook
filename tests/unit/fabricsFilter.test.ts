@@ -35,7 +35,7 @@ describe('filterFabricOrders', () => {
       id: '4',
       customerName: 'Completed User',
       styleName: 'Suit',
-      status: 'Completed',
+      status: 'Delivered',
       images: [{ id: 'img3', url: 'http://example.com/img3.jpg', thumbUrl: '' }],
     },
   ];

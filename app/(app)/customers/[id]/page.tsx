@@ -469,7 +469,7 @@ function CustomerProfileContent({
                     <h4 className={styles.orderTitle}>{truncateText(o.orderDetails, 40)}</h4>
                     <span className={styles.orderDate}>{new Date(o.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <Badge variant={o.status.toLowerCase() as 'documented' | 'cutting' | 'sewing' | 'ready' | 'completed'} size="md">
+                  <Badge variant={o.status.toLowerCase() as 'documented' | 'cutting' | 'sewing' | 'ready' | 'delivered'} size="md">
                     {STATUS_CONFIG[o.status].label}
                   </Badge>
                 </div>

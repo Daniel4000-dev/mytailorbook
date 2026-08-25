@@ -34,13 +34,13 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
   const collected = useMemo(() => orders.reduce((sum, o) => sum + o.depositPaid, 0), [orders]);
 
   const projected = useMemo(
-    () => orders.filter((o) => o.status !== 'Completed').reduce((sum, o) => sum + getBalanceOwed(o), 0),
+    () => orders.filter((o) => o.status !== 'Delivered').reduce((sum, o) => sum + getBalanceOwed(o), 0),
     [orders]
   );
 
   const urgentCount = useMemo(() => {
     return orders.filter((o) => {
-      if (o.status === 'Completed') return false;
+      if (o.status === 'Delivered') return false;
       return isOverdue(o) || o.priority === 'rush' || o.priority === 'urgent';
     }).length;
   }, [orders]);
@@ -48,7 +48,7 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
   const dueTodayCount = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
     return orders.filter((o) => {
-      if (!o.dueDate || o.status === 'Completed') return false;
+      if (!o.dueDate || o.status === 'Delivered') return false;
       const dueStr = new Date(o.dueDate).toISOString().split('T')[0];
       return dueStr === todayStr;
     }).length;
@@ -60,8 +60,8 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
       .map((staff) => {
         const assigned = orders.filter((o) => o.assignedTo === staff.uid);
         const active = assigned.filter((o) => o.status === 'Cutting' || o.status === 'Sewing' || o.status === 'Ready').length;
-        const overdue = assigned.filter((o) => o.status !== 'Completed' && isOverdue(o)).length;
-        const completed = assigned.filter((o) => o.status === 'Completed').length;
+        const overdue = assigned.filter((o) => o.status !== 'Delivered' && isOverdue(o)).length;
+        const completed = assigned.filter((o) => o.status === 'Delivered').length;
         return { staff, active, overdue, completed };
       });
   }, [orders, staffMembers]);

@@ -11,7 +11,7 @@ export const ORDER_STATUSES: readonly OrderStatus[] = [
   'Cutting',
   'Sewing',
   'Ready',
-  'Completed',
+  'Delivered',
 ] as const;
 
 /** Production pipeline statuses (excludes Documented intake stage) */
@@ -19,7 +19,7 @@ export const PRODUCTION_STATUSES: readonly OrderStatus[] = [
   'Cutting',
   'Sewing',
   'Ready',
-  'Completed',
+  'Delivered',
 ] as const;
 
 export const USER_ROLES: readonly Role[] = ['OrgAdmin', 'BranchManager', 'Staff', 'Accountant'] as const;
@@ -81,7 +81,7 @@ export const STATUS_CONFIG: Record<
     icon: 'check',
     label: 'Ready',
   },
-  Completed: {
+  Delivered: {
     color: 'var(--sf-stage-completed)',
     bgColor: 'var(--sf-stage-completed-bg)',
     icon: 'check_circle',

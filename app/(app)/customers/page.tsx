@@ -115,7 +115,7 @@ export default function CustomersPage() {
     orders.forEach(o => {
       if (stats[o.customerId]) {
         stats[o.customerId].totalOrders += 1;
-        if (o.status !== 'Completed') {
+        if (o.status !== 'Delivered') {
           stats[o.customerId].activeOrders += 1;
         }
         stats[o.customerId].totalSpend += o.totalBill;

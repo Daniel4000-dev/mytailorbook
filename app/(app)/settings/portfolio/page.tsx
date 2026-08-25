@@ -198,7 +198,7 @@ export default function PortfolioCurationSettingsPage() {
         <EmptyState
           icon={<Symbol name="photo_library" size={40} />}
           title="No photos yet"
-          description="Completed orders with photos will appear here automatically."
+          description="Delivered orders with photos will appear here automatically."
         />
       ) : (
         <div className={styles.grid}>

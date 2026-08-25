@@ -30,21 +30,21 @@ export default function StaffDashboard({
     [myOrders]
   );
 
-  const overdueCount = useMemo(() => myOrders.filter((o) => o.status !== 'Completed' && isOverdue(o)).length, [myOrders]);
+  const overdueCount = useMemo(() => myOrders.filter((o) => o.status !== 'Delivered' && isOverdue(o)).length, [myOrders]);
 
   const dueTodayCount = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
     return myOrders.filter((o) => {
-      if (!o.dueDate || o.status === 'Completed') return false;
+      if (!o.dueDate || o.status === 'Delivered') return false;
       return new Date(o.dueDate).toISOString().split('T')[0] === todayStr;
     }).length;
   }, [myOrders]);
 
-  const completedCount = useMemo(() => myOrders.filter((o) => o.status === 'Completed').length, [myOrders]);
+  const completedCount = useMemo(() => myOrders.filter((o) => o.status === 'Delivered').length, [myOrders]);
 
   const myTasks = useMemo(() => {
     return myOrders
-      .filter((o) => o.status !== 'Completed')
+      .filter((o) => o.status !== 'Delivered')
       .sort((a, b) => {
         const aOverdue = isOverdue(a) ? 1 : 0;
         const bOverdue = isOverdue(b) ? 1 : 0;
@@ -105,7 +105,7 @@ export default function StaffDashboard({
                 </div>
               </div>
               <div className={styles.attentionMeta}>
-                <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'completed'}>
+                <Badge variant={order.status.toLowerCase() as 'cutting' | 'sewing' | 'ready' | 'delivered'}>
                   {order.status === 'Cutting' ? <Symbol name="content_cut" /> : order.status === 'Ready' ? <Symbol name="check_circle" /> : null}
                   {' '}{STATUS_CONFIG[order.status].label}
                 </Badge>

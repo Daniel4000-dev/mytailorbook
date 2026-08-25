@@ -13,7 +13,7 @@ const FEATURES = [
     icon: 'view_kanban',
     kicker: 'Workflow',
     title: 'A production board built for tailoring',
-    text: 'Move every order through your own stages — Documented, Cutting, Sewing, Ready, Completed — and see exactly where each garment stands at a glance. Nothing slips through the cracks when your whole workshop is visualized in one board.',
+    text: 'Move every order through your own stages — Documented, Cutting, Sewing, Ready, Delivered — and see exactly where each garment stands at a glance. Nothing slips through the cracks when your whole workshop is visualized in one board.',
     bullets: ['Customizable stages', 'Deadline tracking', 'Priority flags for rush orders'],
     image: '/images/marketing/sewing-machine-hands.jpg',
     premium: false,

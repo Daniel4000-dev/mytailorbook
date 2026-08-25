@@ -20,7 +20,7 @@ const STAGE_ICON: Record<OrderStatus, React.ReactNode> = {
   Cutting: <Symbol name="content_cut" />,
   Sewing: <Symbol name="settings" />,
   Ready: <Symbol name="check_circle" />,
-  Completed: <Symbol name="inventory_2" />,
+  Delivered: <Symbol name="inventory_2" />,
 };
 
 export interface NotificationItem {
@@ -64,7 +64,7 @@ export function useNotifications() {
 
   const { notifications, alertCount } = useMemo(() => {
     const items: NotificationItem[] = [];
-    const activeOrders = relevantOrders.filter((o) => o.status !== 'Completed');
+    const activeOrders = relevantOrders.filter((o) => o.status !== 'Delivered');
     const todayStr = new Date().toISOString().split('T')[0];
     const isDueToday = (o: Order) => !!o.dueDate && new Date(o.dueDate).toISOString().split('T')[0] === todayStr;
 
