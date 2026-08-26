@@ -93,7 +93,7 @@ export default function HomePageContent() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
           <h1 className={styles.heroHeadline}>
-            All-in-one business App for tailors.
+            All-In-One Business App for Tailors.
           </h1>
           <p className={styles.heroSubhead}>
             Manage customers, store measurements, track orders, send invoices, and keep clients updated - all in one simple app.
