@@ -13,8 +13,9 @@ export default async function AffiliatesPage() {
     <div>
       <h1 className={styles.heading}>Affiliates</h1>
       <p className={styles.subheading}>
-        Share a signup link as <code>?ref=CODE</code>. Attribution is first-touch and stored on the shop&apos;s organization
-        at signup.
+        Share the marketing link with <code>?ref=CODE</code>. Attribution is first-touch — captured in a cookie on
+        first landing and stored on the shop&apos;s organization once they sign up, even if they browse for a while
+        first.
       </p>
 
       <AffiliateForm />
@@ -45,7 +46,7 @@ export default async function AffiliatesPage() {
                     <code>{affiliate.code}</code>
                   </td>
                   <td>
-                    <CopyLinkButton link={`https://app.${APP_CONFIG.domain}/signup?ref=${affiliate.code}`} />
+                    <CopyLinkButton link={`https://${APP_CONFIG.domain}/?ref=${affiliate.code}`} />
                   </td>
                   <td>{affiliate.signups}</td>
                   <td>{affiliate.premiumConversions}</td>
