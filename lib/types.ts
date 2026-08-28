@@ -40,7 +40,7 @@ export interface Shop {
    *  `measurementFields` is the shop's own named+ordered field list for
    *  this style (set via the field builder); absent/empty means the style
    *  still falls back to the generic DEFAULT_MEASURE_SPEC. */
-  customStyles?: { name: string; photoUrl?: string; measurementFields?: { id: string; label: string }[] }[];
+  customStyles?: { name: string; photoUrl?: string; gender?: 'male' | 'female'; measurementFields?: { id: string; label: string }[] }[];
   /** Shown on receipts and the public portfolio, replacing the plain text
    *  name there once set. */
   logoUrl?: string;

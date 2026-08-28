@@ -54,6 +54,39 @@
   margin: 0;
 }
 
+.label p {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin: 2px 0 0;
+}
+
+.genderRow {
+  display: flex;
+  gap: var(--sf-space-xs);
+  padding: 4px;
+  background: var(--sf-bg-surface-hover);
+  border-radius: var(--sf-radius-sm);
+}
+
+.genderRow button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.genderRowActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-semibold);
+  box-shadow: var(--sf-shadow-sm);
+}
+
 .sheetBody {
   display: flex;
   flex-direction: column;

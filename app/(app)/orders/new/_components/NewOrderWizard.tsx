@@ -61,7 +61,7 @@ export default function NewOrderWizard() {
   // Shop-wide custom styles persist across orders (seeded from the shop
   // record); newly typed ones this session are added on top and saved back.
   const [customStyles, setCustomStyles] = useState<
-    { name: string; photoUrl?: string; measurementFields?: { id: string; label: string }[] }[]
+    { name: string; photoUrl?: string; gender?: 'male' | 'female'; measurementFields?: { id: string; label: string }[] }[]
   >([]);
   const [uploadingCustomPhoto, setUploadingCustomPhoto] = useState<string | null>(null);
   const [customDraft, setCustomDraft] = useState('');
@@ -143,9 +143,15 @@ export default function NewOrderWizard() {
       const bp = preferred.includes(b.name) ? 0 : 1;
       return ap - bp;
     });
+    // Custom styles carry their own gender tag once someone's added or
+    // assigned one; untagged (legacy) entries still show for both genders
+    // until the shop tags them in Settings → Custom Styles.
+    const genderCustomStyles = customer
+      ? allCustomStyles.filter((s) => !s.gender || s.gender === customer.gender)
+      : allCustomStyles;
     return [
       ...preset,
-      ...allCustomStyles.map((s) => ({ name: s.name, subtitle: 'Custom item', keywords: [s.name.toLowerCase()], photoUrl: s.photoUrl })),
+      ...genderCustomStyles.map((s) => ({ name: s.name, subtitle: 'Custom item', keywords: [s.name.toLowerCase()], photoUrl: s.photoUrl })),
     ];
   }, [customer, allCustomStyles]);
 
@@ -582,12 +588,15 @@ export default function NewOrderWizard() {
   const handleCustomDraftCommit = () => {
     const name = customDraft.trim();
     if (name && !catalog.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
-      setCustomStyles((p) => [...p, { name }]);
+      // Tagged with this order's customer gender so it only shows up for
+      // that gender going forward, instead of scattering into every order.
+      const gender = customer?.gender;
+      setCustomStyles((p) => [...p, { name, gender }]);
       setCounts((p) => ({ ...p, [name]: 1 }));
       // Remembered shop-wide so it's already in the catalog next time, same
       // as a built-in style. Merged server-side against a fresh read, not
       // this component's snapshot — see upsertCustomStyle.
-      upsertCustomStyle(name).catch(() => {});
+      upsertCustomStyle(name, undefined, undefined, gender).catch(() => {});
       // Brand new — no saved fields yet, so prompt for them now instead of
       // silently falling back to the generic DEFAULT_MEASURE_SPEC later at
       // the measure step.

@@ -292,6 +292,14 @@ function CustomerProfileContent({
       <section className={styles.profileHeader}>
         <Avatar name={customer.fullName} size="lg" />
         <h2 className={styles.name}>{customer.fullName}</h2>
+        <button
+          type="button"
+          className={styles.genderTag}
+          onClick={() => setEditOpen(true)}
+          title="Tap to edit — this also controls which garment styles show up when creating an order"
+        >
+          {customer.gender}
+        </button>
         {FEATURE_FLAGS.customerAddress && customer.address && (
           <span className={styles.customerAddress}>
             <Symbol name="location_on" size={12} /> {customer.address}

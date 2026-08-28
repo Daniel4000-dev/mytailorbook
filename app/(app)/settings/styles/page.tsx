@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
+import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/compressImage';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Input from '@/components/ui/Input/Input';
@@ -22,6 +24,7 @@ import styles from './page.module.css';
 interface CustomStyle {
   name: string;
   photoUrl?: string;
+  gender?: 'male' | 'female';
   measurementFields?: { id: string; label: string }[];
 }
 
@@ -37,6 +40,8 @@ export default function CustomStylesSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editingFields, setEditingFields] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const openStyleSheet = (style: CustomStyle) => {
     setActiveStyle(style);
@@ -64,6 +69,48 @@ export default function CustomStylesSettingsPage() {
     await updateShop({ customStyles: next });
     showToast('Style deleted', 'success');
     setActiveStyle(null);
+  };
+
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFile = e.target.files?.[0];
+    if (!rawFile || !activeStyle || !currentShop?.id) return;
+    setUploadingPhoto(true);
+    try {
+      const file = await compressImage(rawFile);
+      const supabase = createClient();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${currentShop.id}/custom-styles/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from('order-photos').upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+      if (uploadError) throw new Error(uploadError.message);
+      const photoUrl = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
+
+      await upsertCustomStyle(activeStyle.name, photoUrl, activeStyle.measurementFields);
+      setActiveStyle((prev) => (prev ? { ...prev, photoUrl } : prev));
+      showToast('Style photo saved', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSetGender = async (gender: 'male' | 'female') => {
+    if (!activeStyle) return;
+    const next = gender === activeStyle.gender ? undefined : gender;
+    setSaving(true);
+    try {
+      await upsertCustomStyle(activeStyle.name, activeStyle.photoUrl, activeStyle.measurementFields, next);
+      setActiveStyle((prev) => (prev ? { ...prev, gender: next } : prev));
+      showToast('Style updated', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not update style', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSaveFields = async (fields: { id: string; label: string }[]) => {
@@ -100,6 +147,7 @@ export default function CustomStylesSettingsPage() {
               </div>
               <div className={styles.label}>
                 <h3>{s.name}</h3>
+                <p>{s.gender === 'male' ? 'Male' : s.gender === 'female' ? 'Female' : 'Unassigned — shows for both'}</p>
               </div>
             </button>
           ))}
@@ -113,9 +161,34 @@ export default function CustomStylesSettingsPage() {
               <Image src={activeStyle.photoUrl} alt="" width={800} height={600} />
             </div>
           )}
+          <input ref={photoInputRef} type="file" accept="image/*" hidden onChange={handleUploadPhoto} />
+          <Button
+            variant="secondary"
+            loading={uploadingPhoto}
+            onClick={() => photoInputRef.current?.click()}
+          >
+            {activeStyle?.photoUrl ? 'Change Photo' : 'Add Photo'}
+          </Button>
           <Input label="Style Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
           <p className={styles.hintText}>
             Renaming updates every customer who already has this as a preferred style.
+          </p>
+          <div className={styles.genderRow} role="radiogroup" aria-label="Gender">
+            {(['male', 'female'] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                role="radio"
+                aria-checked={activeStyle?.gender === g}
+                className={activeStyle?.gender === g ? styles.genderRowActive : ''}
+                onClick={() => handleSetGender(g)}
+              >
+                {g === 'male' ? 'Male' : 'Female'}
+              </button>
+            ))}
+          </div>
+          <p className={styles.hintText}>
+            Only shows up when creating an order for that gender. Tap again to unset and show it for both.
           </p>
           <div className={styles.sheetActions}>
             <Button variant="ghost" onClick={() => setActiveStyle(null)}>Cancel</Button>

@@ -92,6 +92,19 @@
   color: var(--sf-text-tertiary);
 }
 
+.genderTag {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-surface-hover);
+  padding: 2px 10px;
+  border: none;
+  border-radius: 999px;
+  text-transform: capitalize;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .customerAddress {
   display: flex;
   align-items: center;
