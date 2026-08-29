@@ -12,14 +12,32 @@ interface ReceiptActionsProps {
 /** Renders the actual on-screen #receipt-card DOM node to a PNG via
  *  html-to-image — this is what both "Share as Image" and "Share as PDF"
  *  build from, so the shared file always matches exactly what the tailor
- *  sees on screen, not a separately-maintained layout. */
+ *  sees on screen, not a separately-maintained layout.
+ *
+ *  Exception: theme. The card is captured with whatever data-theme is
+ *  active on the sender's phone at that instant — if that's dark, the
+ *  shared file permanently bakes in a dark card, while the canvas
+ *  `backgroundColor` below still forces plain white, leaving a
+ *  mismatched white sliver around the rounded corners. A shared
+ *  receipt has no "app theme" once it leaves the phone (same reasoning
+ *  as the @media print override in page.module.css) so capture always
+ *  forces the canonical light/paper look, then restores whatever the
+ *  tailor actually had set. */
 async function captureReceiptPng(): Promise<Blob> {
   const node = document.getElementById('receipt-card');
   if (!node) throw new Error('Receipt not found');
-  const { toBlob } = await import('html-to-image');
-  const blob = await toBlob(node, { pixelRatio: 2, backgroundColor: '#ffffff' });
-  if (!blob) throw new Error('Could not render receipt');
-  return blob;
+  const root = document.documentElement;
+  const priorTheme = root.getAttribute('data-theme');
+  root.setAttribute('data-theme', 'light');
+  try {
+    const { toBlob } = await import('html-to-image');
+    const blob = await toBlob(node, { pixelRatio: 2, backgroundColor: '#ffffff' });
+    if (!blob) throw new Error('Could not render receipt');
+    return blob;
+  } finally {
+    if (priorTheme) root.setAttribute('data-theme', priorTheme);
+    else root.removeAttribute('data-theme');
+  }
 }
 
 /** Shares a file via the native share sheet when available (mobile), or

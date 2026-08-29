@@ -24,6 +24,20 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   box-sizing: border-box;
+  /* Labels/meta text on this page uses --sf-text-tertiary, whose contrast
+     against a plain white card is borderline (~4.9:1) — fine on the app's
+     dark surfaces but too faint on paper-white. Scoped override, darker
+     in light mode only; dark mode keeps the token that already reads
+     well there. */
+  --receipt-muted: #4A4860;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card {
+    --receipt-muted: var(--sf-text-tertiary);
+  }
+}
+:root[data-theme="dark"] .card {
+  --receipt-muted: var(--sf-text-tertiary);
 }
 
 .cardInner {
@@ -103,7 +117,7 @@
 .brandSub {
   display: block;
   font-size: 12px;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
 }
 
 .receiptMeta {
@@ -118,7 +132,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
 }
 
 .receiptId {
@@ -130,7 +144,7 @@
 
 .receiptDate {
   font-size: 12px;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
 }
 
 /* ── Hero amount — the "you were charged this much" moment every real
@@ -149,7 +163,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
 }
 
 .amountHeroValue {
@@ -197,7 +211,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 700;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
   margin-bottom: var(--sf-space-xs);
 }
 
@@ -240,7 +254,7 @@
   margin-top: 2px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
 }
 
 .billTable, .paymentTable {
@@ -270,7 +284,7 @@
 .paymentTable th {
   text-align: left;
   font-size: 11px;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
   font-weight: 600;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--sf-border-light);
@@ -285,14 +299,16 @@
 .footer {
   margin-top: var(--sf-space-lg);
   text-align: center;
-  color: var(--sf-text-tertiary);
+  color: var(--receipt-muted);
   font-size: 13px;
 }
 
 .poweredBy {
   margin-top: var(--sf-space-xs);
   font-size: 11px;
-  opacity: 0.7;
+  /* No opacity here — stacking it on top of an already-muted color was
+     the biggest offender in light mode, fading this line to near-white. */
+  color: var(--receipt-muted);
 }
 
 /* Perforated bottom edge — the classic torn-receipt-stub look, drawn as a
