@@ -1,5 +1,4 @@
 import StyleMeasureForm from '@/components/orders/StyleMeasureForm/StyleMeasureForm';
-import Symbol from '@/components/ui/Symbol/Symbol';
 import type { StyleMeasureSpec } from '@/lib/constants';
 import type { Customer, Measurements, Order } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
@@ -23,14 +22,6 @@ interface MeasureStepProps {
   onToggleLock?: (key: string) => void;
   addableFields?: { key: string; label: string; hasBodyValue: boolean }[];
   onAddField?: (field: { key: string; label: string }) => void;
-  /** Same action as the fixed bottom bar's "Skip for now" — duplicated
-   *  in-flow here so it's always reachable even when a mobile on-screen
-   *  keyboard (opened by focusing a measurement input) covers that fixed
-   *  bar. Without this, a tailor who taps a field on a phone can end up
-   *  with no visible way to move on until they dismiss the keyboard
-   *  first — which isn't obvious, especially on numeric keypads that
-   *  don't show a "Done" key. */
-  onSkip: () => void;
 }
 
 export default function MeasureStep({
@@ -51,29 +42,14 @@ export default function MeasureStep({
   onToggleLock,
   addableFields,
   onAddField,
-  onSkip,
 }: MeasureStepProps) {
   return (
     <div className={styles.col}>
-      <div className={styles.stepHeaderRow}>
-        <div>
-          <h2 className={styles.stepTitle}>{currentStyle} Measurements</h2>
-          <p className={styles.stepSub}>
-            For {customer?.fullName} — tap a number on the guide or fill the cards below. Skip anything you’ll take at fitting.
-          </p>
-        </div>
-        <button
-          type="button"
-          className={styles.inlineSkipLink}
-          // Visibility depends on :focus-within (see .inlineSkipLink in the
-          // CSS) — without this, tapping the button blurs the focused
-          // measurement input first, the button disappears mid-tap, and
-          // the click never lands.
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={onSkip}
-        >
-          Skip <Symbol name="arrow_forward" size={16} />
-        </button>
+      <div>
+        <h2 className={styles.stepTitle}>{currentStyle} Measurements</h2>
+        <p className={styles.stepSub}>
+          For {customer?.fullName} — tap a number on the guide or fill the cards below. Skip anything you’ll take at fitting.
+        </p>
       </div>
 
       <StyleMeasureForm

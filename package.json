@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run test:unit && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
   },

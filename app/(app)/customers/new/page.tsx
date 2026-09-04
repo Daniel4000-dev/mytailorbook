@@ -208,27 +208,12 @@ export default function NewClientPage() {
         <main className={styles.scroll}>
           <div className={styles.formCol}>
             <section className={styles.section}>
-              <div className={styles.sectionHeaderRow}>
-                <div>
-                  <h2 className={styles.sectionTitle}>Full-Body Measurements</h2>
-                  <p className={styles.sectionSub}>
-                    Optional — tap a card to fill it in, or skip the whole thing and take these at fitting instead.
-                    Whatever you save here pre-fills every garment&apos;s measurements for {watch('fullName') || 'this client'} from now on.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={styles.inlineSkipLink}
-                  // Visibility depends on :focus-within (see .inlineSkipLink
-                  // in the CSS) — without this, tapping the button blurs
-                  // the focused measurement input first, the button
-                  // disappears mid-tap, and the click never lands.
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={handleSubmit(onSubmit)}
-                  disabled={submitting}
-                >
-                  Skip <Symbol name="arrow_forward" size={16} />
-                </button>
+              <div>
+                <h2 className={styles.sectionTitle}>Full-Body Measurements</h2>
+                <p className={styles.sectionSub}>
+                  Optional — tap a card to fill it in, or skip the whole thing and take these at fitting instead.
+                  Whatever you save here pre-fills every garment&apos;s measurements for {watch('fullName') || 'this client'} from now on.
+                </p>
               </div>
               <StyleMeasureForm
                 spec={bodySpec}
