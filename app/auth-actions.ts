@@ -20,18 +20,33 @@ import { isOwnerLikeRole } from '@/lib/types';
  * (never trust a client-supplied user id for this), then the admin client
  * to do the actual insert — same bootstrap reasoning as new-shop signup.
  */
-export async function completeOnboarding(shopName: string, nameOverride?: string) {
+/** Returns `{ error }` rather than throwing — same reasoning as
+ *  createStaffAccount below: Next.js redacts a thrown Server Action error
+ *  to a generic "omitted in production" message before it reaches the
+ *  client, which left users stuck on a dead-end "Finish Setup" screen with
+ *  no idea why (confirmed from a user's screenshot showing exactly that
+ *  redacted message, with no way to tell what actually failed).
+ *
+ *  Also idempotent against a retried/double-tapped submit: a slow network
+ *  plus an impatient re-tap can fire this twice before the first call's
+ *  profile insert commits. Both attempts now resolve to the same
+ *  outcome — reusing an already-created shop, and treating an
+ *  already-inserted profile as success — instead of one succeeding and
+ *  the other crashing on a duplicate-key error the user can't interpret. */
+export async function completeOnboarding(shopName: string, nameOverride?: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
-    throw new Error('Not signed in');
+    return { error: 'Not signed in' };
   }
 
   const admin = createAdminClient();
 
   const { data: existing } = await admin.from('profiles').select('id').eq('id', user.id).single();
   if (existing) {
-    throw new Error('Onboarding already completed for this account');
+    // Already finished — most likely a duplicate submit landing after an
+    // earlier one already succeeded. Nothing left to do; not a real error.
+    return {};
   }
 
   // Email signups already collected a name in the form — carry that
@@ -39,23 +54,47 @@ export async function completeOnboarding(shopName: string, nameOverride?: string
   // (editable) name field on this page is the only chance to confirm it.
   const name = nameOverride || user.user_metadata?.name || user.user_metadata?.full_name || '';
 
-  const { data: shop, error: shopError } = await admin
+  // A prior attempt for this same (still profile-less) account may have
+  // already created the shop and only failed on the profile insert below —
+  // reuse it instead of creating a second shop every time they retry.
+  const { data: orphanedShop } = await admin
     .from('shops')
-    .insert({ name: shopName, owner_id: user.id })
-    .select()
-    .single();
-  if (shopError || !shop) {
-    throw new Error(shopError?.message || 'Could not create shop');
+    .select('id, org_id')
+    .eq('owner_id', user.id)
+    .maybeSingle();
+
+  let shopId: string;
+  let orgId: string;
+  if (orphanedShop) {
+    shopId = orphanedShop.id;
+    orgId = orphanedShop.org_id;
+  } else {
+    const { data: shop, error: shopError } = await admin
+      .from('shops')
+      .insert({ name: shopName, owner_id: user.id })
+      .select()
+      .single();
+    if (shopError || !shop) {
+      return { error: shopError?.message || 'Could not create your shop — please try again' };
+    }
+    shopId = shop.id;
+    orgId = shop.org_id;
   }
 
   const { error: profileError } = await admin
     .from('profiles')
-    .insert({ id: user.id, shop_id: shop.id, name, role: 'OrgAdmin', email: user.email });
+    .insert({ id: user.id, shop_id: shopId, name, role: 'OrgAdmin', email: user.email });
   if (profileError) {
-    throw new Error(profileError.message);
+    // 23505 = unique violation — a racing duplicate submit already
+    // inserted this exact profile a moment earlier. That's a success.
+    if (profileError.code === '23505') {
+      return {};
+    }
+    return { error: profileError.message };
   }
 
-  await attributeReferral(admin, shop.org_id);
+  await attributeReferral(admin, orgId);
+  return {};
 }
 
 /**

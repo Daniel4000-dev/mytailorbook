@@ -146,6 +146,8 @@ function shopFromRow(row: any): Shop {
     subscriptionPlan: row.subscription_plan || undefined,
     subscriptionStatus: row.subscription_status || 'free',
     graceExpiresAt: row.grace_expires_at || undefined,
+    trialEndsAt: row.trial_ends_at || undefined,
+    trialUsedAt: row.trial_used_at || undefined,
     defaultTrackingLinkEnabled: row.default_tracking_link_enabled ?? true,
   };
 }
@@ -172,7 +174,7 @@ export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
   const [shopRes, customersRes, ordersRes, profilesRes] = await Promise.all([
     supabase.from('shops').select(
-      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, default_tracking_link_enabled'
+      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled'
     ).eq('id', shopId).single(),
     supabase.from('customers').select(
       'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at'

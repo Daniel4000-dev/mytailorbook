@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { isOwnerLikeRole } from '@/lib/types';
-import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
+import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, TRIAL_LENGTH_DAYS, TRIAL_VERIFICATION_AMOUNT_NGN } from '@/lib/subscription';
+import { refundTrialChargeOnce } from '@/lib/paystackRefund';
 
 /** Starts a Paystack checkout for the current user's shop, returning the
  *  authorization URL to redirect the browser to. Uses the request-scoped
@@ -73,10 +74,11 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
   const proto = headersList.get('x-forwarded-proto') || (host?.startsWith('localhost') ? 'http' : 'https');
   const origin = host ? `${proto}://${host}` : undefined;
 
-  // We pass the exact amount defined in the app UI to ensure users are
-  // charged exactly what they see. Paystack requires this amount to match
-  // the plan amount configured in the dashboard (in kobo). If they differ,
-  // Paystack correctly rejects the initialization with "Invalid Amount Sent".
+  // Sent for clarity/logging only — per Paystack's docs, when both `amount`
+  // and `plan` are supplied on initialize, `amount` is ignored and the
+  // actual charge is whatever the Plan is configured for on Paystack's
+  // dashboard. Kept in sync with PREMIUM_MONTHLY/YEARLY_PRICE_NGN so this
+  // never *looks* wrong even though Paystack doesn't actually read it here.
   const amount = (interval === 'yearly' ? PREMIUM_YEARLY_PRICE_NGN : PREMIUM_MONTHLY_PRICE_NGN) * 100;
 
   const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -97,7 +99,7 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
       // that shop. Restricting the channel here also skips the
       // method-picker screen entirely — straight to card entry.
       channels: ['card'],
-      ...(origin ? { callback_url: `${origin}/settings?payment=success` } : {}),
+      ...(origin ? { callback_url: `${origin}/settings/billing?payment=success` } : {}),
       metadata: {
         shop_id: profile.shop_id,
         user_id: user.id,
@@ -235,6 +237,227 @@ export async function confirmSubscriptionPayment(reference: string) {
   }
 }
 
+/** Starts a 30-day free trial by running a nominal, immediately-refunded
+ *  Paystack charge on the card — Paystack has no deferred-billing option on
+ *  a Plan (unlike Stripe's trial_period_days), so this is the only way to
+ *  get a reusable authorization_code without actually billing the real
+ *  plan price today. See migration 0042 for the schema and
+ *  app/api/cron/subscription-grace for how the trial converts to a real
+ *  subscription once it ends. Mirrors initializeSubscription's shape and
+ *  origin-detection so the same client-side redirect/popup flow works for
+ *  both. */
+export async function startFreeTrial(interval: 'monthly' | 'yearly' = 'monthly') {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.shop_id) {
+    throw new Error('No shop profile found');
+  }
+
+  const admin = createAdminClient();
+
+  // Billing lives on the org's primary shop (same resolution as everywhere
+  // else in this file) — a trial is an org-wide thing, not per-branch.
+  const { data: shop } = await admin
+    .from('shops')
+    .select('id, org_id, is_primary')
+    .eq('id', profile.shop_id)
+    .single();
+  if (!shop) throw new Error('Shop not found');
+
+  const billingShop = shop.is_primary
+    ? shop
+    : (await admin.from('shops').select('id').eq('org_id', shop.org_id).eq('is_primary', true).single()).data;
+  if (!billingShop) throw new Error('Shop not found');
+
+  const { data: billingState } = await admin
+    .from('shops')
+    .select('subscription_status, trial_used_at')
+    .eq('id', billingShop.id)
+    .single();
+
+  // One trial per org, ever — trial_used_at is never cleared (not even on
+  // cancel), which is what actually closes the cancel/re-trial loophole.
+  if (billingState?.trial_used_at) {
+    throw new Error('This shop has already used its free trial');
+  }
+  if (billingState && billingState.subscription_status !== 'free') {
+    throw new Error('This shop is not eligible for a free trial');
+  }
+
+  const { allowed } = await checkRateLimit(`trial-init:${user.id}`, { limit: 60, windowSeconds: 3600 });
+  if (!allowed) {
+    console.error(`Unusually high trial-init volume for user ${user.id} — not blocking, just flagging.`);
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  const PLAN_CODE = interval === 'yearly'
+    ? process.env.NEXT_PUBLIC_PAYSTACK_YEARLY_PLAN_CODE
+    : process.env.NEXT_PUBLIC_PAYSTACK_PLAN_CODE;
+  if (!PAYSTACK_SECRET || !PLAN_CODE) {
+    throw new Error('Server configuration error');
+  }
+
+  const headersList = await headers();
+  const host = headersList.get('host');
+  const proto = headersList.get('x-forwarded-proto') || (host?.startsWith('localhost') ? 'http' : 'https');
+  const origin = host ? `${proto}://${host}` : undefined;
+
+  const response = await fetch('https://api.paystack.co/transaction/initialize', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: user.email,
+      // Deliberately NOT the real plan price, and no `plan` field — this
+      // transaction only exists to capture a reusable authorization. The
+      // real billing plan is remembered in metadata.trial_plan_code and
+      // attached later (app/api/cron/subscription-grace), once the trial
+      // actually ends.
+      amount: TRIAL_VERIFICATION_AMOUNT_NGN * 100,
+      channels: ['card'],
+      ...(origin ? { callback_url: `${origin}/settings/billing?trial=success` } : {}),
+      metadata: {
+        shop_id: billingShop.id,
+        user_id: user.id,
+        trial: true,
+        trial_plan_code: PLAN_CODE,
+      },
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.status) {
+    console.error('Paystack trial init failed:', data);
+    throw new Error(data.message || 'Trial initialization failed');
+  }
+
+  return {
+    authorizationUrl: data.data.authorization_url as string,
+    accessCode: data.data.access_code as string,
+    reference: data.data.reference as string,
+  };
+}
+
+/** Called right after Paystack's popup/redirect reports success for a trial
+ *  signup — mirrors confirmSubscriptionPayment: re-verifies server-to-
+ *  server (never trusts the client's reference at face value) and activates
+ *  immediately so the UI doesn't wait on the webhook, which is still the
+ *  real source of truth (app/api/webhooks/paystack) and never arrives at
+ *  all against a localhost dev server. */
+export async function confirmFreeTrial(reference: string) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.shop_id) {
+    throw new Error('No shop profile found');
+  }
+
+  const { allowed } = await checkRateLimit(`confirm-trial:${user.id}`, { limit: 10, windowSeconds: 3600 });
+  if (!allowed) {
+    throw new Error('Too many attempts — please try again in a few minutes.');
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  if (!PAYSTACK_SECRET) {
+    throw new Error('Server configuration error');
+  }
+
+  const admin = createAdminClient();
+
+  // Same dedupe-before-verify pattern as confirmSubscriptionPayment — a
+  // trial reference has no expiry on Paystack's side either, so without
+  // this a shop could replay its own trial-start reference to re-arm
+  // 'trialing' after it lapsed.
+  const { error: dedupeError } = await admin
+    .from('payment_webhook_events')
+    .insert({ body_hash: `confirm_free_trial:${reference}`, event_type: 'confirm_free_trial' });
+
+  if (dedupeError) {
+    if (dedupeError.code === '23505') {
+      return { success: true };
+    }
+    console.error('confirmFreeTrial dedupe insert failed:', dedupeError);
+    throw new Error('Could not process trial confirmation');
+  }
+
+  try {
+    const verifyResponse = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` } }
+    );
+    const verifyData = await verifyResponse.json();
+
+    if (!verifyResponse.ok || !verifyData.status || verifyData.data?.status !== 'success') {
+      throw new Error('Payment could not be verified');
+    }
+    if (verifyData.data.metadata?.shop_id !== profile.shop_id || !verifyData.data.metadata?.trial) {
+      throw new Error('Payment does not belong to this shop\'s trial signup');
+    }
+
+    // The card was genuinely charged the nominal verification amount at
+    // this point (see startFreeTrial) — refund it unconditionally, even if
+    // the trial itself gets rejected below (e.g. a non-reusable
+    // authorization). Deduped against the webhook doing the same thing, so
+    // the card is only ever refunded once.
+    const authorization = verifyData.data.authorization;
+    await refundTrialChargeOnce(admin, reference);
+
+    // Paystack: "You should only attempt to use the authorization_code if
+    // [reusable] returns true" — a non-reusable authorization would
+    // otherwise pass silently here and only fail 30 days later when the
+    // cron tries to actually bill it (app/api/cron/subscription-grace),
+    // long after the user believed their trial was properly set up.
+    if (!authorization?.authorization_code || !authorization?.reusable) {
+      throw new Error(`This card does not support recurring billing — try a different card. Your ₦${TRIAL_VERIFICATION_AMOUNT_NGN} verification charge will be refunded within a few business days.`);
+    }
+    const authorizationCode = authorization.authorization_code;
+
+    const trialEndsAt = new Date(Date.now() + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+    // Same fields the webhook's trial branch of charge.success sets — this
+    // just gets there sooner. If the webhook lands afterward it's a
+    // harmless no-op update to the same values.
+    await admin
+      .from('shops')
+      .update({
+        paystack_customer_code: verifyData.data.customer.customer_code,
+        paystack_authorization_code: authorizationCode,
+        trial_plan_code: verifyData.data.metadata.trial_plan_code || null,
+        subscription_status: 'trialing',
+        trial_ends_at: trialEndsAt,
+        trial_used_at: new Date().toISOString(),
+        grace_expires_at: null,
+      })
+      .eq('id', profile.shop_id);
+
+    return { success: true, trialEndsAt };
+  } catch (err) {
+    await admin.from('payment_webhook_events').delete().eq('body_hash', `confirm_free_trial:${reference}`);
+    throw err;
+  }
+}
+
 /** Cancels the caller's own org subscription. Deliberately does NOT flip
  *  subscription_status away from 'active' immediately — the shop already
  *  paid for its current billing period, so it keeps full Premium access
@@ -267,7 +490,7 @@ export async function cancelSubscriptionAction(): Promise<{ success: true; acces
 
   const { data: shop } = await admin
     .from('shops')
-    .select('id, paystack_subscription_code, current_period_end, is_primary, org_id')
+    .select('id, subscription_status, paystack_subscription_code, current_period_end, is_primary, org_id')
     .eq('id', profile.shop_id)
     .single();
   if (!shop) return { error: 'Shop not found' };
@@ -277,8 +500,22 @@ export async function cancelSubscriptionAction(): Promise<{ success: true; acces
   // lib/subscription.ts.
   const billingShop = shop.is_primary
     ? shop
-    : (await admin.from('shops').select('id, paystack_subscription_code, current_period_end').eq('org_id', shop.org_id).eq('is_primary', true).single()).data;
+    : (await admin.from('shops').select('id, subscription_status, paystack_subscription_code, current_period_end').eq('org_id', shop.org_id).eq('is_primary', true).single()).data;
   if (!billingShop) return { error: 'Shop not found' };
+
+  // Trialing shops never had a real Paystack subscription created (see
+  // migration 0042 — that only happens at trial-end, in
+  // app/api/cron/subscription-grace) — nothing to disable on Paystack's
+  // side, so this is a pure DB update. trial_used_at is deliberately left
+  // untouched: canceling a trial doesn't refund the "used" state, closing
+  // the cancel/re-trial loophole startFreeTrial guards against.
+  if (billingShop.subscription_status === 'trialing') {
+    await admin
+      .from('shops')
+      .update({ subscription_status: 'free', trial_ends_at: null })
+      .eq('id', billingShop.id ?? profile.shop_id);
+    return { success: true, accessUntil: null };
+  }
 
   if (!billingShop.paystack_subscription_code) {
     return { error: 'No active subscription to cancel' };

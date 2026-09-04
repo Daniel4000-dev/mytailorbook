@@ -1,0 +1,24 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-hover);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  text-decoration: none;
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .badge:hover {
+    background: var(--sf-accent-emerald-glow);
+    color: var(--sf-accent-emerald);
+  }
+}
+
+.badge:active {
+  transform: scale(0.96);
+}

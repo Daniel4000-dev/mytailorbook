@@ -33,10 +33,19 @@
   margin: 0 0 var(--sf-space-xs);
 }
 
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sf-space-sm);
+  margin: 0 0 var(--sf-space-lg);
+}
+
 .date {
   color: var(--sf-text-tertiary);
   font-size: var(--sf-text-sm);
-  margin: 0 0 var(--sf-space-lg);
+  margin: 0;
 }
 
 .coverImageWrap {

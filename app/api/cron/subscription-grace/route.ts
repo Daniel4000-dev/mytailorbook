@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendPushToShop } from '@/lib/push';
+import { recordSubscriptionEvent } from '@/lib/subscriptionEvents';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const UPCOMING_RENEWAL_WINDOW_MS = 3 * DAY_MS;
@@ -44,6 +45,95 @@ export async function GET(request: NextRequest) {
   let remindedCanceled = 0;
   let demoted = 0;
   let demotedCanceled = 0;
+  let trialsConverted = 0;
+  let trialsFailed = 0;
+
+  // 0. Trial ended — attach the saved authorization (from the trial's
+  // nominal, refunded verification charge — see startFreeTrial in
+  // app/actions/payments.ts) to a real Paystack Plan subscription. Runs
+  // before every other step so a shop never sits 'trialing' past its
+  // trial_ends_at. Paystack has no deferred-billing option on its own, so
+  // this API call is what actually starts real billing; from here on the
+  // shop behaves exactly like any other Plan subscriber, and the existing
+  // webhook handlers (subscription.create, invoice.payment_failed, etc.)
+  // need no trial-specific logic at all.
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  const { data: endingTrials, error: endingTrialsError } = await admin
+    .from('shops')
+    .select('id, paystack_customer_code, paystack_authorization_code, trial_plan_code')
+    .eq('subscription_status', 'trialing')
+    .lte('trial_ends_at', now.toISOString());
+
+  if (endingTrialsError) {
+    return NextResponse.json({ ok: false, error: endingTrialsError.message }, { status: 500 });
+  }
+
+  if (!PAYSTACK_SECRET && endingTrials && endingTrials.length > 0) {
+    console.error('Cannot convert ended trials: missing PAYSTACK_SECRET_KEY');
+  } else {
+    for (const shop of endingTrials || []) {
+      if (!shop.paystack_customer_code || !shop.paystack_authorization_code || !shop.trial_plan_code) {
+        console.error(`Trial ${shop.id} missing billing details at conversion — dropping to free`, shop);
+        await admin.from('shops').update({ subscription_status: 'free', trial_ends_at: null }).eq('id', shop.id);
+        trialsFailed++;
+        continue;
+      }
+
+      try {
+        const subResponse = await fetch('https://api.paystack.co/subscription', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer: shop.paystack_customer_code,
+            plan: shop.trial_plan_code,
+            authorization: shop.paystack_authorization_code,
+          }),
+        });
+        const subData = await subResponse.json();
+
+        if (!subResponse.ok || !subData.status) {
+          // Declined card, expired authorization, etc. — they never
+          // actually paid, so there's no grace window to protect; go
+          // straight to Free rather than a 3-day past_due grace.
+          console.error(`Trial conversion charge failed for shop ${shop.id}:`, subData);
+          await admin
+            .from('shops')
+            .update({ subscription_status: 'free', trial_ends_at: null })
+            .eq('id', shop.id);
+          await recordSubscriptionEvent(admin, { shopId: shop.id, eventType: 'trial_conversion_failed', status: 'free' });
+          await sendPushToShop(shop.id, null, {
+            title: 'Free trial ended',
+            body: "Your trial ended and we couldn't charge your card, so your account is now on the Free plan. Update your payment method and resubscribe anytime.",
+            url: '/settings',
+          });
+          trialsFailed++;
+          continue;
+        }
+
+        await admin
+          .from('shops')
+          .update({
+            paystack_subscription_code: subData.data.subscription_code,
+            subscription_plan: shop.trial_plan_code,
+            subscription_status: 'active',
+            current_period_end: subData.data.next_payment_date || null,
+            trial_ends_at: null,
+          })
+          .eq('id', shop.id);
+        await recordSubscriptionEvent(admin, { shopId: shop.id, eventType: 'trial_converted', status: 'active' });
+        await sendPushToShop(shop.id, null, {
+          title: 'Trial ended — you\'re on Premium',
+          body: 'Your free trial just ended and your card was charged for Premium. Thanks for continuing with MyStitchBook!',
+          url: '/settings',
+        });
+        trialsConverted++;
+      } catch (err) {
+        console.error(`Trial conversion request failed for shop ${shop.id}:`, err);
+        await admin.from('shops').update({ subscription_status: 'free', trial_ends_at: null }).eq('id', shop.id);
+        trialsFailed++;
+      }
+    }
+  }
 
   // 1. Upcoming renewal reminder — active, still-auto-renewing
   // subscriptions renewing within 3 days that haven't been reminded today
@@ -203,5 +293,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ ok: true, remindedUpcoming, remindedPastDue, remindedCanceled, demoted, demotedCanceled });
+  return NextResponse.json({ ok: true, trialsConverted, trialsFailed, remindedUpcoming, remindedPastDue, remindedCanceled, demoted, demotedCanceled });
 }

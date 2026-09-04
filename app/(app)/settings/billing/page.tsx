@@ -10,9 +10,9 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { scrollContentToTop } from '@/lib/scrollToTop';
-import { initializeSubscription, confirmSubscriptionPayment, cancelSubscriptionAction } from '@/app/actions/payments';
+import { initializeSubscription, confirmSubscriptionPayment, startFreeTrial, confirmFreeTrial, cancelSubscriptionAction } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
-import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN } from '@/lib/subscription';
+import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, TRIAL_VERIFICATION_AMOUNT_NGN } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -55,6 +55,10 @@ export default function BillingSettingsPage() {
   const graceDaysLeft = currentShop?.graceExpiresAt
     ? Math.max(1, Math.ceil((new Date(currentShop.graceExpiresAt).getTime() - nowMs) / (24 * 60 * 60 * 1000)))
     : null;
+  const trialDaysLeft = currentShop?.trialEndsAt
+    ? Math.max(1, Math.ceil((new Date(currentShop.trialEndsAt).getTime() - nowMs) / (24 * 60 * 60 * 1000)))
+    : null;
+  const trialEligible = currentShop?.subscriptionStatus === 'free' && !currentShop?.trialUsedAt;
 
   useEffect(() => {
     if (searchParams.get('payment') !== 'success') return;
@@ -80,6 +84,30 @@ export default function BillingSettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  useEffect(() => {
+    if (searchParams.get('trial') !== 'success') return;
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
+    if (!reference) return;
+
+    const flagKey = `trial-confirmed-${reference}`;
+    if (sessionStorage.getItem(flagKey)) return;
+    sessionStorage.setItem(flagKey, '1');
+
+    router.replace(ROUTES.settingsBilling);
+
+    confirmFreeTrial(reference)
+      .then(() => {
+        showToast('Your free 30-day trial has started!', 'success');
+        trackEvent('trial_started');
+        refreshShop();
+      })
+      .catch((err) => {
+        console.error('confirmFreeTrial (redirect path) failed:', err);
+        showToast('We could not confirm your trial yet — it may still be processing.', 'error');
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleUpgrade = (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
     trackEvent('upgrade_checkout_started', { interval });
@@ -89,6 +117,19 @@ export default function BillingSettingsPage() {
       })
       .catch((err) => {
         showToast(err instanceof Error ? err.message : 'Upgrade failed', 'error');
+        setUpgrading(false);
+      });
+  };
+
+  const handleStartTrial = (interval: 'monthly' | 'yearly' = 'monthly') => {
+    setUpgrading(true);
+    trackEvent('trial_checkout_started', { interval });
+    startFreeTrial(interval)
+      .then(({ authorizationUrl }) => {
+        window.location.href = authorizationUrl;
+      })
+      .catch((err) => {
+        showToast(err instanceof Error ? err.message : 'Could not start trial', 'error');
         setUpgrading(false);
       });
   };
@@ -156,6 +197,15 @@ export default function BillingSettingsPage() {
             </div>
           )}
 
+          {currentShop?.subscriptionStatus === 'trialing' && trialDaysLeft !== null && (
+            <div className={styles.graceBanner}>
+              <Symbol name="workspace_premium" size={16} />
+              <span>
+                {trialDaysLeft} day(s) left in your free trial. Your card will be charged automatically when it ends — cancel anytime before then to avoid that.
+              </span>
+            </div>
+          )}
+
           <div className={`${styles.planCard} ${styles.planCardHighlight}`}>
             <div className={styles.planCardHeader}>
               <span className={styles.planName}>Premium</span>
@@ -187,16 +237,25 @@ export default function BillingSettingsPage() {
               <li>Badge removed from your public pages</li>
               <li>Priority support</li>
             </ul>
-            {currentShop?.subscriptionStatus === 'active' ? (
+            {currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing' ? (
               <div className={styles.currentPlanBadge}>
-                <Symbol name="check" size={18} /> Current Plan
+                <Symbol name="check" size={18} /> {currentShop.subscriptionStatus === 'trialing' ? 'Free Trial Active' : 'Current Plan'}
               </div>
+            ) : trialEligible ? (
+              <Button variant="primary" loading={upgrading} onClick={() => handleStartTrial(billingInterval)} fullWidth>
+                Try free for 30 days
+              </Button>
             ) : (
               <Button variant="primary" loading={upgrading} onClick={() => handleUpgrade(billingInterval)} fullWidth>
                 {billingInterval === 'monthly'
                   ? `Upgrade — ₦${PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}/month`
                   : `Upgrade — ₦${PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}/year`}
               </Button>
+            )}
+            {trialEligible && (
+              <p className={styles.priceSubtext}>
+                We place a small ₦{TRIAL_VERIFICATION_AMOUNT_NGN} card-verification charge, refunded within a few business days — it&apos;s not a fee. After 30 free days, you&apos;re billed ₦{(billingInterval === 'monthly' ? PREMIUM_MONTHLY_PRICE_NGN : PREMIUM_YEARLY_PRICE_NGN).toLocaleString()}/{billingInterval === 'monthly' ? 'month' : 'year'} unless you cancel.
+              </p>
             )}
           </div>
 
@@ -221,9 +280,9 @@ export default function BillingSettingsPage() {
             Cancel anytime. If a renewal payment fails, you keep Premium features for a 3-day grace period with reminders before reverting to Free — your data is never locked either way.
           </p>
 
-          {currentShop?.subscriptionStatus === 'active' && (
+          {(currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing') && (
             <button type="button" className={styles.cancelPlanLink} onClick={openCancelFlow}>
-              Cancel subscription
+              {currentShop.subscriptionStatus === 'trialing' ? 'Cancel trial' : 'Cancel subscription'}
             </button>
           )}
         </>

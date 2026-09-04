@@ -108,7 +108,11 @@ export default function OnboardingPage() {
 
     setSubmitting(true);
     try {
-      await completeOnboarding(data.shopName, isGoogleAccount ? data.name : undefined);
+      const result = await completeOnboarding(data.shopName, isGoogleAccount ? data.name : undefined);
+      if (result?.error) {
+        setApiError(result.error);
+        return;
+      }
       trackEvent('onboarding_completed', { via: isGoogleAccount ? 'google' : 'email' });
       await refreshProfile();
       router.push(ROUTES.dashboard);

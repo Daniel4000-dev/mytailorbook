@@ -63,11 +63,19 @@ export interface Shop {
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
   subscriptionPlan?: string;
-  subscriptionStatus: 'free' | 'active' | 'past_due' | 'canceled';
+  subscriptionStatus: 'free' | 'trialing' | 'active' | 'past_due' | 'canceled';
   /** Only set while subscriptionStatus is 'past_due' — the 3-day grace
    *  deadline from migration 0026, after which the daily cron
    *  (app/api/cron/subscription-grace) demotes the shop to 'free'. */
   graceExpiresAt?: string;
+  /** Only set while subscriptionStatus is 'trialing' (migration 0042) — the
+   *  daily cron (app/api/cron/subscription-grace) converts the trial to a
+   *  real subscription once this passes. */
+  trialEndsAt?: string;
+  /** Permanent once set — never cleared, even on cancel. Marks that this
+   *  org has already used its one free trial (see startFreeTrial in
+   *  app/actions/payments.ts). */
+  trialUsedAt?: string;
   /** Whether a new order's WhatsApp update messages include the public
    *  tracking link by default. Each order can still override this
    *  individually (see Order.includeTrackingLink) — this only sets what a

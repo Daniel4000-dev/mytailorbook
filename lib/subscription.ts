@@ -16,14 +16,26 @@ type AnySupabaseClient = SupabaseServerClient | SupabaseAdminClient;
 export const FREE_MONTHLY_ORDER_LIMIT = 15;
 
 /** Statuses that count as premium access — kept as one source of truth so
- *  server-side gates, the DB-level triggers (migration 0033), and every
+ *  server-side gates, the DB-level triggers (migration 0033/0042), and every
  *  client-side "is this shop premium" UI check all agree. Safe to import
  *  client-side: the only server-only imports in this file are type-only
  *  (`import type`), fully erased at build time. */
-export const PREMIUM_STATUSES = ['active', 'past_due'];
+export const PREMIUM_STATUSES = ['active', 'past_due', 'trialing'];
 
 export const PREMIUM_MONTHLY_PRICE_NGN = 2699;
 export const PREMIUM_YEARLY_PRICE_NGN = 26990;
+
+/** Length of the free trial started in app/actions/payments.ts
+ *  (startFreeTrial/confirmFreeTrial) and converted to a real subscription
+ *  by app/api/cron/subscription-grace once trial_ends_at passes. */
+export const TRIAL_LENGTH_DAYS = 30;
+
+/** The nominal, immediately-refunded charge used to obtain a reusable
+ *  Paystack authorization during trial signup (see migration 0042) — kept
+ *  well above Paystack's minimum chargeable amount for NGN cards so
+ *  initialization never fails on "amount too low", but far below any real
+ *  plan price so a refund failure is a trivial amount, not a real bill. */
+export const TRIAL_VERIFICATION_AMOUNT_NGN = 50;
 
 /** Free tier caps per order (see migration 0032's DB trigger, which is the
  *  real enforcement — these are duplicated here only so the UI can show a

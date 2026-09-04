@@ -735,6 +735,7 @@ export default function NewOrderWizard() {
             onToggleLock={toggleMeasureLock}
             addableFields={availableExtraFields}
             onAddField={handleAddField}
+            onSkip={measureNext}
           />
         )}
 

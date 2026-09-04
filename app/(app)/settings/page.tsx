@@ -188,17 +188,18 @@ export default function SettingsPage() {
                 <span className={billingRowStyles.label}>MyStitchBook Pro</span>
                 <span className={billingRowStyles.subtitle}>
                   {currentShop?.subscriptionStatus === 'active' && 'Active Subscription'}
+                  {currentShop?.subscriptionStatus === 'trialing' && 'Free Trial'}
                   {currentShop?.subscriptionStatus === 'past_due' && 'Payment failed'}
                   {(!currentShop?.subscriptionStatus || currentShop.subscriptionStatus === 'free' || currentShop.subscriptionStatus === 'canceled') && 'Free Tier'}
                 </span>
               </span>
-              {currentShop?.subscriptionStatus === 'active' ? (
+              {currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing' ? (
                 <button type="button" className={styles.proMemberBadge} onClick={() => router.push(ROUTES.settingsBilling)}>
                   Pro Member
                 </button>
               ) : (
                 <Button variant="primary" onClick={() => router.push(ROUTES.settingsBilling)} size="sm">
-                  {currentShop?.subscriptionStatus === 'past_due' ? 'Fix Payment' : 'Upgrade'}
+                  {currentShop?.subscriptionStatus === 'past_due' ? 'Fix Payment' : 'Try free for 30 days'}
                 </Button>
               )}
             </div>

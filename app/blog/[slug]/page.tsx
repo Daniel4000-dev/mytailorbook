@@ -10,6 +10,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import MdxImage from '@/components/blog/MdxImage';
 import Header from '@/components/marketing/Header/Header';
 import Footer from '@/components/marketing/Footer/Footer';
+import PreferredSourceBadge from '@/components/marketing/PreferredSourceBadge/PreferredSourceBadge';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -109,7 +110,10 @@ export default async function BlogPost({ params }: Props) {
           </Link>
 
           <h1 className={styles.title}>{post.title}</h1>
-          <p className={styles.date}>{post.date}</p>
+          <div className={styles.meta}>
+            <p className={styles.date}>{post.date}</p>
+            <PreferredSourceBadge />
+          </div>
 
           {post.coverImage && (
             <div className={styles.coverImageWrap}>

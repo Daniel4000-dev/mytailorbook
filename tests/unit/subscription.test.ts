@@ -5,6 +5,7 @@ import {
   isOrgPremium,
   isOrgPremiumByOrgId,
   FREE_MONTHLY_ORDER_LIMIT,
+  PREMIUM_STATUSES,
 } from '@/lib/subscription';
 
 /** Minimal fake of the Supabase query builder used by lib/subscription.ts.
@@ -151,19 +152,34 @@ describe('checkOrderQuota', () => {
     const result = await checkOrderQuota(client, 'shop-1');
     expect(result.allowed).toBe(true);
   });
+
+  it('treats trialing the same as active — unlimited, matching the DB triggers added in migration 0042', async () => {
+    const client = makeFakeClient({
+      shops: [
+        { data: { org_id: 'org-1' }, error: null },
+        { data: { org_id: 'org-1', subscription_status: 'trialing', is_primary: true }, error: null },
+      ],
+    });
+    const result = await checkOrderQuota(client, 'shop-1');
+    expect(result).toEqual({ allowed: true, used: 0, limit: null });
+  });
 });
 
 describe('isOrgPremium / isOrgPremiumByOrgId', () => {
-  it('isOrgPremium is true only when the org is active', async () => {
-    const activeClient = makeFakeClient({
-      shops: [{ data: { org_id: 'org-1', subscription_status: 'active', is_primary: true }, error: null }],
-    });
-    expect(await isOrgPremium(activeClient, 'shop-1')).toBe(true);
+  it('isOrgPremium is true for every PREMIUM_STATUSES entry, false otherwise', async () => {
+    for (const status of PREMIUM_STATUSES) {
+      const client = makeFakeClient({
+        shops: [{ data: { org_id: 'org-1', subscription_status: status, is_primary: true }, error: null }],
+      });
+      expect(await isOrgPremium(client, 'shop-1'), `expected "${status}" to be premium`).toBe(true);
+    }
 
-    const freeClient = makeFakeClient({
-      shops: [{ data: { org_id: 'org-1', subscription_status: 'free', is_primary: true }, error: null }],
-    });
-    expect(await isOrgPremium(freeClient, 'shop-1')).toBe(false);
+    for (const status of ['free', 'canceled']) {
+      const client = makeFakeClient({
+        shops: [{ data: { org_id: 'org-1', subscription_status: status, is_primary: true }, error: null }],
+      });
+      expect(await isOrgPremium(client, 'shop-1'), `expected "${status}" to NOT be premium`).toBe(false);
+    }
   });
 
   it('isOrgPremiumByOrgId reads the primary shop directly by org id', async () => {

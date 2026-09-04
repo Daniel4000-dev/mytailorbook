@@ -1,51 +1,11 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { recordSubscriptionEvent } from '@/lib/subscriptionEvents';
+import { refundTrialChargeOnce } from '@/lib/paystackRefund';
+import { TRIAL_LENGTH_DAYS } from '@/lib/subscription';
 
 type AdminClient = ReturnType<typeof createAdminClient>;
-
-/**
- * Best-effort revenue/churn history — see 0038_admin_tracking.sql. Written
- * as a separate follow-up lookup+insert rather than folded into the
- * existing `.update()` calls above, so a failure here (or a future change
- * to this function) can never affect the actual billing-state write. Never
- * throws: /admin's dashboard is not something a Paystack retry should ever
- * be blocked by.
- */
-async function recordSubscriptionEvent(
-  admin: AdminClient,
-  params: { shopId?: string; customerCode?: string; eventType: string; status: string; amountKobo?: number }
-) {
-  try {
-    let shopId = params.shopId;
-    let orgId: string | undefined;
-
-    if (shopId) {
-      const { data } = await admin.from('shops').select('org_id').eq('id', shopId).maybeSingle();
-      orgId = data?.org_id;
-    } else if (params.customerCode) {
-      const { data } = await admin
-        .from('shops')
-        .select('id, org_id')
-        .eq('paystack_customer_code', params.customerCode)
-        .maybeSingle();
-      shopId = data?.id;
-      orgId = data?.org_id;
-    }
-
-    if (!shopId || !orgId) return;
-
-    await admin.from('subscription_events').insert({
-      shop_id: shopId,
-      org_id: orgId,
-      event_type: params.eventType,
-      status: params.status,
-      amount_kobo: params.amountKobo ?? null,
-    });
-  } catch (err) {
-    console.error('recordSubscriptionEvent failed:', err);
-  }
-}
 
 export async function POST(req: Request) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -103,9 +63,54 @@ export async function POST(req: Request) {
         // this without our own metadata (e.g. a payment initiated outside
         // our checkout flow), there's no shop to attribute it to — skip
         // rather than guess.
-        const { customer, metadata, amount } = event.data;
+        const { customer, metadata, amount, authorization, reference } = event.data;
         const shopId = metadata?.shop_id;
         if (!shopId) break;
+
+        if (metadata?.trial) {
+          // This is the nominal trial-verification charge (see
+          // startFreeTrial in app/actions/payments.ts), not a real
+          // payment — activate the trial and refund it, don't mark the
+          // shop 'active'. confirmFreeTrial does the same writes from the
+          // client side for immediacy; both are idempotent updates, and
+          // the refund itself is deduped separately so it only fires once.
+          //
+          // The card was genuinely charged at this point regardless of
+          // what happens next — refund unconditionally, even if the trial
+          // itself gets rejected below (non-reusable authorization).
+          await refundTrialChargeOnce(supabaseAdmin, reference);
+
+          // Paystack: "You should only attempt to use the
+          // authorization_code if [reusable] returns true" — a
+          // non-reusable authorization would otherwise silently pass here
+          // and only fail 30 days later when the cron tries to actually
+          // bill it (app/api/cron/subscription-grace).
+          if (!authorization?.authorization_code || !authorization?.reusable) {
+            console.error(`Trial charge ${reference} has no reusable authorization — trial not started`);
+            break;
+          }
+
+          await supabaseAdmin
+            .from('shops')
+            .update({
+              paystack_customer_code: customer.customer_code,
+              paystack_authorization_code: authorization.authorization_code,
+              trial_plan_code: metadata.trial_plan_code || null,
+              subscription_status: 'trialing',
+              trial_ends_at: new Date(Date.now() + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+              trial_used_at: new Date().toISOString(),
+              grace_expires_at: null,
+            })
+            .eq('id', shopId);
+
+          await recordSubscriptionEvent(supabaseAdmin, {
+            shopId,
+            eventType: 'trial_started',
+            status: 'trialing',
+          });
+
+          break;
+        }
 
         await supabaseAdmin
           .from('shops')
@@ -194,6 +199,30 @@ export async function POST(req: Request) {
           status: 'past_due',
         });
 
+        break;
+      }
+
+      // The initial refund API call (refundTrialChargeOnce, in the
+      // charge.success/trial branch above) only confirms Paystack
+      // *accepted the request* — refunds are asynchronous (card refunds
+      // take 5-10 business days) and these events carry the actual
+      // outcome. Nothing in our billing state depends on a trial refund
+      // completing (the trial is already active either way), so this is
+      // pure observability: a failed/stuck trial refund otherwise has no
+      // visibility beyond Paystack's own email to us.
+      case 'refund.failed':
+      case 'refund.processing':
+      case 'refund.processed': {
+        const reference = event.data.transaction_reference || event.data.transaction?.reference;
+        const customerCode = event.data.customer?.customer_code;
+        if (event.event === 'refund.failed') {
+          console.error(`Refund FAILED for transaction ${reference} — needs manual refund:`, event.data);
+        }
+        await recordSubscriptionEvent(supabaseAdmin, {
+          customerCode,
+          eventType: event.event,
+          status: event.event === 'refund.failed' ? 'refund_failed' : 'refund_pending',
+        });
         break;
       }
     }

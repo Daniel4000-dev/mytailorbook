@@ -2,6 +2,7 @@ import Link from 'next/link';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import InstagramIcon from '@/components/ui/InstagramIcon/InstagramIcon';
 import FacebookIcon from '@/components/ui/FacebookIcon/FacebookIcon';
+import PreferredSourceBadge from '@/components/marketing/PreferredSourceBadge/PreferredSourceBadge';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import styles from './Footer.module.css';
@@ -37,6 +38,8 @@ export default function Footer() {
               <FacebookIcon size={18} />
             </a>
           </div>
+
+          <PreferredSourceBadge />
         </div>
 
         <div className={styles.linkCol}>

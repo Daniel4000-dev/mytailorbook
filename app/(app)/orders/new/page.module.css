@@ -161,6 +161,54 @@
   margin-top: 4px;
 }
 
+/* Houses the measure step's title/subtitle next to its inline Skip
+   link — see .inlineSkipLink for why that link exists alongside the
+   fixed bottom bar's own Skip button. */
+.stepHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+}
+
+/* Duplicates the fixed bottom bar's "Skip for now" action in-flow, at the
+   top of the measurement step, so it stays reachable even when a mobile
+   on-screen keyboard covers that fixed bar — see the onSkip prop comment
+   in MeasureStep.tsx. Hidden by default: the bottom bar already covers
+   this on desktop (no keyboard ever hides it there), and on mobile it
+   would otherwise sit visible right alongside the bottom bar's identical
+   button whenever no field is focused. Only appears once a measurement
+   input actually has focus (.col:focus-within below) on a coarse-pointer
+   (touch/keyboard-capable) device — i.e. exactly while a software
+   keyboard is plausibly open and might be covering the bottom bar. */
+.inlineSkipLink {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  height: var(--sf-touch-target);
+  padding: 0 var(--sf-space-xs);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+}
+
+@media (pointer: coarse) {
+  .col:focus-within .inlineSkipLink {
+    display: flex;
+  }
+}
+
+.inlineSkipLink:active {
+  opacity: 0.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .inlineSkipLink:hover {
+    color: var(--sf-accent-emerald);
+  }
+}
+
 .emptyNote {
   color: var(--sf-text-tertiary);
   font-style: italic;
