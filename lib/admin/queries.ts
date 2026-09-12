@@ -25,8 +25,8 @@ export interface OverviewStats {
   cancellations30d: number;
 }
 
-async function count(admin: AdminClient, table: string, filter?: (q: any) => any) {
-  let query = admin.from(table).select('id', { count: 'exact', head: true });
+async function count(admin: AdminClient, table: string, filter?: (q: any) => any, select = 'id') {
+  let query = admin.from(table).select(select, { count: 'exact', head: true });
   if (filter) query = filter(query);
   const { count: c } = await query;
   return c ?? 0;
@@ -50,14 +50,14 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     { data: revenueEvents },
     cancellations30d,
   ] = await Promise.all([
-    count(admin, 'organizations'),
-    count(admin, 'shops'),
-    count(admin, 'shops', (q) => q.in('subscription_status', PREMIUM_STATUSES as unknown as string[])),
-    count(admin, 'customers'),
-    count(admin, 'orders'),
-    count(admin, 'orders', (q) => q.gte('created_at', d30)),
-    count(admin, 'organizations', (q) => q.gte('created_at', d7)),
-    count(admin, 'organizations', (q) => q.gte('created_at', d30)),
+    count(admin, 'organizations', (q) => q.not('owner_id', 'is', null)),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null)),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).in('subscription_status', PREMIUM_STATUSES as unknown as string[])),
+    count(admin, 'customers', (q) => q.not('organizations.owner_id', 'is', null), 'id, organizations!inner(id, owner_id)'),
+    count(admin, 'orders', (q) => q.not('shops.owner_id', 'is', null), 'id, shops!inner(id, owner_id)'),
+    count(admin, 'orders', (q) => q.not('shops.owner_id', 'is', null).gte('created_at', d30), 'id, shops!inner(id, owner_id)'),
+    count(admin, 'organizations', (q) => q.not('owner_id', 'is', null).gte('created_at', d7)),
+    count(admin, 'organizations', (q) => q.not('owner_id', 'is', null).gte('created_at', d30)),
     admin.from('subscription_events').select('amount_kobo').eq('event_type', 'charge.success').gte('created_at', d30),
     count(admin, 'subscription_events', (q) =>
       q.in('event_type', ['subscription.disable', 'subscription.not_renew']).gte('created_at', d30)
@@ -100,6 +100,7 @@ export async function getSignupSeries(days = 30): Promise<SignupDay[]> {
   const { data } = await admin
     .from('organizations')
     .select('created_at')
+    .not('owner_id', 'is', null)
     .gte('created_at', since.toISOString());
 
   const buckets = new Map<string, number>();
@@ -129,7 +130,7 @@ export async function getAffiliatePerformance(): Promise<AffiliatePerformance[]>
 
   const [{ data: affiliates }, { data: orgs }] = await Promise.all([
     admin.from('affiliates').select('id, name, code, active').order('created_at', { ascending: false }),
-    admin.from('organizations').select('id, referred_by_affiliate_id').not('referred_by_affiliate_id', 'is', null),
+    admin.from('organizations').select('id, referred_by_affiliate_id').not('referred_by_affiliate_id', 'is', null).not('owner_id', 'is', null),
   ]);
 
   const orgIdsByAffiliate = new Map<string, string[]>();
@@ -273,6 +274,7 @@ export async function getOrganizations(
   let query = admin
     .from('organizations')
     .select('id, name, created_at, owner_id, referral_code_raw', { count: 'exact' })
+    .not('owner_id', 'is', null)
     .order('created_at', { ascending: false })
     .range(from, to);
 
