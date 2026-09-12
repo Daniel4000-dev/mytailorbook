@@ -254,7 +254,7 @@ export default function BillingSettingsPage() {
             )}
             {trialEligible && (
               <p className={styles.priceSubtext}>
-                We place a small ₦{TRIAL_VERIFICATION_AMOUNT_NGN} card-verification charge, refunded within a few business days — it&apos;s not a fee. After 30 free days, you&apos;re billed ₦{(billingInterval === 'monthly' ? PREMIUM_MONTHLY_PRICE_NGN : PREMIUM_YEARLY_PRICE_NGN).toLocaleString()}/{billingInterval === 'monthly' ? 'month' : 'year'} unless you cancel.
+                We place a small ₦{TRIAL_VERIFICATION_AMOUNT_NGN} card-verification charge, refunded within a few business days — it&apos;s not a fee. Free for 30 days, then ₦{(billingInterval === 'monthly' ? PREMIUM_MONTHLY_PRICE_NGN : PREMIUM_YEARLY_PRICE_NGN).toLocaleString()}/{billingInterval === 'monthly' ? 'month' : 'year'} unless you cancel — cancel anytime, before or during the trial, right from this page.
               </p>
             )}
           </div>

@@ -15,6 +15,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
+import AppTour from '@/components/system/AppTour/AppTour';
 import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
@@ -64,6 +65,21 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       router.replace(ROUTES.onboarding);
     }
   }, [authLoading, needsOnboarding, router]);
+
+  // Heartbeat tracking for admin analytics
+  // Sends a lightweight ping every 5 minutes to track "Currently Online" users
+  useEffect(() => {
+    if (authLoading || needsOnboarding) return;
+
+    const ping = () => {
+      // Fire-and-forget
+      fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
+    };
+
+    ping(); // Immediate ping on app load/focus
+    const id = setInterval(ping, 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [authLoading, needsOnboarding]);
 
   useEffect(() => {
     const isDark = preference === 'dark' || (preference === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -139,10 +155,15 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           onClick={openCreateMenu}
           icon={<Symbol name="add" />}
           label="Create action"
+          tourId="fab"
         />
       )}
       {!isMenuOpen && !isTransactional && <BottomNav />}
       {!isMenuOpen && <InstallPrompt />}
+      {/* Self-gating (see AppTour) — only ever actually renders once, on
+          first login, and skipped entirely mid-wizard so it never covers
+          the focused customer/order creation flow. */}
+      {!isTransactional && <AppTour />}
 
       {/* Create Action Menu — opened by the FAB on mobile, or by the
           equivalent button in SidebarMenu on desktop (see SidebarContext). */}

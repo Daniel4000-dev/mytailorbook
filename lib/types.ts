@@ -362,6 +362,12 @@ export interface NavItem {
   ownerOnly?: boolean;
   /** Sidebar only — omit from the mobile bottom nav to prevent crowding */
   hideFromBottomNav?: boolean;
+  /** Rendered as this item's `data-tour-id` on both BottomNav and
+   *  SidebarMenu's matching link, so AppTour (components/system/AppTour)
+   *  can find and spotlight the real on-screen element regardless of
+   *  which nav the current viewport is showing. Omit for items the tour
+   *  doesn't cover. */
+  tourId?: string;
 }
 
 export interface StatCardData {

@@ -141,6 +141,7 @@ export default function SidebarMenu() {
               className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
               onClick={() => setMenuOpen(false)}
               title={isCollapsed ? item.label : undefined}
+              data-tour-id={item.tourId}
             >
               <Symbol name={item.icon} className={styles.menuIcon} />
               <span className={styles.menuText}>{item.label}</span>

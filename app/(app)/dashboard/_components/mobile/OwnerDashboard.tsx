@@ -95,6 +95,19 @@ export default function OwnerDashboard({
         <span className={styles.sectionTitle}>Team Snapshot</span>
       </div>
 
+      {teamSnapshot.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Symbol name="group" className={styles.emptyStateIcon} />
+          <span>No staff added yet — invite your team to see them here.</span>
+          <button
+            type="button"
+            className={styles.emptyStateAction}
+            onClick={() => onNavigate('/settings/staff')}
+          >
+            Invite Team
+          </button>
+        </div>
+      ) : (
       <div className={styles.teamGrid}>
         {teamSnapshot.map(({ staff, active, overdue, completed }) => (
           <button
@@ -128,6 +141,7 @@ export default function OwnerDashboard({
           </button>
         ))}
       </div>
+      )}
 
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Needs Attention</span>

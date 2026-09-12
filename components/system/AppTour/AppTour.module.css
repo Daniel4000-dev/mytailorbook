@@ -1,0 +1,128 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sf-z-overlay);
+}
+
+/* The "spotlight": a transparent box exactly over the target, whose huge
+   box-shadow IS the dimmed backdrop everywhere else — cheaper and simpler
+   than an SVG mask, and trivially animatable between targets. */
+.highlightRing {
+  position: fixed;
+  border-radius: var(--sf-radius-md);
+  border: 2px solid var(--sf-accent-emerald);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  transition: left var(--sf-transition-fast), top var(--sf-transition-fast),
+    width var(--sf-transition-fast), height var(--sf-transition-fast);
+}
+
+.tooltip {
+  position: fixed;
+  background: var(--sf-bg-primary);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-md);
+  box-shadow: var(--sf-shadow-lg);
+  transition: left var(--sf-transition-fast), bottom var(--sf-transition-fast);
+}
+
+.tooltipArrow {
+  position: absolute;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--sf-bg-primary);
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 0 0 2px;
+}
+
+/* Used when the tooltip sits below its target (the menu button, near the
+   top of the screen) instead of above it — see the placeBelow check in
+   AppTour.tsx. Points up at the target instead of down. */
+.tooltipArrowTop {
+  position: absolute;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--sf-bg-primary);
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 2px 0 0;
+}
+
+.title {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin-bottom: 4px;
+}
+
+.body {
+  font-size: var(--sf-text-sm);
+  line-height: 1.5;
+  color: var(--sf-text-secondary);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-md);
+}
+
+.progress {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.skipBtn {
+  background: transparent;
+  border: none;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  font-family: var(--sf-font-body), sans-serif;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+
+.skipBtn:active {
+  transform: scale(0.95);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .skipBtn:hover {
+    color: var(--sf-text-secondary);
+  }
+}
+
+.nextBtn {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  border: none;
+  border-radius: var(--sf-radius-full);
+  padding: 8px 18px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  font-family: var(--sf-font-body), sans-serif;
+  cursor: pointer;
+}
+
+.nextBtn:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nextBtn:hover {
+    background: var(--sf-accent-emerald-dark);
+  }
+}

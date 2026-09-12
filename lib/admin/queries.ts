@@ -476,3 +476,116 @@ export async function getAdminAuditLog(limit = 100): Promise<AdminAuditLogEntry[
     createdAt: e.created_at,
   }));
 }
+
+export interface ActiveUserStats {
+  onlineNow: number;
+  dailyActive: number;
+  weeklyActive: number;
+  monthlyActive: number;
+  actionPerformers: {
+    shopId: string;
+    orgName: string;
+    actionCount: number;
+  }[];
+}
+
+export async function getActiveUsersStats(): Promise<ActiveUserStats> {
+  const admin = createAdminClient();
+  const now = new Date();
+
+  // Thresholds
+  const onlineThreshold = new Date(now.getTime() - 15 * 60 * 1000).toISOString(); // 15 mins
+  const dailyThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const weeklyThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const monthlyThreshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  try {
+    // 1. Fetch active counts from profiles
+    // We filter out discarded accounts by joining orgs, but for speed on dashboard, 
+    // we can just check if last_active_at > threshold.
+    // However, it's safer to ensure they belong to valid orgs. Since we don't have a 
+    // direct relation from profiles to organizations (it goes profiles -> shops -> orgs),
+    // we'll just query profiles directly.
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, last_active_at')
+      .not('last_active_at', 'is', null)
+      .gte('last_active_at', monthlyThreshold);
+
+    const activeProfiles = profiles || [];
+    
+    let onlineNow = 0;
+    let dailyActive = 0;
+    let weeklyActive = 0;
+    let monthlyActive = activeProfiles.length;
+
+    for (const p of activeProfiles) {
+      if (!p.last_active_at) continue;
+      if (p.last_active_at >= onlineThreshold) onlineNow++;
+      if (p.last_active_at >= dailyThreshold) dailyActive++;
+      if (p.last_active_at >= weeklyThreshold) weeklyActive++;
+    }
+
+    // 2. Fetch action performers (Power Users) from audit_log
+    const { data: actions } = await admin
+      .from('audit_log')
+      .select('shop_id, created_at')
+      .gte('created_at', weeklyThreshold);
+
+    // Group actions by shopId
+    const actionCounts: Record<string, number> = {};
+    for (const action of (actions || [])) {
+      actionCounts[action.shop_id] = (actionCounts[action.shop_id] || 0) + 1;
+    }
+
+    // Resolve shop_ids to org names
+    const shopIds = Object.keys(actionCounts);
+    let actionPerformers: ActiveUserStats['actionPerformers'] = [];
+
+    if (shopIds.length > 0) {
+      const { data: shops } = await admin
+        .from('shops')
+        .select('id, name, org_id')
+        .in('id', shopIds);
+        
+      if (shops && shops.length > 0) {
+        // Fetch orgs to ensure owner_id is not null (active accounts)
+        const orgIds = [...new Set(shops.map(s => s.org_id))];
+        const { data: orgs } = await admin
+          .from('organizations')
+          .select('id, name, owner_id')
+          .in('id', orgIds)
+          .not('owner_id', 'is', null);
+
+        const validOrgs = new Map((orgs || []).map(o => [o.id, o.name]));
+
+        actionPerformers = shops
+          .filter(s => validOrgs.has(s.org_id))
+          .map(s => ({
+            shopId: s.id,
+            orgName: validOrgs.get(s.org_id) || s.name,
+            actionCount: actionCounts[s.id] || 0
+          }))
+          .sort((a, b) => b.actionCount - a.actionCount);
+      }
+    }
+
+    return {
+      onlineNow,
+      dailyActive,
+      weeklyActive,
+      monthlyActive,
+      actionPerformers
+    };
+  } catch (error) {
+    console.error("Error fetching active user stats:", error);
+    // Return empty stats if the column doesn't exist yet
+    return {
+      onlineNow: 0,
+      dailyActive: 0,
+      weeklyActive: 0,
+      monthlyActive: 0,
+      actionPerformers: []
+    };
+  }
+}

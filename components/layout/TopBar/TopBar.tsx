@@ -52,7 +52,7 @@ export default function TopBar({
         // visual noise, not a real fallback.
         <div className={styles.profileHeaderContent}>
           <div className={styles.left}>
-            <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu">
+            <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
               <Symbol name="menu" size={24} />
             </button>
             {leftAction}
@@ -73,7 +73,7 @@ export default function TopBar({
                 <Symbol name="arrow_back" size={24} />
               </button>
             ) : (
-              <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu">
+              <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
                 <Symbol name="menu" size={24} />
               </button>
             )}

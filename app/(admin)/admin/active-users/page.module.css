@@ -1,0 +1,152 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.heading {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary, #111827);
+}
+
+.subheading {
+  font-size: 1rem;
+  color: var(--text-secondary, #6B7280);
+  margin-bottom: 2rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.statCard {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #E5E7EB);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.statTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary, #4B5563);
+  margin: 0;
+}
+
+.statValue {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 0.25rem 0;
+}
+
+.statSubtext {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6B7280);
+  margin: 0;
+}
+
+.iconOnline { color: #10B981; }
+.iconDaily { color: #3B82F6; }
+.iconWeekly { color: #8B5CF6; }
+.iconMonthly { color: #F59E0B; }
+
+.sectionHeader {
+  margin-bottom: 1.5rem;
+}
+
+.sectionHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin: 0 0 0.5rem 0;
+}
+
+.sectionHeader p {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #6B7280);
+  margin: 0;
+}
+
+.emptyState {
+  background: var(--bg-surface, #ffffff);
+  border: 1px dashed var(--border-color, #E5E7EB);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-secondary, #6B7280);
+}
+
+.tableWrap {
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-color, #E5E7EB);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color, #E5E7EB);
+}
+
+.table th {
+  background: var(--bg-surface-alt, #F9FAFB);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #6B7280);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.boldCell {
+  font-weight: 500;
+  color: var(--text-primary, #111827);
+}
+
+.gradeBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.gradeHigh {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.gradeMedium {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.gradeLow {
+  background-color: #F3F4F6;
+  color: #374151;
+}

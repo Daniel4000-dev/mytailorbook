@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 const NAV_ITEMS = [
   { href: ROUTES.admin, label: 'Overview' },
+  { href: `${ROUTES.admin}/active-users`, label: 'Active Users' },
   { href: `${ROUTES.admin}/organizations`, label: 'Organizations' },
   { href: `${ROUTES.admin}/affiliates`, label: 'Affiliates' },
   { href: `${ROUTES.admin}/activity`, label: 'Activity' },
