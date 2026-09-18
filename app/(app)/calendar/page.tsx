@@ -283,7 +283,7 @@ export default function CalendarPage() {
       <FAB 
         icon={<Symbol name="add" />} 
         onClick={() => setIsAddEventOpen(true)}
-        ariaLabel="Add Event"
+        label="Add Event"
       />
     </PageLayout>
   );

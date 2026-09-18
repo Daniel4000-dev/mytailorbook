@@ -528,7 +528,10 @@ export async function addOrderBatchAction(
 
     if (calendarEvents.length > 0) {
       // Fire and forget or await, but safe to ignore failures for auto-events
-      await supabase.from('calendar_events').insert(calendarEvents).catch(e => console.error('Failed to reverse-schedule events:', e));
+      const { error } = await supabase.from('calendar_events').insert(calendarEvents);
+      if (error) {
+        console.error('Failed to reverse-schedule events:', error);
+      }
     }
   }
 

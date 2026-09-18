@@ -1,0 +1,2081 @@
+commit 6899256a068935d16d36f10f13e0cf759d18f750
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Sat Sep 12 21:10:00 2026 +0100
+
+    feat(admin): add active users analytics dashboard with real-time heartbeat
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index c94315f..4a3d561 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -141,6 +141,7 @@ export default function SidebarMenu() {
+               className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
+               onClick={() => setMenuOpen(false)}
+               title={isCollapsed ? item.label : undefined}
++              data-tour-id={item.tourId}
+             >
+               <Symbol name={item.icon} className={styles.menuIcon} />
+               <span className={styles.menuText}>{item.label}</span>
+
+commit 18da41cc75580ad92f7579f62a1ce2d2021ecee3
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Aug 25 04:23:42 2026 +0100
+
+    feat: affiliate link tracking + internal admin dashboard
+    
+    Adds a platform-admin-only /admin dashboard (overview KPIs, signup chart,
+    organizations list/drill-down, affiliate management) gated by a real
+    platform_admins table, not a tenant role — 404s rather than redirecting so
+    the route's existence isn't revealed to a logged-in tailor.
+    
+    Affiliate links (?ref=CODE) are captured first-touch via a client cookie
+    and attributed onto the referred org after signup, since organizations are
+    created implicitly by the shops_auto_create_org() trigger rather than an
+    explicit insert this code controls.
+    
+    Also restores the .env* entry in .gitignore, dropped by a prior reformat
+    of the file on origin/main.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 665570f..c94315f 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -127,15 +127,18 @@ export default function SidebarMenu() {
+         </div>
+       )}
+ 
+-      {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) */}
++      {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) —
++          Settings is deliberately excluded from this map and rendered last,
++          after My Portfolio / Style Gallery, matching the order the mobile
++          sidebar already uses (see mobileOnlyNav above). */}
+       <nav className={styles.mainNav}>
+-        {visibleNavItems.map((item) => {
++        {visibleNavItems.filter((item) => item.href !== ROUTES.settings).map((item) => {
+           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+           return (
+-            <Link 
++            <Link
+               href={item.href}
+-              key={item.href} 
+-              className={`${styles.menuItem} ${isActive ? styles.active : ''}`} 
++              key={item.href}
++              className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
+               onClick={() => setMenuOpen(false)}
+               title={isCollapsed ? item.label : undefined}
+             >
+@@ -166,6 +169,16 @@ export default function SidebarMenu() {
+             <span className={styles.menuText}>Style Gallery</span>
+           </Link>
+         )}
++        {isOwner && (
++          <Link
++            href={ROUTES.settings}
++            className={`${styles.menuItem} ${pathname.startsWith(ROUTES.settings) ? styles.active : ''}`}
++            title={isCollapsed ? 'Settings' : undefined}
++          >
++            <Symbol name="settings" className={styles.menuIcon} />
++            <span className={styles.menuText}>Settings</span>
++          </Link>
++        )}
+       </nav>
+ 
+       {/* Footer Navigation (Logout + connection indicator) */}
+
+commit a922da6be796601c80454cc4e7d13ab3df89872a
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Thu Aug 20 17:30:57 2026 +0100
+
+    refactor: replace hardcoded route strings with lib/routes.ts everywhere
+    
+    Second half of the routes centralization: every href/router.push/
+    router.replace literal across app/ and components/ (~100 call sites,
+    46 files) now references ROUTES instead of a string literal, matching
+    the classification lists centralized in the previous commit.
+    
+    Also fixes a real pre-existing gap this sweep surfaced: /fabrics was
+    missing from every route list. It was still auth-gated (proxy.ts
+    protects anything not explicitly public by default) but stayed on the
+    marketing domain instead of app.<domain>, and was never excluded from
+    robots.txt. Added to APP_PREFIXES and SEARCH_DISALLOW.
+    
+    Verified across three passes for both waves of changes:
+    1. Build + typecheck (catches type errors, not string-value typos)
+    2. Live dev-server behavioral tests: proxy redirects for every
+       affected classification (dashboard, login, pricing,
+       portfolio-examples, fabrics) and robots.txt content, matching
+       expected production behavior exactly
+    3. Real browser click-through: homepage nav, signup page (terms/
+       privacy/login links), auth-gated /settings redirect, and a blog
+       post link resolving via ROUTES.blogPost()
+    
+    lib/routes.ts documents the "blast radius" of each classification
+    list (PUBLIC_PATHS, MARKETING_PATHS, APP_PREFIXES, SEARCH_DISALLOW) —
+    what breaks concretely if a route is misclassified — so future
+    changes can reason about full scope instead of guessing.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index a56007d..665570f 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -14,6 +14,7 @@ import { ExportDataButton, AccountDangerZone } from '@/components/settings/Accou
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+ import { FEATURE_FLAGS } from '@/lib/featureFlags';
++import { ROUTES } from '@/lib/routes';
+ import styles from './SidebarMenu.module.css';
+ import Symbol from '@/components/ui/Symbol/Symbol';
+ import OnlineIndicator from '@/components/ui/OnlineIndicator/OnlineIndicator';
+@@ -32,7 +33,7 @@ export default function SidebarMenu() {
+   const handleLogout = async () => {
+     setMenuOpen(false);
+     await logout();
+-    router.push('/login');
++    router.push(ROUTES.login);
+   };
+ 
+   // Both the real shop name and the Portfolio/Style Gallery links depend on
+@@ -98,7 +99,7 @@ export default function SidebarMenu() {
+       {currentShop && (
+         <div className={styles.mobileOnlyNav}>
+           <Link
+-            href="/portfolio"
++            href={ROUTES.portfolio}
+             className={styles.menuItem}
+             onClick={() => setMenuOpen(false)}
+           >
+@@ -106,7 +107,7 @@ export default function SidebarMenu() {
+             <span className={styles.menuText}>My Portfolio</span>
+           </Link>
+           <Link
+-            href="/styles"
++            href={ROUTES.styles}
+             className={styles.menuItem}
+             onClick={() => setMenuOpen(false)}
+           >
+@@ -115,7 +116,7 @@ export default function SidebarMenu() {
+           </Link>
+           {isOwner && (
+             <Link
+-              href="/settings"
++              href={ROUTES.settings}
+               className={styles.menuItem}
+               onClick={() => setMenuOpen(false)}
+             >
+@@ -147,7 +148,7 @@ export default function SidebarMenu() {
+             hands out the actual public /studio/[slug] link to visitors. */}
+         {currentShop && (
+           <Link
+-            href="/portfolio"
++            href={ROUTES.portfolio}
+             className={styles.menuItem}
+             title={isCollapsed ? 'My Portfolio' : undefined}
+           >
+@@ -157,7 +158,7 @@ export default function SidebarMenu() {
+         )}
+         {currentShop && (
+           <Link
+-            href="/styles"
++            href={ROUTES.styles}
+             className={styles.menuItem}
+             title={isCollapsed ? 'Style Gallery' : undefined}
+           >
+
+commit 78eb44101a040611d1f223cfbdff8d84855fc779
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Aug 11 15:23:57 2026 +0100
+
+    feat: Add Fabric Gallery feature
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 2520f88..a56007d 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -113,6 +113,16 @@ export default function SidebarMenu() {
+             <Symbol name="photo_library" className={styles.menuIcon} />
+             <span className={styles.menuText}>Style Gallery</span>
+           </Link>
++          {isOwner && (
++            <Link
++              href="/settings"
++              className={styles.menuItem}
++              onClick={() => setMenuOpen(false)}
++            >
++              <Symbol name="settings" className={styles.menuIcon} />
++              <span className={styles.menuText}>Settings</span>
++            </Link>
++          )}
+         </div>
+       )}
+ 
+
+commit 22a5be5241a435ec5b314d516b30179e36ee5d73
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Sun Aug 9 06:22:39 2026 +0100
+
+    feat: dashboard desktop/mobile split, settings restructure, and 14 new blog posts
+    
+    Splits dashboard and settings components into desktop/mobile variants as part
+    of the ongoing feature-oriented refactor, adds SEO/breadcrumb components and
+    updated brand assets, and publishes 14 new fact-checked, sourced blog posts
+    covering Nigerian tailoring styles (aso oke, ankara, agbada, senator wear,
+    isiagu, adire, gele, and more).
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 03c3114..2520f88 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -7,7 +7,7 @@ import { useData } from '@/contexts/DataContext';
+ import { useSidebar } from '@/contexts/SidebarContext';
+ import { APP_CONFIG } from '@/lib/config';
+ import Link from 'next/link';
+-import Image from 'next/image';
++import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+ import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+@@ -22,7 +22,7 @@ export default function SidebarMenu() {
+   const { logout, isOwner, loading: authLoading } = useAuth();
+   const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
+   const shopName = currentShop?.name || APP_CONFIG.name;
+-  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse, openCreateMenu } = useSidebar();
++  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
+   const router = useRouter();
+   const pathname = usePathname();
+   const [showProfile, setShowProfile] = useState(false);
+@@ -54,24 +54,12 @@ export default function SidebarMenu() {
+             onClick={() => setShowProfile(true)} 
+             ariaLabel="Profile Settings"
+           />
+-          <Image
+-            src="/images/logo-mark.png"
+-            alt={shopName}
+-            width={496}
+-            height={496}
+-            className={`${styles.mobileLogo} brandLogoAuto`}
+-          />
++          <BrandIcon alt={shopName} className={styles.mobileLogo} />
+         </div>
+ 
+         {/* Desktop Branding (Logo & Shop Name) */}
+         <div className={styles.desktopBranding}>
+-          <Image
+-            src="/images/logo-mark.png"
+-            alt={shopName}
+-            width={496}
+-            height={496}
+-            className={`${styles.desktopLogo} brandLogoAuto`}
+-          />
++          <BrandIcon alt={shopName} className={styles.desktopLogo} />
+           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
+           {!isCollapsed && <OnlineIndicator />}
+         </div>
+@@ -94,20 +82,6 @@ export default function SidebarMenu() {
+         </select>
+       )}
+ 
+-      {/* Desktop's equivalent of the mobile FAB — a floating "+" belongs to
+-          a bottom-nav app, not a persistent sidebar shell, so desktop gets
+-          the same New Order/New Customer sheet from a button in the rail
+-          instead (see SidebarContext's isCreateMenuOpen). */}
+-      <button
+-        type="button"
+-        className={styles.newBtn}
+-        onClick={openCreateMenu}
+-        title={isCollapsed ? 'New' : undefined}
+-      >
+-        <Symbol name="add" className={styles.newIcon} />
+-        <span className={styles.menuText}>New</span>
+-      </button>
+-
+       {/* Collapse Toggle Button for Desktop */}
+       <button 
+         className={styles.collapseToggle}
+
+commit 6c5dfdd7bdc65a392a656fd1f8f20aed47ff64ad
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Aug 7 02:37:25 2026 +0100
+
+    feat: offline-first PWA with online indicator, no-internet toast, and tests
+    
+    - Add localStorage SWR cache provider (AppSWRConfig) for offline-first
+      data reads; all previously fetched data survives a network drop
+    - Register service worker globally via ServiceWorkerRegistrar (layout.tsx)
+      instead of only for Settings visitors
+    - Add NetworkMonitor: fires deduplicated toast on offline/online events
+    - Wire SWR onError to also toast when a fetch fails while device is offline
+    - Add OnlineIndicator pill (desktop: sidebar branding area; mobile: sidebar
+      footer above logout); hides when sidebar is collapsed
+    - Fix provider nesting: AppSWRConfig now lives inside ToastProvider so
+      useToast() resolves correctly
+    - Clear localStorage cache on logout (AuthContext + AccountDangerZone)
+      to prevent data leaking to next user on shared device
+    - tests/unit/offline.test.ts: 10 tests covering cache get/set/delete,
+      invalidation, offline hydration, corrupt-JSON resilience, and
+      NetworkMonitor deduplication logic
+    
+    All 86 tests pass. Build clean.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 8e851b3..03c3114 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -16,6 +16,7 @@ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton'
+ import { FEATURE_FLAGS } from '@/lib/featureFlags';
+ import styles from './SidebarMenu.module.css';
+ import Symbol from '@/components/ui/Symbol/Symbol';
++import OnlineIndicator from '@/components/ui/OnlineIndicator/OnlineIndicator';
+ 
+ export default function SidebarMenu() {
+   const { logout, isOwner, loading: authLoading } = useAuth();
+@@ -72,6 +73,7 @@ export default function SidebarMenu() {
+             className={`${styles.desktopLogo} brandLogoAuto`}
+           />
+           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
++          {!isCollapsed && <OnlineIndicator />}
+         </div>
+       </div>
+ 
+@@ -181,8 +183,11 @@ export default function SidebarMenu() {
+         )}
+       </nav>
+ 
+-      {/* Footer Navigation (Logout only) */}
++      {/* Footer Navigation (Logout + connection indicator) */}
+       <div className={styles.footer}>
++        {/* Show inline on mobile; desktop shows it under the shop name in the
++            branding area (hidden when collapsed). */}
++        <OnlineIndicator className={styles.mobileOnlineIndicator} />
+         <button 
+           className={styles.logoutBtn} 
+           onClick={handleLogout}
+
+commit bb3e1382f8982fbaf71444f8569b9c206cf59034
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Aug 7 00:34:40 2026 +0100
+
+    fix: remove dead react-icons import in SidebarMenu
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 727cfca..8e851b3 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -11,7 +11,6 @@ import Image from 'next/image';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+ import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+-import { FaRegUser, FaRegHeart, FaImages, FaArrowRightFromBracket, FaHouse, FaTableColumns, FaGear, FaChevronLeft } from 'react-icons/fa6';
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+ import { FEATURE_FLAGS } from '@/lib/featureFlags';
+
+commit 0bccd41ea39abb8f65fef458b59ad465b69a94ad
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Aug 7 00:26:54 2026 +0100
+
+    fix: replace missed react-icons with Symbol component
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 37d1a5f..727cfca 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -18,13 +18,6 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
+ import styles from './SidebarMenu.module.css';
+ import Symbol from '@/components/ui/Symbol/Symbol';
+ 
+-const ICON_MAP: Record<string, React.ReactNode> = {
+-  FaHouse: <FaHouse className={styles.menuIcon} />,
+-  FaTableColumns: <FaTableColumns className={styles.menuIcon} />,
+-  FaUsers: <Symbol name="group" className={styles.menuIcon} />,
+-  FaGear: <FaGear className={styles.menuIcon} />,
+-};
+-
+ export default function SidebarMenu() {
+   const { logout, isOwner, loading: authLoading } = useAuth();
+   const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
+@@ -57,7 +50,7 @@ export default function SidebarMenu() {
+         {/* Mobile Top Row (Profile Avatar and Close Button) */}
+         <div className={styles.mobileTopRow}>
+           <CircleIconButton 
+-            icon={<FaRegUser className={styles.iconUser} />} 
++            icon={<Symbol name="person" className={styles.iconUser} />} 
+             onClick={() => setShowProfile(true)} 
+             ariaLabel="Profile Settings"
+           />
+@@ -120,7 +113,7 @@ export default function SidebarMenu() {
+         onClick={toggleCollapse}
+         aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+       >
+-        {isCollapsed ? <Symbol name="chevron_right" /> : <FaChevronLeft />}
++        <Symbol name={isCollapsed ? "chevron_right" : "chevron_left"} />
+       </button>
+ 
+       {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
+@@ -134,7 +127,7 @@ export default function SidebarMenu() {
+             className={styles.menuItem}
+             onClick={() => setMenuOpen(false)}
+           >
+-            <FaRegHeart className={styles.menuIcon} />
++            <Symbol name="favorite" className={styles.menuIcon} />
+             <span className={styles.menuText}>My Portfolio</span>
+           </Link>
+           <Link
+@@ -142,7 +135,7 @@ export default function SidebarMenu() {
+             className={styles.menuItem}
+             onClick={() => setMenuOpen(false)}
+           >
+-            <FaImages className={styles.menuIcon} />
++            <Symbol name="photo_library" className={styles.menuIcon} />
+             <span className={styles.menuText}>Style Gallery</span>
+           </Link>
+         </div>
+@@ -160,7 +153,7 @@ export default function SidebarMenu() {
+               onClick={() => setMenuOpen(false)}
+               title={isCollapsed ? item.label : undefined}
+             >
+-              {ICON_MAP[item.icon]}
++              <Symbol name={item.icon} className={styles.menuIcon} />
+               <span className={styles.menuText}>{item.label}</span>
+             </Link>
+           );
+@@ -173,7 +166,7 @@ export default function SidebarMenu() {
+             className={styles.menuItem}
+             title={isCollapsed ? 'My Portfolio' : undefined}
+           >
+-            <FaRegHeart className={styles.menuIcon} />
++            <Symbol name="favorite" className={styles.menuIcon} />
+             <span className={styles.menuText}>My Portfolio</span>
+           </Link>
+         )}
+@@ -183,7 +176,7 @@ export default function SidebarMenu() {
+             className={styles.menuItem}
+             title={isCollapsed ? 'Style Gallery' : undefined}
+           >
+-            <FaImages className={styles.menuIcon} />
++            <Symbol name="photo_library" className={styles.menuIcon} />
+             <span className={styles.menuText}>Style Gallery</span>
+           </Link>
+         )}
+@@ -196,7 +189,7 @@ export default function SidebarMenu() {
+           onClick={handleLogout}
+           title={isCollapsed ? "Logout" : undefined}
+         >
+-          <FaArrowRightFromBracket className={styles.logoutIcon} />
++          <Symbol name="logout" className={styles.logoutIcon} />
+           <span className={styles.logoutText}>Logout</span>
+         </button>
+       </div>
+@@ -230,7 +223,7 @@ export default function SidebarMenu() {
+               cursor: 'pointer'
+             }}
+           >
+-            <FaArrowRightFromBracket />
++            <Symbol name="logout" />
+             Logout
+           </button>
+ 
+
+commit c4d0fa885bf3dda0e7c09505b2b53b5d80677333
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Aug 7 00:03:41 2026 +0100
+
+    refactor: migrate all react-icons to material symbols to reduce bundle size
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index ae40ae6..37d1a5f 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -11,28 +11,17 @@ import Image from 'next/image';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+ import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+-import {
+-  FaRegUser,
+-  FaRegHeart,
+-  FaImages,
+-  FaPlus,
+-  FaArrowRightFromBracket,
+-  FaHouse,
+-  FaTableColumns,
+-  FaUsers,
+-  FaGear,
+-  FaChevronLeft,
+-  FaChevronRight,
+-} from 'react-icons/fa6';
++import { FaRegUser, FaRegHeart, FaImages, FaArrowRightFromBracket, FaHouse, FaTableColumns, FaGear, FaChevronLeft } from 'react-icons/fa6';
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+ import { FEATURE_FLAGS } from '@/lib/featureFlags';
+ import styles from './SidebarMenu.module.css';
++import Symbol from '@/components/ui/Symbol/Symbol';
+ 
+ const ICON_MAP: Record<string, React.ReactNode> = {
+   FaHouse: <FaHouse className={styles.menuIcon} />,
+   FaTableColumns: <FaTableColumns className={styles.menuIcon} />,
+-  FaUsers: <FaUsers className={styles.menuIcon} />,
++  FaUsers: <Symbol name="group" className={styles.menuIcon} />,
+   FaGear: <FaGear className={styles.menuIcon} />,
+ };
+ 
+@@ -121,7 +110,7 @@ export default function SidebarMenu() {
+         onClick={openCreateMenu}
+         title={isCollapsed ? 'New' : undefined}
+       >
+-        <FaPlus className={styles.newIcon} />
++        <Symbol name="add" className={styles.newIcon} />
+         <span className={styles.menuText}>New</span>
+       </button>
+ 
+@@ -131,7 +120,7 @@ export default function SidebarMenu() {
+         onClick={toggleCollapse}
+         aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+       >
+-        {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
++        {isCollapsed ? <Symbol name="chevron_right" /> : <FaChevronLeft />}
+       </button>
+ 
+       {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
+
+commit cb7e19638f57a8ace7ad4eb0af70502246160d7a
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Sat Aug 1 08:13:42 2026 +0100
+
+    refactor marketing homepage
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 5081ac3..ae40ae6 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -7,6 +7,7 @@ import { useData } from '@/contexts/DataContext';
+ import { useSidebar } from '@/contexts/SidebarContext';
+ import { APP_CONFIG } from '@/lib/config';
+ import Link from 'next/link';
++import Image from 'next/image';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+ import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+@@ -71,19 +72,23 @@ export default function SidebarMenu() {
+             onClick={() => setShowProfile(true)} 
+             ariaLabel="Profile Settings"
+           />
+-          <img
++          <Image
+             src="/images/logo-mark.png"
+             alt={shopName}
+-            className={styles.mobileLogo}
++            width={496}
++            height={496}
++            className={`${styles.mobileLogo} brandLogoAuto`}
+           />
+         </div>
+ 
+         {/* Desktop Branding (Logo & Shop Name) */}
+         <div className={styles.desktopBranding}>
+-          <img
++          <Image
+             src="/images/logo-mark.png"
+             alt={shopName}
+-            className={styles.desktopLogo}
++            width={496}
++            height={496}
++            className={`${styles.desktopLogo} brandLogoAuto`}
+           />
+           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
+         </div>
+
+commit d56dc599babdc44d0cd9b15f4722cdb5915bc31f
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Jul 31 05:01:38 2026 +0100
+
+    Add subscription billing with free/premium gating and DB-level security hardening
+    
+    Introduces the full free/premium model: Paystack monthly + yearly checkout,
+    a 15-order/month free-tier cap, staff/analytics gating with an upsell flow
+    instead of dead-end forms, grace-period handling with reminders, and the
+    "Powered by" badge on public pages. Closes a critical RLS gap that let a
+    shop owner self-grant premium status via a direct client call, plus adds
+    DB-level enforcement of the order cap and webhook replay protection —
+    both confirmed exploitable before the fix and confirmed blocked after.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 665e0bb..5081ac3 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -172,7 +172,7 @@ export default function SidebarMenu() {
+           );
+         })}
+         {/* Opens in-app (same tab) — the Share button on the page itself
+-            hands out the actual public /studio/[shopId] link to visitors. */}
++            hands out the actual public /studio/[slug] link to visitors. */}
+         {currentShop && (
+           <Link
+             href="/portfolio"
+
+commit 22f47910ee482d33078c86f885233c3ee09afd1f
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Jul 28 01:49:18 2026 +0100
+
+    Add feature flags; hide non-core surfaces from tailors for launch
+    
+    lib/featureFlags.ts gates 10 built-and-working features that shouldn't be
+    revealed to tailors yet: cost/margin tracking, profile pictures, customer
+    address, tracking-page reminder button, financial reporting, style-photo
+    approval notifications, data export, audit log, photo-consent tracking,
+    and the org/branch multi-tenancy + RBAC UI (branch switcher, add-branch,
+    extra staff roles). Nothing is deleted — every flag defaults to false and
+    flipping it to true fully restores the feature with no other changes.
+    
+    Push notifications, account/order/customer deletion, and everything that
+    existed before this session stay fully visible, per explicit direction.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 48d1061..665e0bb 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -25,6 +25,7 @@ import {
+ } from 'react-icons/fa6';
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
++import { FEATURE_FLAGS } from '@/lib/featureFlags';
+ import styles from './SidebarMenu.module.css';
+ 
+ const ICON_MAP: Record<string, React.ReactNode> = {
+@@ -90,7 +91,7 @@ export default function SidebarMenu() {
+ 
+       {/* Only shown once an org actually has a second branch — every org
+           today has exactly one, so this stays hidden for all of them. */}
+-      {isOwner && shops.length > 1 && (
++      {FEATURE_FLAGS.orgBranchMultiTenancy && isOwner && shops.length > 1 && (
+         <select
+           className={styles.branchSwitcher}
+           value={activeBranchId ?? ''}
+@@ -239,7 +240,7 @@ export default function SidebarMenu() {
+             Logout
+           </button>
+ 
+-          {isOwner && <ExportDataButton shopName={shopName} />}
++          {FEATURE_FLAGS.dataExport && isOwner && <ExportDataButton shopName={shopName} />}
+ 
+           <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
+         </div>
+
+commit c4ac57c01215c5f28dc460fdd90fc2be24ccf966
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jul 27 18:18:16 2026 +0100
+
+    Add branch switcher, add-branch flow, and org/branch-aware data fetching
+    
+    Completes the Phase 2 UI layer on top of the already-applied schema/RLS
+    rewrite: an Owner can now add a second physical branch under their
+    organization from Settings > Your Organization, a branch switcher appears
+    in the sidebar once an org has more than one branch (hidden otherwise, so
+    every existing single-branch shop sees no change), and DataContext now
+    fetches customers org-wide while orders stay scoped to the active branch.
+    
+    Verified live against the real production account: added a real second
+    branch ("Lekki Branch"), confirmed the switcher appeared, confirmed all 6
+    existing customers show identically on both branches (org-shared) while
+    active order counts correctly differ (0 on the new branch, 4 back on the
+    original) and switching back left the original branch's data untouched.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index ee407de..48d1061 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -36,7 +36,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
+ 
+ export default function SidebarMenu() {
+   const { logout, isOwner, loading: authLoading } = useAuth();
+-  const { currentShop, isLoaded } = useData();
++  const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
+   const shopName = currentShop?.name || APP_CONFIG.name;
+   const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse, openCreateMenu } = useSidebar();
+   const router = useRouter();
+@@ -88,6 +88,23 @@ export default function SidebarMenu() {
+         </div>
+       </div>
+ 
++      {/* Only shown once an org actually has a second branch — every org
++          today has exactly one, so this stays hidden for all of them. */}
++      {isOwner && shops.length > 1 && (
++        <select
++          className={styles.branchSwitcher}
++          value={activeBranchId ?? ''}
++          onChange={(e) => setActiveBranchId(e.target.value)}
++          aria-label="Switch branch"
++        >
++          {shops.map((branch) => (
++            <option key={branch.id} value={branch.id}>
++              {branch.name}{branch.isPrimary ? ' (Primary)' : ''}
++            </option>
++          ))}
++        </select>
++      )}
++
+       {/* Desktop's equivalent of the mobile FAB — a floating "+" belongs to
+           a bottom-nav app, not a persistent sidebar shell, so desktop gets
+           the same New Order/New Customer sheet from a button in the rail
+
+commit ead096d53c7ee7f4d55565fa07fc19ad2bc7341d
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jul 27 12:19:20 2026 +0100
+
+    Make account deletion/export reachable on desktop; fix login error messages
+    
+    Danger Zone (account/shop deletion) and Export My Data were only reachable
+    via a profile sheet trigger that's CSS-hidden above the mobile breakpoint,
+    making them completely unreachable on desktop. Extracted them into a shared
+    component (components/settings/AccountDangerZone.tsx) and rendered it in
+    the desktop-accessible Settings "Your Account" sheet too, alongside the
+    existing mobile sidebar sheet.
+    
+    Login also always showed "Invalid email or password" for every failure,
+    including network/timeout errors that have nothing to do with credentials.
+    AuthContext now throws the real Supabase AuthError instead of a generic
+    wrapped Error, and the login page uses isAuthRetryableFetchError/
+    isAuthApiError to show an accurate message per failure type.
+    
+    Also folds in previously-uncommitted avatar wiring for the dashboard
+    greeting and staff Team Snapshot cards from an earlier session pass.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 6cdb107..ee407de 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -5,14 +5,11 @@ import { useState } from 'react';
+ import { useAuth } from '@/contexts/AuthContext';
+ import { useData } from '@/contexts/DataContext';
+ import { useSidebar } from '@/contexts/SidebarContext';
+-import { useToast } from '@/contexts/ToastContext';
+ import { APP_CONFIG } from '@/lib/config';
+-import { createClient } from '@/lib/supabase/client';
+-import { deleteOwnShopAction, deleteOwnStaffAccountAction, exportShopDataAction } from '@/app/actions';
+ import Link from 'next/link';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+-import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
++import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
+ import {
+   FaRegUser,
+   FaRegHeart,
+@@ -25,8 +22,6 @@ import {
+   FaGear,
+   FaChevronLeft,
+   FaChevronRight,
+-  FaTriangleExclamation,
+-  FaDownload
+ } from 'react-icons/fa6';
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+@@ -229,187 +224,10 @@ export default function SidebarMenu() {
+ 
+           {isOwner && <ExportDataButton shopName={shopName} />}
+ 
+-          <DangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
++          <AccountDangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
+         </div>
+       </BottomSheet>
+     </div>
+   );
+ }
+ 
+-function ExportDataButton({ shopName }: { shopName: string }) {
+-  const { showToast } = useToast();
+-  const [exporting, setExporting] = useState(false);
+-
+-  const handleExport = async () => {
+-    setExporting(true);
+-    const { data, error } = await exportShopDataAction();
+-    setExporting(false);
+-    if (error || !data) {
+-      showToast(error || 'Could not export data', 'error');
+-      return;
+-    }
+-    const blob = new Blob([data], { type: 'application/json' });
+-    const url = URL.createObjectURL(blob);
+-    const link = document.createElement('a');
+-    const dateStr = new Date().toISOString().split('T')[0];
+-    link.href = url;
+-    link.download = `${shopName.toLowerCase().replace(/\s+/g, '-')}-data-export-${dateStr}.json`;
+-    document.body.appendChild(link);
+-    link.click();
+-    document.body.removeChild(link);
+-    URL.revokeObjectURL(url);
+-    showToast('Data export downloaded', 'success');
+-  };
+-
+-  return (
+-    <button
+-      onClick={handleExport}
+-      disabled={exporting}
+-      style={{
+-        padding: 'var(--sf-space-sm) var(--sf-space-md)',
+-        borderRadius: 'var(--sf-radius-md)',
+-        border: '1px solid var(--sf-border-light)',
+-        background: 'none',
+-        color: 'var(--sf-text-primary)',
+-        fontWeight: 'var(--sf-weight-medium)',
+-        display: 'flex',
+-        alignItems: 'center',
+-        justifyContent: 'center',
+-        gap: 'var(--sf-space-sm)',
+-        cursor: exporting ? 'default' : 'pointer',
+-      }}
+-    >
+-      <FaDownload />
+-      {exporting ? 'Preparing export…' : 'Export My Data'}
+-    </button>
+-  );
+-}
+-
+-function DangerZone({ isOwner, onClosingProfile }: { isOwner: boolean; onClosingProfile: () => void }) {
+-  const router = useRouter();
+-  const { showToast } = useToast();
+-  const [expanded, setExpanded] = useState(false);
+-  const [confirmText, setConfirmText] = useState('');
+-  const [deleting, setDeleting] = useState(false);
+-  const [confirmStaffDelete, setConfirmStaffDelete] = useState(false);
+-
+-  const handleDeleteShop = async () => {
+-    setDeleting(true);
+-    const { error } = await deleteOwnShopAction();
+-    if (error) {
+-      showToast(error, 'error');
+-      setDeleting(false);
+-      return;
+-    }
+-    onClosingProfile();
+-    const supabase = createClient();
+-    await supabase.auth.signOut();
+-    router.push('/login?deleted=1');
+-  };
+-
+-  const handleDeleteStaffAccount = async () => {
+-    setDeleting(true);
+-    const { error } = await deleteOwnStaffAccountAction();
+-    if (error) {
+-      showToast(error, 'error');
+-      setDeleting(false);
+-      return;
+-    }
+-    onClosingProfile();
+-    const supabase = createClient();
+-    await supabase.auth.signOut();
+-    router.push('/login?deleted=1');
+-  };
+-
+-  return (
+-    <div style={{ borderTop: '1px solid var(--sf-border-light)', paddingTop: 'var(--sf-space-md)', marginTop: 'var(--sf-space-xs)' }}>
+-      <button
+-        onClick={() => setExpanded((v) => !v)}
+-        style={{
+-          display: 'flex',
+-          alignItems: 'center',
+-          gap: 'var(--sf-space-sm)',
+-          background: 'none',
+-          border: 'none',
+-          color: 'var(--sf-text-secondary)',
+-          fontSize: 'var(--sf-text-sm)',
+-          fontWeight: 'var(--sf-weight-medium)',
+-          cursor: 'pointer',
+-          padding: 0,
+-        }}
+-      >
+-        <FaTriangleExclamation style={{ color: 'var(--sf-error)' }} />
+-        Danger Zone
+-      </button>
+-
+-      {expanded && (
+-        <div style={{ marginTop: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-sm)' }}>
+-          {isOwner ? (
+-            <>
+-              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>
+-                This permanently deletes your entire shop — every order, customer, staff account, and photo. This cannot be undone.
+-              </p>
+-              <input
+-                type="text"
+-                value={confirmText}
+-                onChange={(e) => setConfirmText(e.target.value)}
+-                placeholder='Type "DELETE" to confirm'
+-                style={{
+-                  padding: 'var(--sf-space-sm)',
+-                  borderRadius: 'var(--sf-radius-md)',
+-                  border: '1px solid var(--sf-border-light)',
+-                  fontSize: 'var(--sf-text-sm)',
+-                }}
+-              />
+-              <button
+-                onClick={handleDeleteShop}
+-                disabled={confirmText !== 'DELETE' || deleting}
+-                style={{
+-                  padding: 'var(--sf-space-sm) var(--sf-space-md)',
+-                  borderRadius: 'var(--sf-radius-md)',
+-                  border: 'none',
+-                  background: confirmText === 'DELETE' ? 'var(--sf-error)' : 'var(--sf-error-bg)',
+-                  color: confirmText === 'DELETE' ? '#fff' : 'var(--sf-error)',
+-                  fontWeight: 'var(--sf-weight-medium)',
+-                  cursor: confirmText === 'DELETE' ? 'pointer' : 'not-allowed',
+-                  opacity: deleting ? 0.7 : 1,
+-                }}
+-              >
+-                {deleting ? 'Deleting…' : 'Permanently Delete My Shop'}
+-              </button>
+-            </>
+-          ) : (
+-            <>
+-              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>
+-                This permanently deletes your own staff account. Orders assigned to you will become unassigned, not deleted.
+-              </p>
+-              <button
+-                onClick={() => setConfirmStaffDelete(true)}
+-                style={{
+-                  padding: 'var(--sf-space-sm) var(--sf-space-md)',
+-                  borderRadius: 'var(--sf-radius-md)',
+-                  border: 'none',
+-                  background: 'var(--sf-error)',
+-                  color: '#fff',
+-                  fontWeight: 'var(--sf-weight-medium)',
+-                  cursor: 'pointer',
+-                }}
+-              >
+-                Delete My Account
+-              </button>
+-              <ConfirmDialog
+-                isOpen={confirmStaffDelete}
+-                onClose={() => setConfirmStaffDelete(false)}
+-                onConfirm={handleDeleteStaffAccount}
+-                title="Delete your account?"
+-                description="This permanently deletes your staff account and cannot be undone."
+-                confirmLabel={deleting ? 'Deleting…' : 'Delete My Account'}
+-                loading={deleting}
+-              />
+-            </>
+-          )}
+-        </div>
+-      )}
+-    </div>
+-  );
+-}
+
+commit 818858eac38884c631aafd39829b314e1b8e7778
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jul 27 08:09:09 2026 +0100
+
+    Add self-serve shop data export (NDPA data-portability right)
+    
+    Owner-only "Export My Data" button in the profile sheet downloads a JSON
+    file with everything the app stores for their shop — shop info, customers,
+    orders, staff list, order comments, style photo submissions, and portfolio
+    overrides — all scoped server-side to their own shop_id. Previously this
+    right (already promised in the privacy policy) could only be fulfilled by
+    emailing support manually. Rate-limited to 3 exports/hour per account,
+    reusing the rate-limit helper added for the public routes.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 44a1580..6cdb107 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -8,7 +8,7 @@ import { useSidebar } from '@/contexts/SidebarContext';
+ import { useToast } from '@/contexts/ToastContext';
+ import { APP_CONFIG } from '@/lib/config';
+ import { createClient } from '@/lib/supabase/client';
+-import { deleteOwnShopAction, deleteOwnStaffAccountAction } from '@/app/actions';
++import { deleteOwnShopAction, deleteOwnStaffAccountAction, exportShopDataAction } from '@/app/actions';
+ import Link from 'next/link';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+@@ -25,7 +25,8 @@ import {
+   FaGear,
+   FaChevronLeft,
+   FaChevronRight,
+-  FaTriangleExclamation
++  FaTriangleExclamation,
++  FaDownload
+ } from 'react-icons/fa6';
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+@@ -226,6 +227,8 @@ export default function SidebarMenu() {
+             Logout
+           </button>
+ 
++          {isOwner && <ExportDataButton shopName={shopName} />}
++
+           <DangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
+         </div>
+       </BottomSheet>
+@@ -233,6 +236,55 @@ export default function SidebarMenu() {
+   );
+ }
+ 
++function ExportDataButton({ shopName }: { shopName: string }) {
++  const { showToast } = useToast();
++  const [exporting, setExporting] = useState(false);
++
++  const handleExport = async () => {
++    setExporting(true);
++    const { data, error } = await exportShopDataAction();
++    setExporting(false);
++    if (error || !data) {
++      showToast(error || 'Could not export data', 'error');
++      return;
++    }
++    const blob = new Blob([data], { type: 'application/json' });
++    const url = URL.createObjectURL(blob);
++    const link = document.createElement('a');
++    const dateStr = new Date().toISOString().split('T')[0];
++    link.href = url;
++    link.download = `${shopName.toLowerCase().replace(/\s+/g, '-')}-data-export-${dateStr}.json`;
++    document.body.appendChild(link);
++    link.click();
++    document.body.removeChild(link);
++    URL.revokeObjectURL(url);
++    showToast('Data export downloaded', 'success');
++  };
++
++  return (
++    <button
++      onClick={handleExport}
++      disabled={exporting}
++      style={{
++        padding: 'var(--sf-space-sm) var(--sf-space-md)',
++        borderRadius: 'var(--sf-radius-md)',
++        border: '1px solid var(--sf-border-light)',
++        background: 'none',
++        color: 'var(--sf-text-primary)',
++        fontWeight: 'var(--sf-weight-medium)',
++        display: 'flex',
++        alignItems: 'center',
++        justifyContent: 'center',
++        gap: 'var(--sf-space-sm)',
++        cursor: exporting ? 'default' : 'pointer',
++      }}
++    >
++      <FaDownload />
++      {exporting ? 'Preparing export…' : 'Export My Data'}
++    </button>
++  );
++}
++
+ function DangerZone({ isOwner, onClosingProfile }: { isOwner: boolean; onClosingProfile: () => void }) {
+   const router = useRouter();
+   const { showToast } = useToast();
+
+commit b72a6fcbcd0ead75aca7ec3f5e4e7301fd037ea0
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jul 27 02:16:54 2026 +0100
+
+    Add NDPR right-to-erasure deletion: shop, staff account, order, customer
+    
+    Four deletion flows, all re-deriving the caller's identity from the actual
+    session (never a client-supplied id): Owner shop deletion cascades every
+    order/customer/staff profile and associated storage, then explicitly
+    removes each profile's auth user (shops.owner_id is ON DELETE SET NULL,
+    not cascade, so this doesn't happen automatically). Staff self-deletion
+    just removes their own auth user, which cascades their profile row and
+    auto-unassigns their orders via existing FK behavior. Order deletion
+    removes the row plus its stored photos. Customer deletion deletes their
+    orders first (orders.customer_id is ON DELETE RESTRICT, so the customer
+    row would otherwise be rejected by Postgres) with an explicit warning
+    naming the order count before confirming.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 90dcdfc..44a1580 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -5,10 +5,14 @@ import { useState } from 'react';
+ import { useAuth } from '@/contexts/AuthContext';
+ import { useData } from '@/contexts/DataContext';
+ import { useSidebar } from '@/contexts/SidebarContext';
++import { useToast } from '@/contexts/ToastContext';
+ import { APP_CONFIG } from '@/lib/config';
++import { createClient } from '@/lib/supabase/client';
++import { deleteOwnShopAction, deleteOwnStaffAccountAction } from '@/app/actions';
+ import Link from 'next/link';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
++import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+ import {
+   FaRegUser,
+   FaRegHeart,
+@@ -20,7 +24,8 @@ import {
+   FaUsers,
+   FaGear,
+   FaChevronLeft,
+-  FaChevronRight
++  FaChevronRight,
++  FaTriangleExclamation
+ } from 'react-icons/fa6';
+ import { NAV_ITEMS } from '@/lib/constants';
+ import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
+@@ -198,7 +203,7 @@ export default function SidebarMenu() {
+               {isOwner ? 'Owner Account' : 'Staff Account'}
+             </p>
+           </div>
+-          <button 
++          <button
+             onClick={() => {
+               setShowProfile(false);
+               handleLogout();
+@@ -220,8 +225,139 @@ export default function SidebarMenu() {
+             <FaArrowRightFromBracket />
+             Logout
+           </button>
++
++          <DangerZone isOwner={isOwner} onClosingProfile={() => setShowProfile(false)} />
+         </div>
+       </BottomSheet>
+     </div>
+   );
+ }
++
++function DangerZone({ isOwner, onClosingProfile }: { isOwner: boolean; onClosingProfile: () => void }) {
++  const router = useRouter();
++  const { showToast } = useToast();
++  const [expanded, setExpanded] = useState(false);
++  const [confirmText, setConfirmText] = useState('');
++  const [deleting, setDeleting] = useState(false);
++  const [confirmStaffDelete, setConfirmStaffDelete] = useState(false);
++
++  const handleDeleteShop = async () => {
++    setDeleting(true);
++    const { error } = await deleteOwnShopAction();
++    if (error) {
++      showToast(error, 'error');
++      setDeleting(false);
++      return;
++    }
++    onClosingProfile();
++    const supabase = createClient();
++    await supabase.auth.signOut();
++    router.push('/login?deleted=1');
++  };
++
++  const handleDeleteStaffAccount = async () => {
++    setDeleting(true);
++    const { error } = await deleteOwnStaffAccountAction();
++    if (error) {
++      showToast(error, 'error');
++      setDeleting(false);
++      return;
++    }
++    onClosingProfile();
++    const supabase = createClient();
++    await supabase.auth.signOut();
++    router.push('/login?deleted=1');
++  };
++
++  return (
++    <div style={{ borderTop: '1px solid var(--sf-border-light)', paddingTop: 'var(--sf-space-md)', marginTop: 'var(--sf-space-xs)' }}>
++      <button
++        onClick={() => setExpanded((v) => !v)}
++        style={{
++          display: 'flex',
++          alignItems: 'center',
++          gap: 'var(--sf-space-sm)',
++          background: 'none',
++          border: 'none',
++          color: 'var(--sf-text-secondary)',
++          fontSize: 'var(--sf-text-sm)',
++          fontWeight: 'var(--sf-weight-medium)',
++          cursor: 'pointer',
++          padding: 0,
++        }}
++      >
++        <FaTriangleExclamation style={{ color: 'var(--sf-error)' }} />
++        Danger Zone
++      </button>
++
++      {expanded && (
++        <div style={{ marginTop: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-sm)' }}>
++          {isOwner ? (
++            <>
++              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>
++                This permanently deletes your entire shop — every order, customer, staff account, and photo. This cannot be undone.
++              </p>
++              <input
++                type="text"
++                value={confirmText}
++                onChange={(e) => setConfirmText(e.target.value)}
++                placeholder='Type "DELETE" to confirm'
++                style={{
++                  padding: 'var(--sf-space-sm)',
++                  borderRadius: 'var(--sf-radius-md)',
++                  border: '1px solid var(--sf-border-light)',
++                  fontSize: 'var(--sf-text-sm)',
++                }}
++              />
++              <button
++                onClick={handleDeleteShop}
++                disabled={confirmText !== 'DELETE' || deleting}
++                style={{
++                  padding: 'var(--sf-space-sm) var(--sf-space-md)',
++                  borderRadius: 'var(--sf-radius-md)',
++                  border: 'none',
++                  background: confirmText === 'DELETE' ? 'var(--sf-error)' : 'var(--sf-error-bg)',
++                  color: confirmText === 'DELETE' ? '#fff' : 'var(--sf-error)',
++                  fontWeight: 'var(--sf-weight-medium)',
++                  cursor: confirmText === 'DELETE' ? 'pointer' : 'not-allowed',
++                  opacity: deleting ? 0.7 : 1,
++                }}
++              >
++                {deleting ? 'Deleting…' : 'Permanently Delete My Shop'}
++              </button>
++            </>
++          ) : (
++            <>
++              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>
++                This permanently deletes your own staff account. Orders assigned to you will become unassigned, not deleted.
++              </p>
++              <button
++                onClick={() => setConfirmStaffDelete(true)}
++                style={{
++                  padding: 'var(--sf-space-sm) var(--sf-space-md)',
++                  borderRadius: 'var(--sf-radius-md)',
++                  border: 'none',
++                  background: 'var(--sf-error)',
++                  color: '#fff',
++                  fontWeight: 'var(--sf-weight-medium)',
++                  cursor: 'pointer',
++                }}
++              >
++                Delete My Account
++              </button>
++              <ConfirmDialog
++                isOpen={confirmStaffDelete}
++                onClose={() => setConfirmStaffDelete(false)}
++                onConfirm={handleDeleteStaffAccount}
++                title="Delete your account?"
++                description="This permanently deletes your staff account and cannot be undone."
++                confirmLabel={deleting ? 'Deleting…' : 'Delete My Account'}
++                loading={deleting}
++              />
++            </>
++          )}
++        </div>
++      )}
++    </div>
++  );
++}
+
+commit a2185ac79c893e5058557b290d4dfa01cbc709c4
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Thu Jul 23 08:52:25 2026 +0100
+
+    Move the create-FAB off desktop, fix sidebar loading flash, ease dashboard sparseness, drop a customer-facing emoji
+    
+    Addresses the items flagged but deliberately left open by the earlier
+    mobile/desktop UX audit:
+    
+    - A floating "+" FAB is a bottom-nav mobile pattern that didn't belong in
+      a persistent sidebar-shell desktop app. The FAB now hides at desktop
+      widths; SidebarMenu gained an equivalent "New" button that opens the
+      same New Order/New Customer sheet, via new shared state in
+      SidebarContext (isCreateMenuOpen) so both triggers control one sheet.
+    - SidebarMenu now waits for auth/shop data to resolve before rendering
+      (same tradeoff BottomNav already makes) instead of flashing a generic
+      wordmark and a shorter nav that then grows/renames itself a beat later.
+    - Dashboard's Team Snapshot grid used a fixed 4-column split that left a
+      lone staff card looking stranded in a large void; switched to
+      auto-fill so columns size to the cards themselves.
+    - Dashboard's "all clear" empty states were a thin, text-only dashed
+      bar; gave them an icon and more presence.
+    - Removed a 👋 from the public tracking page's greeting — read as
+      generic consumer-casual rather than the app's otherwise premium tone
+      (the flag emoji in phone-country selectors elsewhere is left alone;
+      that's a standard, expected convention, not an AI-design tell).
+    - Reserved clearance below the last card on mobile's production board so
+      the floating FAB never sits on top of a card's own action button.
+    
+    Verified live: the sidebar's new desktop "New" button opens the same
+    sheet as the mobile FAB; dashboard team grid no longer leaves a stranded
+    single card at desktop width.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 5028c2b..90dcdfc 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -13,6 +13,7 @@ import {
+   FaRegUser,
+   FaRegHeart,
+   FaImages,
++  FaPlus,
+   FaArrowRightFromBracket,
+   FaHouse,
+   FaTableColumns,
+@@ -33,10 +34,10 @@ const ICON_MAP: Record<string, React.ReactNode> = {
+ };
+ 
+ export default function SidebarMenu() {
+-  const { logout, isOwner } = useAuth();
+-  const { currentShop } = useData();
++  const { logout, isOwner, loading: authLoading } = useAuth();
++  const { currentShop, isLoaded } = useData();
+   const shopName = currentShop?.name || APP_CONFIG.name;
+-  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
++  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse, openCreateMenu } = useSidebar();
+   const router = useRouter();
+   const pathname = usePathname();
+   const [showProfile, setShowProfile] = useState(false);
+@@ -49,6 +50,14 @@ export default function SidebarMenu() {
+     router.push('/login');
+   };
+ 
++  // Both the real shop name and the Portfolio/Style Gallery links depend on
++  // currentShop/role resolving — rendering before then shows a generic
++  // wordmark and a shorter nav that visibly grows/renames itself a beat
++  // later. Same tradeoff BottomNav already makes: waiting an extra beat for
++  // a stable, correct-on-first-paint sidebar reads far better than content
++  // jumping under the user's cursor.
++  if (authLoading || !isLoaded) return null;
++
+   return (
+     <div className={`${styles.sidebar} ${isMenuOpen ? styles.open : ''} ${isCollapsed ? styles.collapsed : ''}`}>
+       {/* Top Bar / Branding Container */}
+@@ -78,6 +87,20 @@ export default function SidebarMenu() {
+         </div>
+       </div>
+ 
++      {/* Desktop's equivalent of the mobile FAB — a floating "+" belongs to
++          a bottom-nav app, not a persistent sidebar shell, so desktop gets
++          the same New Order/New Customer sheet from a button in the rail
++          instead (see SidebarContext's isCreateMenuOpen). */}
++      <button
++        type="button"
++        className={styles.newBtn}
++        onClick={openCreateMenu}
++        title={isCollapsed ? 'New' : undefined}
++      >
++        <FaPlus className={styles.newIcon} />
++        <span className={styles.menuText}>New</span>
++      </button>
++
+       {/* Collapse Toggle Button for Desktop */}
+       <button 
+         className={styles.collapseToggle}
+
+commit c28888b53b1f8e34a6de5fb069d0a2dcc9492624
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 22 14:02:34 2026 +0100
+
+    Add staff-sourced style photo gallery with owner curation and guided customer outreach
+    
+    Lets any staff member upload a photo for a built-in garment style when
+    they spot something a customer would love. New photos land as pending and
+    are visible shop-wide (so nobody uploads a duplicate); anyone can discard
+    a pending photo, but only the Owner can approve one, which moves it into
+    the Owner's private saved gallery — the only source outreach draws from.
+    Anything left pending for 10 days is cleaned up automatically via a new
+    daily cron (DB row + storage file).
+    
+    New Style Gallery section in the sidebar (visible to Owner and Staff):
+    /styles lists the 18 built-in styles with a pending-photo count per style;
+    /styles/[styleName] is where uploading, reviewing, and approving happens.
+    
+    Customers page: filtering by style now surfaces a "Reach Out" action
+    (Owner only) that opens a guided, one-customer-at-a-time send queue using
+    the device's native share sheet — the only way to hand WhatsApp a real
+    photo (not just text), since wa.me links can only pre-fill text. Defaults
+    to customers not yet contacted about that style, with an option to
+    include everyone; each send is logged and shown as a "Reached out X ago"
+    badge per customer, scoped per style.
+    
+    Also fixes the mobile sidebar's Logout button being misaligned against
+    the routes listed above it.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 1f0ace2..5028c2b 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -12,6 +12,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+ import {
+   FaRegUser,
+   FaRegHeart,
++  FaImages,
+   FaArrowRightFromBracket,
+   FaHouse,
+   FaTableColumns,
+@@ -86,8 +87,10 @@ export default function SidebarMenu() {
+         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+       </button>
+ 
+-      {/* Mobile-only Portfolio link — Settings moved to the bottom nav's
+-          4th tab, so it no longer needs a separate entry here. */}
++      {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
++          bottom nav's 4th tab, so it no longer needs a separate entry here.
++          Style Gallery isn't in NAV_ITEMS (which also feeds the bottom nav)
++          since it's a secondary, occasional destination, not a daily tab. */}
+       {currentShop && (
+         <div className={styles.mobileOnlyNav}>
+           <Link
+@@ -98,6 +101,14 @@ export default function SidebarMenu() {
+             <FaRegHeart className={styles.menuIcon} />
+             <span className={styles.menuText}>My Portfolio</span>
+           </Link>
++          <Link
++            href="/styles"
++            className={styles.menuItem}
++            onClick={() => setMenuOpen(false)}
++          >
++            <FaImages className={styles.menuIcon} />
++            <span className={styles.menuText}>Style Gallery</span>
++          </Link>
+         </div>
+       )}
+ 
+@@ -130,6 +141,16 @@ export default function SidebarMenu() {
+             <span className={styles.menuText}>My Portfolio</span>
+           </Link>
+         )}
++        {currentShop && (
++          <Link
++            href="/styles"
++            className={styles.menuItem}
++            title={isCollapsed ? 'Style Gallery' : undefined}
++          >
++            <FaImages className={styles.menuIcon} />
++            <span className={styles.menuText}>Style Gallery</span>
++          </Link>
++        )}
+       </nav>
+ 
+       {/* Footer Navigation (Logout only) */}
+
+commit 2f8aecc56b67e0f0d1caee16da780b0318bf5f0b
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 22 12:02:41 2026 +0100
+
+    Streamline signup/onboarding flow, fix dashboard polish issues, clear all lint errors
+    
+    - Signup no longer asks for Shop/Studio Name — onboarding is now the single
+      place that's collected, for both email and Google sign-up. Onboarding no
+      longer asks for Full Name for email users (already collected at signup);
+      Google users still confirm/edit it there since OAuth gives no signup form.
+    - Fixed the dashboard-skeleton flash between a successful signup and landing
+      on the onboarding screen by not rendering (app) layout children at all
+      while the onboarding redirect is in flight.
+    - Dashboard: hide-balance toggle now persists across refresh/logout/login via
+      a cookie (not localStorage, per instruction) instead of resetting every
+      session; hides the currency symbol along with the figure so asterisks read
+      as "hidden" rather than a broken amount; Collected/Projected card labels
+      shortened so both cards match in height and the eye icon stays a fixed
+      size; Team Snapshot/Needs Attention headers dropped their inline icons to
+      match Overview Analytics' plain-text style; numeric stat values now use
+      the same (less shouting) secondary text color as their labels; the
+      post-refresh "there" placeholder greeting is now blank until the real name
+      loads instead of showing a fallback word.
+    - Resolved every ESLint error across the app (was 40 errors/26 warnings):
+      replaced the repeated mount-detection `useState+useEffect` pattern in
+      ConfirmDialog/FixedBottomPortal/BottomSheet/PhotoLightbox with a shared
+      useHasMounted hook (useSyncExternalStore, hydration-safe, no setState in
+      effect); moved a couple of prop-synced state updates to render-time
+      adjustment instead of effects (KanbanBoard's role-based filter reset);
+      deferred a few genuinely one-time effect-driven setState calls by a
+      microtask where an effect is legitimately the right place for them;
+      escaped unentitied quotes/apostrophes in privacy/CommentBox copy; removed
+      several unused imports and stale eslint-disable comments. Remaining
+      ESLint output is only pre-existing <img>/font-loading performance
+      suggestions, left as-is pending a dedicated next/image pass.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index ff69caa..1f0ace2 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -9,13 +9,9 @@ import { APP_CONFIG } from '@/lib/config';
+ import Link from 'next/link';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+-import { 
+-  FaRegUser, 
+-  FaXmark, 
+-  FaChartLine, 
+-  FaRegCreditCard, 
+-  FaRegFileLines, 
+-  FaRegHeart, 
++import {
++  FaRegUser,
++  FaRegHeart,
+   FaArrowRightFromBracket,
+   FaHouse,
+   FaTableColumns,
+
+commit 4a96f17910ec40ab5acf5e016e31fe1fc8fb23b5
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 22 11:00:36 2026 +0100
+
+    In-app portfolio, bottom nav Settings tab, and a round of visual cleanup
+    
+    - Portfolio now opens in-app (/portfolio, same tab, back button) instead
+      of a new tab — the Share button still hands out the real public
+      /studio/[shopId] link regardless of which route it's viewed from.
+    - Fix a real pre-existing bug: /studio/[shopId] was never actually
+      reachable by logged-out visitors — proxy.ts's public-path allowlist
+      was missing the /studio/ prefix, so every share link silently
+      redirected to login. This defeated the entire point of the portfolio
+      feature; fixed by adding it to PUBLIC_PREFIXES.
+    - Settings moved from the sidebar's mobile section into the bottom nav
+      as a 4th tab (Home, Production, Customers, Settings), removing the
+      now-redundant sidebar entry.
+    - Production board: removed the stage color dot in front of each phase
+      title (the section itself already conveys the phase) and the
+      redundant status pill on each order card's photo (same reason).
+      Unified the phase filter pills to use the same neutral active/inactive
+      treatment as the All/My Orders pills instead of two different-looking
+      selection states side by side.
+    - Tracking page: swapped a generic storefront icon for the real app
+      logo mark in the brand header.
+    - Sidebar logo was squished into a forced 64x64 square despite its
+      wider natural aspect ratio — now sized by height with the width
+      following naturally.
+    - Dashboard: Total Collected/Projected Earnings no longer use the
+      accent color (reserved for things needing attention, like Overdue);
+      figures across Overview Analytics and Team Snapshot now use Manrope
+      (softer numeral terminals) instead of the serif heading font; hide
+      balance now masks with asterisks instead of a blur filter.
+    - Two literal emoji (🧵) used as EmptyState icons replaced with real
+      Material Symbols icons.
+    - First pass at a properly accent-blended standard text color
+      (tokens.css) — still being tuned with the user via a visual comparison
+      artifact, not final.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 833bcd6..ff69caa 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -90,31 +90,18 @@ export default function SidebarMenu() {
+         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+       </button>
+ 
+-      {/* Mobile-only Settings + Portfolio Links */}
+-      {(isOwner || currentShop) && (
++      {/* Mobile-only Portfolio link — Settings moved to the bottom nav's
++          4th tab, so it no longer needs a separate entry here. */}
++      {currentShop && (
+         <div className={styles.mobileOnlyNav}>
+-          {isOwner && (
+-            <Link
+-              href="/settings"
+-              className={styles.menuItem}
+-              onClick={() => setMenuOpen(false)}
+-            >
+-              <FaGear className={styles.menuIcon} />
+-              <span className={styles.menuText}>Settings</span>
+-            </Link>
+-          )}
+-          {currentShop && (
+-            <a
+-              href={`/studio/${currentShop.id}`}
+-              target="_blank"
+-              rel="noopener noreferrer"
+-              className={styles.menuItem}
+-              onClick={() => setMenuOpen(false)}
+-            >
+-              <FaRegHeart className={styles.menuIcon} />
+-              <span className={styles.menuText}>My Portfolio</span>
+-            </a>
+-          )}
++          <Link
++            href="/portfolio"
++            className={styles.menuItem}
++            onClick={() => setMenuOpen(false)}
++          >
++            <FaRegHeart className={styles.menuIcon} />
++            <span className={styles.menuText}>My Portfolio</span>
++          </Link>
+         </div>
+       )}
+ 
+@@ -135,19 +122,17 @@ export default function SidebarMenu() {
+             </Link>
+           );
+         })}
+-        {/* The tailor's public showcase page — opens in a new tab so they
+-            see exactly what a customer sees. */}
++        {/* Opens in-app (same tab) — the Share button on the page itself
++            hands out the actual public /studio/[shopId] link to visitors. */}
+         {currentShop && (
+-          <a
+-            href={`/studio/${currentShop.id}`}
+-            target="_blank"
+-            rel="noopener noreferrer"
++          <Link
++            href="/portfolio"
+             className={styles.menuItem}
+             title={isCollapsed ? 'My Portfolio' : undefined}
+           >
+             <FaRegHeart className={styles.menuIcon} />
+             <span className={styles.menuText}>My Portfolio</span>
+-          </a>
++          </Link>
+         )}
+       </nav>
+ 
+
+commit dd13234e4a0283db7e6cc77ff89cb69341e28a78
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Jul 21 11:22:22 2026 +0100
+
+    Redesign app to the Adire indigo two-color system and new features
+    
+    Rebuilds every major screen (production board, order detail, dashboard,
+    customers, settings, auth, tracking, portfolio) to a single-accent indigo
+    design system replacing the old multi-color palette, with a mobile-first
+    layout throughout.
+    
+    New features:
+    - Full-page New Client / New Order wizards with per-style measurement
+      intake (replacing sheet-based forms), multi-garment batch orders, and
+      order photo comments
+    - Persisted per-style measurement profiles on customer records, reusable
+      across future orders for the same style
+    - Public shop portfolio page (/studio/[shopId]) for sharing finished work
+    - Confirmation dialogs for hard-to-reverse actions (removing a saved
+      measurement profile, clearing a full order balance)
+    - New logo mark throughout the app, favicon, and PWA install icons
+    
+    Migrations 0006-0009 add multi-garment/comment support, customer
+    preferred styles, per-order measurement snapshots, and per-style
+    measurement profiles.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index ac78330..833bcd6 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -64,7 +64,7 @@ export default function SidebarMenu() {
+             ariaLabel="Profile Settings"
+           />
+           <img
+-            src="/images/sewing-machine.svg"
++            src="/images/logo-mark.png"
+             alt={shopName}
+             className={styles.mobileLogo}
+           />
+@@ -73,7 +73,7 @@ export default function SidebarMenu() {
+         {/* Desktop Branding (Logo & Shop Name) */}
+         <div className={styles.desktopBranding}>
+           <img
+-            src="/images/sewing-machine.svg"
++            src="/images/logo-mark.png"
+             alt={shopName}
+             className={styles.desktopLogo}
+           />
+@@ -90,17 +90,31 @@ export default function SidebarMenu() {
+         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+       </button>
+ 
+-      {/* Mobile-only Settings Link */}
+-      {isOwner && (
++      {/* Mobile-only Settings + Portfolio Links */}
++      {(isOwner || currentShop) && (
+         <div className={styles.mobileOnlyNav}>
+-          <Link 
+-            href="/settings"
+-            className={styles.menuItem} 
+-            onClick={() => setMenuOpen(false)}
+-          >
+-            <FaGear className={styles.menuIcon} />
+-            <span className={styles.menuText}>Settings</span>
+-          </Link>
++          {isOwner && (
++            <Link
++              href="/settings"
++              className={styles.menuItem}
++              onClick={() => setMenuOpen(false)}
++            >
++              <FaGear className={styles.menuIcon} />
++              <span className={styles.menuText}>Settings</span>
++            </Link>
++          )}
++          {currentShop && (
++            <a
++              href={`/studio/${currentShop.id}`}
++              target="_blank"
++              rel="noopener noreferrer"
++              className={styles.menuItem}
++              onClick={() => setMenuOpen(false)}
++            >
++              <FaRegHeart className={styles.menuIcon} />
++              <span className={styles.menuText}>My Portfolio</span>
++            </a>
++          )}
+         </div>
+       )}
+ 
+@@ -121,6 +135,20 @@ export default function SidebarMenu() {
+             </Link>
+           );
+         })}
++        {/* The tailor's public showcase page — opens in a new tab so they
++            see exactly what a customer sees. */}
++        {currentShop && (
++          <a
++            href={`/studio/${currentShop.id}`}
++            target="_blank"
++            rel="noopener noreferrer"
++            className={styles.menuItem}
++            title={isCollapsed ? 'My Portfolio' : undefined}
++          >
++            <FaRegHeart className={styles.menuIcon} />
++            <span className={styles.menuText}>My Portfolio</span>
++          </a>
++        )}
+       </nav>
+ 
+       {/* Footer Navigation (Logout only) */}
+
+commit 0a90b5ac9f2b3b5f0da12a5fb6ac6b46fea22fdc
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Jul 3 19:48:32 2026 +0100
+
+    Refactor: Refactored codebase
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 66207de..ac78330 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -3,7 +3,9 @@
+ import { useState } from 'react';
+ 
+ import { useAuth } from '@/contexts/AuthContext';
++import { useData } from '@/contexts/DataContext';
+ import { useSidebar } from '@/contexts/SidebarContext';
++import { APP_CONFIG } from '@/lib/config';
+ import Link from 'next/link';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+@@ -35,6 +37,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
+ 
+ export default function SidebarMenu() {
+   const { logout, isOwner } = useAuth();
++  const { currentShop } = useData();
++  const shopName = currentShop?.name || APP_CONFIG.name;
+   const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
+   const router = useRouter();
+   const pathname = usePathname();
+@@ -59,21 +63,21 @@ export default function SidebarMenu() {
+             onClick={() => setShowProfile(true)} 
+             ariaLabel="Profile Settings"
+           />
+-          <img 
+-            src="/images/sewing-machine.svg" 
+-            alt="MyTailorBook Logo" 
++          <img
++            src="/images/sewing-machine.svg"
++            alt={shopName}
+             className={styles.mobileLogo}
+           />
+         </div>
+ 
+-        {/* Desktop Branding (Logo & App Name) */}
++        {/* Desktop Branding (Logo & Shop Name) */}
+         <div className={styles.desktopBranding}>
+           <img
+             src="/images/sewing-machine.svg"
+-            alt="MyTailorBook Logo"
++            alt={shopName}
+             className={styles.desktopLogo}
+           />
+-          <span className={styles.desktopTitle}>MYTAILORBOOK</span>
++          <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
+         </div>
+       </div>
+ 
+
+commit 513ef15d8fa9881e916f2c5558ceedacbf5a1112
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 1 00:05:06 2026 +0100
+
+    Feat: Bug fix
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 7385a73..66207de 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -86,6 +86,20 @@ export default function SidebarMenu() {
+         {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+       </button>
+ 
++      {/* Mobile-only Settings Link */}
++      {isOwner && (
++        <div className={styles.mobileOnlyNav}>
++          <Link 
++            href="/settings"
++            className={styles.menuItem} 
++            onClick={() => setMenuOpen(false)}
++          >
++            <FaGear className={styles.menuIcon} />
++            <span className={styles.menuText}>Settings</span>
++          </Link>
++        </div>
++      )}
++
+       {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) */}
+       <nav className={styles.mainNav}>
+         {visibleNavItems.map((item) => {
+@@ -105,9 +119,7 @@ export default function SidebarMenu() {
+         })}
+       </nav>
+ 
+-
+-
+-      {/* Footer Logout Button */}
++      {/* Footer Navigation (Logout only) */}
+       <div className={styles.footer}>
+         <button 
+           className={styles.logoutBtn} 
+
+commit 826bc7b8fde6ebf997733468bb4af49d1158ab72
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Jun 30 21:24:14 2026 +0100
+
+    Feat: Bug fix
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 5923f7c..7385a73 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -4,6 +4,7 @@ import { useState } from 'react';
+ 
+ import { useAuth } from '@/contexts/AuthContext';
+ import { useSidebar } from '@/contexts/SidebarContext';
++import Link from 'next/link';
+ import { useRouter, usePathname } from 'next/navigation';
+ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+ import { 
+@@ -41,11 +42,6 @@ export default function SidebarMenu() {
+ 
+   const visibleNavItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
+ 
+-  const handleNavigation = (path: string) => {
+-    setMenuOpen(false);
+-    router.push(path);
+-  };
+-
+   const handleLogout = async () => {
+     setMenuOpen(false);
+     await logout();
+@@ -95,15 +91,16 @@ export default function SidebarMenu() {
+         {visibleNavItems.map((item) => {
+           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+           return (
+-            <button 
++            <Link 
++              href={item.href}
+               key={item.href} 
+               className={`${styles.menuItem} ${isActive ? styles.active : ''}`} 
+-              onClick={() => handleNavigation(item.href)}
++              onClick={() => setMenuOpen(false)}
+               title={isCollapsed ? item.label : undefined}
+             >
+               {ICON_MAP[item.icon]}
+               <span className={styles.menuText}>{item.label}</span>
+-            </button>
++            </Link>
+           );
+         })}
+       </nav>
+
+commit 15a067b6d11d7a83e26d5274208600d06eea26f9
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jun 29 16:06:51 2026 +0100
+
+    Style: Revert to white background
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+index 56528e4..5923f7c 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.tsx
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -63,10 +63,10 @@ export default function SidebarMenu() {
+             onClick={() => setShowProfile(true)} 
+             ariaLabel="Profile Settings"
+           />
+-          <CircleIconButton 
+-            icon={<FaXmark className={styles.iconClose} />} 
+-            onClick={() => setMenuOpen(false)} 
+-            ariaLabel="Close Menu"
++          <img 
++            src="/images/sewing-machine.svg" 
++            alt="MyTailorBook Logo" 
++            className={styles.mobileLogo}
+           />
+         </div>
+ 
+
+commit c1bb24dccb000aee10caa70626247c9e953de0bd
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jun 29 13:06:27 2026 +0100
+
+    first commit
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.tsx b/components/layout/SidebarMenu/SidebarMenu.tsx
+new file mode 100644
+index 0000000..56528e4
+--- /dev/null
++++ b/components/layout/SidebarMenu/SidebarMenu.tsx
+@@ -0,0 +1,161 @@
++'use client';
++
++import { useState } from 'react';
++
++import { useAuth } from '@/contexts/AuthContext';
++import { useSidebar } from '@/contexts/SidebarContext';
++import { useRouter, usePathname } from 'next/navigation';
++import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
++import { 
++  FaRegUser, 
++  FaXmark, 
++  FaChartLine, 
++  FaRegCreditCard, 
++  FaRegFileLines, 
++  FaRegHeart, 
++  FaArrowRightFromBracket,
++  FaHouse,
++  FaTableColumns,
++  FaUsers,
++  FaGear,
++  FaChevronLeft,
++  FaChevronRight
++} from 'react-icons/fa6';
++import { NAV_ITEMS } from '@/lib/constants';
++import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
++import styles from './SidebarMenu.module.css';
++
++const ICON_MAP: Record<string, React.ReactNode> = {
++  FaHouse: <FaHouse className={styles.menuIcon} />,
++  FaTableColumns: <FaTableColumns className={styles.menuIcon} />,
++  FaUsers: <FaUsers className={styles.menuIcon} />,
++  FaGear: <FaGear className={styles.menuIcon} />,
++};
++
++export default function SidebarMenu() {
++  const { logout, isOwner } = useAuth();
++  const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
++  const router = useRouter();
++  const pathname = usePathname();
++  const [showProfile, setShowProfile] = useState(false);
++
++  const visibleNavItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
++
++  const handleNavigation = (path: string) => {
++    setMenuOpen(false);
++    router.push(path);
++  };
++
++  const handleLogout = async () => {
++    setMenuOpen(false);
++    await logout();
++    router.push('/login');
++  };
++
++  return (
++    <div className={`${styles.sidebar} ${isMenuOpen ? styles.open : ''} ${isCollapsed ? styles.collapsed : ''}`}>
++      {/* Top Bar / Branding Container */}
++      <div className={styles.topRow}>
++        {/* Mobile Top Row (Profile Avatar and Close Button) */}
++        <div className={styles.mobileTopRow}>
++          <CircleIconButton 
++            icon={<FaRegUser className={styles.iconUser} />} 
++            onClick={() => setShowProfile(true)} 
++            ariaLabel="Profile Settings"
++          />
++          <CircleIconButton 
++            icon={<FaXmark className={styles.iconClose} />} 
++            onClick={() => setMenuOpen(false)} 
++            ariaLabel="Close Menu"
++          />
++        </div>
++
++        {/* Desktop Branding (Logo & App Name) */}
++        <div className={styles.desktopBranding}>
++          <img
++            src="/images/sewing-machine.svg"
++            alt="MyTailorBook Logo"
++            className={styles.desktopLogo}
++          />
++          <span className={styles.desktopTitle}>MYTAILORBOOK</span>
++        </div>
++      </div>
++
++      {/* Collapse Toggle Button for Desktop */}
++      <button 
++        className={styles.collapseToggle}
++        onClick={toggleCollapse}
++        aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
++      >
++        {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
++      </button>
++
++      {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) */}
++      <nav className={styles.mainNav}>
++        {visibleNavItems.map((item) => {
++          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
++          return (
++            <button 
++              key={item.href} 
++              className={`${styles.menuItem} ${isActive ? styles.active : ''}`} 
++              onClick={() => handleNavigation(item.href)}
++              title={isCollapsed ? item.label : undefined}
++            >
++              {ICON_MAP[item.icon]}
++              <span className={styles.menuText}>{item.label}</span>
++            </button>
++          );
++        })}
++      </nav>
++
++
++
++      {/* Footer Logout Button */}
++      <div className={styles.footer}>
++        <button 
++          className={styles.logoutBtn} 
++          onClick={handleLogout}
++          title={isCollapsed ? "Logout" : undefined}
++        >
++          <FaArrowRightFromBracket className={styles.logoutIcon} />
++          <span className={styles.logoutText}>Logout</span>
++        </button>
++      </div>
++
++      <BottomSheet isOpen={showProfile} onClose={() => setShowProfile(false)}>
++        <div style={{ padding: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-md)' }}>
++          <div>
++            <h3 style={{ fontSize: 'var(--sf-text-lg)', fontWeight: 'var(--sf-weight-semibold)', color: 'var(--sf-text-primary)' }}>
++              Profile
++            </h3>
++            <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)', marginTop: 'var(--sf-space-xs)' }}>
++              {isOwner ? 'Owner Account' : 'Staff Account'}
++            </p>
++          </div>
++          <button 
++            onClick={() => {
++              setShowProfile(false);
++              handleLogout();
++            }}
++            style={{
++              padding: 'var(--sf-space-sm) var(--sf-space-md)',
++              borderRadius: 'var(--sf-radius-md)',
++              border: 'none',
++              background: 'var(--sf-error-bg)',
++              color: 'var(--sf-error)',
++              fontWeight: 'var(--sf-weight-medium)',
++              display: 'flex',
++              alignItems: 'center',
++              justifyContent: 'center',
++              gap: 'var(--sf-space-sm)',
++              cursor: 'pointer'
++            }}
++          >
++            <FaArrowRightFromBracket />
++            Logout
++          </button>
++        </div>
++      </BottomSheet>
++    </div>
++  );
++}

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
 import { useMilestones } from '../_hooks/useMilestones';
@@ -69,9 +69,9 @@ export default function ShopTodayCard({
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
   };
 
   return (

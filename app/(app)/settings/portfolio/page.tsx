@@ -60,9 +60,9 @@ export default function PortfolioCurationSettingsPage() {
   const [prevShopId, setPrevShopId] = useState<string | null>(null);
   if (currentShop && currentShop.id !== prevShopId) {
     setPrevShopId(currentShop.id);
-    setTagline(currentShop.portfolioSettings.tagline || '');
-    setBio(currentShop.portfolioSettings.bio || '');
-    setFoundedYear(currentShop.portfolioSettings.foundedYear ? String(currentShop.portfolioSettings.foundedYear) : '');
+    setTagline(currentShop.portfolioSettings?.tagline || '');
+    setBio(currentShop.portfolioSettings?.bio || '');
+    setFoundedYear(currentShop.portfolioSettings?.foundedYear ? String(currentShop.portfolioSettings.foundedYear) : '');
   }
 
   const load = useCallback(async () => {

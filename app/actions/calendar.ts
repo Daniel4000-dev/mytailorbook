@@ -23,7 +23,7 @@ function mapEventRow(row: any): CalendarEvent {
 }
 
 export async function getCalendarEvents(shopId: string, month: string): Promise<CalendarEvent[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   // month is in YYYY-MM format. We want all events for this month.
   const { data, error } = await supabase
@@ -43,7 +43,7 @@ export async function getCalendarEvents(shopId: string, month: string): Promise<
 }
 
 export async function createCalendarEvent(eventData: Omit<CalendarEvent, 'id' | 'createdAt'>): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { error } = await supabase
     .from('calendar_events')
@@ -70,7 +70,7 @@ export async function createCalendarEvent(eventData: Omit<CalendarEvent, 'id' | 
 }
 
 export async function deleteCalendarEvent(eventId: string, shopId: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { error } = await supabase
     .from('calendar_events')
@@ -92,7 +92,7 @@ export async function checkWeeklyCapacity(shopId: string, dateStr: string): Prom
   currentLoad: number;
   overCapacity: boolean;
 }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   // 1. Get weekly capacity
   const { data: shopData } = await supabase
@@ -135,7 +135,7 @@ export async function checkWeeklyCapacity(shopId: string, dateStr: string): Prom
 }
 
 export async function updateEventStatus(eventId: string, status: 'pending' | 'completed'): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { error } = await supabase
     .from('calendar_events')

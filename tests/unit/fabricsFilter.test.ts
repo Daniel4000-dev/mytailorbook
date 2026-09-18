@@ -9,20 +9,20 @@ describe('filterFabricOrders', () => {
       customerName: 'John Doe',
       styleName: 'Agabada',
       status: 'Cutting',
-      images: [{ id: 'img1', url: 'http://example.com/img1.jpg', thumbUrl: '' }],
+      images: [{ url: 'http://example.com/img1.jpg', stage: 'Cutting', uploadedAt: '2023-01-01' }],
     },
     {
       id: '2',
       customerName: 'Jane Smith',
       orderDetails: 'Blue thread',
       status: 'Documented',
-      images: [{ id: 'img2', url: 'http://example.com/img2.jpg', thumbUrl: '' }],
+      images: [{ url: 'http://example.com/img2.jpg', stage: 'Documented', uploadedAt: '2023-01-01' }],
     },
     {
       id: '2b',
       customerName: 'Sewing User',
       status: 'Sewing',
-      images: [{ id: 'img2b', url: 'http://example.com/img2b.jpg', thumbUrl: '' }],
+      images: [{ url: 'http://example.com/img2b.jpg', stage: 'Sewing', uploadedAt: '2023-01-01' }],
     },
     {
       id: '3',
@@ -36,7 +36,7 @@ describe('filterFabricOrders', () => {
       customerName: 'Completed User',
       styleName: 'Suit',
       status: 'Delivered',
-      images: [{ id: 'img3', url: 'http://example.com/img3.jpg', thumbUrl: '' }],
+      images: [{ url: 'http://example.com/img3.jpg', stage: 'Delivered', uploadedAt: '2023-01-01' }],
     },
   ];
 

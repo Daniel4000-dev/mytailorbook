@@ -1,0 +1,1754 @@
+commit 18da41cc75580ad92f7579f62a1ce2d2021ecee3
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Aug 25 04:23:42 2026 +0100
+
+    feat: affiliate link tracking + internal admin dashboard
+    
+    Adds a platform-admin-only /admin dashboard (overview KPIs, signup chart,
+    organizations list/drill-down, affiliate management) gated by a real
+    platform_admins table, not a tenant role — 404s rather than redirecting so
+    the route's existence isn't revealed to a logged-in tailor.
+    
+    Affiliate links (?ref=CODE) are captured first-touch via a client cookie
+    and attributed onto the referred org after signup, since organizations are
+    created implicitly by the shops_auto_create_org() trigger rather than an
+    explicit insert this code controls.
+    
+    Also restores the .env* entry in .gitignore, dropped by a prior reformat
+    of the file on origin/main.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index ff268e8..d3af03e 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -402,23 +402,20 @@
+   }
+   }
+ 
+-  /* One committed treatment instead of two competing ones (a colored
+-     glow pill AND a neutral border, stacked). A soft rounded highlight
+-     behind the active item is the exact look of a stock/generated
+-     dashboard template — considered desktop software (Linear, Vercel's
+-     own dashboard, VS Code's activity list) tends to commit to a single
+-     confident signal instead: flat background, bold weight, one solid
+-     accent mark. Text stays aligned with every inactive item — only the
+-     accent bar and weight change, nothing shifts position. */
++  /* A solid filled pill, not a bare left border on a transparent row —
++     the border-only treatment (tried first) read as generic/templated in
++     practice, not "confident." A real committed fill (same move Vercel's
++     own dashboard and Linear both make for their active nav item) is what
++     actually reads as designed rather than default. */
+   .menuItem.active {
+-    background-color: transparent;
+-    color: var(--sf-accent-emerald) !important;
+-    font-weight: 700;
+-    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
++    background-color: var(--sf-accent-emerald);
++    color: var(--sf-text-on-accent) !important;
++    font-weight: 600;
++    box-shadow: var(--sf-shadow-sm);
+   }
+ 
+   .menuItem.active .menuIcon {
+-    color: var(--sf-accent-emerald) !important;
++    color: var(--sf-text-on-accent) !important;
+   }
+ 
+   .settingsBtn {
+@@ -543,8 +540,13 @@
+     align-items: center;
+   }
+ 
+-  /* Desktop has the indicator in the branding block — hide the footer copy. */
+-  .mobileOnlineIndicator {
++  /* Desktop has the indicator in the branding block — hide the footer copy.
++     Scoped by parent (not just the bare class) on purpose: OnlineIndicator's
++     own .indicator rule sets `display: inline-flex` unconditionally with
++     the exact same specificity as a bare `.mobileOnlineIndicator` selector,
++     so whichever CSS module happened to bundle later was silently winning
++     and this never actually hid on desktop. */
++  .footer .mobileOnlineIndicator {
+     display: none;
+   }
+ }
+
+commit 842193018e979f9ea2682665644ec3480d47a079
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Aug 24 07:38:35 2026 +0100
+
+    feat: desktop redesign polish + guaranteed press feedback app-wide
+    
+    Redesigns the dashboard hero, sidebar active state, order wizard step
+    rail, and other desktop screens toward a real desktop-app standard
+    (desktop-scoped via media queries; mobile layouts untouched). Adds
+    :active press feedback across every remaining button/link/CTA on both
+    marketing and app surfaces, fixing several off-brand hardcoded colors
+    along the way.
+    
+    Also fixes clicks feeling unresponsive: verified live that a real
+    mousedown->mouseup pair can land faster than one paint cycle, so CSS
+    :active is applied and reverted between frames without ever rendering.
+    Adds PressFeedback, a small global component that holds a guaranteed
+    minimum-duration press cue on every tap regardless of click speed.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 0f6aa17..ff268e8 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -197,6 +197,11 @@
+ }
+ }
+ 
++.settingsBtn:active {
++  opacity: 0.6;
++  transform: scale(0.97);
++}
++
+ .settingsIcon {
+   font-size: 20px;
+   color: var(--sf-text-primary);
+@@ -261,7 +266,16 @@
+     opacity: 1 !important;
+     pointer-events: auto !important;
+     position: fixed;
+-    background-color: var(--sf-bg-surface); /* Premium white sidebar */
++    /* Deliberately opaque, not translucent — tried a blurred material
++       here and an independent review caught the real problem: nothing
++       ever scrolls behind this fixed, dedicated-width panel, so the
++       blur cost real render performance for zero visible payoff (it
++       rendered indistinguishable from a flat fill) and skipped the
++       required prefers-reduced-transparency fallback. Reserve
++       translucency for transient overlays (popovers, sheets) the way
++       Linear/Notion/VS Code do — a permanently-docked sidebar with a
++       static backdrop stays flat. */
++    background-color: var(--sf-bg-surface);
+     border-right: 1px solid var(--sf-border);
+     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+     z-index: 100 !important;
+@@ -317,7 +331,7 @@
+     background-color: rgba(255, 255, 255, 0.8);
+     backdrop-filter: blur(8px);
+     border: 1px solid var(--sf-border);
+-    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.08);
++    box-shadow: var(--sf-shadow-sm);
+     color: var(--sf-text-secondary);
+     cursor: pointer;
+     z-index: 100;
+@@ -333,6 +347,12 @@
+   }
+   }
+ 
++  .collapseToggle:active {
++    background-color: var(--sf-bg-surface-elevated);
++    color: var(--sf-text-primary);
++    transform: scale(0.92);
++  }
++
+   .footer {
+     position: relative;
+     top: auto;
+@@ -369,7 +389,7 @@
+   @media (hover: hover) and (pointer: fine) {
+ 
+   .menuItem:hover {
+-    background-color: rgba(40, 25, 11, 0.03);
++    background-color: var(--sf-bg-surface-hover);
+     color: var(--sf-text-primary);
+     transform: none !important;
+   }
+@@ -382,11 +402,19 @@
+   }
+   }
+ 
++  /* One committed treatment instead of two competing ones (a colored
++     glow pill AND a neutral border, stacked). A soft rounded highlight
++     behind the active item is the exact look of a stock/generated
++     dashboard template — considered desktop software (Linear, Vercel's
++     own dashboard, VS Code's activity list) tends to commit to a single
++     confident signal instead: flat background, bold weight, one solid
++     accent mark. Text stays aligned with every inactive item — only the
++     accent bar and weight change, nothing shifts position. */
+   .menuItem.active {
+-    background-color: var(--sf-accent-emerald-glow);
++    background-color: transparent;
+     color: var(--sf-accent-emerald) !important;
+-    font-weight: 600;
+-    box-shadow: inset 3px 0 0 var(--sf-border);
++    font-weight: 700;
++    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
+   }
+ 
+   .menuItem.active .menuIcon {
+@@ -407,7 +435,7 @@
+   @media (hover: hover) and (pointer: fine) {
+ 
+   .settingsBtn:hover {
+-    background-color: rgba(40, 25, 11, 0.03);
++    background-color: var(--sf-bg-surface-hover);
+     color: var(--sf-text-primary) !important;
+     transform: none !important;
+   }
+
+commit 78eb44101a040611d1f223cfbdff8d84855fc779
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Aug 11 15:23:57 2026 +0100
+
+    feat: Add Fabric Gallery feature
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 7aa13e6..0f6aa17 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -168,6 +168,10 @@
+   gap: 12px;
+ }
+ 
++.mobileOnlineIndicator {
++  margin-left: 14px; /* Align with the 14px left padding of the menu items/logout button */
++}
++
+ .settingsBtn {
+   display: flex;
+   align-items: center;
+
+commit 22a5be5241a435ec5b314d516b30179e36ee5d73
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Sun Aug 9 06:22:39 2026 +0100
+
+    feat: dashboard desktop/mobile split, settings restructure, and 14 new blog posts
+    
+    Splits dashboard and settings components into desktop/mobile variants as part
+    of the ongoing feature-oriented refactor, adds SEO/breadcrumb components and
+    updated brand assets, and publishes 14 new fact-checked, sourced blog posts
+    covering Nigerian tailoring styles (aso oke, ankara, agbada, senator wear,
+    isiagu, adire, gele, and more).
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index b51291a..7aa13e6 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -66,10 +66,6 @@
+   display: none;
+ }
+ 
+-.newBtn {
+-  display: none;
+-}
+-
+ .iconUser {
+   font-size: 18px;
+ }
+@@ -333,55 +329,6 @@
+   }
+   }
+ 
+-  .newBtn {
+-    display: flex;
+-    align-items: center;
+-    justify-content: center;
+-    gap: 10px;
+-    width: calc(100% - 32px);
+-    margin: 24px 16px 8px;
+-    height: 44px;
+-    border: none;
+-    border-radius: 10px;
+-    background: var(--sf-accent-emerald);
+-    color: var(--sf-text-on-accent);
+-    font-family: var(--sf-font-body), sans-serif;
+-    font-size: 15px;
+-    font-weight: 600;
+-    cursor: pointer;
+-    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
+-    transition: all var(--sf-transition-fast);
+-  }
+-
+-  @media (hover: hover) and (pointer: fine) {
+-
+-  .newBtn:hover {
+-    background: var(--sf-accent-emerald-dark);
+-    transform: translateY(-1px);
+-    box-shadow: 0 4px 12px rgba(67, 56, 202, 0.32);
+-  }
+-  }
+-
+-  .newBtn:active {
+-    transform: scale(0.97);
+-  }
+-
+-  .newIcon {
+-    font-size: 14px;
+-    flex-shrink: 0;
+-  }
+-
+-  .sidebar.collapsed .newBtn {
+-    width: 44px;
+-    height: 44px;
+-    margin: 24px auto 8px;
+-    padding: 0;
+-  }
+-
+-  .sidebar.collapsed .newBtn .menuText {
+-    display: none;
+-  }
+-
+   .footer {
+     position: relative;
+     top: auto;
+@@ -435,7 +382,7 @@
+     background-color: var(--sf-accent-emerald-glow);
+     color: var(--sf-accent-emerald) !important;
+     font-weight: 600;
+-    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
++    box-shadow: inset 3px 0 0 var(--sf-border);
+   }
+ 
+   .menuItem.active .menuIcon {
+
+commit 6c5dfdd7bdc65a392a656fd1f8f20aed47ff64ad
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Aug 7 02:37:25 2026 +0100
+
+    feat: offline-first PWA with online indicator, no-internet toast, and tests
+    
+    - Add localStorage SWR cache provider (AppSWRConfig) for offline-first
+      data reads; all previously fetched data survives a network drop
+    - Register service worker globally via ServiceWorkerRegistrar (layout.tsx)
+      instead of only for Settings visitors
+    - Add NetworkMonitor: fires deduplicated toast on offline/online events
+    - Wire SWR onError to also toast when a fetch fails while device is offline
+    - Add OnlineIndicator pill (desktop: sidebar branding area; mobile: sidebar
+      footer above logout); hides when sidebar is collapsed
+    - Fix provider nesting: AppSWRConfig now lives inside ToastProvider so
+      useToast() resolves correctly
+    - Clear localStorage cache on logout (AuthContext + AccountDangerZone)
+      to prevent data leaking to next user on shared device
+    - tests/unit/offline.test.ts: 10 tests covering cache get/set/delete,
+      invalidation, offline hydration, corrupt-JSON resilience, and
+      NetworkMonitor deduplication logic
+    
+    All 86 tests pass. Build clean.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 9eaf128..b51291a 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -563,4 +563,9 @@
+     display: flex;
+     align-items: center;
+   }
++
++  /* Desktop has the indicator in the branding block — hide the footer copy. */
++  .mobileOnlineIndicator {
++    display: none;
++  }
+ }
+
+commit e75420d364c483e97758062ed4cc6f0219f22427
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Aug 5 15:03:18 2026 +0100
+
+    fix: wrap all hover states in media queries to fix iOS Safari double-tap bug
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index c53e3f4..9eaf128 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -114,11 +114,14 @@
+   width: max-content;
+ }
+ 
++@media (hover: hover) and (pointer: fine) {
++
+ .menuItem:hover {
+   color: var(--sf-accent-emerald);
+   background: var(--sf-bg-surface-hover);
+   transform: translateX(4px);
+ }
++}
+ 
+ .menuItem:active {
+   opacity: 0.6;
+@@ -148,9 +151,12 @@
+   transition: color var(--sf-transition-fast);
+ }
+ 
++@media (hover: hover) and (pointer: fine) {
++
+ .menuItem:hover .menuIcon {
+   color: var(--sf-text-secondary);
+ }
++}
+ 
+ .menuItem.active .menuIcon {
+   color: var(--sf-accent-emerald);
+@@ -183,10 +189,13 @@
+   text-decoration: none;
+ }
+ 
++@media (hover: hover) and (pointer: fine) {
++
+ .settingsBtn:hover {
+   color: var(--sf-text-secondary);
+   transform: translateX(4px);
+ }
++}
+ 
+ .settingsIcon {
+   font-size: 20px;
+@@ -194,9 +203,12 @@
+   transition: color var(--sf-transition-fast);
+ }
+ 
++@media (hover: hover) and (pointer: fine) {
++
+ .settingsBtn:hover .settingsIcon {
+   color: var(--sf-text-secondary);
+ }
++}
+ 
+ .logoutBtn {
+   display: flex;
+@@ -216,10 +228,13 @@
+   width: max-content;
+ }
+ 
++@media (hover: hover) and (pointer: fine) {
++
+ .logoutBtn:hover {
+   color: #DE3B3B; /* Red highlight on logout */
+   transform: translateX(4px);
+ }
++}
+ 
+ .logoutBtn:active {
+   opacity: 0.6;
+@@ -232,9 +247,12 @@
+   transition: color var(--sf-transition-fast);
+ }
+ 
++@media (hover: hover) and (pointer: fine) {
++
+ .logoutBtn:hover .logoutIcon {
+   color: #DE3B3B;
+ }
++}
+ 
+ /* ── Desktop Layout ────────────────────────────────────────── */
+ @media (min-width: 1024px) {
+@@ -306,11 +324,14 @@
+     transition: all var(--sf-transition-fast);
+   }
+ 
++  @media (hover: hover) and (pointer: fine) {
++
+   .collapseToggle:hover {
+     background-color: var(--sf-bg-surface-elevated);
+     color: var(--sf-text-primary);
+     transform: scale(1.05);
+   }
++  }
+ 
+   .newBtn {
+     display: flex;
+@@ -332,11 +353,14 @@
+     transition: all var(--sf-transition-fast);
+   }
+ 
++  @media (hover: hover) and (pointer: fine) {
++
+   .newBtn:hover {
+     background: var(--sf-accent-emerald-dark);
+     transform: translateY(-1px);
+     box-shadow: 0 4px 12px rgba(67, 56, 202, 0.32);
+   }
++  }
+ 
+   .newBtn:active {
+     transform: scale(0.97);
+@@ -391,15 +415,21 @@
+     transition: all var(--sf-transition-fast);
+   }
+ 
++  @media (hover: hover) and (pointer: fine) {
++
+   .menuItem:hover {
+     background-color: rgba(40, 25, 11, 0.03);
+     color: var(--sf-text-primary);
+     transform: none !important;
+   }
++  }
++
++  @media (hover: hover) and (pointer: fine) {
+ 
+   .menuItem:hover .menuIcon {
+     color: var(--sf-text-primary);
+   }
++  }
+ 
+   .menuItem.active {
+     background-color: var(--sf-accent-emerald-glow);
+@@ -423,15 +453,21 @@
+     gap: 16px;
+   }
+ 
++  @media (hover: hover) and (pointer: fine) {
++
+   .settingsBtn:hover {
+     background-color: rgba(40, 25, 11, 0.03);
+     color: var(--sf-text-primary) !important;
+     transform: none !important;
+   }
++  }
++
++  @media (hover: hover) and (pointer: fine) {
+ 
+   .settingsBtn:hover .settingsIcon {
+     color: var(--sf-text-primary) !important;
+   }
++  }
+ 
+   .logoutBtn {
+     width: calc(100% - 32px) !important;
+@@ -441,15 +477,21 @@
+     transition: all var(--sf-transition-fast);
+   }
+ 
++  @media (hover: hover) and (pointer: fine) {
++
+   .logoutBtn:hover {
+     background-color: rgba(222, 59, 59, 0.05);
+     color: #DE3B3B !important;
+     transform: none !important;
+   }
++  }
++
++  @media (hover: hover) and (pointer: fine) {
+ 
+   .logoutBtn:hover .logoutIcon {
+     color: #DE3B3B !important;
+   }
++  }
+ 
+   /* Collapsed Sidebar State */
+   .sidebar.collapsed {
+
+commit cb7e19638f57a8ace7ad4eb0af70502246160d7a
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Sat Aug 1 08:13:42 2026 +0100
+
+    refactor marketing homepage
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index fd454e3..c53e3f4 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -275,7 +275,7 @@
+   }
+ 
+   .desktopTitle {
+-    font-family: var(--font-cinzel), Georgia, serif;
++    font-family: var(--font-fraunces), Georgia, serif;
+     font-size: 14px;
+     font-weight: 700;
+     color: var(--sf-text-secondary);
+
+commit 36a256de518b038a7c4e74fa0ac64f7dc0877f01
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Thu Jul 30 23:38:45 2026 +0100
+
+    Dark mode for main app chrome, auth pages, and public pages
+    
+    Swept every remaining CSS Module with hardcoded colors and replaced
+    neutral/brand-accent literals with the matching --sf-* token (only
+    where the token's light-mode value is an exact match — anything
+    ambiguous was left alone rather than guessed at). Genuinely fixed
+    semantic colors (destructive red, balance-owed amber, alert/warning
+    badges) got scoped dark-mode overrides only where contrast against the
+    new dark surface actually required it; theme-independent elements
+    (photo scrims/badges, the receipt's @media print block, the desktop
+    marketing side-panel, Google's brand-white sign-in button) were
+    deliberately left untouched.
+    
+    Also fixes a genuine, longstanding content bug on the privacy page
+    (unrelated to dark mode, just noticed while checking it live): the
+    SWC/JSX whitespace collapse was silently dropping the space between
+    {APP_CONFIG.name} and "is a tool..." — rendered as "SabiTailorsis".
+    Fixed with an explicit {' '} rather than relying on JSX's line-wrap
+    whitespace handling.
+    
+    Left as flagged-but-unfixed (desktop-only, hidden behind DesktopGate,
+    or too ambiguous to safely map to an existing token without guessing):
+    app/(app)/layout.module.css's stacked-card background, customers'
+    legacy cream hover-border, SidebarMenu's near-invisible legacy-brown
+    hover tints.
+    
+    Verified live in both themes: dashboard, production, customers,
+    settings (incl. the new billing row and portfolio editor/reviews),
+    login, signup, privacy, blog (index + post). Toggle switches instantly
+    with no reload; forced dark via localStorage + reload confirms the
+    inline anti-flash script applies before paint, no flash of the wrong
+    theme.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 4349d6a..fd454e3 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -243,7 +243,7 @@
+     opacity: 1 !important;
+     pointer-events: auto !important;
+     position: fixed;
+-    background-color: #FFFFFF; /* Premium white sidebar */
++    background-color: var(--sf-bg-surface); /* Premium white sidebar */
+     border-right: 1px solid var(--sf-border);
+     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+     z-index: 100 !important;
+@@ -307,7 +307,7 @@
+   }
+ 
+   .collapseToggle:hover {
+-    background-color: #FFFFFF;
++    background-color: var(--sf-bg-surface-elevated);
+     color: var(--sf-text-primary);
+     transform: scale(1.05);
+   }
+@@ -323,7 +323,7 @@
+     border: none;
+     border-radius: 10px;
+     background: var(--sf-accent-emerald);
+-    color: #FFFFFF;
++    color: var(--sf-text-on-accent);
+     font-family: var(--sf-font-body), sans-serif;
+     font-size: 15px;
+     font-weight: 600;
+
+commit c4ac57c01215c5f28dc460fdd90fc2be24ccf966
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jul 27 18:18:16 2026 +0100
+
+    Add branch switcher, add-branch flow, and org/branch-aware data fetching
+    
+    Completes the Phase 2 UI layer on top of the already-applied schema/RLS
+    rewrite: an Owner can now add a second physical branch under their
+    organization from Settings > Your Organization, a branch switcher appears
+    in the sidebar once an org has more than one branch (hidden otherwise, so
+    every existing single-branch shop sees no change), and DataContext now
+    fetches customers org-wide while orders stay scoped to the active branch.
+    
+    Verified live against the real production account: added a real second
+    branch ("Lekki Branch"), confirmed the switcher appeared, confirmed all 6
+    existing customers show identically on both branches (org-shared) while
+    active order counts correctly differ (0 on the new branch, 4 back on the
+    original) and switching back left the original branch's data untouched.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 2ae7a8d..4349d6a 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -21,6 +21,18 @@
+   pointer-events: auto;
+ }
+ 
++.branchSwitcher {
++  width: calc(100% - 48px);
++  margin: 0 24px 16px;
++  padding: 8px 12px;
++  border-radius: var(--sf-radius-md);
++  border: 1px solid var(--sf-border-light);
++  background: var(--sf-bg-surface);
++  color: var(--sf-text-primary);
++  font-size: var(--sf-text-sm);
++  font-weight: var(--sf-weight-medium);
++}
++
+ .mobileLogo {
+   /* width: auto — the mark's natural aspect is wider than tall; forcing
+      an exact square squished it into a cramped-looking crop. */
+
+commit a2185ac79c893e5058557b290d4dfa01cbc709c4
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Thu Jul 23 08:52:25 2026 +0100
+
+    Move the create-FAB off desktop, fix sidebar loading flash, ease dashboard sparseness, drop a customer-facing emoji
+    
+    Addresses the items flagged but deliberately left open by the earlier
+    mobile/desktop UX audit:
+    
+    - A floating "+" FAB is a bottom-nav mobile pattern that didn't belong in
+      a persistent sidebar-shell desktop app. The FAB now hides at desktop
+      widths; SidebarMenu gained an equivalent "New" button that opens the
+      same New Order/New Customer sheet, via new shared state in
+      SidebarContext (isCreateMenuOpen) so both triggers control one sheet.
+    - SidebarMenu now waits for auth/shop data to resolve before rendering
+      (same tradeoff BottomNav already makes) instead of flashing a generic
+      wordmark and a shorter nav that then grows/renames itself a beat later.
+    - Dashboard's Team Snapshot grid used a fixed 4-column split that left a
+      lone staff card looking stranded in a large void; switched to
+      auto-fill so columns size to the cards themselves.
+    - Dashboard's "all clear" empty states were a thin, text-only dashed
+      bar; gave them an icon and more presence.
+    - Removed a 👋 from the public tracking page's greeting — read as
+      generic consumer-casual rather than the app's otherwise premium tone
+      (the flag emoji in phone-country selectors elsewhere is left alone;
+      that's a standard, expected convention, not an AI-design tell).
+    - Reserved clearance below the last card on mobile's production board so
+      the floating FAB never sits on top of a card's own action button.
+    
+    Verified live: the sidebar's new desktop "New" button opens the same
+    sheet as the mobile FAB; dashboard team grid no longer leaves a stranded
+    single card at desktop width.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 116e1e5..2ae7a8d 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -54,6 +54,10 @@
+   display: none;
+ }
+ 
++.newBtn {
++  display: none;
++}
++
+ .iconUser {
+   font-size: 18px;
+ }
+@@ -296,6 +300,52 @@
+     transform: scale(1.05);
+   }
+ 
++  .newBtn {
++    display: flex;
++    align-items: center;
++    justify-content: center;
++    gap: 10px;
++    width: calc(100% - 32px);
++    margin: 24px 16px 8px;
++    height: 44px;
++    border: none;
++    border-radius: 10px;
++    background: var(--sf-accent-emerald);
++    color: #FFFFFF;
++    font-family: var(--sf-font-body), sans-serif;
++    font-size: 15px;
++    font-weight: 600;
++    cursor: pointer;
++    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
++    transition: all var(--sf-transition-fast);
++  }
++
++  .newBtn:hover {
++    background: var(--sf-accent-emerald-dark);
++    transform: translateY(-1px);
++    box-shadow: 0 4px 12px rgba(67, 56, 202, 0.32);
++  }
++
++  .newBtn:active {
++    transform: scale(0.97);
++  }
++
++  .newIcon {
++    font-size: 14px;
++    flex-shrink: 0;
++  }
++
++  .sidebar.collapsed .newBtn {
++    width: 44px;
++    height: 44px;
++    margin: 24px auto 8px;
++    padding: 0;
++  }
++
++  .sidebar.collapsed .newBtn .menuText {
++    display: none;
++  }
++
+   .footer {
+     position: relative;
+     top: auto;
+
+commit c28888b53b1f8e34a6de5fb069d0a2dcc9492624
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 22 14:02:34 2026 +0100
+
+    Add staff-sourced style photo gallery with owner curation and guided customer outreach
+    
+    Lets any staff member upload a photo for a built-in garment style when
+    they spot something a customer would love. New photos land as pending and
+    are visible shop-wide (so nobody uploads a duplicate); anyone can discard
+    a pending photo, but only the Owner can approve one, which moves it into
+    the Owner's private saved gallery — the only source outreach draws from.
+    Anything left pending for 10 days is cleaned up automatically via a new
+    daily cron (DB row + storage file).
+    
+    New Style Gallery section in the sidebar (visible to Owner and Staff):
+    /styles lists the 18 built-in styles with a pending-photo count per style;
+    /styles/[styleName] is where uploading, reviewing, and approving happens.
+    
+    Customers page: filtering by style now surfaces a "Reach Out" action
+    (Owner only) that opens a guided, one-customer-at-a-time send queue using
+    the device's native share sheet — the only way to hand WhatsApp a real
+    photo (not just text), since wa.me links can only pre-fill text. Defaults
+    to customers not yet contacted about that style, with an option to
+    include everyone; each send is logged and shown as a "Reached out X ago"
+    badge per customer, scoped per style.
+    
+    Also fixes the mobile sidebar's Logout button being misaligned against
+    the routes listed above it.
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index d15f8a6..116e1e5 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -188,7 +188,9 @@
+   gap: 16px;
+   background: none;
+   border: none;
+-  padding: 8px 0;
++  /* Matches .menuItem's 14px left padding so the icon/text lines up with
++     the routes above it instead of sitting flush against the edge. */
++  padding: 8px 0 8px 14px;
+   color: var(--sf-text-primary);
+   font-family: var(--sf-font-body), sans-serif;
+   font-size: 17px;
+
+commit 3dcf6e21c4476a67efd01382f08bad7650375a5c
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 22 12:12:10 2026 +0100
+
+    Tighten card/control border radii app-wide for a more structured, premium feel
+    
+    Reduced the shared radius scale in tokens.css (md 12→8, lg 12→10, xl 16→12,
+    2xl 16→14, sm 8→6) — since cards, inputs, and buttons all draw from these
+    same tokens, this cascades consistently everywhere rather than leaving cards
+    tighter while controls stay round. Also converted several hardcoded
+    border-radius values (privacy page card/callout, comment box, sidebar nav
+    pills) to the matching token so they track the same scale going forward.
+    Left large structural surfaces (the app shell's depth-layer wrapper, the
+    portfolio bottom-sheet) at their existing larger radii — those are a
+    different visual register (big sheet chrome, not a card) and weren't part
+    of what was asked.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index c74985b..d15f8a6 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -323,7 +323,7 @@
+     width: calc(100% - 32px) !important;
+     padding: 10px 16px !important;
+     margin: 0 16px;
+-    border-radius: 10px;
++    border-radius: var(--sf-radius-sm);
+     transition: all var(--sf-transition-fast);
+   }
+ 
+@@ -352,7 +352,7 @@
+     width: calc(100% - 32px) !important;
+     padding: 10px 16px !important;
+     margin: 0 16px;
+-    border-radius: 10px;
++    border-radius: var(--sf-radius-sm);
+     transition: all var(--sf-transition-fast);
+     display: flex;
+     align-items: center;
+@@ -373,7 +373,7 @@
+     width: calc(100% - 32px) !important;
+     padding: 10px 16px !important;
+     margin: 0 16px;
+-    border-radius: 10px;
++    border-radius: var(--sf-radius-sm);
+     transition: all var(--sf-transition-fast);
+   }
+ 
+
+commit 4a96f17910ec40ab5acf5e016e31fe1fc8fb23b5
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 22 11:00:36 2026 +0100
+
+    In-app portfolio, bottom nav Settings tab, and a round of visual cleanup
+    
+    - Portfolio now opens in-app (/portfolio, same tab, back button) instead
+      of a new tab — the Share button still hands out the real public
+      /studio/[shopId] link regardless of which route it's viewed from.
+    - Fix a real pre-existing bug: /studio/[shopId] was never actually
+      reachable by logged-out visitors — proxy.ts's public-path allowlist
+      was missing the /studio/ prefix, so every share link silently
+      redirected to login. This defeated the entire point of the portfolio
+      feature; fixed by adding it to PUBLIC_PREFIXES.
+    - Settings moved from the sidebar's mobile section into the bottom nav
+      as a 4th tab (Home, Production, Customers, Settings), removing the
+      now-redundant sidebar entry.
+    - Production board: removed the stage color dot in front of each phase
+      title (the section itself already conveys the phase) and the
+      redundant status pill on each order card's photo (same reason).
+      Unified the phase filter pills to use the same neutral active/inactive
+      treatment as the All/My Orders pills instead of two different-looking
+      selection states side by side.
+    - Tracking page: swapped a generic storefront icon for the real app
+      logo mark in the brand header.
+    - Sidebar logo was squished into a forced 64x64 square despite its
+      wider natural aspect ratio — now sized by height with the width
+      following naturally.
+    - Dashboard: Total Collected/Projected Earnings no longer use the
+      accent color (reserved for things needing attention, like Overdue);
+      figures across Overview Analytics and Team Snapshot now use Manrope
+      (softer numeral terminals) instead of the serif heading font; hide
+      balance now masks with asterisks instead of a blur filter.
+    - Two literal emoji (🧵) used as EmptyState icons replaced with real
+      Material Symbols icons.
+    - First pass at a properly accent-blended standard text color
+      (tokens.css) — still being tuned with the user via a visual comparison
+      artifact, not final.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 4633e28..c74985b 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -22,8 +22,11 @@
+ }
+ 
+ .mobileLogo {
+-  width: 64px;
++  /* width: auto — the mark's natural aspect is wider than tall; forcing
++     an exact square squished it into a cramped-looking crop. */
++  width: auto;
+   height: 64px;
++  object-fit: contain;
+   opacity: 1;
+ }
+ 
+@@ -246,8 +249,9 @@
+   }
+ 
+   .desktopLogo {
+-    width: 64px;
++    width: auto;
+     height: 64px;
++    object-fit: contain;
+     flex-shrink: 0;
+     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+@@ -396,7 +400,7 @@
+   }
+ 
+   .sidebar.collapsed .desktopLogo {
+-    width: 32px;
++    width: auto;
+     height: 32px;
+   }
+ 
+
+commit dd13234e4a0283db7e6cc77ff89cb69341e28a78
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Jul 21 11:22:22 2026 +0100
+
+    Redesign app to the Adire indigo two-color system and new features
+    
+    Rebuilds every major screen (production board, order detail, dashboard,
+    customers, settings, auth, tracking, portfolio) to a single-accent indigo
+    design system replacing the old multi-color palette, with a mobile-first
+    layout throughout.
+    
+    New features:
+    - Full-page New Client / New Order wizards with per-style measurement
+      intake (replacing sheet-based forms), multi-garment batch orders, and
+      order photo comments
+    - Persisted per-style measurement profiles on customer records, reusable
+      across future orders for the same style
+    - Public shop portfolio page (/studio/[shopId]) for sharing finished work
+    - Confirmation dialogs for hard-to-reverse actions (removing a saved
+      measurement profile, clearing a full order balance)
+    - New logo mark throughout the app, favicon, and PWA install icons
+    
+    Migrations 0006-0009 add multi-garment/comment support, customer
+    preferred styles, per-order measurement snapshots, and per-style
+    measurement profiles.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index a124949..4633e28 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -82,19 +82,22 @@
+   gap: 16px;
+   background: none;
+   border: none;
+-  padding: 8px 0;
+-  color: #28190B;
++  padding: 10px 14px;
++  border-radius: var(--sf-radius-full);
++  color: var(--sf-text-primary);
+   font-family: var(--sf-font-body), sans-serif;
+   font-size: 17px;
+   font-weight: 500;
+   text-align: left;
+   cursor: pointer;
++  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+   transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+   width: max-content;
+ }
+ 
+ .menuItem:hover {
+-  color: #7A6952;
++  color: var(--sf-accent-emerald);
++  background: var(--sf-bg-surface-hover);
+   transform: translateX(4px);
+ }
+ 
+@@ -106,17 +109,28 @@
+ .menuItem.active {
+   color: var(--sf-accent-emerald);
+   font-weight: 600;
++  background: var(--sf-secondary-container);
++  animation: navPillIn 260ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
++}
++
++@keyframes navPillIn {
++  from { transform: scale(0.94); opacity: 0.6; }
++  to { transform: scale(1); opacity: 1; }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .menuItem.active { animation: none; }
+ }
+ 
+ .menuIcon {
+   font-size: 20px;
+-  color: #28190B;
++  color: var(--sf-text-primary);
+   flex-shrink: 0;
+   transition: color var(--sf-transition-fast);
+ }
+ 
+ .menuItem:hover .menuIcon {
+-  color: #7A6952;
++  color: var(--sf-text-secondary);
+ }
+ 
+ .menuItem.active .menuIcon {
+@@ -140,7 +154,7 @@
+   background: none;
+   border: none;
+   padding: 8px 0;
+-  color: #28190B;
++  color: var(--sf-text-primary);
+   font-family: var(--sf-font-body), sans-serif;
+   font-size: 17px;
+   font-weight: 500;
+@@ -151,18 +165,18 @@
+ }
+ 
+ .settingsBtn:hover {
+-  color: #7A6952;
++  color: var(--sf-text-secondary);
+   transform: translateX(4px);
+ }
+ 
+ .settingsIcon {
+   font-size: 20px;
+-  color: #28190B;
++  color: var(--sf-text-primary);
+   transition: color var(--sf-transition-fast);
+ }
+ 
+ .settingsBtn:hover .settingsIcon {
+-  color: #7A6952;
++  color: var(--sf-text-secondary);
+ }
+ 
+ .logoutBtn {
+@@ -172,7 +186,7 @@
+   background: none;
+   border: none;
+   padding: 8px 0;
+-  color: #28190B;
++  color: var(--sf-text-primary);
+   font-family: var(--sf-font-body), sans-serif;
+   font-size: 17px;
+   font-weight: 500;
+@@ -193,7 +207,7 @@
+ 
+ .logoutIcon {
+   font-size: 20px;
+-  color: #28190B;
++  color: var(--sf-text-primary);
+   transition: color var(--sf-transition-fast);
+ }
+ 
+@@ -242,7 +256,7 @@
+     font-family: var(--font-cinzel), Georgia, serif;
+     font-size: 14px;
+     font-weight: 700;
+-    color: #7A6952;
++    color: var(--sf-text-secondary);
+     letter-spacing: 1px;
+     white-space: nowrap;
+     max-width: 200px;
+
+commit 72a5080a400fd553cd59b6bc71d58d615e3636f9
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Tue Jul 7 12:21:13 2026 +0100
+
+    Refactor: Refactored codebase
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 1d8c901..a124949 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -98,6 +98,11 @@
+   transform: translateX(4px);
+ }
+ 
++.menuItem:active {
++  opacity: 0.6;
++  transform: scale(0.97);
++}
++
+ .menuItem.active {
+   color: var(--sf-accent-emerald);
+   font-weight: 600;
+@@ -181,6 +186,11 @@
+   transform: translateX(4px);
+ }
+ 
++.logoutBtn:active {
++  opacity: 0.6;
++  transform: scale(0.97);
++}
++
+ .logoutIcon {
+   font-size: 20px;
+   color: #28190B;
+
+commit 0a90b5ac9f2b3b5f0da12a5fb6ac6b46fea22fdc
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Fri Jul 3 19:48:32 2026 +0100
+
+    Refactor: Refactored codebase
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 0299dce..1d8c901 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -235,6 +235,9 @@
+     color: #7A6952;
+     letter-spacing: 1px;
+     white-space: nowrap;
++    max-width: 200px;
++    overflow: hidden;
++    text-overflow: ellipsis;
+   }
+ 
+   .collapseToggle {
+@@ -310,6 +313,7 @@
+     background-color: var(--sf-accent-emerald-glow);
+     color: var(--sf-accent-emerald) !important;
+     font-weight: 600;
++    box-shadow: inset 3px 0 0 var(--sf-accent-emerald);
+   }
+ 
+   .menuItem.active .menuIcon {
+
+commit 513ef15d8fa9881e916f2c5558ceedacbf5a1112
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Wed Jul 1 00:05:06 2026 +0100
+
+    Feat: Bug fix
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index a7a96a6..0299dce 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -71,6 +71,11 @@
+   display: none;
+ }
+ 
++.mobileOnlyNav {
++  display: block;
++  padding-left: 24px;
++}
++
+ .menuItem {
+   display: flex;
+   align-items: center;
+@@ -118,6 +123,41 @@
+   top: 76vh;
+   transform: translateY(-100%);
+   padding-left: 24px;
++  display: flex;
++  flex-direction: column;
++  gap: 12px;
++}
++
++.settingsBtn {
++  display: flex;
++  align-items: center;
++  gap: 16px;
++  background: none;
++  border: none;
++  padding: 8px 0;
++  color: #28190B;
++  font-family: var(--sf-font-body), sans-serif;
++  font-size: 17px;
++  font-weight: 500;
++  cursor: pointer;
++  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
++  width: max-content;
++  text-decoration: none;
++}
++
++.settingsBtn:hover {
++  color: #7A6952;
++  transform: translateX(4px);
++}
++
++.settingsIcon {
++  font-size: 20px;
++  color: #28190B;
++  transition: color var(--sf-transition-fast);
++}
++
++.settingsBtn:hover .settingsIcon {
++  color: #7A6952;
+ }
+ 
+ .logoutBtn {
+@@ -168,6 +208,10 @@
+     display: none;
+   }
+ 
++  .mobileOnlyNav {
++    display: none;
++  }
++
+   .desktopBranding {
+     display: flex;
+     flex-direction: column;
+@@ -272,6 +316,27 @@
+     color: var(--sf-accent-emerald) !important;
+   }
+ 
++  .settingsBtn {
++    width: calc(100% - 32px) !important;
++    padding: 10px 16px !important;
++    margin: 0 16px;
++    border-radius: 10px;
++    transition: all var(--sf-transition-fast);
++    display: flex;
++    align-items: center;
++    gap: 16px;
++  }
++
++  .settingsBtn:hover {
++    background-color: rgba(40, 25, 11, 0.03);
++    color: var(--sf-text-primary) !important;
++    transform: none !important;
++  }
++
++  .settingsBtn:hover .settingsIcon {
++    color: var(--sf-text-primary) !important;
++  }
++
+   .logoutBtn {
+     width: calc(100% - 32px) !important;
+     padding: 10px 16px !important;
+@@ -341,6 +406,16 @@
+     justify-content: center;
+   }
+ 
++  .sidebar.collapsed .settingsBtn {
++    justify-content: center;
++    width: 44px !important;
++    height: 44px;
++    padding: 0 !important;
++    margin: 0 auto;
++    display: flex;
++    align-items: center;
++  }
++
+   .sidebar.collapsed .logoutBtn {
+     justify-content: center;
+     width: 44px !important;
+
+commit 15a067b6d11d7a83e26d5274208600d06eea26f9
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jun 29 16:06:51 2026 +0100
+
+    Style: Revert to white background
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index 2b919da..a7a96a6 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -21,6 +21,12 @@
+   pointer-events: auto;
+ }
+ 
++.mobileLogo {
++  width: 64px;
++  height: 64px;
++  opacity: 1;
++}
++
+ .topRow {
+   display: flex;
+   align-items: center;
+@@ -164,25 +170,26 @@
+ 
+   .desktopBranding {
+     display: flex;
++    flex-direction: column;
+     align-items: center;
+     gap: 12px;
+-    padding-left: 24px;
+     width: 100%;
+     overflow: hidden;
+   }
+ 
+   .desktopLogo {
+-    width: 32px;
+-    height: 32px;
++    width: 64px;
++    height: 64px;
+     flex-shrink: 0;
++    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+   }
+ 
+   .desktopTitle {
+     font-family: var(--font-cinzel), Georgia, serif;
+-    font-size: 15px;
++    font-size: 14px;
+     font-weight: 700;
+     color: #7A6952;
+-    letter-spacing: 0.8px;
++    letter-spacing: 1px;
+     white-space: nowrap;
+   }
+ 
+@@ -228,7 +235,6 @@
+     padding-left: 0;
+     margin-bottom: 16px;
+     padding-bottom: 16px;
+-    border-bottom: 1px solid var(--sf-border-light);
+     transition: padding 0.3s ease;
+   }
+ 
+@@ -257,14 +263,13 @@
+   }
+ 
+   .menuItem.active {
+-    background-color: #FFFFFF;
+-    color: var(--sf-text-primary) !important;
+-    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.05);
++    background-color: var(--sf-accent-emerald-glow);
++    color: var(--sf-accent-emerald) !important;
+     font-weight: 600;
+   }
+ 
+   .menuItem.active .menuIcon {
+-    color: var(--sf-text-primary) !important;
++    color: var(--sf-accent-emerald) !important;
+   }
+ 
+   .logoutBtn {
+@@ -297,6 +302,11 @@
+     display: none;
+   }
+ 
++  .sidebar.collapsed .desktopLogo {
++    width: 32px;
++    height: 32px;
++  }
++
+   .sidebar.collapsed .desktopBranding {
+     padding-left: 0;
+     justify-content: center;
+
+commit 1d1d285593da6a8fe69a3bad9d7f7ffe13f7a52c
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jun 29 14:42:54 2026 +0100
+
+    Style: Revert to white background
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+index cea626a..2b919da 100644
+--- a/components/layout/SidebarMenu/SidebarMenu.module.css
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -152,7 +152,7 @@
+     opacity: 1 !important;
+     pointer-events: auto !important;
+     position: fixed;
+-    background-color: #FDF4E8; /* Premium warm cream panel */
++    background-color: #FFFFFF; /* Premium white sidebar */
+     border-right: 1px solid var(--sf-border);
+     transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+     z-index: 100 !important;
+@@ -196,7 +196,7 @@
+     width: 24px;
+     height: 24px;
+     border-radius: 50%;
+-    background-color: rgba(253, 244, 232, 0.8);
++    background-color: rgba(255, 255, 255, 0.8);
+     backdrop-filter: blur(8px);
+     border: 1px solid var(--sf-border);
+     box-shadow: 0 2px 8px rgba(40, 25, 11, 0.08);
+
+commit c1bb24dccb000aee10caa70626247c9e953de0bd
+Author: Daniel4000-dev <dadekunle31@gmail.com>
+Date:   Mon Jun 29 13:06:27 2026 +0100
+
+    first commit
+
+diff --git a/components/layout/SidebarMenu/SidebarMenu.module.css b/components/layout/SidebarMenu/SidebarMenu.module.css
+new file mode 100644
+index 0000000..cea626a
+--- /dev/null
++++ b/components/layout/SidebarMenu/SidebarMenu.module.css
+@@ -0,0 +1,343 @@
++.open {}
++.collapsed {}
++
++.sidebar {
++  position: absolute;
++  top: 0;
++  left: 0;
++  width: 100%; /* Spans the full width of the screen */
++  height: 100dvh;
++  padding: 40px 0; /* Control horizontal padding per section */
++  display: flex;
++  flex-direction: column;
++  z-index: 1;
++  opacity: 0;
++  pointer-events: none;
++  transition: opacity 0.4s ease;
++}
++
++.sidebar.open {
++  opacity: 1;
++  pointer-events: auto;
++}
++
++.topRow {
++  display: flex;
++  align-items: center;
++  margin-bottom: 80px; /* Large gap from top bar to menu list */
++  width: 100%;
++}
++
++.mobileTopRow {
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++  width: 100%;
++  padding-left: 24px;
++  padding-right: 24px;
++}
++
++.desktopBranding {
++  display: none;
++}
++
++.collapseToggle {
++  display: none;
++}
++
++.iconUser {
++  font-size: 18px;
++}
++
++.iconClose {
++  font-size: 20px;
++}
++
++.navMenu {
++  display: flex;
++  flex-direction: column;
++  gap: 28px; /* Space between menu items */
++  flex: 1;
++  padding-left: 24px;
++}
++
++.mainNav {
++  display: none;
++}
++
++.menuItem {
++  display: flex;
++  align-items: center;
++  gap: 16px;
++  background: none;
++  border: none;
++  padding: 8px 0;
++  color: #28190B;
++  font-family: var(--sf-font-body), sans-serif;
++  font-size: 17px;
++  font-weight: 500;
++  text-align: left;
++  cursor: pointer;
++  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
++  width: max-content;
++}
++
++.menuItem:hover {
++  color: #7A6952;
++  transform: translateX(4px);
++}
++
++.menuItem.active {
++  color: var(--sf-accent-emerald);
++  font-weight: 600;
++}
++
++.menuIcon {
++  font-size: 20px;
++  color: #28190B;
++  flex-shrink: 0;
++  transition: color var(--sf-transition-fast);
++}
++
++.menuItem:hover .menuIcon {
++  color: #7A6952;
++}
++
++.menuItem.active .menuIcon {
++  color: var(--sf-accent-emerald);
++}
++
++.footer {
++  position: absolute;
++  top: 76vh;
++  transform: translateY(-100%);
++  padding-left: 24px;
++}
++
++.logoutBtn {
++  display: flex;
++  align-items: center;
++  gap: 16px;
++  background: none;
++  border: none;
++  padding: 8px 0;
++  color: #28190B;
++  font-family: var(--sf-font-body), sans-serif;
++  font-size: 17px;
++  font-weight: 500;
++  cursor: pointer;
++  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
++  width: max-content;
++}
++
++.logoutBtn:hover {
++  color: #DE3B3B; /* Red highlight on logout */
++  transform: translateX(4px);
++}
++
++.logoutIcon {
++  font-size: 20px;
++  color: #28190B;
++  transition: color var(--sf-transition-fast);
++}
++
++.logoutBtn:hover .logoutIcon {
++  color: #DE3B3B;
++}
++
++/* ── Desktop Layout ────────────────────────────────────────── */
++@media (min-width: 1024px) {
++  .sidebar {
++    width: 280px;
++    opacity: 1 !important;
++    pointer-events: auto !important;
++    position: fixed;
++    background-color: #FDF4E8; /* Premium warm cream panel */
++    border-right: 1px solid var(--sf-border);
++    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
++    z-index: 100 !important;
++  }
++
++  .mobileTopRow {
++    display: none;
++  }
++
++  .desktopBranding {
++    display: flex;
++    align-items: center;
++    gap: 12px;
++    padding-left: 24px;
++    width: 100%;
++    overflow: hidden;
++  }
++
++  .desktopLogo {
++    width: 32px;
++    height: 32px;
++    flex-shrink: 0;
++  }
++
++  .desktopTitle {
++    font-family: var(--font-cinzel), Georgia, serif;
++    font-size: 15px;
++    font-weight: 700;
++    color: #7A6952;
++    letter-spacing: 0.8px;
++    white-space: nowrap;
++  }
++
++  .collapseToggle {
++    display: flex;
++    align-items: center;
++    justify-content: center;
++    position: absolute;
++    top: 44px;
++    right: -12px;
++    width: 24px;
++    height: 24px;
++    border-radius: 50%;
++    background-color: rgba(253, 244, 232, 0.8);
++    backdrop-filter: blur(8px);
++    border: 1px solid var(--sf-border);
++    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.08);
++    color: var(--sf-text-secondary);
++    cursor: pointer;
++    z-index: 100;
++    transition: all var(--sf-transition-fast);
++  }
++
++  .collapseToggle:hover {
++    background-color: #FFFFFF;
++    color: var(--sf-text-primary);
++    transform: scale(1.05);
++  }
++
++  .footer {
++    position: relative;
++    top: auto;
++    transform: none;
++    margin-top: auto;
++    padding-bottom: 24px;
++    transition: padding 0.3s ease;
++  }
++
++  .mainNav {
++    display: flex;
++    flex-direction: column;
++    gap: 6px; /* Tight gap for premium pill layout */
++    padding-left: 0;
++    margin-bottom: 16px;
++    padding-bottom: 16px;
++    border-bottom: 1px solid var(--sf-border-light);
++    transition: padding 0.3s ease;
++  }
++
++  .navMenu {
++    padding-left: 0;
++    transition: padding 0.3s ease;
++  }
++
++  /* Premium Pill Navigation styling overrides for desktop */
++  .menuItem {
++    width: calc(100% - 32px) !important;
++    padding: 10px 16px !important;
++    margin: 0 16px;
++    border-radius: 10px;
++    transition: all var(--sf-transition-fast);
++  }
++
++  .menuItem:hover {
++    background-color: rgba(40, 25, 11, 0.03);
++    color: var(--sf-text-primary);
++    transform: none !important;
++  }
++
++  .menuItem:hover .menuIcon {
++    color: var(--sf-text-primary);
++  }
++
++  .menuItem.active {
++    background-color: #FFFFFF;
++    color: var(--sf-text-primary) !important;
++    box-shadow: 0 2px 8px rgba(40, 25, 11, 0.05);
++    font-weight: 600;
++  }
++
++  .menuItem.active .menuIcon {
++    color: var(--sf-text-primary) !important;
++  }
++
++  .logoutBtn {
++    width: calc(100% - 32px) !important;
++    padding: 10px 16px !important;
++    margin: 0 16px;
++    border-radius: 10px;
++    transition: all var(--sf-transition-fast);
++  }
++
++  .logoutBtn:hover {
++    background-color: rgba(222, 59, 59, 0.05);
++    color: #DE3B3B !important;
++    transform: none !important;
++  }
++
++  .logoutBtn:hover .logoutIcon {
++    color: #DE3B3B !important;
++  }
++
++  /* Collapsed Sidebar State */
++  .sidebar.collapsed {
++    width: 80px;
++    align-items: center;
++  }
++
++  .sidebar.collapsed .desktopTitle,
++  .sidebar.collapsed .menuText,
++  .sidebar.collapsed .logoutText {
++    display: none;
++  }
++
++  .sidebar.collapsed .desktopBranding {
++    padding-left: 0;
++    justify-content: center;
++  }
++
++  .sidebar.collapsed .mainNav {
++    padding-left: 0;
++    align-items: center;
++    width: 100%;
++  }
++
++  .sidebar.collapsed .navMenu {
++    padding-left: 0;
++    align-items: center;
++    width: 100%;
++  }
++
++  .sidebar.collapsed .menuItem {
++    justify-content: center;
++    width: 44px !important;
++    height: 44px;
++    padding: 0 !important;
++    margin: 0 auto;
++    display: flex;
++    align-items: center;
++  }
++
++  .sidebar.collapsed .footer {
++    padding-left: 0;
++    width: 100%;
++    display: flex;
++    justify-content: center;
++  }
++
++  .sidebar.collapsed .logoutBtn {
++    justify-content: center;
++    width: 44px !important;
++    height: 44px;
++    padding: 0 !important;
++    margin: 0 auto;
++    display: flex;
++    align-items: center;
++  }
++}
