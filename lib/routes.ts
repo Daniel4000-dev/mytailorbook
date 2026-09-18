@@ -212,6 +212,7 @@ export const SEARCH_DISALLOW = [
   ROUTES.notifications,
   ROUTES.onboarding,
   ROUTES.fabrics,
+  ROUTES.calendar,
   ROUTES.admin,
   ROUTES.login,
   ROUTES.signup,
