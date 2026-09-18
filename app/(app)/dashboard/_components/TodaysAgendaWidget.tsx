@@ -8,23 +8,23 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import Link from 'next/link';
 
 export default function TodaysAgendaWidget() {
-  const { shop } = useAuth();
+  const { user } = useAuth();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!shop?.id) return;
+    if (!user?.shop_id) return;
     const fetchToday = async () => {
       const today = new Date();
       const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const allMonth = await getCalendarEvents(shop.id, monthStr);
+      const allMonth = await getCalendarEvents(user.shop_id, monthStr);
       
       const todayStr = today.toISOString().split('T')[0];
       setEvents(allMonth.filter(e => e.date === todayStr));
       setIsLoading(false);
     };
     fetchToday();
-  }, [shop?.id]);
+  }, [user?.shop_id]);
 
   if (isLoading) return null;
 

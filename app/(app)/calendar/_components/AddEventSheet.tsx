@@ -31,7 +31,7 @@ const EVENT_TYPES: { value: CalendarEventType; label: string }[] = [
 ];
 
 export default function AddEventSheet({ isOpen, onClose, defaultDate, onEventCreated }: AddEventSheetProps) {
-  const { shop } = useAuth();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,7 +44,7 @@ export default function AddEventSheet({ isOpen, onClose, defaultDate, onEventCre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shop?.id) return;
+    if (!user?.shop_id) return;
 
     if (!title.trim()) {
       showToast('Please enter an event title', 'error');
@@ -53,7 +53,7 @@ export default function AddEventSheet({ isOpen, onClose, defaultDate, onEventCre
 
     setIsSubmitting(true);
     const { success, error } = await createCalendarEvent({
-      shopId: shop.id,
+      shopId: user.shop_id,
       title: title.trim(),
       description: description.trim() || undefined,
       type,
