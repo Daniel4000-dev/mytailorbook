@@ -27,5 +27,5 @@ export const FEATURE_FLAGS = {
    *  (updateCustomerStyleProfileAction, StyleProfileSheet, etc.) stay
    *  fully in place underneath — flipping this to true re-enables the
    *  split with no further code changes. */
-  perStyleMeasurements: false,
+  perStyleMeasurements: true,
 } as const;

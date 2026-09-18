@@ -96,36 +96,42 @@ export default function SidebarMenu() {
           bottom nav's 4th tab, so it no longer needs a separate entry here.
           Style Gallery isn't in NAV_ITEMS (which also feeds the bottom nav)
           since it's a secondary, occasional destination, not a daily tab. */}
-      {currentShop && (
-        <div className={styles.mobileOnlyNav}>
+      <div className={styles.mobileOnlyNav}>
+        <Link
+          href={ROUTES.calendar}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+        >
+          <Symbol name="calendar_today" className={styles.menuIcon} />
+          <span className={styles.menuText}>Calendar</span>
+        </Link>
+        <Link
+          href={ROUTES.portfolio}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+        >
+          <Symbol name="favorite" className={styles.menuIcon} />
+          <span className={styles.menuText}>My Portfolio</span>
+        </Link>
+        <Link
+          href={ROUTES.styles}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+        >
+          <Symbol name="photo_library" className={styles.menuIcon} />
+          <span className={styles.menuText}>Style Gallery</span>
+        </Link>
+        {isOwner && (
           <Link
-            href={ROUTES.portfolio}
+            href={ROUTES.settings}
             className={styles.menuItem}
             onClick={() => setMenuOpen(false)}
           >
-            <Symbol name="favorite" className={styles.menuIcon} />
-            <span className={styles.menuText}>My Portfolio</span>
+            <Symbol name="settings" className={styles.menuIcon} />
+            <span className={styles.menuText}>Settings</span>
           </Link>
-          <Link
-            href={ROUTES.styles}
-            className={styles.menuItem}
-            onClick={() => setMenuOpen(false)}
-          >
-            <Symbol name="photo_library" className={styles.menuIcon} />
-            <span className={styles.menuText}>Style Gallery</span>
-          </Link>
-          {isOwner && (
-            <Link
-              href={ROUTES.settings}
-              className={styles.menuItem}
-              onClick={() => setMenuOpen(false)}
-            >
-              <Symbol name="settings" className={styles.menuIcon} />
-              <span className={styles.menuText}>Settings</span>
-            </Link>
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) —
           Settings is deliberately excluded from this map and rendered last,

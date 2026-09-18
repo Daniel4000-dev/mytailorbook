@@ -7,7 +7,7 @@ import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { sendPushToShop } from '@/lib/push';
 import { formatCurrency } from '@/lib/formatters';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
 // ----------------------------------------------------------------------
@@ -16,6 +16,75 @@ import { isOwnerLikeRole } from '@/lib/types';
 // The database uses snake_case columns; the app's TypeScript types use
 // camelCase. These functions are the single place that translates between
 // the two, so the rest of the app never has to think about column names.
+
+// --- SHOP EXCEPTIONS ---
+
+export async function logShopExceptionAction(
+  shopId: string,
+  type: string,
+  reason?: string,
+  orderId?: string,
+  endDate?: string
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  // Just blindly insert it using RLS for security
+  const { error } = await supabase
+    .from('shop_exceptions')
+    .insert({
+      shop_id: shopId,
+      type,
+      reason,
+      order_id: orderId,
+      end_date: endDate,
+      created_by: user.id
+    });
+
+  if (error) {
+    console.error('Failed to log exception:', error);
+    return { error: 'Failed to log exception' };
+  }
+
+  return { success: true };
+}
+
+export async function getShopExceptionsAction(shopId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { data, error } = await supabase
+    .from('shop_exceptions')
+    .select('*')
+    .eq('shop_id', shopId);
+
+  if (error) {
+    console.error('Failed to get exceptions:', error);
+    return { error: 'Failed to get exceptions' };
+  }
+
+  return { exceptions: data };
+}
+
+export async function resolveShopExceptionAction(exceptionId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { error } = await supabase
+    .from('shop_exceptions')
+    .update({ end_date: new Date().toISOString() })
+    .eq('id', exceptionId);
+
+  if (error) {
+    console.error('Failed to resolve exception:', error);
+    return { error: 'Failed to resolve exception' };
+  }
+
+  return { success: true };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function orderFromRow(row: any): Order {
@@ -100,7 +169,9 @@ function customerFromRow(row: any): Customer {
     gender: row.gender,
     preferredStyles: row.preferred_styles || undefined,
     measurements: row.measurements || undefined,
+    measurementNotes: row.measurement_notes || undefined,
     styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
+    fabrics: row.fabrics || undefined,
     address: row.address || undefined,
     createdAt: row.created_at,
   };
@@ -117,6 +188,21 @@ function userFromRow(row: any): User {
     orgId: row.org_id,
     active: row.active,
     avatarUrl: row.avatar_url || undefined,
+    createdAt: row.created_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function exceptionFromRow(row: any): ShopException {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    orderId: row.order_id,
+    type: row.type,
+    reason: row.reason,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    createdBy: row.created_by,
     createdAt: row.created_at,
   };
 }
@@ -149,6 +235,10 @@ function shopFromRow(row: any): Shop {
     trialEndsAt: row.trial_ends_at || undefined,
     trialUsedAt: row.trial_used_at || undefined,
     defaultTrackingLinkEnabled: row.default_tracking_link_enabled ?? true,
+    streakCurrent: row.streak_current || 0,
+    streakBest: row.streak_best || 0,
+    streakLastCountedAt: row.streak_last_counted_at || undefined,
+    onboardingGoal: row.onboarding_goal || undefined,
   };
 }
 
@@ -172,9 +262,9 @@ const SHOP_BUNDLE_ROW_LIMIT = 2000;
 
 export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
-  const [shopRes, customersRes, ordersRes, profilesRes] = await Promise.all([
+  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes] = await Promise.all([
     supabase.from('shops').select(
-      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled'
+      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled, onboarding_goal'
     ).eq('id', shopId).single(),
     supabase.from('customers').select(
       'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at'
@@ -183,6 +273,7 @@ export async function getShopBundle(shopId: string, orgId: string) {
       'id, shop_id, customer_id, customer_name, order_details, total_bill, deposit_paid, status, assigned_to, assigned_to_name, due_date, priority, measurements, images, inspiration_images, batch_id, last_comment_at, comments_seen_at, status_history, payments, style_name, material_supplied_by, material_cost, other_costs, last_reminder_at, include_tracking_link, created_at, updated_at'
     ).eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
     supabase.from('profiles').select('id, name, email, role, shop_id, org_id, active, avatar_url, created_at').eq('shop_id', shopId),
+    supabase.from('shop_exceptions').select('*').eq('shop_id', shopId)
   ]);
 
   return {
@@ -190,6 +281,7 @@ export async function getShopBundle(shopId: string, orgId: string) {
     customers: (customersRes.data || []).map(customerFromRow),
     orders: (ordersRes.data || []).map(orderFromRow),
     staffMembers: (profilesRes.data || []).map(userFromRow),
+    exceptions: (exceptionsRes.data || []).map(exceptionFromRow),
   };
 }
 
@@ -389,8 +481,57 @@ export async function addOrderBatchAction(
 
   const batchId = garments.length > 1 ? crypto.randomUUID() : undefined;
   const rows = garments.map((garment) => orderToRow(shopId, { ...garment, batchId }));
-  const { error } = await supabase.from('orders').insert(rows);
+  
+  const { data: insertedOrders, error } = await supabase
+    .from('orders')
+    .insert(rows)
+    .select('id, customer_id, assigned_to, order_details, due_date');
+    
   if (error) throw new Error(error.message);
+
+  // Phase 2: Reverse-Scheduling Automations
+  if (insertedOrders && insertedOrders.length > 0) {
+    const calendarEvents = [];
+    for (const order of insertedOrders) {
+      if (order.due_date) {
+        const dueDateObj = new Date(order.due_date);
+        
+        // 3 days before -> Cutting
+        const cutDate = new Date(dueDateObj);
+        cutDate.setDate(cutDate.getDate() - 3);
+        
+        // 2 days before -> Sewing
+        const sewDate = new Date(dueDateObj);
+        sewDate.setDate(sewDate.getDate() - 2);
+
+        calendarEvents.push({
+          shop_id: shopId,
+          title: `Cut: ${order.order_details}`,
+          type: 'Cutting',
+          date: cutDate.toISOString().split('T')[0],
+          related_order_id: order.id,
+          related_customer_id: order.customer_id,
+          assigned_to: order.assigned_to,
+        });
+
+        calendarEvents.push({
+          shop_id: shopId,
+          title: `Sew: ${order.order_details}`,
+          type: 'Sewing',
+          date: sewDate.toISOString().split('T')[0],
+          related_order_id: order.id,
+          related_customer_id: order.customer_id,
+          assigned_to: order.assigned_to,
+        });
+      }
+    }
+
+    if (calendarEvents.length > 0) {
+      // Fire and forget or await, but safe to ignore failures for auto-events
+      await supabase.from('calendar_events').insert(calendarEvents).catch(e => console.error('Failed to reverse-schedule events:', e));
+    }
+  }
+
   return getOrders(shopId);
 }
 
@@ -536,6 +677,7 @@ export async function addCustomerAction(
       gender: customer.gender,
       preferred_styles: customer.preferredStyles || [],
       measurements: customer.measurements || null,
+      measurement_notes: customer.measurementNotes || null,
       address: customer.address || null,
     })
     .select()
@@ -557,7 +699,8 @@ export async function updateCustomerStyleProfileAction(
   customerId: string,
   styleName: string,
   measurements: Measurements,
-  orgId: string
+  orgId: string,
+  notes?: string
 ) {
   const supabase = await createClient();
   const { data: current, error: fetchError } = await supabase
@@ -567,10 +710,16 @@ export async function updateCustomerStyleProfileAction(
     .single();
   if (fetchError) throw new Error(fetchError.message);
 
-  const existing = (current?.style_measurements as Record<string, unknown>) || {};
+  const existing = (current?.style_measurements as Record<string, any>) || {};
+  const currentStyleData = existing[styleName] || {};
   const updated = {
     ...existing,
-    [styleName]: { measurements, updatedAt: new Date().toISOString() },
+    [styleName]: {
+      ...currentStyleData,
+      measurements,
+      updatedAt: new Date().toISOString(),
+      ...(notes !== undefined && { notes })
+    },
   };
   const { error } = await supabase.from('customers').update({ style_measurements: updated }).eq('id', customerId);
   if (error) throw new Error(error.message);
@@ -595,7 +744,7 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
 
 export async function updateCustomerProfileAction(
   customerId: string,
-  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>,
+  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics'>>,
   orgId: string
 ) {
   const supabase = await createClient();
@@ -604,7 +753,11 @@ export async function updateCustomerProfileAction(
   if (updates.whatsappNumber !== undefined) row.whatsapp_number = updates.whatsappNumber;
   if (updates.gender !== undefined) row.gender = updates.gender;
   if (updates.preferredStyles !== undefined) row.preferred_styles = updates.preferredStyles;
-  if (updates.address !== undefined) row.address = updates.address || null;
+  if (updates.address !== undefined) row.address = updates.address;
+  if (updates.measurementNotes !== undefined) row.measurement_notes = updates.measurementNotes;
+  if (updates.fabrics !== undefined) row.fabrics = updates.fabrics;
+
+  if (Object.keys(row).length === 0) return null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
   if (error) throw new Error(error.message);
   return getCustomers(orgId);
@@ -641,6 +794,9 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.portfolioAccent !== undefined) row.portfolio_accent = updates.portfolioAccent;
   if (updates.portfolioSettings !== undefined) row.portfolio_settings = updates.portfolioSettings;
   if (updates.defaultTrackingLinkEnabled !== undefined) row.default_tracking_link_enabled = updates.defaultTrackingLinkEnabled;
+  if (updates.streakCurrent !== undefined) row.streak_current = updates.streakCurrent;
+  if (updates.streakBest !== undefined) row.streak_best = updates.streakBest;
+  if (updates.streakLastCountedAt !== undefined) row.streak_last_counted_at = updates.streakLastCountedAt;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) throw new Error(error.message);
   return shopFromRow(data);

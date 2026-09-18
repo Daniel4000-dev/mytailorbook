@@ -219,7 +219,7 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 141, gy: 50 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 92 },
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 163, gy: 92 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 176, gy: 122 },
+
       { key: 'shirtLength', label: 'Inner Top Length', hint: 'Shoulder to inner-top hem', gx: 66, gy: 160 },
       { key: 'gownLength', label: 'Agbada Length', hint: 'Shoulder to full hem', gx: 100, gy: 244 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 138, gy: 244 },
@@ -231,13 +231,11 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
-      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 160, gy: 128 },
+
       { key: 'shirtLength', label: 'Kaftan Length', hint: 'Shoulder to hem', gx: 100, gy: 182 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
-      { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 82, gy: 210 },
-      { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 118, gy: 268 },
     ],
   },
   Senator: {
@@ -246,21 +244,19 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
-      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
       { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to hem', gx: 100, gy: 182 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
-      { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 82, gy: 210 },
-      { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 118, gy: 268 },
     ],
   },
   'Ankara Gown': {
     variant: 'gown',
     points: [
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
-      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
-      { key: 'shoulderToBustPoint', label: 'Shoulder to Bust', hint: 'Shoulder to bust point', gx: 116, gy: 64 },
+
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 88 },
@@ -290,8 +286,6 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
       { key: 'shirtLength', label: 'Jacket Length', hint: 'Shoulder to jacket hem', gx: 100, gy: 166 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
-      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 112, gy: 220 },
-      { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 82, gy: 210 },
     ],
   },
 
@@ -303,9 +297,9 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
-      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 160, gy: 128 },
+
       { key: 'shirtLength', label: 'Shirt Length', hint: 'Shoulder to shirt hem', gx: 100, gy: 182 },
     ],
   },
@@ -327,7 +321,7 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 141, gy: 50 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 92 },
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 163, gy: 92 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 176, gy: 122 },
+
       { key: 'shirtLength', label: 'Inner Top Length', hint: 'Shoulder to inner-top hem', gx: 66, gy: 160 },
       { key: 'gownLength', label: 'Babariga Length', hint: 'Shoulder to full hem', gx: 100, gy: 244 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 138, gy: 244 },
@@ -339,7 +333,7 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
-      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
       { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to hem', gx: 100, gy: 182 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
@@ -352,7 +346,7 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 141, gy: 50 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 92 },
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 163, gy: 92 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 176, gy: 122 },
+
       { key: 'shirtLength', label: 'Inner Top Length', hint: 'Shoulder to inner-top hem', gx: 66, gy: 160 },
       { key: 'gownLength', label: 'Agbada Length', hint: 'Shoulder to full hem', gx: 100, gy: 244 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 138, gy: 244 },
@@ -362,7 +356,7 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
     variant: 'gown',
     points: [
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
-      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
@@ -386,9 +380,9 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
     variant: 'gown',
     points: [
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
-      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
-      { key: 'shoulderToBustPoint', label: 'Shoulder to Bust', hint: 'Shoulder to bust point', gx: 116, gy: 64 },
+
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 88 },
@@ -404,14 +398,14 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 148 },
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
       { key: 'trouserLength', label: 'Leg Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
-      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 112, gy: 220 },
+
     ],
   },
   'Kaftan (Women)': {
     variant: 'gown',
     points: [
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
-      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
@@ -449,12 +443,10 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
-      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 100, gy: 116 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
       { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to hem', gx: 100, gy: 182 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
-      { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 82, gy: 210 },
-      { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 118, gy: 268 },
     ],
   },
   'Two-Piece (Women)': {
@@ -473,11 +465,11 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
     variant: 'gown',
     points: [
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
-      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 100, gy: 100 },
+
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
-      { key: 'shoulderToBustPoint', label: 'Shoulder to Bust', hint: 'Shoulder to bust point', gx: 116, gy: 64 },
+
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
-      { key: 'halfLength', label: 'Half Length', hint: 'Shoulder to waist (gathers start)', gx: 100, gy: 128 },
+
       { key: 'gownLength', label: 'Dress Length', hint: 'Shoulder to hem', gx: 100, gy: 256 },
     ],
   },
@@ -525,26 +517,20 @@ export const FULL_BODY_MEASUREMENTS: Record<'male' | 'female', StyleMeasureSpec>
     points: [
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 0, gy: 0 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 0, gy: 0 },
-      { key: 'crossFront', label: 'Across Front', hint: 'Chest, armpit to armpit', gx: 0, gy: 0 },
-      { key: 'crossBack', label: 'Across Back', hint: 'Back, armpit to armpit', gx: 0, gy: 0 },
+
       { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 0, gy: 0 },
-      { key: 'stomach', label: 'Stomach', hint: 'Around the belly, relaxed', gx: 0, gy: 0 },
+
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 0, gy: 0 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 0, gy: 0 },
-      { key: 'crotch', label: 'Crotch', hint: 'Waist to crotch, seated', gx: 0, gy: 0 },
-      { key: 'armhole', label: 'Armhole', hint: 'Around the arm socket', gx: 0, gy: 0 },
-      { key: 'bicep', label: 'Bicep', hint: 'Around the fullest part of the upper arm', gx: 0, gy: 0 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 0, gy: 0 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 0, gy: 0 },
-      { key: 'backLength', label: 'Back Length', hint: 'Nape to natural waist', gx: 0, gy: 0 },
+
       { key: 'shirtLength', label: 'Shirt Length', hint: 'Shoulder to shirt hem', gx: 0, gy: 0 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 0, gy: 0 },
       { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 0, gy: 0 },
-      { key: 'knee', label: 'Knee', hint: 'Around the knee', gx: 0, gy: 0 },
-      { key: 'calf', label: 'Calf', hint: 'Around the fullest part of the calf', gx: 0, gy: 0 },
+
       { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 0, gy: 0 },
-      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 0, gy: 0 },
-      { key: 'outseam', label: 'Outseam', hint: 'Waist to ankle, outer leg', gx: 0, gy: 0 },
+
     ],
   },
   female: {
@@ -553,39 +539,28 @@ export const FULL_BODY_MEASUREMENTS: Record<'male' | 'female', StyleMeasureSpec>
     points: [
       { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 0, gy: 0 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 0, gy: 0 },
-      { key: 'crossFront', label: 'Across Front', hint: 'Chest, armpit to armpit', gx: 0, gy: 0 },
-      { key: 'crossBack', label: 'Across Back', hint: 'Back, armpit to armpit', gx: 0, gy: 0 },
+
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 0, gy: 0 },
-      { key: 'underBust', label: 'Under Bust', hint: 'Just under the bust', gx: 0, gy: 0 },
+
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 0, gy: 0 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 0, gy: 0 },
-      { key: 'armhole', label: 'Armhole', hint: 'Around the arm socket', gx: 0, gy: 0 },
-      { key: 'bicep', label: 'Bicep', hint: 'Around the fullest part of the upper arm', gx: 0, gy: 0 },
+
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 0, gy: 0 },
-      { key: 'wrist', label: 'Wrist', hint: 'Around the wrist bone', gx: 0, gy: 0 },
-      { key: 'napeToWaist', label: 'Nape to Waist', hint: 'Base of neck to natural waist', gx: 0, gy: 0 },
-      { key: 'frontLength', label: 'Front Length', hint: 'Shoulder to natural waist, front', gx: 0, gy: 0 },
+
       { key: 'dressLength', label: 'Dress Length', hint: 'Shoulder to hem', gx: 0, gy: 0 },
       { key: 'gownLength', label: 'Gown Length', hint: 'Shoulder to hem', gx: 0, gy: 0 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 0, gy: 0 },
       { key: 'thigh', label: 'Thigh', hint: 'Widest part of the thigh', gx: 0, gy: 0 },
-      { key: 'knee', label: 'Knee', hint: 'Around the knee', gx: 0, gy: 0 },
-      { key: 'calf', label: 'Calf', hint: 'Around the fullest part of the calf', gx: 0, gy: 0 },
+
       { key: 'ankle', label: 'Ankle', hint: 'Around the ankle', gx: 0, gy: 0 },
-      { key: 'inseam', label: 'Inseam', hint: 'Crotch to ankle', gx: 0, gy: 0 },
-      { key: 'outseam', label: 'Outseam', hint: 'Waist to ankle, outer leg', gx: 0, gy: 0 },
-      { key: 'crotch', label: 'Crotch', hint: 'Waist to crotch, seated', gx: 0, gy: 0 },
-      { key: 'halfLength', label: 'Half Length', hint: 'Shoulder to waist (gathers start)', gx: 0, gy: 0 },
-      { key: 'shoulderToBustPoint', label: 'Shoulder to Bust Point', hint: 'Shoulder seam to bust point', gx: 0, gy: 0 },
-      { key: 'nippleToNipple', label: 'Nipple to Nipple', hint: 'Across the bust points', gx: 0, gy: 0 },
-      { key: 'shoulderToWaist', label: 'Shoulder to Waist', hint: 'Shoulder seam to natural waist', gx: 0, gy: 0 },
-      { key: 'shoulderToHips', label: 'Shoulder to Hips', hint: 'Shoulder seam to widest hip point', gx: 0, gy: 0 },
+
     ],
   },
 };
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home', tourId: 'home' },
+  { label: 'Calendar', href: '/calendar', icon: 'calendar_today', hideFromBottomNav: true },
   { label: 'Production', href: '/production', icon: 'precision_manufacturing', tourId: 'production' },
   { label: 'Fabrics', href: '/fabrics', icon: 'texture', tourId: 'fabrics' },
   { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers' },

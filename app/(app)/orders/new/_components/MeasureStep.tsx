@@ -22,6 +22,8 @@ interface MeasureStepProps {
   onToggleLock?: (key: string) => void;
   addableFields?: { key: string; label: string; hasBodyValue: boolean }[];
   onAddField?: (field: { key: string; label: string }) => void;
+  measurementNotes?: string;
+  onMeasurementNotesChange?: (notes: string) => void;
 }
 
 export default function MeasureStep({
@@ -42,6 +44,8 @@ export default function MeasureStep({
   onToggleLock,
   addableFields,
   onAddField,
+  measurementNotes,
+  onMeasurementNotesChange,
 }: MeasureStepProps) {
   return (
     <div className={styles.col}>
@@ -51,6 +55,20 @@ export default function MeasureStep({
           For {customer?.fullName} — tap a number on the guide or fill the cards below. Skip anything you’ll take at fitting.
         </p>
       </div>
+
+      {onMeasurementNotesChange !== undefined && (
+        <div className={styles.field}>
+          <label className={styles.capsLabel} htmlFor="measurementNotes">Measurement Notes</label>
+          <textarea
+            id="measurementNotes"
+            className={styles.textarea}
+            placeholder="e.g. C42, W36, L40. Client has a dropped left shoulder."
+            value={measurementNotes || ''}
+            onChange={(e) => onMeasurementNotesChange(e.target.value)}
+            rows={4}
+          />
+        </div>
+      )}
 
       <StyleMeasureForm
         spec={currentSpec}

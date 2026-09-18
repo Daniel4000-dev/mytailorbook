@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
-import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction } from '@/app/public-actions';
+import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
@@ -59,11 +59,19 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   const { order, shop } = view;
   const isDelivered = order.status === 'Delivered';
-  const [batchSiblings, alreadyRated] = await Promise.all([
+  const [batchSiblings, alreadyRated, events] = await Promise.all([
     getPublicBatchSiblings(orderId),
     isDelivered ? hasOrderRatingAction(orderId) : Promise.resolve(false),
+    getPublicOrderEvents(orderId),
   ]);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
+
+  // We only show future appointments to the customer (e.g. Fittings)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingAppointments = events.filter(e => 
+    e.date >= todayStr && 
+    (e.type === 'fitting' || e.type === 'meeting') // Only show customer-facing events
+  );
 
   // This is a Server Component rendered fresh per request, not a client
   // component re-rendering in the browser — reading the real current time
@@ -167,6 +175,38 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                 />
               );
             })}
+          </section>
+        )}
+
+        {/* Customer Appointments / Calendar Events */}
+        {upcomingAppointments.length > 0 && (
+          <section className={styles.card}>
+            <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
+            <div className={styles.siblingList}>
+              {upcomingAppointments.map(evt => {
+                const dateObj = new Date(evt.date);
+                const isToday = evt.date === todayStr;
+                return (
+                  <div key={evt.id} className={styles.siblingRow} style={{ flexWrap: 'wrap' }}>
+                    <div className={styles.siblingDetails}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Symbol name="calendar_today" size={16} />
+                        <strong>{evt.title}</strong>
+                      </div>
+                      <div style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', marginTop: '4px' }}>
+                        {isToday ? 'Today' : dateObj.toLocaleDateString('en-NG', { weekday: 'long', month: 'short', day: 'numeric' })}
+                        {evt.startTime && ` • ${evt.startTime}`}
+                      </div>
+                    </div>
+                    {evt.type === 'fitting' && (
+                      <span className={styles.siblingStatus} style={{ background: 'var(--sf-accent-purple-light)', color: 'var(--sf-accent-purple)' }}>
+                        Fitting
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
 

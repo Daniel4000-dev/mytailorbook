@@ -1,8 +1,11 @@
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
+import { checkWeeklyCapacity } from '@/app/actions/calendar';
 import type { Customer, Priority, User } from '@/lib/types';
 import styles from '../page.module.css';
 
@@ -46,7 +49,34 @@ export default function DetailsStep({
   onPriorityChange,
 }: DetailsStepProps) {
   const { currentShop } = useData();
-  const currencySymbol = getCurrencySymbol(currentShop?.currency);
+  const currencySymbol = getCurrencySymbol(currentShop?.currency || 'NGN');
+  const [stashPickerKey, setStashPickerKey] = useState<string | null>(null);
+  
+  const [capacityWarning, setCapacityWarning] = useState<{
+    overCapacity: boolean;
+    currentLoad: number;
+    weeklyCapacity: number;
+  } | null>(null);
+
+  React.useEffect(() => {
+    // Just check the first unit's due date to avoid multiple alerts for batched orders.
+    // They usually share a due date or are close together anyway.
+    const firstDate = units.find(u => u.dueDate)?.dueDate;
+    if (!firstDate || !currentShop?.id) {
+      setCapacityWarning(null);
+      return;
+    }
+
+    const check = async () => {
+      try {
+        const res = await checkWeeklyCapacity(currentShop.id, firstDate);
+        setCapacityWarning(res);
+      } catch (e) {
+        // Ignore silently, don't break order creation for this
+      }
+    };
+    check();
+  }, [units.find(u => u.dueDate)?.dueDate, currentShop?.id]);
 
   return (
     <div className={styles.col}>
@@ -55,9 +85,21 @@ export default function DetailsStep({
         <p className={styles.stepSub}>Price and schedule each piece for {customer?.fullName}.</p>
       </div>
 
-      {error && <div className={styles.errorBanner}>{error}</div>}
+        {error && <p className={styles.errorText}>{error}</p>}
 
-      {units.map((u, i) => (
+        {capacityWarning?.overCapacity && (
+          <div style={{ backgroundColor: 'var(--sf-accent-red-light)', padding: '12px', borderRadius: '8px', display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <Symbol name="warning" fill style={{ color: 'var(--sf-accent-red)' }} />
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, color: 'var(--sf-accent-red)' }}>High Volume Week</p>
+              <p style={{ margin: 0, fontSize: '14px', color: 'var(--sf-accent-red)', marginTop: '4px' }}>
+                You already have {capacityWarning.currentLoad} orders due this week (Capacity: {capacityWarning.weeklyCapacity}). Consider negotiating a later deadline.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {units.map((u, i) => (
         <section key={u.key} className={styles.unitCard}>
           <header className={styles.unitHeader}>
             <span className={styles.unitNum}>{i + 1}</span>
@@ -172,11 +214,39 @@ export default function DetailsStep({
             <label className={styles.inspoAdd}>
               <input type="file" accept="image/*" multiple hidden onChange={(e) => onInspoUpload(u.key, e)} disabled={uploadingKey === u.key} />
               <Symbol name="add_photo_alternate" size={18} />
-              {uploadingKey === u.key ? 'Uploading…' : 'Inspo'}
+              {uploadingKey === u.key ? 'Uploading…' : 'Add'}
             </label>
+            {customer?.fabrics && customer.fabrics.length > 0 && (
+              <button type="button" className={styles.inspoAdd} onClick={() => setStashPickerKey(u.key)}>
+                <Symbol name="texture" size={18} />
+                Stash
+              </button>
+            )}
           </div>
         </section>
       ))}
+
+      <BottomSheet isOpen={!!stashPickerKey} onClose={() => setStashPickerKey(null)} variant="modal" title="Choose from Stash">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, padding: 16 }}>
+          {customer?.fabrics?.map((photo, i) => (
+            <div
+              key={i}
+              style={{ aspectRatio: '1', borderRadius: 8, overflow: 'hidden', cursor: 'pointer', position: 'relative' }}
+              onClick={() => {
+                if (stashPickerKey) {
+                  const unit = units.find((u) => u.key === stashPickerKey);
+                  if (unit && !unit.inspirationImages.includes(photo.url)) {
+                    onUpdateUnit(stashPickerKey, { inspirationImages: [...unit.inspirationImages, photo.url] });
+                  }
+                  setStashPickerKey(null);
+                }
+              }}
+            >
+              <Image src={photo.url} alt={`Stash ${i}`} width={200} height={200} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+            </div>
+          ))}
+        </div>
+      </BottomSheet>
 
       <section className={styles.orderLevel}>
         <div className={styles.unitField}>

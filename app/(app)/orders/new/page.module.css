@@ -1034,3 +1034,27 @@
     max-width: 820px;
   }
 }
+
+.textarea {
+  width: 100%;
+  padding: var(--sf-space-md);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.textarea::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--sf-accent-emerald);
+  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+}

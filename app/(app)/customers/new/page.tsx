@@ -59,11 +59,13 @@ export default function NewClientPage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isContactPickerSupported, setIsContactPickerSupported] = useState(false);
   // Second screen of this same step: full-body measurements, entirely
   // optional — every field can be left blank and Skip moves on exactly
   // like Continue does, just without saving any numbers.
   const [screen, setScreen] = useState<'profile' | 'measurements'>('profile');
   const [bodyMeasurements, setBodyMeasurements] = useState<Record<string, string>>({});
+  const [measurementNotes, setMeasurementNotes] = useState('');
   const bodySpec = FULL_BODY_MEASUREMENTS[gender];
 
   // Same page, two full content swaps — reset scroll on each so Continue
@@ -71,6 +73,34 @@ export default function NewClientPage() {
   useEffect(() => {
     scrollContentToTop();
   }, [screen]);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'contacts' in navigator) {
+      setIsContactPickerSupported(true);
+    }
+  }, []);
+
+  const handleImportContact = async () => {
+    try {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+      // @ts-ignore
+      const contacts = await navigator.contacts.select(props, opts);
+      if (contacts && contacts.length > 0) {
+        const contact = contacts[0];
+        if (contact.name && contact.name.length > 0) {
+          setValue('fullName', contact.name[0]);
+        }
+        if (contact.tel && contact.tel.length > 0) {
+          // Keep only digits and + for the phone number
+          const cleanedPhone = contact.tel[0].replace(/[^\d+]/g, '');
+          setValue('phone', cleanedPhone);
+        }
+      }
+    } catch (ex) {
+      console.error('Failed to select contact:', ex);
+    }
+  };
 
   const toggleStyle = (style: string) => {
     const nextStyles = styleSet.includes(style) 
@@ -115,6 +145,7 @@ export default function NewClientPage() {
         address: data.address?.trim() || undefined,
         preferredStyles: data.preferredStyles || [],
         measurements,
+        measurementNotes: measurementNotes.trim() || undefined,
       });
       showToast(`${customer.fullName} added to customers`, 'success');
       trackEvent('customer_created');
@@ -215,6 +246,19 @@ export default function NewClientPage() {
                   Whatever you save here pre-fills every garment&apos;s measurements for {watch('fullName') || 'this client'} from now on.
                 </p>
               </div>
+
+              <div className={styles.field}>
+                <label className={styles.capsLabel} htmlFor="measurementNotes">Measurement Notes</label>
+                <textarea
+                  id="measurementNotes"
+                  className={styles.textarea}
+                  placeholder="e.g. C42, W36, L40. Client has a dropped left shoulder."
+                  value={measurementNotes}
+                  onChange={(e) => setMeasurementNotes(e.target.value)}
+                  rows={4}
+                />
+              </div>
+
               <StyleMeasureForm
                 spec={bodySpec}
                 values={bodyMeasurements}
@@ -229,7 +273,15 @@ export default function NewClientPage() {
           {/* Personal details */}
           <section className={styles.section}>
             <div>
-              <h2 className={styles.sectionTitle}>Client Profile</h2>
+              <div className={styles.titleRow}>
+                <h2 className={styles.sectionTitle}>Client Profile</h2>
+                {isContactPickerSupported && (
+                  <button type="button" className={styles.importBtn} onClick={handleImportContact}>
+                    <Symbol name="contact_phone" size={20} />
+                    Import Contact
+                  </button>
+                )}
+              </div>
               <p className={styles.sectionSub}>Enter the essential details for their client record.</p>
             </div>
 

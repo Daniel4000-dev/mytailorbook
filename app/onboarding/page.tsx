@@ -17,6 +17,7 @@ import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import AspirationalVision from './_components/AspirationalVision';
 
 // Welcome-tour screens shown before the setup form below — grounded in
 // features that actually ship (measurement reuse, the production board +
@@ -97,6 +98,9 @@ export default function OnboardingPage() {
     }
   }, []);
 
+  const [showVision, setShowVision] = useState(false);
+  const [confirmedShopName, setConfirmedShopName] = useState('');
+
   const onSubmit = async (data: OnboardingInput) => {
     setApiError('');
     
@@ -108,14 +112,16 @@ export default function OnboardingPage() {
 
     setSubmitting(true);
     try {
-      const result = await completeOnboarding(data.shopName, isGoogleAccount ? data.name : undefined);
+      const result = await completeOnboarding(data.shopName, data.goal, isGoogleAccount ? data.name : undefined);
       if (result?.error) {
         setApiError(result.error);
         return;
       }
-      trackEvent('onboarding_completed', { via: isGoogleAccount ? 'google' : 'email' });
+      trackEvent('onboarding_completed', { via: isGoogleAccount ? 'google' : 'email', goal: data.goal });
       await refreshProfile();
-      router.push(ROUTES.dashboard);
+      // Instead of going straight to the dashboard, show the Vision
+      setConfirmedShopName(data.shopName);
+      setShowVision(true);
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Could not finish setting up your workspace');
     } finally {
@@ -124,6 +130,10 @@ export default function OnboardingPage() {
   };
 
   if (loading || !needsOnboarding) return null;
+
+  if (showVision) {
+    return <AspirationalVision shopName={confirmedShopName} onFinish={() => router.push(ROUTES.dashboard)} />;
+  }
 
   if (step < 2) {
     const screen = WELCOME_SCREENS[step];
@@ -192,6 +202,33 @@ export default function OnboardingPage() {
             {...register('shopName')}
           />
           {errors.shopName && <div className={styles.errorText}>{errors.shopName.message}</div>}
+        </div>
+
+        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label htmlFor="goal" style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
+            What do you want customers to know you for?
+          </label>
+          <select 
+            id="goal" 
+            {...register('goal')}
+            style={{
+              padding: 'var(--space-md)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-base)',
+              backgroundColor: 'var(--surface-sunken)',
+              color: 'var(--text-primary)',
+              fontSize: 'var(--text-base)',
+              outline: 'none',
+              fontFamily: 'inherit'
+            }}
+          >
+            <option value="">Select your main goal...</option>
+            <option value="Always knowing what is happening with their order">Always knowing what is happening with their order</option>
+            <option value="Keeping my word on delivery dates">Keeping my word on delivery dates</option>
+            <option value="Remembering every customer details">Remembering every customer's details</option>
+            <option value="Running a more organised business">Running a more organised business</option>
+          </select>
+          {errors.goal && <div className={styles.errorText}>{errors.goal.message}</div>}
         </div>
 
         <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '24px' }}>

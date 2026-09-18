@@ -58,8 +58,10 @@ export interface Shop {
    *  hex — so a non-technical owner can't land on an unreadable combination. */
   portfolioAccent: string;
   /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
-   *  fall back to no display of that element, not a placeholder string. */
-  portfolioSettings: { tagline?: string; bio?: string; foundedYear?: number };
+   *  just mean those sections collapse in the public view. */
+  portfolioSettings?: { tagline?: string; bio?: string; foundedYear?: number };
+  /** Maximum number of orders the shop can handle per week before showing capacity warnings. */
+  weeklyCapacity?: number;
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
   subscriptionPlan?: string;
@@ -81,6 +83,26 @@ export interface Shop {
    *  individually (see Order.includeTrackingLink) — this only sets what a
    *  fresh order starts as. */
   defaultTrackingLinkEnabled: boolean;
+  /** Current number of consecutive days the shop has cleared all open loops. */
+  streakCurrent?: number;
+  /** The highest streak ever achieved by this shop. */
+  streakBest?: number;
+  /** The UTC timestamp of the last day the streak was successfully incremented. */
+  streakLastCountedAt?: string;
+  /** The future identity goal chosen by the tailor during onboarding */
+  onboardingGoal?: string;
+}
+
+export interface ShopException {
+  id: string;
+  shopId: string;
+  orderId?: string;
+  type: string;
+  reason?: string;
+  startDate: string;
+  endDate?: string;
+  createdBy?: string;
+  createdAt: string;
 }
 
 /** Owner-set visibility override for one photo (matched by URL) on the
@@ -195,8 +217,11 @@ export interface Customer {
    *  wizard) — e.g. ['Agbada', 'Senator']. */
   preferredStyles?: string[];
   measurements?: Measurements;
+  measurementNotes?: string;
   /** Keyed by garment style name (matches GARMENT_STYLES / STYLE_MEASUREMENTS). */
   styleMeasurements?: Record<string, StyleMeasurementProfile>;
+  /** Uncut fabric photos dropped off by the customer (Stash). */
+  fabrics?: OrderPhoto[];
   address?: string;
   createdAt: string;
 }
@@ -388,4 +413,22 @@ export interface ActivityItem {
   action: string;
   performedBy: string;     // Who did the action
   timestamp: string;
+}
+
+export type CalendarEventType = 'fitting' | 'market_run' | 'meeting' | 'dispatch' | 'fabric_delivery' | 'payment_followup' | 'shop_maintenance' | 'general_task' | 'off_day';
+
+export interface CalendarEvent {
+  id: string;
+  shopId: string;
+  title: string;
+  description?: string;
+  type: CalendarEventType;
+  date: string; // ISO 8601 date (YYYY-MM-DD)
+  startTime?: string; // HH:mm format
+  endTime?: string; // HH:mm format
+  relatedOrderId?: string;
+  relatedCustomerId?: string;
+  assignedTo?: string; // Staff UID
+  status?: 'pending' | 'completed';
+  createdAt: string;
 }

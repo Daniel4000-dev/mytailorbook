@@ -1238,3 +1238,182 @@
     box-shadow: none;
   }
 }
+
+/* Exception UI */
+.exceptionBanner {
+  margin-top: 16px;
+  background: linear-gradient(to right, var(--sf-warning-bg), var(--sf-bg-surface-elevated));
+  border: 1px solid var(--sf-warning);
+  border-left: 4px solid var(--sf-warning);
+  border-radius: var(--sf-radius-lg);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 0 12px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.2)), 0 4px 12px rgba(0, 0, 0, 0.03);
+  animation: bannerGlow 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes bannerGlow {
+  0% { box-shadow: 0 0 8px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.1)), 0 4px 12px rgba(0, 0, 0, 0.03); }
+  100% { box-shadow: 0 0 16px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.4)), 0 4px 12px rgba(0, 0, 0, 0.03); border-color: var(--sf-warning); }
+}
+
+.exceptionBannerContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--sf-warning);
+  font-size: var(--sf-text-sm);
+}
+
+.exceptionBannerContent strong {
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.exceptionResolveBtn {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-color);
+  color: var(--sf-text-primary);
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--sf-transition-fast);
+  box-shadow: var(--sf-shadow-xs);
+}
+
+.exceptionResolveBtn:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-warning);
+  transform: translateY(-1px);
+  box-shadow: var(--sf-shadow-sm);
+}
+
+.exceptionActionRow {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.logExceptionBtn {
+  background: transparent;
+  border: 1px dashed var(--sf-border);
+  color: var(--sf-text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--sf-radius-lg);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--sf-transition-fast);
+}
+
+.logExceptionBtn:hover {
+  border-color: var(--sf-border-hover);
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface-hover);
+}
+
+.exceptionSheetOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--sf-bg-overlay);
+  z-index: var(--sf-z-modal);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fadeIn var(--sf-transition-fast);
+}
+
+.exceptionSheet {
+  background-color: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-xl) var(--sf-radius-xl) 0 0;
+  padding: 0 0 calc(24px + var(--sf-safe-area-bottom)) 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--sf-shadow-lg);
+  animation: slideUp var(--sf-transition-normal);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (min-width: 768px) {
+  .exceptionSheetOverlay {
+    justify-content: center;
+    align-items: center;
+    padding: var(--sf-space-lg);
+  }
+
+  .exceptionSheet {
+    width: 100%;
+    max-width: 500px;
+    border-radius: var(--sf-radius-xl);
+    padding: 0 0 24px 0;
+    animation: scaleUp var(--sf-transition-fast);
+  }
+
+  @keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.sheetTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.sheetCloseBtn {
+  background: none;
+  border: none;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  border-radius: 50%;
+}
+
+.sheetCloseBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.sheetBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sheetDesc {
+  margin: 0;
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+}

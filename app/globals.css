@@ -289,3 +289,9 @@ body.no-scroll {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+}

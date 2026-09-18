@@ -7,10 +7,14 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import type { Order } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
+import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import DiscoverBanner from './DiscoverBanner';
+import ShopTodayCard from '../ShopTodayCard';
+import MilestonesCard from '../MilestonesCard';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import TodaysAgendaWidget from '../TodaysAgendaWidget';
 
 // ============================================================
 // Owner Dashboard — desktop
@@ -32,7 +36,7 @@ export default function OwnerDashboard({
   staffMembers: ReturnType<typeof useData>['staffMembers'];
   onNavigate: (href: string) => void;
 }) {
-  const { currentShop } = useData();
+  const { currentShop, customers, exceptions } = useData();
   const { openCreateMenu } = useSidebar();
   const {
     hideCollected,
@@ -47,9 +51,13 @@ export default function OwnerDashboard({
     visibleAttentionItems,
     hasMoreAttentionItems,
   } = useOwnerDashboardData(orders, staffMembers);
+  
+  const openLoops = useOpenLoops(orders, customers, exceptions);
 
   return (
     <div className={styles.content}>
+      <TodaysAgendaWidget />
+
       {/* Hero: one dominant focal point instead of four equal-weight cards.
           Uses only tokens already in the app's own two-color system —
           var(--sf-nav), the same dark chrome color already used for
@@ -178,34 +186,10 @@ export default function OwnerDashboard({
 
         <div className={styles.rail}>
           <div className={pageStyles.sectionHeader}>
-            <span className={pageStyles.sectionTitle}>Needs Attention</span>
+            <span className={pageStyles.sectionTitle}>Shop Today</span>
           </div>
-
-          {visibleAttentionItems.length === 0 ? (
-            <div className={pageStyles.emptyState}>
-              <Symbol name="check_circle" className={pageStyles.emptyStateIcon} />
-              <span>Nothing overdue or rushed — production is on track.</span>
-            </div>
-          ) : (
-            <div className={pageStyles.attentionList}>
-              {visibleAttentionItems.map((n) => (
-                <button key={n.id} className={pageStyles.attentionRow} onClick={() => onNavigate(`/production?order=${n.orderId}`)} type="button">
-                  <div className={pageStyles.attentionInfo}>
-                    <div className={`${pageStyles.attentionAvatar} ${pageStyles[`attentionAvatar_${n.tone}`]}`}>{n.icon}</div>
-                    <div className={pageStyles.attentionTextGroup}>
-                      <span className={pageStyles.attentionCustomer}>{n.title}</span>
-                      <span className={pageStyles.attentionDetails}>{n.subtitle}</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-              {hasMoreAttentionItems && (
-                <button className={pageStyles.attentionSeeAll} onClick={() => onNavigate('/notifications')} type="button">
-                  See all notifications
-                </button>
-              )}
-            </div>
-          )}
+          <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
+          <MilestonesCard />
         </div>
       </div>
     </div>

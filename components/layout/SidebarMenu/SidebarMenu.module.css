@@ -45,7 +45,7 @@
 .topRow {
   display: flex;
   align-items: center;
-  margin-bottom: 80px; /* Large gap from top bar to menu list */
+  margin-bottom: 24px; /* Aligns menu items with the top of the shrunk page */
   width: 100%;
 }
 
@@ -87,7 +87,9 @@
 }
 
 .mobileOnlyNav {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   padding-left: 24px;
 }
 

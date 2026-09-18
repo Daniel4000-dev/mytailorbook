@@ -33,7 +33,7 @@ import { isOwnerLikeRole } from '@/lib/types';
  *  outcome — reusing an already-created shop, and treating an
  *  already-inserted profile as success — instead of one succeeding and
  *  the other crashing on a duplicate-key error the user can't interpret. */
-export async function completeOnboarding(shopName: string, nameOverride?: string): Promise<{ error?: string }> {
+export async function completeOnboarding(shopName: string, goal?: string, nameOverride?: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
@@ -68,10 +68,12 @@ export async function completeOnboarding(shopName: string, nameOverride?: string
   if (orphanedShop) {
     shopId = orphanedShop.id;
     orgId = orphanedShop.org_id;
+    // Update the orphaned shop with the new name and goal
+    await admin.from('shops').update({ name: shopName, onboarding_goal: goal || null }).eq('id', shopId);
   } else {
     const { data: shop, error: shopError } = await admin
       .from('shops')
-      .insert({ name: shopName, owner_id: user.id })
+      .insert({ name: shopName, owner_id: user.id, onboarding_goal: goal || null })
       .select()
       .single();
     if (shopError || !shop) {

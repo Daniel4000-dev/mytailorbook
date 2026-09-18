@@ -46,7 +46,7 @@ export default function NewOrderWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const { customers, orders, staffMembers, currentShop, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile, upsertCustomStyle } = useData();
+  const { customers, orders, staffMembers, currentShop, isLoaded, addOrderBatch, updateCustomerMeasurements, updateCustomerStyleProfile, updateCustomerProfile, upsertCustomStyle } = useData();
   const { showToast } = useToast();
   // FixedBottomPortal escapes to document.body, so its fixed positioning
   // can't rely on CSS descendant selectors to know whether the app's own
@@ -72,6 +72,7 @@ export default function NewOrderWizard() {
   const [fieldBuilderStyle, setFieldBuilderStyle] = useState<string | null>(null);
   const [measureIndex, setMeasureIndex] = useState(0);
   const [measures, setMeasures] = useState<Record<string, Record<string, string>>>({});
+  const [measurementNotes, setMeasurementNotes] = useState('');
   // Two independent decisions: a style profile is *supposed* to diverge
   // from the body profile (e.g. a loose Agbada's chest ease vs. the
   // client's actual body chest) — saving one should never silently
@@ -119,6 +120,7 @@ export default function NewOrderWizard() {
       if (found) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setCustomer(found);
+        setMeasurementNotes(found.measurementNotes || '');
         setStep('garments');
       }
     }
@@ -477,6 +479,10 @@ export default function NewOrderWizard() {
         }
       }
 
+      if (customer && customer.measurementNotes !== measurementNotes) {
+        await updateCustomerProfile(customer.id, { measurementNotes: measurementNotes.trim() || undefined }).catch(() => {});
+      }
+
       showToast(
         units.length > 1
           ? `${units.length} orders created for ${customer.fullName}`
@@ -695,7 +701,7 @@ export default function NewOrderWizard() {
             onQueryChange={setCustomerQuery}
             filteredCustomers={filteredCustomers}
             isLoaded={isLoaded}
-            onSelect={(c) => { setCustomer(c); setStep('garments'); }}
+            onSelect={(c) => { setCustomer(c); setMeasurementNotes(c.measurementNotes || ''); setStep('garments'); }}
           />
         )}
 
@@ -735,6 +741,8 @@ export default function NewOrderWizard() {
             onToggleLock={toggleMeasureLock}
             addableFields={availableExtraFields}
             onAddField={handleAddField}
+            measurementNotes={measurementNotes}
+            onMeasurementNotesChange={setMeasurementNotes}
           />
         )}
 

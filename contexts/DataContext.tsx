@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import useSWR from 'swr';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException } from '@/lib/types';
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
 import { createStaffAccount } from '@/app/auth-actions';
@@ -35,6 +35,8 @@ import {
   getStaff,
   deleteCustomerAction,
   deleteOrderAction,
+  logShopExceptionAction,
+  resolveShopExceptionAction,
 } from '@/app/actions';
 
 const ACTIVE_BRANCH_COOKIE = 'mtb_active_branch';
@@ -44,15 +46,17 @@ interface ShopBundle {
   customers: Customer[];
   staffMembers: User[];
   shop: Shop | null;
+  exceptions: ShopException[];
 }
 
-const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null };
+const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [] };
 
 interface DataContextValue {
   orders: Order[];
   customers: Customer[];
   staffMembers: User[];
   shops: Shop[];
+  exceptions: ShopException[];
   currentShop: Shop | null;
   activeBranchId: string | null;
   setActiveBranchId: (shopId: string) => void;
@@ -71,11 +75,11 @@ interface DataContextValue {
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) => Promise<Customer>;
   updateCustomerMeasurements: (customerId: string, measurements: Measurements) => Promise<void>;
-  updateCustomerStyleProfile: (customerId: string, styleName: string, measurements: Measurements) => Promise<void>;
+  updateCustomerStyleProfile: (customerId: string, styleName: string, measurements: Measurements, notes?: string) => Promise<void>;
   deleteCustomerStyleProfile: (customerId: string, styleName: string) => Promise<void>;
   updateCustomerProfile: (
     customerId: string,
-    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
+    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics'>>
   ) => Promise<void>;
   deleteCustomer: (customerId: string) => Promise<{ error?: string; deletedOrderCount?: number }>;
   deleteOrder: (orderId: string) => Promise<{ error?: string }>;
@@ -93,6 +97,8 @@ interface DataContextValue {
     gender?: 'male' | 'female'
   ) => Promise<void>;
   renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
+  logException: (type: string, reason?: string, orderId?: string) => Promise<void>;
+  resolveException: (exceptionId: string) => Promise<void>;
 }
 
 
@@ -190,7 +196,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [activeBranchId, orgId, mutate]);
 
   const bundle = data ?? EMPTY_BUNDLE;
-  const { orders, customers, staffMembers, shop: currentShop } = bundle;
+  const { orders, customers, staffMembers, shop: currentShop, exceptions } = bundle;
   // Only true once we've never had data for this shop — a background
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = !!data;
@@ -304,12 +310,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const updateCustomerStyleProfile = useCallback(
-    async (customerId: string, styleName: string, measurements: Measurements) => {
+    async (customerId: string, styleName: string, measurements: Measurements, notes?: string) => {
       if (!orgId) return;
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, orgId);
+          const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, orgId, notes);
           return { ...current, customers: updated };
         },
         {
@@ -323,7 +329,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
                   ...c,
                   styleMeasurements: {
                     ...(c.styleMeasurements || {}),
-                    [styleName]: { ...((c.styleMeasurements || {})[styleName] || {}), ...measurements },
+                    [styleName]: {
+                      measurements,
+                      updatedAt: new Date().toISOString(),
+                    },
                   },
                 };
               }),
@@ -370,7 +379,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCustomerProfile = useCallback(
     async (
       customerId: string,
-      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address'>>
+      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics'>>
     ) => {
       if (!orgId) return;
       const normalized =
@@ -542,12 +551,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [activeBranchId, mutate]
   );
 
+  const logException = useCallback(
+    async (type: string, reason?: string, orderId?: string) => {
+      if (!activeBranchId) return;
+      const result = await logShopExceptionAction(activeBranchId, type, reason, orderId);
+      if (result.error) throw new Error(result.error);
+      mutate();
+    },
+    [activeBranchId, mutate]
+  );
+
+  const resolveException = useCallback(
+    async (exceptionId: string) => {
+      const result = await resolveShopExceptionAction(exceptionId);
+      if (result.error) throw new Error(result.error);
+      mutate();
+    },
+    [mutate]
+  );
+
   const value = useMemo<DataContextValue>(
     () => ({
       orders,
       customers,
       staffMembers,
       shops: branches,
+      exceptions,
       currentShop,
       activeBranchId,
       setActiveBranchId,
@@ -574,8 +603,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateShop,
       upsertCustomStyle,
       renameCustomStyle,
+      logException,
+      resolveException,
     }),
-    [orders, customers, staffMembers, branches, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle]
+    [orders, customers, staffMembers, branches, exceptions, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

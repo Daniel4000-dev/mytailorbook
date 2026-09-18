@@ -1,0 +1,413 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--sf-bg-surface);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--sf-space-lg);
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--sf-space-sm) var(--sf-space-lg) 0;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-lg);
+}
+
+.monthTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-xl); /* Brought back to xl since it's the main header now */
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  min-width: 150px;
+  text-align: center;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.navBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.calendarGrid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sf-space-lg);
+  gap: 8px;
+}
+
+.weekDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+}
+
+.days {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 8px;
+}
+
+.dayCell {
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  min-height: 100px;
+}
+
+.dayCell:hover {
+  border-color: var(--sf-border);
+  box-shadow: var(--sf-shadow-sm);
+}
+
+.dayCell.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.dayCell.empty:hover {
+  box-shadow: none;
+}
+
+.dayCell.today {
+  border-color: var(--sf-accent-emerald);
+  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+}
+
+.dayNumber {
+  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  margin-bottom: 4px;
+}
+
+.today .dayNumber {
+  color: var(--sf-accent-emerald);
+}
+
+.eventBadge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: var(--sf-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.eventBadge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventDeadline {
+  background: var(--sf-error-light);
+  color: var(--sf-error);
+}
+
+.eventFitting {
+  background: var(--sf-accent-purple-light);
+  color: var(--sf-accent-purple);
+}
+
+.eventTask {
+  background: var(--sf-bg-surface-hover);
+  color: var(--sf-text-primary);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--sf-space-md);
+    flex-direction: column;
+    gap: var(--sf-space-md);
+  }
+  
+  .calendarGrid {
+    padding: var(--sf-space-sm);
+    gap: 4px;
+  }
+  
+  .days {
+    gap: 4px;
+  }
+
+  .weekDays {
+    gap: 4px;
+  }
+
+  .weekDay {
+    font-size: 10px;
+  }
+
+  .dayCell {
+    padding: 4px;
+    min-height: unset;
+    aspect-ratio: 1;
+    border-radius: var(--sf-radius-md);
+  }
+
+  .dayNumber {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .eventBadge {
+    padding: 2px;
+    justify-content: center;
+    border-radius: var(--sf-radius-full);
+  }
+
+  .eventBadge span {
+    display: none; /* Hide text on mobile, just show the icon/color block */
+  }
+}
+
+/* Agenda BottomSheet Styles */
+.agendaContainer {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 var(--sf-space-xl) 0;
+  gap: var(--sf-space-md);
+}
+
+.emptyAgenda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sf-space-3xl) 0;
+  color: var(--sf-text-secondary);
+  gap: var(--sf-space-sm);
+}
+
+.emptyIcon {
+  color: var(--sf-text-disabled);
+}
+
+.agendaList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.agendaItem {
+  display: flex;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  overflow: hidden;
+}
+
+.agendaColorBar {
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.agendaContent {
+  flex: 1;
+  padding: var(--sf-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.agendaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sf-space-sm);
+}
+
+.agendaTitle {
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  font-size: var(--sf-text-base);
+}
+
+.agendaTime {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  font-weight: var(--sf-weight-medium);
+}
+
+.agendaDesc {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.agendaPill {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--sf-bg-surface-hover);
+  color: var(--sf-text-secondary);
+  border-radius: var(--sf-radius-full);
+  margin-top: 4px;
+}
+
+/* Event Completion Styles */
+.agendaActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.checkBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border-base);
+  background: transparent;
+  color: transparent; /* Icon hidden by default */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.checkBtn:hover {
+  border-color: var(--sf-text-primary);
+}
+
+.checkBtn.checked {
+  background: var(--sf-text-primary);
+  border-color: var(--sf-text-primary);
+  color: var(--sf-bg-primary);
+}
+
+.completedEvent {
+  opacity: 0.6;
+}
+
+.completedEvent .agendaTitle {
+  text-decoration: line-through;
+  color: var(--sf-text-secondary);
+}
+
+
+/* Upcoming Reminders Section */
+.remindersSection {
+  margin-top: var(--sf-space-2xl);
+  padding: 0 var(--sf-space-xl);
+  padding-bottom: 80px; /* Space for FAB */
+}
+
+.remindersTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--sf-space-md);
+  color: var(--sf-text-primary);
+}
+
+.remindersList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.reminderCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+}
+
+.reminderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reminderDate {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sf-accent-blue);
+  text-transform: uppercase;
+}
+
+.reminderText {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--sf-text-primary);
+}
+
+.whatsappBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #25D366; /* WhatsApp Green */
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--sf-radius-md);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.whatsappBtn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .remindersSection {
+    padding: 0 var(--sf-space-md);
+    padding-bottom: 80px;
+  }
+}
+

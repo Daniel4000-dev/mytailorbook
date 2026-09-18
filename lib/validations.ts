@@ -41,13 +41,15 @@ export const customerSchema = z.object({
   address: z.string().optional(),
   gender: z.enum(['male', 'female']),
   preferredStyles: z.array(z.string()).optional(),
+  measurementNotes: z.string().optional(),
 });
 
 export type CustomerInput = z.infer<typeof customerSchema>;
 
 export const onboardingSchema = z.object({
+  shopName: z.string().min(2, "Shop name is too short"),
   name: z.string().optional(),
-  shopName: z.string().min(2, 'Shop name must be at least 2 characters'),
+  goal: z.string().optional(),
 });
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;

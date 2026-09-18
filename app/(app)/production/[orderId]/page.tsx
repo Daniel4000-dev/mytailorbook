@@ -27,11 +27,12 @@ import { ROUTES } from '@/lib/routes';
 import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
-import type { Order, OrderPhoto, OrderComment, Priority } from '@/lib/types';
+import type { Order, OrderStatus, OrderPhoto, OrderComment, Priority } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
 import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
 import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
+import WhatsAppOptionsSheet from './_components/WhatsAppOptionsSheet';
 import styles from './page.module.css';
 
 export default function OrderDetailPage() {
@@ -40,7 +41,7 @@ export default function OrderDetailPage() {
   const { user } = useAuth();
   const userRole = user?.role || 'Staff';
   const isOwnerView = isOwnerLikeRole(userRole);
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException } = useData();
   const { showToast } = useToast();
 
   const order = orders.find((o) => o.id === orderId) || null;
@@ -58,9 +59,48 @@ export default function OrderDetailPage() {
   const [clearFull, setClearFull] = useState(false);
   const [recordingPayment, setRecordingPayment] = useState(false);
   const [confirmingFullPay, setConfirmingFullPay] = useState(false);
+  const [showAmendmentPrompt, setShowAmendmentPrompt] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [whatsAppSheetOpen, setWhatsAppSheetOpen] = useState(false);
+  const [confirmingStatusChange, setConfirmingStatusChange] = useState<OrderStatus | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(false);
   const [editingMeasurements, setEditingMeasurements] = useState(false);
+  
+  const [loggingException, setLoggingException] = useState(false);
+  const [exceptionReason, setExceptionReason] = useState('');
+  const [savingException, setSavingException] = useState(false);
+
+  const orderExceptions = useMemo(() => exceptions.filter((e) => e.orderId === orderId), [exceptions, orderId]);
+  const activeException = useMemo(() => {
+    const now = new Date();
+    return orderExceptions.find((e) => !e.endDate || new Date(e.endDate) > now);
+  }, [orderExceptions]);
+
+  const handleLogException = async () => {
+    if (!exceptionReason.trim()) return;
+    setSavingException(true);
+    try {
+      await logException('delay', exceptionReason.trim(), orderId);
+      showToast('Delay exception logged', 'success');
+      setLoggingException(false);
+      setExceptionReason('');
+    } catch (e) {
+      showToast('Failed to log exception', 'error');
+    } finally {
+      setSavingException(false);
+    }
+  };
+
+  const handleResolveException = async () => {
+    if (!activeException) return;
+    try {
+      await resolveException(activeException.id);
+      showToast('Exception resolved', 'success');
+    } catch (e) {
+      showToast('Failed to resolve exception', 'error');
+    }
+  };
 
   const handleDeleteOrder = async () => {
     setDeletingOrder(true);
@@ -152,10 +192,18 @@ export default function OrderDetailPage() {
 
   const handleAdvance = async () => {
     if (!next) return;
+    if (next === 'Delivered') {
+      setShowAmendmentPrompt(true);
+      return;
+    }
+    await performAdvance(next);
+  };
+
+  const performAdvance = async (stage: OrderStatus) => {
     setAdvancing(true);
     try {
-      updateOrderStatus(order.id, next, user?.uid || '', user?.name || '');
-      showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success');
+      updateOrderStatus(order.id, stage, user?.uid || '', user?.name || '');
+      showToast(`Moved to ${STATUS_CONFIG[stage].label}`, 'success');
     } finally {
       setAdvancing(false);
     }
@@ -374,15 +422,14 @@ export default function OrderDetailPage() {
                   mouse-driven screen the same action belongs in the
                   toolbar next to the other header actions instead. */}
               {customer && (
-                <a
-                  href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setWhatsAppSheetOpen(true)}
                   className={styles.whatsappTopBarBtn}
                   aria-label={`WhatsApp ${customer.fullName}`}
                 >
                   <WhatsappIcon size={18} />
-                </a>
+                </button>
               )}
               <NotificationBell />
             </>
@@ -442,6 +489,25 @@ export default function OrderDetailPage() {
               {order.priority !== 'normal' && (
                 <span className={styles.flagChip}>{order.priority === 'rush' ? 'Rush' : 'Urgent'}</span>
               )}
+            </div>
+          )}
+          {activeException ? (
+            <div className={styles.exceptionBanner}>
+              <div className={styles.exceptionBannerContent}>
+                <Symbol name="front_hand" size={18} />
+                <span>
+                  <strong>Streak Paused:</strong> {activeException.reason || 'Delay Exception'}
+                </span>
+              </div>
+              <button type="button" className={styles.exceptionResolveBtn} onClick={handleResolveException}>
+                Resolve
+              </button>
+            </div>
+          ) : order.status !== 'Delivered' && (
+            <div className={styles.exceptionActionRow}>
+              <button type="button" className={styles.logExceptionBtn} onClick={() => setLoggingException(true)}>
+                <Symbol name="front_hand" size={16} /> Log Delay Exception
+              </button>
             </div>
           )}
         </section>
@@ -958,17 +1024,26 @@ export default function OrderDetailPage() {
       {/* Floating WhatsApp shortcut — portaled straight to document.body,
           see FixedBottomPortal for why. */}
       {customer && (
-        <FixedBottomPortal>
-          <a
-            href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.whatsappFab}
-            aria-label={`WhatsApp ${customer.fullName}`}
-          >
-            <WhatsappIcon color="#FFFFFF" size={28} />
-          </a>
-        </FixedBottomPortal>
+        <>
+          <FixedBottomPortal>
+            <button
+              type="button"
+              onClick={() => setWhatsAppSheetOpen(true)}
+              className={styles.whatsappFab}
+              aria-label={`WhatsApp ${customer.fullName}`}
+            >
+              <WhatsappIcon color="#FFFFFF" size={28} />
+            </button>
+          </FixedBottomPortal>
+
+          <WhatsAppOptionsSheet
+            isOpen={whatsAppSheetOpen}
+            onClose={() => setWhatsAppSheetOpen(false)}
+            customerName={customer.fullName}
+            whatsappNumber={customer.whatsappNumber}
+            progressMessage={whatsAppMessage || ''}
+          />
+        </>
       )}
 
       <ConfirmDialog
@@ -994,6 +1069,24 @@ export default function OrderDetailPage() {
         loading={deletingOrder}
       />
 
+      <ConfirmDialog
+        isOpen={showAmendmentPrompt}
+        onClose={() => {
+          setShowAmendmentPrompt(false);
+          performAdvance('Delivered');
+        }}
+        onConfirm={async () => {
+          setShowAmendmentPrompt(false);
+          await performAdvance('Delivered');
+          router.push(ROUTES.customerDetail(order.customerId));
+        }}
+        title="Any Fit Amendments?"
+        description="Since you're delivering this order, did you make any final adjustments to the garment? You can record them now so the customer's next outfit fits perfectly from the start."
+        confirmLabel="Record Amendments"
+        cancelLabel="No, Fits Perfectly"
+        destructive={false}
+      />
+
       <PhotoLightbox
         src={lightbox?.src ?? null}
         originRect={lightbox?.rect ?? null}
@@ -1011,6 +1104,43 @@ export default function OrderDetailPage() {
           showToast('Measurements updated', 'success');
         }}
       />
+
+      {loggingException && (
+        <FixedBottomPortal>
+          <div className={styles.exceptionSheetOverlay} onClick={() => setLoggingException(false)}>
+            <div className={styles.exceptionSheet} onClick={e => e.stopPropagation()}>
+              <div className={styles.sheetHeader}>
+                <h3 className={styles.sheetTitle}>Log Delay Exception</h3>
+                <button type="button" className={styles.sheetCloseBtn} onClick={() => setLoggingException(false)} aria-label="Close">
+                  <Symbol name="close" size={24} />
+                </button>
+              </div>
+              <div className={styles.sheetBody}>
+                <p className={styles.sheetDesc}>
+                  If an order is delayed due to circumstances outside your control (e.g. customer didn&apos;t bring fabric, missed fitting), log an exception here to pause your streak evaluation for this order.
+                </p>
+                <Input
+                  label="Reason for Delay"
+                  value={exceptionReason}
+                  onChange={(e) => setExceptionReason(e.target.value)}
+                  placeholder="e.g. Waiting on customer's fabric"
+                  autoFocus
+                />
+                <Button
+                  variant="primary"
+                  fullWidth
+                  disabled={!exceptionReason.trim() || savingException}
+                  loading={savingException}
+                  onClick={handleLogException}
+                >
+                  Log Exception
+                </Button>
+              </div>
+            </div>
+          </div>
+
+        </FixedBottomPortal>
+      )}
     </PageLayout>
   );
 }

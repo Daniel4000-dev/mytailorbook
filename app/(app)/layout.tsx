@@ -56,7 +56,9 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   // The FAB creates orders/customers — not a relevant action on Settings
   // (it would float over the Register Employee form) or on an order's own
   // page, which has its floating WhatsApp shortcut in the same spot.
-  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/fabrics') && !/^\/production\/./.test(pathname) && !isTransactional;
+  // The in-app portfolio preview also skips it, as the portfolio has its
+  // own WhatsApp FAB in that corner.
+  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/fabrics') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional;
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).

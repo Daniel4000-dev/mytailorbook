@@ -1,0 +1,71 @@
+.container {
+  padding: var(--sf-space-md);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-lg);
+  padding-bottom: var(--sf-space-sm);
+  border-bottom: 1px solid var(--sf-border-color);
+}
+
+.header h3 {
+  font-size: var(--sf-text-lg);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.optionBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-md);
+  background-color: var(--sf-surface-alt);
+  border: 1px solid var(--sf-border-color);
+  border-radius: var(--sf-radius-md);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.optionBtn:active,
+.optionBtn:hover {
+  background-color: var(--sf-surface-hover);
+}
+
+.optionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sf-radius-full);
+  background-color: var(--sf-surface-default);
+  color: var(--sf-text-primary);
+  flex-shrink: 0;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionTitle {
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-primary);
+}
+
+.optionDesc {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+}

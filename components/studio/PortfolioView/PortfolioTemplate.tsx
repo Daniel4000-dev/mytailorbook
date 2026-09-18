@@ -1,25 +1,21 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
-import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { getWhatsAppLink } from '@/lib/formatters';
+import { getWhatsAppLink, formatCurrency } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
+import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import type { PublicPortfolio, PortfolioOutfit } from '@/app/public-actions';
 import styles from './PortfolioTemplate.module.css';
 
-/** Mirrors the real order stages a customer sees on their own tracking page
- *  (see app/track/[orderId]/_components/TimelineStage.tsx) — same names,
- *  icons, and voice, so the promise made here is the product a buyer
- *  actually gets, not a separate marketing story. */
-const PROCESS_STEPS = [
-  { icon: 'assignment', title: 'Documented', text: 'Every measurement logged the day you order — nothing left to memory' },
-  { icon: 'content_cut', title: 'Cutting', text: 'Patterns drafted, fabric cut to your exact numbers' },
-  { icon: 'apparel', title: 'Sewing', text: 'Stitched seam by seam, checked as it goes' },
-  { icon: 'inventory_2', title: 'Delivered', text: 'Pressed, packaged, and tracked live to your phone' },
+const EDITORIAL_EXPERIENCE = [
+  { num: '01', title: 'The Consultation', text: 'An intimate conversation about your vision, lifestyle, and how you want to feel. We measure not just for fit, but for character.' },
+  { num: '02', title: 'The Cut', text: 'Patterns drafted from scratch. Fabric cut with precision. Every line engineered to drape flawlessly over your unique frame.' },
+  { num: '03', title: 'The Commission', text: 'Hand-finished, pressed, and presented. A garment built to endure, delivered with uncompromising quality.' },
 ];
 
 /** Curated accent palette — a tailor picks one of these in Settings, never
@@ -54,39 +50,77 @@ interface LightboxState {
   photoIndex: number;
 }
 
+const MOCK_OUTFITS = [
+  {
+    id: 'mock-1',
+    title: 'The Modern Agbada',
+    category: 'Agbada',
+    startingPrice: 350,
+    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    displayPhotos: [{ url: '/images/mock/mock_agbada_1789589437748.jpg', angle: 'front' as any }],
+    storyModeEnabled: true,
+    storyCaption: 'Crafted for a groom who wanted a balance between deep traditional roots and a razor-sharp modern silhouette. We spent three days perfecting the hand-embroidery on the chest, ensuring the heavy thread sat perfectly flat against the raw silk.',
+    storyPhotos: [
+      '/images/mock/mock_process_chalk_1789591170047.jpg',
+      '/images/mock/mock_process_sewing_1789591187626.jpg'
+    ],
+    materials: '100% Raw Silk & Gold Thread',
+  },
+  {
+    id: 'mock-2',
+    title: 'Executive Bespoke Suit',
+    category: 'Suits',
+    startingPrice: 500,
+    displayPhotos: [{ url: '/images/mock/mock_suit_nigerian_1789589547408.jpg', angle: 'front' as any }],
+    storyModeEnabled: false,
+    storyCaption: null,
+    storyPhotos: [],
+  },
+  {
+    id: 'mock-3',
+    title: 'Bespoke Lapel Detail',
+    category: 'Detail',
+    startingPrice: null,
+    displayPhotos: [{ url: '/images/mock/mock_detail_nigerian_1789589583459.jpg', angle: 'detail' as any }],
+    storyModeEnabled: false,
+    storyCaption: null,
+    storyPhotos: [],
+  }
+];
+
 export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPortfolio }) {
-  const { shop, outfits, stats, testimonials } = portfolio;
+  const { shop: realShop, stats, testimonials } = portfolio;
+  
+  // MOCK DATA INJECTION
+  const shop = {
+    ...realShop,
+    phone: realShop.phone || '08000000000', // Ensure WhatsApp button always renders
+    bio: realShop.bio || "Started in a single room in Surulere, we have spent the last decade mastering the art of bespoke tailoring. Every stitch is a testament to our dedication to the craft, and every garment is a narrative woven for the wearer."
+  };
+  const outfits = portfolio.outfits && portfolio.outfits.length > 0 ? portfolio.outfits : MOCK_OUTFITS;
+  const mockFont = 'Playfair Display'; // Mock font selection
+  
   const palette = ACCENTS[shop.portfolioAccent] || ACCENTS.indigo;
   const reduceMotion = useReducedMotion();
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 800], ['0%', '40%']);
 
-  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
-  const [storyOutfit, setStoryOutfit] = useState<PortfolioOutfit | null>(null);
+  const [storyOutfit, setStoryOutfit] = useState<any | null>(null);
   const [shared, setShared] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [leadForm, setLeadForm] = useState({ name: '', email: '', message: '', submitted: false });
+
+  const categories = useMemo(() => ['All', ...Array.from(new Set(outfits.map(o => o.category).filter(Boolean) as string[]))], [outfits]);
+  
+  const filteredOutfits = useMemo(() => {
+    if (activeCategory === 'All') return outfits;
+    return outfits.filter(o => o.category === activeCategory);
+  }, [activeCategory, outfits]);
 
   const heroPhoto = outfits[0]?.displayPhotos[0];
   const city = shop.address ? shop.address.split(',').pop()?.trim() : null;
   const whatsappHref = shop.phone ? getWhatsAppLink(shop.phone) : null;
   const hasStory = Boolean(shop.tagline || shop.bio || shop.foundedYear);
-
-  const lightboxPhoto = lightbox ? outfits[lightbox.outfitIndex]?.displayPhotos[lightbox.photoIndex] : null;
-  const lightboxOutfit = lightbox ? outfits[lightbox.outfitIndex] : null;
-
-  /* Lightbox keyboard nav — cycles through the open outfit's own photos */
-  useEffect(() => {
-    if (!lightbox || !lightboxOutfit) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightbox(null);
-      if (e.key === 'ArrowRight') setLightbox((s) => (s ? { ...s, photoIndex: Math.min(lightboxOutfit.displayPhotos.length - 1, s.photoIndex + 1) } : null));
-      if (e.key === 'ArrowLeft') setLightbox((s) => (s ? { ...s, photoIndex: Math.max(0, s.photoIndex - 1) } : null));
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [lightbox, lightboxOutfit]);
-
-  const presentAngles = useMemo(() => {
-    if (!lightboxOutfit) return [];
-    return lightboxOutfit.displayPhotos.map((p) => p.angle);
-  }, [lightboxOutfit]);
 
   const handleShare = async () => {
     // Always the canonical production domain — this view can also render
@@ -113,29 +147,52 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
       ? {}
       : { initial: 'hidden', whileInView: 'shown', viewport: { once: true, margin: '-60px' }, variants: fadeUp, transition: { delay } };
 
-  const ctaCard = (
-    <div className={styles.ctaRailCard}>
-      <h3 className={styles.ctaRailTitle}>Start Your Order</h3>
-      <p className={styles.ctaRailHint}>Share your vision and get measured — every order tracked live from cut to delivery.</p>
-      {whatsappHref ? (
-        <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.ctaRailBtn}>
-          <WhatsappIcon size={20} /> Chat on WhatsApp
-        </a>
-      ) : (
-        <p className={styles.ctaRailHint}>{shop.name} hasn&apos;t added a contact number yet.</p>
-      )}
-      <ul className={styles.ctaRailList}>
-        <li>Doesn&apos;t match your measurements — free re-fit within 7 days</li>
-        <li>Fabric shown is the fabric used, always</li>
-        <li>Deposit only due once your order is logged in the system</li>
-      </ul>
-      {shop.address && <span className={styles.ctaRailAddress}>{shop.address}</span>}
-      <button type="button" className={styles.ctaRailShare} onClick={handleShare}>
-        <Symbol name={shared ? 'check' : 'ios_share'} size={16} />
-        {shared ? 'Link Copied' : 'Share Portfolio'}
-      </button>
-    </div>
-  );
+  const handleLeadSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLeadForm(prev => ({ ...prev, submitted: true }));
+    setTimeout(() => setLeadForm({ name: '', email: '', message: '', submitted: false }), 4000);
+  };
+
+  const currentIndex = storyOutfit ? filteredOutfits.findIndex(o => o.id === storyOutfit.id) : -1;
+  const hasNext = currentIndex !== -1 && currentIndex < filteredOutfits.length - 1;
+  const hasPrev = currentIndex > 0;
+
+  useEffect(() => {
+    if (storyOutfit) {
+      document.body.style.overflow = 'hidden';
+      // Fallback for iOS
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
+
+      const scrollY = window.scrollY;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setStoryOutfit(null);
+        if (e.key === 'ArrowRight' && hasNext) setStoryOutfit(filteredOutfits[currentIndex + 1]);
+        if (e.key === 'ArrowLeft' && hasPrev) setStoryOutfit(filteredOutfits[currentIndex - 1]);
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      
+      const timer = setTimeout(() => {
+        const closeBtn = document.querySelector(`.${styles.storyClose}`) as HTMLButtonElement;
+        if (closeBtn) closeBtn.focus();
+      }, 100);
+
+      return () => {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.top = '';
+        window.scrollTo(0, scrollY);
+        window.removeEventListener('keydown', handleKeyDown);
+        clearTimeout(timer);
+      };
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [storyOutfit, hasNext, hasPrev, currentIndex, filteredOutfits]);
 
   return (
     <div
@@ -145,16 +202,21 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
         ['--m-accent' as string]: palette.accent,
         ['--m-accent-dark' as string]: palette.accentDark,
         ['--m-accent-light' as string]: palette.accentLight,
+        fontFamily: `"${mockFont}", ${shop.portfolioAccent === 'classic' ? 'serif' : 'sans-serif'}`
       }}
     >
-      {/* 1. Hero — full width, above the two-column split */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+      `}</style>
+      
+      {/* 1. Hero — Full screen editorial presentation */}
       <section className={styles.hero}>
         {heroPhoto ? (
           <motion.div
             className={styles.heroPhoto}
-            style={{ backgroundImage: `url(${heroPhoto.url})` }}
-            animate={reduceMotion ? undefined : { scale: [1, 1.08] }}
-            transition={reduceMotion ? undefined : { duration: 24, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+            style={{ backgroundImage: `url(${heroPhoto.url})`, y: heroY }}
+            animate={reduceMotion ? undefined : { scale: [1, 1.05] }}
+            transition={reduceMotion ? undefined : { duration: 20, repeat: Infinity, repeatType: 'reverse', ease: 'linear' }}
           />
         ) : (
           <div className={styles.heroFallback} />
@@ -180,46 +242,8 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
         </motion.div>
       </section>
 
-      {/* Below the hero: single column on mobile, main+sticky-rail on desktop */}
-      <div className={styles.layout}>
-        <div className={styles.mainCol}>
-          {/* 2. Our Craft — story block, omitted entirely if nothing set */}
-          {hasStory && (
-            <motion.section className={styles.storySection} {...reveal()}>
-              {shop.foundedYear && <span className={styles.storyEyebrow}>Founded {shop.foundedYear}</span>}
-              {shop.bio && <p className={styles.storyBody}>{shop.bio}</p>}
-            </motion.section>
-          )}
-
-          {/* 3. Proof strip */}
-          {stats.completed > 0 && (
-            <motion.section className={styles.proofStrip} {...reveal()}>
-              <div className={styles.proofItem}>
-                <span className={styles.proofNum}>
-                  {stats.completed}
-                  <em>+</em>
-                </span>
-                <span className={styles.proofLabel}>Finished</span>
-                {shop.foundedYear && <span className={styles.proofSub}>since {shop.foundedYear}</span>}
-              </div>
-              {stats.onTimePercent !== null && (
-                <div className={styles.proofItem}>
-                  <span className={styles.proofNum}>
-                    {stats.onTimePercent}
-                    <em>%</em>
-                  </span>
-                  <span className={styles.proofLabel}>On-time</span>
-                  <span className={styles.proofSub}>of completed orders</span>
-                </div>
-              )}
-              {stats.stylesCount > 0 && (
-                <div className={styles.proofItem}>
-                  <span className={styles.proofNum}>{stats.stylesCount}</span>
-                  <span className={styles.proofLabel}>Styles</span>
-                </div>
-              )}
-            </motion.section>
-          )}
+      {/* Below the hero: single flowing editorial column */}
+      <div className={styles.mainCol}>
 
           {/* 4. Gallery — one tile per published outfit, not one per photo.
               A brand-new shop with nothing published yet still gets a
@@ -234,63 +258,50 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             </motion.section>
           ) : (
             <section className={styles.gallerySection}>
-              <motion.h2 className={styles.sectionTitle} {...reveal()}>Our Work</motion.h2>
-              <div className={styles.bento}>
-                {outfits.map((o, i) => (
-                  <motion.div key={o.id} className={styles.outfitTile} {...reveal((i % 6) * 0.06)}>
-                    <button
+              <div className={styles.galleryHeader}>
+                <motion.div className={styles.categoryFilters} {...reveal(0.1)}>
+                  {categories.map((cat, idx) => (
+                    <button 
+                      key={idx}
+                      className={`${styles.categoryFilterBtn} ${activeCategory === cat ? styles.categoryFilterBtnActive : ''}`}
+                      onClick={() => setActiveCategory(cat)}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </motion.div>
+              </div>
+              <div className={styles.lookbookGrid}>
+                {filteredOutfits.map((o, i) => (
+                  <motion.div 
+                    key={o.id} 
+                    className={styles.outfitTile}
+                    {...reveal((i % 4) * 0.08)}
+                  >
+                    <motion.button
                       type="button"
                       className={styles.outfitTileBtn}
-                      onClick={() => setLightbox({ outfitIndex: i, photoIndex: 0 })}
+                      onClick={() => setStoryOutfit(o)}
                       aria-label={`View ${o.title || 'outfit'}`}
+                      layoutId={`outfit-container-${o.id}`}
                     >
-                      <Image src={o.displayPhotos[0].url} alt="" fill sizes="(max-width: 768px) 50vw, 400px" className={styles.outfitTileImg} loading={i > 3 ? 'lazy' : undefined} />
-                      {o.displayPhotos.length > 1 && (
-                        <span className={styles.photoCountBadge}>
-                          <Symbol name="photo_library" size={14} /> {o.displayPhotos.length}
+                      <motion.div layoutId={`outfit-image-${o.id}-0`} style={{ position: 'absolute', inset: 0 }}>
+                        <div style={{ position: 'absolute', inset: 0 }}>
+                          <Image src={o.displayPhotos[0].url} alt="" fill sizes="(max-width: 768px) 50vw, 400px" className={styles.outfitTileImg} loading={i > 3 ? 'lazy' : undefined} />
+                        </div>
+                      </motion.div>
+                      {o.storyModeEnabled && (
+                        <span className={styles.storyBadge}>
+                          View Commission
                         </span>
                       )}
-                      {o.title && <span className={styles.outfitTileCaption}>{o.title}</span>}
-                    </button>
-                    {o.storyModeEnabled && o.storyPhotos.length > 0 && (
-                      <button type="button" className={styles.storyBtn} onClick={() => setStoryOutfit(o)}>
-                        <Symbol name="auto_stories" size={15} /> The Story
-                      </button>
-                    )}
+                    </motion.button>
+                    <div className={styles.outfitTileMeta}>
+                      {o.category && <span className={styles.outfitTileCategory}>{o.category}</span>}
+                      {o.title && <h3 className={styles.outfitTileTitle}>{o.title}</h3>}
+                      {o.startingPrice && <span className={styles.outfitTilePrice}>From {formatCurrency(o.startingPrice, 'NGN')}</span>}
+                    </div>
                   </motion.div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* 5. Process strip */}
-          <section className={styles.processSection}>
-            <motion.h2 className={styles.sectionTitle} {...reveal()}>How Your Order Will Go</motion.h2>
-            <div className={styles.processGrid}>
-              {PROCESS_STEPS.map((step, i) => (
-                <motion.div key={step.title} className={styles.processStep} {...reveal(i * 0.09)}>
-                  <span className={styles.processIcon} style={{ background: `color-mix(in srgb, var(--m-accent) ${8 + i * 6}%, transparent)` }}>
-                    <Symbol name={step.icon} size={28} fill={i === PROCESS_STEPS.length - 1} />
-                  </span>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-
-          {/* 6. Real reviews — tied to completed, verified orders, not typed by the shop */}
-          {testimonials.length > 0 && (
-            <section className={styles.reviewsSection}>
-              <motion.h2 className={styles.sectionTitle} {...reveal()}>Real Reviews</motion.h2>
-              <p className={styles.reviewsSub}>Tied to completed, verified orders — not typed by us.</p>
-              <div className={styles.reviewsRow}>
-                {testimonials.map((t, i) => (
-                  <div key={i} className={styles.reviewCard}>
-                    <span className={styles.reviewStars}>{'★'.repeat(t.rating)}{'☆'.repeat(5 - t.rating)}</span>
-                    {t.comment && <p className={styles.reviewQuote}>&ldquo;{t.comment}&rdquo;</p>}
-                    <span className={styles.reviewAttrib}>{t.customerName}</span>
-                  </div>
                 ))}
               </div>
             </section>
@@ -305,79 +316,137 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
           )}
         </div>
 
-        {/* Desktop-only sticky rail — hidden on mobile via CSS, replaced by the fixed bottom bar below */}
-        <aside className={styles.ctaRail}>{ctaCard}</aside>
-      </div>
-
-      {/* Mobile-only persistent bottom bar — visible from load, not scroll-triggered */}
+      {/* Floating Action Button (WhatsApp) */}
       {whatsappHref && (
-        <div className={styles.mobileBar}>
-          <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.mobileBarBtn}>
-            <WhatsappIcon size={20} /> Chat on WhatsApp
+        <FixedBottomPortal>
+          <a 
+            href={whatsappHref} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className={styles.whatsappFab} 
+            aria-label="Chat on WhatsApp"
+            style={{ 
+              ['--m-accent' as string]: palette.accent,
+              ['--m-accent-fg' as string]: '#ffffff'
+            }}
+          >
+            <WhatsappIcon size={28} />
           </a>
-        </div>
+        </FixedBottomPortal>
       )}
 
-      {/* Photo lightbox — cycles the open outfit's display photos */}
-      {lightbox && lightboxPhoto && lightboxOutfit && (
-        <div className={styles.lightbox} role="dialog" aria-label="Photo viewer" onClick={() => setLightbox(null)}>
-          <button type="button" className={styles.lightboxClose} aria-label="Close" onClick={() => setLightbox(null)}>
-            <Symbol name="close" size={24} />
-          </button>
-          <Image
-            src={lightboxPhoto.url}
-            alt={lightboxOutfit.title || ''}
-            width={1200}
-            height={900}
-            onClick={(e) => e.stopPropagation()}
-            style={{ width: 'auto', height: 'auto' }}
-          />
-          <p className={styles.lightboxCaption} onClick={(e) => e.stopPropagation()}>
-            {lightboxOutfit.title || 'Outfit'}
-            {lightboxPhoto.angle ? ` · ${lightboxPhoto.angle}` : ''}
-            {presentAngles.length > 1 ? ` (${lightbox.photoIndex + 1}/${lightboxOutfit.displayPhotos.length})` : ''}
-          </p>
-          {lightbox.photoIndex > 0 && (
-            <button
-              type="button"
-              className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
-              aria-label="Previous photo"
-              onClick={(e) => { e.stopPropagation(); setLightbox({ ...lightbox, photoIndex: lightbox.photoIndex - 1 }); }}
-            >
-              <Symbol name="chevron_left" size={28} />
-            </button>
-          )}
-          {lightbox.photoIndex < lightboxOutfit.displayPhotos.length - 1 && (
-            <button
-              type="button"
-              className={`${styles.lightboxNav} ${styles.lightboxNext}`}
-              aria-label="Next photo"
-              onClick={(e) => { e.stopPropagation(); setLightbox({ ...lightbox, photoIndex: lightbox.photoIndex + 1 }); }}
-            >
-              <Symbol name="chevron_right" size={28} />
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Story viewer — a visitor has to deliberately open this; it's
-          never shown alongside the main gallery by default. */}
+      {/* Story viewer — Bespoke Case Study Modal */}
       {storyOutfit && (
         <div className={styles.storyOverlay} role="dialog" aria-label="Creation story" onClick={() => setStoryOutfit(null)}>
-          <button type="button" className={styles.lightboxClose} aria-label="Close" onClick={() => setStoryOutfit(null)}>
-            <Symbol name="close" size={24} />
+          <button type="button" className={styles.storyClose} aria-label="Close" onClick={() => setStoryOutfit(null)}>
+            <Symbol name="close" size={28} />
           </button>
-          <div className={styles.storyPanel} onClick={(e) => e.stopPropagation()}>
-            <h3 className={styles.storyPanelTitle}>{storyOutfit.title || 'The Story'}</h3>
-            {storyOutfit.storyCaption && <p className={styles.storyPanelCaption}>{storyOutfit.storyCaption}</p>}
-            <div className={styles.storySequence}>
-              {storyOutfit.storyPhotos.map((url, i) => (
-                <div key={i} className={styles.storyFrame}>
-                  <Image src={url} alt="" fill sizes="(max-width: 768px) 90vw, 480px" />
+          
+          <div className={styles.caseStudyContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.caseStudyLeft}>
+              <motion.div 
+                layoutId={`outfit-image-${storyOutfit.id}-0`}
+                className={styles.caseStudyHero}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(e, { offset }) => {
+                  if (offset.x < -50 && hasNext) {
+                    setStoryOutfit(filteredOutfits[currentIndex + 1]);
+                  } else if (offset.x > 50 && hasPrev) {
+                    setStoryOutfit(filteredOutfits[currentIndex - 1]);
+                  }
+                }}
+              >
+                <div style={{ position: 'absolute', inset: 0 }}>
+                  <Image
+                    src={storyOutfit.displayPhotos[0].url}
+                    alt={storyOutfit.title || 'Bespoke garment detail'}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    style={{ objectFit: 'cover' }}
+                  />
                 </div>
-              ))}
+                
+                {hasPrev && (
+                  <button type="button" className={`${styles.galleryNavBtn} ${styles.galleryNavPrev}`} onClick={(e) => { e.stopPropagation(); setStoryOutfit(filteredOutfits[currentIndex - 1]); }} aria-label="Previous Outfit">
+                    <Symbol name="chevron_left" size={24} />
+                  </button>
+                )}
+                {hasNext && (
+                  <button type="button" className={`${styles.galleryNavBtn} ${styles.galleryNavNext}`} onClick={(e) => { e.stopPropagation(); setStoryOutfit(filteredOutfits[currentIndex + 1]); }} aria-label="Next Outfit">
+                    <Symbol name="chevron_right" size={24} />
+                  </button>
+                )}
+              </motion.div>
+            </div>
+            
+            <div className={styles.caseStudyRight}>
+              <div className={`${styles.caseStudyContent} ${storyOutfit.storyPhotos.length === 0 && !storyOutfit.storyCaption ? styles.caseStudyContentEmpty : ''}`}>
+                <span className={styles.caseStudyShopName}>{shop.name}</span>
+                <h3 className={styles.caseStudyTitle}>{storyOutfit.title || 'Bespoke Commission'}</h3>
+                
+                {storyOutfit.materials && (
+                  <div className={styles.caseStudyMaterials}>
+                    <span className={styles.caseStudyMetaLabel}>Fabric & Materials</span>
+                    <p className={styles.caseStudyMetaValue}>{storyOutfit.materials}</p>
+                  </div>
+                )}
+                
+                {storyOutfit.startingPrice && (
+                  <div className={styles.caseStudyMaterials}>
+                    <span className={styles.caseStudyMetaLabel}>Starting Commission</span>
+                    <p className={styles.caseStudyMetaValue}>{formatCurrency(storyOutfit.startingPrice, 'NGN')}</p>
+                  </div>
+                )}
+                
+                {storyOutfit.storyCaption && (
+                  <p className={styles.caseStudyNarrative}>{storyOutfit.storyCaption}</p>
+                )}
+                
+                {whatsappHref && (
+                  <a 
+                    href={`${whatsappHref}&text=${encodeURIComponent(`Hello, I'm interested in commissioning something similar to '${storyOutfit.title}'.`)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={styles.caseStudyCta}
+                  >
+                    <WhatsappIcon size={18} /> Inquire about this piece
+                  </a>
+                )}
+                
+                <div className={styles.caseStudyProcess}>
+                  {storyOutfit.storyPhotos.map((url: string, i: number) => (
+                    <div key={i} className={styles.caseStudyStep}>
+                      <img 
+                        src={url} 
+                        alt={`Making process ${i + 1}`} 
+                        loading="lazy"
+                        style={{ width: '100%', height: 'auto', display: 'block' }} 
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {whatsappHref && (storyOutfit.storyPhotos.length > 0 || storyOutfit.storyCaption) && (
+                  <a 
+                    href={`${whatsappHref}&text=${encodeURIComponent(`Hello, I'm interested in commissioning something similar to '${storyOutfit.title}'.`)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={`${styles.caseStudyCta} ${styles.caseStudyCtaBottom}`}
+                  >
+                    <WhatsappIcon size={18} /> Inquire about this piece
+                  </a>
+                )}
+              </div>
             </div>
           </div>
+          
+          {/* Focus Trap Guard */}
+          <div tabIndex={0} aria-hidden="true" onFocus={() => {
+            const closeBtn = document.querySelector(`.${styles.storyClose}`) as HTMLButtonElement;
+            if (closeBtn) closeBtn.focus();
+          }} />
         </div>
       )}
     </div>

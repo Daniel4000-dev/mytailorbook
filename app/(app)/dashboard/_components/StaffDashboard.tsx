@@ -9,6 +9,7 @@ import { getInitials } from '@/lib/formatters';
 import type { Order } from '@/lib/types';
 import styles from '../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import TodaysAgendaWidget from './TodaysAgendaWidget';
 
 // ============================================================
 // Staff Dashboard
@@ -58,6 +59,7 @@ export default function StaffDashboard({
 
   return (
     <>
+      <TodaysAgendaWidget />
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>My Workload</span>
       </div>

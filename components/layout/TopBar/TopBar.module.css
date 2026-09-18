@@ -14,7 +14,7 @@
 /* Profile mode's banner is taller than the standard bar — let the bar grow to fit it. */
 .topBar:has(.profileHeaderContent) {
   height: auto;
-  padding: var(--sf-space-sm) var(--sf-space-md);
+  padding: var(--sf-space-sm) var(--sf-space-sm);
 }
 
 .left, .right {
@@ -38,7 +38,7 @@
   padding: 0 var(--sf-space-sm);
 }
 
-.backBtn {
+.backBtn, .notificationBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,11 +51,23 @@
   cursor: pointer;
   transition: background var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: var(--sf-accent-red);
+  border-radius: 50%;
+  border: 2px solid var(--sf-bg-primary);
 }
 
 @media (hover: hover) and (pointer: fine) {
 
-.backBtn:hover {
+.backBtn:hover, .notificationBtn:hover {
   background: var(--sf-bg-surface-elevated);
 }
 }
@@ -94,7 +106,7 @@
   background: linear-gradient(135deg, var(--sf-bg-surface) 0%, var(--sf-accent-gold-soft) 100%);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-sm) var(--sf-space-md);
+  padding: var(--sf-space-sm) var(--sf-space-md) var(--sf-space-sm) var(--sf-space-xs);
   margin: var(--sf-space-sm) 0;
   box-shadow: var(--sf-shadow-xs);
 }
@@ -198,4 +210,22 @@
   .hamburgerBtn {
     display: none;
   }
+}
+
+.logoBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sf-shadow-sm), 0 0 0 2px var(--sf-bg-surface);
+  padding: 0;
+}
+
+.logoBadgeImg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }

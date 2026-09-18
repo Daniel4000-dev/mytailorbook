@@ -321,6 +321,9 @@ export interface PortfolioOutfit {
    *  tailor uploaded them. No angle tagging; a story is a sequence, not
    *  a product shot. */
   storyPhotos: string[];
+  materials?: string | null;
+  category?: string | null;
+  startingPrice?: number | null;
 }
 
 export interface PortfolioTestimonial {
@@ -524,4 +527,40 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
     ratingSummary,
     isPremium,
   };
+});
+
+import type { CalendarEvent, CalendarEventType } from '@/lib/types';
+
+function mapEventRow(row: any): CalendarEvent {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    title: row.title,
+    description: row.description || undefined,
+    type: row.type as CalendarEventType,
+    date: row.date,
+    startTime: row.start_time || undefined,
+    endTime: row.end_time || undefined,
+    relatedOrderId: row.related_order_id || undefined,
+    relatedCustomerId: row.related_customer_id || undefined,
+    assignedTo: row.assigned_to || undefined,
+    createdAt: row.created_at,
+  };
+}
+
+export const getPublicOrderEvents = cache(async (orderId: string): Promise<CalendarEvent[]> => {
+  const supabase = createAdminClient();
+  
+  const { data, error } = await supabase
+    .from('calendar_events')
+    .select('*')
+    .eq('related_order_id', orderId)
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('Failed fetching public order events:', error);
+    return [];
+  }
+  
+  return (data || []).map(mapEventRow);
 });

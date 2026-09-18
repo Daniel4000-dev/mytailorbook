@@ -16,6 +16,7 @@ import Button from '@/components/ui/Button/Button';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import Input from '@/components/ui/Input/Input';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasurementAnatomy from '../_components/MeasurementAnatomy';
@@ -25,7 +26,9 @@ import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
 import { formatCurrency, formatDate, getWhatsAppLink, truncateText, formatMonthYear } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import type { Measurements, Customer, Order } from '@/lib/types';
+import type { Measurements, Customer, Order, OrderPhoto } from '@/lib/types';
+import { compressImage } from '@/lib/compressImage';
+import { createClient } from '@/lib/supabase/client';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import CustomerDetailSkeleton from './_components/CustomerDetailSkeleton';
 import styles from './page.module.css';
@@ -40,7 +43,7 @@ interface Point {
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const { isOwner, loading: authLoading } = useAuth();
-  const { customers, orders, isLoaded, updateCustomerMeasurements, deleteCustomer } = useData();
+  const { customers, orders, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer } = useData();
 
   if (authLoading || !isLoaded) {
     return (
@@ -73,6 +76,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
       customer={customer}
       orders={orders}
       updateCustomerMeasurements={updateCustomerMeasurements}
+      updateCustomerProfile={updateCustomerProfile}
       deleteCustomer={deleteCustomer}
     />
   );
@@ -82,11 +86,13 @@ function CustomerProfileContent({
   customer,
   orders,
   updateCustomerMeasurements,
+  updateCustomerProfile,
   deleteCustomer,
 }: {
   customer: Customer;
   orders: Order[];
   updateCustomerMeasurements: ReturnType<typeof useData>['updateCustomerMeasurements'];
+  updateCustomerProfile: ReturnType<typeof useData>['updateCustomerProfile'];
   deleteCustomer: ReturnType<typeof useData>['deleteCustomer'];
 }) {
   const { showToast } = useToast();
@@ -126,11 +132,13 @@ function CustomerProfileContent({
     return initial;
   });
 
-  const [notes, setNotes] = useState(customer.measurements?.notes || '');
+  const [notes, setNotes] = useState(customer.measurementNotes || '');
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
   const [currentValue, setCurrentValue] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [styleSheet, setStyleSheet] = useState<{ open: boolean; style: string | null }>({ open: false, style: null });
+  const [uploadingFabric, setUploadingFabric] = useState(false);
+  const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
 
   const id = customer.id;
   const custOrders = orders
@@ -168,7 +176,6 @@ function CustomerProfileContent({
 
     const updatedMeasurements: Measurements = {
       ...customer.measurements,
-      notes: notes || undefined
     };
 
     const updatedRecord = { ...measurements, [pointId]: val };
@@ -189,19 +196,7 @@ function CustomerProfileContent({
   };
 
   const handleSaveNotes = () => {
-    const updatedMeasurements: Measurements = {
-      ...customer.measurements,
-      notes: notes || undefined
-    };
-
-    Object.entries(measurements).forEach(([key, val]) => {
-      const num = parseFloat(val);
-      if (!isNaN(num)) {
-        (updatedMeasurements as unknown as Record<string, number>)[key] = num;
-      }
-    });
-
-    updateCustomerMeasurements(customer.id, updatedMeasurements);
+    updateCustomerProfile(customer.id, { measurementNotes: notes.trim() || undefined });
     showToast('Notes saved', 'success');
   };
 
@@ -215,7 +210,6 @@ function CustomerProfileContent({
 
       const updatedMeasurements: Measurements = {
         ...customer.measurements,
-        notes: notes || undefined
       };
 
       Object.entries(measurements).forEach(([key, val]) => {
@@ -248,7 +242,6 @@ function CustomerProfileContent({
 
       const updatedMeasurements: Measurements = {
         ...customer.measurements,
-        notes: notes || undefined
       };
 
       Object.entries(measurements).forEach(([key, val]) => {
@@ -263,9 +256,58 @@ function CustomerProfileContent({
       delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
 
       updateCustomerMeasurements(customer.id, updatedMeasurements);
-      showToast(`${selectedPoint.name} measurement cleared`, 'success');
+      showToast(`${selectedPoint.name} measurement cleared`, 'info');
       setSelectedPoint(null);
     }
+  };
+
+  const uploadToStorage = async (rawFile: File, subdir: string) => {
+    const file = await compressImage(rawFile);
+    const supabase = createClient();
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${customer.shopId}/customers/${customer.id}/${subdir}${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from('order-photos').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+    if (error) throw new Error(error.message);
+    return supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
+  };
+
+  const removeFromStorage = async (photo: OrderPhoto) => {
+    const supabase = createClient();
+    const path = photo.url.split('/order-photos/')[1];
+    if (path) {
+      await supabase.storage.from('order-photos').remove([path]);
+    }
+  };
+
+  const handleFabricUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    setUploadingFabric(true);
+    try {
+      const uploaded: OrderPhoto[] = [];
+      for (const file of Array.from(files)) {
+        const url = await uploadToStorage(file, 'fabrics/');
+        const ext = file.name.split('.').pop() || 'jpg';
+        uploaded.push({ url, stage: 'Documented', uploadedAt: new Date().toISOString() });
+      }
+      await updateCustomerProfile(customer.id, { fabrics: [...(customer.fabrics || []), ...uploaded] });
+      showToast(uploaded.length > 1 ? `${uploaded.length} fabrics added to stash` : 'Fabric added to stash', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload fabric', 'error');
+    } finally {
+      setUploadingFabric(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveFabric = async (index: number) => {
+    const removed = (customer.fabrics || [])[index];
+    await updateCustomerProfile(customer.id, { fabrics: (customer.fabrics || []).filter((_, i) => i !== index) });
+    if (removed && removed.url) await removeFromStorage(removed);
   };
 
   return (
@@ -389,6 +431,42 @@ function CustomerProfileContent({
         )}
       </section>
 
+      {/* Fabric Stash */}
+      <section className={styles.section + ' ' + styles.gaStash}>
+        <div className={styles.sectionTitleRow}>
+          <h3 className={styles.sectionTitle}>Fabric Stash</h3>
+          <label className={styles.newBtn}>
+            <input type="file" accept="image/*" multiple hidden onChange={handleFabricUpload} disabled={uploadingFabric} />
+            <Symbol name="add" size={18} /> {uploadingFabric ? 'UPLOADING...' : 'ADD FABRIC'}
+          </label>
+        </div>
+        
+        {(customer.fabrics || []).length === 0 ? (
+          <div className={styles.emptyHint}>
+            <Symbol name="texture" className={styles.emptyHintIcon} />
+            <span>No fabrics stashed. Drop off Aso Ebi? Take a picture here.</span>
+          </div>
+        ) : (
+          <div className={styles.inspoGrid}>
+            {(customer.fabrics || []).map((photo, i) => (
+              <div key={i} className={styles.inspoThumb}>
+                <Image
+                  src={photo.url}
+                  alt={`Fabric ${i + 1}`}
+                  width={400}
+                  height={400}
+                  onClick={(e) => setLightbox({ src: photo.url, rect: e.currentTarget.getBoundingClientRect() })}
+                  style={{ cursor: 'zoom-in', objectFit: 'cover', width: '100%', height: '100%', borderRadius: 'var(--sf-radius-md)' }}
+                />
+                <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveFabric(i)} aria-label="Remove fabric">
+                  <Symbol name="close" size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Full-body reference profile */}
       <section className={styles.section + ' ' + styles.gaBody}>
         <h3 className={styles.sectionTitle}>Full-Body Profile</h3>
@@ -441,7 +519,7 @@ function CustomerProfileContent({
 
       {/* Notes */}
       <section className={styles.section + ' ' + styles.orderNotes}>
-        <h3 className={styles.sectionTitle}>Customer Notes</h3>
+        <h3 className={styles.sectionTitle}>Measurement Notes</h3>
         <textarea
           className={styles.notesTextarea}
           placeholder="Add special requests, preferences, or fabric details here..."
@@ -548,6 +626,14 @@ function CustomerProfileContent({
         customer={customer}
         initialStyle={styleSheet.style}
       />
+
+      {lightbox && (
+        <PhotoLightbox
+          src={lightbox.src}
+          originRect={lightbox.rect}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </PageLayout>
   );
 }

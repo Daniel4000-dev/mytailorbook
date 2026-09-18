@@ -6,9 +6,13 @@ import { useData } from '@/contexts/DataContext';
 import type { Order } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
+import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import DiscoverCarousel from './DiscoverCarousel';
+import MilestonesCard from '../MilestonesCard';
+import ShopTodayCard from '../ShopTodayCard';
 import styles from '../../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import TodaysAgendaWidget from '../TodaysAgendaWidget';
 
 // ============================================================
 // Owner Dashboard — mobile
@@ -38,9 +42,14 @@ export default function OwnerDashboard({
     hasMoreAttentionItems,
   } = useOwnerDashboardData(orders, staffMembers);
 
+  const { customers, exceptions } = useData();
+  const openLoops = useOpenLoops(orders, customers, exceptions);
+
   return (
     <>
       <DiscoverCarousel onNavigate={onNavigate} />
+
+      <TodaysAgendaWidget />
 
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Overview Analytics</span>
@@ -144,34 +153,10 @@ export default function OwnerDashboard({
       )}
 
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Needs Attention</span>
+        <span className={styles.sectionTitle}>Shop Today</span>
       </div>
-
-      {visibleAttentionItems.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Symbol name="check_circle" className={styles.emptyStateIcon} />
-          <span>Nothing overdue or rushed — production is on track.</span>
-        </div>
-      ) : (
-        <div className={styles.attentionList}>
-          {visibleAttentionItems.map((n) => (
-            <button key={n.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${n.orderId}`)} type="button">
-              <div className={styles.attentionInfo}>
-                <div className={`${styles.attentionAvatar} ${styles[`attentionAvatar_${n.tone}`]}`}>{n.icon}</div>
-                <div className={styles.attentionTextGroup}>
-                  <span className={styles.attentionCustomer}>{n.title}</span>
-                  <span className={styles.attentionDetails}>{n.subtitle}</span>
-                </div>
-              </div>
-            </button>
-          ))}
-          {hasMoreAttentionItems && (
-            <button className={styles.attentionSeeAll} onClick={() => onNavigate('/notifications')} type="button">
-              See all notifications
-            </button>
-          )}
-        </div>
-      )}
+      <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
+      <MilestonesCard />
     </>
   );
 }

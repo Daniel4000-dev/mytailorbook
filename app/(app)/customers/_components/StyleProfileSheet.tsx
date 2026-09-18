@@ -29,11 +29,12 @@ interface StyleProfileSheetProps {
  *  photo, gendered to the customer), then record/edit that style's saved
  *  measurement profile on the customer. */
 export default function StyleProfileSheet({ isOpen, onClose, customer, initialStyle }: StyleProfileSheetProps) {
-  const { updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile } = useData();
+  const { updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile } = useData();
   const { showToast } = useToast();
   const [styleName, setStyleName] = useState<string | null>(initialStyle);
   const [values, setValues] = useState<Record<string, string>>({});
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -60,6 +61,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
       });
     }
     setValues(init);
+    setNotes(customer.measurementNotes || '');
     setActiveKey(null);
   } else if (!isOpen && prevOpenKey !== null) {
     setPrevOpenKey(null);
@@ -101,13 +103,14 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
     setSaving(true);
     try {
       if (FEATURE_FLAGS.perStyleMeasurements) {
-        await updateCustomerStyleProfile(customer.id, styleName, measurements);
+        await updateCustomerStyleProfile(customer.id, styleName, measurements, notes.trim() || undefined);
       } else {
         // Merge into the existing body profile rather than overwrite it —
         // unlike a per-style snapshot (isolated under its own key), this
         // is the one shared record every measurement surface reads, so a
         // field this style's spec doesn't happen to show must survive.
         await updateCustomerMeasurements(customer.id, { ...customer.measurements, ...measurements });
+        await updateCustomerProfile(customer.id, { measurementNotes: notes.trim() || undefined });
       }
       showToast(`${styleName} profile saved`, 'success');
       onClose();
@@ -161,21 +164,44 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
       }
     >
       {styleName ? (
-        <StyleMeasureForm
-          spec={spec}
-          values={values}
-          onChange={(key, val) => setValues((prev) => ({ ...prev, [key]: val }))}
-          activeKey={activeKey}
-          onActiveKeyChange={setActiveKey}
-          importSources={
-            // This form already IS the body profile while per-style
-            // profiles are off — offering to "import" it into itself
-            // would be a no-op that only confuses.
-            FEATURE_FLAGS.perStyleMeasurements && customer.measurements && Object.keys(customer.measurements).length > 0
-              ? [{ label: 'Import from body profile', icon: 'person', measurements: customer.measurements }]
-              : []
-          }
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '24px' }}>
+          <StyleMeasureForm
+            spec={spec}
+            values={values}
+            onChange={(key, val) => setValues((prev) => ({ ...prev, [key]: val }))}
+            activeKey={activeKey}
+            onActiveKeyChange={setActiveKey}
+            importSources={
+              // This form already IS the body profile while per-style
+              // profiles are off — offering to "import" it into itself
+              // would be a no-op that only confuses.
+              FEATURE_FLAGS.perStyleMeasurements && customer.measurements && Object.keys(customer.measurements).length > 0
+                ? [{ label: 'Import from body profile', icon: 'person', measurements: customer.measurements }]
+                : []
+            }
+          />
+          <div style={{ padding: '0 20px' }}>
+            <h3 className={styles.sectionTitle} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>Fit Preferences & Amendments</h3>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Record unique body quirks, preferred looseness/tightness, or past amendments here..."
+              style={{
+                width: '100%',
+                minHeight: '120px',
+                padding: '16px',
+                borderRadius: 'var(--sf-radius-md)',
+                border: '1px solid var(--sf-border-color)',
+                backgroundColor: 'var(--sf-bg-surface-elevated)',
+                color: 'var(--sf-text-primary)',
+                fontSize: '15px',
+                lineHeight: 1.5,
+                resize: 'vertical',
+                fontFamily: 'inherit'
+              }}
+            />
+          </div>
+        </div>
       ) : (
         <div className={styles.pickerGrid}>
           {pickableStyles.map((s) => (

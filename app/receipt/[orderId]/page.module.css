@@ -344,7 +344,4 @@
     background:
       radial-gradient(circle at 8px 0, transparent 7px, #fff 7.5px) top / 16px 14px repeat-x;
   }
-  :global(.noPrint) {
-    display: none !important;
-  }
 }
