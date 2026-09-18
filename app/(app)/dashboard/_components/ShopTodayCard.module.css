@@ -167,7 +167,7 @@
 .loopTitle {
   font-size: 14px;
   font-weight: 500;
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-primary);
   line-height: 1.4;
 }
 
@@ -206,5 +206,23 @@
 
 .hintIcon {
   color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+}
+
+.caughtUpBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--sf-stage-ready-alpha-10, rgba(16, 185, 129, 0.1));
+  color: var(--sf-stage-ready, #10B981);
+  padding: 12px 16px;
+  border-radius: var(--sf-radius-md);
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.caughtUpIcon {
   flex-shrink: 0;
 }

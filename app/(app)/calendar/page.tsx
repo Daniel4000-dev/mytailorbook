@@ -11,6 +11,7 @@ import FAB from '@/components/ui/FAB/FAB';
 import AddEventSheet from './_components/AddEventSheet';
 import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
 import type { CalendarEvent, Order } from '@/lib/types';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import styles from './page.module.css';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -215,10 +216,11 @@ export default function CalendarPage() {
       >
         <div className={styles.agendaContainer}>
           {selectedDayEvents?.events.length === 0 ? (
-            <div className={styles.emptyAgenda}>
-              <Symbol name="event_busy" size={48} className={styles.emptyIcon} />
-              <p>No events scheduled</p>
-            </div>
+            <EmptyState
+              icon={<Symbol name="event_busy" size={48} />}
+              title="No events scheduled"
+              description="Enjoy the free time."
+            />
           ) : (
             <div className={styles.agendaList}>
               {selectedDayEvents?.events.map(evt => {

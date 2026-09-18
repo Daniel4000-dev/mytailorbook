@@ -126,6 +126,17 @@ export default function ShopTodayCard({
           ))}
         </motion.div>
       )}
+
+      {isAllCaughtUp && (
+        <motion.div
+          className={styles.caughtUpBox}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Symbol name="task_alt" size={20} className={styles.caughtUpIcon} />
+          <span>No pending tasks for today.</span>
+        </motion.div>
+      )}
     </div>
   );
 }

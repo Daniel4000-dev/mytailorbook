@@ -18,7 +18,7 @@
      emerald-dark), just at different depths — no new color introduced. */
   background: linear-gradient(160deg, var(--sf-accent-emerald-dark) 0%, var(--sf-nav) 100%);
   border-radius: var(--sf-radius-xl);
-  padding: var(--sf-space-xl) var(--sf-space-xl) var(--sf-space-lg);
+  padding: var(--sf-space-xl) var(--sf-space-2xl) var(--sf-space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-lg);

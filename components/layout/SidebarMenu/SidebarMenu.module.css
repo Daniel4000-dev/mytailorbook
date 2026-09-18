@@ -321,38 +321,33 @@
   }
 
   .collapseToggle {
+    width: calc(100% - 32px) !important;
+    padding: 10px 16px !important;
+    margin: 0 16px;
+    border-radius: var(--sf-radius-sm);
+    transition: all var(--sf-transition-fast);
     display: flex;
     align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 44px;
-    right: -12px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--sf-border);
-    box-shadow: var(--sf-shadow-sm);
-    color: var(--sf-text-secondary);
+    gap: 16px;
+    background: none;
+    border: none;
+    color: var(--sf-text-primary);
+    font-family: var(--sf-font-body), sans-serif;
+    font-size: 17px;
+    font-weight: 500;
     cursor: pointer;
-    z-index: 100;
-    transition: all var(--sf-transition-fast);
   }
 
   @media (hover: hover) and (pointer: fine) {
-
-  .collapseToggle:hover {
-    background-color: var(--sf-bg-surface-elevated);
-    color: var(--sf-text-primary);
-    transform: scale(1.05);
-  }
+    .collapseToggle:hover {
+      background-color: var(--sf-bg-surface-hover);
+      color: var(--sf-text-primary) !important;
+    }
   }
 
   .collapseToggle:active {
-    background-color: var(--sf-bg-surface-elevated);
-    color: var(--sf-text-primary);
-    transform: scale(0.92);
+    opacity: 0.6;
+    transform: scale(0.97);
   }
 
   .footer {
@@ -532,7 +527,8 @@
     align-items: center;
   }
 
-  .sidebar.collapsed .logoutBtn {
+  .sidebar.collapsed .logoutBtn,
+  .sidebar.collapsed .collapseToggle {
     justify-content: center;
     width: 44px !important;
     height: 44px;

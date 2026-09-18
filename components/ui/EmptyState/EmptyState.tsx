@@ -18,11 +18,12 @@ interface EmptyStateProps {
   title: string;
   description?: string;
   action?: { label: string; onClick: () => void };
+  size?: 'normal' | 'sm';
 }
 
-export default function EmptyState({ icon, image, title, description, action }: EmptyStateProps) {
+export default function EmptyState({ icon, image, title, description, action, size = 'normal' }: EmptyStateProps) {
   return (
-    <div className={styles.wrapper}>
+    <div className={`${styles.wrapper} ${styles[size]}`}>
       {image ? (
         <Image src={image.src} alt="" width={image.width} height={image.height} className={styles.image} />
       ) : (

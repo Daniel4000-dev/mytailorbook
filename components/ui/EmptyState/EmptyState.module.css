@@ -4,9 +4,25 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--sf-space-2xl) var(--sf-space-lg);
   gap: var(--sf-space-md);
   animation: fadeIn 0.4s ease both;
+}
+
+.normal {
+  padding: var(--sf-space-2xl) var(--sf-space-lg);
+}
+
+.sm {
+  padding: var(--sf-space-lg) var(--sf-space-md);
+}
+
+.sm .icon {
+  font-size: 2rem;
+  margin-bottom: 0;
+}
+
+.sm .title {
+  font-size: var(--sf-text-base);
 }
 
 .icon {

@@ -22,7 +22,7 @@
 
 /* Mobile padding variations */
 .normal {
-  padding: var(--sf-space-md);
+  padding: var(--sf-space-md) 20px;
 }
 
 .none {

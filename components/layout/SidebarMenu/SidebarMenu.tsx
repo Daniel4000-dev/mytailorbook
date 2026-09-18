@@ -62,7 +62,11 @@ export default function SidebarMenu() {
         <div className={styles.desktopBranding}>
           <BrandIcon alt={shopName} className={styles.desktopLogo} />
           <span className={styles.desktopTitle} title={shopName}>{shopName.toUpperCase()}</span>
-          {!isCollapsed && <OnlineIndicator />}
+          {!isCollapsed && (
+            <div style={{ marginTop: '8px' }}>
+              <OnlineIndicator />
+            </div>
+          )}
         </div>
       </div>
 
@@ -82,15 +86,6 @@ export default function SidebarMenu() {
           ))}
         </select>
       )}
-
-      {/* Collapse Toggle Button for Desktop */}
-      <button 
-        className={styles.collapseToggle}
-        onClick={toggleCollapse}
-        aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-      >
-        <Symbol name={isCollapsed ? "chevron_right" : "chevron_left"} />
-      </button>
 
       {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
           bottom nav's 4th tab, so it no longer needs a separate entry here.
@@ -200,6 +195,15 @@ export default function SidebarMenu() {
         >
           <Symbol name="logout" className={styles.logoutIcon} />
           <span className={styles.logoutText}>Logout</span>
+        </button>
+
+        <button 
+          className={styles.collapseToggle}
+          onClick={toggleCollapse}
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          <Symbol name={isCollapsed ? "chevron_right" : "chevron_left"} className={styles.logoutIcon} />
+          <span className={styles.logoutText}>Collapse</span>
         </button>
       </div>
 

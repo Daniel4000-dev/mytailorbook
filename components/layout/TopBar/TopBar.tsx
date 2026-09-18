@@ -51,12 +51,10 @@ export default function TopBar({
             </button>
             {leftAction}
             
-            {/* 
             <div className={styles.greetingWrapper}>
               <span className={styles.greetingText}>{profileMode.greeting},</span>
               <span className={styles.profileName}>{profileMode.name}</span>
             </div>
-            */}
           </div>
           <div className={styles.right}>
             <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">

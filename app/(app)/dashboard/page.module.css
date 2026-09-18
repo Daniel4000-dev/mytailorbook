@@ -664,9 +664,9 @@
   flex-direction: column;
   align-items: center;
   gap: var(--sf-space-sm);
-  background: var(--sf-bg-surface);
-  border: 1px dashed var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  background: var(--sf-bg-surface-elevated);
+  border: 2px dashed var(--sf-border);
+  border-radius: var(--sf-radius-lg);
   padding: var(--sf-space-2xl) var(--sf-space-xl);
   text-align: center;
   color: var(--sf-text-secondary);

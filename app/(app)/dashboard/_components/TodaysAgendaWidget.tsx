@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
 import type { CalendarEvent } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Link from 'next/link';
 
 export default function TodaysAgendaWidget() {
@@ -53,7 +54,12 @@ export default function TodaysAgendaWidget() {
       </div>
 
       {events.length === 0 ? (
-        <p style={{ color: 'var(--sf-text-secondary)', fontSize: '0.875rem', margin: 0 }}>No events scheduled for today.</p>
+        <EmptyState
+          icon={<Symbol name="event_busy" size={32} />}
+          title="No events scheduled for today"
+          description="Enjoy the breather or check the full calendar."
+          size="sm"
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {events.map(evt => {
