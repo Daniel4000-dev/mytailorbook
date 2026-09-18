@@ -172,7 +172,7 @@ export default function CalendarPage() {
             <div className={styles.remindersList}>
               {upcomingReminders.map(evt => {
                 const customer = evt.relatedCustomerId ? customers.find(c => c.id === evt.relatedCustomerId) : null;
-                const phone = customer?.whatsappNumber || customer?.phoneNumber;
+                const phone = customer?.whatsappNumber;
                 
                 let whatsappLink = '';
                 if (phone) {
