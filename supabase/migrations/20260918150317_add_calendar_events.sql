@@ -35,10 +35,4 @@ ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage calendar events in their shop"
   ON public.calendar_events
   FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM user_roles
-      WHERE user_roles.shop_id = calendar_events.shop_id
-      AND user_roles.user_id = auth.uid()
-    )
-  );
+  USING (shop_id = current_shop_id());

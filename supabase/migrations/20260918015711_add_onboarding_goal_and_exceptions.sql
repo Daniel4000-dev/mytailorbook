@@ -19,37 +19,13 @@ ALTER TABLE shop_exceptions ENABLE ROW LEVEL SECURITY;
 
 -- Add RLS policies for shop_exceptions
 CREATE POLICY "Users can view exceptions for their shops" ON shop_exceptions
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM shop_roles
-            WHERE shop_roles.shop_id = shop_exceptions.shop_id
-            AND shop_roles.user_id = auth.uid()
-        )
-    );
+    FOR SELECT USING (shop_id = current_shop_id());
 
 CREATE POLICY "Users can create exceptions for their shops" ON shop_exceptions
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM shop_roles
-            WHERE shop_roles.shop_id = shop_exceptions.shop_id
-            AND shop_roles.user_id = auth.uid()
-        )
-    );
+    FOR INSERT WITH CHECK (shop_id = current_shop_id());
 
 CREATE POLICY "Users can update exceptions for their shops" ON shop_exceptions
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM shop_roles
-            WHERE shop_roles.shop_id = shop_exceptions.shop_id
-            AND shop_roles.user_id = auth.uid()
-        )
-    );
+    FOR UPDATE USING (shop_id = current_shop_id());
 
 CREATE POLICY "Users can delete exceptions for their shops" ON shop_exceptions
-    FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM shop_roles
-            WHERE shop_roles.shop_id = shop_exceptions.shop_id
-            AND shop_roles.user_id = auth.uid()
-        )
-    );
+    FOR DELETE USING (shop_id = current_shop_id());
