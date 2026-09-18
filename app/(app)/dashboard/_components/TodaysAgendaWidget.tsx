@@ -13,18 +13,18 @@ export default function TodaysAgendaWidget() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.shop_id) return;
+    if (!user?.shopId) return;
     const fetchToday = async () => {
       const today = new Date();
       const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const allMonth = await getCalendarEvents(user.shop_id, monthStr);
+      const allMonth = await getCalendarEvents(user.shopId, monthStr);
       
       const todayStr = today.toISOString().split('T')[0];
       setEvents(allMonth.filter(e => e.date === todayStr));
       setIsLoading(false);
     };
     fetchToday();
-  }, [user?.shop_id]);
+  }, [user?.shopId]);
 
   if (isLoading) return null;
 

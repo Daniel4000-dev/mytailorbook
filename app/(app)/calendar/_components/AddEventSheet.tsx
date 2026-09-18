@@ -44,7 +44,7 @@ export default function AddEventSheet({ isOpen, onClose, defaultDate, onEventCre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.shop_id) return;
+    if (!user?.shopId) return;
 
     if (!title.trim()) {
       showToast('Please enter an event title', 'error');
@@ -53,7 +53,7 @@ export default function AddEventSheet({ isOpen, onClose, defaultDate, onEventCre
 
     setIsSubmitting(true);
     const { success, error } = await createCalendarEvent({
-      shopId: user.shop_id,
+      shopId: user.shopId,
       title: title.trim(),
       description: description.trim() || undefined,
       type,
