@@ -16,7 +16,7 @@ import styles from './page.module.css';
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function CalendarPage() {
-  const { shop } = useAuth();
+  const { user } = useAuth();
   const { orders, customers, isLoaded } = useData();
   
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -30,17 +30,17 @@ export default function CalendarPage() {
   const currentMonth = currentDate.getMonth();
 
   const fetchEvents = async () => {
-    if (!shop?.id) return;
+    if (!user?.shopId) return;
     setIsLoadingEvents(true);
     const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-    const fetchedEvents = await getCalendarEvents(shop.id, monthStr);
+    const fetchedEvents = await getCalendarEvents(user.shopId, monthStr);
     setEvents(fetchedEvents);
     setIsLoadingEvents(false);
   };
 
   useEffect(() => {
     fetchEvents();
-  }, [shop?.id, currentYear, currentMonth]);
+  }, [user?.shopId, currentYear, currentMonth]);
 
   // Combine fetched events with dynamic Order Deadlines
   const allEvents = useMemo(() => {
