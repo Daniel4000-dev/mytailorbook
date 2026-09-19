@@ -34,11 +34,11 @@ export default function TodaysAgendaWidget() {
   return (
     <div style={{
       background: 'var(--sf-bg-surface)',
-      borderRadius: '28px',
+      borderRadius: 'var(--sf-radius-xl)',
       padding: 'var(--sf-space-lg)',
       marginBottom: 'var(--sf-space-md)',
-      border: '1px solid rgba(0, 0, 0, 0.03)',
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)',
+      border: '1px solid var(--sf-border-color)',
+      boxShadow: 'var(--sf-shadow-sm)',
       width: '100%',
       boxSizing: 'border-box'
     }}>
