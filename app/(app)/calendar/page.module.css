@@ -235,6 +235,54 @@
   color: var(--sf-text-disabled);
 }
 
+.agendaSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+  padding: 0 var(--sf-space-xl);
+  margin-top: var(--sf-space-lg);
+  margin-bottom: var(--sf-space-xl);
+  padding-bottom: 80px; /* Space for FAB */
+}
+
+@media (max-width: 768px) {
+  .agendaSection {
+    padding: 0 var(--sf-space-md);
+    padding-bottom: 80px;
+  }
+}
+
+.agendaDayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.agendaDayTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.agendaDaySubtitle {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--sf-text-secondary);
+}
+
+.emptyAgendaInline {
+  font-size: 0.875rem;
+  color: var(--sf-text-secondary);
+  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface-elevated);
+  border: 1px dashed var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  text-align: center;
+}
+
 .agendaList {
   display: flex;
   flex-direction: column;

@@ -83,17 +83,26 @@ export default function CalendarPage() {
   todayDate.setHours(0,0,0,0);
   const todayStr = new Date().toISOString().split('T')[0];
   
-  const upcomingReminders = useMemo(() => {
-    // Look ahead 7 days for deadlines and fittings
-    const maxDate = new Date(todayDate);
-    maxDate.setDate(maxDate.getDate() + 7);
-    
-    return allEvents.filter(e => {
-      const eDate = new Date(e.date);
-      return (e.type === 'order_deadline' || e.type === 'fitting') && 
-             eDate >= todayDate && 
-             eDate <= maxDate;
-    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const agendaDays = useMemo(() => {
+    const days = [];
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(todayDate);
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayEvents = allEvents.filter(e => e.date === dateStr).sort((a,b) => (a.startTime || '').localeCompare(b.startTime || ''));
+      
+      let title = 'Today';
+      if (i === 1) title = 'Tomorrow';
+      else if (i === 2) title = 'Day after';
+      
+      days.push({
+        dateStr,
+        title,
+        events: dayEvents,
+        fullDate: d
+      });
+    }
+    return days;
   }, [allEvents, todayDate]);
   
 
@@ -167,45 +176,60 @@ export default function CalendarPage() {
           </div>
         </div>
         
-        {upcomingReminders.length > 0 && (
-          <div className={styles.remindersSection}>
-            <h3 className={styles.remindersTitle}>Upcoming Reminders (Next 7 Days)</h3>
-            <div className={styles.remindersList}>
-              {upcomingReminders.map((evt, i) => {
-                const customer = evt.relatedCustomerId ? customers.find(c => c.id === evt.relatedCustomerId) : null;
-                const phone = customer?.whatsappNumber;
-                
-                let whatsappLink = '';
-                if (phone) {
-                  const rawPhone = phone.replace(/\D/g, '');
-                  const message = evt.type === 'order_deadline' 
-                    ? `Hello ${customer?.fullName.split(' ')[0]}, this is a friendly reminder that your order is scheduled for completion on ${new Date(evt.date).toLocaleDateString()}. We will notify you once it's ready for pickup!`
-                    : `Hello ${customer?.fullName.split(' ')[0]}, this is a reminder for your fitting appointment on ${new Date(evt.date).toLocaleDateString()}. See you then!`;
-                  whatsappLink = `https://wa.me/${rawPhone}?text=${encodeURIComponent(message)}`;
-                }
-
-                return (
-                  <div key={`rem-${evt.id}`} className={styles.reminderCard} style={{ animationDelay: `${i * 0.05}s` }}>
-                    <div className={styles.reminderInfo}>
-                      <span className={styles.reminderDate}>
-                        {new Date(evt.date).toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' })}
-                      </span>
-                      <span className={styles.reminderText}>
-                        {evt.title}
-                      </span>
-                    </div>
-                    {whatsappLink && (
-                      <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className={styles.whatsappBtn}>
-                        <Symbol name="chat" size={18} />
-                        Send Reminder
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
+        <div className={styles.agendaSection}>
+          {agendaDays.map(dayGroup => (
+            <div key={dayGroup.dateStr} className={styles.agendaDayGroup}>
+              <h3 className={styles.agendaDayTitle}>
+                {dayGroup.title} 
+                <span className={styles.agendaDaySubtitle}>
+                  {dayGroup.fullDate.toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </span>
+              </h3>
+              
+              {dayGroup.events.length === 0 ? (
+                <div className={styles.emptyAgendaInline}>No events scheduled</div>
+              ) : (
+                <div className={styles.agendaList}>
+                  {dayGroup.events.map((evt, i) => {
+                    const isCompleted = evt.status === 'completed';
+                    return (
+                      <div key={evt.id} className={`${styles.agendaItem} ${isCompleted ? styles.completedEvent : ''}`} style={{ animationDelay: `${i * 0.05}s` }}>
+                        <div className={`${styles.agendaColorBar} ${evt.type === 'order_deadline' ? styles.eventDeadline : evt.type === 'fitting' ? styles.eventFitting : styles.eventTask}`} />
+                        <div className={styles.agendaContent}>
+                          <div className={styles.agendaHeader}>
+                            <span className={styles.agendaTitle}>{evt.title}</span>
+                            <div className={styles.agendaActions}>
+                              <span className={styles.agendaTime}>
+                                {evt.startTime ? `${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ''}` : 'All day'}
+                              </span>
+                              {evt.type !== 'order_deadline' && (
+                                <button 
+                                  className={`${styles.checkBtn} ${isCompleted ? styles.checked : ''}`}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    const newStatus = isCompleted ? 'pending' : 'completed';
+                                    setEvents(prev => prev.map(p => p.id === evt.id ? { ...p, status: newStatus } : p));
+                                    try {
+                                      await updateEventStatus(evt.id, newStatus);
+                                    } catch (err) {
+                                      setEvents(prev => prev.map(p => p.id === evt.id ? { ...p, status: isCompleted ? 'completed' : 'pending' } : p));
+                                    }
+                                  }}
+                                >
+                                  <Symbol name="check" size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
       
       {/* Daily Agenda Sheet */}
