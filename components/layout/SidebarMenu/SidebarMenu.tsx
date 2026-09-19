@@ -97,7 +97,7 @@ export default function SidebarMenu() {
           className={styles.menuItem}
           onClick={() => setMenuOpen(false)}
         >
-          <Symbol name="calendar_today" className={styles.menuIcon} />
+          <Symbol name="calendar_month" className={styles.menuIcon} />
           <span className={styles.menuText}>Calendar</span>
         </Link>
         <Link

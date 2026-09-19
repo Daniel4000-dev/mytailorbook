@@ -28,7 +28,7 @@ export default async function ActiveUsersPage() {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <Symbol name="calendar_today" size={24} className={styles.iconDaily} fill />
+            <Symbol name="calendar_month" size={24} className={styles.iconDaily} fill />
             <h3 className={styles.statTitle}>Daily Active (DAU)</h3>
           </div>
           <p className={styles.statValue}>{stats.dailyActive}</p>
