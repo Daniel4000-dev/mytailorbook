@@ -79,7 +79,7 @@ interface DataContextValue {
   deleteCustomerStyleProfile: (customerId: string, styleName: string) => Promise<void>;
   updateCustomerProfile: (
     customerId: string,
-    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics'>>
+    updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>
   ) => Promise<void>;
   deleteCustomer: (customerId: string) => Promise<{ error?: string; deletedOrderCount?: number }>;
   deleteOrder: (orderId: string) => Promise<{ error?: string }>;
@@ -379,7 +379,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateCustomerProfile = useCallback(
     async (
       customerId: string,
-      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics'>>
+      updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>
     ) => {
       if (!orgId) return;
       const normalized =
