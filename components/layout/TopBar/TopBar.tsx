@@ -16,10 +16,7 @@ interface TopBarProps {
   leftAction?: ReactNode;
   rightAction?: ReactNode;
   actions?: ReactNode; // Fallback for existing components
-  profileMode?: {
-    greeting: string;
-    name: string;
-  };
+  brandMode?: boolean;
 }
 
 export default function TopBar({
@@ -30,7 +27,7 @@ export default function TopBar({
   leftAction,
   rightAction,
   actions,
-  profileMode,
+  brandMode,
 }: TopBarProps) {
   const router = useRouter();
   const { toggleMenu } = useSidebar();
@@ -45,18 +42,13 @@ export default function TopBar({
 
   return (
     <header className={styles.topBar}>
-      {profileMode ? (
+      {brandMode ? (
         <div className={styles.profileHeaderContent}>
           <div className={styles.left}>
             <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
               <Symbol name="menu" size={24} />
             </button>
             {leftAction}
-            
-            <div className={styles.greetingWrapper}>
-              <span className={styles.greetingText}>{profileMode.greeting},</span>
-              <span className={styles.profileName}>{profileMode.name}</span>
-            </div>
           </div>
           <div className={styles.right}>
             <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">

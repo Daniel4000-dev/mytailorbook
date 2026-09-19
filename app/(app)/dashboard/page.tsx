@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const { orders, staffMembers, isLoaded } = useData();
 
   const topBar = (
-    <TopBar title="Dashboard" />
+    <TopBar brandMode={true} />
   );
 
   if (!isLoaded) {
