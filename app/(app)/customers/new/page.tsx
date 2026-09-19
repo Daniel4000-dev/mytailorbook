@@ -59,6 +59,7 @@ export default function NewClientPage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isContactPickerSupported, setIsContactPickerSupported] = useState(false);
   // Second screen of this same step: full-body measurements, entirely
   // optional — every field can be left blank and Skip moves on exactly
   // like Continue does, just without saving any numbers.
@@ -72,6 +73,12 @@ export default function NewClientPage() {
   useEffect(() => {
     scrollContentToTop();
   }, [screen]);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'contacts' in navigator) {
+      setIsContactPickerSupported(true);
+    }
+  }, []);
 
   const handleImportContact = async () => {
     if (typeof navigator === 'undefined' || !('contacts' in navigator)) {
@@ -274,10 +281,12 @@ export default function NewClientPage() {
             <div>
               <div className={styles.titleRow}>
                 <h2 className={styles.sectionTitle}>Client Profile</h2>
-                <button type="button" className={styles.importBtn} onClick={handleImportContact}>
-                  <Symbol name="contact_phone" size={20} />
-                  Import Contact
-                </button>
+                {isContactPickerSupported && (
+                  <button type="button" className={styles.importBtn} onClick={handleImportContact}>
+                    <Symbol name="contact_phone" size={20} />
+                    Import Contact
+                  </button>
+                )}
               </div>
               <p className={styles.sectionSub}>Enter the essential details for their client record.</p>
             </div>
