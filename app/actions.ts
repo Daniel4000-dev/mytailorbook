@@ -173,6 +173,7 @@ function customerFromRow(row: any): Customer {
     styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
     fabrics: row.fabrics || undefined,
     address: row.address || undefined,
+    birthdate: row.birthdate || undefined,
     createdAt: row.created_at,
   };
 }
@@ -682,6 +683,7 @@ export async function addCustomerAction(
       measurements: customer.measurements || null,
       measurement_notes: customer.measurementNotes || null,
       address: customer.address || null,
+      birthdate: customer.birthdate || null,
     })
     .select()
     .single();
@@ -747,7 +749,7 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
 
 export async function updateCustomerProfileAction(
   customerId: string,
-  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics'>>,
+  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>,
   orgId: string
 ) {
   const supabase = await createClient();
@@ -759,6 +761,7 @@ export async function updateCustomerProfileAction(
   if (updates.address !== undefined) row.address = updates.address;
   if (updates.measurementNotes !== undefined) row.measurement_notes = updates.measurementNotes;
   if (updates.fabrics !== undefined) row.fabrics = updates.fabrics;
+  if (updates.birthdate !== undefined) row.birthdate = updates.birthdate;
 
   if (Object.keys(row).length === 0) return null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
@@ -1063,6 +1066,13 @@ export async function createStylePhotoSubmissionAction(
     .select()
     .single();
   if (error) throw new Error(error.message);
+  
+  sendPushToShop(shopId, uploadedBy, {
+    title: 'Style Photo Pending Approval',
+    body: `${uploadedByName} uploaded a new photo for '${styleName}' — tap to review and publish.`,
+    url: '/settings',
+  }).catch(() => {});
+
   return stylePhotoSubmissionFromRow(data);
 }
 

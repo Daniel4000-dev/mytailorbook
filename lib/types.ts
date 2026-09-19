@@ -223,6 +223,8 @@ export interface Customer {
   /** Uncut fabric photos dropped off by the customer (Stash). */
   fabrics?: OrderPhoto[];
   address?: string;
+  /** Format: MM-DD for birthdays (no year to protect privacy/reduce friction) */
+  birthdate?: string;
   createdAt: string;
 }
 

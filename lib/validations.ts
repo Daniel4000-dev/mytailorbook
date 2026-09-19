@@ -42,6 +42,7 @@ export const customerSchema = z.object({
   gender: z.enum(['male', 'female']),
   preferredStyles: z.array(z.string()).optional(),
   measurementNotes: z.string().optional(),
+  birthdate: z.string().optional(),
 });
 
 export type CustomerInput = z.infer<typeof customerSchema>;

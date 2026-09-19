@@ -3,7 +3,7 @@
  *  with no other code changes needed. Nothing listed here is deleted,
  *  only conditionally rendered. */
 export const FEATURE_FLAGS = {
-  costMarginTracking: false,
+  costMarginTracking: true,
   profilePictures: false,
   customerAddress: false,
   trackingPageReminder: false,

@@ -41,7 +41,7 @@ export interface NotificationItem {
  *  of sync with each other. */
 export function useNotifications() {
   const { user } = useAuth();
-  const { orders, isLoaded } = useData();
+  const { orders, customers, isLoaded } = useData();
 
   // Owner-only — Staff can't approve these anyway, so there's nothing
   // actionable for them to see. Not revalidated on every focus (matches
@@ -68,6 +68,12 @@ export function useNotifications() {
     const todayStr = new Date().toISOString().split('T')[0];
     const isDueToday = (o: Order) => !!o.dueDate && new Date(o.dueDate).toISOString().split('T')[0] === todayStr;
 
+    const tomorrowDate = new Date();
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+    const tomorrowMMDD = tomorrowStr.substring(5);
+    const isDueTomorrow = (o: Order) => !!o.dueDate && new Date(o.dueDate).toISOString().split('T')[0] === tomorrowStr;
+
     activeOrders.forEach((o: Order) => {
       if (isOverdue(o)) {
         items.push({
@@ -86,6 +92,16 @@ export function useNotifications() {
           tone: 'warning',
           title: `${o.customerName}'s order is due today`,
           subtitle: `Status: ${o.status}`,
+          timestamp: o.dueDate || o.updatedAt,
+          orderId: o.id,
+        });
+      } else if (isDueTomorrow(o) && (o.status === 'Documented' || o.status === 'Cutting')) {
+        items.push({
+          id: `stuck-${o.id}`,
+          icon: <Symbol name="running_with_errors" />,
+          tone: 'warning',
+          title: `${o.customerName}'s order is due tomorrow`,
+          subtitle: `Still stuck in ${o.status}`,
           timestamp: o.dueDate || o.updatedAt,
           orderId: o.id,
         });
@@ -135,6 +151,22 @@ export function useNotifications() {
         orderId: '',
         href: `/styles/${encodeURIComponent(s.styleName)}`,
       });
+    });
+
+    // Customer birthdays tomorrow
+    customers.forEach((c) => {
+      if (c.birthdate === tomorrowMMDD) {
+        items.push({
+          id: `birthday-${c.id}`,
+          icon: <Symbol name="cake" />,
+          tone: 'info',
+          title: `${c.fullName}'s birthday is tomorrow!`,
+          subtitle: 'Reach out and wish them well.',
+          timestamp: new Date().toISOString(),
+          orderId: '',
+          href: `/customers/${c.id}`,
+        });
+      }
     });
 
     const alertCount = items.length;
@@ -210,7 +242,7 @@ export function useNotifications() {
     });
 
     return { notifications: items, alertCount };
-  }, [relevantOrders, user, pendingStylePhotos]);
+  }, [relevantOrders, user, pendingStylePhotos, customers]);
 
   return { notifications, alertCount, isLoaded };
 }

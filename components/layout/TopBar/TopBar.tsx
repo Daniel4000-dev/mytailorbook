@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '@/contexts/SidebarContext';
+import { useNetwork } from '@/lib/hooks/useNetwork';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
@@ -33,6 +34,7 @@ export default function TopBar({
 }: TopBarProps) {
   const router = useRouter();
   const { toggleMenu } = useSidebar();
+  const { isOnline } = useNetwork();
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -58,8 +60,14 @@ export default function TopBar({
           </div>
           <div className={styles.right}>
             <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-              <Symbol name="notifications" size={24} />
-              <span className={styles.notificationBadge} />
+              {!isOnline ? (
+                <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
+              ) : (
+                <>
+                  <Symbol name="notifications" size={24} />
+                  <span className={styles.notificationBadge} />
+                </>
+              )}
             </button>
             <div className={styles.logoBadge}>
               <BrandIcon className={styles.logoBadgeImg} />
@@ -88,8 +96,14 @@ export default function TopBar({
           <div className={styles.right}>
             {finalRightAction || (
               <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-                <Symbol name="notifications" size={24} />
-                <span className={styles.notificationBadge} />
+                {!isOnline ? (
+                  <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
+                ) : (
+                  <>
+                    <Symbol name="notifications" size={24} />
+                    <span className={styles.notificationBadge} />
+                  </>
+                )}
               </button>
             )}
           </div>

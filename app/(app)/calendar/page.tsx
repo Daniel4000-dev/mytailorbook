@@ -171,7 +171,7 @@ export default function CalendarPage() {
           <div className={styles.remindersSection}>
             <h3 className={styles.remindersTitle}>Upcoming Reminders (Next 7 Days)</h3>
             <div className={styles.remindersList}>
-              {upcomingReminders.map(evt => {
+              {upcomingReminders.map((evt, i) => {
                 const customer = evt.relatedCustomerId ? customers.find(c => c.id === evt.relatedCustomerId) : null;
                 const phone = customer?.whatsappNumber;
                 
@@ -185,7 +185,7 @@ export default function CalendarPage() {
                 }
 
                 return (
-                  <div key={`rem-${evt.id}`} className={styles.reminderCard}>
+                  <div key={`rem-${evt.id}`} className={styles.reminderCard} style={{ animationDelay: `${i * 0.05}s` }}>
                     <div className={styles.reminderInfo}>
                       <span className={styles.reminderDate}>
                         {new Date(evt.date).toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -223,11 +223,11 @@ export default function CalendarPage() {
             />
           ) : (
             <div className={styles.agendaList}>
-              {selectedDayEvents?.events.map(evt => {
+              {selectedDayEvents?.events.map((evt, i) => {
                 const isCompleted = evt.status === 'completed';
                 
                 return (
-                  <div key={evt.id} className={`${styles.agendaItem} ${isCompleted ? styles.completedEvent : ''}`}>
+                  <div key={evt.id} className={`${styles.agendaItem} ${isCompleted ? styles.completedEvent : ''}`} style={{ animationDelay: `${i * 0.05}s` }}>
                     <div className={`${styles.agendaColorBar} ${evt.type === 'order_deadline' ? styles.eventDeadline : evt.type === 'fitting' ? styles.eventFitting : styles.eventTask}`} />
                     <div className={styles.agendaContent}>
                       <div className={styles.agendaHeader}>

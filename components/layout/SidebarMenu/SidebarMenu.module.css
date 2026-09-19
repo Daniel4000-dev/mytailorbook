@@ -123,7 +123,7 @@
 
 .menuItem:active {
   opacity: 0.6;
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 .menuItem.active {
@@ -201,7 +201,7 @@
 
 .settingsBtn:active {
   opacity: 0.6;
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 .settingsIcon {
@@ -245,7 +245,7 @@
 
 .logoutBtn:active {
   opacity: 0.6;
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 .logoutIcon {
@@ -347,7 +347,7 @@
 
   .collapseToggle:active {
     opacity: 0.6;
-    transform: scale(0.97);
+    transform: scale(0.95);
   }
 
   .footer {

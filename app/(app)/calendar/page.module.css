@@ -244,6 +244,7 @@
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg);
   overflow: hidden;
+  animation: calendarFadeInUp 0.3s ease both;
 }
 
 .agendaColorBar {
@@ -365,6 +366,7 @@
   background: var(--sf-bg-surface-elevated);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg);
+  animation: calendarFadeInUp 0.4s ease both;
 }
 
 .reminderInfo {
@@ -408,6 +410,17 @@
   .remindersSection {
     padding: 0 var(--sf-space-md);
     padding-bottom: 80px;
+  }
+}
+
+@keyframes calendarFadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agendaItem, .reminderCard {
+    animation: none;
   }
 }
 

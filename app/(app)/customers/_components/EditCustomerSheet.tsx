@@ -29,6 +29,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   const [phone, setPhone] = useState(formatPhone(customer.whatsappNumber));
   const [gender, setGender] = useState(customer.gender);
   const [address, setAddress] = useState(customer.address || '');
+  const [birthdate, setBirthdate] = useState(customer.birthdate || '');
   const [styleSet, setStyleSet] = useState<string[]>(customer.preferredStyles || []);
 
   // Preset chips are gendered — no mixed picker.
@@ -49,6 +50,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
     setPhone(formatPhone(customer.whatsappNumber));
     setGender(customer.gender);
     setAddress(customer.address || '');
+    setBirthdate(customer.birthdate || '');
     setStyleSet(customer.preferredStyles || []);
     setError('');
   } else if (!isOpen && prevOpenId !== null) {
@@ -80,6 +82,10 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       setError('Enter a valid phone number.');
       return;
     }
+    if (birthdate && !/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(birthdate)) {
+      setError('Birthday format must be MM-DD.');
+      return;
+    }
     setSaving(true);
     try {
       await updateCustomerProfile(customer.id, {
@@ -87,6 +93,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
         whatsappNumber: phone.trim(),
         gender,
         address: address.trim() || undefined,
+        birthdate: birthdate.trim() || undefined,
         preferredStyles: styleSet,
       });
       showToast('Profile updated', 'success');
@@ -145,6 +152,18 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
             />
           </div>
         )}
+
+        <div className={styles.field}>
+          <label className={styles.capsLabel} htmlFor="edit-birthdate">Birthday (Optional)</label>
+          <input
+            id="edit-birthdate"
+            type="text"
+            className={styles.input}
+            placeholder="MM-DD (e.g. 05-24)"
+            value={birthdate}
+            onChange={(e) => setBirthdate(e.target.value)}
+          />
+        </div>
 
         <div className={styles.field}>
           <span className={styles.capsLabel}>Gender</span>

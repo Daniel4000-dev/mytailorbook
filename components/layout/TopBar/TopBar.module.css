@@ -65,6 +65,17 @@
   border: 2px solid var(--sf-bg-primary);
 }
 
+.offlineIcon {
+  color: var(--sf-text-tertiary);
+  animation: pulseOffline 2s infinite ease-in-out;
+}
+
+@keyframes pulseOffline {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
 @media (hover: hover) and (pointer: fine) {
 
 .backBtn:hover, .notificationBtn:hover {
@@ -74,6 +85,7 @@
 
 .backBtn:active {
   background: var(--sf-bg-surface-hover);
+  transform: scale(0.95);
 }
 
 .title {
@@ -155,6 +167,7 @@
 
 .hamburgerBtn:active {
   background: var(--sf-bg-surface-hover);
+  transform: scale(0.95);
 }
 
 /* Desktop Styles */

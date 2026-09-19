@@ -143,6 +143,7 @@ export default function NewClientPage() {
         whatsappNumber: normalizedPhone,
         gender: data.gender,
         address: data.address?.trim() || undefined,
+        birthdate: data.birthdate?.trim() || undefined,
         preferredStyles: data.preferredStyles || [],
         measurements,
         measurementNotes: measurementNotes.trim() || undefined,
@@ -336,6 +337,23 @@ export default function NewClientPage() {
                 {errors.address && <div className={styles.errorText}>{errors.address.message}</div>}
               </div>
             )}
+
+            <div className={styles.field}>
+              <label className={styles.capsLabel} htmlFor="birthdate">Birthday (Optional)</label>
+              <div className={styles.inputWrap}>
+                <input
+                  id="birthdate"
+                  type="text"
+                  className={styles.input}
+                  placeholder="MM-DD (e.g. 05-24)"
+                  {...register('birthdate', {
+                    pattern: { value: /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, message: 'Format must be MM-DD' }
+                  })}
+                />
+                <Symbol name="cake" size={22} className={styles.inputIcon} />
+              </div>
+              {errors.birthdate && <div className={styles.errorText}>{errors.birthdate.message}</div>}
+            </div>
           </section>
 
           <hr className={styles.divider} />
