@@ -127,7 +127,10 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     if (!order) return;
-    getOrderCommentsAction(order.id).then(setComments).catch(() => {});
+    getOrderCommentsAction(order.id).then((result) => {
+      if (!result || 'error' in result) return;
+      setComments(result);
+    }).catch(() => {});
   }, [order?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Opening the page counts as reading any new customer comments —
@@ -142,8 +145,11 @@ export default function OrderDetailPage() {
   useEffect(() => {
     const fetchSiblings = order?.batchId
       ? getBatchOrdersAction(order.batchId, order.id)
-      : Promise.resolve([]);
-    fetchSiblings.then(setBatchSiblings).catch(() => {});
+      : Promise.resolve([] as import('@/lib/types').Order[]);
+    fetchSiblings.then((result) => {
+      if (!result || 'error' in result) return;
+      setBatchSiblings(result);
+    }).catch(() => {});
   }, [order?.batchId, order?.id]);
 
   const stageEntry = useMemo(() => {

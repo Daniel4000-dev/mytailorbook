@@ -81,8 +81,8 @@ export default function StaffSettingsPage() {
     setResettingPassword(true);
     try {
       const result = await resetStaffPasswordAction(activeStaff.uid, customPassword || undefined);
-      if (result.error) {
-        showToast(result.error, 'error');
+      if (!result || 'error' in result) {
+        showToast(result?.error ?? 'Failed to reset password', 'error');
       } else if (result.password) {
         setGeneratedPassword(result.password);
         showToast(`Password reset for ${activeStaff.name}`, 'success');

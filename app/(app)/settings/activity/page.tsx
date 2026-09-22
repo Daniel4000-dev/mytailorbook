@@ -47,7 +47,10 @@ export default function ActivityLogPage() {
 
   useEffect(() => {
     if (!currentShop?.id) return;
-    getAuditLogAction(currentShop.id).then(setEntries).catch(() => setEntries([]));
+    getAuditLogAction(currentShop.id).then((result) => {
+      if (!result || 'error' in result) { setEntries([]); return; }
+      setEntries(result);
+    }).catch(() => setEntries([]));
   }, [currentShop?.id]);
 
   return (

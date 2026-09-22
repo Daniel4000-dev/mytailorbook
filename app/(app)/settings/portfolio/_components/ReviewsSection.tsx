@@ -16,6 +16,7 @@ export default function ReviewsSection({ shopId }: { shopId: string }) {
   const load = useCallback(() => {
     getOrderRatingsAction(shopId)
       .then((r) => {
+        if (!r || 'error' in r) { setIsLoaded(true); return; }
         setRatings(r);
         setIsLoaded(true);
       })

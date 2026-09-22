@@ -24,7 +24,10 @@ export default function StyleGalleryPage() {
   useEffect(() => {
     if (!currentShop?.id) return;
     getPendingStyleCountsAction(currentShop.id)
-      .then(setPendingCounts)
+      .then((result) => {
+        if (!result || 'error' in result) return;
+        setPendingCounts(result);
+      })
       .finally(() => setLoaded(true));
   }, [currentShop?.id]);
 
