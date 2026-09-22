@@ -81,6 +81,11 @@ export default function NewClientPage() {
   }, []);
 
   const handleImportContact = async () => {
+    if (typeof navigator === 'undefined' || !('contacts' in navigator)) {
+      showToast('Apple restricts contact importing on iPhones for web apps. Please enter the details manually.', 'error');
+      return;
+    }
+
     try {
       const props = ['name', 'tel'];
       const opts = { multiple: false };

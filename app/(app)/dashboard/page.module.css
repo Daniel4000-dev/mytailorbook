@@ -442,12 +442,13 @@
 .financeCard {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-xs);
   box-shadow: var(--sf-shadow-xs);
+  transition: transform var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
 .cardLabel {
@@ -564,7 +565,7 @@
 .teamCard {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-lg);
   display: flex;
   flex-direction: column;
@@ -666,7 +667,7 @@
   gap: var(--sf-space-sm);
   background: var(--sf-bg-surface-elevated);
   border: 2px dashed var(--sf-border);
-  border-radius: var(--sf-radius-lg);
+  border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-2xl) var(--sf-space-xl);
   text-align: center;
   color: var(--sf-text-secondary);
@@ -711,7 +712,7 @@
 .attentionRow {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-md) var(--sf-space-lg);
   display: flex;
   align-items: center;
@@ -723,7 +724,7 @@
   color: inherit;
   width: 100%;
   box-shadow: var(--sf-shadow-xs);
-  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: transform var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {

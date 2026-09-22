@@ -190,7 +190,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                   <div key={evt.id} className={styles.siblingRow} style={{ flexWrap: 'wrap' }}>
                     <div className={styles.siblingDetails}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Symbol name="calendar_today" size={16} />
+                        <Symbol name="calendar_month" size={16} />
                         <strong>{evt.title}</strong>
                       </div>
                       <div style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', marginTop: '4px' }}>

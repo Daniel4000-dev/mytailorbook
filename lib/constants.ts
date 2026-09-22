@@ -560,7 +560,7 @@ export const FULL_BODY_MEASUREMENTS: Record<'male' | 'female', StyleMeasureSpec>
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home', tourId: 'home' },
-  { label: 'Calendar', href: '/calendar', icon: 'calendar_today', hideFromBottomNav: true },
+  { label: 'Calendar', href: '/calendar', icon: 'calendar_month', hideFromBottomNav: true },
   { label: 'Production', href: '/production', icon: 'precision_manufacturing', tourId: 'production' },
   { label: 'Fabrics', href: '/fabrics', icon: 'texture', tourId: 'fabrics' },
   { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers' },
