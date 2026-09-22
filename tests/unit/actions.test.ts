@@ -4,6 +4,12 @@ import { addCustomerAction } from '@/app/actions';
 // Mock server-only to prevent it from throwing in the test environment
 vi.mock('server-only', () => ({}));
 
+// Mock the push notification library to prevent VAPID key initialization errors in test env
+vi.mock('@/lib/push', () => ({
+  sendPushToShop: vi.fn(),
+  sendPushToUser: vi.fn(),
+}));
+
 // Mock the Supabase server client
 vi.mock('@/lib/supabase/server', () => {
   const mockSingle = vi.fn().mockResolvedValue({
