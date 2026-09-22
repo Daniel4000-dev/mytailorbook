@@ -364,7 +364,7 @@ export async function getCustomersPage({
 
 /** Every branch (shops row) under an organization — powers the branch
  *  switcher and the "Your Organization" settings list. */
-export async function getOrgBranches(orgId: string): Promise<Shop[]> {
+export async function getOrgBranches(orgId: string): Promise<Shop[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('shops')
@@ -384,7 +384,7 @@ export async function addBranchAction(
   name: string,
   phone?: string,
   address?: string
-): Promise<{ shop?: Shop; error?: string }> {
+): Promise<{ shop?: Shop; error?: string } | { error: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
@@ -410,7 +410,7 @@ export async function addBranchAction(
   return { shop: shopFromRow(data) };
 }
 
-async function getOrders(shopId: string): Promise<Order[]> {
+async function getOrders(shopId: string): Promise<Order[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('orders')
@@ -423,7 +423,7 @@ async function getOrders(shopId: string): Promise<Order[]> {
 
 // Customers are org-shared (see migration 0020) — scoped by org_id, not
 // any single branch's shop_id.
-async function getCustomers(orgId: string): Promise<Customer[]> {
+async function getCustomers(orgId: string): Promise<Customer[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('customers')
@@ -434,7 +434,7 @@ async function getCustomers(orgId: string): Promise<Customer[]> {
   return (data || []).map(customerFromRow);
 }
 
-export async function getStaff(shopId: string): Promise<User[]> {
+export async function getStaff(shopId: string): Promise<User[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase.from('profiles').select('*').eq('shop_id', shopId);
   if (error) return { error: error.message };
@@ -633,7 +633,7 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
 }
 
 /** Sibling orders created in the same multi-garment intake session. */
-export async function getBatchOrdersAction(batchId: string, excludeOrderId: string): Promise<Order[]> {
+export async function getBatchOrdersAction(batchId: string, excludeOrderId: string): Promise<Order[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('orders')
@@ -644,7 +644,7 @@ export async function getBatchOrdersAction(batchId: string, excludeOrderId: stri
   return (data || []).map(orderFromRow);
 }
 
-export async function getOrderCommentsAction(orderId: string): Promise<OrderComment[]> {
+export async function getOrderCommentsAction(orderId: string): Promise<OrderComment[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('order_comments')
@@ -817,7 +817,7 @@ export async function upsertCustomStyleAction(
   photoUrl?: string,
   measurementFields?: { id: string; label: string }[],
   gender?: 'male' | 'female'
-): Promise<Shop> {
+): Promise<Shop | { error: string }> {
   const supabase = await createClient();
   const { data: shopRow, error: fetchError } = await supabase
     .from('shops')
@@ -857,7 +857,7 @@ export async function renameCustomStyleEverywhereAction(
   shopId: string,
   oldName: string,
   newName: string
-): Promise<Shop> {
+): Promise<Shop | { error: string }> {
   const supabase = await createClient();
 
   const { data: shopRow, error: shopFetchError } = await supabase
@@ -907,7 +907,7 @@ export async function renameCustomStyleEverywhereAction(
 export async function resetStaffPasswordAction(
   staffUid: string,
   newPassword?: string
-): Promise<{ password?: string; error?: string }> {
+): Promise<{ password?: string; error?: string } | { error: string }> {
   // Previously took `requestedBy` as a plain argument from the caller and
   // trusted it as-is to look up "the owner requesting this" — nothing
   // verified it actually matched the real authenticated session. Since
@@ -969,7 +969,7 @@ function portfolioPhotoOverrideFromRow(row: any): PortfolioPhotoOverride {
   };
 }
 
-export async function getPortfolioPhotoOverridesAction(shopId: string): Promise<PortfolioPhotoOverride[]> {
+export async function getPortfolioPhotoOverridesAction(shopId: string): Promise<PortfolioPhotoOverride[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('portfolio_photo_overrides')
@@ -983,7 +983,7 @@ export async function setPortfolioPhotoOverrideAction(
   shopId: string,
   photoUrl: string,
   updates: { hidden?: boolean; featured?: boolean; consentConfirmed?: boolean; caption?: string }
-): Promise<void> {
+): Promise<void | { error: string }> {
   const supabase = await createClient();
   const row: Record<string, unknown> = { shop_id: shopId, photo_url: photoUrl };
   if (updates.hidden !== undefined) row.hidden = updates.hidden;
@@ -1047,7 +1047,7 @@ export async function createStylePhotoSubmissionAction(
   photoUrl: string,
   uploadedBy: string,
   uploadedByName: string
-): Promise<StylePhotoSubmission> {
+): Promise<StylePhotoSubmission | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('style_photo_submissions')
@@ -1078,7 +1078,7 @@ export async function createStylePhotoSubmissionAction(
 export async function getStylePhotoSubmissionsAction(
   shopId: string,
   styleName: string
-): Promise<{ pending: StylePhotoSubmission[]; saved: StylePhotoSubmission[] }> {
+): Promise<{ pending: StylePhotoSubmission[]; saved: StylePhotoSubmission[] } | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('style_photo_submissions')
@@ -1098,7 +1098,7 @@ export async function getStylePhotoSubmissionsAction(
  *  the Owner's approval, across every style and branch. Powers the
  *  "needs your approval" notification; org_id is derived server-side from
  *  the caller's own session, never trusted from the client. */
-export async function getPendingStylePhotoSubmissions(): Promise<StylePhotoSubmission[]> {
+export async function getPendingStylePhotoSubmissions(): Promise<StylePhotoSubmission[] | { error: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
@@ -1118,7 +1118,7 @@ export async function getPendingStylePhotoSubmissions(): Promise<StylePhotoSubmi
 
 /** One query for the whole Style Gallery index — how many pending photos
  *  are waiting per style, so the grid can badge them without a per-tile request. */
-export async function getPendingStyleCountsAction(shopId: string): Promise<Record<string, number>> {
+export async function getPendingStyleCountsAction(shopId: string): Promise<Record<string, number> | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('style_photo_submissions')
@@ -1138,7 +1138,7 @@ export async function getPendingStyleCountsAction(shopId: string): Promise<Recor
  *  which is meant to only ever offer styles the tailor can actually show
  *  proof of (a real approved photo), not every style a customer happens
  *  to have listed as a preference with nothing to show for it yet. */
-export async function getApprovedStyleNamesAction(shopId: string): Promise<string[]> {
+export async function getApprovedStyleNamesAction(shopId: string): Promise<string[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('style_photo_submissions')
@@ -1149,7 +1149,7 @@ export async function getApprovedStyleNamesAction(shopId: string): Promise<strin
   return Array.from(new Set((data || []).map((row) => row.style_name)));
 }
 
-export async function approveStylePhotoSubmissionAction(id: string, savedBy: string): Promise<void> {
+export async function approveStylePhotoSubmissionAction(id: string, savedBy: string): Promise<void | { error: string }> {
   const supabase = await createClient();
   const { error } = await supabase
     .from('style_photo_submissions')
@@ -1158,7 +1158,7 @@ export async function approveStylePhotoSubmissionAction(id: string, savedBy: str
   if (error) return { error: error.message };
 }
 
-export async function discardStylePhotoSubmissionAction(id: string, storagePath: string): Promise<void> {
+export async function discardStylePhotoSubmissionAction(id: string, storagePath: string): Promise<void | { error: string }> {
   const supabase = await createClient();
   const { error } = await supabase.from('style_photo_submissions').delete().eq('id', id);
   if (error) return { error: error.message };
@@ -1183,7 +1183,7 @@ function outreachLogEntryFromRow(row: any): OutreachLogEntry {
 
 /** Latest contact per customer for this style — one query per filter
  *  selection, joined client-side against the already-loaded customer list. */
-export async function getOutreachLogAction(shopId: string, styleName: string): Promise<OutreachLogEntry[]> {
+export async function getOutreachLogAction(shopId: string, styleName: string): Promise<OutreachLogEntry[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('customer_outreach_log')
@@ -1200,7 +1200,7 @@ export async function logOutreachContactAction(
   customerId: string,
   styleName: string,
   contactedBy: string
-): Promise<void> {
+): Promise<void | { error: string }> {
   const supabase = await createClient();
   const { error } = await supabase.from('customer_outreach_log').insert({
     shop_id: shopId,
@@ -1227,7 +1227,7 @@ export interface PortfolioCurationPhoto {
   caption?: string;
 }
 
-export async function getPortfolioCurationPhotosAction(shopId: string): Promise<PortfolioCurationPhoto[]> {
+export async function getPortfolioCurationPhotosAction(shopId: string): Promise<PortfolioCurationPhoto[] | { error: string }> {
   const supabase = await createClient();
   const { data: orderRows, error } = await supabase
     .from('orders')
@@ -1295,7 +1295,7 @@ function orderRatingFromRow(row: any): OrderRating {
   };
 }
 
-export async function getOrderRatingsAction(shopId: string): Promise<OrderRating[]> {
+export async function getOrderRatingsAction(shopId: string): Promise<OrderRating[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('order_ratings')
@@ -1309,7 +1309,7 @@ export async function getOrderRatingsAction(shopId: string): Promise<OrderRating
 export async function setOrderRatingModerationAction(
   ratingId: string,
   updates: { approved?: boolean; featured?: boolean }
-): Promise<void> {
+): Promise<void | { error: string }> {
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
   if (updates.approved !== undefined) row.approved = updates.approved;
@@ -1337,7 +1337,7 @@ async function deleteStorageFolder(
   admin: any,
   bucket: string,
   prefix: string
-): Promise<void> {
+): Promise<void | { error: string }> {
   try {
     const { data: entries } = await admin.storage.from(bucket).list(prefix);
     if (!entries || entries.length === 0) return;
@@ -1486,7 +1486,7 @@ export async function deleteOrderAction(orderId: string): Promise<{ error?: stri
  *  rejected by Postgres while any order still references it — their orders
  *  are deleted first, deliberately, not left to a cascade that doesn't
  *  exist for this relationship). */
-export async function deleteCustomerAction(customerId: string): Promise<{ error?: string; deletedOrderCount?: number }> {
+export async function deleteCustomerAction(customerId: string): Promise<{ error?: string; deletedOrderCount?: number } | { error: string }> {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
   const uid = authData?.user?.id;
@@ -1535,7 +1535,7 @@ export async function deleteCustomerAction(customerId: string): Promise<{ error?
  *  already promises, without needing a manual support request. Everything
  *  is scoped to the requester's own shop_id, derived server-side from
  *  their session, never a client-supplied id. */
-export async function exportShopDataAction(): Promise<{ data?: string; error?: string }> {
+export async function exportShopDataAction(): Promise<{ data?: string; error?: string } | { error: string }> {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
   const uid = authData?.user?.id;
@@ -1582,7 +1582,7 @@ export async function exportShopDataAction(): Promise<{ data?: string; error?: s
 /** Owner-only recent activity, for accountability — RLS (see migration
  *  0018) already restricts this to the caller's own shop and Owner role,
  *  so a Staff member calling this simply gets zero rows back, not an error. */
-export async function getAuditLogAction(shopId: string): Promise<AuditLogEntry[]> {
+export async function getAuditLogAction(shopId: string): Promise<AuditLogEntry[] | { error: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('audit_log')
@@ -1628,7 +1628,7 @@ export interface FinancialReport {
  *  avoids depending on current_branch_ids() correctly covering every
  *  branch in the org, which only holds once the RBAC migration (Phase 4)
  *  is applied. */
-export async function getFinancialReport(fromDate?: string): Promise<{ data?: FinancialReport; error?: string }> {
+export async function getFinancialReport(fromDate?: string): Promise<{ data?: FinancialReport; error?: string } | { error: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
