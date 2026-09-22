@@ -44,7 +44,7 @@ export default function TodaysAgendaWidget() {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sf-space-md)' }}>
         <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--sf-text-primary)', margin: 0 }}>
-          Today's Agenda
+          Today&apos;s Agenda
         </h2>
         {pendingCount > 0 && (
           <span style={{ background: 'var(--sf-accent-red)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>

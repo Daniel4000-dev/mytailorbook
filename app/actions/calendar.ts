@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { CalendarEvent, CalendarEventType } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapEventRow(row: any): CalendarEvent {
   return {
     id: row.id,

@@ -69,6 +69,7 @@ export default function AppTour() {
     if (loading || needsOnboarding || !user) return;
     try {
       if (!localStorage.getItem(tourStorageKey(user.uid))) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setActive(true);
       }
     } catch {

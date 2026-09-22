@@ -1,0 +1,223 @@
+
+> mystitchbook@0.1.0 lint
+> eslint
+
+
+/Users/mac/Desktop/mytailorbook/app/(app)/calendar/page.tsx
+  13:30  warning  'Order' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  21:30  warning  'isLoaded' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  24:86  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  27:10  warning  'isLoadingEvents' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  43:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Desktop/mytailorbook/app/(app)/calendar/page.tsx:43:5
+  41 |
+  42 |   useEffect(() => {
+> 43 |     fetchEvents();
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  44 |   }, [user?.shopId, currentYear, currentMonth]);
+  45 |
+  46 |   // Combine fetched events with dynamic Order Deadlines  react-hooks/set-state-in-effect
+  44:6   warning  React Hook useEffect has a missing dependency: 'fetchEvents'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+  48:21  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  82:9   warning  The 'todayDate' object construction makes the dependencies of useMemo Hook (at line 97) change on every render. To fix this, wrap the initialization of 'todayDate' in its own useMemo() Hook                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+
+/Users/mac/Desktop/mytailorbook/app/(app)/customers/[id]/page.tsx
+  294:15  warning  'ext' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/customers/new/page.tsx
+  52:18  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/Users/mac/Desktop/mytailorbook/app/(app)/customers/new/page.tsx:52:18
+  50 |   });
+  51 |
+> 52 |   const gender = watch('gender');
+     |                  ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  53 |   const styleSet = watch('preferredStyles') || [];
+  54 |
+  55 |   // Preset chips are gendered — no mixed picker. Style names from the  react-hooks/incompatible-library
+  87:7   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/ban-ts-comment
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_components/ShopTodayCard.tsx
+  16:9  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_components/TodaysAgendaWidget.tsx
+  47:16  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_components/desktop/OwnerDashboard.tsx
+  51:5  warning  'visibleAttentionItems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  52:5  warning  'hasMoreAttentionItems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_components/mobile/OwnerDashboard.tsx
+  41:5  warning  'visibleAttentionItems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  42:5  warning  'hasMoreAttentionItems' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_hooks/useOpenLoops.ts
+  30:24  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_hooks/useOpenLoops.ts:30:24
+  28 |     // 1. Production Loops
+  29 |     const activeOrders = orders.filter((o) => o.status !== 'Delivered' && !activeExceptionOrderIds.has(o.id));
+> 30 |     const staleLimit = Date.now() - 3 * 24 * 60 * 60 * 1000;
+     |                        ^^^^^^^^^^ Cannot call impure function
+  31 |     const todayStr = now.toISOString().split('T')[0];
+  32 |
+  33 |     const needsUpdateOrders = activeOrders.filter((o) => {                                                                                                                   react-hooks/purity
+  42:82  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/mac/Desktop/mytailorbook/app/(app)/dashboard/_hooks/useOpenLoops.ts:42:82
+  40 |       // Note: order might not have updatedAt mapped in types if it's missing, but let's assume it exists or fallback
+  41 |       // Since `updatedAt` is not in `Order` type based on `types.ts` inspection, we use the status history.
+> 42 |       const lastUpdate = lastStatus ? new Date(lastStatus.timestamp).getTime() : Date.now(); 
+     |                                                                                  ^^^^^^^^^^ Cannot call impure function
+  43 |       return lastUpdate < staleLimit;
+  44 |     });
+  45 |  react-hooks/purity
+
+/Users/mac/Desktop/mytailorbook/app/(app)/fabrics/page.tsx
+  12:22  warning  'OrderStatus' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/fabrics/utils.ts
+  1:17  warning  'OrderStatus' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/layout.tsx
+  19:8  warning  'DesktopGate' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/orders/new/_components/DetailsStep.tsx
+  66:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Desktop/mytailorbook/app/(app)/orders/new/_components/DetailsStep.tsx:66:7
+  64 |     const firstDate = units.find(u => u.dueDate)?.dueDate;
+  65 |     if (!firstDate || !currentShop?.id) {
+> 66 |       setCapacityWarning(null);
+     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  67 |       return;
+  68 |     }
+  69 |  react-hooks/set-state-in-effect
+  74:16  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  79:6   warning  React Hook React.useEffect has a missing dependency: 'units'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  79:7   warning  React Hook React.useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+
+/Users/mac/Desktop/mytailorbook/app/(app)/orders/new/_components/NewOrderWizard.tsx
+  99:25  warning  'setStartingStage' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/production/[orderId]/page.tsx
+   27:52  warning  'getWhatsAppLink' is defined but never used                     @typescript-eslint/no-unused-vars
+   63:10  warning  'editingNotes' is assigned a value but never used               @typescript-eslint/no-unused-vars
+   63:24  warning  'setEditingNotes' is assigned a value but never used            @typescript-eslint/no-unused-vars
+   65:10  warning  'confirmingStatusChange' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   65:34  warning  'setConfirmingStatusChange' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   88:14  warning  'e' is defined but never used                                   @typescript-eslint/no-unused-vars
+  100:14  warning  'e' is defined but never used                                   @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/settings/portfolio/_components/OutfitBuilder.tsx
+  3:20  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/(app)/settings/portfolio/page.tsx
+  86:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/mac/Desktop/mytailorbook/app/(app)/settings/portfolio/page.tsx:86:5
+  84 |
+  85 |   useEffect(() => {
+> 86 |     load();
+     |     ^^^^ Avoid calling setState() directly within an effect
+  87 |   }, [load]);
+  88 |
+  89 |   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {  react-hooks/set-state-in-effect
+
+/Users/mac/Desktop/mytailorbook/app/(auth)/forgot-password/page.tsx
+  32:24  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/Users/mac/Desktop/mytailorbook/app/(auth)/forgot-password/page.tsx:32:24
+  30 |   });
+  31 |
+> 32 |   const emailWatcher = watch('email');
+     |                        ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  33 |
+  34 |   const onSubmit = async (data: ResetPasswordInput) => {
+  35 |     setApiError('');  react-hooks/incompatible-library
+
+/Users/mac/Desktop/mytailorbook/app/(auth)/signup/page.tsx
+  35:24  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/Users/mac/Desktop/mytailorbook/app/(auth)/signup/page.tsx:35:24
+  33 |   });
+  34 |
+> 35 |   const emailWatcher = watch('email');
+     |                        ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  36 |
+  37 |   useEffect(() => {
+  38 |     const handleFocus = () => {  react-hooks/incompatible-library
+
+/Users/mac/Desktop/mytailorbook/app/actions.ts
+  714:67  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Desktop/mytailorbook/app/actions/calendar.ts
+    7:27  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
+  119:18  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/api/webhooks/paystack/route.ts
+  8:6  warning  'AdminClient' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/app/onboarding/_components/AspirationalVision.tsx
+  13:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:77  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  90:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/mac/Desktop/mytailorbook/app/onboarding/page.tsx
+    3:44  warning  'FormEvent' is defined but never used                            @typescript-eslint/no-unused-vars
+  228:90  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/mac/Desktop/mytailorbook/components/pwa/AppSWRConfig/AppSWRConfig.tsx
+  62:19  warning  '_err' is defined but never used  @typescript-eslint/no-unused-vars
+  62:25  warning  '_key' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/mac/Desktop/mytailorbook/components/studio/PortfolioView/PortfolioTemplate.tsx
+    3:40  warning  'useRef' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   12:32  warning  'PortfolioOutfit' is defined but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   15:7   warning  'EDITORIAL_EXPERIENCE' is assigned a value but never used                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   39:10  warning  'monthOf' is defined but never used                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   48:11  warning  'LightboxState' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   95:27  warning  'stats' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   95:34  warning  'testimonials' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  113:10  warning  'shared' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  115:10  warning  'leadForm' is assigned a value but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  127:9   warning  'hasStory' is assigned a value but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  129:9   warning  'handleShare' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  154:9   warning  'handleLeadSubmit' is assigned a value but never used                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  425:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 66 problems (20 errors, 46 warnings)
+

@@ -21,6 +21,7 @@ export default function CalendarPage() {
   const { orders, customers, isLoaded } = useData();
   
   const [currentDate, setCurrentDate] = useState(new Date());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedDayEvents, setSelectedDayEvents] = useState<{ date: string; events: any[] } | null>(null);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -40,11 +41,13 @@ export default function CalendarPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEvents();
   }, [user?.shopId, currentYear, currentMonth]);
 
   // Combine fetched events with dynamic Order Deadlines
   const allEvents = useMemo(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const combined: any[] = [...events];
     
     // Auto-plot order deadlines

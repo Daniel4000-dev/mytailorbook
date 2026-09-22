@@ -225,7 +225,7 @@ export default function OnboardingPage() {
             <option value="">Select your main goal...</option>
             <option value="Always knowing what is happening with their order">Always knowing what is happening with their order</option>
             <option value="Keeping my word on delivery dates">Keeping my word on delivery dates</option>
-            <option value="Remembering every customer details">Remembering every customer's details</option>
+            <option value="Remembering every customer details">Remembering every customer&apos;s details</option>
             <option value="Running a more organised business">Running a more organised business</option>
           </select>
           {errors.goal && <div className={styles.errorText}>{errors.goal.message}</div>}

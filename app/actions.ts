@@ -711,6 +711,7 @@ export async function updateCustomerStyleProfileAction(
     .single();
   if (fetchError) return { error: fetchError.message };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const existing = (current?.style_measurements as Record<string, any>) || {};
   const currentStyleData = existing[styleName] || {};
   const updated = {

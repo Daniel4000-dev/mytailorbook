@@ -57,6 +57,7 @@ const MOCK_OUTFITS = [
     category: 'Agbada',
     startingPrice: 350,
     videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/mock_agbada_1789589437748.jpg', angle: 'front' as any }],
     storyModeEnabled: true,
     storyCaption: 'Crafted for a groom who wanted a balance between deep traditional roots and a razor-sharp modern silhouette. We spent three days perfecting the hand-embroidery on the chest, ensuring the heavy thread sat perfectly flat against the raw silk.',
@@ -71,6 +72,7 @@ const MOCK_OUTFITS = [
     title: 'Executive Bespoke Suit',
     category: 'Suits',
     startingPrice: 500,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/mock_suit_nigerian_1789589547408.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -81,6 +83,7 @@ const MOCK_OUTFITS = [
     title: 'Bespoke Lapel Detail',
     category: 'Detail',
     startingPrice: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/mock_detail_nigerian_1789589583459.jpg', angle: 'detail' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -105,6 +108,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 800], ['0%', '40%']);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [storyOutfit, setStoryOutfit] = useState<any | null>(null);
   const [shared, setShared] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');

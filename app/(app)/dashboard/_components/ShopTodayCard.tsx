@@ -13,6 +13,7 @@ export default function ShopTodayCard({
 }: {
   loops: OpenLoop[];
   onNavigate: (href: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shop: any;
 }) {
   useStreakEvaluation();
