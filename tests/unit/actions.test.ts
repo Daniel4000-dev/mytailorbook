@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { addCustomerAction } from '@/app/actions';
 
+// Mock server-only to prevent it from throwing in the test environment
+vi.mock('server-only', () => ({}));
+
 // Mock the Supabase server client
 vi.mock('@/lib/supabase/server', () => {
   const mockSingle = vi.fn().mockResolvedValue({
