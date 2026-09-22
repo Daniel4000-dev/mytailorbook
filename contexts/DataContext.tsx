@@ -121,7 +121,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const branches = useMemo(() => {
     if (!branchesData) return [];
     if ('error' in branchesData) {
-      console.error('Failed to load branches:', (branchesData as any).error);
+      console.error('Failed to load branches:', (branchesData as { error: string }).error);
       return [];
     }
     return branchesData as Shop[];

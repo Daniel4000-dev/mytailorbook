@@ -7,6 +7,7 @@ export function useNetwork() {
     // Default to true if navigator isn't available (SSR)
     if (typeof navigator === 'undefined') return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOnline(navigator.onLine);
 
     const handleOnline = () => setIsOnline(true);

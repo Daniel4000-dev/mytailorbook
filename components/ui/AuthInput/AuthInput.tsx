@@ -62,4 +62,6 @@ const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(({
   );
 });
 
+AuthInput.displayName = 'AuthInput';
+
 export default AuthInput;

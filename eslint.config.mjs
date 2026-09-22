@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // One-off root-level utility/scratch scripts — not part of the app:
+    "fix-hovers.mjs",
+    "get-wa.js",
+    "get_order.mjs",
+    "remove_bg.js",
+    "snap.js",
+    "test_query.js",
   ]),
 ]);
 

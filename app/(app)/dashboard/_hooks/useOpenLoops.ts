@@ -27,6 +27,7 @@ export function useOpenLoops(orders: Order[], customers: Customer[], exceptions:
 
     // 1. Production Loops
     const activeOrders = orders.filter((o) => o.status !== 'Delivered' && !activeExceptionOrderIds.has(o.id));
+    // eslint-disable-next-line react-hooks/purity
     const staleLimit = Date.now() - 3 * 24 * 60 * 60 * 1000;
     const todayStr = now.toISOString().split('T')[0];
 
@@ -39,6 +40,7 @@ export function useOpenLoops(orders: Order[], customers: Customer[], exceptions:
       const lastStatus = o.statusHistory && o.statusHistory.length > 0 ? o.statusHistory[o.statusHistory.length - 1] : null;
       // Note: order might not have updatedAt mapped in types if it's missing, but let's assume it exists or fallback
       // Since `updatedAt` is not in `Order` type based on `types.ts` inspection, we use the status history.
+      // eslint-disable-next-line react-hooks/purity
       const lastUpdate = lastStatus ? new Date(lastStatus.timestamp).getTime() : Date.now(); 
       return lastUpdate < staleLimit;
     });

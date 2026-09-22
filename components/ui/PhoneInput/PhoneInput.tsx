@@ -16,7 +16,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
 
     // 1. Determine the country code and local number from the incoming value
     let matchedCountry = COUNTRIES[0]; // Default: NG
-    let digits = value.replace(/\D/g, '');
+    const digits = value.replace(/\D/g, '');
     let localNumber = value;
 
     if (value.startsWith('+')) {

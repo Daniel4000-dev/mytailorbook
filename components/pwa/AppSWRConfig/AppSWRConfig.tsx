@@ -17,6 +17,7 @@ import { useRef } from 'react';
 function localStorageProvider() {
   if (typeof window === 'undefined') return new Map();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let map: Map<string, any>;
   try {
     map = new Map(JSON.parse(localStorage.getItem('mtb-swr-cache') || '[]'));
@@ -26,6 +27,7 @@ function localStorageProvider() {
 
   return {
     get: (key: string) => map.get(key),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     set: (key: string, value: any) => {
       map.set(key, value);
       try {
@@ -43,6 +45,7 @@ function localStorageProvider() {
       }
     },
     keys: () => map.keys(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 }
 

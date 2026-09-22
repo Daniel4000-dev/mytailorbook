@@ -25,6 +25,7 @@ export interface OverviewStats {
   cancellations30d: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function count(admin: AdminClient, table: string, filter?: (q: any) => any, select = 'id') {
   let query = admin.from(table).select(select, { count: 'exact', head: true });
   if (filter) query = filter(query);
@@ -302,7 +303,7 @@ export async function getOrganizations(
   const shopsByOrg = new Map<string, { name: string; subscription_status: string | null; subscription_plan: string | null }[]>();
   for (const shop of shops ?? []) {
     const list = shopsByOrg.get(shop.org_id as string) ?? [];
-    list.push(shop as any);
+    list.push(shop as { name: string; subscription_status: string | null; subscription_plan: string | null });
     shopsByOrg.set(shop.org_id as string, list);
   }
   const ownerEmailById = new Map((owners ?? []).map((o) => [o.id, o.email]));
@@ -517,7 +518,7 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
     let onlineNow = 0;
     let dailyActive = 0;
     let weeklyActive = 0;
-    let monthlyActive = activeProfiles.length;
+    const monthlyActive = activeProfiles.length;
 
     for (const p of activeProfiles) {
       if (!p.last_active_at) continue;

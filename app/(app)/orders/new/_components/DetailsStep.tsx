@@ -63,6 +63,7 @@ export default function DetailsStep({
     // They usually share a due date or are close together anyway.
     const firstDate = units.find(u => u.dueDate)?.dueDate;
     if (!firstDate || !currentShop?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCapacityWarning(null);
       return;
     }

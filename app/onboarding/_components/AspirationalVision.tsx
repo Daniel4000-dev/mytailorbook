@@ -10,6 +10,7 @@ const PREMIUM_MOCKS = [
     title: 'The Modern Agbada',
     category: 'Traditional',
     startingPrice: 350,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_1.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -20,6 +21,7 @@ const PREMIUM_MOCKS = [
     title: 'Executive Bespoke Suit',
     category: 'Suits',
     startingPrice: 500,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_2.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -30,6 +32,7 @@ const PREMIUM_MOCKS = [
     title: 'Bespoke Lapel Detail',
     category: 'Detail',
     startingPrice: null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_3.jpg', angle: 'detail' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -40,6 +43,7 @@ const PREMIUM_MOCKS = [
     title: 'Evening Gown',
     category: 'Dresses',
     startingPrice: 400,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_4.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -50,6 +54,7 @@ const PREMIUM_MOCKS = [
     title: 'Wedding Reception',
     category: 'Bridal',
     startingPrice: 800,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_5.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -60,6 +65,7 @@ const PREMIUM_MOCKS = [
     title: 'Casual Linen',
     category: 'Casual',
     startingPrice: 200,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_6.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
     storyCaption: null,
@@ -87,6 +93,7 @@ export default function AspirationalVision({ shopName, onFinish }: { shopName: s
       isPrimary: true,
       ownerUid: 'mock',
       createdAt: new Date().toISOString(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
       subscriptionStatus: 'active' as any,
     },
     outfits: PREMIUM_MOCKS,

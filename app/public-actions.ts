@@ -531,6 +531,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
 
 import type { CalendarEvent, CalendarEventType } from '@/lib/types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapEventRow(row: any): CalendarEvent {
   return {
     id: row.id,

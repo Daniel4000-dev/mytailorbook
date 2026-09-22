@@ -39,6 +39,7 @@ describe('Server Actions Error Handling', () => {
     // Verify it doesn't throw, but gracefully returns the expected error object format
     expect(result).toBeDefined();
     expect(result).toHaveProperty('error');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result as any).error).toBe('A database constraint error occurred. (Human readable)');
   });
 });

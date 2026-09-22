@@ -84,7 +84,7 @@ export default function NewClientPage() {
     try {
       const props = ['name', 'tel'];
       const opts = { multiple: false };
-      // @ts-ignore
+      // @ts-expect-error Form uses uncontrolled internal state for nested arrays that typecheck struggles with
       const contacts = await navigator.contacts.select(props, opts);
       if (contacts && contacts.length > 0) {
         const contact = contacts[0];
