@@ -133,7 +133,9 @@ export default function NewClientPage() {
       const duplicate = customers.find((c) => c.whatsappNumber === normalizedPhone);
 
       if (duplicate) {
-        setApiError(`A client with the number ${normalizedPhone} already exists (${duplicate.fullName}).`);
+        const errorMsg = `A client with the number ${normalizedPhone} already exists (${duplicate.fullName}).`;
+        setApiError(errorMsg);
+        showToast(errorMsg, 'error');
         setSubmitting(false);
         return;
       }
@@ -164,11 +166,14 @@ export default function NewClientPage() {
       // (unique_shop_whatsapp) is the real guard; surface ITS rejection
       // with the same friendly wording instead of a raw Postgres error.
       const message = err instanceof Error ? err.message : '';
+      let errorMsg = '';
       if (message.toLowerCase().includes('unique_shop_whatsapp') || message.toLowerCase().includes('duplicate key')) {
-        setApiError(`A client with the number ${data.phone.trim()} already exists.`);
+        errorMsg = `A client with the number ${data.phone.trim()} already exists.`;
       } else {
-        setApiError(message || 'Could not create the profile — check your connection and try again.');
+        errorMsg = message || 'Could not create the profile — check your connection and try again.';
       }
+      setApiError(errorMsg);
+      showToast(errorMsg, 'error');
       setSubmitting(false);
     }
   };
@@ -252,6 +257,8 @@ export default function NewClientPage() {
                   Whatever you save here pre-fills every garment&apos;s measurements for {watch('fullName') || 'this client'} from now on.
                 </p>
               </div>
+
+              {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
               <div className={styles.field}>
                 <label className={styles.capsLabel} htmlFor="measurementNotes">Measurement Notes</label>
