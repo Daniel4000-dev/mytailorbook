@@ -205,7 +205,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
       if (!activeBranchId) return;
       const updated = await addOrderAction(activeBranchId, orderData);
-      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
+      if (updated && 'error' in updated) throw new Error(updated.error);
+      mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
   );
@@ -214,7 +215,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => {
       if (!activeBranchId) return;
       const updated = await addOrderBatchAction(activeBranchId, garments);
-      mutate((current) => (current ? { ...current, orders: updated } : current), { revalidate: false });
+      if (updated && 'error' in updated) throw new Error(updated.error);
+      mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
   );
@@ -226,7 +228,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (current) => {
           if (!current) return current;
           const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
-          return { ...current, orders: updated };
+          if (updated && 'error' in updated) throw new Error(updated.error);
+          return { ...current, orders: updated as Order[] };
         },
         {
           optimisticData: (current) => {
@@ -251,7 +254,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (current) => {
           if (!current) return current;
           const updated = await updateOrderAction(orderId, updates, activeBranchId);
-          return { ...current, orders: updated };
+          if (updated && 'error' in updated) throw new Error(updated.error);
+          return { ...current, orders: updated as Order[] };
         },
         {
           optimisticData: (current) => {
@@ -272,10 +276,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addCustomer = useCallback(
     async (customerData: Omit<Customer, 'id' | 'shopId' | 'createdAt'>): Promise<Customer> => {
       if (!activeBranchId || !orgId) throw new Error('No active shop for the current user');
-      const { newCustomer, customers: updated } = await addCustomerAction(activeBranchId, orgId, {
+      const res = await addCustomerAction(activeBranchId, orgId, {
         ...customerData,
         whatsappNumber: normalizePhone(customerData.whatsappNumber),
       });
+      if (res && 'error' in res) throw new Error(res.error);
+      const { newCustomer, customers: updated } = res as { newCustomer: Customer, customers: Customer[] };
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
       return newCustomer;
     },
@@ -289,7 +295,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (current) => {
           if (!current) return current;
           const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
-          return { ...current, customers: updated };
+          if (updated && 'error' in updated) throw new Error(updated.error);
+          return { ...current, customers: updated as Customer[] };
         },
         {
           optimisticData: (current) => {
@@ -316,7 +323,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (current) => {
           if (!current) return current;
           const updated = await updateCustomerStyleProfileAction(customerId, styleName, measurements, orgId, notes);
-          return { ...current, customers: updated };
+          if (updated && 'error' in updated) throw new Error(updated.error);
+          return { ...current, customers: updated as Customer[] };
         },
         {
           optimisticData: (current) => {
@@ -353,7 +361,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (current) => {
           if (!current) return current;
           const updated = await deleteCustomerStyleProfileAction(customerId, styleName, orgId);
-          return { ...current, customers: updated };
+          if (updated && 'error' in updated) throw new Error(updated.error);
+          return { ...current, customers: updated as Customer[] };
         },
         {
           optimisticData: (current) => {
@@ -391,10 +400,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (current) => {
           if (!current) return current;
           const updated = await updateCustomerProfileAction(customerId, normalized, orgId);
+          if (updated && 'error' in updated) throw new Error(updated.error);
           if (updated) {
             return {
               ...current,
-              customers: current.customers.map((c) => (c.id === customerId ? { ...c, ...updated } : c)),
+              customers: updated as Customer[],
             };
           }
           return current; // if update fails and doesn't throw, we could trigger a revalidate, but rollbackOnError expects a throw.
@@ -491,7 +501,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const { error } = await createStaffAccount(activeBranchId, name, email, password, role);
       if (error) throw new Error(error);
       const updated = await getStaff(activeBranchId);
-      mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
+      if (updated && 'error' in updated) throw new Error(updated.error);
+      mutate((current) => (current ? { ...current, staffMembers: updated as User[] } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
   );
@@ -500,7 +511,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (uid: string, updates: Partial<User>) => {
       if (!activeBranchId) return;
       const updated = await updateStaffAction(uid, updates, activeBranchId);
-      mutate((current) => (current ? { ...current, staffMembers: updated } : current), { revalidate: false });
+      if (updated && 'error' in updated) throw new Error(updated.error);
+      mutate((current) => (current ? { ...current, staffMembers: updated as User[] } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
   );
@@ -509,7 +521,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (updates: Partial<Shop>) => {
       if (!activeBranchId) return;
       const updated = await updateShopAction(activeBranchId, updates);
-      mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
+      if (updated && 'error' in updated) throw new Error(updated.error);
+      mutate((current) => (current ? { ...current, shop: updated as Shop } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
   );
@@ -523,7 +536,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ) => {
       if (!activeBranchId) return;
       const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields, gender);
-      mutate((current) => (current ? { ...current, shop: updated } : current), { revalidate: false });
+      if (updated && 'error' in updated) throw new Error(updated.error);
+      mutate((current) => (current ? { ...current, shop: updated as Shop } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
   );
@@ -532,6 +546,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (oldName: string, newName: string) => {
       if (!activeBranchId) return;
       const updated = await renameCustomStyleEverywhereAction(activeBranchId, oldName, newName);
+      if (updated && 'error' in updated) throw new Error(updated.error);
       mutate(
         (current) =>
           current

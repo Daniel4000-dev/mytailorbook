@@ -349,7 +349,7 @@ export async function getCustomersPage({
   }
 
   const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   const rows = data || [];
   const hasMore = rows.length > limit;
@@ -372,7 +372,7 @@ export async function getOrgBranches(orgId: string): Promise<Shop[]> {
     .eq('org_id', orgId)
     .order('is_primary', { ascending: false })
     .order('created_at', { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(shopFromRow);
 }
 
@@ -417,7 +417,7 @@ async function getOrders(shopId: string): Promise<Order[]> {
     .select('*')
     .eq('shop_id', shopId)
     .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(orderFromRow);
 }
 
@@ -430,14 +430,14 @@ async function getCustomers(orgId: string): Promise<Customer[]> {
     .select('*')
     .eq('org_id', orgId)
     .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(customerFromRow);
 }
 
 export async function getStaff(shopId: string): Promise<User[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from('profiles').select('*').eq('shop_id', shopId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(userFromRow);
 }
 
@@ -450,13 +450,11 @@ export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | '
 
   const quota = await checkOrderQuota(supabase, shopId);
   if (!quota.allowed) {
-    throw new Error(
-      `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.`
-    );
+    return { error: `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.` };
   }
 
   const { error } = await supabase.from('orders').insert(orderToRow(shopId, order));
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return getOrders(shopId);
 }
 
@@ -475,9 +473,7 @@ export async function addOrderBatchAction(
 
   const quota = await checkOrderQuota(supabase, shopId, garments.length);
   if (!quota.allowed) {
-    throw new Error(
-      `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.`
-    );
+    return { error: `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.` };
   }
 
   const batchId = garments.length > 1 ? crypto.randomUUID() : undefined;
@@ -488,7 +484,7 @@ export async function addOrderBatchAction(
     .insert(rows)
     .select('id, customer_id, assigned_to, order_details, due_date');
     
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   // Phase 2: Reverse-Scheduling Automations
   if (insertedOrders && insertedOrders.length > 0) {
@@ -553,7 +549,7 @@ export async function updateOrderStatusAction(
     .select('status, status_history, customer_name')
     .eq('id', orderId)
     .single();
-  if (fetchError) throw new Error(fetchError.message);
+  if (fetchError) return { error: fetchError.message };
 
   const newHistory = [
     ...(current.status_history || []),
@@ -564,7 +560,7 @@ export async function updateOrderStatusAction(
     .from('orders')
     .update({ status: newStatus, status_history: newHistory, updated_at: new Date().toISOString() })
     .eq('id', orderId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   await logAudit({
     shopId,
@@ -591,7 +587,7 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     .from('orders')
     .update({ ...orderToRow('', updates), updated_at: new Date().toISOString() })
     .eq('id', orderId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   const { data: authData } = await supabase.auth.getUser();
   const actorId = authData?.user?.id ?? null;
@@ -644,7 +640,7 @@ export async function getBatchOrdersAction(batchId: string, excludeOrderId: stri
     .select('*')
     .eq('batch_id', batchId)
     .neq('id', excludeOrderId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(orderFromRow);
 }
 
@@ -655,7 +651,7 @@ export async function getOrderCommentsAction(orderId: string): Promise<OrderComm
     .select('*')
     .eq('order_id', orderId)
     .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(orderCommentFromRow);
 }
 
@@ -687,7 +683,7 @@ export async function addCustomerAction(
     })
     .select()
     .single();
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   const customers = await getCustomers(orgId);
   return { newCustomer: customerFromRow(data), customers };
@@ -696,7 +692,7 @@ export async function addCustomerAction(
 export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, orgId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return getCustomers(orgId);
 }
 
@@ -713,7 +709,7 @@ export async function updateCustomerStyleProfileAction(
     .select('style_measurements')
     .eq('id', customerId)
     .single();
-  if (fetchError) throw new Error(fetchError.message);
+  if (fetchError) return { error: fetchError.message };
 
   const existing = (current?.style_measurements as Record<string, any>) || {};
   const currentStyleData = existing[styleName] || {};
@@ -727,7 +723,7 @@ export async function updateCustomerStyleProfileAction(
     },
   };
   const { error } = await supabase.from('customers').update({ style_measurements: updated }).eq('id', customerId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return getCustomers(orgId);
 }
 
@@ -738,12 +734,12 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
     .select('style_measurements')
     .eq('id', customerId)
     .single();
-  if (fetchError) throw new Error(fetchError.message);
+  if (fetchError) return { error: fetchError.message };
 
   const existing = { ...((current?.style_measurements as Record<string, unknown>) || {}) };
   delete existing[styleName];
   const { error } = await supabase.from('customers').update({ style_measurements: existing }).eq('id', customerId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return getCustomers(orgId);
 }
 
@@ -765,7 +761,7 @@ export async function updateCustomerProfileAction(
 
   if (Object.keys(row).length === 0) return null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return getCustomers(orgId);
 }
 
@@ -781,7 +777,7 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
   if (updates.active !== undefined) row.active = updates.active;
   if (updates.avatarUrl !== undefined) row.avatar_url = updates.avatarUrl || null;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return getStaff(shopId);
 }
 
@@ -804,7 +800,7 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.streakBest !== undefined) row.streak_best = updates.streakBest;
   if (updates.streakLastCountedAt !== undefined) row.streak_last_counted_at = updates.streakLastCountedAt;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return shopFromRow(data);
 }
 
@@ -828,7 +824,7 @@ export async function upsertCustomStyleAction(
     .select('custom_styles')
     .eq('id', shopId)
     .single();
-  if (fetchError) throw new Error(fetchError.message);
+  if (fetchError) return { error: fetchError.message };
 
   const existing: { name: string; photoUrl?: string; gender?: 'male' | 'female'; measurementFields?: { id: string; label: string }[] }[] =
     shopRow?.custom_styles || [];
@@ -848,7 +844,7 @@ export async function upsertCustomStyleAction(
         );
 
   const { data, error } = await supabase.from('shops').update({ custom_styles: next }).eq('id', shopId).select().single();
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return shopFromRow(data);
 }
 
@@ -869,7 +865,7 @@ export async function renameCustomStyleEverywhereAction(
     .select('custom_styles')
     .eq('id', shopId)
     .single();
-  if (shopFetchError) throw new Error(shopFetchError.message);
+  if (shopFetchError) return { error: shopFetchError.message };
 
   const existing: { name: string; photoUrl?: string }[] = shopRow?.custom_styles || [];
   const nextStyles = existing.map((s) =>
@@ -882,14 +878,14 @@ export async function renameCustomStyleEverywhereAction(
     .eq('id', shopId)
     .select()
     .single();
-  if (shopUpdateError) throw new Error(shopUpdateError.message);
+  if (shopUpdateError) return { error: shopUpdateError.message };
 
   const { data: affectedCustomers, error: customersError } = await supabase
     .from('customers')
     .select('id, preferred_styles')
     .eq('shop_id', shopId)
     .contains('preferred_styles', [oldName]);
-  if (customersError) throw new Error(customersError.message);
+  if (customersError) return { error: customersError.message };
 
   if (affectedCustomers && affectedCustomers.length > 0) {
     const updates = affectedCustomers.map((c) => ({
@@ -897,7 +893,7 @@ export async function renameCustomStyleEverywhereAction(
       preferred_styles: (c.preferred_styles as string[]).map((s) => (s === oldName ? newName : s)),
     }));
     const { error: cascadeError } = await supabase.from('customers').upsert(updates);
-    if (cascadeError) throw new Error(cascadeError.message);
+    if (cascadeError) return { error: cascadeError.message };
   }
 
   return shopFromRow(updatedShop);
@@ -979,7 +975,7 @@ export async function getPortfolioPhotoOverridesAction(shopId: string): Promise<
     .from('portfolio_photo_overrides')
     .select('*')
     .eq('shop_id', shopId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(portfolioPhotoOverrideFromRow);
 }
 
@@ -1001,7 +997,7 @@ export async function setPortfolioPhotoOverrideAction(
   const { error } = await supabase
     .from('portfolio_photo_overrides')
     .upsert(row, { onConflict: 'shop_id,photo_url' });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   if (updates.consentConfirmed) {
     const { data: authData } = await supabase.auth.getUser();
@@ -1065,7 +1061,7 @@ export async function createStylePhotoSubmissionAction(
     })
     .select()
     .single();
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   
   sendPushToShop(shopId, uploadedBy, {
     title: 'Style Photo Pending Approval',
@@ -1090,7 +1086,7 @@ export async function getStylePhotoSubmissionsAction(
     .eq('shop_id', shopId)
     .eq('style_name', styleName)
     .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   const all = (data || []).map(stylePhotoSubmissionFromRow);
   return {
     pending: all.filter((s) => s.status === 'pending'),
@@ -1116,7 +1112,7 @@ export async function getPendingStylePhotoSubmissions(): Promise<StylePhotoSubmi
     .eq('org_id', profile.org_id)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(stylePhotoSubmissionFromRow);
 }
 
@@ -1129,7 +1125,7 @@ export async function getPendingStyleCountsAction(shopId: string): Promise<Recor
     .select('style_name')
     .eq('shop_id', shopId)
     .eq('status', 'pending');
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   const counts: Record<string, number> = {};
   (data || []).forEach((row) => {
     counts[row.style_name] = (counts[row.style_name] || 0) + 1;
@@ -1149,7 +1145,7 @@ export async function getApprovedStyleNamesAction(shopId: string): Promise<strin
     .select('style_name')
     .eq('shop_id', shopId)
     .eq('status', 'saved');
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return Array.from(new Set((data || []).map((row) => row.style_name)));
 }
 
@@ -1159,13 +1155,13 @@ export async function approveStylePhotoSubmissionAction(id: string, savedBy: str
     .from('style_photo_submissions')
     .update({ status: 'saved', saved_by: savedBy, saved_at: new Date().toISOString() })
     .eq('id', id);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 }
 
 export async function discardStylePhotoSubmissionAction(id: string, storagePath: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('style_photo_submissions').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   await supabase.storage.from('style-photos').remove([storagePath]);
 }
 
@@ -1195,7 +1191,7 @@ export async function getOutreachLogAction(shopId: string, styleName: string): P
     .eq('shop_id', shopId)
     .eq('style_name', styleName)
     .order('contacted_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(outreachLogEntryFromRow);
 }
 
@@ -1212,7 +1208,7 @@ export async function logOutreachContactAction(
     style_name: styleName,
     contacted_by: contactedBy,
   });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 }
 
 // ----------------------------------------------------------------------
@@ -1239,7 +1235,7 @@ export async function getPortfolioCurationPhotosAction(shopId: string): Promise<
     .eq('shop_id', shopId)
     .order('created_at', { ascending: false })
     .limit(300);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   const { data: overrideRows } = await supabase
     .from('portfolio_photo_overrides')
@@ -1306,7 +1302,7 @@ export async function getOrderRatingsAction(shopId: string): Promise<OrderRating
     .select('*')
     .eq('shop_id', shopId)
     .order('submitted_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map(orderRatingFromRow);
 }
 
@@ -1319,7 +1315,7 @@ export async function setOrderRatingModerationAction(
   if (updates.approved !== undefined) row.approved = updates.approved;
   if (updates.featured !== undefined) row.featured = updates.featured;
   const { error } = await supabase.from('order_ratings').update(row).eq('id', ratingId);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 }
 
 // ----------------------------------------------------------------------
@@ -1594,7 +1590,7 @@ export async function getAuditLogAction(shopId: string): Promise<AuditLogEntry[]
     .eq('shop_id', shopId)
     .order('created_at', { ascending: false })
     .limit(100);
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
   return (data || []).map((row) => ({
     id: String(row.id),
     actorName: row.actor_name,
