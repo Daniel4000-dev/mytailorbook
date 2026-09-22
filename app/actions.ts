@@ -328,7 +328,7 @@ export async function getCustomersPage({
   search?: string;
   cursor?: { createdAt: string; id: string };
   limit?: number;
-}): Promise<{ customers: Customer[]; nextCursor: { createdAt: string; id: string } | null }> {
+}): Promise<{ customers: Customer[]; nextCursor: { createdAt: string; id: string } | null } | { error: string }> {
   const supabase = await createClient();
   let query = supabase
     .from('customers')
