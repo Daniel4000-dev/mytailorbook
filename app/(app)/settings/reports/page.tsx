@@ -44,7 +44,7 @@ export default function ReportsPage() {
         setError((res as { error: string } | null)?.error ?? 'Could not load report');
         setReport(null);
       } else {
-        setReport(res.data);
+        setReport(res.data ?? null);
         setError(null);
       }
     });
