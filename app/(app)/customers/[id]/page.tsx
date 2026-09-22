@@ -348,6 +348,12 @@ function CustomerProfileContent({
           </span>
         )}
 
+        {customer.birthdate && (
+          <span className={styles.customerAddress}>
+            <Symbol name="cake" size={12} /> Born {customer.birthdate}
+          </span>
+        )}
+
         <span className={styles.memberSince}>Customer since {formatMonthYear(customer.createdAt)}</span>
 
         {customer.preferredStyles && customer.preferredStyles.length > 0 && (
