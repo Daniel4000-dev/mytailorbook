@@ -173,6 +173,21 @@ export default function NewClientPage() {
     }
   };
 
+  const handleContinueToMeasurements = (data: CustomerInput) => {
+    const normalizedPhone = data.phone.trim();
+    const duplicate = customers.find((c) => c.whatsappNumber === normalizedPhone);
+
+    if (duplicate) {
+      const errorMsg = `A client with the number ${normalizedPhone} already exists (${duplicate.fullName}).`;
+      setApiError(errorMsg);
+      showToast(errorMsg, 'error');
+      return;
+    }
+    
+    setApiError('');
+    setScreen('measurements');
+  };
+
   // Desktop-only step rail — this page is itself just step 2 of the
   // larger walk-in ritual (FAB → this profile → New Order), but it has
   // two full-screen swaps of its own (profile, then optional
@@ -452,7 +467,7 @@ export default function NewClientPage() {
                 <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
                   Cancel
                 </button>
-                <button type="button" className={styles.createBtn} onClick={handleSubmit(() => setScreen('measurements'))} disabled={submitting}>
+                <button type="button" className={styles.createBtn} onClick={handleSubmit(handleContinueToMeasurements)} disabled={submitting}>
                   Continue
                   <Symbol name="arrow_forward" size={22} />
                 </button>
