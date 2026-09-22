@@ -118,7 +118,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ([, id]) => getOrgBranches(id),
     { dedupingInterval: 60_000, revalidateOnFocus: false }
   );
-  const branches = useMemo(() => branchesData ?? [], [branchesData]);
+  const branches = useMemo(() => {
+    if (!branchesData) return [];
+    if ('error' in branchesData) {
+      console.error('Failed to load branches:', (branchesData as any).error);
+      return [];
+    }
+    return branchesData as Shop[];
+  }, [branchesData]);
   const refreshBranches = useCallback(() => {
     mutateBranches();
   }, [mutateBranches]);
@@ -501,7 +508,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const { error } = await createStaffAccount(activeBranchId, name, email, password, role);
       if (error) throw new Error(error);
       const updated = await getStaff(activeBranchId);
-      if (updated && 'error' in updated) throw new Error(updated.error);
+      if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate((current) => (current ? { ...current, staffMembers: updated as User[] } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
@@ -511,7 +518,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (uid: string, updates: Partial<User>) => {
       if (!activeBranchId) return;
       const updated = await updateStaffAction(uid, updates, activeBranchId);
-      if (updated && 'error' in updated) throw new Error(updated.error);
+      if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate((current) => (current ? { ...current, staffMembers: updated as User[] } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
@@ -521,7 +528,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (updates: Partial<Shop>) => {
       if (!activeBranchId) return;
       const updated = await updateShopAction(activeBranchId, updates);
-      if (updated && 'error' in updated) throw new Error(updated.error);
+      if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate((current) => (current ? { ...current, shop: updated as Shop } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
@@ -536,7 +543,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ) => {
       if (!activeBranchId) return;
       const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields, gender);
-      if (updated && 'error' in updated) throw new Error(updated.error);
+      if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate((current) => (current ? { ...current, shop: updated as Shop } : current), { revalidate: false });
     },
     [activeBranchId, mutate]
@@ -546,7 +553,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (oldName: string, newName: string) => {
       if (!activeBranchId) return;
       const updated = await renameCustomStyleEverywhereAction(activeBranchId, oldName, newName);
-      if (updated && 'error' in updated) throw new Error(updated.error);
+      if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate(
         (current) =>
           current
