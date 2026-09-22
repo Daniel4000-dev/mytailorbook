@@ -140,7 +140,7 @@ export function useNotifications() {
     // a genuine "needs your action" item (only the Owner can act on it),
     // so it gets the same warning tone and Needs Attention visibility as
     // an unread customer comment, not the info-tone "fyi" treatment.
-    (pendingStylePhotos || []).forEach((s) => {
+    (!pendingStylePhotos || 'error' in pendingStylePhotos ? [] : pendingStylePhotos).forEach((s) => {
       items.push({
         id: `style-photo-${s.id}`,
         icon: <Symbol name="image" />,

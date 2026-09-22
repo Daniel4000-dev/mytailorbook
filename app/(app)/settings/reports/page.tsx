@@ -40,10 +40,10 @@ export default function ReportsPage() {
     let cancelled = false;
     getFinancialReport(fromDateFor(range)).then((res) => {
       if (cancelled) return;
-      if (res.error) {
-        setError(res.error);
+      if (!res || 'error' in res) {
+        setError((res as { error: string } | null)?.error ?? 'Could not load report');
         setReport(null);
-      } else if (res.data) {
+      } else {
         setReport(res.data);
         setError(null);
       }

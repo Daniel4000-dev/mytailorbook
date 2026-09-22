@@ -55,7 +55,10 @@ export default function CustomersPage() {
 
   useEffect(() => {
     if (!currentShop?.id) return;
-    getApprovedStyleNamesAction(currentShop.id).then((names) => setApprovedStyleNames(new Set(names)));
+    getApprovedStyleNamesAction(currentShop.id).then((names) => {
+      if (!names || 'error' in names) return;
+      setApprovedStyleNames(new Set(names));
+    });
   }, [currentShop?.id]);
 
   // Outreach: this style's saved (owner-approved) photos, and who's already
@@ -93,8 +96,12 @@ export default function CustomersPage() {
 
   useEffect(() => {
     if (!styleFilter || !currentShop?.id) return;
-    getStylePhotoSubmissionsAction(currentShop.id, styleFilter).then(({ saved }) => setSavedPhotos(saved));
+    getStylePhotoSubmissionsAction(currentShop.id, styleFilter).then((result) => {
+      if (!result || 'error' in result) return;
+      setSavedPhotos(result.saved);
+    });
     getOutreachLogAction(currentShop.id, styleFilter).then((entries) => {
+      if (!entries || 'error' in entries) return;
       const map: Record<string, string> = {};
       // Entries come back newest-first — first write per customer wins, i.e. the latest.
       entries.forEach((e) => {

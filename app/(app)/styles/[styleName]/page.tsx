@@ -44,9 +44,10 @@ export default function StyleDetailPage() {
 
   const load = useCallback(() => {
     if (!currentShop?.id) return;
-    getStylePhotoSubmissionsAction(currentShop.id, styleName).then(({ pending, saved }) => {
-      setPending(pending);
-      setSaved(saved);
+    getStylePhotoSubmissionsAction(currentShop.id, styleName).then((result) => {
+      if (!result || 'error' in result) { setIsLoaded(true); return; }
+      setPending(result.pending);
+      setSaved(result.saved);
       setIsLoaded(true);
     });
   }, [currentShop, styleName]);

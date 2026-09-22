@@ -16,10 +16,15 @@ export function ExportDataButton({ shopName }: { shopName: string }) {
 
   const handleExport = async () => {
     setExporting(true);
-    const { data, error } = await exportShopDataAction();
+    const result = await exportShopDataAction();
     setExporting(false);
-    if (error || !data) {
-      showToast(error || 'Could not export data', 'error');
+    if (!result || 'error' in result) {
+      showToast(result?.error || 'Could not export data', 'error');
+      return;
+    }
+    const { data } = result;
+    if (!data) {
+      showToast('Could not export data', 'error');
       return;
     }
     const blob = new Blob([data], { type: 'application/json' });
