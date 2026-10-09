@@ -11,9 +11,11 @@ import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import DiscoverBanner from './DiscoverBanner';
 import ShopTodayCard from '../ShopTodayCard';
 import MilestonesCard from '../MilestonesCard';
+import GeneralExpenses from '../GeneralExpenses';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 
 // ============================================================
@@ -44,6 +46,7 @@ export default function OwnerDashboard({
     toggleHideCollected,
     toggleHideProjected,
     collected,
+    monthlyRevenue,
     projected,
     urgentCount,
     dueTodayCount,
@@ -64,10 +67,8 @@ export default function OwnerDashboard({
           toasts, and the existing indigo accent — nothing new. */}
       <div className={styles.hero}>
         <div className={styles.heroTop}>
-          <div className={styles.heroIdentity}>
-            <span className={styles.heroEyebrow}>Studio Pulse</span>
-            <span className={styles.heroShopName}>{currentShop?.name || 'Your Studio'}</span>
-          </div>
+          {/* Greeting commented out intentionally */}
+          <div className={styles.heroIdentity}></div>
           <button type="button" className={styles.heroCta} onClick={openCreateMenu}>
             <Symbol name="add" size={18} />
             New Order
@@ -125,6 +126,45 @@ export default function OwnerDashboard({
             </div>
           </div>
         </div>
+
+        {/* Monthly Goal Progress */}
+        <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          {currentShop?.monthlyRevenueTarget ? (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'var(--sf-surface)', fontSize: '14px' }}>
+                <span style={{ fontWeight: 500 }}>Monthly Revenue Target</span>
+                <span>{hideCollected ? '******' : formatCurrency(monthlyRevenue, currentShop?.currency)} / {hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget, currentShop?.currency)}</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ 
+                  width: `${Math.min(100, (monthlyRevenue / currentShop.monthlyRevenueTarget) * 100)}%`, 
+                  height: '100%', 
+                  backgroundColor: monthlyRevenue >= currentShop.monthlyRevenueTarget ? 'var(--sf-success)' : '#fff',
+                  borderRadius: '4px',
+                  transition: 'width 0.5s ease-out'
+                }} />
+              </div>
+              <p style={{ marginTop: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                {monthlyRevenue >= currentShop.monthlyRevenueTarget ? 'Target reached! Incredible work.' : `${hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget - monthlyRevenue, currentShop?.currency)} left to reach your goal.`}
+              </p>
+              {currentShop.monthlyRevenueTarget > monthlyRevenue && (
+                <button onClick={() => onNavigate('/settings/portfolio')} style={{ marginTop: '12px', background: 'rgba(255,255,255,0.15)', color: 'var(--sf-surface)', padding: '6px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Symbol name="campaign" size={16} /> Promote a style to close the gap
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ color: 'var(--sf-surface)' }}>
+                <span style={{ display: 'block', fontWeight: 500, fontSize: '14px' }}>Set a Monthly Goal</span>
+                <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginTop: '2px' }}>Track your revenue targets directly on your dashboard.</span>
+              </div>
+              <button onClick={() => onNavigate('/settings/studio')} style={{ background: 'var(--sf-surface)', color: 'var(--sf-nav)', padding: '6px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                Set Goal
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <DiscoverBanner onNavigate={onNavigate} />
@@ -136,16 +176,13 @@ export default function OwnerDashboard({
           </div>
 
           {teamSnapshot.length === 0 ? (
-            <div className={pageStyles.emptyState}>
-              <Symbol name="group" className={pageStyles.emptyStateIcon} />
-              <span>No staff added yet — invite your team to see them here.</span>
-              <button
-                type="button"
-                className={pageStyles.emptyStateAction}
-                onClick={() => onNavigate('/settings/staff')}
-              >
-                Invite Team
-              </button>
+            <div style={{ marginTop: 24, marginBottom: 24 }}>
+              <EmptyState
+                icon={<Symbol name="group" size={32} />}
+                title="No staff added yet"
+                description="Invite your team to see them here."
+                action={{ label: 'Invite Team', onClick: () => onNavigate('/settings/staff') }}
+              />
             </div>
           ) : (
             <div className={styles.teamGrid}>
@@ -190,6 +227,9 @@ export default function OwnerDashboard({
           </div>
           <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
           <MilestonesCard />
+          {currentShop && (
+            <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />
+          )}
         </div>
       </div>
     </div>

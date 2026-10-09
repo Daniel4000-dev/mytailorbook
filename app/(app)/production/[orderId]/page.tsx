@@ -33,6 +33,9 @@ import { compressImage } from '@/lib/compressImage';
 import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
 import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
 import WhatsAppOptionsSheet from './_components/WhatsAppOptionsSheet';
+import OrderExpenses from './_components/OrderExpenses';
+import OrderPayments from './_components/OrderPayments';
+import OrderMaterials from './_components/OrderMaterials';
 import styles from './page.module.css';
 
 export default function OrderDetailPage() {
@@ -55,10 +58,6 @@ export default function OrderDetailPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingInspo, setUploadingInspo] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [clearFull, setClearFull] = useState(false);
-  const [recordingPayment, setRecordingPayment] = useState(false);
-  const [confirmingFullPay, setConfirmingFullPay] = useState(false);
   const [showAmendmentPrompt, setShowAmendmentPrompt] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [whatsAppSheetOpen, setWhatsAppSheetOpen] = useState(false);
@@ -199,7 +198,11 @@ export default function OrderDetailPage() {
   const handleAdvance = async () => {
     if (!next) return;
     if (next === 'Delivered') {
-      setShowAmendmentPrompt(true);
+      if (order.isInternalBatch) {
+        await performAdvance(next);
+      } else {
+        setShowAmendmentPrompt(true);
+      }
       return;
     }
     await performAdvance(next);
@@ -252,8 +255,6 @@ export default function OrderDetailPage() {
         assignedToName: assignee?.name || '',
         totalBill: parseInt(editTotalBill.replace(/,/g, '')) || 0,
         materialSuppliedBy: editMaterialSuppliedBy,
-        materialCost: editMaterialSuppliedBy === 'shop' ? (parseInt(editMaterialCost.replace(/,/g, '')) || 0) : 0,
-        otherCosts: parseInt(editOtherCosts.replace(/,/g, '')) || 0,
       });
       setIsEditing(false);
       showToast('Order updated', 'success');
@@ -351,32 +352,6 @@ export default function OrderDetailPage() {
     const removed = (order.inspirationImages || [])[index];
     await updateOrder(order.id, { inspirationImages: (order.inspirationImages || []).filter((_, i) => i !== index) });
     if (removed) await removeFromStorage(removed);
-  };
-
-  const handleRecordPayment = async (amount: number) => {
-    if (amount <= 0) return;
-    setRecordingPayment(true);
-    try {
-      const newDeposit = Math.min(order.totalBill, order.depositPaid + amount);
-      await updateOrder(order.id, {
-        depositPaid: newDeposit,
-        payments: [
-          ...(order.payments || []),
-          {
-            id: `pay-${Date.now()}`,
-            amount,
-            recordedBy: user?.uid || '',
-            recordedByName: user?.name || 'Unknown',
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      });
-      setPaymentAmount('');
-      setClearFull(false);
-      showToast(`Payment of ${formatCurrency(amount, currentShop?.currency)} recorded`, 'success');
-    } finally {
-      setRecordingPayment(false);
-    }
   };
 
   const handleCopyLink = () => {
@@ -772,21 +747,6 @@ export default function OrderDetailPage() {
                       value={editMaterialSuppliedBy}
                       onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
                     />
-                    {editMaterialSuppliedBy === 'shop' && (
-                      <MoneyInput
-                        label="Material Cost (₦)"
-                        value={editMaterialCost}
-                        onChange={setEditMaterialCost}
-                      />
-                    )}
-                  </div>
-                  <div className={styles.editRow}>
-                    <MoneyInput
-                      label="Other Costs (₦)"
-                      value={editOtherCosts}
-                      onChange={setEditOtherCosts}
-                      placeholder="Thread, buttons, outsourced labor…"
-                    />
                   </div>
                 </>
               )}
@@ -799,114 +759,27 @@ export default function OrderDetailPage() {
         </section>
 
         {/* 8. Payment summary (owner only) */}
-        {isOwnerView && (
-          <section className={styles.card + ' ' + styles.gaPayment}>
-            <h3 className={styles.sectionTitle}>Payment Summary</h3>
-            <div className={styles.payRows}>
-              <div className={styles.payRow}>
-                <span className={styles.payLabel}>Total Bill</span>
-                <span className={styles.payValue}>{formatCurrency(order.totalBill, currentShop?.currency)}</span>
-              </div>
-              <div className={styles.payRow}>
-                <span className={styles.payLabel}>Deposit Paid</span>
-                <span className={styles.payValueAccent}>-{formatCurrency(order.depositPaid, currentShop?.currency)}</span>
-              </div>
-              <div className={styles.payRowTotal}>
-                <span>Balance Owed</span>
-                <span className={balanceOwed > 0 ? styles.balanceDue : undefined}>{formatCurrency(balanceOwed, currentShop?.currency)}</span>
-              </div>
-            </div>
-
-            {balanceOwed > 0 && (
-              <div className={styles.payForm}>
-                <label className={styles.capsLabel} htmlFor="record-deposit">Record Additional Deposit</label>
-                <input
-                  id="record-deposit"
-                  className={styles.payInput}
-                  placeholder="₦0.00"
-                  inputMode="numeric"
-                  value={clearFull ? formatNumber(balanceOwed) : (paymentAmount ? formatNumber(Number(paymentAmount)) : '')}
-                  disabled={clearFull}
-                  onChange={(e) => setPaymentAmount(e.target.value.replace(/[^0-9]/g, ''))}
-                />
-                <label className={styles.checkboxRow} htmlFor="clear-balance">
-                  <input
-                    id="clear-balance"
-                    type="checkbox"
-                    checked={clearFull}
-                    onChange={(e) => setClearFull(e.target.checked)}
-                  />
-                  Clear Full Balance ({formatCurrency(balanceOwed, currentShop?.currency)})
-                </label>
-                <button
-                  type="button"
-                  className={styles.recordPayBtn}
-                  disabled={recordingPayment || (!clearFull && !parseInt(paymentAmount))}
-                  onClick={() =>
-                    clearFull ? setConfirmingFullPay(true) : handleRecordPayment(parseInt(paymentAmount) || 0)
-                  }
-                >
-                  {recordingPayment && <Symbol name="progress_activity" className="global-spinner" />} Record Payment
-                </button>
-              </div>
-            )}
-
-            {order.payments && order.payments.length > 0 && (
-              <div className={styles.payHistory}>
-                <span className={styles.capsLabel}>Payment History</span>
-                {order.payments.slice().reverse().map((p) => (
-                  <div key={p.id} className={styles.payHistoryRow}>
-                    <span className={styles.payHistoryAmount}>{formatCurrency(p.amount, currentShop?.currency)}</span>
-                    <span className={styles.payHistoryMeta}>{formatDate(p.timestamp)} · {p.recordedByName}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className={styles.receiptRow}>
-              <a href={ROUTES.receipt(order.id)} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
-                <Symbol name="receipt" size={16} /> View/Print Receipt
-              </a>
-            </div>
-          </section>
+        {isOwnerView && !order.isInternalBatch && order.customerId && (
+          <OrderPayments 
+            orderId={order.id}
+            customerId={order.customerId}
+            walletBalance={customer?.wallet_balance || 0}
+            totalBill={order.totalBill}
+            initialAmountPaid={order.depositPaid}
+            currency={currentShop?.currency}
+            onPaymentAdded={(newTotal) => {
+              updateOrder(order.id, { depositPaid: newTotal });
+            }}
+          />
         )}
 
         {/* 8b. Cost & margin (owner only) */}
         {isOwnerView && FEATURE_FLAGS.costMarginTracking && (
-          <section className={styles.card + ' ' + styles.gaMargin}>
-            <h3 className={styles.sectionTitle}>Cost &amp; Margin</h3>
-            {hasCostData(order) ? (
-              <div className={styles.payRows}>
-                <div className={styles.payRow}>
-                  <span className={styles.payLabel}>Material Cost</span>
-                  <span className={styles.payValueAccent}>
-                    -{formatCurrency(order.materialSuppliedBy === 'customer' ? 0 : order.materialCost || 0, currentShop?.currency)}
-                  </span>
-                </div>
-                <div className={styles.payRow}>
-                  <span className={styles.payLabel}>Other Costs</span>
-                  <span className={styles.payValueAccent}>-{formatCurrency(order.otherCosts || 0, currentShop?.currency)}</span>
-                </div>
-                <div className={styles.payRowTotal}>
-                  <span>Margin</span>
-                  <span>
-                    {formatCurrency(getMargin(order), currentShop?.currency)}
-                    {order.totalBill > 0 && ` (${Math.round((getMargin(order) / order.totalBill) * 100)}%)`}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className={styles.emptyNote}>
-                Add cost details to see your margin on this order.
-              </p>
-            )}
-            {!isEditing && (
-              <button type="button" className={styles.metaEditBtn} onClick={startEditing} aria-label="Edit cost details">
-                <Symbol name="edit" size={18} />
-              </button>
-            )}
-          </section>
+          <OrderExpenses orderId={order.id} shopId={order.shopId} totalBill={order.totalBill} currency={currentShop?.currency} />
         )}
+
+        {/* 8c. Materials Inventory */}
+        <OrderMaterials orderId={order.id} shopId={order.shopId} />
 
         {/* 9. Share & communicate — the WhatsApp FAB already covers sending
              this exact stage update (same link/message), so no separate
@@ -975,25 +848,6 @@ export default function OrderDetailPage() {
           </div>
         </section>
 
-        {/* Footer actions — the "advance to next stage" action already lives
-             at the top of the page (section 1), so only Mark Paid (unique,
-             not shown elsewhere) belongs here. */}
-        {isOwnerView && balanceOwed > 0 && (
-          <div className={styles.footerActions}>
-            <button
-              type="button"
-              className={styles.markPaidBtn}
-              disabled={recordingPayment}
-              onClick={() => setConfirmingFullPay(true)}
-            >
-                <>
-                  {recordingPayment && <Symbol name="progress_activity" className="global-spinner" />}
-                  <Symbol name="check_circle" size={20} /> Mark Paid
-                </>
-            </button>
-          </div>
-        )}
-
         {isOwnerView && (
           <section className={styles.dangerZone}>
             <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
@@ -1052,18 +906,6 @@ export default function OrderDetailPage() {
         </>
       )}
 
-      <ConfirmDialog
-        isOpen={confirmingFullPay}
-        onClose={() => setConfirmingFullPay(false)}
-        onConfirm={async () => {
-          await handleRecordPayment(balanceOwed);
-          setConfirmingFullPay(false);
-        }}
-        title="Clear full balance?"
-        description={`This marks the remaining ${formatCurrency(balanceOwed, currentShop?.currency)} as paid in full. Make sure the payment has actually been received before confirming.`}
-        confirmLabel="Clear Balance"
-        loading={recordingPayment}
-      />
 
       <ConfirmDialog
         isOpen={confirmingDelete}
@@ -1084,7 +926,9 @@ export default function OrderDetailPage() {
         onConfirm={async () => {
           setShowAmendmentPrompt(false);
           await performAdvance('Delivered');
-          router.push(ROUTES.customerDetail(order.customerId));
+          if (order.customerId) {
+            router.push(ROUTES.customerDetail(order.customerId));
+          }
         }}
         title="Any Fit Amendments?"
         description="Since you're delivering this order, did you make any final adjustments to the garment? You can record them now so the customer's next outfit fits perfectly from the start."

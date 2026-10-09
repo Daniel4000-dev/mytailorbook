@@ -1,0 +1,220 @@
+.container {
+  padding: 0 var(--sf-space-md) var(--sf-space-3xl);
+  max-width: var(--sf-max-width-main);
+  margin: 0 auto;
+}
+
+.header {
+  margin-top: var(--sf-space-lg);
+  margin-bottom: var(--sf-space-lg);
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-fraunces);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0 0 var(--sf-space-xs) 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.tillCard {
+  background: var(--sf-accent);
+  color: var(--sf-bg-main);
+  border-radius: var(--sf-radius-xl);
+  padding: var(--sf-space-xl) var(--sf-space-lg);
+  text-align: center;
+  margin-bottom: var(--sf-space-lg);
+}
+
+.tillLabel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
+  margin-bottom: var(--sf-space-sm);
+  display: block;
+}
+
+.tillAmount {
+  font-family: var(--font-fraunces);
+  font-size: 42px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sf-space-md);
+  margin-bottom: var(--sf-space-xl);
+}
+
+.summaryBox {
+  background: var(--sf-bg-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryBoxLabel {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  margin-bottom: 4px;
+}
+
+.summaryBoxAmount {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.summaryBoxAmount.success {
+  color: var(--sf-success);
+}
+
+.summaryBoxAmount.danger {
+  color: var(--sf-error);
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0 0 var(--sf-space-md) 0;
+}
+
+.transactionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-xl);
+}
+
+.transactionItem {
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--sf-border-default);
+}
+
+.transactionLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.transactionIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transactionIcon.income {
+  background: var(--sf-success-light);
+  color: var(--sf-success);
+}
+
+.transactionIcon.expense {
+  background: var(--sf-error-bg);
+  color: var(--sf-error);
+}
+
+.transactionDesc {
+  display: flex;
+  flex-direction: column;
+}
+
+.transactionName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.transactionTime {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+}
+
+.transactionRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.transactionAmount {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.transactionAmount.income {
+  color: var(--sf-success);
+}
+
+.transactionAmount.expense {
+  color: var(--sf-error);
+}
+
+.transactionMethod {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-main);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  text-transform: capitalize;
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--sf-space-xl) var(--sf-space-md);
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-lg);
+  border: 1px dashed var(--sf-border-default);
+}
+
+.dateFilter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sf-space-lg);
+  padding: var(--sf-space-sm) var(--sf-space-md);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-full);
+}
+
+.dateBtn {
+  background: none;
+  border: none;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.dateBtn:hover {
+  color: var(--sf-text-primary);
+}
+
+.dateDisplay {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+}

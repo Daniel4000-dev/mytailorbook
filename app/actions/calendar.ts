@@ -26,12 +26,16 @@ function mapEventRow(row: any): CalendarEvent {
 export async function getCalendarEvents(shopId: string, month: string): Promise<CalendarEvent[]> {
   const supabase = await createClient();
   
+  const [year, m] = month.split('-');
+  const lastDay = new Date(Number(year), Number(m), 0).getDate();
+
   // month is in YYYY-MM format. We want all events for this month.
   const { data, error } = await supabase
     .from('calendar_events')
     .select('*')
     .eq('shop_id', shopId)
-    .like('date', `${month}-%`)
+    .gte('date', `${month}-01`)
+    .lte('date', `${month}-${lastDay}`)
     .order('date', { ascending: true })
     .order('start_time', { ascending: true, nullsFirst: true });
 
@@ -90,19 +94,24 @@ export async function deleteCalendarEvent(eventId: string, shopId: string): Prom
 
 export async function checkWeeklyCapacity(shopId: string, dateStr: string): Promise<{
   weeklyCapacity: number;
-  currentLoad: number;
+  currentWeeklyLoad: number;
+  dailyCapacity: number;
+  currentDailyLoad: number;
   overCapacity: boolean;
+  weeklyOverCapacity: boolean;
+  dailyOverCapacity: boolean;
 }> {
   const supabase = await createClient();
   
-  // 1. Get weekly capacity
+  // 1. Get weekly and daily capacity
   const { data: shopData } = await supabase
     .from('shops')
-    .select('weekly_capacity')
+    .select('weekly_capacity, daily_capacity')
     .eq('id', shopId)
     .single();
     
-  const weeklyCapacity = shopData?.weekly_capacity || 15; // default 15
+  const weeklyCapacity = shopData?.weekly_capacity || 5; // default 5
+  const dailyCapacity = shopData?.daily_capacity || 2; // default 2
 
   // 2. Find start and end of the week for dateStr
   const date = new Date(dateStr);
@@ -115,23 +124,43 @@ export async function checkWeeklyCapacity(shopId: string, dateStr: string): Prom
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   endOfWeek.setHours(23,59,59,999);
   
-  // 3. Query all orders due within this week
-  // We check the due_date of active orders (not delivered/cancelled)
-  const { count, error } = await supabase
+  // 3. Find start and end of the day for dateStr
+  const targetDate = new Date(dateStr);
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0,0,0,0);
+  const endOfDay = new Date(targetDate);
+  endOfDay.setHours(23,59,59,999);
+  
+  // 4. Query all active orders due within this week
+  const { data: weekOrders } = await supabase
     .from('orders')
-    .select('*', { count: 'exact', head: true })
+    .select('id, due_date')
     .eq('shop_id', shopId)
     .gte('due_date', startOfWeek.toISOString())
     .lte('due_date', endOfWeek.toISOString())
     .neq('status', 'Delivered')
     .neq('status', 'Cancelled');
 
-  const currentLoad = count || 0;
+  const currentWeeklyLoad = weekOrders?.length || 0;
+  
+  // Filter week orders to find today's orders
+  const currentDailyLoad = weekOrders?.filter(order => {
+    if (!order.due_date) return false;
+    const orderDate = new Date(order.due_date);
+    return orderDate >= startOfDay && orderDate <= endOfDay;
+  }).length || 0;
+
+  const weeklyOverCapacity = currentWeeklyLoad >= weeklyCapacity;
+  const dailyOverCapacity = currentDailyLoad >= dailyCapacity;
 
   return {
     weeklyCapacity,
-    currentLoad,
-    overCapacity: currentLoad >= weeklyCapacity,
+    currentWeeklyLoad,
+    dailyCapacity,
+    currentDailyLoad,
+    overCapacity: weeklyOverCapacity || dailyOverCapacity,
+    weeklyOverCapacity,
+    dailyOverCapacity
   };
 }
 

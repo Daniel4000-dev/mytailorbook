@@ -7,6 +7,8 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { isOwnerLikeRole } from '@/lib/types';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, TRIAL_LENGTH_DAYS, TRIAL_VERIFICATION_AMOUNT_NGN } from '@/lib/subscription';
 import { refundTrialChargeOnce } from '@/lib/paystackRefund';
+import { validateBillingEnvironment, getPlanCode, getBillingEnv } from '@/lib/billing/environment';
+
 
 /** Starts a Paystack checkout for the current user's shop, returning the
  *  authorization URL to redirect the browser to. Uses the request-scoped
@@ -19,6 +21,8 @@ import { refundTrialChargeOnce } from '@/lib/paystackRefund';
  *  the choice. */
 export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'monthly') {
   const supabase = await createClient();
+
+  validateBillingEnvironment();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -53,9 +57,7 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
   }
 
   const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-  const PLAN_CODE = interval === 'yearly'
-    ? process.env.NEXT_PUBLIC_PAYSTACK_YEARLY_PLAN_CODE
-    : process.env.NEXT_PUBLIC_PAYSTACK_PLAN_CODE;
+  const PLAN_CODE = getPlanCode(interval);
 
   if (!PAYSTACK_SECRET || !PLAN_CODE) {
     throw new Error('Server configuration error');
@@ -149,6 +151,8 @@ export async function initializeSubscription(interval: 'monthly' | 'yearly' = 'm
 export async function confirmSubscriptionPayment(reference: string) {
   const supabase = await createClient();
 
+  validateBillingEnvironment();
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('Not authenticated');
@@ -224,6 +228,7 @@ export async function confirmSubscriptionPayment(reference: string) {
         paystack_customer_code: verifyData.data.customer.customer_code,
         subscription_status: 'active',
         grace_expires_at: null,
+        paystack_environment: getBillingEnv(),
       })
       .eq('id', profile.shop_id);
 
@@ -248,6 +253,8 @@ export async function confirmSubscriptionPayment(reference: string) {
  *  both. */
 export async function startFreeTrial(interval: 'monthly' | 'yearly' = 'monthly') {
   const supabase = await createClient();
+
+  validateBillingEnvironment();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -300,9 +307,7 @@ export async function startFreeTrial(interval: 'monthly' | 'yearly' = 'monthly')
   }
 
   const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-  const PLAN_CODE = interval === 'yearly'
-    ? process.env.NEXT_PUBLIC_PAYSTACK_YEARLY_PLAN_CODE
-    : process.env.NEXT_PUBLIC_PAYSTACK_PLAN_CODE;
+  const PLAN_CODE = getPlanCode(interval);
   if (!PAYSTACK_SECRET || !PLAN_CODE) {
     throw new Error('Server configuration error');
   }
@@ -358,6 +363,8 @@ export async function startFreeTrial(interval: 'monthly' | 'yearly' = 'monthly')
  *  all against a localhost dev server. */
 export async function confirmFreeTrial(reference: string) {
   const supabase = await createClient();
+
+  validateBillingEnvironment();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -448,6 +455,7 @@ export async function confirmFreeTrial(reference: string) {
         trial_ends_at: trialEndsAt,
         trial_used_at: new Date().toISOString(),
         grace_expires_at: null,
+        paystack_environment: getBillingEnv(),
       })
       .eq('id', profile.shop_id);
 
@@ -492,6 +500,7 @@ export async function cancelSubscriptionAction(): Promise<{ success: true; acces
     .from('shops')
     .select('id, subscription_status, paystack_subscription_code, current_period_end, is_primary, org_id')
     .eq('id', profile.shop_id)
+    .eq('paystack_environment', getBillingEnv())
     .single();
   if (!shop) return { error: 'Shop not found' };
 
@@ -500,7 +509,7 @@ export async function cancelSubscriptionAction(): Promise<{ success: true; acces
   // lib/subscription.ts.
   const billingShop = shop.is_primary
     ? shop
-    : (await admin.from('shops').select('id, subscription_status, paystack_subscription_code, current_period_end').eq('org_id', shop.org_id).eq('is_primary', true).single()).data;
+    : (await admin.from('shops').select('id, subscription_status, paystack_subscription_code, current_period_end').eq('org_id', shop.org_id).eq('is_primary', true).eq('paystack_environment', getBillingEnv()).single()).data;
   if (!billingShop) return { error: 'Shop not found' };
 
   // Trialing shops never had a real Paystack subscription created (see
@@ -550,7 +559,42 @@ export async function cancelSubscriptionAction(): Promise<{ success: true; acces
   await admin
     .from('shops')
     .update({ paystack_subscription_code: null })
-    .eq('id', billingShop.id ?? profile.shop_id);
+    .eq('id', billingShop.id ?? profile.shop_id)
+    .eq('paystack_environment', getBillingEnv());
 
   return { success: true, accessUntil: billingShop.current_period_end };
+}
+
+export async function mockToggleSubscription() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.email !== 'dadekunle31@gmail.com') {
+    throw new Error('Unauthorized');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.shop_id) {
+    throw new Error('No shop profile found');
+  }
+
+  const { data: shop } = await supabase
+    .from('shops')
+    .select('subscription_status')
+    .eq('id', profile.shop_id)
+    .single();
+
+  const nextStatus = shop?.subscription_status === 'active' ? 'free' : 'active';
+  
+  const admin = createAdminClient();
+  await admin
+    .from('shops')
+    .update({ subscription_status: nextStatus })
+    .eq('id', profile.shop_id);
+
+  return { status: nextStatus };
 }

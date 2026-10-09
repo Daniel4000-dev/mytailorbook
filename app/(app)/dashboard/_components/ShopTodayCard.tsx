@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { motion, Variants } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
@@ -78,16 +77,7 @@ export default function ShopTodayCard({
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={`${styles.assistantAvatar} ${styles[`assistant_${emotion}`]}`}>
-          <Image
-            src={mascotSrc}
-            alt="Studio Assistant"
-            width={64}
-            height={64}
-            className={styles.mascotImage}
-            unoptimized
-          />
-        </div>
+
         <div className={styles.headerContent}>
           <h2 className={styles.title}>{title}</h2>
           <p className={styles.subtitle}>{subtitle}</p>

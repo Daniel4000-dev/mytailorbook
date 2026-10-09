@@ -9,6 +9,7 @@ import { getInitials } from '@/lib/formatters';
 import type { Order } from '@/lib/types';
 import styles from '../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from './TodaysAgendaWidget';
 
 // ============================================================
@@ -91,18 +92,21 @@ export default function StaffDashboard({
       </div>
 
       {myTasks.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Symbol name="assignment" className={styles.emptyStateIcon} />
-          <span>No orders assigned to you right now.</span>
+        <div style={{ marginTop: 24, marginBottom: 24 }}>
+          <EmptyState
+            icon={<Symbol name="assignment" size={32} />}
+            title="No assigned orders"
+            description="No orders assigned to you right now."
+          />
         </div>
       ) : (
         <div className={styles.attentionList}>
           {myTasks.map((order) => (
             <button key={order.id} className={styles.attentionRow} onClick={() => onNavigate(`/production?order=${order.id}`)} type="button">
               <div className={styles.attentionInfo}>
-                <div className={styles.attentionAvatar}>{getInitials(order.customerName)}</div>
+                <div className={styles.attentionAvatar}>{getInitials(order.customerName || 'Batch')}</div>
                 <div className={styles.attentionTextGroup}>
-                  <span className={styles.attentionCustomer}>{order.customerName}</span>
+                  <span className={styles.attentionCustomer}>{order.customerName || 'Batch'}</span>
                   <span className={styles.attentionDetails}>{order.orderDetails}</span>
                 </div>
               </div>

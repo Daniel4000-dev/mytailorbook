@@ -10,13 +10,15 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { scrollContentToTop } from '@/lib/scrollToTop';
-import { initializeSubscription, confirmSubscriptionPayment, startFreeTrial, confirmFreeTrial, cancelSubscriptionAction } from '@/app/actions/payments';
+import { initializeSubscription, confirmSubscriptionPayment, startFreeTrial, confirmFreeTrial, cancelSubscriptionAction, mockToggleSubscription } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, TRIAL_VERIFICATION_AMOUNT_NGN } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
+import { useAuth } from '@/contexts/AuthContext';
 import styles from './page.module.css';
 
 export default function BillingSettingsPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentShop, orders, staffMembers, refreshShop } = useData();
@@ -256,6 +258,29 @@ export default function BillingSettingsPage() {
               <p className={styles.priceSubtext}>
                 We place a small ₦{TRIAL_VERIFICATION_AMOUNT_NGN} card-verification charge, refunded within a few business days — it&apos;s not a fee. Free for 30 days, then ₦{(billingInterval === 'monthly' ? PREMIUM_MONTHLY_PRICE_NGN : PREMIUM_YEARLY_PRICE_NGN).toLocaleString()}/{billingInterval === 'monthly' ? 'month' : 'year'} unless you cancel — cancel anytime, before or during the trial, right from this page.
               </p>
+            )}
+
+            {user?.email === 'dadekunle31@gmail.com' && (
+              <div style={{ marginTop: '16px', borderTop: '1px solid var(--sf-border)', paddingTop: '16px' }}>
+                <Button 
+                  variant="secondary" 
+                  fullWidth 
+                  loading={upgrading} 
+                  onClick={async () => {
+                    setUpgrading(true);
+                    try {
+                      await mockToggleSubscription();
+                      showToast('Mock subscription toggled', 'success');
+                      refreshShop();
+                    } catch (e) {
+                      showToast('Failed to mock toggle', 'error');
+                    }
+                    setUpgrading(false);
+                  }}
+                >
+                  [Dev] Mock {currentShop?.subscriptionStatus === 'active' ? 'Downgrade to Free' : 'Upgrade to Premium'}
+                </Button>
+              </div>
             )}
           </div>
 

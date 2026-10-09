@@ -562,7 +562,11 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home', tourId: 'home' },
   { label: 'Calendar', href: '/calendar', icon: 'calendar_today', hideFromBottomNav: true },
   { label: 'Production', href: '/production', icon: 'precision_manufacturing', tourId: 'production' },
-  { label: 'Fabrics', href: '/fabrics', icon: 'texture', tourId: 'fabrics' },
-  { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers' },
+  { label: 'Stock / POS', href: '/stock', icon: 'storefront', ownerOnly: true, rtwOnly: true, tourId: 'stock' },
+  { label: 'Catalogues', href: '/catalogues', icon: 'collections_bookmark', ownerOnly: true },
+  { label: 'Fabrics', href: '/fabrics', icon: 'texture', tourId: 'fabrics', hideFromBottomNav: true },
+  { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers', bespokeOnly: true },
+  { label: 'Collections', href: '/collections', icon: 'account_balance_wallet', ownerOnly: true, hideFromBottomNav: true },
+  { label: 'Reconciliation', href: '/reconciliation', icon: 'point_of_sale', ownerOnly: true, hideFromBottomNav: true },
   { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true, hideFromBottomNav: true },
 ];

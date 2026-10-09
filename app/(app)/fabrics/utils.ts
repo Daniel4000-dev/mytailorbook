@@ -20,7 +20,7 @@ export function filterFabricOrders(orders: Order[], options: FilterOptions): Ord
     // Search by customer, style, or details
     if (lowerSearch) {
       return (
-        o.customerName.toLowerCase().includes(lowerSearch) ||
+        (o.customerName || 'Batch').toLowerCase().includes(lowerSearch) ||
         (o.orderDetails?.toLowerCase().includes(lowerSearch) ?? false) ||
         (o.styleName?.toLowerCase().includes(lowerSearch) ?? false)
       );

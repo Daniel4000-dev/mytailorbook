@@ -1,0 +1,254 @@
+.container {
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.searchWrap {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sf-text-secondary);
+}
+
+.searchInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 40px 0 44px;
+  border-radius: 24px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-surface);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--sf-accent-emerald);
+  background: var(--sf-bg-primary);
+  box-shadow: 0 0 0 3px var(--sf-accent-emerald-glow);
+}
+
+.clearBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.addBtn {
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+}
+
+.inventoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemCard {
+  background: var(--sf-bg-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itemCard:hover {
+  border-color: var(--sf-text-secondary);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.itemMeta {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.itemQty {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.qtyValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.qtyUnit {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+}
+
+.qtyValue.lowStock {
+  color: var(--sf-error);
+}
+
+.lowStockBadge {
+  background: var(--sf-error-bg);
+  color: var(--sf-error);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.editSheet {
+  padding: 24px 20px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.sheetTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.sheetClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--sf-bg-surface);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-primary);
+  padding: 0 16px;
+  font-size: 16px;
+  color: var(--sf-text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--sf-accent-emerald);
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+.row > * {
+  flex: 1;
+}
+
+.submitBtn {
+  width: 100%;
+  height: 52px;
+  border-radius: 26px;
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteBtn {
+  width: 100%;
+  height: 52px;
+  border-radius: 26px;
+  background: transparent;
+  color: var(--sf-error);
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid var(--sf-error);
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.skeletonCard {
+  background: var(--sf-bg-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

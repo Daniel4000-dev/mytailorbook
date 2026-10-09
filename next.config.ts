@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
         hostname: 'dbbzgdklhxshgqhwrxoq.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'atmtzcimmdzfzkixiiyl.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
     // Required as of Next 16 — an explicit allowlist rather than open
     // access. 75 is next/image's own default; 82 matches the JPEG quality

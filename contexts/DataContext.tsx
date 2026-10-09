@@ -47,9 +47,10 @@ interface ShopBundle {
   staffMembers: User[];
   shop: Shop | null;
   exceptions: ShopException[];
+  inventory: import('@/lib/types').InventoryItem[];
 }
 
-const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [] };
+const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [], inventory: [] };
 
 interface DataContextValue {
   orders: Order[];
@@ -57,6 +58,7 @@ interface DataContextValue {
   staffMembers: User[];
   shops: Shop[];
   exceptions: ShopException[];
+  inventory: import('@/lib/types').InventoryItem[];
   currentShop: Shop | null;
   activeBranchId: string | null;
   setActiveBranchId: (shopId: string) => void;
@@ -99,6 +101,9 @@ interface DataContextValue {
   renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
   logException: (type: string, reason?: string, orderId?: string) => Promise<void>;
   resolveException: (exceptionId: string) => Promise<void>;
+  addInventoryItem: (payload: Omit<import('@/lib/types').InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateInventoryItem: (itemId: string, updates: Partial<import('@/lib/types').InventoryItem>) => Promise<void>;
+  deleteInventoryItem: (itemId: string) => Promise<void>;
 }
 
 
@@ -190,6 +195,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, () => mutate())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
       // Picks up the Paystack webhook flipping subscription_status once a
       // payment (popup or otherwise) actually clears — without this, the
       // in-app UI would keep showing "Free" until something else happened
@@ -203,7 +209,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [activeBranchId, orgId, mutate]);
 
   const bundle = data ?? EMPTY_BUNDLE;
-  const { orders, customers, staffMembers, shop: currentShop, exceptions } = bundle;
+  const { orders, customers, staffMembers, shop: currentShop, exceptions, inventory } = bundle;
   // Only true once we've never had data for this shop — a background
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = !!data;
@@ -592,6 +598,39 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [mutate]
   );
 
+  const addInventoryItem = useCallback(
+    async (payload: Omit<import('@/lib/types').InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
+      if (!activeBranchId) return;
+      const { addInventoryItemAction } = await import('@/app/actions');
+      const result = await addInventoryItemAction(activeBranchId, payload);
+      if ('error' in result) throw new Error(result.error);
+      mutate();
+    },
+    [activeBranchId, mutate]
+  );
+
+  const updateInventoryItem = useCallback(
+    async (itemId: string, updates: Partial<import('@/lib/types').InventoryItem>) => {
+      if (!activeBranchId) return;
+      const { updateInventoryItemAction } = await import('@/app/actions');
+      const result = await updateInventoryItemAction(itemId, updates);
+      if ('error' in result) throw new Error(result.error);
+      mutate();
+    },
+    [activeBranchId, mutate]
+  );
+
+  const deleteInventoryItem = useCallback(
+    async (itemId: string) => {
+      if (!activeBranchId) return;
+      const { deleteInventoryItemAction } = await import('@/app/actions');
+      const result = await deleteInventoryItemAction(itemId);
+      if (result.error) throw new Error(result.error);
+      mutate();
+    },
+    [activeBranchId, mutate]
+  );
+
   const value = useMemo<DataContextValue>(
     () => ({
       orders,
@@ -599,6 +638,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       staffMembers,
       shops: branches,
       exceptions,
+      inventory,
       currentShop,
       activeBranchId,
       setActiveBranchId,
@@ -627,8 +667,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       renameCustomStyle,
       logException,
       resolveException,
+      addInventoryItem,
+      updateInventoryItem,
+      deleteInventoryItem,
     }),
-    [orders, customers, staffMembers, branches, exceptions, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException]
+    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -35,6 +35,8 @@ export interface Shop {
   createdAt: string;
   orgId: string;
   isPrimary: boolean;
+  weeklyCapacity?: number;
+  dailyCapacity?: number;
   /** Shop-defined one-off garment styles beyond the built-in catalog —
    *  remembered across future orders once created, same as built-in styles.
    *  `measurementFields` is the shop's own named+ordered field list for
@@ -62,6 +64,7 @@ export interface Shop {
   portfolioSettings?: { tagline?: string; bio?: string; foundedYear?: number };
   /** Maximum number of orders the shop can handle per week before showing capacity warnings. */
   weeklyCapacity?: number;
+  monthlyRevenueTarget?: number;
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
   subscriptionPlan?: string;
@@ -91,6 +94,8 @@ export interface Shop {
   streakLastCountedAt?: string;
   /** The future identity goal chosen by the tailor during onboarding */
   onboardingGoal?: string;
+  /** Determines if the shop operates as a bespoke tailor, a ready-to-wear brand, or both */
+  businessMode?: 'bespoke' | 'rtw' | 'hybrid';
 }
 
 export interface ShopException {
@@ -153,6 +158,8 @@ export interface User {
   orgId: string;
   active?: boolean; // undefined/true = active, false = deactivated
   avatarUrl?: string;
+  payrollType?: 'piece_rate' | 'percentage' | 'salary' | 'none';
+  payrollAmount?: number;
   createdAt: string;
 }
 
@@ -205,6 +212,22 @@ export interface Measurements {
 export interface StyleMeasurementProfile {
   measurements: Measurements;
   updatedAt: string;
+  history?: { date: string; measurements: Measurements }[];
+}
+
+export interface StyleCataloguePhoto {
+  id: string;
+  catalogueId: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export interface StyleCatalogue {
+  id: string;
+  shopId: string;
+  title: string;
+  createdAt: string;
+  photos?: StyleCataloguePhoto[];
 }
 
 export interface Customer {
@@ -213,10 +236,13 @@ export interface Customer {
   fullName: string;
   whatsappNumber: string;
   gender: 'male' | 'female';
+  wallet_balance?: number;
   /** Styles this client usually commissions (chips in the new-client
    *  wizard) — e.g. ['Agbada', 'Senator']. */
   preferredStyles?: string[];
   measurements?: Measurements;
+  measurementsUpdatedAt?: string;
+  measurementsHistory?: { date: string; measurements: Measurements }[];
   measurementNotes?: string;
   /** Keyed by garment style name (matches GARMENT_STYLES / STYLE_MEASUREMENTS). */
   styleMeasurements?: Record<string, StyleMeasurementProfile>;
@@ -283,11 +309,51 @@ export interface PaymentRecord {
   timestamp: string;
 }
 
+export type PaymentMethod = 'cash' | 'transfer' | 'pos' | 'store_credit';
+
+export interface Payment {
+  id: string;
+  shop_id: string;
+  order_id: string;
+  amount: number;
+  method: PaymentMethod;
+  reference_note?: string;
+  date: string;
+  created_at: string;
+}
+
+export type ExpenseCategory = 'material' | 'labor' | 'outsourced' | 'logistics' | 'general';
+
+export interface Expense {
+  id: string;
+  shopId: string;
+  orderId?: string;
+  amount: number;
+  category: ExpenseCategory;
+  description: string;
+  date: string;
+  method?: PaymentMethod;
+  createdAt?: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  shopId: string;
+  itemName: string;
+  quantity: number;
+  unit: string;
+  lowStockThreshold?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Order {
   id: string;
   shopId: string;
-  customerId: string;
-  customerName: string;
+  customerId?: string; // Optional for RTW batches
+  customerName?: string; // Optional for RTW batches
+  isInternalBatch?: boolean;
+  batchSizes?: { size: string; quantity: number }[];
   orderDetails: string;
   totalBill: number;
   depositPaid: number;
@@ -389,6 +455,10 @@ export interface NavItem {
   ownerOnly?: boolean;
   /** Sidebar only — omit from the mobile bottom nav to prevent crowding */
   hideFromBottomNav?: boolean;
+  /** Only show in RTW or Hybrid mode */
+  rtwOnly?: boolean;
+  /** Only show in Bespoke or Hybrid mode */
+  bespokeOnly?: boolean;
   /** Rendered as this item's `data-tour-id` on both BottomNav and
    *  SidebarMenu's matching link, so AppTour (components/system/AppTour)
    *  can find and spotlight the real on-screen element regardless of
@@ -432,5 +502,34 @@ export interface CalendarEvent {
   relatedCustomerId?: string;
   assignedTo?: string; // Staff UID
   status?: 'pending' | 'completed';
+  createdAt: string;
+}
+
+export interface SizeChart {
+  id: string;
+  shopId: string;
+  name: string;
+  measurements: Record<string, string>; // e.g., { "S": "Chest 38, Length 28", "M": "Chest 40, Length 30" }
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinishedGood {
+  id: string;
+  shopId: string;
+  name: string;
+  size: string;
+  quantity: number;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PosSale {
+  id: string;
+  shopId: string;
+  totalAmount: number;
+  method: PaymentMethod;
+  items: { goodId: string; name: string; size: string; quantity: number; price: number }[];
   createdAt: string;
 }

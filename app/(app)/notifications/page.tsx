@@ -10,8 +10,9 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
-import styles from './page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import styles from './page.module.css';
 
 type FilterMode = 'all' | 'unread' | 'read';
 
@@ -98,19 +99,12 @@ export default function NotificationsPage() {
       </div>
 
       {groups.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Symbol name="notifications_off" className={styles.emptyIcon} />
-          <span>
-            {!isLoaded
-              ? 'Loading your notifications…'
-              : filter === 'unread'
-              ? "You're all caught up — nothing unread."
-              : filter === 'read'
-              ? 'Nothing read yet.'
-              : query
-              ? 'No notifications match your search.'
-              : 'No notifications yet.'}
-          </span>
+        <div style={{ marginTop: 24 }}>
+          <EmptyState
+            icon={<Symbol name="notifications_off" size={32} />}
+            title={!isLoaded ? 'Loading...' : filter === 'unread' ? "You're all caught up" : filter === 'read' ? 'Nothing read yet' : query ? 'No notifications match your search' : 'No notifications yet'}
+            description={!isLoaded ? 'Loading your notifications…' : filter === 'unread' ? 'Nothing unread.' : ''}
+          />
         </div>
       ) : (
         groups.map(([label, items]) => (

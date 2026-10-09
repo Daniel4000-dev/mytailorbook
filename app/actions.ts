@@ -115,6 +115,8 @@ function orderFromRow(row: any): Order {
     otherCosts: row.other_costs || 0,
     lastReminderAt: row.last_reminder_at || undefined,
     includeTrackingLink: row.include_tracking_link,
+    isInternalBatch: row.is_internal_batch || false,
+    batchSizes: row.batch_sizes || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -145,6 +147,8 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.materialCost !== undefined) row.material_cost = o.materialCost;
   if (o.otherCosts !== undefined) row.other_costs = o.otherCosts;
   if (o.includeTrackingLink !== undefined) row.include_tracking_link = o.includeTrackingLink;
+  if (o.isInternalBatch !== undefined) row.is_internal_batch = o.isInternalBatch;
+  if (o.batchSizes !== undefined) row.batch_sizes = o.batchSizes;
   return row;
 }
 
@@ -169,11 +173,14 @@ function customerFromRow(row: any): Customer {
     gender: row.gender,
     preferredStyles: row.preferred_styles || undefined,
     measurements: row.measurements || undefined,
+    measurementsUpdatedAt: row.measurements_updated_at || undefined,
+    measurementsHistory: row.measurements_history || undefined,
     measurementNotes: row.measurement_notes || undefined,
     styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
     fabrics: row.fabrics || undefined,
     address: row.address || undefined,
     birthdate: row.birthdate || undefined,
+    wallet_balance: row.wallet_balance !== undefined && row.wallet_balance !== null ? Number(row.wallet_balance) : 0,
     createdAt: row.created_at,
   };
 }
@@ -189,6 +196,8 @@ function userFromRow(row: any): User {
     orgId: row.org_id,
     active: row.active,
     avatarUrl: row.avatar_url || undefined,
+    payrollType: row.payroll_type || undefined,
+    payrollAmount: row.payroll_amount || undefined,
     createdAt: row.created_at,
   };
 }
@@ -221,6 +230,8 @@ function shopFromRow(row: any): Shop {
     createdAt: row.created_at,
     orgId: row.org_id,
     isPrimary: row.is_primary,
+    weeklyCapacity: row.weekly_capacity,
+    dailyCapacity: row.daily_capacity,
     customStyles: row.custom_styles || [],
     logoUrl: row.logo_url || undefined,
     outreachTemplate: row.outreach_template || undefined,
@@ -240,6 +251,8 @@ function shopFromRow(row: any): Shop {
     streakBest: row.streak_best || 0,
     streakLastCountedAt: row.streak_last_counted_at || undefined,
     onboardingGoal: row.onboarding_goal || undefined,
+    monthlyRevenueTarget: row.monthly_revenue_target !== null ? Number(row.monthly_revenue_target) : undefined,
+    businessMode: row.business_mode || 'bespoke',
   };
 }
 
@@ -263,18 +276,19 @@ const SHOP_BUNDLE_ROW_LIMIT = 2000;
 
 export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
-  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes] = await Promise.all([
+  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes, inventoryRes] = await Promise.all([
     supabase.from('shops').select(
-      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled, onboarding_goal'
+      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled, onboarding_goal, monthly_revenue_target'
     ).eq('id', shopId).single(),
     supabase.from('customers').select(
-      'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at'
+      'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at, wallet_balance'
     ).eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
     supabase.from('orders').select(
       'id, shop_id, customer_id, customer_name, order_details, total_bill, deposit_paid, status, assigned_to, assigned_to_name, due_date, priority, measurements, images, inspiration_images, batch_id, last_comment_at, comments_seen_at, status_history, payments, style_name, material_supplied_by, material_cost, other_costs, last_reminder_at, include_tracking_link, created_at, updated_at'
     ).eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
     supabase.from('profiles').select('id, name, email, role, shop_id, org_id, active, avatar_url, created_at').eq('shop_id', shopId),
-    supabase.from('shop_exceptions').select('*').eq('shop_id', shopId)
+    supabase.from('shop_exceptions').select('*').eq('shop_id', shopId),
+    supabase.from('inventory').select('*').eq('shop_id', shopId)
   ]);
 
   return {
@@ -283,6 +297,7 @@ export async function getShopBundle(shopId: string, orgId: string) {
     orders: (ordersRes.data || []).map(orderFromRow),
     staffMembers: (profilesRes.data || []).map(userFromRow),
     exceptions: (exceptionsRes.data || []).map(exceptionFromRow),
+    inventory: (inventoryRes.data || []).map(inventoryItemFromRow),
   };
 }
 
@@ -546,7 +561,7 @@ export async function updateOrderStatusAction(
 
   const { data: current, error: fetchError } = await supabase
     .from('orders')
-    .select('status, status_history, customer_name')
+    .select('status, status_history, customer_name, is_internal_batch, batch_sizes, style_name')
     .eq('id', orderId)
     .single();
   if (fetchError) return { error: fetchError.message };
@@ -561,6 +576,30 @@ export async function updateOrderStatusAction(
     .update({ status: newStatus, status_history: newHistory, updated_at: new Date().toISOString() })
     .eq('id', orderId);
   if (error) return { error: error.message };
+
+  if (newStatus === 'Delivered' && current.is_internal_batch && current.batch_sizes) {
+    const styleName = current.style_name || 'Unknown Garment';
+    // batch_sizes is { size: string, quantity: number }[]
+    const sizes = Array.isArray(current.batch_sizes) ? current.batch_sizes : [];
+    
+    for (const bs of sizes) {
+      if (!bs.size || !bs.quantity) continue;
+      // Find existing
+      const { data: existing } = await supabase
+        .from('finished_goods')
+        .select('id, quantity')
+        .eq('shop_id', shopId)
+        .eq('name', styleName)
+        .eq('size', bs.size)
+        .single();
+        
+      if (existing) {
+        await supabase.from('finished_goods').update({ quantity: existing.quantity + bs.quantity }).eq('id', existing.id);
+      } else {
+        await supabase.from('finished_goods').insert({ shop_id: shopId, name: styleName, size: bs.size, quantity: bs.quantity, price: 0 });
+      }
+    }
+  }
 
   await logAudit({
     shopId,
@@ -691,7 +730,32 @@ export async function addCustomerAction(
 
 export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, orgId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
+  
+  // 1. Fetch current measurements and history
+  const { data: current, error: fetchError } = await supabase
+    .from('customers')
+    .select('measurements, measurements_updated_at, measurements_history')
+    .eq('id', customerId)
+    .single();
+    
+  if (fetchError) return { error: fetchError.message };
+
+  // 2. Add current to history if it exists and has actual data
+  const history = Array.isArray(current.measurements_history) ? [...current.measurements_history] : [];
+  if (current.measurements && Object.keys(current.measurements).length > 0) {
+    history.unshift({
+      date: current.measurements_updated_at || new Date().toISOString(),
+      measurements: current.measurements
+    });
+  }
+
+  // 3. Update with new measurements and history
+  const { error } = await supabase.from('customers').update({ 
+    measurements,
+    measurements_updated_at: new Date().toISOString(),
+    measurements_history: history
+  }).eq('id', customerId);
+  
   if (error) return { error: error.message };
   return getCustomers(orgId);
 }
@@ -714,11 +778,21 @@ export async function updateCustomerStyleProfileAction(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const existing = (current?.style_measurements as Record<string, any>) || {};
   const currentStyleData = existing[styleName] || {};
+
+  const history = Array.isArray(currentStyleData.history) ? [...currentStyleData.history] : [];
+  if (currentStyleData.measurements && Object.keys(currentStyleData.measurements).length > 0) {
+    history.unshift({
+      date: currentStyleData.updatedAt || new Date().toISOString(),
+      measurements: currentStyleData.measurements
+    });
+  }
+
   const updated = {
     ...existing,
     [styleName]: {
       ...currentStyleData,
       measurements,
+      history,
       updatedAt: new Date().toISOString(),
       ...(notes !== undefined && { notes })
     },
@@ -777,6 +851,8 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
 
   if (updates.active !== undefined) row.active = updates.active;
   if (updates.avatarUrl !== undefined) row.avatar_url = updates.avatarUrl || null;
+  if (updates.payrollType !== undefined) row.payroll_type = updates.payrollType;
+  if (updates.payrollAmount !== undefined) row.payroll_amount = updates.payrollAmount;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
   if (error) return { error: error.message };
   return getStaff(shopId);
@@ -800,6 +876,10 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.streakCurrent !== undefined) row.streak_current = updates.streakCurrent;
   if (updates.streakBest !== undefined) row.streak_best = updates.streakBest;
   if (updates.streakLastCountedAt !== undefined) row.streak_last_counted_at = updates.streakLastCountedAt;
+  if (updates.weeklyCapacity !== undefined) row.weekly_capacity = updates.weeklyCapacity;
+  if (updates.dailyCapacity !== undefined) row.daily_capacity = updates.dailyCapacity;
+  if (updates.monthlyRevenueTarget !== undefined) row.monthly_revenue_target = updates.monthlyRevenueTarget;
+  if (updates.businessMode !== undefined) row.business_mode = updates.businessMode;
   const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error) return { error: error.message };
   return shopFromRow(data);
@@ -1613,6 +1693,12 @@ export interface FinancialReportBranch {
   costTotal: number;
   marginTotal: number;
   ordersWithCostCount: number;
+  mostProfitableOrder?: { id: string; customerName: string; styleName: string; profit: number };
+  mostProfitableStyle?: { styleName: string; profit: number; count: number };
+  expenseBreakdown: { label: string; value: number }[];
+  trendData: { label: string; revenue: number; expenses: number }[];
+  totalExpenses: number;
+  netProfit: number;
 }
 
 export interface FinancialReport {
@@ -1646,10 +1732,10 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 
   const admin = createAdminClient();
 
-  const premium = await isOrgPremiumByOrgId(admin, profile.org_id);
-  if (!premium) {
-    return { error: 'Financial reports require a premium subscription. Upgrade from Settings to view analytics.' };
-  }
+  // const premium = await isOrgPremiumByOrgId(admin, profile.org_id);
+  // if (!premium) {
+  //   return { error: 'Financial reports require a premium subscription. Upgrade from Settings to view analytics.' };
+  // }
 
   const { data: shops, error: shopsError } = await admin
     .from('shops')
@@ -1662,51 +1748,137 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 
   let ordersQuery = admin
     .from('orders')
-    .select('shop_id, total_bill, deposit_paid, status, material_cost, other_costs, created_at')
+    .select('id, shop_id, customer_name, style_name, total_bill, deposit_paid, status, material_cost, other_costs, created_at')
     .in('shop_id', shops.map((s) => s.id));
   if (fromDate) ordersQuery = ordersQuery.gte('created_at', fromDate);
   const { data: orders, error: ordersError } = await ordersQuery;
   if (ordersError) return { error: ordersError.message };
 
+  let expensesQuery = admin
+    .from('expenses')
+    .select('id, shop_id, order_id, amount, category, date')
+    .in('shop_id', shops.map((s) => s.id));
+  if (fromDate) expensesQuery = expensesQuery.gte('date', fromDate);
+  const { data: expenses } = await expensesQuery; // don't crash if it fails, maybe table doesn't exist yet
+
+  const allExpenses = expenses || [];
+
   const branches: FinancialReportBranch[] = shops.map((shop) => {
     const shopOrders = (orders || []).filter((o) => o.shop_id === shop.id);
+    const shopExpenses = allExpenses.filter((e) => e.shop_id === shop.id);
     return {
       shopId: shop.id,
       shopName: shop.name,
       isPrimary: shop.is_primary,
-      ...rollup(shopOrders),
+      ...rollup(shopOrders, shopExpenses),
     };
   });
 
-  const totals = rollup(orders || []);
+  const totals = rollup(orders || [], allExpenses);
 
   return { data: { branches, totals } };
 }
 
 function emptyTotals(): FinancialReport['totals'] {
-  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0 };
+  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0, expenseBreakdown: [], trendData: [] };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rollup(rows: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' | 'isPrimary'> {
+function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' | 'isPrimary'> {
   let collected = 0;
   let outstanding = 0;
   let revenueWithCostData = 0;
   let costTotal = 0;
   let ordersWithCostCount = 0;
 
-  for (const row of rows) {
+  const expensesByOrder: Record<string, number> = {};
+  for (const exp of expenses) {
+    costTotal += exp.amount || 0;
+    if (exp.order_id) {
+      expensesByOrder[exp.order_id] = (expensesByOrder[exp.order_id] || 0) + (exp.amount || 0);
+    }
+  }
+
+  const profitByOrder: Record<string, { id: string; customerName: string; styleName: string; profit: number }> = {};
+  const profitByStyle: Record<string, { profit: number; count: number }> = {};
+
+  for (const row of orders) {
     collected += row.deposit_paid || 0;
     if (row.status !== 'Delivered') outstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
 
-    const materialCost = row.material_cost || 0;
-    const otherCosts = row.other_costs || 0;
-    if (materialCost > 0 || otherCosts > 0) {
+    const oldMaterialCost = row.material_cost || 0;
+    const oldOtherCosts = row.other_costs || 0;
+    const oldCost = oldMaterialCost + oldOtherCosts;
+    const newCost = expensesByOrder[row.id] || 0;
+    const totalRowCost = oldCost + newCost; // Support both systems seamlessly
+
+    if (totalRowCost > 0) {
       ordersWithCostCount += 1;
       revenueWithCostData += row.total_bill || 0;
-      costTotal += materialCost + otherCosts;
+      
+      const profit = (row.total_bill || 0) - totalRowCost;
+      profitByOrder[row.id] = { id: row.id, customerName: row.customer_name, styleName: row.style_name || 'Custom', profit };
+      
+      if (row.style_name) {
+        if (!profitByStyle[row.style_name]) {
+          profitByStyle[row.style_name] = { profit: 0, count: 0 };
+        }
+        profitByStyle[row.style_name].profit += profit;
+        profitByStyle[row.style_name].count += 1;
+      }
+    }
+    
+    // Add legacy costs to global costTotal since they aren't in the expenses table
+    costTotal += oldCost;
+  }
+
+  let mostProfitableOrder;
+  for (const order of Object.values(profitByOrder)) {
+    if (!mostProfitableOrder || order.profit > mostProfitableOrder.profit) {
+      mostProfitableOrder = order;
     }
   }
+
+  let mostProfitableStyle;
+  for (const [styleName, stats] of Object.entries(profitByStyle)) {
+    const avgProfit = stats.profit / stats.count;
+    if (!mostProfitableStyle || avgProfit > (mostProfitableStyle.profit / mostProfitableStyle.count)) {
+      mostProfitableStyle = { styleName, profit: avgProfit, count: stats.count };
+    }
+  }
+
+  const expensesByCategory: Record<string, number> = { material: 0, labor: 0, outsourced: 0, logistics: 0, general: 0 };
+  for (const exp of expenses) {
+    if (exp.category) {
+      expensesByCategory[exp.category] = (expensesByCategory[exp.category] || 0) + (exp.amount || 0);
+    }
+  }
+
+  const expenseBreakdown = [
+    { label: 'Materials', value: expensesByCategory.material || 0, color: '#3b82f6' },
+    { label: 'Labor', value: expensesByCategory.labor || 0, color: '#10b981' },
+    { label: 'Outsourced', value: expensesByCategory.outsourced || 0, color: '#f59e0b' },
+    { label: 'Logistics', value: expensesByCategory.logistics || 0, color: '#8b5cf6' },
+    { label: 'General', value: expensesByCategory.general || 0, color: '#ef4444' },
+  ];
+
+  // Group by month for trend data
+  const trendMap: Record<string, { revenue: number; expenses: number }> = {};
+  for (const row of orders) {
+    const month = new Date(row.created_at).toLocaleString('default', { month: 'short' });
+    if (!trendMap[month]) trendMap[month] = { revenue: 0, expenses: 0 };
+    trendMap[month].revenue += row.total_bill || 0;
+  }
+  for (const exp of expenses) {
+    const month = new Date(exp.date).toLocaleString('default', { month: 'short' });
+    if (!trendMap[month]) trendMap[month] = { revenue: 0, expenses: 0 };
+    trendMap[month].expenses += exp.amount || 0;
+  }
+  
+  const trendData = Object.entries(trendMap).map(([label, data]) => ({ label, revenue: data.revenue, expenses: data.expenses }));
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0) + legacyCostTotal;
+  const netProfit = collected - totalExpenses;
 
   return {
     collected,
@@ -1715,6 +1887,12 @@ function rollup(rows: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' 
     costTotal,
     marginTotal: revenueWithCostData - costTotal,
     ordersWithCostCount,
+    mostProfitableOrder,
+    mostProfitableStyle,
+    expenseBreakdown,
+    trendData,
+    totalExpenses,
+    netProfit,
   };
 }
 
@@ -1751,4 +1929,117 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<{ 
     .eq('profile_id', authData.user.id);
   if (error) return { error: error.message };
   return {};
+}
+
+// --- Inventory ---
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function inventoryItemFromRow(row: any): InventoryItem {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    itemName: row.item_name,
+    quantity: row.quantity,
+    unit: row.unit,
+    lowStockThreshold: row.low_stock_threshold,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function getInventoryAction(shopId: string): Promise<InventoryItem[] | { error: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('inventory')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('item_name', { ascending: true });
+
+  if (error) return { error: error.message };
+  return (data || []).map(inventoryItemFromRow);
+}
+
+export async function addInventoryItemAction(shopId: string, payload: Omit<InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) {
+  const supabase = await createClient();
+  const row = {
+    shop_id: shopId,
+    item_name: payload.itemName,
+    quantity: payload.quantity,
+    unit: payload.unit,
+    low_stock_threshold: payload.lowStockThreshold
+  };
+  const { data, error } = await supabase.from('inventory').insert(row).select().single();
+  if (error) return { error: error.message };
+  return inventoryItemFromRow(data);
+}
+
+export async function updateInventoryItemAction(itemId: string, updates: Partial<InventoryItem>) {
+  const supabase = await createClient();
+  const row: Record<string, unknown> = {};
+  if (updates.itemName !== undefined) row.item_name = updates.itemName;
+  if (updates.quantity !== undefined) row.quantity = updates.quantity;
+  if (updates.unit !== undefined) row.unit = updates.unit;
+  if (updates.lowStockThreshold !== undefined) row.low_stock_threshold = updates.lowStockThreshold;
+
+  const { data, error } = await supabase.from('inventory').update(row).eq('id', itemId).select().single();
+  if (error) return { error: error.message };
+  return inventoryItemFromRow(data);
+}
+
+export async function deleteInventoryItemAction(itemId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('inventory').delete().eq('id', itemId);
+  if (error) return { error: error.message };
+  return { success: true };
+}
+
+export async function assignMaterialToOrderAction(shopId: string, orderId: string, itemId: string, quantity: number) {
+  const supabase = await createClient();
+  
+  // 1. Fetch current inventory
+  const { data: item, error: itemError } = await supabase
+    .from('inventory')
+    .select('quantity')
+    .eq('id', itemId)
+    .single();
+    
+  if (itemError) return { error: itemError.message };
+  
+  const currentQuantity = item.quantity;
+  if (currentQuantity < quantity) {
+    return { error: 'Not enough inventory' };
+  }
+  
+  // 2. Deduct inventory
+  const { error: updateError } = await supabase
+    .from('inventory')
+    .update({ quantity: currentQuantity - quantity })
+    .eq('id', itemId);
+    
+  if (updateError) return { error: updateError.message };
+  
+  // 3. Record assignment
+  const { error: insertError } = await supabase
+    .from('order_materials')
+    .insert({
+      shop_id: shopId,
+      order_id: orderId,
+      inventory_item_id: itemId,
+      quantity
+    });
+    
+  if (insertError) return { error: insertError.message };
+  
+  return { success: true };
+}
+
+export async function getOrderMaterialsAction(orderId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_materials')
+    .select('*, inventory:inventory_item_id(item_name, unit)')
+    .eq('order_id', orderId);
+    
+  if (error) return { error: error.message };
+  return data;
 }

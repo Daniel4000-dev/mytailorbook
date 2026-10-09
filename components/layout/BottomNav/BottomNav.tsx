@@ -3,6 +3,7 @@
 import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { NAV_ITEMS } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './BottomNav.module.css';
@@ -30,15 +31,23 @@ function NavItemContent({ icon, label, isActive, tourId }: { icon: string; label
 export default function BottomNav() {
   const pathname = usePathname();
   const { isOwner, loading } = useAuth();
+  const { currentShop, isLoaded } = useData();
 
   // Owner-only items (e.g. Customers) depend on `isOwner`, which starts
   // false until the profile finishes loading — rendering before then would
   // show a shorter nav that visibly grows/shifts once the real role
   // resolves. Waiting the extra beat for a stable, correct-on-first-paint
   // nav reads far better than items jumping sideways under the user's thumb.
-  if (loading) return null;
+  if (loading || !isLoaded) return null;
 
-  const visibleItems = NAV_ITEMS.filter((item) => (!item.ownerOnly || isOwner) && !item.hideFromBottomNav);
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.hideFromBottomNav) return false;
+    if (item.ownerOnly && !isOwner) return false;
+    const mode = currentShop?.businessMode || 'bespoke';
+    if (mode === 'bespoke' && item.rtwOnly) return false;
+    if (mode === 'rtw' && item.bespokeOnly) return false;
+    return true;
+  });
 
   return (
     <nav className={styles.nav}>

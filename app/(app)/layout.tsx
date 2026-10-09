@@ -205,6 +205,20 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
             </span>
             <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
           </Link>
+          <Link
+            href={ROUTES.quotes}
+            className={styles.actionOption}
+            onClick={closeCreateMenu}
+          >
+            <span className={styles.actionOptionIcon}>
+              <Symbol name="calculate" fill size={24} />
+            </span>
+            <span className={styles.actionOptionText}>
+              <span className={styles.actionOptionTitle}>Quick Quote</span>
+              <span className={styles.actionOptionDesc}>Estimate costs and price for a client</span>
+            </span>
+            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
+          </Link>
         </div>
       </BottomSheet>
     </div>
