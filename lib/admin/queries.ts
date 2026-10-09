@@ -487,6 +487,7 @@ export interface ActiveUserStats {
     shopId: string;
     orgName: string;
     actionCount: number;
+    actionBreakdown: { action: string; count: number }[];
   }[];
 }
 
@@ -530,13 +531,18 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
     // 2. Fetch action performers (Power Users) from audit_log
     const { data: actions } = await admin
       .from('audit_log')
-      .select('shop_id, created_at')
+      .select('shop_id, created_at, action')
       .gte('created_at', weeklyThreshold);
 
     // Group actions by shopId
-    const actionCounts: Record<string, number> = {};
-    for (const action of (actions || [])) {
-      actionCounts[action.shop_id] = (actionCounts[action.shop_id] || 0) + 1;
+    const actionCounts: Record<string, { total: number, breakdown: Record<string, number> }> = {};
+    for (const actionRow of (actions || [])) {
+      if (!actionCounts[actionRow.shop_id]) {
+        actionCounts[actionRow.shop_id] = { total: 0, breakdown: {} };
+      }
+      actionCounts[actionRow.shop_id].total++;
+      const act = actionRow.action || 'Unknown';
+      actionCounts[actionRow.shop_id].breakdown[act] = (actionCounts[actionRow.shop_id].breakdown[act] || 0) + 1;
     }
 
     // Resolve shop_ids to org names
@@ -562,11 +568,18 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
 
         actionPerformers = shops
           .filter(s => validOrgs.has(s.org_id))
-          .map(s => ({
-            shopId: s.id,
-            orgName: validOrgs.get(s.org_id) || s.name,
-            actionCount: actionCounts[s.id] || 0
-          }))
+          .map(s => {
+            const counts = actionCounts[s.id] || { total: 0, breakdown: {} };
+            const breakdown = Object.entries(counts.breakdown)
+              .map(([action, count]) => ({ action, count }))
+              .sort((a, b) => b.count - a.count);
+            return {
+              shopId: s.id,
+              orgName: validOrgs.get(s.org_id) || s.name,
+              actionCount: counts.total,
+              actionBreakdown: breakdown,
+            };
+          })
           .sort((a, b) => b.actionCount - a.actionCount);
       }
     }
