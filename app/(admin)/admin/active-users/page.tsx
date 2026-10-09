@@ -68,6 +68,7 @@ export default async function ActiveUsersPage() {
               <tr>
                 <th>Organization / Shop</th>
                 <th>Actions Performed</th>
+                <th>Action Breakdown</th>
                 <th>Grade</th>
               </tr>
             </thead>
@@ -76,6 +77,20 @@ export default async function ActiveUsersPage() {
                 <tr key={shop.shopId}>
                   <td className={styles.boldCell}>{shop.orgName}</td>
                   <td>{shop.actionCount}</td>
+                  <td>
+                    <div className={styles.breakdownList}>
+                      {shop.actionBreakdown.slice(0, 3).map(b => (
+                        <span key={b.action} className={styles.breakdownItem}>
+                          {b.action} ({b.count})
+                        </span>
+                      ))}
+                      {shop.actionBreakdown.length > 3 && (
+                        <span className={styles.breakdownItem}>
+                          +{shop.actionBreakdown.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <span className={`${styles.gradeBadge} ${shop.actionCount >= 20 ? styles.gradeHigh : shop.actionCount >= 5 ? styles.gradeMedium : styles.gradeLow}`}>
                       {shop.actionCount >= 20 ? 'High' : shop.actionCount >= 5 ? 'Medium' : 'Low'}

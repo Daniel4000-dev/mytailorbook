@@ -150,3 +150,18 @@
   background-color: #F3F4F6;
   color: #374151;
 }
+
+.breakdownList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.breakdownItem {
+  font-size: 0.75rem;
+  background-color: var(--color-surface-hover);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  display: inline-block;
+  width: max-content;
+}
