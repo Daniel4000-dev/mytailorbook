@@ -165,3 +165,18 @@
   display: inline-block;
   width: max-content;
 }
+
+.splitLayout {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.splitColumn {
+  flex: 1;
+  min-width: 0;
+}
+
+.iconStickiness {
+  fill: var(--color-purple-500);
+}
