@@ -489,6 +489,9 @@ export interface ActiveUserStats {
     actionCount: number;
     actionBreakdown: { action: string; count: number }[];
   }[];
+  globalActionDistribution: { action: string; count: number }[];
+  recentActivityFeed: { actorName: string; orgName: string; action: string; entityType: string; createdAt: string }[];
+  engagementByRole: { role: string; count: number }[];
 }
 
 export async function getActiveUsersStats(): Promise<ActiveUserStats> {
@@ -510,7 +513,7 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
     // we'll just query profiles directly.
     const { data: profiles } = await admin
       .from('profiles')
-      .select('id, last_active_at')
+      .select('id, last_active_at, role')
       .not('last_active_at', 'is', null)
       .gte('last_active_at', monthlyThreshold);
 
@@ -521,21 +524,35 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
     let weeklyActive = 0;
     const monthlyActive = activeProfiles.length;
 
+    const roleCounts: Record<string, number> = {};
     for (const p of activeProfiles) {
       if (!p.last_active_at) continue;
       if (p.last_active_at >= onlineThreshold) onlineNow++;
-      if (p.last_active_at >= dailyThreshold) dailyActive++;
+      if (p.last_active_at >= dailyThreshold) {
+        dailyActive++;
+        // Track engagement by role for DAU
+        const r = p.role || 'Unknown';
+        roleCounts[r] = (roleCounts[r] || 0) + 1;
+      }
       if (p.last_active_at >= weeklyThreshold) weeklyActive++;
     }
+    
+    const engagementByRole = Object.entries(roleCounts)
+      .map(([role, count]) => ({ role, count }))
+      .sort((a, b) => b.count - a.count);
 
     // 2. Fetch action performers (Power Users) from audit_log
     const { data: actions } = await admin
       .from('audit_log')
-      .select('shop_id, created_at, action')
-      .gte('created_at', weeklyThreshold);
+      .select('shop_id, created_at, action, actor_name, entity_type')
+      .gte('created_at', weeklyThreshold)
+      .order('created_at', { ascending: false });
 
-    // Group actions by shopId
+    // Group actions by shopId and globally
     const actionCounts: Record<string, { total: number, breakdown: Record<string, number> }> = {};
+    const globalDist: Record<string, number> = {};
+    const feedRows = (actions || []).slice(0, 50); // top 50 recent
+
     for (const actionRow of (actions || [])) {
       if (!actionCounts[actionRow.shop_id]) {
         actionCounts[actionRow.shop_id] = { total: 0, breakdown: {} };
@@ -543,11 +560,17 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       actionCounts[actionRow.shop_id].total++;
       const act = actionRow.action || 'Unknown';
       actionCounts[actionRow.shop_id].breakdown[act] = (actionCounts[actionRow.shop_id].breakdown[act] || 0) + 1;
+      globalDist[act] = (globalDist[act] || 0) + 1;
     }
+
+    const globalActionDistribution = Object.entries(globalDist)
+      .map(([action, count]) => ({ action, count }))
+      .sort((a, b) => b.count - a.count);
 
     // Resolve shop_ids to org names
     const shopIds = Object.keys(actionCounts);
     let actionPerformers: ActiveUserStats['actionPerformers'] = [];
+    let recentActivityFeed: ActiveUserStats['recentActivityFeed'] = [];
 
     if (shopIds.length > 0) {
       const { data: shops } = await admin
@@ -581,6 +604,18 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
             };
           })
           .sort((a, b) => b.actionCount - a.actionCount);
+          
+        const shopIdToOrgName = new Map(
+          shops.map(s => [s.id, validOrgs.get(s.org_id) || s.name])
+        );
+        
+        recentActivityFeed = feedRows.map(r => ({
+          actorName: r.actor_name || 'Unknown',
+          orgName: shopIdToOrgName.get(r.shop_id) || 'Unknown Shop',
+          action: r.action || 'Unknown',
+          entityType: r.entity_type || 'Unknown',
+          createdAt: r.created_at
+        }));
       }
     }
 
@@ -589,7 +624,10 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       dailyActive,
       weeklyActive,
       monthlyActive,
-      actionPerformers
+      actionPerformers,
+      globalActionDistribution,
+      recentActivityFeed,
+      engagementByRole
     };
   } catch (error) {
     console.error("Error fetching active user stats:", error);
@@ -599,7 +637,10 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       dailyActive: 0,
       weeklyActive: 0,
       monthlyActive: 0,
-      actionPerformers: []
+      actionPerformers: [],
+      globalActionDistribution: [],
+      recentActivityFeed: [],
+      engagementByRole: []
     };
   }
 }
