@@ -35,9 +35,15 @@
 
 .totalsGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--sf-space-md);
   margin-bottom: var(--sf-space-lg);
+}
+
+@media (min-width: 768px) {
+  .totalsGrid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 .statCard {

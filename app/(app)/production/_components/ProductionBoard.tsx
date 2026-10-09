@@ -153,7 +153,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       result = result.filter(
-        (o) => o.customerName.toLowerCase().includes(query) || o.orderDetails.toLowerCase().includes(query)
+        (o) => (o.customerName || 'Batch').toLowerCase().includes(query) || o.orderDetails.toLowerCase().includes(query)
       );
     }
 

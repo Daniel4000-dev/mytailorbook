@@ -10,8 +10,10 @@ import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import DiscoverCarousel from './DiscoverCarousel';
 import MilestonesCard from '../MilestonesCard';
 import ShopTodayCard from '../ShopTodayCard';
+import GeneralExpenses from '../GeneralExpenses';
 import styles from '../../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 
 // ============================================================
@@ -34,6 +36,7 @@ export default function OwnerDashboard({
     toggleHideCollected,
     toggleHideProjected,
     collected,
+    monthlyRevenue,
     projected,
     urgentCount,
     dueTodayCount,
@@ -100,21 +103,59 @@ export default function OwnerDashboard({
         </div>
       </div>
 
+      {/* Monthly Goal Progress */}
+      <div style={{ margin: '16px 20px', padding: '16px', background: 'var(--sf-surface)', borderRadius: '12px', border: '1px solid var(--sf-border)' }}>
+        {currentShop?.monthlyRevenueTarget ? (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+              <span style={{ fontWeight: 600, color: 'var(--sf-text-primary)' }}>Monthly Goal</span>
+              <span style={{ color: 'var(--sf-text-secondary)' }}>
+                {hideCollected ? '******' : formatCurrency(monthlyRevenue, currentShop?.currency)} / {hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget, currentShop?.currency)}
+              </span>
+            </div>
+            <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--sf-bg)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ 
+                width: `${Math.min(100, (monthlyRevenue / currentShop.monthlyRevenueTarget) * 100)}%`, 
+                height: '100%', 
+                backgroundColor: monthlyRevenue >= currentShop.monthlyRevenueTarget ? 'var(--sf-success)' : 'var(--sf-brand-primary)',
+                borderRadius: '4px',
+                transition: 'width 0.5s ease-out'
+              }} />
+            </div>
+            <p style={{ marginTop: '8px', fontSize: '12px', color: 'var(--sf-text-secondary)', textAlign: 'center' }}>
+              {monthlyRevenue >= currentShop.monthlyRevenueTarget ? 'Target reached! Incredible work.' : `${hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget - monthlyRevenue, currentShop?.currency)} left to reach your goal.`}
+            </p>
+            {currentShop.monthlyRevenueTarget > monthlyRevenue && (
+              <button onClick={() => onNavigate('/settings/portfolio')} style={{ marginTop: '12px', width: '100%', background: 'var(--sf-bg)', color: 'var(--sf-nav)', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, border: '1px solid var(--sf-border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Symbol name="campaign" size={16} /> Promote a style to close the gap
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <span style={{ display: 'block', fontWeight: 600, fontSize: '13px', color: 'var(--sf-text-primary)' }}>Set a Monthly Goal</span>
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--sf-text-secondary)' }}>Track revenue targets.</span>
+            </div>
+            <button onClick={() => onNavigate('/settings/studio')} style={{ background: 'var(--sf-brand-primary)', color: '#fff', padding: '6px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+              Set Goal
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Team Snapshot</span>
       </div>
 
       {teamSnapshot.length === 0 ? (
-        <div className={styles.emptyState}>
-          <Symbol name="group" className={styles.emptyStateIcon} />
-          <span>No staff added yet — invite your team to see them here.</span>
-          <button
-            type="button"
-            className={styles.emptyStateAction}
-            onClick={() => onNavigate('/settings/staff')}
-          >
-            Invite Team
-          </button>
+        <div style={{ marginTop: 24, marginBottom: 24 }}>
+          <EmptyState
+            icon={<Symbol name="group" size={32} />}
+            title="No staff added yet"
+            description="Invite your team to see them here."
+            action={{ label: 'Invite Team', onClick: () => onNavigate('/settings/staff') }}
+          />
         </div>
       ) : (
       <div className={styles.teamGrid}>
@@ -157,6 +198,9 @@ export default function OwnerDashboard({
       </div>
       <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
       <MilestonesCard />
+      {currentShop && (
+        <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />
+      )}
     </>
   );
 }

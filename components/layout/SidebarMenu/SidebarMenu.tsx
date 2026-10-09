@@ -28,7 +28,13 @@ export default function SidebarMenu() {
   const pathname = usePathname();
   const [showProfile, setShowProfile] = useState(false);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.ownerOnly && !isOwner) return false;
+    const mode = currentShop?.businessMode || 'bespoke';
+    if (mode === 'bespoke' && item.rtwOnly) return false;
+    if (mode === 'rtw' && item.bespokeOnly) return false;
+    return true;
+  });
 
   const handleLogout = async () => {
     setMenuOpen(false);
@@ -116,6 +122,26 @@ export default function SidebarMenu() {
           <Symbol name="photo_library" className={styles.menuIcon} />
           <span className={styles.menuText}>Style Gallery</span>
         </Link>
+        {isOwner && (
+          <Link
+            href={ROUTES.collections}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Symbol name="account_balance_wallet" className={styles.menuIcon} />
+            <span className={styles.menuText}>Collections</span>
+          </Link>
+        )}
+        {isOwner && (
+          <Link
+            href={ROUTES.reconciliation}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Symbol name="point_of_sale" className={styles.menuIcon} />
+            <span className={styles.menuText}>Reconciliation</span>
+          </Link>
+        )}
         {isOwner && (
           <Link
             href={ROUTES.settings}

@@ -33,6 +33,10 @@ export default function StudioSettingsPage() {
   const [shopPhone, setShopPhone] = useState('');
   const [shopAddress, setShopAddress] = useState('');
   const [shopCurrency, setShopCurrency] = useState('NGN');
+  const [monthlyRevenueTarget, setMonthlyRevenueTarget] = useState('');
+  const [weeklyCapacity, setWeeklyCapacity] = useState('');
+  const [dailyCapacity, setDailyCapacity] = useState('');
+  const [businessMode, setBusinessMode] = useState('bespoke');
   const [savingShop, setSavingShop] = useState(false);
 
   // currentShop resolves asynchronously — sync the form once it actually
@@ -48,6 +52,10 @@ export default function StudioSettingsPage() {
     setShopPhone(currentShop.phone || '');
     setShopAddress(currentShop.address || '');
     setShopCurrency(currentShop.currency || 'NGN');
+    setMonthlyRevenueTarget(currentShop.monthlyRevenueTarget ? String(currentShop.monthlyRevenueTarget) : '');
+    setWeeklyCapacity(currentShop.weeklyCapacity ? String(currentShop.weeklyCapacity) : '');
+    setDailyCapacity(currentShop.dailyCapacity ? String(currentShop.dailyCapacity) : '');
+    setBusinessMode(currentShop.businessMode || 'bespoke');
   }
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -56,7 +64,16 @@ export default function StudioSettingsPage() {
   const handleSaveShop = async () => {
     setSavingShop(true);
     try {
-      await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined, currency: shopCurrency });
+      await updateShop({ 
+        name: shopName, 
+        phone: shopPhone || undefined, 
+        address: shopAddress || undefined, 
+        currency: shopCurrency,
+        monthlyRevenueTarget: monthlyRevenueTarget ? Number(monthlyRevenueTarget) : 0,
+        weeklyCapacity: weeklyCapacity ? Number(weeklyCapacity) : 5,
+        dailyCapacity: dailyCapacity ? Number(dailyCapacity) : 2,
+        businessMode: businessMode as 'bespoke' | 'rtw' | 'hybrid'
+      });
       showToast('Studio profile updated', 'success');
     } finally {
       setSavingShop(false);
@@ -109,6 +126,16 @@ export default function StudioSettingsPage() {
         <div className={styles.card}>
           <Input label="Shop / Studio Name" value={shopName} onChange={(e) => setShopName(e.target.value)} required />
           <Select
+            label="Business Model"
+            value={businessMode}
+            onChange={(e) => setBusinessMode(e.target.value)}
+            options={[
+              { value: 'bespoke', label: 'Bespoke Only (Custom Orders)' },
+              { value: 'rtw', label: 'Ready-to-Wear (RTW) Only' },
+              { value: 'hybrid', label: 'Hybrid (Both)' }
+            ]}
+          />
+          <Select
             label="Shop Currency"
             value={shopCurrency}
             onChange={(e) => setShopCurrency(e.target.value)}
@@ -116,6 +143,9 @@ export default function StudioSettingsPage() {
           />
           <Input label="Phone (shown on receipts)" value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="08012345678" />
           <Input label="Address" value={shopAddress} onChange={(e) => setShopAddress(e.target.value)} placeholder="Shop address" />
+          <Input label="Monthly Revenue Target" type="number" value={monthlyRevenueTarget} onChange={(e) => setMonthlyRevenueTarget(e.target.value)} placeholder="e.g. 1000000" />
+          <Input label="Weekly Order Capacity" type="number" value={weeklyCapacity} onChange={(e) => setWeeklyCapacity(e.target.value)} placeholder="e.g. 5" />
+          <Input label="Daily Order Capacity" type="number" value={dailyCapacity} onChange={(e) => setDailyCapacity(e.target.value)} placeholder="e.g. 2" />
           <div className={styles.actions}>
             <Button variant="primary" loading={savingShop} onClick={handleSaveShop}>Save</Button>
           </div>

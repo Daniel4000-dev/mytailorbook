@@ -256,6 +256,14 @@ export default function SettingsPage() {
               subtitle={customStylesCount > 0 ? `${customStylesCount} added` : 'None yet'}
               onClick={() => router.push(ROUTES.settingsStyles)}
             />
+            {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
+              <SettingsRow
+                icon="straighten"
+                label="Size Charts"
+                subtitle="Standard measurements for production batches"
+                onClick={() => router.push('/settings/size-charts')}
+              />
+            )}
           </div>
         </div>
 

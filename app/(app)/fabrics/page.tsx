@@ -7,6 +7,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import FabricCard from './_components/FabricCard';
 import FabricDetailSheet from './_components/FabricDetailSheet';
 import type { Order, OrderStatus } from '@/lib/types';
@@ -92,29 +93,19 @@ export default function FabricsPage() {
               ))}
             </div>
           ) : (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>
-                <Symbol name="texture" size={40} />
-              </div>
-              <h3 className={styles.emptyTitle}>
-                {search ? 'No fabrics match your search' : 'No uncut fabrics waiting'}
-              </h3>
-              <p className={styles.emptyDesc}>
-                {search
-                  ? 'Try a different name or style.'
-                  : ordersWithPhoto === 0
-                  ? 'When new fabrics are documented with a photo, they will appear here until they are cut.'
-                  : 'All uncut fabrics with photos are shown here.'}
-              </p>
-              {!showNoPhoto && ordersWithPhoto === 0 && (
-                <button
-                  type="button"
-                  className={styles.toggleNoPhotoBtn}
-                  onClick={() => setShowNoPhoto(true)}
-                >
-                  Show orders without photos
-                </button>
-              )}
+            <div style={{ marginTop: 24 }}>
+              <EmptyState
+                icon={<Symbol name="texture" size={32} />}
+                title={search ? 'No fabrics match your search' : 'No uncut fabrics waiting'}
+                description={
+                  search
+                    ? 'Try a different name or style.'
+                    : ordersWithPhoto === 0
+                    ? 'When new fabrics are documented with a photo, they will appear here until they are cut.'
+                    : 'All uncut fabrics with photos are shown here.'
+                }
+                action={(!showNoPhoto && ordersWithPhoto === 0) ? { label: 'Show orders without photos', onClick: () => setShowNoPhoto(true) } : undefined}
+              />
             </div>
           )}
 

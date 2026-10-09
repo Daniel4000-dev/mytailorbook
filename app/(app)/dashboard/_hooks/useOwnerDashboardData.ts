@@ -33,6 +33,16 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
 
   const collected = useMemo(() => orders.reduce((sum, o) => sum + o.depositPaid, 0), [orders]);
 
+  const monthlyRevenue = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    return orders.filter(o => {
+      const d = new Date(o.createdAt || new Date());
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    }).reduce((sum, o) => sum + o.totalBill, 0);
+  }, [orders]);
+
   const projected = useMemo(
     () => orders.filter((o) => o.status !== 'Delivered').reduce((sum, o) => sum + getBalanceOwed(o), 0),
     [orders]
@@ -85,6 +95,7 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
     toggleHideCollected,
     toggleHideProjected,
     collected,
+    monthlyRevenue,
     projected,
     urgentCount,
     dueTodayCount,

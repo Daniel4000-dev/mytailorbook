@@ -1,0 +1,171 @@
+.container {
+  padding: 0 var(--sf-space-md) var(--sf-space-3xl);
+  max-width: var(--sf-max-width-main);
+  margin: 0 auto;
+}
+
+.header {
+  margin-top: var(--sf-space-lg);
+  margin-bottom: var(--sf-space-lg);
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-fraunces);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0 0 var(--sf-space-xs) 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+/* Overview Summary Cards */
+.summaryRow {
+  display: flex;
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-xl);
+}
+
+.summaryCard {
+  flex: 1;
+  background: var(--sf-bg-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-text-secondary);
+  font-weight: 600;
+}
+
+.summaryValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.summaryValue.danger {
+  color: var(--sf-error);
+}
+
+/* Debtor List */
+.listTitle {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
+  margin-bottom: var(--sf-space-md);
+}
+
+.debtorCard {
+  background: var(--sf-bg-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: var(--sf-space-md);
+  margin-bottom: var(--sf-space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.debtorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--sf-border-light);
+  padding-bottom: var(--sf-space-sm);
+}
+
+.customerInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.customerName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.orderTitle {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+.balanceInfo {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.balanceLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
+}
+
+.balanceAmount {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-error);
+}
+
+.actions {
+  display: flex;
+  gap: var(--sf-space-sm);
+  margin-top: 4px;
+}
+
+.btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--sf-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary {
+  background: var(--sf-text-primary);
+  color: var(--sf-bg-main);
+}
+
+.btnSecondary {
+  background: var(--sf-bg-hover);
+  color: var(--sf-text-primary);
+}
+
+.btnWhatsApp {
+  background: #25D366;
+  color: white;
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--sf-space-3xl) var(--sf-space-md);
+  background: var(--sf-bg-elevated);
+  border: 1px dashed var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  color: var(--sf-text-secondary);
+}

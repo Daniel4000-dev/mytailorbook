@@ -108,7 +108,7 @@ export default function OrderListCard({
     touchStartY.current = null;
   };
 
-  const customerInitials = order.customerName
+  const customerInitials = (order.customerName || 'Batch')
     .split(' ')
     .map((w) => w[0])
     .slice(0, 2)

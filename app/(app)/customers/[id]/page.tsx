@@ -20,6 +20,7 @@ import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import Input from '@/components/ui/Input/Input';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasurementAnatomy from '../_components/MeasurementAnatomy';
+import MeasurementHistorySheet from '../_components/MeasurementHistorySheet';
 import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
@@ -137,6 +138,7 @@ function CustomerProfileContent({
   const [currentValue, setCurrentValue] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [styleSheet, setStyleSheet] = useState<{ open: boolean; style: string | null }>({ open: false, style: null });
+  const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [uploadingFabric, setUploadingFabric] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
 
@@ -355,6 +357,13 @@ function CustomerProfileContent({
         )}
 
         <span className={styles.memberSince}>Customer since {formatMonthYear(customer.createdAt)}</span>
+        
+        {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--sf-success-light)', color: 'var(--sf-success)', padding: '4px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: 600, marginTop: '8px' }}>
+            <Symbol name="account_balance_wallet" size={14} />
+            Store Credit: {new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(customer.wallet_balance)}
+          </div>
+        )}
 
         {customer.preferredStyles && customer.preferredStyles.length > 0 && (
           <div className={styles.prefChips}>
@@ -475,7 +484,12 @@ function CustomerProfileContent({
 
       {/* Full-body reference profile */}
       <section className={styles.section + ' ' + styles.gaBody}>
-        <h3 className={styles.sectionTitle}>Full-Body Profile</h3>
+        <div className={styles.sectionTitleRow}>
+          <h3 className={styles.sectionTitle}>Full-Body Profile</h3>
+          <button type="button" className={styles.newBtn} onClick={() => setHistorySheetOpen(true)}>
+            <Symbol name="history" size={18} /> HISTORY
+          </button>
+        </div>
         <MeasurementAnatomy
           gender={customer.gender || 'female'}
           measurements={measurements}
@@ -631,6 +645,12 @@ function CustomerProfileContent({
         onClose={() => setStyleSheet({ open: false, style: null })}
         customer={customer}
         initialStyle={styleSheet.style}
+      />
+      
+      <MeasurementHistorySheet
+        isOpen={historySheetOpen}
+        onClose={() => setHistorySheetOpen(false)}
+        customer={customer}
       />
 
       {lightbox && (

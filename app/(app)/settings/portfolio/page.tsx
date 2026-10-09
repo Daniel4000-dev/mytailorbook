@@ -271,6 +271,23 @@ export default function PortfolioCurationSettingsPage() {
                     >
                       <Symbol name="delete" size={16} />
                     </span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className={styles.shareOutfitBtn}
+                      title="Share to WhatsApp"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!currentShop?.slug) {
+                          showToast('Set your public profile URL first', 'error');
+                          return;
+                        }
+                        const url = `https://wa.me/?text=${encodeURIComponent(`Check out this design from ${currentShop.name}: https://mytailorbook.com/studio/${currentShop.slug}?outfit=${o.id}`)}`;
+                        window.open(url, '_blank');
+                      }}
+                    >
+                      <Symbol name="share" size={16} />
+                    </span>
                   </button>
                 );
               })}

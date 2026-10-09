@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
 import { checkWeeklyCapacity } from '@/app/actions/calendar';
@@ -54,7 +55,11 @@ export default function DetailsStep({
   
   const [capacityWarning, setCapacityWarning] = useState<{
     overCapacity: boolean;
-    currentLoad: number;
+    dailyOverCapacity: boolean;
+    weeklyOverCapacity: boolean;
+    currentDailyLoad: number;
+    dailyCapacity: number;
+    currentWeeklyLoad: number;
     weeklyCapacity: number;
   } | null>(null);
 
@@ -89,12 +94,22 @@ export default function DetailsStep({
         {error && <p className={styles.errorText}>{error}</p>}
 
         {capacityWarning?.overCapacity && (
-          <div style={{ backgroundColor: 'var(--sf-accent-red-light)', padding: '12px', borderRadius: '8px', display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '16px' }}>
-            <Symbol name="warning" fill style={{ color: 'var(--sf-accent-red)' }} />
+          <div style={{ backgroundColor: 'rgba(220, 38, 38, 0.1)', padding: '12px', borderRadius: '8px', display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <Symbol name="warning" style={{ fontVariationSettings: "'FILL' 1", color: '#dc2626' }} />
             <div>
-              <p style={{ margin: 0, fontWeight: 600, color: 'var(--sf-accent-red)' }}>High Volume Week</p>
-              <p style={{ margin: 0, fontSize: '14px', color: 'var(--sf-accent-red)', marginTop: '4px' }}>
-                You already have {capacityWarning.currentLoad} orders due this week (Capacity: {capacityWarning.weeklyCapacity}). Consider negotiating a later deadline.
+              <p style={{ margin: 0, fontWeight: 600, color: '#dc2626' }}>
+                {capacityWarning.dailyOverCapacity && capacityWarning.weeklyOverCapacity 
+                  ? 'High Volume Day & Week'
+                  : capacityWarning.dailyOverCapacity 
+                  ? 'High Volume Day' 
+                  : 'High Volume Week'}
+              </p>
+              <p style={{ margin: 0, fontSize: '14px', color: '#dc2626', marginTop: '4px' }}>
+                {capacityWarning.dailyOverCapacity && capacityWarning.weeklyOverCapacity 
+                  ? `You already have ${capacityWarning.currentDailyLoad} orders due on this date (Daily Capacity: ${capacityWarning.dailyCapacity}) and ${capacityWarning.currentWeeklyLoad} orders due this week (Weekly Capacity: ${capacityWarning.weeklyCapacity}). Consider negotiating a later deadline.`
+                  : capacityWarning.dailyOverCapacity 
+                  ? `You already have ${capacityWarning.currentDailyLoad} orders due on this specific date (Daily Capacity: ${capacityWarning.dailyCapacity}). Consider picking another day this week.`
+                  : `You already have ${capacityWarning.currentWeeklyLoad} orders due this week (Weekly Capacity: ${capacityWarning.weeklyCapacity}). Consider negotiating a later deadline.`}
               </p>
             </div>
           </div>
@@ -141,23 +156,25 @@ export default function DetailsStep({
                 onChange={(e) => onUpdateUnit(u.key, { dueDate: e.target.value })}
               />
             </div>
-            <div className={styles.unitField}>
-              <label className={styles.capsLabel}>Assign To</label>
-              <select
-                className={styles.unitInput}
-                value={u.assignedTo}
-                onChange={(e) => onUpdateUnit(u.key, { assignedTo: e.target.value })}
-              >
-                <option value="">Unassigned</option>
-                {staffMembers
-                  .filter((s) => s.active !== false)
-                  .map((s) => (
-                    <option key={s.uid} value={s.uid}>
-                      {s.uid === currentUserUid ? `${s.name} (You)` : s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            {currentShop && PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) && (
+              <div className={styles.unitField}>
+                <label className={styles.capsLabel}>Assign To</label>
+                <select
+                  className={styles.unitInput}
+                  value={u.assignedTo}
+                  onChange={(e) => onUpdateUnit(u.key, { assignedTo: e.target.value })}
+                >
+                  <option value="">Unassigned</option>
+                  {staffMembers
+                    .filter((s) => s.active !== false)
+                    .map((s) => (
+                      <option key={s.uid} value={s.uid}>
+                        {s.uid === currentUserUid ? `${s.name} (You)` : s.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
           </div>
           {FEATURE_FLAGS.costMarginTracking && (
             <div className={styles.costSection}>
