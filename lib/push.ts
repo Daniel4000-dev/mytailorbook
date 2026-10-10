@@ -3,22 +3,29 @@ import webpush from 'web-push';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { APP_CONFIG } from '@/lib/config';
 
-webpush.setVapidDetails(
-  `mailto:${APP_CONFIG.supportEmail}`,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+let vapidConfigured = false;
+
+function ensureVapidConfigured() {
+  if (vapidConfigured) return;
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
+  
+  webpush.setVapidDetails(
+    `mailto:${APP_CONFIG.supportEmail}`,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+  vapidConfigured = true;
+}
 
 interface PushPayload {
   title: string;
   body: string;
   orderId?: string;
-  /** Fallback deep link used when there's no orderId (e.g. billing
-   *  reminders) — see public/sw.js notificationclick handler. */
   url?: string;
 }
 
 async function sendToSubscription(admin: ReturnType<typeof createAdminClient>, sub: { id: string; endpoint: string; keys: unknown }, payload: PushPayload) {
+  ensureVapidConfigured();
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: sub.keys as { p256dh: string; auth: string } },
@@ -27,15 +34,11 @@ async function sendToSubscription(admin: ReturnType<typeof createAdminClient>, s
   } catch (err) {
     const statusCode = (err as { statusCode?: number })?.statusCode;
     if (statusCode === 404 || statusCode === 410) {
-      // Subscription is gone (uninstalled, permission revoked) — stop
-      // trying it again on every future send.
       await admin.from('push_subscriptions').delete().eq('id', sub.id);
     }
   }
 }
 
-/** Sends a push notification to every device a specific profile has
- *  subscribed on. Silently does nothing if they have none. */
 export async function sendPushToProfile(profileId: string, payload: PushPayload) {
   const admin = createAdminClient();
   const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, keys').eq('profile_id', profileId);
@@ -43,9 +46,6 @@ export async function sendPushToProfile(profileId: string, payload: PushPayload)
   await Promise.all(subs.map((sub) => sendToSubscription(admin, sub, payload)));
 }
 
-/** Sends to every active profile in a shop (branch), excluding one actor —
- *  the same self-action-suppression already used for in-app notifications
- *  (see lib/hooks/useNotifications.tsx). */
 export async function sendPushToShop(shopId: string, excludeProfileId: string | null, payload: PushPayload) {
   const admin = createAdminClient();
   const { data: profiles } = await admin.from('profiles').select('id').eq('shop_id', shopId).eq('active', true);

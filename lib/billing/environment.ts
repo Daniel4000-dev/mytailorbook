@@ -64,14 +64,14 @@ export function validateBillingEnvironment() {
     if (actualRef !== STAGING_SUPABASE_PROJECT_REF) {
       throw new Error('CRITICAL: DATABASE_ENV is staging but Supabase URL does not match staging project ref');
     }
-    if (actualRef === PRODUCTION_SUPABASE_PROJECT_REF) {
+    if ((actualRef as string) === PRODUCTION_SUPABASE_PROJECT_REF) {
       throw new Error('CRITICAL: Staging environment MUST NOT connect to production Supabase');
     }
     if (billingEnv === 'live') {
       throw new Error('CRITICAL: DATABASE_ENV is staging but BILLING_ENV is live');
     }
   } else if (dbEnv === 'development') {
-    if (actualRef === PRODUCTION_SUPABASE_PROJECT_REF) {
+    if ((actualRef as string) === PRODUCTION_SUPABASE_PROJECT_REF) {
       throw new Error('CRITICAL: Development environment MUST NOT connect to production Supabase');
     }
     if (billingEnv === 'live') {

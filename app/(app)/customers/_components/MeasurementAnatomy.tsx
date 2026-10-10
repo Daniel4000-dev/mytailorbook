@@ -27,7 +27,7 @@ interface MeasurementPoint {
 // same spot means one silently sits on top of the other, making the covered
 // one invisible and unclickable in the visual view (still editable via Quick
 // List, which is why a value could be entered but never seen here).
-const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
+export const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 34, y: 24 },
   { id: 'crossFront', name: 'Across Front', x: 50, y: 28 },
@@ -62,7 +62,7 @@ const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'shoulderToHips', name: 'Shoulder to Hips', x: 64, y: 24, endX: 66, endY: 58, midX: 72, midY: 45 },
 ];
 
-const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
+export const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 31, y: 23 },
   { id: 'crossFront', name: 'Across Front', x: 50, y: 28 },

@@ -62,8 +62,6 @@ export interface Shop {
   /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
    *  just mean those sections collapse in the public view. */
   portfolioSettings?: { tagline?: string; bio?: string; foundedYear?: number };
-  /** Maximum number of orders the shop can handle per week before showing capacity warnings. */
-  weeklyCapacity?: number;
   monthlyRevenueTarget?: number;
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
@@ -90,6 +88,7 @@ export interface Shop {
   streakCurrent?: number;
   /** The highest streak ever achieved by this shop. */
   streakBest?: number;
+  streakFreezes?: number;
   /** The UTC timestamp of the last day the streak was successfully incremented. */
   streakLastCountedAt?: string;
   /** The future identity goal chosen by the tailor during onboarding */

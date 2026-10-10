@@ -26,8 +26,9 @@ export default function SidebarMenu() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  const { isOwner } = useAuth();
-  const { currentShop, profile, shops, activeBranchId, setActiveBranchId } = useData();
+  const { isOwner, user } = useAuth();
+  const { currentShop, shops, activeBranchId, setActiveBranchId } = useData();
+  const initial = user?.name?.charAt(0) || user?.email?.charAt(0) || 'U';
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.ownerOnly && !isOwner) return false;
@@ -209,10 +210,10 @@ export default function SidebarMenu() {
           title={isCollapsed ? "User Menu" : undefined}
         >
           <div className={styles.profileAvatar}>
-            {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
+            {initial.toUpperCase()}
           </div>
           <div className={styles.profileInfo}>
-            <span className={styles.profileName}>{profile?.full_name || 'Staff User'}</span>
+            <span className={styles.profileName}>{user?.name || user?.email || 'Staff User'}</span>
             <span className={styles.profileRole}>{isOwner ? 'Owner' : 'Tailor'}</span>
           </div>
         </button>

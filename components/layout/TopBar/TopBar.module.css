@@ -242,3 +242,25 @@
   height: 18px;
   object-fit: contain;
 }
+
+.streakBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--sf-surface-raised);
+  border-radius: var(--sf-radius-full);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+  box-shadow: var(--sf-shadow-sm);
+  margin-right: 8px;
+  cursor: default;
+  transition: transform 0.2s ease;
+}
+.streakBadge:hover {
+  transform: scale(1.05);
+}
+.streakBadge span {
+  color: #FF5722;
+}

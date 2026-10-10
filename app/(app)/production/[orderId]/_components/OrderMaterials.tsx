@@ -131,14 +131,14 @@ export default function OrderMaterials({ orderId, shopId }: OrderMaterialsProps)
                 value={selectedItemId}
                 onChange={(e) => setSelectedItemId(e.target.value)}
                 required
-              >
-                <option value="">Select inventory item...</option>
-                {inventory.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.itemName} ({item.quantity} {item.unit} available)
-                  </option>
-                ))}
-              </Select>
+                options={[
+                  { label: 'Select inventory item...', value: '' },
+                  ...inventory.map(item => ({
+                    label: `${item.itemName} (${item.quantity} ${item.unit} available)`,
+                    value: item.id
+                  }))
+                ]}
+              />
             </div>
 
             <div style={{ marginBottom: 16 }}>

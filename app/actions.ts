@@ -7,7 +7,7 @@ import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { sendPushToShop } from '@/lib/push';
 import { formatCurrency } from '@/lib/formatters';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
 // ----------------------------------------------------------------------
@@ -249,6 +249,7 @@ function shopFromRow(row: any): Shop {
     defaultTrackingLinkEnabled: row.default_tracking_link_enabled ?? true,
     streakCurrent: row.streak_current || 0,
     streakBest: row.streak_best || 0,
+    streakFreezes: row.streak_freezes || 0,
     streakLastCountedAt: row.streak_last_counted_at || undefined,
     onboardingGoal: row.onboarding_goal || undefined,
     monthlyRevenueTarget: row.monthly_revenue_target !== null ? Number(row.monthly_revenue_target) : undefined,
@@ -649,7 +650,7 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     });
     if (lastPayment) {
       const { data: orderRow } = await supabase.from('orders').select('customer_name').eq('id', orderId).single();
-      const { data: shopRow } = await supabase.from('shops').select('*'); // 'currency').eq('id', shopId).single();
+      const { data: shopRow } = await supabase.from('shops').select('currency').eq('id', shopId).single();
       sendPushToShop(shopId, actorId, {
         title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
         body: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
@@ -875,6 +876,7 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.defaultTrackingLinkEnabled !== undefined) row.default_tracking_link_enabled = updates.defaultTrackingLinkEnabled;
   if (updates.streakCurrent !== undefined) row.streak_current = updates.streakCurrent;
   if (updates.streakBest !== undefined) row.streak_best = updates.streakBest;
+  if (updates.streakFreezes !== undefined) row.streak_freezes = updates.streakFreezes;
   if (updates.streakLastCountedAt !== undefined) row.streak_last_counted_at = updates.streakLastCountedAt;
   if (updates.weeklyCapacity !== undefined) row.weekly_capacity = updates.weeklyCapacity;
   if (updates.dailyCapacity !== undefined) row.daily_capacity = updates.dailyCapacity;
@@ -1780,7 +1782,7 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 }
 
 function emptyTotals(): FinancialReport['totals'] {
-  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0, expenseBreakdown: [], trendData: [] };
+  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0, totalExpenses: 0, netProfit: 0, expenseBreakdown: [], trendData: [] };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1877,7 +1879,7 @@ function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'sh
   
   const trendData = Object.entries(trendMap).map(([label, data]) => ({ label, revenue: data.revenue, expenses: data.expenses }));
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0) + legacyCostTotal;
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   const netProfit = collected - totalExpenses;
 
   return {

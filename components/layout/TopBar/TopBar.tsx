@@ -2,8 +2,11 @@
 
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNetwork } from '@/lib/hooks/useNetwork';
+import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
@@ -32,6 +35,7 @@ export default function TopBar({
   const router = useRouter();
   const { toggleMenu } = useSidebar();
   const { isOnline } = useNetwork();
+  const { currentShop } = useData();
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -39,6 +43,27 @@ export default function TopBar({
   };
 
   const finalRightAction = rightAction || actions;
+  
+  const currentStreak = currentShop?.streakCurrent || 0;
+  const prevStreakRef = useRef(currentShop?.streakCurrent);
+
+  useEffect(() => {
+    if (currentStreak > (prevStreakRef.current || 0) && prevStreakRef.current !== undefined) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.1, x: 0.8 },
+        colors: ['#FF9800', '#FF5722', '#FFC107']
+      });
+    }
+    prevStreakRef.current = currentStreak;
+  }, [currentStreak]);
+
+  const streakIndicator = currentStreak > 0 && (
+    <div className={styles.streakBadge} title={`${currentStreak} day streak!`}>
+      🔥 <span>{currentStreak}</span>
+    </div>
+  );
 
   return (
     <header className={styles.topBar}>
@@ -51,6 +76,7 @@ export default function TopBar({
             {leftAction}
           </div>
           <div className={styles.right}>
+            {streakIndicator}
             <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
               {!isOnline ? (
                 <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
@@ -87,16 +113,19 @@ export default function TopBar({
           </div>
           <div className={styles.right}>
             {finalRightAction || (
-              <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-                {!isOnline ? (
-                  <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
-                ) : (
-                  <>
-                    <Symbol name="notifications" size={24} />
-                    <span className={styles.notificationBadge} />
-                  </>
-                )}
-              </button>
+              <>
+                {streakIndicator}
+                <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
+                  {!isOnline ? (
+                    <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
+                  ) : (
+                    <>
+                      <Symbol name="notifications" size={24} />
+                      <span className={styles.notificationBadge} />
+                    </>
+                  )}
+                </button>
+              </>
             )}
           </div>
         </>

@@ -84,7 +84,7 @@ export default function InventoryDetailSheet({ item, isOpen, onClose }: Inventor
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={item && item !== 'new' ? 'Edit Item' : 'New Material'}>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={item ? 'Edit Item' : 'New Material'}>
       <form onSubmit={handleSubmit} className={styles.editSheet}>
 
         <div className={styles.formGroup}>

@@ -2,7 +2,6 @@ import { motion, Variants } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
 import { useMilestones } from '../_hooks/useMilestones';
-import { useStreakEvaluation } from '../_hooks/useStreakEvaluation';
 import styles from './ShopTodayCard.module.css';
 
 export default function ShopTodayCard({
@@ -15,7 +14,6 @@ export default function ShopTodayCard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shop: any;
 }) {
-  useStreakEvaluation();
   const { milestones } = useMilestones();
   const isAllCaughtUp = loops.length === 0;
   const currentStreak = shop?.streakCurrent || 0;
