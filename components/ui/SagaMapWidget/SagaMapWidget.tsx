@@ -1,13 +1,15 @@
 'use client';
 
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatCurrency } from '@/lib/formatters';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Image from 'next/image';
 import styles from './SagaMapWidget.module.css';
 
 export default function SagaMapWidget({ monthlyRevenue }: { monthlyRevenue: number }) {
-  const { currentShop, user } = useData();
+  const { currentShop } = useData();
+  const { user } = useAuth();
   
   // Set a dynamic goal based on current revenue, rounded up to next 100k
   const revenueGoal = Math.max(100000, Math.ceil((monthlyRevenue + 10000) / 100000) * 100000);
