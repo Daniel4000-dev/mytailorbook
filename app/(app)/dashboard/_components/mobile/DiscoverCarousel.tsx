@@ -38,8 +38,8 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
   }, []);
 
   // Hide after 30 days
-  if (currentShop?.created_at) {
-    const createdAt = new Date(currentShop.created_at);
+  if (currentShop?.createdAt) {
+    const createdAt = new Date(currentShop.createdAt);
     const now = new Date();
     const daysOld = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
     if (daysOld > 30) {
