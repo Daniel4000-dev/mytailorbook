@@ -679,7 +679,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateInventoryItem,
       deleteInventoryItem,
     }),
-    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem, logAction]
+    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
