@@ -13,6 +13,7 @@ import useSWR from 'swr';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException } from '@/lib/types';
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
+import { logStreakAction } from '@/lib/streakClient';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
