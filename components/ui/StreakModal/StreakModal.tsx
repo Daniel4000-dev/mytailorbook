@@ -50,7 +50,7 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
           Remember, you have a freeze available if you miss a day.
         </p>
         <div className={styles.actions}>
-          <Button variant="primary" onClick={onClose} fullWidth size="large">
+          <Button variant="primary" onClick={onClose} fullWidth size="lg">
             Continue
           </Button>
         </div>
