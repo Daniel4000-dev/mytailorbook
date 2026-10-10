@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { NAV_ITEMS } from '@/lib/constants';
+import CustomNavIcon from "@/components/ui/CustomNavIcon/CustomNavIcon";
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './BottomNav.module.css';
 
@@ -22,7 +23,7 @@ function NavItemContent({ icon, label, isActive, tourId }: { icon: string; label
   const active = isActive || pending;
   return (
     <div className={`${styles.item} ${active ? styles.active : ''}`} data-tour-id={tourId}>
-      <Symbol name={icon} fill={active} size={24} className={styles.icon} />
+      <CustomNavIcon name={icon} fill={active} size={24} className={styles.icon} />
       <span className={styles.label}>{label}</span>
     </div>
   );

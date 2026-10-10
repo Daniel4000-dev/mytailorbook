@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { NAV_ITEMS } from '@/lib/constants';
+import CustomNavIcon from "@/components/ui/CustomNavIcon/CustomNavIcon";
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
@@ -76,7 +77,7 @@ export default function SidebarMenu() {
               title={isCollapsed ? item.label : undefined}
               data-tour-id={item.tourId}
             >
-              <Symbol name={item.icon} className={styles.menuIcon} />
+              <CustomNavIcon name={item.icon} className={styles.menuIcon} />
               <span className={styles.menuText}>{item.label}</span>
             </Link>
           );
@@ -98,7 +99,7 @@ export default function SidebarMenu() {
         {/* Mobile Top Row (Profile Avatar and Close Button) */}
         <div className={styles.mobileTopRow}>
           <CircleIconButton 
-            icon={<Symbol name="person" className={styles.iconUser} />} 
+            icon={<CustomNavIcon name="person" className={styles.iconUser} />} 
             onClick={() => setShowProfile(true)} 
             ariaLabel="Profile Settings"
           />
@@ -135,32 +136,32 @@ export default function SidebarMenu() {
       {/* Mobile-only Nav (Flattened for bottom sheet style) */}
       <div className={styles.mobileOnlyNav}>
         <Link href={ROUTES.calendar} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-          <Symbol name="calendar_month" className={styles.menuIcon} />
+          <CustomNavIcon name="calendar_month" className={styles.menuIcon} />
           <span className={styles.menuText}>Calendar</span>
         </Link>
         <Link href={ROUTES.portfolio} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-          <Symbol name="favorite" className={styles.menuIcon} />
+          <CustomNavIcon name="favorite" className={styles.menuIcon} />
           <span className={styles.menuText}>My Portfolio</span>
         </Link>
         <Link href={ROUTES.styles} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-          <Symbol name="photo_library" className={styles.menuIcon} />
+          <CustomNavIcon name="photo_library" className={styles.menuIcon} />
           <span className={styles.menuText}>Style Gallery</span>
         </Link>
         {isOwner && (
           <Link href={ROUTES.collections} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-            <Symbol name="account_balance_wallet" className={styles.menuIcon} />
+            <CustomNavIcon name="account_balance_wallet" className={styles.menuIcon} />
             <span className={styles.menuText}>Collections</span>
           </Link>
         )}
         {isOwner && (
           <Link href={ROUTES.reconciliation} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-            <Symbol name="point_of_sale" className={styles.menuIcon} />
+            <CustomNavIcon name="point_of_sale" className={styles.menuIcon} />
             <span className={styles.menuText}>Reconciliation</span>
           </Link>
         )}
         {isOwner && (
           <Link href={ROUTES.settings} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-            <Symbol name="settings" className={styles.menuIcon} />
+            <CustomNavIcon name="settings" className={styles.menuIcon} />
             <span className={styles.menuText}>Settings</span>
           </Link>
         )}
@@ -174,11 +175,11 @@ export default function SidebarMenu() {
           currentShop ? (
             <>
               <Link href={ROUTES.portfolio} className={styles.menuItem} title={isCollapsed ? 'My Portfolio' : undefined} onClick={() => setMenuOpen(false)}>
-                <Symbol name="favorite" className={styles.menuIcon} />
+                <CustomNavIcon name="favorite" className={styles.menuIcon} />
                 <span className={styles.menuText}>My Portfolio</span>
               </Link>
               <Link href={ROUTES.styles} className={styles.menuItem} title={isCollapsed ? 'Style Gallery' : undefined} onClick={() => setMenuOpen(false)}>
-                <Symbol name="photo_library" className={styles.menuIcon} />
+                <CustomNavIcon name="photo_library" className={styles.menuIcon} />
                 <span className={styles.menuText}>Style Gallery</span>
               </Link>
             </>
@@ -194,7 +195,7 @@ export default function SidebarMenu() {
           className={styles.logoutBtn} 
           onClick={handleLogout}
         >
-          <Symbol name="logout" className={styles.logoutIcon} />
+          <CustomNavIcon name="logout" className={styles.logoutIcon} />
           <span className={styles.logoutText}>Logout</span>
         </button>
       </div>
@@ -226,7 +227,7 @@ export default function SidebarMenu() {
                 className={styles.profileMenuItem}
                 onClick={() => { setShowProfileMenu(false); setMenuOpen(false); }}
               >
-                <Symbol name="settings" />
+                <CustomNavIcon name="settings" />
                 Settings
               </Link>
             )}
@@ -234,7 +235,7 @@ export default function SidebarMenu() {
               className={styles.profileMenuItem} 
               onClick={() => { setShowProfileMenu(false); setShowProfile(true); }}
             >
-              <Symbol name="person" />
+              <CustomNavIcon name="person" />
               Your Profile
             </button>
             <div className={styles.profileMenuDivider} />
@@ -242,7 +243,7 @@ export default function SidebarMenu() {
               className={`${styles.profileMenuItem} ${styles.danger}`} 
               onClick={() => { setShowProfileMenu(false); handleLogout(); }}
             >
-              <Symbol name="logout" />
+              <CustomNavIcon name="logout" />
               Log Out
             </button>
           </div>
@@ -253,7 +254,7 @@ export default function SidebarMenu() {
           onClick={toggleCollapse}
           title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
-          <Symbol name={isCollapsed ? "chevron_right" : "chevron_left"} className={styles.logoutIcon} />
+          <CustomNavIcon name={isCollapsed ? "chevron_right" : "chevron_left"} className={styles.logoutIcon} />
           <span className={styles.logoutText}>Collapse</span>
         </button>
       </div>
@@ -287,7 +288,7 @@ export default function SidebarMenu() {
               cursor: 'pointer'
             }}
           >
-            <Symbol name="logout" />
+            <CustomNavIcon name="logout" />
             Logout
           </button>
 
