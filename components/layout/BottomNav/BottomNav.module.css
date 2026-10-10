@@ -35,7 +35,8 @@
   color: var(--sf-text-secondary);
   opacity: 0.8;
   text-decoration: none;
-  padding: 8px 4px; min-width: 56px;
+  padding: 8px 4px;
+  min-width: 56px;
   border-radius: var(--sf-radius-full);
   transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
@@ -48,8 +49,20 @@
   }
 }
 
-.item:active .icon {
-  transform: scale(0.9);
+.item:active .iconWrapper {
+  transform: scale(0.95);
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 32px;
+  border-radius: 16px;
+  margin-bottom: 4px;
+  transition: background-color 0.2s ease, transform 150ms ease;
 }
 
 .active {
@@ -58,11 +71,8 @@
   opacity: 1;
 }
 
-
-
-.icon {
-  margin-bottom: 4px;
-  transition: transform 150ms ease;
+.active .iconWrapper {
+  background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
 }
 
 .label {
