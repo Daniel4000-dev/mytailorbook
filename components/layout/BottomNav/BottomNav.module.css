@@ -1,27 +1,25 @@
-/* Labeled bottom bar: white surface, rounded top corners, active item
-   marked by a small indigo "drip" indicator instead of a filled pill. */
+/* Floating glassmorphic pill bottom nav */
 .nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: calc(16px + var(--sf-safe-area-bottom));
+  left: 16px;
+  right: 16px;
+  max-width: 400px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 12px 8px calc(12px + var(--sf-safe-area-bottom));
-  background: var(--sf-bg-surface);
-  border-radius: 24px 24px 0 0;
-  /* Two layers: a tight, closer shadow so the rounded top corners actually
-     read against a page that's now the same white as the bar itself, plus
-     the wider soft glow for the "floating above the page" depth. */
-  box-shadow: 0 -1px 6px rgba(27, 27, 34, 0.07), var(--sf-shadow-xl);
+  padding: 8px 8px;
+  background: color-mix(in srgb, var(--sf-bg-surface) 85%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 32px;
+  border: 1px solid color-mix(in srgb, var(--sf-border) 40%, transparent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
   z-index: var(--sf-z-sticky);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The <Link> itself carries no box styling — useLinkStatus (read by the
-   .item div below) only works in a Link descendant, so the pill/icon/label
-   all live one level in. display:contents keeps Link out of the flex flow
-   entirely, so .item is what actually behaves as .nav's flex child. */
 .linkReset {
   display: contents;
   text-decoration: none;
@@ -37,28 +35,23 @@
   color: var(--sf-text-secondary);
   opacity: 0.8;
   text-decoration: none;
-  padding: 4px 16px;
+  padding: 8px 12px;
   border-radius: var(--sf-radius-full);
-  transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast);
+  transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.item:hover {
-  opacity: 1;
-}
+  .item:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 .item:active .icon {
   transform: scale(0.9);
 }
 
-/* No pill fill on the active item — instead a small rectangular indigo
-   marker sits at the very top of the bar above the icon, solid at the
-   top edge and fading to transparent toward the bottom, matching the
-   reference's active-tab indicator exactly (a gradient bar, not a
-   tapering shape). */
 .active {
   background: none;
   color: var(--sf-accent-emerald);
@@ -68,15 +61,14 @@
 .active::before {
   content: '';
   position: absolute;
-  /* -12px cancels .nav's padding-top, so this starts exactly at the bar's
-     own top edge rather than floating above it. */
-  top: -12px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 22px;
-  height: 6px;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(to bottom, var(--sf-accent-emerald) 0%, rgba(67, 56, 202, 0) 100%);
+  width: 24px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--sf-accent-emerald);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sf-accent-emerald) 40%, transparent);
 }
 
 .icon {
@@ -86,10 +78,11 @@
 
 .label {
   font-family: var(--sf-font-body);
-  font-size: var(--sf-text-xs);
-  line-height: 16px;
+  font-size: 10px;
+  line-height: 12px;
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
+  white-space: nowrap;
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */
