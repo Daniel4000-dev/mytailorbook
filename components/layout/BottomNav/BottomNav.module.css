@@ -4,12 +4,12 @@
   bottom: calc(16px + var(--sf-safe-area-bottom));
   left: 16px;
   right: 16px;
-  max-width: 400px;
+  max-width: 460px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 8px;
+  padding: 8px 12px;
   background: color-mix(in srgb, var(--sf-bg-surface) 85%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -36,9 +36,12 @@
   color: var(--sf-text-secondary);
   opacity: 0.8;
   text-decoration: none;
-  padding: 8px 12px;
-  min-width: 64px;
-  border-radius: 20px;
+  padding: 10px 14px;
+  flex: 1;
+  max-width: 80px;
+  min-width: 56px;
+  border-radius: 100px; /* True pill shape */
+  gap: 4px;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -56,7 +59,7 @@
 
 /* Active state: Subtle grey pill, icon/text stay neutral (black/white) */
 .active {
-  background-color: color-mix(in srgb, var(--sf-text-primary) 6%, transparent);
+  background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
   color: var(--sf-text-primary);
   opacity: 1;
 }
@@ -66,7 +69,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  
 }
 
 /* Indigo Activity Dot (Unread Badge) */
@@ -89,9 +92,9 @@
 
 .label {
   font-family: var(--sf-font-body);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 14px;
-  font-weight: var(--sf-weight-semibold);
+  font-weight: 600;
   letter-spacing: var(--sf-tracking-caps);
   white-space: nowrap;
 }
