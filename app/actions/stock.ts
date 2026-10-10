@@ -48,27 +48,42 @@ export async function processSaleAction(
   const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.priceAtSale), 0);
   const details = items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ');
 
+  // Get or create Retail Walk-In customer
+  let { data: retailCust } = await supabase.from('customers')
+    .select('id').eq('shop_id', shopId).eq('whatsapp_number', '0000000001').eq('full_name', 'Retail Walk-In').maybeSingle();
+    
+  if (!retailCust) {
+    // We'll need the org_id to insert a customer
+    const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
+    if (shopInfo) {
+      const { data: newCust } = await supabase.from('customers').insert({
+        shop_id: shopId,
+        org_id: shopInfo.org_id,
+        full_name: 'Retail Walk-In',
+        whatsapp_number: '0000000001',
+        gender: 'female' // generic fallback
+      }).select('id').single();
+      retailCust = newCust;
+    }
+  }
+
   const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
     shop_id: shopId,
+    customer_id: retailCust?.id || null, // Will hit NOT NULL if it failed above, but we tried
     customer_name: 'Retail Walk-In',
     order_details: `POS Sale: ${details}`,
     total_bill: totalAmount,
     deposit_paid: totalAmount,
     status: 'Delivered',
-    is_internal_batch: false // Keep false so it counts as standard completed revenue
-  }).select().single();
-  
-  if (orderError) return { error: orderError.message };
-
-  if (newOrder) {
-    await supabase.from('payments').insert({
-      shop_id: shopId,
-      order_id: newOrder.id,
+    is_internal_batch: false, // Keep false so it counts as standard completed revenue
+    payments: [{
       amount: totalAmount,
       method: paymentMethod,
       date: new Date().toISOString()
-    });
-  }
+    }]
+  }).select().single();
+  
+  if (orderError) return { error: orderError.message };
   
   // Deduct from stock
   for (const item of items) {

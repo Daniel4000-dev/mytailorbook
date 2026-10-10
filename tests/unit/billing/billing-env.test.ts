@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+vi.mock('server-only', () => ({}));
+
 import { validateBillingEnvironment, getPlanCode, validateCronEnvironment, validateWebhookEnvironment, PRODUCTION_SUPABASE_PROJECT_REF, STAGING_SUPABASE_PROJECT_REF } from '../../../lib/billing/environment';
 import { createAdminClient } from '../../../lib/supabase/admin';
 

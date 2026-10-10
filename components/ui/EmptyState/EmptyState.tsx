@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Button from '@/components/ui/Button/Button';
+import Link from 'next/link';
 import styles from './EmptyState.module.css';
 
 interface EmptyStateProps {
@@ -17,7 +18,7 @@ interface EmptyStateProps {
   image?: { src: string; width: number; height: number };
   title: string;
   description?: string;
-  action?: { label: string; onClick: () => void };
+  action?: { label: string; onClick?: () => void; href?: string };
   size?: 'normal' | 'sm';
 }
 
@@ -32,9 +33,17 @@ export default function EmptyState({ icon, image, title, description, action, si
       <h3 className={styles.title}>{title}</h3>
       {description && <p className={styles.description}>{description}</p>}
       {action && (
-        <Button variant="secondary" size="sm" onClick={action.onClick}>
-          {action.label}
-        </Button>
+        action.href ? (
+          <Link href={action.href} passHref legacyBehavior>
+            <Button variant="secondary" size="sm">
+              {action.label}
+            </Button>
+          </Link>
+        ) : (
+          <Button variant="secondary" size="sm" onClick={action.onClick}>
+            {action.label}
+          </Button>
+        )
       )}
     </div>
   );

@@ -18,16 +18,16 @@ export async function getSizeChartsAction(shopId: string): Promise<SizeChart[] |
   }));
 }
 
-export async function createSizeChartAction(shopId: string, name: string, measurements: Record<string, string>): Promise<{ error?: string }> {
+export async function createSizeChartAction(shopId: string, name: string, measurements: Record<string, string>): Promise<{ id?: string, error?: string }> {
   const supabase = await createClient();
-  const { error } = await supabase.from('size_charts').insert({
+  const { data, error } = await supabase.from('size_charts').insert({
     shop_id: shopId,
     name,
     measurements
-  });
+  }).select('id').single();
   if (error) return { error: error.message };
   revalidatePath('/settings/size-charts');
-  return {};
+  return { id: data.id };
 }
 
 export async function updateSizeChartAction(id: string, name: string, measurements: Record<string, string>): Promise<{ error?: string }> {

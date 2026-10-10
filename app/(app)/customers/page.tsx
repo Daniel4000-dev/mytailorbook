@@ -507,10 +507,10 @@ export default function CustomersPage() {
             <EmptyState
               image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
               title="No customers yet"
-              description="Your customer book starts with your first order — create one and the customer is saved here automatically."
+              description="Your customer book starts with your first order — create one and the customer is saved here automatically." action={{ label: "Create Order", href: "/orders/new" }}
             />
           ) : (
-            <EmptyState icon={<Symbol name="person_off" />} title="No customers found" description="Try a different search or filter" />
+            <EmptyState icon={<Symbol name="person_off" />} title="No customers found" description="Try a different search or filter" action={{ label: "Add Customer", href: "/customers/new" }} />
           )
         ) : (
           <>

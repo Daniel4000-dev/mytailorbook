@@ -118,11 +118,11 @@ describe('customerSchema', () => {
 describe('onboardingSchema', () => {
   it('requires a shop name of at least 2 characters', () => {
     expect(onboardingSchema.safeParse({ shopName: 'B' }).success).toBe(false);
-    expect(onboardingSchema.safeParse({ shopName: 'Baan Wears' }).success).toBe(true);
+    expect(onboardingSchema.safeParse({ shopName: 'Baan Wears', businessMode: 'bespoke', weeklyCapacity: '10' }).success).toBe(true);
   });
 
   it('treats the owner name as optional', () => {
-    expect(onboardingSchema.safeParse({ shopName: 'Baan Wears' }).success).toBe(true);
+    expect(onboardingSchema.safeParse({ shopName: 'Baan Wears', businessMode: 'bespoke', weeklyCapacity: '10' }).success).toBe(true);
   });
 });
 

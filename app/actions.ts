@@ -277,19 +277,19 @@ const SHOP_BUNDLE_ROW_LIMIT = 2000;
 export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
   const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes, inventoryRes] = await Promise.all([
-    supabase.from('shops').select(
-      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled, onboarding_goal, monthly_revenue_target'
-    ).eq('id', shopId).single(),
-    supabase.from('customers').select(
-      'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at, wallet_balance'
-    ).eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
-    supabase.from('orders').select(
-      'id, shop_id, customer_id, customer_name, order_details, total_bill, deposit_paid, status, assigned_to, assigned_to_name, due_date, priority, measurements, images, inspiration_images, batch_id, last_comment_at, comments_seen_at, status_history, payments, style_name, material_supplied_by, material_cost, other_costs, last_reminder_at, include_tracking_link, created_at, updated_at'
-    ).eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
-    supabase.from('profiles').select('id, name, email, role, shop_id, org_id, active, avatar_url, created_at').eq('shop_id', shopId),
+    supabase.from('shops').select('*').eq('id', shopId).single(),
+    supabase.from('customers').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
+    supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
+    supabase.from('profiles').select('*').eq('shop_id', shopId),
     supabase.from('shop_exceptions').select('*').eq('shop_id', shopId),
     supabase.from('inventory').select('*').eq('shop_id', shopId)
   ]);
+
+  if (shopRes.error) console.error('shopRes error:', shopRes.error);
+  if (customersRes.error) console.error('customersRes error:', customersRes.error);
+  if (ordersRes.error) console.error('ordersRes error:', ordersRes.error);
+  if (profilesRes.error) console.error('profilesRes error:', profilesRes.error);
+  if (inventoryRes.error) console.error('inventoryRes error:', inventoryRes.error);
 
   return {
     shop: shopRes.data ? shopFromRow(shopRes.data) : null,
@@ -649,7 +649,7 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     });
     if (lastPayment) {
       const { data: orderRow } = await supabase.from('orders').select('customer_name').eq('id', orderId).single();
-      const { data: shopRow } = await supabase.from('shops').select('currency').eq('id', shopId).single();
+      const { data: shopRow } = await supabase.from('shops').select('*'); // 'currency').eq('id', shopId).single();
       sendPushToShop(shopId, actorId, {
         title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
         body: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,

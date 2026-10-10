@@ -51,6 +51,9 @@ export const onboardingSchema = z.object({
   shopName: z.string().min(2, "Shop name is too short"),
   name: z.string().optional(),
   goal: z.string().optional(),
+  businessMode: z.enum(['bespoke', 'rtw', 'hybrid']),
+  weeklyCapacity: z.string().optional(),
+  rtwSourcingMethod: z.enum(['in-house', 'wholesale', 'both']).optional(),
 });
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;

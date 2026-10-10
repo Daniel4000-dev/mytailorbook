@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { Payment, PaymentMethod } from '@/lib/types';
+import { isOwnerLikeRole } from '@/lib/types';
 
 export async function addPayment(orderId: string, amount: number, method: PaymentMethod, referenceNote?: string) {
   const supabase = await createClient();
@@ -63,6 +64,11 @@ export async function getPaymentsByDate(shopId: string, date: string): Promise<{
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
+
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (!profile || (!isOwnerLikeRole(profile.role) && profile.role !== 'Accountant')) {
+      throw new Error('Not authorized to view shop financials');
+    }
 
     const { data, error } = await supabase
       .from('payments')

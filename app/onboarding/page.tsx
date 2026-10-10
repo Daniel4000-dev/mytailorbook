@@ -66,9 +66,13 @@ export default function OnboardingPage() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<OnboardingInput>({
     resolver: zodResolver(onboardingSchema),
+    defaultValues: {
+      businessMode: 'bespoke',
+    }
   });
 
   // Google gives us no signup form, so there's no name to carry over yet —
@@ -101,6 +105,8 @@ export default function OnboardingPage() {
   const [showVision, setShowVision] = useState(false);
   const [confirmedShopName, setConfirmedShopName] = useState('');
 
+  const selectedBusinessMode = watch('businessMode');
+
   const onSubmit = async (data: OnboardingInput) => {
     setApiError('');
     
@@ -112,7 +118,14 @@ export default function OnboardingPage() {
 
     setSubmitting(true);
     try {
-      const result = await completeOnboarding(data.shopName, data.goal, isGoogleAccount ? data.name : undefined);
+      const result = await completeOnboarding(
+        data.shopName, 
+        data.goal, 
+        isGoogleAccount ? data.name : undefined,
+        data.businessMode,
+        data.weeklyCapacity,
+        data.rtwSourcingMethod
+      );
       if (result?.error) {
         setApiError(result.error);
         return;
@@ -230,6 +243,96 @@ export default function OnboardingPage() {
           </select>
           {errors.goal && <div className={styles.errorText}>{errors.goal.message}</div>}
         </div>
+
+        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label htmlFor="businessMode" style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
+            How does your business operate?
+          </label>
+          <select 
+            id="businessMode" 
+            {...register('businessMode')}
+            style={{
+              padding: 'var(--space-md)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-base)',
+              backgroundColor: 'var(--surface-sunken)',
+              color: 'var(--text-primary)',
+              fontSize: 'var(--text-base)',
+              outline: 'none',
+              fontFamily: 'inherit'
+            }}
+          >
+            <option value="bespoke">Custom / Bespoke (Sew to order)</option>
+            <option value="rtw">Ready-to-Wear (Produce or source standard sizes)</option>
+            <option value="hybrid">Hybrid (Both custom and off-the-rack)</option>
+          </select>
+          {errors.businessMode && <div className={styles.errorText}>{errors.businessMode.message}</div>}
+        </div>
+
+        {(selectedBusinessMode === 'bespoke' || selectedBusinessMode === 'hybrid') && (
+          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label htmlFor="weeklyCapacity" style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
+              What is your weekly production capacity?
+            </label>
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
+              This allows our calendar to automatically warn you when you are overbooking.
+            </p>
+            <select 
+              id="weeklyCapacity" 
+              {...register('weeklyCapacity')}
+              style={{
+                padding: 'var(--space-md)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-base)',
+                backgroundColor: 'var(--surface-sunken)',
+                color: 'var(--text-primary)',
+                fontSize: 'var(--text-base)',
+                outline: 'none',
+                fontFamily: 'inherit'
+              }}
+            >
+              <option value="">Select capacity...</option>
+              <option value="5">1 - 5 garments</option>
+              <option value="20">6 - 20 garments</option>
+              <option value="50">21 - 50 garments</option>
+              <option value="100">51 - 100 garments</option>
+              <option value="500">100+ garments</option>
+            </select>
+            {errors.weeklyCapacity && <div className={styles.errorText}>{errors.weeklyCapacity.message}</div>}
+          </div>
+        )}
+
+        {(selectedBusinessMode === 'rtw' || selectedBusinessMode === 'hybrid') && (
+          <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label htmlFor="rtwSourcingMethod" style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
+              How do you source your ready-to-wear stock?
+            </label>
+            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: 0 }}>
+              This helps us customize your inventory tools.
+            </p>
+            <select 
+              id="rtwSourcingMethod" 
+              {...register('rtwSourcingMethod')}
+              style={{
+                padding: 'var(--space-md)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-base)',
+                backgroundColor: 'var(--surface-sunken)',
+                color: 'var(--text-primary)',
+                fontSize: 'var(--text-base)',
+                outline: 'none',
+                fontFamily: 'inherit'
+              }}
+            >
+              <option value="">Select sourcing method...</option>
+              <option value="in-house">Manufacture in-house (Cut & Sew)</option>
+              <option value="wholesale">Source externally (Wholesale)</option>
+              <option value="both">Both</option>
+            </select>
+            {errors.rtwSourcingMethod && <div className={styles.errorText}>{errors.rtwSourcingMethod.message}</div>}
+          </div>
+        )}
+
 
         <button type="submit" className={styles.loginButton} disabled={submitting} style={{ marginTop: '24px' }}>
           {submitting && <Symbol name="progress_activity" className="global-spinner" />}

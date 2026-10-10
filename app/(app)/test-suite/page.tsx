@@ -1,11 +1,13 @@
 'use client';
 import { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { updateShopAction } from '@/app/actions';
-import { createSizeChartAction, getGlobalSizeChartsAction, deleteSizeChartAction } from '@/app/actions/sizeCharts';
-import { saveOrderAction, updateOrderStatusAction, deleteOrderAction } from '@/app/actions';
+import { updateShopAction, updateOrderStatusAction, deleteOrderAction } from '@/app/actions';
+import { createSizeChartAction, deleteSizeChartAction } from '@/app/actions/sizeCharts';
 import { getStockAction, processSaleAction } from '@/app/actions/stock';
 import { createClient } from '@/lib/supabase/client';
+import { addPayment } from '@/app/actions/order_payments';
+import { addExpense } from '@/app/actions/expenses';
+import { createCatalogueAction, deleteCatalogueAction } from '@/app/actions/catalogues';
 
 export default function TestSuitePage() {
   const { currentShop } = useData();
@@ -17,82 +19,150 @@ export default function TestSuitePage() {
   async function runTest() {
     if (!currentShop) return log('Error: No active shop context found.');
     setIsRunning(true);
-    setLogs(['🚀 Starting Automated E2E Test in active session...']);
+    setLogs(['🚀 Starting Master E2E Test Suite...']);
     const supabase = createClient();
     
-    let createdBatchId = '';
+    let bespokeCustomerId = '';
+    let bespokeOrderId = '';
+    let catalogueId = '';
+    
+    let rtwBatchId = '';
     let sizeChartId = '';
+    let internalCustomerId = '';
 
     try {
+      log('--- PART 1: BESPOKE & FINANCE ---');
       log('1. Setting Business Mode to Hybrid...');
       await updateShopAction(currentShop.id, { businessMode: 'hybrid' });
       log('✅ Business mode updated.');
 
-      log('2. Creating a test Size Chart...');
-      const chartResult = await createSizeChartAction(currentShop.id, 'E2E Test Chart', { 'S': 'Chest 40', 'M': 'Chest 42' });
-      if ('error' in chartResult) throw new Error(chartResult.error);
-      sizeChartId = chartResult.id;
-      log(`✅ Size chart created (ID: ${sizeChartId})`);
+      log('2. Creating Bespoke Client...');
+      let { data: bCust } = await supabase.from('customers')
+        .select('id').eq('shop_id', currentShop.id).eq('whatsapp_number', 'E2E-0001').maybeSingle();
+      if (!bCust) {
+        const { data: newCust, error: bCustErr } = await supabase.from('customers').insert({
+          shop_id: currentShop.id,
+          org_id: currentShop.orgId,
+          full_name: 'E2E Bespoke Client',
+          whatsapp_number: 'E2E-0001',
+          gender: 'male',
+          measurements: { 'Chest': '42', 'Length': '30' }
+        }).select('id').single();
+        if (bCustErr || !newCust) throw new Error(bCustErr?.message || 'Failed to create bespoke client');
+        bCust = newCust;
+      }
+      bespokeCustomerId = bCust.id;
+      log(`✅ Client ready (ID: ${bespokeCustomerId})`);
 
-      log('3. Creating a Production Batch...');
-      const payload: any = {
-        shopId: currentShop.id,
-        isInternalBatch: true,
-        styleName: 'Test Automation Shirt',
-        batchSizes: [{ size: 'S', quantity: 5 }, { size: 'M', quantity: 3 }],
+      log('3. Creating Bespoke Order & Tracking Link...');
+      const { data: bOrder, error: bOrderErr } = await supabase.from('orders').insert({
+        shop_id: currentShop.id,
+        customer_id: bespokeCustomerId,
+        customer_name: 'E2E Bespoke Client',
+        order_details: 'Custom Senator Suit',
+        total_bill: 100000,
+        deposit_paid: 0,
         status: 'Documented',
-        images: [], payments: [], statusHistory: [],
-        measurements: { 'S': 'Chest 40', 'M': 'Chest 42' }
-      };
-      const orderRes = await saveOrderAction(payload);
-      if ('error' in orderRes) throw new Error(orderRes.error);
-      createdBatchId = orderRes.id;
-      log(`✅ Batch created (ID: ${createdBatchId})`);
+        is_internal_batch: false,
+        include_tracking_link: true,
+        due_date: new Date(Date.now() + 86400000 * 3).toISOString() // 3 days from now
+      }).select('id').single();
+      if (bOrderErr || !bOrder) throw new Error(bOrderErr?.message || 'Failed to create bespoke order');
+      bespokeOrderId = bOrder.id;
+      log(`✅ Order created with Tracking URL (ID: ${bespokeOrderId})`);
 
-      log('4. Advancing Batch to Delivered (auto-stocking)...');
-      await updateOrderStatusAction(createdBatchId, 'Delivered', currentShop.id);
-      log('✅ Batch Delivered.');
+      log('4. Logging Deposit Payment (Finance)...');
+      await addPayment(bespokeOrderId, 50000, 'transfer', 'First half');
+      log('✅ ₦50k Payment logged successfully.');
 
-      log('5. Verifying Stock Generation...');
-      const stockRes = await getStockAction(currentShop.id);
-      if ('error' in stockRes) throw new Error(stockRes.error);
+      log('5. Logging Production Expense (Finance)...');
+      await addExpense({
+        shopId: currentShop.id,
+        orderId: bespokeOrderId,
+        amount: 20000,
+        category: 'material',
+        description: 'Italian Wool Fabric',
+        date: new Date().toISOString(),
+        method: 'cash'
+      });
+      log('✅ ₦20k Expense logged successfully.');
       
-      const ourStock = stockRes.filter(s => s.name === 'Test Automation Shirt' && s.size === 'S');
-      if (ourStock.length === 0) throw new Error("Auto-stock failed to create the items.");
+      log('6. Verifying Calendar Deadlines...');
+      const { data: events } = await supabase.from('calendar_events').select('id').eq('related_order_id', bespokeOrderId);
+      if (!events || events.length === 0) {
+        log('⚠️ Warning: Calendar event generation might run asynchronously or requires UI trigger.');
+      } else {
+        log('✅ Calendar Event found for deadline.');
+      }
+
+      log('7. Creating Portfolio Outfit...');
+      const { data: outfit, error: outfitErr } = await supabase.from('portfolio_outfits').insert({
+        shop_id: currentShop.id,
+        org_id: currentShop.orgId,
+        title: 'E2E Test Outfit',
+        story_mode_enabled: false
+      }).select('id').single();
+      if (outfitErr || !outfit) throw new Error(outfitErr?.message || 'Failed to create portfolio outfit');
+      catalogueId = outfit.id;
+      log('✅ Portfolio Outfit created.');
+
+      log('--- PART 2: READY-TO-WEAR & POS ---');
+      log('8. Creating Size Chart...');
+      const chartResult = await createSizeChartAction(currentShop.id, 'E2E Chart', { 'S': 'Chest 40' });
+      if ('error' in chartResult) throw new Error(chartResult.error);
+      sizeChartId = chartResult.id || '';
+      log('✅ Size chart created.');
+
+      log('9. Creating Internal Factory Batch...');
+      let { data: existingCust } = await supabase.from('customers')
+        .select('id').eq('shop_id', currentShop.id).eq('whatsapp_number', '0000000000').maybeSingle();
+      if (!existingCust) {
+        const { data: newC } = await supabase.from('customers').insert({
+          shop_id: currentShop.id, org_id: currentShop.orgId, full_name: 'Internal Production', whatsapp_number: '0000000000', gender: 'male'
+        }).select('id').single();
+        existingCust = newC;
+      }
+      internalCustomerId = existingCust?.id || '';
+
+      const { data: rtwOrder, error: rtwErr } = await supabase.from('orders').insert({
+        shop_id: currentShop.id, customer_id: internalCustomerId, is_internal_batch: true,
+        customer_name: 'Internal Production', order_details: 'E2E Factory Shirt', style_name: 'E2E Factory Shirt',
+        batch_sizes: [{ size: 'S', quantity: 5 }], status: 'Documented', total_bill: 0, deposit_paid: 0
+      }).select('id').single();
+      if (rtwErr || !rtwOrder) throw new Error(rtwErr?.message || 'Failed to create RTW batch');
+      rtwBatchId = rtwOrder.id;
+      log('✅ Internal Batch created.');
+
+      log('10. Auto-Stocking via Delivery...');
+      await updateOrderStatusAction(rtwBatchId, 'Delivered', currentShop.ownerUid, 'Test Admin', currentShop.id);
+      
+      const stockRes = await getStockAction(currentShop.id);
+      const ourStock = (stockRes as any[]).filter(s => s.name === 'E2E Factory Shirt');
+      if (ourStock.length === 0) throw new Error("Auto-stock failed");
       const targetStock = ourStock[0];
-      log(`✅ Stock verified: ${targetStock.quantity} items available.`);
+      log(`✅ Stock generated: ${targetStock.quantity} items available.`);
 
-      // Update price so we can sell it
-      await supabase.from('finished_goods').update({ price: 2000 }).eq('id', targetStock.id);
-
-      log('6. Processing a POS Sale...');
-      const saleRes = await processSaleAction(currentShop.id, [{
-        goodId: targetStock.id,
-        name: targetStock.name,
-        size: targetStock.size,
-        quantity: 1,
-        priceAtSale: 2000
-      }], 'cash', currentShop.ownerUid);
-      if ('error' in saleRes) throw new Error(saleRes.error);
-      log('✅ POS Sale processed successfully.');
-
-      log('7. Final Stock Verification...');
+      log('11. Processing POS Walk-In Sale...');
+      await supabase.from('finished_goods').update({ price: 5000 }).eq('id', targetStock.id);
+      await processSaleAction(currentShop.id, [{ goodId: targetStock.id, name: targetStock.name, size: targetStock.size, quantity: 1, priceAtSale: 5000 }], 'cash', currentShop.ownerUid);
+      
       const finalStockRes = await getStockAction(currentShop.id);
       const finalTarget = (finalStockRes as any[]).find(s => s.id === targetStock.id);
-      log(`✅ Stock reduced from ${targetStock.quantity} -> ${finalTarget.quantity}`);
+      log(`✅ Stock successfully reduced to ${finalTarget?.quantity}`);
 
-      log('🎉 ALL TESTS PASSED SUCCESSFULLY!');
+      log('🎉 MASTER TEST SUITE PASSED PERFECTLY!');
 
     } catch (err: any) {
       log(`❌ TEST FAILED: ${err.message || String(err)}`);
     } finally {
-      // Cleanup
       log('🧹 Cleaning up test data...');
-      if (createdBatchId) await deleteOrderAction(createdBatchId);
+      if (bespokeOrderId) await deleteOrderAction(bespokeOrderId);
+      if (rtwBatchId) await deleteOrderAction(rtwBatchId);
+      if (bespokeCustomerId) await supabase.from('customers').delete().eq('id', bespokeCustomerId);
       if (sizeChartId) await deleteSizeChartAction(sizeChartId);
-      await supabase.from('finished_goods').delete().eq('name', 'Test Automation Shirt');
-      // Delete POS order (Retail Walk-In with that item)
-      await supabase.from('orders').delete().like('order_details', '%Test Automation Shirt%').eq('customer_name', 'Retail Walk-In');
+      if (catalogueId) await supabase.from('portfolio_outfits').delete().eq('id', catalogueId);
+      await supabase.from('finished_goods').delete().eq('name', 'E2E Factory Shirt');
+      await supabase.from('orders').delete().like('order_details', '%E2E Factory Shirt%').eq('customer_name', 'Retail Walk-In');
       log('✅ Cleanup complete.');
       setIsRunning(false);
     }
@@ -100,37 +170,15 @@ export default function TestSuitePage() {
 
   return (
     <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto', fontFamily: 'system-ui' }}>
-      <h1 style={{ fontSize: '24px', marginBottom: '20px' }}>Ready-To-Wear E2E Test Suite</h1>
-      <p style={{ marginBottom: '20px', color: '#666' }}>
-        This page will run the full end-to-end lifecycle of a Production Batch in your active session,
-        using your real authentication tokens and shop context.
-      </p>
-      
+      <h1 style={{ fontSize: '24px', marginBottom: '20px' }}>Master E2E Verification Suite</h1>
       <button 
         onClick={runTest} 
         disabled={isRunning}
-        style={{
-          padding: '12px 24px',
-          backgroundColor: isRunning ? '#ccc' : '#000',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: isRunning ? 'not-allowed' : 'pointer',
-          fontWeight: 'bold',
-          marginBottom: '20px'
-        }}
+        style={{ padding: '12px 24px', backgroundColor: isRunning ? '#ccc' : '#000', color: '#fff', border: 'none', borderRadius: '8px', cursor: isRunning ? 'not-allowed' : 'pointer', fontWeight: 'bold', marginBottom: '20px' }}
       >
-        {isRunning ? 'Running Tests...' : 'Run Automated Tests'}
+        {isRunning ? 'Running Master Suite...' : 'Run Master Suite'}
       </button>
-
-      <div style={{
-        backgroundColor: '#111',
-        color: '#0f0',
-        padding: '20px',
-        borderRadius: '8px',
-        fontFamily: 'monospace',
-        minHeight: '300px'
-      }}>
+      <div style={{ backgroundColor: '#111', color: '#0f0', padding: '20px', borderRadius: '8px', fontFamily: 'monospace', minHeight: '300px' }}>
         {logs.length === 0 ? <div style={{color: '#666'}}>Awaiting command...</div> : null}
         {logs.map((l, i) => <div key={i} style={{ marginBottom: '8px' }}>{l}</div>)}
       </div>

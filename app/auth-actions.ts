@@ -33,7 +33,14 @@ import { isOwnerLikeRole } from '@/lib/types';
  *  outcome — reusing an already-created shop, and treating an
  *  already-inserted profile as success — instead of one succeeding and
  *  the other crashing on a duplicate-key error the user can't interpret. */
-export async function completeOnboarding(shopName: string, goal?: string, nameOverride?: string): Promise<{ error?: string }> {
+export async function completeOnboarding(
+  shopName: string, 
+  goal?: string, 
+  nameOverride?: string,
+  businessMode?: string,
+  weeklyCapacity?: string,
+  rtwSourcingMethod?: string
+): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
@@ -44,36 +51,35 @@ export async function completeOnboarding(shopName: string, goal?: string, nameOv
 
   const { data: existing } = await admin.from('profiles').select('id').eq('id', user.id).single();
   if (existing) {
-    // Already finished — most likely a duplicate submit landing after an
-    // earlier one already succeeded. Nothing left to do; not a real error.
     return {};
   }
 
-  // Email signups already collected a name in the form — carry that
-  // straight through from metadata. Google gives us no form at all, so its
-  // (editable) name field on this page is the only chance to confirm it.
   const name = nameOverride || user.user_metadata?.name || user.user_metadata?.full_name || '';
 
-  // A prior attempt for this same (still profile-less) account may have
-  // already created the shop and only failed on the profile insert below —
-  // reuse it instead of creating a second shop every time they retry.
   const { data: orphanedShop } = await admin
     .from('shops')
     .select('id, org_id')
     .eq('owner_id', user.id)
     .maybeSingle();
 
+  const shopPayload = {
+    name: shopName,
+    onboarding_goal: goal || null,
+    business_mode: businessMode || 'bespoke',
+    weekly_capacity: weeklyCapacity ? parseInt(weeklyCapacity, 10) : null,
+    rtw_sourcing_method: rtwSourcingMethod || null
+  };
+
   let shopId: string;
   let orgId: string;
   if (orphanedShop) {
     shopId = orphanedShop.id;
     orgId = orphanedShop.org_id;
-    // Update the orphaned shop with the new name and goal
-    await admin.from('shops').update({ name: shopName, onboarding_goal: goal || null }).eq('id', shopId);
+    await admin.from('shops').update(shopPayload).eq('id', shopId);
   } else {
     const { data: shop, error: shopError } = await admin
       .from('shops')
-      .insert({ name: shopName, owner_id: user.id, onboarding_goal: goal || null })
+      .insert({ ...shopPayload, owner_id: user.id })
       .select()
       .single();
     if (shopError || !shop) {

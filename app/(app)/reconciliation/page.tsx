@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { getExpensesByDate } from '@/app/actions/expenses';
 import { getPaymentsByDate } from '@/app/actions/order_payments';
@@ -11,6 +13,14 @@ import styles from './page.module.css';
 
 export default function ReconciliationPage() {
   const { currentShop } = useData();
+  const { user, isOwner } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && !isOwner && user.role !== 'Accountant') {
+      router.push('/');
+    }
+  }, [user, isOwner, router]);
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
