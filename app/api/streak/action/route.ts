@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const { data: shop } = await admin
       .from('shops')
-      .select('id, streak_current, streak_best, streak_last_counted_at, streak_freezes, work_days, vacation_mode, xp')
+      .select('id, streak_current, streak_best, streak_last_counted_at, streak_freezes, work_days, vacation_mode, xp, gems, daily_quests')
       .eq('id', profile.shop_id)
       .single();
 
@@ -90,8 +90,8 @@ export async function POST(req: Request) {
     }
 
 
-    let questsState = shop.daily_quests || {};
-    let gems = shop.gems || 0;
+    let questsState = (shop as any).daily_quests || {};
+    let gems = (shop as any).gems || 0;
     
     // Check if we need to progress a quest
     if (questsState && questsState.date === todayStr && questsState.quests) {
