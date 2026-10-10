@@ -8,6 +8,7 @@ import { useNetwork } from '@/lib/hooks/useNetwork';
 import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import FlameIcon from "@/components/ui/FlameIcon/FlameIcon";
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
 
@@ -58,7 +59,7 @@ export default function TopBar({
 
   const streakIndicator = currentStreak > 0 && (
     <div className={styles.streakBadge} title={`${currentStreak} day streak!`}>
-      🔥 <span>{currentStreak}</span>
+      <FlameIcon size={18} style={{ marginRight: '4px' }} /> <span>{currentStreak}</span>
     </div>
   );
 

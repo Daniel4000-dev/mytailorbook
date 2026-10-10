@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import Modal from '@/components/ui/Modal/Modal';
+import FlameIcon from "@/components/ui/FlameIcon/FlameIcon";
 import Button from '@/components/ui/Button/Button';
 import styles from './StreakModal.module.css';
 
@@ -42,7 +43,7 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
     <Modal isOpen={isOpen} onClose={onClose} title="">
       <div className={styles.container}>
         <div className={styles.flameContainer}>
-          <div className={styles.flame}>🔥</div>
+          <div className={styles.flame}><FlameIcon size={72} /></div>
         </div>
         <h2 className={styles.title}>{streakCount} Day Streak!</h2>
         <p className={styles.subtitle}>
