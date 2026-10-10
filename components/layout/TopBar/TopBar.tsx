@@ -21,6 +21,7 @@ interface TopBarProps {
   rightAction?: ReactNode;
   actions?: ReactNode; // Fallback for existing components
   brandMode?: boolean;
+  profileMode?: { greeting: string; name: string; avatarInitials?: string; avatarUrl?: string; };
 }
 
 export default function TopBar({
@@ -32,6 +33,7 @@ export default function TopBar({
   rightAction,
   actions,
   brandMode,
+  profileMode,
 }: TopBarProps) {
   const router = useRouter();
   const { toggleMenu } = useSidebar();
@@ -66,13 +68,19 @@ export default function TopBar({
   return (
     <>
       <header className={styles.topBar}>
-        {brandMode ? (
+        {(brandMode || profileMode) ? (
           <div className={styles.profileHeaderContent}>
             <div className={styles.left}>
               <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
                 <Symbol name="menu" size={24} />
               </button>
               {leftAction}
+              {profileMode && (
+                <div className={styles.greetingWrapper}>
+                  <span className={styles.greetingText}>{profileMode.greeting},</span>
+                  <span className={styles.profileName}>{profileMode.name}</span>
+                </div>
+              )}
             </div>
             <div className={styles.right}>
               {streakIndicator}
@@ -80,6 +88,20 @@ export default function TopBar({
                 {!isOnline ? (
                   <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
                 ) : (
+                  <>
+                    <Symbol name="notifications" size={24} />
+                    <span className={styles.notificationBadge} />
+                  </>
+                )}
+              </button>
+              {brandMode && (
+                <div className={styles.logoBadge}>
+                  <BrandIcon className={styles.logoBadgeImg} />
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
                   <>
                     <Symbol name="notifications" size={24} />
                     <span className={styles.notificationBadge} />

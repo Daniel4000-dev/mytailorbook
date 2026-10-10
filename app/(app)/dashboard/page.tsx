@@ -16,9 +16,18 @@ export default function DashboardPage() {
   const { user, isOwner } = useAuth();
   const { orders, staffMembers, isLoaded } = useData();
 
+  const firstName = user?.name?.split(' ')[0] || '';
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
   const topBar = (
     <TopBar
-      title="Dashboard"
+      profileMode={{
+        greeting: timeGreeting,
+        name: firstName,
+        avatarInitials: firstName ? firstName[0] : '',
+        avatarUrl: user?.avatarUrl,
+      }}
     />
   );
 
