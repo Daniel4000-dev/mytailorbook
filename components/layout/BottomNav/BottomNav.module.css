@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 8px 8px;
+  padding: 8px;
   background: color-mix(in srgb, var(--sf-bg-surface) 85%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -26,6 +26,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Item gets surrounded by the rounded pill background when active */
 .item {
   position: relative;
   display: flex;
@@ -35,22 +36,29 @@
   color: var(--sf-text-secondary);
   opacity: 0.8;
   text-decoration: none;
-  padding: 8px 4px;
-  min-width: 56px;
-  border-radius: var(--sf-radius-full);
-  transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  padding: 8px 12px;
+  min-width: 64px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .item:hover {
     opacity: 1;
-    transform: translateY(-2px);
+    background-color: color-mix(in srgb, var(--sf-text-primary) 4%, transparent);
   }
 }
 
-.item:active .iconWrapper {
+.item:active {
   transform: scale(0.95);
+}
+
+/* Active state: Indigo background pill that wraps icon + title, and indigo text/icon */
+.active {
+  background-color: color-mix(in srgb, var(--sf-accent-emerald) 12%, transparent);
+  color: var(--sf-accent-emerald);
+  opacity: 1;
 }
 
 .iconWrapper {
@@ -58,28 +66,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 32px;
-  border-radius: 16px;
   margin-bottom: 4px;
-  transition: background-color 0.2s ease, transform 150ms ease;
 }
 
-.active {
-  background: none;
-  color: var(--sf-text-primary);
-  opacity: 1;
-}
-
-.active .iconWrapper {
-  background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
+/* The icon stays plain (not filled/black) */
+.icon {
+  transition: transform 150ms ease;
+  color: inherit;
 }
 
 .label {
   font-family: var(--sf-font-body);
   font-size: 11px;
   line-height: 14px;
-  font-weight: var(--sf-weight-bold);
+  font-weight: var(--sf-weight-semibold);
   letter-spacing: var(--sf-tracking-caps);
   white-space: nowrap;
 }

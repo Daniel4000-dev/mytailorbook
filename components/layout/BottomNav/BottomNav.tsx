@@ -24,7 +24,7 @@ function NavItemContent({ icon, label, isActive, tourId }: { icon: string; label
   return (
     <div className={`${styles.item} ${active ? styles.active : ''}`} data-tour-id={tourId}>
       <div className={styles.iconWrapper}>
-        <CustomNavIcon name={icon} fill={active} size={26} className={styles.icon} />
+        <CustomNavIcon name={icon} fill={false} size={26} className={styles.icon} />
       </div>
       <span className={styles.label}>{label}</span>
     </div>
