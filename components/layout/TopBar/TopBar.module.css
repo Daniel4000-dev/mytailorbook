@@ -243,24 +243,87 @@
   object-fit: contain;
 }
 
-.streakBadge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: var(--sf-surface-raised);
-  border-radius: var(--sf-radius-full);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--sf-text-primary);
-  box-shadow: var(--sf-shadow-sm);
-  margin-right: 8px;
-  cursor: default;
-  transition: transform 0.2s ease;
+/* Animated Streak Badge replacing the brand logo */
+@keyframes flameFlicker {
+  0% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
+  50% { transform: scale(1.15) rotate(4deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(255,87,34,0.8)); }
+  100% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
+}
+
+@keyframes streakPop {
+  0% { transform: scale(0.95); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+
+
+.streakBadge:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.25);
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 87, 34, 0.2));
+}
+
+.streakBadge svg {
+  animation: flameFlicker 2s ease-in-out infinite alternate;
+  transform-origin: bottom center;
 }
 .streakBadge:hover {
   transform: scale(1.05);
 }
 .streakBadge span {
   color: #FF5722;
+}
+
+/* Animated Streak Badge replacing the brand logo */
+.streakContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+}
+
+@keyframes flameFlicker {
+  0% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
+  50% { transform: scale(1.15) rotate(4deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(255,87,34,0.8)); }
+  100% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
+}
+
+@keyframes streakPop {
+  0% { transform: scale(0.85); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.streakBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.12), rgba(255, 87, 34, 0.12));
+  border: 1px solid rgba(255, 152, 0, 0.25);
+  border-radius: var(--sf-radius-full);
+  color: #FF5722;
+  font-family: var(--sf-font-mono);
+  font-weight: var(--sf-weight-bold);
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
+  animation: streakPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.streakBadge:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.2);
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.18), rgba(255, 87, 34, 0.18));
+}
+
+.streakBadge:active {
+  transform: translateY(1px) scale(0.96);
+}
+
+.streakBadge svg {
+  animation: flameFlicker 2s ease-in-out infinite alternate;
+  transform-origin: bottom center;
 }

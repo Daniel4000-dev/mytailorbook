@@ -59,7 +59,7 @@ export default function BottomNav() {
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
         return (
           <Link key={item.href} href={item.href} className={styles.linkReset}>
-            <NavItemContent icon={item.icon} label={item.label} isActive={isActive} tourId={item.tourId} hasActivity={item.label === \'Production\'} />
+            <NavItemContent icon={item.icon} label={item.label} isActive={isActive} tourId={item.tourId} hasActivity={item.label === "Production"} />
           </Link>
         );
       })}
