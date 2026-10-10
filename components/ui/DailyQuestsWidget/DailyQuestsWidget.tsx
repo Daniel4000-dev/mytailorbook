@@ -18,7 +18,7 @@ export default function DailyQuestsWidget() {
     <div className={styles.widget}>
       <div className={styles.header}>
         <div className={styles.title}>
-          <Symbol name="task_alt" size={24} color="var(--sf-accent-indigo)" />
+          <Symbol name="task_alt" size={24} style={{ color: "var(--sf-accent-indigo)" }} />
           Daily Quests
         </div>
         <div className={styles.rewardHeader}>
