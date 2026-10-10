@@ -54,22 +54,11 @@
 
 .active {
   background: none;
-  color: var(--sf-accent-emerald);
+  color: var(--sf-text-primary);
   opacity: 1;
 }
 
-.active::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 4px;
-  border-radius: 4px;
-  background: var(--sf-accent-emerald);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sf-accent-emerald) 40%, transparent);
-}
+
 
 .icon {
   margin-bottom: 4px;

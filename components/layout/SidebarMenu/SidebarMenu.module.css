@@ -127,9 +127,9 @@
 }
 
 .menuItem.active {
-  color: var(--sf-accent-emerald);
+  color: var(--sf-text-primary);
   font-weight: 600;
-  background: var(--sf-secondary-container);
+  
   animation: navPillIn 260ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .menuItem.active .menuIcon {
-  color: var(--sf-accent-emerald);
+  color: var(--sf-text-primary);
 }
 
 .footer {
@@ -400,14 +400,14 @@
      own dashboard and Linear both make for their active nav item) is what
      actually reads as designed rather than default. */
   .menuItem.active {
-    background-color: var(--sf-accent-emerald);
-    color: var(--sf-text-on-accent) !important;
-    font-weight: 600;
-    box-shadow: var(--sf-shadow-sm);
+    background-color: transparent;
+    color: var(--sf-text-primary) !important;
+    font-weight: 700;
+    box-shadow: none;
   }
 
   .menuItem.active .menuIcon {
-    color: var(--sf-text-on-accent) !important;
+    color: var(--sf-text-primary) !important;
   }
 
   .settingsBtn {

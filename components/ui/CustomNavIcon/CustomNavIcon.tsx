@@ -10,7 +10,7 @@ interface CustomNavIconProps {
 }
 
 export default function CustomNavIcon({ name, size = 24, fill = false, style, className = '', ...props }: CustomNavIconProps) {
-  const activeColor = "var(--sf-primary)";
+  const activeColor = "currentColor";
   const strokeColor = fill ? activeColor : "currentColor";
   const strokeWidth = fill ? 2.5 : 2;
 
