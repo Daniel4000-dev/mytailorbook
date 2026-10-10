@@ -15,7 +15,7 @@ export async function logStreakAction(actionName: string, xpReward = 10, trigger
       const end = Date.now() + duration;
 
       try {
-        const audio = new Audio('/sounds/success.mp3');
+        const audio = new Audio('/sounds/success.wav');
         audio.volume = 0.5;
         audio.play().catch(() => {});
       } catch(e) {}
