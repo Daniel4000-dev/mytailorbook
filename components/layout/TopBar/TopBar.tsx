@@ -67,7 +67,7 @@ export default function TopBar({
     <>
       <header className={styles.topBar}>
         {brandMode ? (
-          <div className={styles.profileHeaderContent}>
+          <div className={styles.floatingHeaderContent}>
             <div className={styles.left}>
               <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
                 <Symbol name="menu" size={24} />
@@ -92,7 +92,7 @@ export default function TopBar({
           </div>
         ) : (
           // Standard Title Layout
-          <>
+          <div className={styles.floatingHeaderContent}>
             <div className={styles.left}>
               {leftAction}
               {showBack ? (
@@ -125,7 +125,7 @@ export default function TopBar({
                 </>
               )}
             </div>
-          </>
+          </div>
         )}
       </header>
 
