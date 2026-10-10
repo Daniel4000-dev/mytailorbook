@@ -69,10 +69,10 @@ export default function SagaMapWidget({ monthlyRevenue }: { monthlyRevenue: numb
           }}
         >
           <img 
-            src={user?.avatarUrl || currentShop?.logoUrl || '/images/default-avatar.png'} 
+            src={user?.avatarUrl || currentShop?.logoUrl || '/images/logo.png'} 
             alt="You" 
             style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-            onError={(e) => { e.currentTarget.src = '/images/default-avatar.png' }}
+            onError={(e) => { e.currentTarget.src = '/images/logo.png' }}
           />
         </div>
       </div>
