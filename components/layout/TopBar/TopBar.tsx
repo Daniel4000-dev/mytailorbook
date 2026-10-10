@@ -93,7 +93,7 @@ export default function TopBar({
 
               <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px' }}>
                 <div className={styles.tierBadge} title={`${xp} XP - ${currentTier.name}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--sf-bg-surface)', padding: '4px 8px', borderRadius: '100px', border: `1px solid ${currentTier.color}`, fontSize: '13px', fontWeight: 'bold' }}>
-                  <Symbol name={currentTier.icon} size={16} color={currentTier.color} style={{ fontVariationSettings: "'FILL' 1" }} />
+                  <Symbol name={currentTier.icon} size={16} style={{ color: currentTier.color, fontVariationSettings: "'FILL' 1" }} />
                   <span style={{ color: currentTier.color }}>{currentTier.name}</span>
                 </div>
                 {streakIndicator}
