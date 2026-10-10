@@ -54,10 +54,10 @@
   transform: scale(0.95);
 }
 
-/* Active state: Indigo background pill that wraps icon + title, and indigo text/icon */
+/* Active state: Subtle grey pill, icon/text stay neutral (black/white) */
 .active {
-  background-color: color-mix(in srgb, var(--sf-accent-emerald) 12%, transparent);
-  color: var(--sf-accent-emerald);
+  background-color: color-mix(in srgb, var(--sf-text-primary) 6%, transparent);
+  color: var(--sf-text-primary);
   opacity: 1;
 }
 
@@ -69,7 +69,19 @@
   margin-bottom: 4px;
 }
 
-/* The icon stays plain (not filled/black) */
+/* Indigo Activity Dot (Unread Badge) */
+.activityDot {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--sf-accent-emerald); /* Indigo in this app */
+  border: 2px solid var(--sf-bg-surface);
+  z-index: 2;
+}
+
 .icon {
   transition: transform 150ms ease;
   color: inherit;

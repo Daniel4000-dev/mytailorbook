@@ -18,13 +18,14 @@ import styles from './BottomNav.module.css';
  *  has `display: contents` (.linkReset) so its own box collapses to
  *  nothing and generates no rect at all; AppTour's getBoundingClientRect
  *  needs the element that actually occupies space on screen. */
-function NavItemContent({ icon, label, isActive, tourId }: { icon: string; label: string; isActive: boolean; tourId?: string }) {
+function NavItemContent({ icon, label, isActive, tourId, hasActivity }: { icon: string; label: string; isActive: boolean; tourId?: string; hasActivity?: boolean }) {
   const { pending } = useLinkStatus();
   const active = isActive || pending;
   return (
     <div className={`${styles.item} ${active ? styles.active : ''}`} data-tour-id={tourId}>
       <div className={styles.iconWrapper}>
-        <CustomNavIcon name={icon} fill={false} size={26} className={styles.icon} />
+        <CustomNavIcon name={icon} fill={active} size={26} className={styles.icon} />
+        {hasActivity && <div className={styles.activityDot} />}
       </div>
       <span className={styles.label}>{label}</span>
     </div>
@@ -58,7 +59,7 @@ export default function BottomNav() {
         const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
         return (
           <Link key={item.href} href={item.href} className={styles.linkReset}>
-            <NavItemContent icon={item.icon} label={item.label} isActive={isActive} tourId={item.tourId} />
+            <NavItemContent icon={item.icon} label={item.label} isActive={isActive} tourId={item.tourId} hasActivity={item.label === \'Production\'} />
           </Link>
         );
       })}
