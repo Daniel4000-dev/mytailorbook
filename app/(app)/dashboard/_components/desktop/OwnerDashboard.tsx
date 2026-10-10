@@ -10,8 +10,6 @@ import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import DiscoverBanner from './DiscoverBanner';
 import ShopTodayCard from '../ShopTodayCard';
-import MilestonesCard from '../MilestonesCard';
-import GeneralExpenses from '../GeneralExpenses';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -230,7 +228,7 @@ export default function OwnerDashboard({
             <span className={pageStyles.sectionTitle}>Shop Today</span>
           </div>
           <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
-                  <MilestonesCard />
+                  
           {currentShop && (
             <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />
           )}

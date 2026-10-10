@@ -8,9 +8,7 @@ import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import DiscoverCarousel from './DiscoverCarousel';
-import MilestonesCard from '../MilestonesCard';
 import ShopTodayCard from '../ShopTodayCard';
-import GeneralExpenses from '../GeneralExpenses';
 import styles from '../../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -201,10 +199,8 @@ export default function OwnerDashboard({
         <span className={styles.sectionTitle}>Shop Today</span>
       </div>
       <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
-              <MilestonesCard />
-      {currentShop && (
-        <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />
-      )}
+              
+      
     </>
   );
 }

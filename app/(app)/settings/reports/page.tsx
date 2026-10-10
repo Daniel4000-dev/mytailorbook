@@ -65,6 +65,11 @@ export default function ReportsPage() {
 
   return (
     <PageLayout width="narrow" header={<TopBar title="Reports" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '40px' }}>
+        <MilestonesCard />
+        {currentShop && <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />}
+      </div>
       {!isPremium ? (
         <div style={{ textAlign: 'center', marginTop: '64px', padding: '0 24px' }}>
           <div style={{ display: 'inline-flex', padding: '16px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.05)', marginBottom: '24px' }}>
