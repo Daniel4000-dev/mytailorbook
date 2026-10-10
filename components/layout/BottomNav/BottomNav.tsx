@@ -1,6 +1,6 @@
 'use client';
 
-import Link, { useLinkStatus } from 'next/link';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -19,8 +19,7 @@ import styles from './BottomNav.module.css';
  *  nothing and generates no rect at all; AppTour's getBoundingClientRect
  *  needs the element that actually occupies space on screen. */
 function NavItemContent({ icon, label, isActive, tourId, hasActivity }: { icon: string; label: string; isActive: boolean; tourId?: string; hasActivity?: boolean }) {
-  const { pending } = useLinkStatus();
-  const active = isActive || pending;
+  const active = isActive;
   return (
     <div className={`${styles.item} ${active ? styles.active : ''}`} data-tour-id={tourId}>
       <div className={styles.iconWrapper}>
