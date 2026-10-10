@@ -35,7 +35,7 @@
   color: var(--sf-text-secondary);
   opacity: 0.8;
   text-decoration: none;
-  padding: 8px 12px;
+  padding: 8px 4px; min-width: 56px;
   border-radius: var(--sf-radius-full);
   transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast), transform var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
@@ -67,8 +67,8 @@
 
 .label {
   font-family: var(--sf-font-body);
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 11px;
+  line-height: 14px;
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
   white-space: nowrap;

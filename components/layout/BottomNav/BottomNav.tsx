@@ -23,7 +23,7 @@ function NavItemContent({ icon, label, isActive, tourId }: { icon: string; label
   const active = isActive || pending;
   return (
     <div className={`${styles.item} ${active ? styles.active : ''}`} data-tour-id={tourId}>
-      <CustomNavIcon name={icon} fill={active} size={24} className={styles.icon} />
+      <CustomNavIcon name={icon} fill={active} size={26} className={styles.icon} />
       <span className={styles.label}>{label}</span>
     </div>
   );
