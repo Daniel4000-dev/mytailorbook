@@ -92,6 +92,8 @@ export interface Shop {
   workDays?: number[];
   vacationMode?: boolean;
   xp?: number;
+  gems?: number;
+  dailyQuests?: any;
   /** The UTC timestamp of the last day the streak was successfully incremented. */
   streakLastCountedAt?: string;
   /** The future identity goal chosen by the tailor during onboarding */

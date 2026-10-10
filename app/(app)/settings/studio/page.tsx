@@ -201,6 +201,31 @@ export default function StudioSettingsPage() {
               <span className="toggleSlider"></span>
             </label>
           </div>
+
+          <div className={styles.inputGroup} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px' }}>
+            <div>
+              <label className={styles.label}>Streak Freezes: {currentShop?.streakFreezes || 0}</label>
+              <p className={styles.hintText}>Use gems to buy freezes. You have <strong style={{ color: 'var(--sf-accent-gold)' }}>{currentShop?.gems || 0} Gems</strong>.</p>
+            </div>
+            <Button 
+              variant="secondary" 
+              onClick={async () => {
+                const gems = currentShop?.gems || 0;
+                if (gems >= 50) {
+                  try {
+                    await updateShop({ gems: gems - 50, streakFreezes: (currentShop?.streakFreezes || 0) + 1 });
+                    showToast('Purchased 1 Streak Freeze!');
+                  } catch(e) {
+                    showToast('Failed to purchase', 'error');
+                  }
+                } else {
+                  showToast('Not enough gems! Complete Daily Quests to earn more.', 'error');
+                }
+              }}
+            >
+              Buy for 50 💎
+            </Button>
+          </div>
         </div>
       <ConfirmDialog
         isOpen={confirmRemoveLogo}

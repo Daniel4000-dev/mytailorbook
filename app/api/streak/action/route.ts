@@ -89,8 +89,37 @@ export async function POST(req: Request) {
       streakChanged = true;
     }
 
+
+    let questsState = shop.daily_quests || {};
+    let gems = shop.gems || 0;
+    
+    // Check if we need to progress a quest
+    if (questsState && questsState.date === todayStr && questsState.quests) {
+      let questType = action;
+      if (action === 'updated_order' || action === 'completed_order') questType = 'update_order';
+      
+      let questUpdated = false;
+      const newQuests = questsState.quests.map((q: any) => {
+        if (q.type === questType && !q.completed) {
+          const newCurrent = q.current + 1;
+          const completed = newCurrent >= q.target;
+          if (completed) {
+            xp += q.rewardXP;
+            gems += q.rewardGems;
+          }
+          questUpdated = true;
+          return { ...q, current: newCurrent, completed };
+        }
+        return q;
+      });
+      
+      if (questUpdated) {
+        questsState.quests = newQuests;
+      }
+    }
+
     // Always update XP, update streak if changed
-    const updateData: any = { xp };
+    const updateData: any = { xp, gems, daily_quests: questsState };
     if (streakChanged) {
       updateData.streak_current = currentStreak;
       updateData.streak_best = bestStreak;

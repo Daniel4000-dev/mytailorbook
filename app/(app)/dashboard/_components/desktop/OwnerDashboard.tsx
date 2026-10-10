@@ -18,6 +18,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
+import DailyQuestsWidget from '@/components/ui/DailyQuestsWidget/DailyQuestsWidget';
 
 // ============================================================
 // Owner Dashboard — desktop
@@ -61,6 +62,7 @@ export default function OwnerDashboard({
   return (
     <div className={styles.content}>
       <MarketDayWidget />
+        <DailyQuestsWidget />
             <TodaysAgendaWidget />
 
       {/* Hero: one dominant focal point instead of four equal-weight cards.

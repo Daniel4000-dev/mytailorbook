@@ -9,6 +9,7 @@ import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FlameIcon from "@/components/ui/FlameIcon/FlameIcon";
+import { getTierForXp } from '@/lib/gamification';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
 
@@ -46,7 +47,11 @@ export default function TopBar({
 
   const finalRightAction = rightAction || actions;
   
+
   const currentStreak = currentShop?.streakCurrent || 0;
+  const xp = currentShop?.xp || 0;
+  const currentTier = getTierForXp(xp);
+
   const prevStreakRef = useRef(currentShop?.streakCurrent);
 
   useEffect(() => {
@@ -85,9 +90,15 @@ export default function TopBar({
                   </>
                 )}
               </button>
-              <div className={styles.streakContainer}>
+
+              <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px' }}>
+                <div className={styles.tierBadge} title={`${xp} XP - ${currentTier.name}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--sf-bg-surface)', padding: '4px 8px', borderRadius: '100px', border: `1px solid ${currentTier.color}`, fontSize: '13px', fontWeight: 'bold' }}>
+                  <Symbol name={currentTier.icon} size={16} color={currentTier.color} style={{ fontVariationSettings: "'FILL' 1" }} />
+                  <span style={{ color: currentTier.color }}>{currentTier.name}</span>
+                </div>
                 {streakIndicator}
               </div>
+
             </div>
           </div>
         ) : (
