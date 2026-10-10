@@ -19,7 +19,6 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 import DailyQuestsWidget from '@/components/ui/DailyQuestsWidget/DailyQuestsWidget';
-import SagaMapWidget from '@/components/ui/SagaMapWidget/SagaMapWidget';
 
 // ============================================================
 // Owner Dashboard — desktop
@@ -231,8 +230,7 @@ export default function OwnerDashboard({
             <span className={pageStyles.sectionTitle}>Shop Today</span>
           </div>
           <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
-          <SagaMapWidget monthlyRevenue={monthlyRevenue} />
-        <MilestonesCard />
+                  <MilestonesCard />
           {currentShop && (
             <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />
           )}

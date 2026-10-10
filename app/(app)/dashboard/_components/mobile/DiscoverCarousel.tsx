@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, type UIEvent } from 'react';
+import { useState, useRef, useEffect, type UIEvent } from 'react';
+import { useData } from '@/contexts/DataContext';
 import Image from 'next/image';
 import { DISCOVER_CARDS } from '../discoverCards';
 import styles from '../../page.module.css';
@@ -14,7 +15,38 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 // ============================================================
 
 export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: string) => void }) {
+  const { currentShop } = useData();
   const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const el = scrollRef.current;
+        const cardWidth = el.firstElementChild?.clientWidth || 0;
+        if (cardWidth > 0) {
+          const gap = 16;
+          const maxScroll = el.scrollWidth - el.clientWidth;
+          let nextScroll = el.scrollLeft + cardWidth + gap;
+          if (nextScroll > maxScroll) nextScroll = 0; // Loop back
+          el.scrollTo({ left: nextScroll, behavior: 'smooth' });
+        }
+      }
+    }, 4000); // Auto-slide every 4 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // Hide after 30 days
+  if (currentShop?.created_at) {
+    const createdAt = new Date(currentShop.created_at);
+    const now = new Date();
+    const daysOld = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
+    if (daysOld > 30) {
+      return null;
+    }
+  }
+
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -28,7 +60,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Discover</span>
       </div>
-      <div className={styles.discoverScroll} onScroll={handleScroll}>
+      <div ref={scrollRef} className={styles.discoverScroll} onScroll={handleScroll}>
         {DISCOVER_CARDS.map((card) => (
           <button
             key={card.title}
