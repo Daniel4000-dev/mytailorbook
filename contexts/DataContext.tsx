@@ -256,6 +256,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
           revalidate: false,
         }
       );
+      
+      // GAMIFICATION TRIGGER
+      if (newStatus === 'Ready' || newStatus === 'Delivered') {
+        logStreakAction('completed_order', 50, true);
+      } else {
+        logStreakAction('updated_order', 10, false);
+      }
     },
     [activeBranchId, mutate]
   );
@@ -671,7 +678,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateInventoryItem,
       deleteInventoryItem,
     }),
-    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
+    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem, logAction]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

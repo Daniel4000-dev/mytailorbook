@@ -176,6 +176,32 @@ export default function StudioSettingsPage() {
         </div>
       </div>
 
+
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Gamification & Streaks</h2>
+          
+          <div className={styles.inputGroup} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <label className={styles.label}>Vacation Mode</label>
+              <p className={styles.hintText}>Pause your daily streak indefinitely while you take time off.</p>
+            </div>
+            <label className="toggleSwitch">
+              <input 
+                type="checkbox" 
+                checked={currentShop?.vacationMode || false}
+                onChange={async (e) => {
+                  try {
+                    await updateShop({ vacationMode: e.target.checked });
+                    showToast(e.target.checked ? 'Vacation Mode enabled' : 'Vacation Mode disabled');
+                  } catch (err) {
+                    showToast('Failed to update Vacation Mode', 'error');
+                  }
+                }}
+              />
+              <span className="toggleSlider"></span>
+            </label>
+          </div>
+        </div>
       <ConfirmDialog
         isOpen={confirmRemoveLogo}
         onClose={() => setConfirmRemoveLogo(false)}

@@ -17,6 +17,7 @@ import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
+import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 
 // ============================================================
 // Owner Dashboard — desktop
@@ -59,7 +60,8 @@ export default function OwnerDashboard({
 
   return (
     <div className={styles.content}>
-      <TodaysAgendaWidget />
+      <MarketDayWidget />
+            <TodaysAgendaWidget />
 
       {/* Hero: one dominant focal point instead of four equal-weight cards.
           Uses only tokens already in the app's own two-color system —

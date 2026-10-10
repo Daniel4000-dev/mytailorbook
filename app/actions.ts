@@ -250,6 +250,9 @@ function shopFromRow(row: any): Shop {
     streakCurrent: row.streak_current || 0,
     streakBest: row.streak_best || 0,
     streakFreezes: row.streak_freezes || 0,
+    workDays: row.work_days || [1,2,3,4,5,6],
+    vacationMode: row.vacation_mode || false,
+    xp: row.xp || 0,
     streakLastCountedAt: row.streak_last_counted_at || undefined,
     onboardingGoal: row.onboarding_goal || undefined,
     monthlyRevenueTarget: row.monthly_revenue_target !== null ? Number(row.monthly_revenue_target) : undefined,
@@ -875,6 +878,8 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.portfolioSettings !== undefined) row.portfolio_settings = updates.portfolioSettings;
   if (updates.defaultTrackingLinkEnabled !== undefined) row.default_tracking_link_enabled = updates.defaultTrackingLinkEnabled;
   if (updates.streakCurrent !== undefined) row.streak_current = updates.streakCurrent;
+  if (updates.vacationMode !== undefined) row.vacation_mode = updates.vacationMode;
+  if (updates.workDays !== undefined) row.work_days = updates.workDays;
   if (updates.streakBest !== undefined) row.streak_best = updates.streakBest;
   if (updates.streakFreezes !== undefined) row.streak_freezes = updates.streakFreezes;
   if (updates.streakLastCountedAt !== undefined) row.streak_last_counted_at = updates.streakLastCountedAt;

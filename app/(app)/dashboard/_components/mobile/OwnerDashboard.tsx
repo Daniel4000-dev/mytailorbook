@@ -15,6 +15,7 @@ import styles from '../../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
+import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 
 // ============================================================
 // Owner Dashboard — mobile
@@ -52,7 +53,8 @@ export default function OwnerDashboard({
     <>
       <DiscoverCarousel onNavigate={onNavigate} />
 
-      <TodaysAgendaWidget />
+      <MarketDayWidget />
+        <TodaysAgendaWidget />
 
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Overview Analytics</span>

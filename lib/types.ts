@@ -89,6 +89,9 @@ export interface Shop {
   /** The highest streak ever achieved by this shop. */
   streakBest?: number;
   streakFreezes?: number;
+  workDays?: number[];
+  vacationMode?: boolean;
+  xp?: number;
   /** The UTC timestamp of the last day the streak was successfully incremented. */
   streakLastCountedAt?: string;
   /** The future identity goal chosen by the tailor during onboarding */
