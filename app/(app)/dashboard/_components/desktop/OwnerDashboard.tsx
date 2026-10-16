@@ -228,10 +228,6 @@ export default function OwnerDashboard({
             <span className={pageStyles.sectionTitle}>Shop Today</span>
           </div>
           <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
-                  
-          {currentShop && (
-            <GeneralExpenses shopId={currentShop.id} currency={currentShop.currency} />
-          )}
         </div>
       </div>
     </div>
