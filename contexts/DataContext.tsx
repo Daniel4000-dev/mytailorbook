@@ -221,6 +221,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const updated = await addOrderAction(activeBranchId, orderData);
       if (updated && 'error' in updated) throw new Error(updated.error);
       mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+
+      // GAMIFICATION TRIGGER: Order Intake
+      logStreakAction('created_order', 20, {
+        orderData: {
+          customerName: orderData.customerName,
+          totalBill: orderData.totalBill,
+        },
+        measurements: orderData.measurements,
+        triggerCelebration: false,
+      });
     },
     [activeBranchId, mutate]
   );
@@ -231,6 +241,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const updated = await addOrderBatchAction(activeBranchId, garments);
       if (updated && 'error' in updated) throw new Error(updated.error);
       mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+
+      logStreakAction('created_order', 20, false);
     },
     [activeBranchId, mutate]
   );
@@ -260,7 +272,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       
       // GAMIFICATION TRIGGER
       if (newStatus === 'Ready' || newStatus === 'Delivered') {
-        logStreakAction('completed_order', 50, true);
+        logStreakAction('completed_order', 20, true);
+      } else if (newStatus === 'Cutting' || newStatus === 'Sewing') {
+        logStreakAction('updated_order', 15, false);
       } else {
         logStreakAction('updated_order', 10, false);
       }
@@ -333,6 +347,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
           revalidate: false,
         }
       );
+
+      // GAMIFICATION TRIGGER: Measurements Added
+      logStreakAction('measurements_added', 15, {
+        measurements: measurements as Record<string, unknown>,
+        triggerCelebration: false,
+      });
     },
     [orgId, mutate]
   );

@@ -100,6 +100,29 @@ export interface Shop {
   onboardingGoal?: string;
   /** Determines if the shop operates as a bespoke tailor, a ready-to-wear brand, or both */
   businessMode?: 'bespoke' | 'rtw' | 'hybrid';
+  /** Master Tailor Challenge & Equipment Grant */
+  referralCode?: string;
+  referredByShopId?: string;
+  referralRewardClaimed?: boolean;
+  buddyShopId?: string;
+  buddyShopName?: string;
+  buddyStreakCount?: number;
+  buddyLastActiveAt?: string;
+  restDaysUsedThisWeek?: number;
+  lastRestDayDate?: string;
+}
+
+export interface ChallengeLeaderboardEntry {
+  shopId: string;
+  shopName: string;
+  avatarUrl?: string;
+  xp: number;
+  tierName: string;
+  tierColor: string;
+  tierIcon: string;
+  rank: number;
+  streakCurrent: number;
+  isCurrentUser?: boolean;
 }
 
 export interface ShopException {

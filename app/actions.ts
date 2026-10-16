@@ -259,6 +259,14 @@ function shopFromRow(row: any): Shop {
     onboardingGoal: row.onboarding_goal || undefined,
     monthlyRevenueTarget: row.monthly_revenue_target !== null ? Number(row.monthly_revenue_target) : undefined,
     businessMode: row.business_mode || 'bespoke',
+    referralCode: row.referral_code || undefined,
+    referredByShopId: row.referred_by_shop_id || undefined,
+    referralRewardClaimed: row.referral_reward_claimed || false,
+    buddyShopId: row.buddy_shop_id || undefined,
+    buddyStreakCount: row.buddy_streak_count || 0,
+    buddyLastActiveAt: row.buddy_last_active_at || undefined,
+    restDaysUsedThisWeek: row.rest_days_used_this_week || 0,
+    lastRestDayDate: row.last_rest_day_date || undefined,
   };
 }
 
@@ -2054,4 +2062,180 @@ export async function getOrderMaterialsAction(orderId: string) {
     
   if (error) return { error: error.message };
   return data;
+}
+
+// ----------------------------------------------------------------------
+// Master Tailor Challenge Server Actions
+// ----------------------------------------------------------------------
+
+export async function getChallengeLeaderboardAction() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+  const currentShopId = profile?.shop_id;
+
+  // Get top 10 shops
+  const { data: topShops, error } = await admin
+    .from('shops')
+    .select('id, name, logo_url, xp, streak_current')
+    .order('xp', { ascending: false })
+    .limit(10);
+
+  if (error) return { error: error.message };
+
+  // Calculate user's overall rank
+  let userRank = 1;
+  let userXp = 0;
+  if (currentShopId) {
+    const { data: userShop } = await admin.from('shops').select('xp').eq('id', currentShopId).single();
+    userXp = userShop?.xp || 0;
+    const { count } = await admin
+      .from('shops')
+      .select('*', { count: 'exact', head: true })
+      .gt('xp', userXp);
+    userRank = (count || 0) + 1;
+  }
+
+  // Count how many have hit 5000 XP (Machines won)
+  const { count: winnersCount } = await admin
+    .from('shops')
+    .select('*', { count: 'exact', head: true })
+    .gte('xp', 5000);
+
+  const machinesRemaining = Math.max(0, 3 - (winnersCount || 0));
+
+  // Lazy import getTierForXp
+  const { getTierForXp } = await import('@/lib/gamification');
+
+  const leaderboard = (topShops || []).map((s, index) => {
+    const tier = getTierForXp(s.xp || 0);
+    return {
+      shopId: s.id,
+      shopName: s.name,
+      avatarUrl: s.logo_url || undefined,
+      xp: s.xp || 0,
+      tierName: tier.name,
+      tierColor: tier.color,
+      tierIcon: tier.icon,
+      rank: index + 1,
+      streakCurrent: s.streak_current || 0,
+      isCurrentUser: s.id === currentShopId,
+    };
+  });
+
+  // Also fetch buddy info if linked
+  let buddyInfo: { name: string; avatarUrl?: string; lastActiveAt?: string; streakCount: number } | null = null;
+  if (currentShopId) {
+    const { data: shop } = await admin.from('shops').select('buddy_shop_id, buddy_streak_count').eq('id', currentShopId).single();
+    if (shop?.buddy_shop_id) {
+      const { data: bShop } = await admin.from('shops').select('name, logo_url, streak_last_counted_at').eq('id', shop.buddy_shop_id).single();
+      if (bShop) {
+        buddyInfo = {
+          name: bShop.name,
+          avatarUrl: bShop.logo_url || undefined,
+          lastActiveAt: bShop.streak_last_counted_at || undefined,
+          streakCount: shop.buddy_streak_count || 0,
+        };
+      }
+    }
+  }
+
+  return {
+    leaderboard,
+    userRank,
+    userXp,
+    machinesRemaining,
+    buddyInfo,
+  };
+}
+
+export async function linkStudioBuddyAction(buddyCode: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+  if (!profile?.shop_id) return { error: 'No shop found' };
+
+  const cleanCode = buddyCode.trim().toUpperCase();
+  const { data: buddyShop } = await admin
+    .from('shops')
+    .select('id, name')
+    .eq('referral_code', cleanCode)
+    .single();
+
+  if (!buddyShop) {
+    return { error: 'Colleague code not found. Check the code and try again.' };
+  }
+
+  if (buddyShop.id === profile.shop_id) {
+    return { error: 'You cannot link with your own studio!' };
+  }
+
+  // Bidirectional link
+  await admin.from('shops').update({ buddy_shop_id: buddyShop.id }).eq('id', profile.shop_id);
+  await admin.from('shops').update({ buddy_shop_id: profile.shop_id }).eq('id', buddyShop.id);
+
+  return { success: true, buddyName: buddyShop.name };
+}
+
+export async function logStudioRestDayAction() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+  if (!profile?.shop_id) return { error: 'No shop found' };
+
+  const { data: shop } = await admin
+    .from('shops')
+    .select('id, xp, rest_days_used_this_week, last_rest_day_date, streak_current, streak_best')
+    .eq('id', profile.shop_id)
+    .single();
+
+  if (!shop) return { error: 'Shop not found' };
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (shop.last_rest_day_date === todayStr) {
+    return { error: "You've already claimed a Studio Rest Day for today!" };
+  }
+
+  const used = shop.rest_days_used_this_week || 0;
+  if (used >= 2) {
+    return { error: 'You have used your 2 Studio Rest Days for this week.' };
+  }
+
+  const newUsed = used + 1;
+  const newXp = (shop.xp || 0) + 10;
+  const newStreak = (shop.streak_current || 0) + 1;
+  const newBest = Math.max(newStreak, shop.streak_best || 0);
+
+  await admin.from('shops').update({
+    xp: newXp,
+    rest_days_used_this_week: newUsed,
+    last_rest_day_date: todayStr,
+    streak_current: newStreak,
+    streak_best: newBest,
+    streak_last_counted_at: new Date().toISOString(),
+  }).eq('id', shop.id);
+
+  // Log in xp_ledger
+  await admin.from('xp_ledger').insert({
+    shop_id: shop.id,
+    amount: 10,
+    action_type: 'rest_day',
+    description: 'Studio Rest Day claimed',
+  });
+
+  return {
+    success: true,
+    xpAwarded: 10,
+    newStreak,
+    restDaysRemaining: 2 - newUsed,
+  };
 }

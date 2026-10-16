@@ -12,6 +12,7 @@ import FlameIcon from "@/components/ui/FlameIcon/FlameIcon";
 import { getTierForXp } from '@/lib/gamification';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
+import ChallengeModal from '@/components/ui/ChallengeModal/ChallengeModal';
 
 interface TopBarProps {
   title?: string;
@@ -39,6 +40,7 @@ export default function TopBar({
   const { isOnline } = useNetwork();
   const { currentShop } = useData();
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+  const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -92,10 +94,28 @@ export default function TopBar({
               </button>
 
               <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px' }}>
-                <div className={styles.tierBadge} title={`${xp} XP - ${currentTier.name}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--sf-bg-surface)', padding: '4px 8px', borderRadius: '100px', border: `1px solid ${currentTier.color}`, fontSize: '13px', fontWeight: 'bold' }}>
+                <button
+                  type="button"
+                  className={styles.tierBadge}
+                  title={`${xp} XP - ${currentTier.name} (View Master Tailor Challenge)`}
+                  onClick={() => setIsChallengeModalOpen(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'var(--sf-bg-surface)',
+                    padding: '4px 9px',
+                    borderRadius: '100px',
+                    border: `1px solid ${currentTier.color}`,
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                  }}
+                >
                   <Symbol name={currentTier.icon} size={16} style={{ color: currentTier.color, fontVariationSettings: "'FILL' 1" }} />
                   <span style={{ color: currentTier.color }}>{currentTier.name}</span>
-                </div>
+                  <span style={{ fontSize: '11px', background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', padding: '1px 5px', borderRadius: '100px' }}>🏆</span>
+                </button>
                 {streakIndicator}
               </div>
 
@@ -144,6 +164,11 @@ export default function TopBar({
         isOpen={isStreakModalOpen} 
         onClose={() => setIsStreakModalOpen(false)} 
         streakCount={currentStreak} 
+      />
+
+      <ChallengeModal
+        isOpen={isChallengeModalOpen}
+        onClose={() => setIsChallengeModalOpen(false)}
       />
     </>
   );
