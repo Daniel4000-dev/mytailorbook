@@ -15,6 +15,8 @@ import { ROUTES } from '@/lib/routes';
 import DonutChart from './_components/DonutChart';
 import TrendChart from './_components/TrendChart';
 import DebtMeter from './_components/DebtMeter';
+import MilestonesCard from '@/app/(app)/dashboard/_components/MilestonesCard';
+import GeneralExpenses from '@/app/(app)/dashboard/_components/GeneralExpenses';
 import styles from './page.module.css';
 
 type RangeKey = 'month' | '30d' | 'all';

@@ -17,7 +17,7 @@ interface StreakModalProps {
 }
 
 export default function StreakModal({ isOpen, onClose, streakCount }: StreakModalProps) {
-  const { currentShop, mutate } = useData();
+  const { currentShop, refreshShop } = useData();
   const [restDayLoading, setRestDayLoading] = useState(false);
   const [restDayMsg, setRestDayMsg] = useState<{ text: string; error?: boolean } | null>(null);
 
@@ -55,7 +55,7 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
         setRestDayMsg({
           text: `Rest Day logged! +10 XP awarded. (${res.restDaysRemaining} rest days remaining this week)`,
         });
-        mutate();
+        refreshShop();
       }
     } catch (e) {
       setRestDayMsg({ text: 'Could not claim rest day.', error: true });
