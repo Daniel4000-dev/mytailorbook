@@ -44,20 +44,31 @@ export default function Symbol({ name, fill = false, size = 24, className = '', 
     );
   }
 
-  // Graceful fallback to self-hosted Material Symbols font
+  // Resilient vector fallback if an unmapped icon name is ever provided
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`[Symbol] Icon "${name}" is not registered in iconRegistry.tsx`);
+  }
+
+  const color = (style?.color as string) || 'currentColor';
   return (
     <span
-      className={`material-symbols-outlined ${styles.symbol} ${className}`}
+      className={`${styles.symbol} ${className}`}
       style={{
-        fontSize: size,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         width: size,
         height: size,
-        fontVariationSettings: fill ? "'FILL' 1" : undefined,
+        verticalAlign: 'middle',
+        flexShrink: 0,
         ...style,
       }}
       aria-hidden="true"
     >
-      {name}
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+        <circle cx="12" cy="12" r="8" strokeDasharray="3 3" opacity="0.6" />
+        <circle cx="12" cy="12" r="2" fill={color} />
+      </svg>
     </span>
   );
 }

@@ -205,25 +205,25 @@ export default function StudioSettingsPage() {
           <div className={styles.inputGroup} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px' }}>
             <div>
               <label className={styles.label}>Streak Freezes: {currentShop?.streakFreezes || 0}</label>
-              <p className={styles.hintText}>Use gems to buy freezes. You have <strong style={{ color: 'var(--sf-accent-gold)' }}>{currentShop?.gems || 0} Gems</strong>.</p>
+              <p className={styles.hintText}>Emergency streak protection. You also get <strong>2 weekly Studio Rest Days</strong> to recharge without breaking your streak.</p>
             </div>
             <Button 
               variant="secondary" 
               onClick={async () => {
-                const gems = currentShop?.gems || 0;
-                if (gems >= 50) {
+                const xp = currentShop?.xp || 0;
+                if (xp >= 100) {
                   try {
-                    await updateShop({ gems: gems - 50, streakFreezes: (currentShop?.streakFreezes || 0) + 1 });
-                    showToast('Purchased 1 Streak Freeze!');
-                  } catch(e) {
-                    showToast('Failed to purchase', 'error');
+                    await updateShop({ xp: xp - 100, streakFreezes: (currentShop?.streakFreezes || 0) + 1 });
+                    showToast('Acquired 1 emergency Streak Freeze!');
+                  } catch (e) {
+                    showToast('Failed to update streak freezes', 'error');
                   }
                 } else {
-                  showToast('Not enough gems! Complete Daily Quests to earn more.', 'error');
+                  showToast('You need at least 100 XP to acquire an emergency freeze.', 'error');
                 }
               }}
             >
-              Buy for 50 💎
+              Get Freeze (100 XP)
             </Button>
           </div>
         </div>
