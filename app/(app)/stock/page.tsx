@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { ROUTES } from '@/lib/routes';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -18,9 +20,16 @@ import { FinishedGood } from '@/lib/types';
 import styles from './page.module.css';
 
 export default function StockPage() {
+  const router = useRouter();
   const { currentShop, isLoaded: dataLoaded } = useData();
   const { user, loading: authLoading } = useAuth();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (dataLoaded && (currentShop?.businessMode || 'bespoke') === 'bespoke') {
+      router.replace(ROUTES.dashboard);
+    }
+  }, [dataLoaded, currentShop, router]);
 
   const [stock, setStock] = useState<FinishedGood[]>([]);
   const [loading, setLoading] = useState(true);

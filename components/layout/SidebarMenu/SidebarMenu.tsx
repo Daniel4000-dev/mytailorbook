@@ -31,10 +31,11 @@ export default function SidebarMenu() {
   const { currentShop, shops, activeBranchId, setActiveBranchId } = useData();
   const initial = user?.name?.charAt(0) || user?.email?.charAt(0) || 'U';
 
+  const mode = currentShop?.businessMode || 'bespoke';
   const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.ownerOnly && !isOwner) return false;
-    if (item.bespokeOnly && currentShop?.businessMode === 'rtw') return false;
-    if (item.rtwOnly && currentShop?.businessMode === 'bespoke') return false;
+    if (item.bespokeOnly && mode === 'rtw') return false;
+    if (item.rtwOnly && mode === 'bespoke') return false;
     return true;
   });
 

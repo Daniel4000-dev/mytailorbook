@@ -51,7 +51,7 @@ export default function OwnerDashboard({
     <>
       <DiscoverCarousel onNavigate={onNavigate} />
 
-      <MarketDayWidget />
+      {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
       <TodaysAgendaWidget />
 
       <div className={styles.sectionHeader}>
@@ -145,6 +145,11 @@ export default function OwnerDashboard({
       </div>
 
       <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>Shop Today</span>
+      </div>
+      <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
+
+      <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Team Snapshot</span>
       </div>
 
@@ -192,13 +197,6 @@ export default function OwnerDashboard({
         ))}
       </div>
       )}
-
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Shop Today</span>
-      </div>
-      <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
-              
-      
     </>
   );
 }

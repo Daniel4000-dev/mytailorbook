@@ -899,6 +899,7 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.weeklyCapacity !== undefined) row.weekly_capacity = updates.weeklyCapacity;
   if (updates.dailyCapacity !== undefined) row.daily_capacity = updates.dailyCapacity;
   if (updates.monthlyRevenueTarget !== undefined) row.monthly_revenue_target = updates.monthlyRevenueTarget;
+  if (updates.businessMode !== undefined) row.business_mode = updates.businessMode;
   let { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error && error.message.includes('monthly_revenue_target')) {
     delete row.monthly_revenue_target;

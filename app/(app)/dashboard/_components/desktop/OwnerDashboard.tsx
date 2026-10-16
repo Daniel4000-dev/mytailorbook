@@ -58,7 +58,7 @@ export default function OwnerDashboard({
 
   return (
     <div className={styles.content}>
-      <MarketDayWidget />
+      {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
       <TodaysAgendaWidget />
 
       {/* Hero: one dominant focal point instead of four equal-weight cards.

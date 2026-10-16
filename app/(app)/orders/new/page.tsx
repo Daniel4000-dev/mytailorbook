@@ -7,6 +7,7 @@ import { ROUTES } from '@/lib/routes';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import NewOrderWizard from './_components/NewOrderWizard';
+import UnifiedNewOrderForm from './_components/UnifiedNewOrderForm';
 import NewBatchWizard from './_components/NewBatchWizard';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './page.module.css';
@@ -58,7 +59,7 @@ export default function NewOrderPage() {
   const mode = currentShop?.businessMode || 'bespoke';
 
   if (mode === 'bespoke') {
-    return <Suspense fallback={null}><NewOrderWizard /></Suspense>;
+    return <Suspense fallback={null}><UnifiedNewOrderForm /></Suspense>;
   }
 
   if (mode === 'rtw') {
@@ -76,7 +77,7 @@ export default function NewOrderPage() {
 
   return (
     <Suspense fallback={null}>
-      <NewOrderWizard />
+      <UnifiedNewOrderForm />
     </Suspense>
   );
 }

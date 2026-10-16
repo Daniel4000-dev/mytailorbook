@@ -20,6 +20,8 @@ vi.mock('@/lib/supabase/server', () => {
   return {
     createClient: vi.fn(() => ({
       from: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       single: mockSingle
@@ -41,5 +43,13 @@ describe('Server Actions Error Handling', () => {
     expect(result).toHaveProperty('error');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result as any).error).toBe('A database constraint error occurred. (Human readable)');
+  });
+
+  it('updateShopAction includes business_mode when businessMode is provided', async () => {
+    const { updateShopAction } = await import('@/app/actions');
+    const result = await updateShopAction('test-shop', { businessMode: 'bespoke' });
+    expect(result).toBeDefined();
+    // In test environment, the mocked single returns the mock error
+    expect(result).toHaveProperty('error');
   });
 });

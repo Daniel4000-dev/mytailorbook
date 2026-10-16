@@ -843,6 +843,13 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  photo_camera: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" fill={fill ? color : 'none'} />
+      <circle cx="12" cy="13" r="4" fill={fill ? color : 'none'} />
+    </svg>
+  ),
+
   add_photo_alternate: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="14" height="14" rx="2" fill={fill ? color : 'none'} />
