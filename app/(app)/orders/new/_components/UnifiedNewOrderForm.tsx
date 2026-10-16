@@ -9,14 +9,14 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
-import { formatCurrency, formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone } from '@/lib/formatters';
+import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, type StyleMeasurePoint } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import type { Customer, Order, OrderStatus, Priority } from '@/lib/types';
+import type { Customer, Order, Priority } from '@/lib/types';
 import styles from './UnifiedNewOrderForm.module.css';
 
 const DEFAULT_POINTS: StyleMeasurePoint[] = [
@@ -32,6 +32,20 @@ const DEFAULT_POINTS: StyleMeasurePoint[] = [
   { key: 'ankle', label: 'Ankle / Bottom', hint: 'Around the bottom hem', gx: 0, gy: 0 },
 ];
 
+export interface GarmentDraft {
+  id: string;
+  styleName: string;
+  price: string;
+  measures: Record<string, string>;
+  measurementNotes: string;
+  isFitLoaded: boolean;
+  showTweakMeasurements: boolean;
+  fabricImage: string | null;
+  styleReferenceImage: string | null;
+  uploadingFabric: boolean;
+  uploadingStyleRef: boolean;
+}
+
 export default function UnifiedNewOrderForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,7 +55,6 @@ export default function UnifiedNewOrderForm() {
     orders,
     staffMembers,
     currentShop,
-    isLoaded,
     addOrderBatch,
     addCustomer,
     updateCustomerStyleProfile,
@@ -70,12 +83,25 @@ export default function UnifiedNewOrderForm() {
     }
   }, [searchParams, customers, selectedCustomer]);
 
+  // Smart local phone number search normalization
   const filteredCustomers = useMemo(() => {
     if (!customerSearch.trim()) return customers.slice(0, 5);
-    const q = customerSearch.toLowerCase().trim();
-    return customers.filter(
-      (c) => c.fullName.toLowerCase().includes(q) || c.whatsappNumber.includes(q)
-    ).slice(0, 6);
+    const qRaw = customerSearch.trim();
+    const qLower = qRaw.toLowerCase();
+    const qDigits = qRaw.replace(/\D/g, '');
+    const qNormalized = qDigits ? normalizePhone(qDigits) : '';
+
+    return customers
+      .filter((c) => {
+        if (c.fullName.toLowerCase().includes(qLower)) return true;
+        if (c.whatsappNumber.includes(qRaw)) return true;
+        if (qDigits && c.whatsappNumber.includes(qDigits)) return true;
+        if (qNormalized && c.whatsappNumber.includes(qNormalized)) return true;
+        const localNum = c.whatsappNumber.startsWith('234') ? c.whatsappNumber.slice(3) : c.whatsappNumber;
+        if (qDigits && localNum.includes(qDigits)) return true;
+        return false;
+      })
+      .slice(0, 6);
   }, [customers, customerSearch]);
 
   const customerPastOrders = useMemo(() => {
@@ -83,7 +109,20 @@ export default function UnifiedNewOrderForm() {
     return orders.filter((o) => o.customerId === selectedCustomer.id);
   }, [orders, selectedCustomer]);
 
-  // ── 2. Garment & Style State ──
+  // Gender filter state for garment styles
+  const [styleGenderFilter, setStyleGenderFilter] = useState<'all' | 'male' | 'female'>('all');
+
+  useEffect(() => {
+    if (selectedCustomer?.gender === 'female') {
+      setStyleGenderFilter('female');
+    } else if (selectedCustomer?.gender === 'male') {
+      setStyleGenderFilter('male');
+    } else {
+      setStyleGenderFilter('all');
+    }
+  }, [selectedCustomer]);
+
+  // Catalog of styles
   const allStyles = useMemo(() => {
     const standard = GARMENT_STYLES.map((s) => ({
       name: s.name,
@@ -100,19 +139,16 @@ export default function UnifiedNewOrderForm() {
     return [...standard, ...custom];
   }, [currentShop?.customStyles]);
 
-  const [selectedStyle, setSelectedStyle] = useState<string>('Senator');
+  const displayedStyles = useMemo(() => {
+    if (styleGenderFilter === 'all') return allStyles;
+    return allStyles.filter((s) => !s.gender || s.gender === styleGenderFilter);
+  }, [allStyles, styleGenderFilter]);
 
-  // ── 3. Measurements State ──
-  const [measures, setMeasures] = useState<Record<string, string>>({});
-  const [measurementNotes, setMeasurementNotes] = useState('');
-  const [isFitLoaded, setIsFitLoaded] = useState(false);
-  const [showTweakMeasurements, setShowTweakMeasurements] = useState(false);
-
-  // Active spec for current style
-  const currentSpecPoints = useMemo<StyleMeasurePoint[]>(() => {
-    const spec = STYLE_MEASUREMENTS[selectedStyle];
+  // Helper to get measurement points spec for a style
+  const getSpecPointsForStyle = (styleName: string): StyleMeasurePoint[] => {
+    const spec = STYLE_MEASUREMENTS[styleName];
     if (spec && spec.points.length > 0) return spec.points;
-    const customMatch = currentShop?.customStyles?.find((cs) => cs.name === selectedStyle);
+    const customMatch = currentShop?.customStyles?.find((cs) => cs.name === styleName);
     if (customMatch && customMatch.measurementFields && customMatch.measurementFields.length > 0) {
       return customMatch.measurementFields.map((f) => ({
         key: f.id,
@@ -123,25 +159,20 @@ export default function UnifiedNewOrderForm() {
       }));
     }
     return DEFAULT_POINTS;
-  }, [selectedStyle, currentShop?.customStyles]);
+  };
 
-  // Auto-load repeat client measurements when client or style changes
-  useEffect(() => {
-    if (!selectedCustomer) {
-      setMeasures({});
-      setIsFitLoaded(false);
-      setMeasurementNotes('');
-      return;
-    }
+  // Helper to auto-load customer measurements for a style
+  const loadFitForStyle = (
+    cust: Customer | null,
+    styleName: string
+  ): { measures: Record<string, string>; isFitLoaded: boolean; notes: string } => {
+    if (!cust) return { measures: {}, isFitLoaded: false, notes: '' };
 
-    // 1. Check style-specific profile
-    const styleProfile = selectedCustomer.styleMeasurements?.[selectedStyle]?.measurements;
-    // 2. Check previous order of the same style
+    const styleProfile = cust.styleMeasurements?.[styleName]?.measurements;
     const pastSameOrder = orders
-      .filter((o) => o.customerId === selectedCustomer.id && o.styleName === selectedStyle && o.measurements)
+      .filter((o) => o.customerId === cust.id && o.styleName === styleName && o.measurements)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-    // 3. Fallback to customer general body measurements
-    const bodyMeasurements = selectedCustomer.measurements;
+    const bodyMeasurements = cust.measurements;
 
     const source = styleProfile || pastSameOrder?.measurements || bodyMeasurements;
 
@@ -153,35 +184,99 @@ export default function UnifiedNewOrderForm() {
           if (!isNaN(num) && num > 0) stringified[k] = String(num);
         }
       }
-      setMeasures(stringified);
-      setIsFitLoaded(true);
-      setShowTweakMeasurements(false);
-    } else {
-      setMeasures({});
-      setIsFitLoaded(false);
-      setShowTweakMeasurements(true);
+      return { measures: stringified, isFitLoaded: true, notes: cust.measurementNotes || '' };
     }
-
-    if (selectedCustomer.measurementNotes) {
-      setMeasurementNotes(selectedCustomer.measurementNotes);
-    }
-  }, [selectedCustomer, selectedStyle, orders]);
-
-  const handleMeasureChange = (key: string, val: string) => {
-    setMeasures((prev) => ({ ...prev, [key]: val }));
+    return { measures: {}, isFitLoaded: false, notes: cust.measurementNotes || '' };
   };
 
-  // ── 4. Photos State (Fabric + Style Reference) ──
-  const [fabricImage, setFabricImage] = useState<string | null>(null);
-  const [styleReferenceImage, setStyleReferenceImage] = useState<string | null>(null);
-  const [uploadingFabric, setUploadingFabric] = useState(false);
-  const [uploadingStyleRef, setUploadingStyleRef] = useState(false);
+  // ── 2. Multi-Garment State ──
+  const [garments, setGarments] = useState<GarmentDraft[]>([
+    {
+      id: 'g-1',
+      styleName: 'Senator',
+      price: '',
+      measures: {},
+      measurementNotes: '',
+      isFitLoaded: false,
+      showTweakMeasurements: false,
+      fabricImage: null,
+      styleReferenceImage: null,
+      uploadingFabric: false,
+      uploadingStyleRef: false,
+    },
+  ]);
 
-  const handlePhotoUpload = async (file: File, type: 'fabric' | 'styleRef') => {
+  // Update measurements for all garments when client changes
+  useEffect(() => {
+    setGarments((prev) =>
+      prev.map((g) => {
+        const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, g.styleName);
+        return {
+          ...g,
+          measures,
+          isFitLoaded,
+          measurementNotes: notes,
+          showTweakMeasurements: !isFitLoaded,
+        };
+      })
+    );
+  }, [selectedCustomer]);
+
+  const updateGarment = (id: string, patch: Partial<GarmentDraft>) => {
+    setGarments((prev) => prev.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+  };
+
+  const handleStyleChange = (garmentId: string, newStyle: string) => {
+    const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, newStyle);
+    updateGarment(garmentId, {
+      styleName: newStyle,
+      measures,
+      isFitLoaded,
+      measurementNotes: notes,
+      showTweakMeasurements: !isFitLoaded,
+    });
+  };
+
+  const handleMeasureChange = (garmentId: string, pointKey: string, val: string) => {
+    setGarments((prev) =>
+      prev.map((g) => (g.id === garmentId ? { ...g, measures: { ...g.measures, [pointKey]: val } } : g))
+    );
+  };
+
+  const handleAddGarment = () => {
+    const nextNum = garments.length + 1;
+    const defaultNextStyle = selectedCustomer?.gender === 'female' ? 'Ankara Gown' : 'Kaftan';
+    const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, defaultNextStyle);
+
+    setGarments((prev) => [
+      ...prev,
+      {
+        id: `g-${Date.now()}`,
+        styleName: defaultNextStyle,
+        price: '',
+        measures,
+        measurementNotes: notes,
+        isFitLoaded,
+        showTweakMeasurements: !isFitLoaded,
+        fabricImage: null,
+        styleReferenceImage: null,
+        uploadingFabric: false,
+        uploadingStyleRef: false,
+      },
+    ]);
+    showToast(`Added Outfit #${nextNum}`, 'info');
+  };
+
+  const handleRemoveGarment = (id: string) => {
+    if (garments.length <= 1) return;
+    setGarments((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  // ── 3. Photos Upload ──
+  const handlePhotoUpload = async (garmentId: string, file: File, type: 'fabric' | 'styleRef') => {
     if (!currentShop?.id) return;
     const isFabric = type === 'fabric';
-    if (isFabric) setUploadingFabric(true);
-    else setUploadingStyleRef(true);
+    updateGarment(garmentId, isFabric ? { uploadingFabric: true } : { uploadingStyleRef: true });
 
     try {
       const compressed = await compressImage(file, { maxDimension: 1200 });
@@ -196,31 +291,48 @@ export default function UnifiedNewOrderForm() {
       if (uploadError) throw new Error(uploadError.message);
       const url = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
 
-      if (isFabric) setFabricImage(url);
-      else setStyleReferenceImage(url);
+      updateGarment(garmentId, isFabric ? { fabricImage: url } : { styleReferenceImage: url });
       showToast(`${isFabric ? 'Fabric' : 'Style'} photo uploaded`, 'success');
     } catch (err) {
       showToast('Could not upload photo. Please try again.', 'error');
     } finally {
-      if (isFabric) setUploadingFabric(false);
-      else setUploadingStyleRef(false);
+      updateGarment(garmentId, isFabric ? { uploadingFabric: false } : { uploadingStyleRef: false });
     }
   };
 
-  // ── 5. Financials & Delivery Schedule ──
-  const [totalBill, setTotalBill] = useState('');
+  // ── 4. Financials & Delivery Schedule ──
+  const [manualTotalBill, setManualTotalBill] = useState('');
   const [depositPaid, setDepositPaid] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<Priority>('normal');
   const [assignedStaff, setAssignedStaff] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
 
-  // Live balance calculation
-  const numericTotal = parseInt(totalBill.replace(/,/g, '')) || 0;
+  // Auto-sum individual garment prices if provided
+  const sumOfGarmentPrices = useMemo(() => {
+    return garments.reduce((sum, g) => sum + (parseInt(g.price.replace(/,/g, '')) || 0), 0);
+  }, [garments]);
+
+  const numericTotal = useMemo(() => {
+    if (manualTotalBill) return parseInt(manualTotalBill.replace(/,/g, '')) || 0;
+    return sumOfGarmentPrices;
+  }, [manualTotalBill, sumOfGarmentPrices]);
+
   const numericDeposit = parseInt(depositPaid.replace(/,/g, '')) || 0;
   const numericBalance = Math.max(0, numericTotal - numericDeposit);
 
-  // Quick Due Date Presets
+  // Deposit shortcut pills
+  const handleQuickDeposit = (type: '50' | 'full' | 'zero') => {
+    if (type === '50') {
+      setDepositPaid(String(Math.round(numericTotal / 2)));
+    } else if (type === 'full') {
+      setDepositPaid(String(numericTotal));
+    } else {
+      setDepositPaid('0');
+    }
+  };
+
+  // Workload Awareness on Due Date
   const setQuickDate = (days: number) => {
     const target = new Date();
     target.setDate(target.getDate() + days);
@@ -230,9 +342,27 @@ export default function UnifiedNewOrderForm() {
     setDueDate(`${yyyy}-${mm}-${dd}`);
   };
 
-  // ── 6. Order Submission & WhatsApp Receipt ──
+  const ordersDueOnDate = useMemo(() => {
+    if (!dueDate) return 0;
+    const targetDate = dueDate.split('T')[0];
+    return orders.filter((o) => {
+      if (!o.dueDate) return false;
+      if (o.status === 'Delivered') return false;
+      return o.dueDate.split('T')[0] === targetDate;
+    }).length;
+  }, [orders, dueDate]);
+
+  // ── 5. Creation & WhatsApp Receipt ──
   const [submitting, setSubmitting] = useState(false);
-  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [completedBatch, setCompletedBatch] = useState<{
+    batchId: string;
+    garments: { styleName: string; price: number }[];
+    totalBill: number;
+    depositPaid: number;
+    balanceDue: number;
+    dueDate: string;
+    firstOrderId: string;
+  } | null>(null);
   const [receiptSheetOpen, setReceiptSheetOpen] = useState(false);
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
@@ -270,8 +400,8 @@ export default function UnifiedNewOrderForm() {
       showToast('Please select or add a client first', 'error');
       return;
     }
-    if (!totalBill || numericTotal <= 0) {
-      showToast('Please enter the total price for this garment', 'error');
+    if (numericTotal <= 0) {
+      showToast('Please enter the price for this order', 'error');
       return;
     }
     if (!dueDate) {
@@ -282,68 +412,95 @@ export default function UnifiedNewOrderForm() {
     setSubmitting(true);
     try {
       const batchId = crypto.randomUUID();
-      const parsedNumericMeasures: Record<string, number> = {};
-      for (const [k, v] of Object.entries(measures)) {
-        const parsed = parseFloat(v);
-        if (!isNaN(parsed) && parsed > 0) parsedNumericMeasures[k] = parsed;
+      const formattedDueDate = dueDate.includes('T') ? dueDate : `${dueDate}T12:00:00.000Z`;
+
+      // Distribute total and deposit across garments
+      const garmentCount = garments.length;
+      const unitDeposit = Math.round(numericDeposit / garmentCount);
+
+      const garmentsPayload: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[] = garments.map(
+        (g, idx) => {
+          const parsedNumericMeasures: Record<string, number> = {};
+          for (const [k, v] of Object.entries(g.measures)) {
+            const parsed = parseFloat(v);
+            if (!isNaN(parsed) && parsed > 0) parsedNumericMeasures[k] = parsed;
+          }
+
+          const unitPrice = g.price ? parseInt(g.price.replace(/,/g, '')) || 0 : Math.round(numericTotal / garmentCount);
+          // For the last unit, allocate exact remaining deposit to avoid rounding errors
+          const allocatedDeposit = idx === garmentCount - 1 ? Math.max(0, numericDeposit - unitDeposit * (garmentCount - 1)) : unitDeposit;
+
+          const inspoList: string[] = [];
+          if (g.styleReferenceImage) inspoList.push(g.styleReferenceImage);
+
+          return {
+            customerId: selectedCustomer.id,
+            customerName: selectedCustomer.fullName,
+            orderDetails: orderNotes.trim() || `${g.styleName} (${idx + 1} of ${garmentCount}) for ${selectedCustomer.fullName}`,
+            totalBill: unitPrice,
+            depositPaid: allocatedDeposit,
+            status: 'Documented',
+            assignedTo: assignedStaff || undefined,
+            assignedToName: staffMembers.find((s) => s.uid === assignedStaff)?.name,
+            dueDate: formattedDueDate,
+            priority,
+            measurements: parsedNumericMeasures,
+            images: g.fabricImage
+              ? [{ url: g.fabricImage, stage: 'Documented' as const, uploadedAt: new Date().toISOString() }]
+              : [],
+            inspirationImages: inspoList,
+            styleName: g.styleName,
+            materialSuppliedBy: 'customer',
+            materialCost: 0,
+            otherCosts: 0,
+            statusHistory: [
+              {
+                from: null,
+                to: 'Documented',
+                changedBy: user?.uid || 'unknown',
+                changedByName: user?.name || 'Tailor',
+                timestamp: new Date().toISOString(),
+              },
+            ],
+          };
+        }
+      );
+
+      const createdOrders = await addOrderBatch(garmentsPayload);
+
+      // Update customer style measurements in profile
+      for (const g of garments) {
+        const parsedNumericMeasures: Record<string, number> = {};
+        for (const [k, v] of Object.entries(g.measures)) {
+          const parsed = parseFloat(v);
+          if (!isNaN(parsed) && parsed > 0) parsedNumericMeasures[k] = parsed;
+        }
+        if (Object.keys(parsedNumericMeasures).length > 0) {
+          await updateCustomerStyleProfile(selectedCustomer.id, g.styleName, parsedNumericMeasures).catch(() => {});
+          await updateCustomerMeasurements(selectedCustomer.id, parsedNumericMeasures).catch(() => {});
+        }
+        if (g.measurementNotes.trim() && g.measurementNotes !== selectedCustomer.measurementNotes) {
+          await updateCustomerProfile(selectedCustomer.id, { measurementNotes: g.measurementNotes.trim() }).catch(() => {});
+        }
       }
 
-      const formattedDueDate = dueDate.includes('T') ? dueDate : `${dueDate}T12:00:00.000Z`;
-      const inspoList: string[] = [];
-      if (styleReferenceImage) inspoList.push(styleReferenceImage);
+      const firstOrderId = createdOrders?.[0]?.id || batchId;
 
-      const orderPayload: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'> = {
-        customerId: selectedCustomer.id,
-        customerName: selectedCustomer.fullName,
-        orderDetails: orderNotes.trim() || `${selectedStyle} for ${selectedCustomer.fullName}`,
+      setCompletedBatch({
+        batchId,
+        garments: garments.map((g, i) => ({
+          styleName: g.styleName,
+          price: g.price ? parseInt(g.price.replace(/,/g, '')) || 0 : Math.round(numericTotal / garmentCount),
+        })),
         totalBill: numericTotal,
         depositPaid: numericDeposit,
-        status: 'Documented',
-        assignedTo: assignedStaff || undefined,
-        assignedToName: staffMembers.find((s) => s.uid === assignedStaff)?.name,
+        balanceDue: numericBalance,
         dueDate: formattedDueDate,
-        priority,
-        measurements: parsedNumericMeasures,
-        images: fabricImage
-          ? [{ url: fabricImage, stage: 'Documented' as const, uploadedAt: new Date().toISOString() }]
-          : [],
-        inspirationImages: inspoList,
-        styleName: selectedStyle,
-        materialSuppliedBy: 'customer',
-        materialCost: 0,
-        otherCosts: 0,
-        statusHistory: [
-          {
-            from: null,
-            to: 'Documented',
-            changedBy: user?.uid || 'unknown',
-            changedByName: user?.name || 'Tailor',
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      };
+        firstOrderId,
+      });
 
-      const createdOrders = await addOrderBatch([orderPayload]);
-      const created = createdOrders?.[0] || {
-        ...orderPayload,
-        id: crypto.randomUUID(),
-        shopId: currentShop?.id || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Update customer style measurements if changed
-      if (Object.keys(parsedNumericMeasures).length > 0) {
-        await updateCustomerStyleProfile(selectedCustomer.id, selectedStyle, parsedNumericMeasures).catch(() => {});
-        await updateCustomerMeasurements(selectedCustomer.id, parsedNumericMeasures).catch(() => {});
-      }
-      if (measurementNotes.trim() && measurementNotes !== selectedCustomer.measurementNotes) {
-        await updateCustomerProfile(selectedCustomer.id, { measurementNotes: measurementNotes.trim() }).catch(() => {});
-      }
-
-      setCompletedOrder(created as Order);
       setReceiptSheetOpen(true);
-      showToast('Order created successfully!', 'success');
+      showToast(garments.length > 1 ? `${garments.length} outfits queued into production!` : 'Order created successfully!', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to create order', 'error');
     } finally {
@@ -352,26 +509,29 @@ export default function UnifiedNewOrderForm() {
   };
 
   const getWhatsAppReceiptText = () => {
-    if (!completedOrder || !selectedCustomer) return '';
+    if (!completedBatch || !selectedCustomer) return '';
     const shopName = currentShop?.name || 'Our Studio';
-    const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}${ROUTES.track(completedOrder.id)}` : '';
-    const formattedDate = completedOrder.dueDate
-      ? new Date(completedOrder.dueDate).toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })
-      : 'To be confirmed';
+    const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}${ROUTES.track(completedBatch.firstOrderId)}` : '';
+    const formattedDate = new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+
+    const garmentLines =
+      completedBatch.garments.length > 1
+        ? completedBatch.garments.map((g, i) => `  ${i + 1}. ${g.styleName} (${currencySymbol}${formatNumber(g.price)})`).join('\n')
+        : `• *Garment:* ${completedBatch.garments[0]?.styleName || 'Custom Outfit'}`;
 
     return [
       `Hello ${selectedCustomer.fullName.split(' ')[0]}! ✂️`,
       `Thank you for placing your order with *${shopName}*.`,
       ``,
       `📋 *Order Summary:*`,
-      `• *Garment:* ${completedOrder.styleName || selectedStyle}`,
-      `• *Total:* ${currencySymbol}${formatNumber(completedOrder.totalBill)}`,
-      `• *Deposit Paid:* ${currencySymbol}${formatNumber(completedOrder.depositPaid)}`,
-      `• *Balance Due:* ${currencySymbol}${formatNumber(Math.max(0, completedOrder.totalBill - completedOrder.depositPaid))}`,
+      garmentLines,
+      `• *Total:* ${currencySymbol}${formatNumber(completedBatch.totalBill)}`,
+      `• *Deposit Paid:* ${currencySymbol}${formatNumber(completedBatch.depositPaid)}`,
+      `• *Balance Due:* ${currencySymbol}${formatNumber(completedBatch.balanceDue)}`,
       `• *Ready By:* ${formattedDate}`,
       ``,
       `Track your outfit's progress here:`,
@@ -387,7 +547,7 @@ export default function UnifiedNewOrderForm() {
       header={
         <TopBar
           title="New Order"
-          subtitle="Clean, progressive order intake"
+          subtitle="Progressive bespoke order intake"
           showBack
           onBack={() => router.push(ROUTES.production)}
         />
@@ -427,7 +587,7 @@ export default function UnifiedNewOrderForm() {
                     <input
                       type="text"
                       className={styles.searchInput}
-                      placeholder="Search by client name or phone…"
+                      placeholder="Search name or phone (e.g. 0803…)"
                       value={customerSearch}
                       onChange={(e) => setCustomerSearch(e.target.value)}
                     />
@@ -548,6 +708,9 @@ export default function UnifiedNewOrderForm() {
                     {formatPhone(selectedCustomer.whatsappNumber)}
                   </p>
                   <div className={styles.clientBadges}>
+                    <span className={styles.genderBadge}>
+                      {selectedCustomer.gender === 'female' ? 'Female' : 'Male'}
+                    </span>
                     {customerPastOrders.length > 0 ? (
                       <span className={styles.repeatBadge}>
                         <Symbol name="check_circle" size={14} /> Repeat Client ({customerPastOrders.length} orders)
@@ -562,241 +725,331 @@ export default function UnifiedNewOrderForm() {
           )}
         </section>
 
-        {/* ── CARD 2: GARMENT & STYLE ── */}
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardHeaderLeft}>
-              <span className={styles.badgeNumber}>2</span>
-              <div>
-                <h2 className={styles.cardTitle}>Garment & Style</h2>
-                <p className={styles.cardSubtitle}>Select garment type</p>
-              </div>
-            </div>
-            <span className={styles.activeStyleTag}>{selectedStyle}</span>
-          </div>
+        {/* ── CARD 2: GARMENTS & OUTFITS (MULTI-GARMENT SUPPORT) ── */}
+        {garments.map((garment, idx) => {
+          const specPoints = getSpecPointsForStyle(garment.styleName);
+          const isMultiple = garments.length > 1;
 
-          <div className={styles.styleGrid}>
-            {allStyles.map((style) => {
-              const isSelected = selectedStyle === style.name;
-              return (
-                <button
-                  key={style.name}
-                  type="button"
-                  className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
-                  onClick={() => setSelectedStyle(style.name)}
-                >
-                  <div className={styles.styleThumb}>
-                    {style.photoUrl ? (
-                      <Image
-                        src={style.photoUrl}
-                        alt={style.name}
-                        width={60}
-                        height={60}
-                        className={styles.styleImg}
+          return (
+            <div key={garment.id} className={styles.garmentSectionWrap}>
+              {/* Garment Header if multiple */}
+              {isMultiple && (
+                <div className={styles.multiGarmentBar}>
+                  <span className={styles.multiGarmentTitle}>
+                    Outfit #{idx + 1}: <strong>{garment.styleName}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.removeGarmentBtn}
+                    onClick={() => handleRemoveGarment(garment.id)}
+                    title="Remove this outfit"
+                  >
+                    <Symbol name="delete" size={16} />
+                    <span>Remove Outfit</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Style Selection */}
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardHeaderLeft}>
+                    <span className={styles.badgeNumber}>{isMultiple ? `${idx + 1}A` : '2'}</span>
+                    <div>
+                      <h2 className={styles.cardTitle}>
+                        {isMultiple ? `Outfit #${idx + 1} Style` : 'Garment & Style'}
+                      </h2>
+                      <p className={styles.cardSubtitle}>Choose garment type</p>
+                    </div>
+                  </div>
+                  <span className={styles.activeStyleTag}>{garment.styleName}</span>
+                </div>
+
+                {/* Gender filter tabs */}
+                <div className={styles.genderFilterRow}>
+                  <span className={styles.genderFilterLabel}>Filter:</span>
+                  <div className={styles.genderPills}>
+                    <button
+                      type="button"
+                      className={`${styles.genderPill} ${styleGenderFilter === 'male' ? styles.genderPillActive : ''}`}
+                      onClick={() => setStyleGenderFilter('male')}
+                    >
+                      Men&apos;s
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.genderPill} ${styleGenderFilter === 'female' ? styles.genderPillActive : ''}`}
+                      onClick={() => setStyleGenderFilter('female')}
+                    >
+                      Women&apos;s
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.genderPill} ${styleGenderFilter === 'all' ? styles.genderPillActive : ''}`}
+                      onClick={() => setStyleGenderFilter('all')}
+                    >
+                      All
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.styleGrid}>
+                  {displayedStyles.map((style) => {
+                    const isSelected = garment.styleName === style.name;
+                    return (
+                      <button
+                        key={style.name}
+                        type="button"
+                        className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
+                        onClick={() => handleStyleChange(garment.id, style.name)}
+                      >
+                        <div className={styles.styleThumb}>
+                          {style.photoUrl ? (
+                            <Image
+                              src={style.photoUrl}
+                              alt={style.name}
+                              width={60}
+                              height={60}
+                              className={styles.styleImg}
+                            />
+                          ) : (
+                            <Symbol name="checkroom" size={24} />
+                          )}
+                        </div>
+                        <span className={styles.styleName}>{style.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Measurements */}
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardHeaderLeft}>
+                    <span className={styles.badgeNumber}>{isMultiple ? `${idx + 1}B` : '3'}</span>
+                    <div>
+                      <h2 className={styles.cardTitle}>
+                        {isMultiple ? `Outfit #${idx + 1} Measurements` : 'Measurements'}
+                      </h2>
+                      <p className={styles.cardSubtitle}>
+                        {garment.styleName} fit specifications (inches)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {garment.isFitLoaded && !garment.showTweakMeasurements ? (
+                  <div className={styles.fitLoadedBox}>
+                    <div className={styles.fitBanner}>
+                      <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
+                      <div>
+                        <strong>Saved fit loaded from previous order</strong>
+                        <p>Measurements automatically loaded for {selectedCustomer?.fullName}.</p>
+                      </div>
+                    </div>
+
+                    <div className={styles.measurePillGrid}>
+                      {specPoints.map((pt) => {
+                        const val = garment.measures[pt.key];
+                        if (!val) return null;
+                        return (
+                          <div key={pt.key} className={styles.measurePill}>
+                            <span className={styles.measurePillLabel}>{pt.label}</span>
+                            <span className={styles.measurePillValue}>{val}″</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.tweakBtn}
+                      onClick={() => updateGarment(garment.id, { showTweakMeasurements: true })}
+                    >
+                      <Symbol name="tune" size={16} />
+                      <span>Adjust / Tweak Values</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    {garment.isFitLoaded && (
+                      <div className={styles.editingNotice}>
+                        <span>Editing measurements for this outfit:</span>
+                        <button
+                          type="button"
+                          onClick={() => updateGarment(garment.id, { showTweakMeasurements: false })}
+                          className={styles.collapseTweakBtn}
+                        >
+                          Done Tweaking
+                        </button>
+                      </div>
+                    )}
+
+                    <div className={styles.measureGrid}>
+                      {specPoints.map((pt) => (
+                        <div key={pt.key} className={styles.measureInputWrap}>
+                          <label className={styles.measureLabel}>{pt.label}</label>
+                          <div className={styles.measureField}>
+                            <input
+                              type="number"
+                              step="0.25"
+                              placeholder="0.0"
+                              className={styles.measureInput}
+                              value={garment.measures[pt.key] || ''}
+                              onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
+                            />
+                            <span className={styles.inchSymbol}>″</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={styles.notesWrap}>
+                      <label className={styles.label}>Fit & Posture Notes (Optional)</label>
+                      <textarea
+                        className={styles.textarea}
+                        rows={2}
+                        placeholder="e.g. Client likes snug chest, dropped left shoulder, high armhole"
+                        value={garment.measurementNotes}
+                        onChange={(e) => updateGarment(garment.id, { measurementNotes: e.target.value })}
                       />
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Photos & Material */}
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardHeaderLeft}>
+                    <span className={styles.badgeNumber}>{isMultiple ? `${idx + 1}C` : '4'}</span>
+                    <div>
+                      <h2 className={styles.cardTitle}>
+                        {isMultiple ? `Outfit #${idx + 1} Photos` : 'Photos & Material'}
+                      </h2>
+                      <p className={styles.cardSubtitle}>Snap fabric to prevent workshop mix-ups</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.photoGrid}>
+                  {/* Fabric Photo */}
+                  <div className={styles.photoBox}>
+                    <span className={styles.photoBoxTitle}>
+                      <Symbol name="texture" size={16} /> Fabric Material
+                    </span>
+                    <p className={styles.photoBoxDesc}>Photograph client&apos;s physical cloth</p>
+
+                    {garment.fabricImage ? (
+                      <div className={styles.photoPreviewWrap}>
+                        <Image
+                          src={garment.fabricImage}
+                          alt="Fabric"
+                          width={200}
+                          height={150}
+                          className={styles.photoPreviewImg}
+                        />
+                        <button
+                          type="button"
+                          className={styles.removePhotoBtn}
+                          onClick={() => updateGarment(garment.id, { fabricImage: null })}
+                        >
+                          <Symbol name="close" size={16} />
+                        </button>
+                      </div>
                     ) : (
-                      <Symbol name="checkroom" size={24} />
+                      <label className={styles.photoUploadTrigger}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          disabled={garment.uploadingFabric}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(garment.id, file, 'fabric');
+                          }}
+                        />
+                        <Symbol name="add_a_photo" size={28} />
+                        <span>{garment.uploadingFabric ? 'Uploading…' : 'Snap / Upload Fabric'}</span>
+                      </label>
                     )}
                   </div>
-                  <span className={styles.styleName}>{style.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
 
-        {/* ── CARD 3: MEASUREMENTS ── */}
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardHeaderLeft}>
-              <span className={styles.badgeNumber}>3</span>
-              <div>
-                <h2 className={styles.cardTitle}>Measurements</h2>
-                <p className={styles.cardSubtitle}>
-                  {selectedStyle} fit specifications (inches)
-                </p>
-              </div>
-            </div>
-          </div>
+                  {/* Style Reference Photo */}
+                  <div className={styles.photoBox}>
+                    <span className={styles.photoBoxTitle}>
+                      <Symbol name="photo_library" size={16} /> Style Reference
+                    </span>
+                    <p className={styles.photoBoxDesc}>Design or catalog inspiration</p>
 
-          {isFitLoaded && !showTweakMeasurements ? (
-            <div className={styles.fitLoadedBox}>
-              <div className={styles.fitBanner}>
-                <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
-                <div>
-                  <strong>Saved fit loaded from previous order</strong>
-                  <p>Measurements automatically applied for {selectedCustomer?.fullName}.</p>
+                    {garment.styleReferenceImage ? (
+                      <div className={styles.photoPreviewWrap}>
+                        <Image
+                          src={garment.styleReferenceImage}
+                          alt="Style Reference"
+                          width={200}
+                          height={150}
+                          className={styles.photoPreviewImg}
+                        />
+                        <button
+                          type="button"
+                          className={styles.removePhotoBtn}
+                          onClick={() => updateGarment(garment.id, { styleReferenceImage: null })}
+                        >
+                          <Symbol name="close" size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className={styles.photoUploadTrigger}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          disabled={garment.uploadingStyleRef}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(garment.id, file, 'styleRef');
+                          }}
+                        />
+                        <Symbol name="add_photo_alternate" size={28} />
+                        <span>{garment.uploadingStyleRef ? 'Uploading…' : 'Snap / Upload Style'}</span>
+                      </label>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div className={styles.measurePillGrid}>
-                {currentSpecPoints.map((pt) => {
-                  const val = measures[pt.key];
-                  if (!val) return null;
-                  return (
-                    <div key={pt.key} className={styles.measurePill}>
-                      <span className={styles.measurePillLabel}>{pt.label}</span>
-                      <span className={styles.measurePillValue}>{val}″</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                className={styles.tweakBtn}
-                onClick={() => setShowTweakMeasurements(true)}
-              >
-                <Symbol name="tune" size={16} />
-                <span>Adjust / Tweak Values</span>
-              </button>
-            </div>
-          ) : (
-            <div>
-              {isFitLoaded && (
-                <div className={styles.editingNotice}>
-                  <span>Editing measurements for this order:</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowTweakMeasurements(false)}
-                    className={styles.collapseTweakBtn}
-                  >
-                    Done Tweaking
-                  </button>
-                </div>
-              )}
-
-              <div className={styles.measureGrid}>
-                {currentSpecPoints.map((pt) => (
-                  <div key={pt.key} className={styles.measureInputWrap}>
-                    <label className={styles.measureLabel}>{pt.label}</label>
-                    <div className={styles.measureField}>
+                {/* Individual Garment Price if Multiple */}
+                {isMultiple && (
+                  <div className={styles.singleGarmentPriceWrap}>
+                    <label className={styles.label}>Price for this {garment.styleName} ({currencySymbol})</label>
+                    <div className={styles.inputPrefixWrap}>
+                      <span className={styles.currencyPrefix}>{currencySymbol}</span>
                       <input
-                        type="number"
-                        step="0.25"
-                        placeholder="0.0"
-                        className={styles.measureInput}
-                        value={measures[pt.key] || ''}
-                        onChange={(e) => handleMeasureChange(pt.key, e.target.value)}
+                        type="text"
+                        inputMode="numeric"
+                        className={styles.input}
+                        placeholder="e.g. 35,000"
+                        value={garment.price}
+                        onChange={(e) => updateGarment(garment.id, { price: e.target.value.replace(/[^0-9]/g, '') })}
                       />
-                      <span className={styles.inchSymbol}>″</span>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className={styles.notesWrap}>
-                <label className={styles.label}>Fit & Posture Notes (Optional)</label>
-                <textarea
-                  className={styles.textarea}
-                  rows={2}
-                  placeholder="e.g. Client likes snug chest, dropped left shoulder, high armhole"
-                  value={measurementNotes}
-                  onChange={(e) => setMeasurementNotes(e.target.value)}
-                />
-              </div>
+                )}
+              </section>
             </div>
-          )}
-        </section>
+          );
+        })}
 
-        {/* ── CARD 4: FABRIC & STYLE PHOTOS ── */}
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardHeaderLeft}>
-              <span className={styles.badgeNumber}>4</span>
-              <div>
-                <h2 className={styles.cardTitle}>Photos & Material</h2>
-                <p className={styles.cardSubtitle}>Fabric snap & design reference</p>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.photoGrid}>
-            {/* Fabric Photo */}
-            <div className={styles.photoBox}>
-              <span className={styles.photoBoxTitle}>
-                <Symbol name="texture" size={16} /> Fabric Material
-              </span>
-              <p className={styles.photoBoxDesc}>Snap client's fabric to prevent mix-ups</p>
-
-              {fabricImage ? (
-                <div className={styles.photoPreviewWrap}>
-                  <Image
-                    src={fabricImage}
-                    alt="Fabric"
-                    width={200}
-                    height={150}
-                    className={styles.photoPreviewImg}
-                  />
-                  <button
-                    type="button"
-                    className={styles.removePhotoBtn}
-                    onClick={() => setFabricImage(null)}
-                  >
-                    <Symbol name="close" size={16} />
-                  </button>
-                </div>
-              ) : (
-                <label className={styles.photoUploadTrigger}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    disabled={uploadingFabric}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePhotoUpload(file, 'fabric');
-                    }}
-                  />
-                  <Symbol name="photo_camera" size={28} />
-                  <span>{uploadingFabric ? 'Uploading…' : 'Snap / Upload Fabric'}</span>
-                </label>
-              )}
-            </div>
-
-            {/* Style Reference Photo */}
-            <div className={styles.photoBox}>
-              <span className={styles.photoBoxTitle}>
-                <Symbol name="photo_library" size={16} /> Style Reference
-              </span>
-              <p className={styles.photoBoxDesc}>Design or catalog inspiration</p>
-
-              {styleReferenceImage ? (
-                <div className={styles.photoPreviewWrap}>
-                  <Image
-                    src={styleReferenceImage}
-                    alt="Style Reference"
-                    width={200}
-                    height={150}
-                    className={styles.photoPreviewImg}
-                  />
-                  <button
-                    type="button"
-                    className={styles.removePhotoBtn}
-                    onClick={() => setStyleReferenceImage(null)}
-                  >
-                    <Symbol name="close" size={16} />
-                  </button>
-                </div>
-              ) : (
-                <label className={styles.photoUploadTrigger}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    disabled={uploadingStyleRef}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handlePhotoUpload(file, 'styleRef');
-                    }}
-                  />
-                  <Symbol name="add_photo_alternate" size={28} />
-                  <span>{uploadingStyleRef ? 'Uploading…' : 'Snap / Upload Style'}</span>
-                </label>
-              )}
-            </div>
-          </div>
-        </section>
+        {/* ── ADD ANOTHER OUTFIT BUTTON ── */}
+        <button
+          type="button"
+          className={styles.addGarmentBanner}
+          onClick={handleAddGarment}
+        >
+          <Symbol name="add" size={20} />
+          <span>+ Add Another Outfit for {selectedCustomer?.fullName || 'this Order'}</span>
+        </button>
 
         {/* ── CARD 5: BILLING & DELIVERY SCHEDULE ── */}
         <section className={styles.card}>
@@ -812,23 +1065,30 @@ export default function UnifiedNewOrderForm() {
 
           <div className={styles.pricingRow}>
             <div className={styles.formRow}>
-              <label className={styles.label}>Total Price ({currencySymbol})</label>
+              <label className={styles.label}>
+                Total Order Bill ({currencySymbol})
+                {garments.length > 1 && sumOfGarmentPrices > 0 && (
+                  <span className={styles.autoSumTag}>Sum: {currencySymbol}{formatNumber(sumOfGarmentPrices)}</span>
+                )}
+              </label>
               <div className={styles.inputPrefixWrap}>
                 <span className={styles.currencyPrefix}>{currencySymbol}</span>
                 <input
                   type="text"
                   inputMode="numeric"
                   className={styles.input}
-                  placeholder="0"
-                  value={totalBill}
-                  onChange={(e) => setTotalBill(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder={sumOfGarmentPrices > 0 ? String(sumOfGarmentPrices) : '0'}
+                  value={manualTotalBill}
+                  onChange={(e) => setManualTotalBill(e.target.value.replace(/[^0-9]/g, ''))}
                   required
                 />
               </div>
             </div>
 
             <div className={styles.formRow}>
-              <label className={styles.label}>Deposit Paid ({currencySymbol})</label>
+              <div className={styles.depositLabelRow}>
+                <label className={styles.label}>Deposit Paid ({currencySymbol})</label>
+              </div>
               <div className={styles.inputPrefixWrap}>
                 <span className={styles.currencyPrefix}>{currencySymbol}</span>
                 <input
@@ -840,18 +1100,45 @@ export default function UnifiedNewOrderForm() {
                   onChange={(e) => setDepositPaid(e.target.value.replace(/[^0-9]/g, ''))}
                 />
               </div>
+
+              {/* 1-Tap Deposit Shortcuts */}
+              {numericTotal > 0 && (
+                <div className={styles.depositShortcuts}>
+                  <button
+                    type="button"
+                    className={styles.shortcutBtn}
+                    onClick={() => handleQuickDeposit('50')}
+                  >
+                    50% ({currencySymbol}{formatNumber(Math.round(numericTotal / 2))})
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.shortcutBtn}
+                    onClick={() => handleQuickDeposit('full')}
+                  >
+                    Paid in Full ({currencySymbol}{formatNumber(numericTotal)})
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.shortcutBtn}
+                    onClick={() => handleQuickDeposit('zero')}
+                  >
+                    Zero Deposit
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Real-time Balance Calculation */}
           <div className={styles.balanceBar}>
-            <span className={styles.balanceLabel}>Remaining Balance:</span>
+            <span className={styles.balanceLabel}>Remaining Balance Due:</span>
             <span className={styles.balanceValue}>
               {currencySymbol}{formatNumber(numericBalance)}
             </span>
           </div>
 
-          {/* Delivery Date */}
+          {/* Delivery Date & Workload Awareness */}
           <div className={styles.deliverySection}>
             <label className={styles.label}>Ready Date / Delivery</label>
             <div className={styles.quickDates}>
@@ -885,6 +1172,39 @@ export default function UnifiedNewOrderForm() {
               onChange={(e) => setDueDate(e.target.value)}
               required
             />
+
+            {/* Workload / Capacity helper indicator */}
+            {dueDate && (
+              <div
+                className={
+                  ordersDueOnDate === 0
+                    ? styles.workloadGood
+                    : ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
+                    ? styles.workloadHeavy
+                    : styles.workloadNormal
+                }
+              >
+                <Symbol
+                  name={
+                    ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
+                      ? 'warning'
+                      : ordersDueOnDate === 0
+                      ? 'check_circle'
+                      : 'schedule'
+                  }
+                  size={16}
+                />
+                <span>
+                  {ordersDueOnDate === 0
+                    ? 'No other orders due on this day (Great date!)'
+                    : `${ordersDueOnDate} active ${ordersDueOnDate === 1 ? 'order' : 'orders'} already due on this day${
+                        ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
+                          ? ` — studio capacity (${currentShop?.dailyCapacity || 5}) reached!`
+                          : ''
+                      }`}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Priority & Staff Assignment */}
@@ -937,7 +1257,11 @@ export default function UnifiedNewOrderForm() {
             disabled={submitting}
             onClick={handleCreateOrder}
           >
-            {submitting ? 'Creating Order…' : 'Create Order'}
+            {submitting
+              ? 'Creating Order…'
+              : garments.length > 1
+              ? `Create Order (${garments.length} Outfits)`
+              : 'Create Order'}
           </button>
         </div>
       </div>
@@ -951,7 +1275,7 @@ export default function UnifiedNewOrderForm() {
         }}
         title="Order Created"
       >
-        {completedOrder && selectedCustomer && (
+        {completedBatch && selectedCustomer && (
           <div className={styles.receiptModal}>
             <div className={styles.successIconWrap}>
               <Symbol name="check_circle" size={48} className={styles.successIcon} />
@@ -959,7 +1283,9 @@ export default function UnifiedNewOrderForm() {
 
             <h3 className={styles.receiptTitle}>Order Logged Successfully!</h3>
             <p className={styles.receiptDesc}>
-              {completedOrder.styleName || selectedStyle} for {selectedCustomer.fullName} has been queued into production.
+              {completedBatch.garments.length > 1
+                ? `${completedBatch.garments.length} outfits for ${selectedCustomer.fullName} have been queued into production.`
+                : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} has been queued into production.`}
             </p>
 
             <div className={styles.receiptSummaryCard}>
@@ -967,38 +1293,50 @@ export default function UnifiedNewOrderForm() {
                 <span className={styles.receiptMuted}>Client</span>
                 <span className={styles.receiptBold}>{selectedCustomer.fullName}</span>
               </div>
-              <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Garment</span>
-                <span className={styles.receiptBold}>{completedOrder.styleName || selectedStyle}</span>
-              </div>
+
+              {completedBatch.garments.length > 1 ? (
+                <div className={styles.receiptGarmentsList}>
+                  <span className={styles.receiptMuted}>Outfits:</span>
+                  {completedBatch.garments.map((g, i) => (
+                    <div key={i} className={styles.receiptGarmentSubRow}>
+                      <span>{i + 1}. {g.styleName}</span>
+                      <span className={styles.receiptBold}>{currencySymbol}{formatNumber(g.price)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.receiptRow}>
+                  <span className={styles.receiptMuted}>Garment</span>
+                  <span className={styles.receiptBold}>{completedBatch.garments[0]?.styleName}</span>
+                </div>
+              )}
+
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Total Bill</span>
                 <span className={styles.receiptBold}>
-                  {currencySymbol}{formatNumber(completedOrder.totalBill)}
+                  {currencySymbol}{formatNumber(completedBatch.totalBill)}
                 </span>
               </div>
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Deposit Paid</span>
                 <span className={styles.receiptBold}>
-                  {currencySymbol}{formatNumber(completedOrder.depositPaid)}
+                  {currencySymbol}{formatNumber(completedBatch.depositPaid)}
                 </span>
               </div>
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Balance Due</span>
                 <span className={styles.receiptHighlight}>
-                  {currencySymbol}{formatNumber(Math.max(0, completedOrder.totalBill - completedOrder.depositPaid))}
+                  {currencySymbol}{formatNumber(completedBatch.balanceDue)}
                 </span>
               </div>
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Ready By</span>
                 <span className={styles.receiptBold}>
-                  {completedOrder.dueDate
-                    ? new Date(completedOrder.dueDate).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })
-                    : 'To be confirmed'}
+                  {new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
                 </span>
               </div>
             </div>

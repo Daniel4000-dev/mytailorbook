@@ -894,3 +894,226 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ── Gender Badges & Filters ── */
+.genderBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--sf-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: capitalize;
+}
+
+.genderFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.genderFilterLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
+.genderPills {
+  display: flex;
+  gap: 6px;
+}
+
+.genderPill {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid var(--sf-border-subtle);
+  background: var(--sf-bg-canvas);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.genderPill:hover {
+  background: var(--sf-surface-hover);
+  color: var(--sf-text-primary);
+}
+
+.genderPillActive {
+  background: var(--sf-brand-primary);
+  color: #fff;
+  border-color: var(--sf-brand-primary);
+}
+
+.genderPillActive:hover {
+  background: var(--sf-brand-primary);
+  color: #fff;
+}
+
+/* ── Multi-Garment Support ── */
+.garmentSectionWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.multiGarmentBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+}
+
+.multiGarmentTitle {
+  font-size: 13px;
+  color: var(--sf-brand-primary);
+  font-weight: 600;
+}
+
+.removeGarmentBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.removeGarmentBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.singleGarmentPriceWrap {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--sf-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.addGarmentBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: var(--sf-bg-surface);
+  border: 1.5px dashed var(--sf-brand-primary);
+  border-radius: 14px;
+  color: var(--sf-brand-primary);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.addGarmentBanner:hover {
+  background: rgba(99, 102, 241, 0.06);
+}
+
+/* ── Deposit Shortcuts & Pricing Extras ── */
+.autoSumTag {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-primary);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.depositLabelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.depositShortcuts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.shortcutBtn {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--sf-bg-canvas);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 8px;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shortcutBtn:hover {
+  border-color: var(--sf-brand-primary);
+  color: var(--sf-brand-primary);
+  background: var(--sf-surface-hover);
+}
+
+/* ── Workload & Capacity Awareness ── */
+.workloadGood,
+.workloadNormal,
+.workloadHeavy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.workloadGood {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--sf-success);
+}
+
+.workloadNormal {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--sf-brand-primary);
+}
+
+.workloadHeavy {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+/* ── Receipt Garments List ── */
+.receiptGarmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px dashed var(--sf-border-subtle);
+  border-bottom: 1px dashed var(--sf-border-subtle);
+}
+
+.receiptGarmentSubRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--sf-text-primary);
+}
+
