@@ -11,7 +11,6 @@ import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
-import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
@@ -44,7 +43,7 @@ function PageEnter({ children }: { children: ReactNode }) {
 }
 
 function AppLayoutContent({ children }: { children: ReactNode }) {
-  const { isMenuOpen, setMenuOpen, isCollapsed, isCreateMenuOpen, openCreateMenu, closeCreateMenu } = useSidebar();
+  const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
@@ -154,9 +153,9 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           equivalent button in SidebarMenu on desktop (see SidebarContext). */}
       {!isMenuOpen && showFab && (
         <FAB
-          onClick={openCreateMenu}
+          onClick={() => router.push(ROUTES.orderNew)}
           icon={<Symbol name="add" />}
-          label="Create action"
+          label="New Order"
           tourId="fab"
         />
       )}
@@ -166,61 +165,6 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           first login, and skipped entirely mid-wizard so it never covers
           the focused customer/order creation flow. */}
       {!isTransactional && <AppTour />}
-
-      {/* Create Action Menu — opened by the FAB on mobile, or by the
-          equivalent button in SidebarMenu on desktop (see SidebarContext). */}
-      <BottomSheet
-        isOpen={isCreateMenuOpen}
-        onClose={closeCreateMenu}
-        title="New Order"
-        variant="modal"
-      >
-        <div className={styles.actionMenu}>
-          <p className={styles.actionMenuHint}>Select the client profile to begin.</p>
-          <Link
-            href={ROUTES.orderNew}
-            className={styles.actionOption}
-            onClick={closeCreateMenu}
-          >
-            <span className={styles.actionOptionIcon}>
-              <Symbol name="group" fill size={24} />
-            </span>
-            <span className={styles.actionOptionText}>
-              <span className={styles.actionOptionTitle}>Existing Customer</span>
-              <span className={styles.actionOptionDesc}>Select from your client roster</span>
-            </span>
-            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </Link>
-          <Link
-            href={ROUTES.customerNew}
-            className={styles.actionOption}
-            onClick={closeCreateMenu}
-          >
-            <span className={styles.actionOptionIcon}>
-              <Symbol name="person_add" fill size={24} />
-            </span>
-            <span className={styles.actionOptionText}>
-              <span className={styles.actionOptionTitle}>Walk-in / New Customer</span>
-              <span className={styles.actionOptionDesc}>Create a new measurement profile</span>
-            </span>
-            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </Link>
-          <Link
-            href={ROUTES.quotes}
-            className={styles.actionOption}
-            onClick={closeCreateMenu}
-          >
-            <span className={styles.actionOptionIcon}>
-              <Symbol name="calculate" fill size={24} />
-            </span>
-            <span className={styles.actionOptionText}>
-              <span className={styles.actionOptionTitle}>Quick Quote</span>
-              <span className={styles.actionOptionDesc}>Estimate costs and price for a client</span>
-            </span>
-            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </Link>
-        </div>
-      </BottomSheet>
     </div>
   );
 }

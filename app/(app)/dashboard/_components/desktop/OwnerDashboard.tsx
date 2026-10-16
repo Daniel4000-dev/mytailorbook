@@ -3,7 +3,7 @@
 import Image from 'next/image';
 
 import { useData } from '@/contexts/DataContext';
-import { useSidebar } from '@/contexts/SidebarContext';
+import { ROUTES } from '@/lib/routes';
 import type { Order } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
@@ -38,7 +38,6 @@ export default function OwnerDashboard({
   onNavigate: (href: string) => void;
 }) {
   const { currentShop, customers, exceptions } = useData();
-  const { openCreateMenu } = useSidebar();
   const {
     hideCollected,
     hideProjected,
@@ -69,7 +68,7 @@ export default function OwnerDashboard({
         <div className={styles.heroTop}>
           {/* Greeting commented out intentionally */}
           <div className={styles.heroIdentity}></div>
-          <button type="button" className={styles.heroCta} onClick={openCreateMenu}>
+          <button type="button" className={styles.heroCta} onClick={() => onNavigate(ROUTES.orderNew)}>
             <Symbol name="add" size={18} />
             New Order
           </button>
