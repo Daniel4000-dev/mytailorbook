@@ -236,6 +236,15 @@ export async function POST(req: Request) {
         bestStreak = currentStreak;
       }
       streakChanged = true;
+
+      // Milestone streak bonuses
+      if (currentStreak === 7) {
+        earnedXp += 50;
+      } else if (currentStreak === 21) {
+        earnedXp += 150;
+      } else if (currentStreak === 50) {
+        earnedXp += 300;
+      }
     }
 
     // -------------------------------------------------------------

@@ -35,6 +35,14 @@ export default function SignupPage() {
   const emailWatcher = watch('email');
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) {
+        document.cookie = `mtb_ref_code=${encodeURIComponent(ref.trim().toUpperCase())}; path=/; max-age=${30 * 24 * 3600}; SameSite=Lax`;
+      }
+    }
+
     const handleFocus = () => {
       setGoogleLoading(false);
     };

@@ -62,13 +62,32 @@ export async function completeOnboarding(
     .eq('owner_id', user.id)
     .maybeSingle();
 
-  const shopPayload = {
+  const cookieStore = await cookies();
+  const refCode = cookieStore.get('mtb_ref_code')?.value;
+  let referredByShopId: string | null = null;
+  if (refCode) {
+    const { data: refShop } = await admin
+      .from('shops')
+      .select('id')
+      .eq('referral_code', refCode.trim().toUpperCase())
+      .single();
+    if (refShop) {
+      referredByShopId = refShop.id;
+    }
+  }
+
+  const shopPayload: Record<string, unknown> = {
     name: shopName,
     onboarding_goal: goal || null,
     business_mode: businessMode || 'bespoke',
     weekly_capacity: weeklyCapacity ? parseInt(weeklyCapacity, 10) : null,
-    rtw_sourcing_method: rtwSourcingMethod || null
+    rtw_sourcing_method: rtwSourcingMethod || null,
+    xp: 50, // Welcome bonus: profile completed!
   };
+
+  if (referredByShopId) {
+    shopPayload.referred_by_shop_id = referredByShopId;
+  }
 
   let shopId: string;
   let orgId: string;
@@ -88,6 +107,14 @@ export async function completeOnboarding(
     shopId = shop.id;
     orgId = shop.org_id;
   }
+
+  // Record Welcome XP in ledger
+  await admin.from('xp_ledger').insert({
+    shop_id: shopId,
+    amount: 50,
+    action_type: 'onboarding_complete',
+    description: 'Welcome bonus: Studio profile completed (+50 XP)',
+  });
 
   const { error: profileError } = await admin
     .from('profiles')
