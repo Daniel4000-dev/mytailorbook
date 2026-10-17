@@ -161,6 +161,68 @@
   white-space: nowrap;
 }
 
+.balanceHeaderDue {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  background: var(--sf-warning-bg, #FEF3C7);
+  color: var(--sf-warning-text, #92400E);
+  border: 1px solid var(--sf-warning-border, #FDE68A);
+  white-space: nowrap;
+}
+
+.balanceHeaderPaid {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  white-space: nowrap;
+}
+
+.staffPayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sf-space-md);
+}
+
+.staffPayRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+}
+
+.staffCollectBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: var(--sf-space-md);
+  padding: 10px 16px;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.staffCollectBtn:active {
+  opacity: 0.85;
+}
+
 .callBtn {
   width: 44px;
   height: 44px;

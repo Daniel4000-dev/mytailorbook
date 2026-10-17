@@ -23,6 +23,8 @@ interface KanbanColumnProps {
   onDragEnd: () => void;
   onDragOver: (status: OrderStatus) => void;
   onDrop: (status: OrderStatus) => void;
+  onViewCuttingSlip?: (order: Order) => void;
+  onWhatsApp?: (order: Order) => void;
 }
 
 /** One stage as a real Kanban column — desktop only. Cards are dragged
@@ -42,6 +44,8 @@ export default function KanbanColumn({
   onDragEnd,
   onDragOver,
   onDrop,
+  onViewCuttingSlip,
+  onWhatsApp,
 }: KanbanColumnProps) {
   return (
     <div
@@ -79,6 +83,8 @@ export default function KanbanColumn({
                 onDragStart(order.id);
               }}
               onDragEnd={onDragEnd}
+              onViewCuttingSlip={onViewCuttingSlip}
+              onWhatsApp={onWhatsApp}
             />
           ))
         )}

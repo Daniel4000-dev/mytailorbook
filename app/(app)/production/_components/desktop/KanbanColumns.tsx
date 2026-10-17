@@ -17,6 +17,8 @@ interface KanbanColumnsProps {
   onDragEnd: () => void;
   onDragOver: (status: OrderStatus) => void;
   onDrop: (status: OrderStatus) => void;
+  onViewCuttingSlip?: (order: Order) => void;
+  onWhatsApp?: (order: Order) => void;
 }
 
 /** Real Kanban columns — every stage visible side by side, drag a card
@@ -37,6 +39,8 @@ export default function KanbanColumns({
   onDragEnd,
   onDragOver,
   onDrop,
+  onViewCuttingSlip,
+  onWhatsApp,
 }: KanbanColumnsProps) {
   return (
     <div className={styles.columnsRow}>
@@ -59,6 +63,8 @@ export default function KanbanColumns({
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
             onDrop={onDrop}
+            onViewCuttingSlip={onViewCuttingSlip}
+            onWhatsApp={onWhatsApp}
           />
         );
       })}

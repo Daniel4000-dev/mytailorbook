@@ -2,10 +2,11 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { truncateText } from '@/lib/formatters';
-import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
+import { truncateText, formatNumber } from '@/lib/formatters';
+import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole, getBalanceOwed } from '@/lib/types';
 import { getNextStatus, getPreviousStatus } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import type { Order, Role, User } from '@/lib/types';
 import styles from './OrderListCard.module.css';
 
@@ -24,6 +25,8 @@ interface OrderListCardProps {
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: () => void;
+  onViewCuttingSlip?: (order: Order) => void;
+  onWhatsApp?: (order: Order) => void;
 }
 
 /** Photo-first production card: a large garment photo with a glass status
@@ -43,13 +46,23 @@ export default function OrderListCard({
   draggable = false,
   onDragStart,
   onDragEnd,
+  onViewCuttingSlip,
+  onWhatsApp,
 }: OrderListCardProps) {
   const next = getNextStatus(order.status);
   const prev = getPreviousStatus(order.status);
+  const balanceOwed = getBalanceOwed(order);
   // Latest progress photo tells the truest story; fall back to the
   // customer's inspiration photo before the placeholder.
   const photos = order.images || [];
   const photo = photos.length > 0 ? photos[photos.length - 1].url : order.inspirationImages?.[0];
+
+  const fabricMatch = order.orderDetails.match(/\[Fabric:\s*([^\]]+)\]/i);
+  const fabricNote = fabricMatch ? fabricMatch[1] : null;
+  const cleanOrderDetails = order.orderDetails.replace(/\[Fabric:\s*[^\]]+\]/i, '').trim();
+
+  const batchMatch = order.orderDetails.match(/\((\d+\s*of\s*\d+)\)/i);
+  const batchLabel = batchMatch ? `Batch • ${batchMatch[1]}` : 'Batch';
 
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
@@ -134,28 +147,91 @@ export default function OrderListCard({
           card sits under, so no separate status pill on the photo. */}
       <div className={styles.photoArea} onClick={onOpen} role="button" tabIndex={0}>
         {photo ? (
-          <Image src={photo} alt={truncateText(order.orderDetails, 30)} fill sizes="(max-width: 768px) 50vw, 300px" className={styles.photoImg} />
+          <Image src={photo} alt={truncateText(cleanOrderDetails || order.orderDetails, 30)} fill sizes="(max-width: 768px) 50vw, 300px" className={styles.photoImg} />
         ) : (
           <div className={styles.photoFallback}>
             <Symbol name="content_cut" size={34} />
             <span>No photo yet</span>
           </div>
         )}
-        {hasUnreadComment(order) && (
-          <span className={styles.unreadBadge} title="New customer comment">
-            <Symbol name="chat_bubble" size={12} fill />
-          </span>
-        )}
+
+        {/* Priority and Batch Badges */}
+        <div className={styles.badgeOverlayLeft}>
+          {order.priority === 'rush' && (
+            <span className={styles.rushBadge}>⚡ RUSH</span>
+          )}
+          {order.priority === 'urgent' && (
+            <span className={styles.urgentBadge}>URGENT</span>
+          )}
+          {order.batchId && (
+            <span className={styles.batchBadge}>
+              <Symbol name="layers" size={11} />
+              {batchLabel}
+            </span>
+          )}
+        </div>
+
+        {/* Quick action buttons */}
+        <div className={styles.cardActionGroup}>
+          {onViewCuttingSlip && (
+            <button
+              type="button"
+              className={styles.cardActionBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewCuttingSlip(order);
+              }}
+              aria-label="View cutting slip"
+              title="View Cutting Slip & Measurements"
+            >
+              <Symbol name="content_cut" size={14} />
+            </button>
+          )}
+          {onWhatsApp && (
+            <button
+              type="button"
+              className={styles.cardActionBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onWhatsApp(order);
+              }}
+              aria-label="WhatsApp customer"
+              title="WhatsApp Customer"
+            >
+              <WhatsappIcon size={14} />
+            </button>
+          )}
+          {hasUnreadComment(order) && (
+            <span className={styles.unreadBadge} title="New customer comment">
+              <Symbol name="chat_bubble" size={12} fill />
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Content */}
       <div className={styles.content} onClick={onOpen} role="button" tabIndex={0}>
         <div className={styles.titleRow}>
           <div className={styles.titleCol}>
-            <h4 className={styles.title}>{truncateText(order.orderDetails, 48)}</h4>
+            <h4 className={styles.title}>{truncateText(cleanOrderDetails || order.orderDetails, 48)}</h4>
             <DueLine order={order} />
           </div>
           <div className={styles.customerAvatar}>{customerInitials}</div>
+        </div>
+
+        <div className={styles.pillRow}>
+          {balanceOwed > 0 ? (
+            <span className={styles.balanceDuePill}>₦{formatNumber(balanceOwed)} Due</span>
+          ) : (
+            <span className={styles.paidPill}>
+              <Symbol name="check" size={11} /> Paid
+            </span>
+          )}
+          {fabricNote && (
+            <span className={styles.fabricPill} title={`Fabric: ${fabricNote}`}>
+              <Symbol name="texture" size={11} /> {truncateText(fabricNote, 18)}
+            </span>
+          )}
         </div>
 
         <div className={styles.metaRow}>
@@ -234,11 +310,12 @@ function DueLine({ order }: { order: Order }) {
 
   let label: string;
   if (isOverdue(order)) label = 'Overdue';
+  else if (order.priority === 'rush') label = dayDiff === 0 ? 'Today (⚡ Rush)' : dayDiff === 1 ? 'Tomorrow (⚡ Rush)' : `${due.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })} (⚡ Rush)`;
   else if (dayDiff === 0) label = 'Today';
   else if (dayDiff === 1) label = 'Tomorrow';
   else label = due.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
 
-  const urgent = isOverdue(order) || dayDiff <= 1 || isDueSoon(order);
+  const urgent = isOverdue(order) || dayDiff <= 1 || isDueSoon(order) || order.priority === 'rush' || order.priority === 'urgent';
   return (
     <p className={styles.dueQuiet}>
       Due: <span className={urgent ? styles.dueUrgent : undefined}>{label}</span>

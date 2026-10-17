@@ -26,6 +26,8 @@ interface StageListProps {
   onAdvance: (orderId: string) => void;
   onRevert: (orderId: string) => void;
   onReassign: (orderId: string, staffUid: string, staffName: string) => void;
+  onViewCuttingSlip?: (order: Order) => void;
+  onWhatsApp?: (order: Order) => void;
 }
 
 /** Stage filter pills, then vertical stage-by-stage sections of compact
@@ -47,6 +49,8 @@ export default function StageList({
   onAdvance,
   onRevert,
   onReassign,
+  onViewCuttingSlip,
+  onWhatsApp,
 }: StageListProps) {
   return (
     <>
@@ -94,6 +98,8 @@ export default function StageList({
                     onRevert={() => onRevert(order.id)}
                     staffMembers={staffMembers}
                     onReassign={onReassign}
+                    onViewCuttingSlip={onViewCuttingSlip}
+                    onWhatsApp={onWhatsApp}
                   />
                 ))}
               </div>

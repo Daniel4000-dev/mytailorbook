@@ -9,11 +9,14 @@ import { useToast } from '@/contexts/ToastContext';
 import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
-import type { OrderStatus, Role } from '@/lib/types';
-import { isOwnerLikeRole } from '@/lib/types';
+import type { Order, OrderStatus, Role } from '@/lib/types';
+import { isOwnerLikeRole, getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
+import { getOrderProgressMessage, getWhatsAppLink } from '@/lib/formatters';
+import { APP_CONFIG } from '@/lib/config';
 import KanbanColumns from './desktop/KanbanColumns';
 import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
 import ProductionBoardSkeleton from './ProductionBoardSkeleton';
+import CuttingSlipModal from './CuttingSlipModal';
 import styles from './ProductionBoard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
@@ -24,16 +27,19 @@ interface ProductionBoardProps {
 
 const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Delivered');
 const STAGE_PAGE_SIZE = 15;
+type OpFilter = 'all' | 'rush' | 'due' | 'unpaid';
 
 export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { user } = useAuth();
-  const { orders, staffMembers, isLoaded, updateOrderStatus, updateOrder } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder } = useData();
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [stageFilter, setStageFilter] = useState<StageFilter>(ALL_FILTER);
   const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
   const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
+  const [opFilter, setOpFilter] = useState<OpFilter>('all');
+  const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [stageVisibleCounts, setStageVisibleCounts] = useState<Partial<Record<OrderStatus, number>>>({});
   const isDesktop = useIsDesktop();
@@ -92,14 +98,42 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     if (!order) return;
     const next = getNextStatus(order.status);
     if (!next) return;
+
+    const balance = getBalanceOwed(order);
+    if (next === 'Delivered' && balance > 0) {
+      router.push(ROUTES.productionOrder(orderId));
+      showToast(`₦${balance.toLocaleString()} balance due — please complete handover settlement`, 'info');
+      return;
+    }
+
     updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
-    showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success', {
-      label: 'Undo',
-      onClick: () => {
-        updateOrderStatus(orderId, order.status, user?.uid || '', user?.name || '');
-      },
-    });
-  }, [orders, updateOrderStatus, user, showToast]);
+    const customer = customers.find(c => c.id === order.customerId);
+    if (customer?.whatsappNumber && next !== 'Delivered') {
+      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+      const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
+      const msg = getOrderProgressMessage({
+        customerName: customer.fullName,
+        shopName: currentShop?.name || 'us',
+        status: next,
+        trackingUrl,
+        customTemplate: currentShop?.stageMessageTemplates?.[next],
+        includeTrackingLink,
+      });
+      showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success', {
+        label: '💬 WhatsApp',
+        onClick: () => {
+          window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+        },
+      });
+    } else {
+      showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success', {
+        label: 'Undo',
+        onClick: () => {
+          updateOrderStatus(orderId, order.status, user?.uid || '', user?.name || '');
+        },
+      });
+    }
+  }, [orders, customers, currentShop, updateOrderStatus, user, showToast, router]);
 
   const handleRevert = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
@@ -118,15 +152,62 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     if (!orderId) return;
     const order = orders.find((o) => o.id === orderId);
     if (!order || order.status === targetStatus) return;
+
+    const balance = getBalanceOwed(order);
+    if (targetStatus === 'Delivered' && balance > 0) {
+      router.push(ROUTES.productionOrder(orderId));
+      showToast(`₦${balance.toLocaleString()} balance due — please complete handover settlement`, 'info');
+      return;
+    }
+
     const fromStatus = order.status;
     updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
-    showToast(`Moved to ${STATUS_CONFIG[targetStatus].label}`, 'success', {
-      label: 'Undo',
-      onClick: () => {
-        updateOrderStatus(orderId, fromStatus, user?.uid || '', user?.name || '');
-      },
+    const customer = customers.find(c => c.id === order.customerId);
+    if (customer?.whatsappNumber && targetStatus !== 'Delivered') {
+      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+      const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
+      const msg = getOrderProgressMessage({
+        customerName: customer.fullName,
+        shopName: currentShop?.name || 'us',
+        status: targetStatus,
+        trackingUrl,
+        customTemplate: currentShop?.stageMessageTemplates?.[targetStatus],
+        includeTrackingLink,
+      });
+      showToast(`Moved to ${STATUS_CONFIG[targetStatus].label}`, 'success', {
+        label: '💬 WhatsApp',
+        onClick: () => {
+          window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+        },
+      });
+    } else {
+      showToast(`Moved to ${STATUS_CONFIG[targetStatus].label}`, 'success', {
+        label: 'Undo',
+        onClick: () => {
+          updateOrderStatus(orderId, fromStatus, user?.uid || '', user?.name || '');
+        },
+      });
+    }
+  }, [draggedOrderId, orders, customers, currentShop, updateOrderStatus, user, showToast, router]);
+
+  const handleWhatsApp = useCallback((order: Order) => {
+    const customer = customers.find(c => c.id === order.customerId);
+    if (!customer?.whatsappNumber) {
+      showToast('No customer phone number available', 'error');
+      return;
+    }
+    const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+    const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
+    const msg = getOrderProgressMessage({
+      customerName: customer.fullName,
+      shopName: currentShop?.name || 'us',
+      status: order.status,
+      trackingUrl,
+      customTemplate: currentShop?.stageMessageTemplates?.[order.status],
+      includeTrackingLink,
     });
-  }, [draggedOrderId, orders, updateOrderStatus, user, showToast]);
+    window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+  }, [customers, currentShop, showToast]);
 
   const handleReassign = useCallback(async (orderId: string, staffUid: string, staffName: string) => {
     // '' rather than undefined for unassigning — the update mapper treats
@@ -138,7 +219,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     showToast(staffUid ? `Reassigned to ${staffName}` : 'Order unassigned', 'success');
   }, [updateOrder, showToast]);
 
-  // Filter orders based on role and toggle
+  // Filter orders based on role, search, and operational filter
   const filteredOrders = useMemo(() => {
     let result = orders;
     if (userRole === 'Staff' && user?.uid) {
@@ -150,6 +231,14 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       result = result.filter(o => o.assignedTo === user.uid);
     }
 
+    if (opFilter === 'rush') {
+      result = result.filter(o => o.priority === 'rush' || o.priority === 'urgent');
+    } else if (opFilter === 'due') {
+      result = result.filter(o => isOverdue(o) || isDueSoon(o));
+    } else if (opFilter === 'unpaid') {
+      result = result.filter(o => getBalanceOwed(o) > 0);
+    }
+
     const query = searchQuery.trim().toLowerCase();
     if (query) {
       result = result.filter(
@@ -158,13 +247,45 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     }
 
     return result;
-  }, [orders, filterMyTasks, staffFilterId, searchQuery, user, userRole]);
+  }, [orders, filterMyTasks, staffFilterId, opFilter, searchQuery, user, userRole]);
+
+  const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Delivered'), [orders]);
+  const rushCount = useMemo(() => activeOrders.filter(o => o.priority === 'rush' || o.priority === 'urgent').length, [activeOrders]);
+  const dueCount = useMemo(() => activeOrders.filter(o => isOverdue(o) || isDueSoon(o)).length, [activeOrders]);
+  const unpaidCount = useMemo(() => activeOrders.filter(o => getBalanceOwed(o) > 0).length, [activeOrders]);
 
   const staffFilterName = staffFilterId ? staffMembers.find((s) => s.uid === staffFilterId)?.name : null;
 
+  const sortStageOrders = useCallback((ordersList: Order[]) => {
+    return [...ordersList].sort((a, b) => {
+      const aOverdue = isOverdue(a);
+      const bOverdue = isOverdue(b);
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+
+      const aRush = a.priority === 'rush';
+      const bRush = b.priority === 'rush';
+      if (aRush && !bRush) return -1;
+      if (!aRush && bRush) return 1;
+
+      const aUrgent = a.priority === 'urgent';
+      const bUrgent = b.priority === 'urgent';
+      if (aUrgent && !bUrgent) return -1;
+      if (!aUrgent && bUrgent) return 1;
+
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      if (a.dueDate && !b.dueDate) return -1;
+      if (!a.dueDate && b.dueDate) return 1;
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, []);
+
   const getOrdersByStatus = useCallback(
-    (status: OrderStatus) => filteredOrders.filter((o) => o.status === status),
-    [filteredOrders]
+    (status: OrderStatus) => sortStageOrders(filteredOrders.filter((o) => o.status === status)),
+    [filteredOrders, sortStageOrders]
   );
 
   // A changed filter/search is a new view — start each stage back at its
@@ -172,7 +293,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   // now-irrelevant previous list. Adjusted during render (React's guidance
   // for resetting state in response to a prop/derived-value change) rather
   // than in an effect.
-  const filterKey = `${searchQuery}|${filterMyTasks}|${staffFilterId}|${stageFilter}`;
+  const filterKey = `${searchQuery}|${filterMyTasks}|${staffFilterId}|${stageFilter}|${opFilter}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -229,6 +350,33 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         </div>
       )}
 
+      {/* Operational Filter Row: Rush, Due Soon, Unpaid */}
+      <div className={styles.pillRow}>
+        <FilterPill
+          label="All Tasks"
+          active={opFilter === 'all'}
+          onClick={() => setOpFilter('all')}
+        />
+        <FilterPill
+          label="⚡ Rush"
+          count={rushCount}
+          active={opFilter === 'rush'}
+          onClick={() => setOpFilter(opFilter === 'rush' ? 'all' : 'rush')}
+        />
+        <FilterPill
+          label="⚠️ Due Soon"
+          count={dueCount}
+          active={opFilter === 'due'}
+          onClick={() => setOpFilter(opFilter === 'due' ? 'all' : 'due')}
+        />
+        <FilterPill
+          label="💰 Unpaid"
+          count={unpaidCount}
+          active={opFilter === 'unpaid'}
+          onClick={() => setOpFilter(opFilter === 'unpaid' ? 'all' : 'unpaid')}
+        />
+      </div>
+
       {staffFilterId && (
         <div className={styles.staffFilterChip}>
           <span>Viewing orders assigned to <strong>{staffFilterName || 'staff member'}</strong></span>
@@ -256,6 +404,8 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           }}
           onDragOver={setDragOverStatus}
           onDrop={handleDrop}
+          onViewCuttingSlip={setCuttingSlipOrder}
+          onWhatsApp={handleWhatsApp}
         />
       ) : (
         <StageList
@@ -274,8 +424,17 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           onAdvance={handleAdvance}
           onRevert={handleRevert}
           onReassign={handleReassign}
+          onViewCuttingSlip={setCuttingSlipOrder}
+          onWhatsApp={handleWhatsApp}
         />
       )}
+
+      <CuttingSlipModal
+        isOpen={!!cuttingSlipOrder}
+        onClose={() => setCuttingSlipOrder(null)}
+        order={cuttingSlipOrder}
+        customer={cuttingSlipOrder ? customers.find((c) => c.id === cuttingSlipOrder.customerId) || null : null}
+      />
     </>
   );
 }

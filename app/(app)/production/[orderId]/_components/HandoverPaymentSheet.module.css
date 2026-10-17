@@ -1,0 +1,148 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-md) var(--sf-space-lg) var(--sf-space-xl);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.iconCircle {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-warning-bg, #FEF3C7);
+  color: var(--sf-warning, #D97706);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--sf-text-lg);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+}
+
+.balanceSummary {
+  display: flex;
+  flex-direction: column;
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: var(--sf-space-md);
+  gap: var(--sf-space-xs);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+}
+
+.summaryRowTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--sf-space-xs);
+  border-top: 1px dashed var(--sf-border-light);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+}
+
+.balanceDueText {
+  color: var(--sf-terracotta, #E05A47);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-bold);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-xs);
+}
+
+.sectionLabel {
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-text-tertiary);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sf-space-sm);
+}
+
+.noteInput {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  outline: none;
+  transition: border-color var(--sf-transition-fast);
+}
+
+.noteInput:focus {
+  border-color: var(--sf-accent-emerald);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-sm);
+}
+
+.dividerWithText {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin: var(--sf-space-xs) 0;
+  color: var(--sf-text-tertiary);
+  font-size: var(--sf-text-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+}
+
+.dividerWithText::before,
+.dividerWithText::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--sf-border-light);
+}
+
+.trustNote {
+  font-size: var(--sf-text-2xs);
+  color: var(--sf-text-tertiary);
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}

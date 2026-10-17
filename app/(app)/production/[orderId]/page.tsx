@@ -27,12 +27,14 @@ import { ROUTES } from '@/lib/routes';
 import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
-import type { Order, OrderStatus, OrderPhoto, OrderComment, Priority } from '@/lib/types';
+import { addPayment } from '@/app/actions/order_payments';
+import type { Order, OrderStatus, OrderPhoto, OrderComment, Priority, PaymentMethod } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
 import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
 import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
 import WhatsAppOptionsSheet from './_components/WhatsAppOptionsSheet';
+import HandoverPaymentSheet from './_components/HandoverPaymentSheet';
 import OrderExpenses from './_components/OrderExpenses';
 import OrderPayments from './_components/OrderPayments';
 import OrderMaterials from './_components/OrderMaterials';
@@ -59,6 +61,7 @@ export default function OrderDetailPage() {
   const [uploadingInspo, setUploadingInspo] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
   const [showAmendmentPrompt, setShowAmendmentPrompt] = useState(false);
+  const [handoverSheetOpen, setHandoverSheetOpen] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
   const [whatsAppSheetOpen, setWhatsAppSheetOpen] = useState(false);
   const [confirmingStatusChange, setConfirmingStatusChange] = useState<OrderStatus | null>(null);
@@ -200,6 +203,8 @@ export default function OrderDetailPage() {
     if (next === 'Delivered') {
       if (order.isInternalBatch) {
         await performAdvance(next);
+      } else if (balanceOwed > 0) {
+        setHandoverSheetOpen(true);
       } else {
         setShowAmendmentPrompt(true);
       }
@@ -208,11 +213,48 @@ export default function OrderDetailPage() {
     await performAdvance(next);
   };
 
+  const handleRecordPaymentAndDeliver = async (amount: number, method: PaymentMethod, note?: string) => {
+    const { data, error } = await addPayment(order.id, amount, method, note);
+    if (error) {
+      showToast(error, 'error');
+      return;
+    }
+    if (data) {
+      const newDeposit = order.depositPaid + amount;
+      updateOrder(order.id, { depositPaid: newDeposit });
+      showToast(`₦${amount.toLocaleString()} payment recorded!`, 'success');
+    }
+    setHandoverSheetOpen(false);
+    setShowAmendmentPrompt(true);
+  };
+
+  const handleDeliverWithBalanceDue = async () => {
+    setHandoverSheetOpen(false);
+    setShowAmendmentPrompt(true);
+  };
+
   const performAdvance = async (stage: OrderStatus) => {
     setAdvancing(true);
     try {
       updateOrderStatus(order.id, stage, user?.uid || '', user?.name || '');
-      showToast(`Moved to ${STATUS_CONFIG[stage].label}`, 'success');
+      if (customer?.whatsappNumber && stage !== 'Delivered') {
+        const msg = getOrderProgressMessage({
+          customerName: customer.fullName,
+          shopName: currentShop?.name || 'us',
+          status: stage,
+          trackingUrl,
+          customTemplate: currentShop?.stageMessageTemplates?.[stage],
+          includeTrackingLink,
+        });
+        showToast(`Moved to ${STATUS_CONFIG[stage].label}`, 'success', {
+          label: '💬 WhatsApp',
+          onClick: () => {
+            window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+          },
+        });
+      } else {
+        showToast(`Moved to ${STATUS_CONFIG[stage].label}`, 'success');
+      }
     } finally {
       setAdvancing(false);
     }
@@ -453,6 +495,15 @@ export default function OrderDetailPage() {
               <span className={styles.stagePill} style={{ background: STATUS_CONFIG[order.status].bgColor }}>
                 {STATUS_CONFIG[order.status].label} Stage
               </span>
+              {balanceOwed > 0 ? (
+                <span className={styles.balanceHeaderDue}>
+                  ₦{formatNumber(balanceOwed)} Due
+                </span>
+              ) : (
+                <span className={styles.balanceHeaderPaid}>
+                  <Symbol name="check" size={13} /> Paid in Full
+                </span>
+              )}
               {customer && (
                 <a
                   className={styles.callBtn}
@@ -773,6 +824,46 @@ export default function OrderDetailPage() {
           />
         )}
 
+        {/* 8-Staff. Handover payment summary (staff view) */}
+        {!isOwnerView && !order.isInternalBatch && order.customerId && (
+          <section className={`${styles.card} ${styles.gaPayment}`}>
+            <div className={styles.staffPayHeader}>
+              <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Status</h3>
+              {balanceOwed > 0 ? (
+                <span className={styles.balanceHeaderDue}>₦{formatNumber(balanceOwed)} Due</span>
+              ) : (
+                <span className={styles.balanceHeaderPaid}><Symbol name="check" size={14} /> Fully Paid</span>
+              )}
+            </div>
+            <div className={styles.staffPayRows}>
+              <div className={styles.payRow}>
+                <span className={styles.payLabel}>Total Bill</span>
+                <span className={styles.payValue}>{formatCurrency(order.totalBill, currentShop?.currency)}</span>
+              </div>
+              <div className={styles.payRow}>
+                <span className={styles.payLabel}>Amount Paid</span>
+                <span className={styles.payValue}>{formatCurrency(order.depositPaid, currentShop?.currency)}</span>
+              </div>
+              <div className={styles.payRowTotal}>
+                <span>Balance at Handover</span>
+                <span className={balanceOwed > 0 ? styles.balanceDue : undefined}>
+                  {formatCurrency(balanceOwed, currentShop?.currency)}
+                </span>
+              </div>
+            </div>
+            {balanceOwed > 0 && (
+              <button
+                type="button"
+                className={styles.staffCollectBtn}
+                onClick={() => setHandoverSheetOpen(true)}
+              >
+                <Symbol name="payments" size={18} />
+                <span>Record Balance Collection</span>
+              </button>
+            )}
+          </section>
+        )}
+
         {/* 8b. Cost & margin (owner only) */}
         {isOwnerView && FEATURE_FLAGS.costMarginTracking && (
           <OrderExpenses orderId={order.id} shopId={order.shopId} totalBill={order.totalBill} currency={currentShop?.currency} />
@@ -953,6 +1044,18 @@ export default function OrderDetailPage() {
           await updateOrder(order.id, { measurements });
           showToast('Measurements updated', 'success');
         }}
+      />
+
+      <HandoverPaymentSheet
+        isOpen={handoverSheetOpen}
+        onClose={() => setHandoverSheetOpen(false)}
+        order={order}
+        customer={customer}
+        balanceOwed={balanceOwed}
+        currency={currentShop?.currency}
+        walletBalance={customer?.wallet_balance || 0}
+        onRecordPaymentAndDeliver={handleRecordPaymentAndDeliver}
+        onDeliverWithBalanceDue={handleDeliverWithBalanceDue}
       />
 
       {loggingException && (
