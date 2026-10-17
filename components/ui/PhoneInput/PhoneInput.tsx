@@ -83,6 +83,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           className={styles.input}
           value={localNumber}
           onChange={handleNumberChange}
+          maxLength={props.maxLength ?? matchedCountry.maxDigits ?? 15}
         />
 
         <BottomSheet 

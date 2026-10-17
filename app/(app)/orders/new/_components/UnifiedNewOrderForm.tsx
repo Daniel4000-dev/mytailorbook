@@ -16,6 +16,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import type { Customer, Order, Priority } from '@/lib/types';
 import styles from './UnifiedNewOrderForm.module.css';
 
@@ -76,6 +77,54 @@ export default function UnifiedNewOrderForm() {
   const [newCustomerPhone, setNewCustomerPhone] = useState('');
   const [newCustomerGender, setNewCustomerGender] = useState<'male' | 'female'>('male');
   const [savingCustomer, setSavingCustomer] = useState(false);
+  const [isContactPickerSupported, setIsContactPickerSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'contacts' in navigator) {
+      setIsContactPickerSupported(true);
+    }
+  }, []);
+
+  const handleImportContact = async () => {
+    if (typeof navigator === 'undefined' || !('contacts' in navigator)) {
+      showToast('Apple iOS restricts contact importing in browsers. Please enter details manually.', 'info');
+      return;
+    }
+    try {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+      const contacts = await (navigator as any).contacts.select(props, opts);
+      if (contacts && contacts.length > 0) {
+        const contact = contacts[0];
+        if (contact.name && contact.name.length > 0) {
+          setNewCustomerName(contact.name[0]);
+        }
+        if (contact.tel && contact.tel.length > 0) {
+          const cleanedPhone = contact.tel[0].replace(/[^\d+]/g, '');
+          setNewCustomerPhone(cleanedPhone);
+        }
+        setShowInlineNewCustomer(true);
+        showToast('Contact imported! Review details below', 'success');
+      }
+    } catch (ex) {
+      console.error('Failed to select contact:', ex);
+    }
+  };
+
+  // Polish 1: Auto-carry search query into inline walk-in form
+  const handleOpenNewCustomerForm = () => {
+    const query = customerSearch.trim();
+    if (query) {
+      const digitsOnly = query.replace(/\D/g, '');
+      const lettersOnly = query.replace(/[^a-zA-Z]/g, '');
+      if (digitsOnly.length >= 4 && digitsOnly.length >= lettersOnly.length) {
+        setNewCustomerPhone(query);
+      } else {
+        setNewCustomerName(query);
+      }
+    }
+    setShowInlineNewCustomer(true);
+  };
 
   // Pre-select if customer query param is passed
   useEffect(() => {
@@ -177,17 +226,22 @@ export default function UnifiedNewOrderForm() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
     const bodyMeasurements = cust.measurements;
 
-    const source = styleProfile || pastSameOrder?.measurements || bodyMeasurements;
+    // Merge baseline body measurements with style-specific measurements
+    const merged: Record<string, any> = {
+      ...(bodyMeasurements || {}),
+      ...(pastSameOrder?.measurements || {}),
+      ...(styleProfile || {}),
+    };
 
-    if (source && Object.keys(source).length > 0) {
+    if (Object.keys(merged).length > 0) {
       const stringified: Record<string, string> = {};
-      for (const [k, v] of Object.entries(source)) {
+      for (const [k, v] of Object.entries(merged)) {
         if (v !== undefined && v !== null) {
           const num = typeof v === 'number' ? v : parseFloat(String(v));
           if (!isNaN(num) && num > 0) stringified[k] = String(num);
         }
       }
-      return { measures: stringified, isFitLoaded: true, notes: cust.measurementNotes || '' };
+      return { measures: stringified, isFitLoaded: Object.keys(stringified).length > 0, notes: cust.measurementNotes || '' };
     }
     return { measures: {}, isFitLoaded: false, notes: cust.measurementNotes || '' };
   };
@@ -212,17 +266,20 @@ export default function UnifiedNewOrderForm() {
     },
   ]);
 
-  // Update measurements for all garments when client changes
+  // Update measurements for all garments when client changes (Polish 2: keep open if incomplete)
   useEffect(() => {
     setGarments((prev) =>
       prev.map((g) => {
         const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, g.styleName);
+        const spec = getSpecPointsForStyle(g.styleName);
+        const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
+        const isComplete = spec.length > 0 && filledCount === spec.length;
         return {
           ...g,
           measures,
           isFitLoaded,
           measurementNotes: notes,
-          showTweakMeasurements: !isFitLoaded,
+          showTweakMeasurements: !isFitLoaded || !isComplete,
         };
       })
     );
@@ -234,13 +291,16 @@ export default function UnifiedNewOrderForm() {
 
   const handleStyleChange = (garmentId: string, newStyle: string, isCustom = false) => {
     const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, newStyle);
+    const spec = getSpecPointsForStyle(newStyle);
+    const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
+    const isComplete = spec.length > 0 && filledCount === spec.length;
     updateGarment(garmentId, {
       styleName: newStyle,
       isCustomStyle: isCustom,
       measures,
       isFitLoaded,
       measurementNotes: notes,
-      showTweakMeasurements: !isFitLoaded,
+      showTweakMeasurements: !isFitLoaded || !isComplete,
     });
   };
 
@@ -254,6 +314,9 @@ export default function UnifiedNewOrderForm() {
     const nextNum = garments.length + 1;
     const defaultNextStyle = selectedCustomer?.gender === 'female' ? 'Ankara Gown' : 'Kaftan';
     const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, defaultNextStyle);
+    const spec = getSpecPointsForStyle(defaultNextStyle);
+    const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
+    const isComplete = spec.length > 0 && filledCount === spec.length;
 
     setGarments((prev) => [
       ...prev,
@@ -265,7 +328,7 @@ export default function UnifiedNewOrderForm() {
         measures,
         measurementNotes: notes,
         isFitLoaded,
-        showTweakMeasurements: !isFitLoaded,
+        showTweakMeasurements: !isFitLoaded || !isComplete,
         fabricImage: null,
         styleReferenceImage: null,
         uploadingFabric: false,
@@ -331,6 +394,13 @@ export default function UnifiedNewOrderForm() {
   const sumOfGarmentPrices = useMemo(() => {
     return garments.reduce((sum, g) => sum + (parseInt(g.price.replace(/,/g, '')) || 0), 0);
   }, [garments]);
+
+  // Polish 4: Auto-sync manualTotalBill to sumOfGarmentPrices when garment prices are entered
+  useEffect(() => {
+    if (sumOfGarmentPrices > 0) {
+      setManualTotalBill(String(sumOfGarmentPrices));
+    }
+  }, [sumOfGarmentPrices]);
 
   const numericTotal = useMemo(() => {
     if (manualTotalBill) return parseInt(manualTotalBill.replace(/,/g, '')) || 0;
@@ -404,7 +474,7 @@ export default function UnifiedNewOrderForm() {
     try {
       const created = await addCustomer({
         fullName: newCustomerName.trim(),
-        whatsappNumber: newCustomerPhone.trim(),
+        whatsappNumber: normalizePhone(newCustomerPhone.trim()),
         gender: newCustomerGender,
       });
       setSelectedCustomer(created);
@@ -636,7 +706,14 @@ export default function UnifiedNewOrderForm() {
           title="New Order"
           subtitle="Progressive bespoke order intake"
           showBack
-          onBack={() => router.push(ROUTES.production)}
+          onBack={() => {
+            const custIdParam = searchParams.get('customer');
+            if (custIdParam) {
+              router.push(ROUTES.customerDetail(custIdParam));
+            } else {
+              router.push(ROUTES.production);
+            }
+          }}
         />
       }
     >
@@ -711,17 +788,60 @@ export default function UnifiedNewOrderForm() {
                     ))}
                   </div>
 
-                  <button
-                    type="button"
-                    className={styles.newClientBanner}
-                    onClick={() => setShowInlineNewCustomer(true)}
-                  >
-                    <Symbol name="person_add" size={20} />
-                    <span>New Walk-in Client? Register in 10 seconds</span>
-                  </button>
+                  {filteredCustomers.length === 0 && customerSearch.trim() && (
+                    <div className={styles.noSearchMatch}>
+                      <p className={styles.noSearchMatchText}>
+                        No client found for &ldquo;{customerSearch.trim()}&rdquo;
+                      </p>
+                      <button
+                        type="button"
+                        className={styles.registerSearchQueryBtn}
+                        onClick={handleOpenNewCustomerForm}
+                      >
+                        <Symbol name="person_add" size={18} />
+                        <span>Register &ldquo;{customerSearch.trim()}&rdquo; as new client</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className={styles.clientActionRow}>
+                    <button
+                      type="button"
+                      className={styles.newClientBanner}
+                      onClick={handleOpenNewCustomerForm}
+                    >
+                      <Symbol name="person_add" size={20} />
+                      <span>New Walk-in Client? Register in 10s</span>
+                    </button>
+                    {isContactPickerSupported && (
+                      <button
+                        type="button"
+                        className={styles.importContactBtn}
+                        onClick={handleImportContact}
+                        title="Import contact from address book"
+                      >
+                        <Symbol name="contact_phone" size={18} />
+                        <span>Import Contact</span>
+                      </button>
+                    )}
+                  </div>
                 </>
               ) : (
                 <form onSubmit={handleCreateCustomer} className={styles.inlineForm}>
+                  <div className={styles.inlineHeaderRow}>
+                    <span className={styles.inlineTitle}>New Walk-in Client</span>
+                    {isContactPickerSupported && (
+                      <button
+                        type="button"
+                        className={styles.importContactSmallBtn}
+                        onClick={handleImportContact}
+                        title="Import from device address book"
+                      >
+                        <Symbol name="contact_phone" size={16} />
+                        <span>Import Contact</span>
+                      </button>
+                    )}
+                  </div>
                   <div className={styles.formRow}>
                     <label className={styles.label}>Full Name</label>
                     <input
@@ -735,12 +855,10 @@ export default function UnifiedNewOrderForm() {
                   </div>
                   <div className={styles.formRow}>
                     <label className={styles.label}>WhatsApp Phone</label>
-                    <input
-                      type="tel"
-                      className={styles.input}
-                      placeholder="e.g. 08012345678"
+                    <PhoneInput
                       value={newCustomerPhone}
-                      onChange={(e) => setNewCustomerPhone(e.target.value)}
+                      onChange={setNewCustomerPhone}
+                      placeholder="0801 234 5678"
                       required
                     />
                   </div>
@@ -953,85 +1071,118 @@ export default function UnifiedNewOrderForm() {
                   </div>
                 </div>
 
-                {garment.isFitLoaded && !garment.showTweakMeasurements ? (
-                  <div className={styles.fitLoadedBox}>
-                    <div className={styles.fitBanner}>
-                      <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
-                      <div>
-                        <strong>Saved fit loaded from previous order</strong>
-                        <p>Measurements automatically loaded for {selectedCustomer?.fullName}.</p>
-                      </div>
-                    </div>
+                {(() => {
+                  const filledPoints = specPoints.filter((pt) => Boolean(garment.measures[pt.key] && parseFloat(garment.measures[pt.key]) > 0));
+                  const filledCount = filledPoints.length;
+                  const totalCount = specPoints.length;
+                  const isCompleteFit = totalCount > 0 && filledCount === totalCount;
+                  const isPartialFit = garment.isFitLoaded && filledCount > 0 && !isCompleteFit;
+                  const missingPoints = specPoints.filter((pt) => !garment.measures[pt.key] || !parseFloat(garment.measures[pt.key]));
 
-                    <div className={styles.measurePillGrid}>
-                      {specPoints.map((pt) => {
-                        const val = garment.measures[pt.key];
-                        if (!val) return null;
-                        return (
-                          <div key={pt.key} className={styles.measurePill}>
-                            <span className={styles.measurePillLabel}>{pt.label}</span>
-                            <span className={styles.measurePillValue}>{val}″</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      type="button"
-                      className={styles.tweakBtn}
-                      onClick={() => updateGarment(garment.id, { showTweakMeasurements: true })}
-                    >
-                      <Symbol name="tune" size={16} />
-                      <span>Adjust / Tweak Values</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    {garment.isFitLoaded && (
-                      <div className={styles.editingNotice}>
-                        <span>Editing measurements for this outfit:</span>
-                        <button
-                          type="button"
-                          onClick={() => updateGarment(garment.id, { showTweakMeasurements: false })}
-                          className={styles.collapseTweakBtn}
-                        >
-                          Done Tweaking
-                        </button>
-                      </div>
-                    )}
-
-                    <div className={styles.measureGrid}>
-                      {specPoints.map((pt) => (
-                        <div key={pt.key} className={styles.measureInputWrap}>
-                          <label className={styles.measureLabel}>{pt.label}</label>
-                          <div className={styles.measureField}>
-                            <input
-                              type="number"
-                              inputMode="decimal"
-                              step="0.25"
-                              placeholder="0.0"
-                              className={styles.measureInput}
-                              value={garment.measures[pt.key] || ''}
-                              onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
-                            />
-                            <span className={styles.inchSymbol}>″</span>
+                  if (garment.isFitLoaded && isCompleteFit && !garment.showTweakMeasurements) {
+                    return (
+                      <div className={styles.fitLoadedBox}>
+                        <div className={styles.fitBanner}>
+                          <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
+                          <div>
+                            <strong>Saved fit loaded from previous order (All {totalCount} points ready)</strong>
+                            <p>Measurements automatically loaded for {selectedCustomer?.fullName}.</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
 
-                    <div className={styles.notesWrap}>
-                      <label className={styles.label}>Fit & Posture Notes (Optional)</label>
-                      <textarea
-                        className={styles.textarea}
-                        rows={2}
-                        placeholder="e.g. Client likes snug chest, dropped left shoulder, high armhole"
-                        value={garment.measurementNotes}
-                        onChange={(e) => updateGarment(garment.id, { measurementNotes: e.target.value })}
-                      />
+                        <div className={styles.measurePillGrid}>
+                          {specPoints.map((pt) => {
+                            const val = garment.measures[pt.key];
+                            if (!val) return null;
+                            return (
+                              <div key={pt.key} className={styles.measurePill}>
+                                <span className={styles.measurePillLabel}>{pt.label}</span>
+                                <span className={styles.measurePillValue}>{val}″</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.tweakBtn}
+                          onClick={() => updateGarment(garment.id, { showTweakMeasurements: true })}
+                        >
+                          <Symbol name="tune" size={16} />
+                          <span>Adjust / Tweak Values</span>
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div>
+                      {isPartialFit && (
+                        <div className={styles.partialFitBanner}>
+                          <Symbol name="warning" size={20} className={styles.partialWarningIcon} />
+                          <div>
+                            <strong>⚠️ {filledCount} of {totalCount} measurements loaded</strong>
+                            <p>
+                              Missing: {missingPoints.map((p) => p.label).join(', ')}. Please tape and enter remaining measurements below to prevent workshop delay.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {garment.isFitLoaded && isCompleteFit && garment.showTweakMeasurements && (
+                        <div className={styles.editingNotice}>
+                          <span>Editing measurements for this outfit:</span>
+                          <button
+                            type="button"
+                            onClick={() => updateGarment(garment.id, { showTweakMeasurements: false })}
+                            className={styles.collapseTweakBtn}
+                          >
+                            Done Tweaking
+                          </button>
+                        </div>
+                      )}
+
+                      <div className={styles.measureGrid}>
+                        {specPoints.map((pt) => {
+                          const hasVal = Boolean(garment.measures[pt.key] && parseFloat(garment.measures[pt.key]) > 0);
+                          const isMissing = isPartialFit && !hasVal;
+
+                          return (
+                            <div key={pt.key} className={styles.measureInputWrap}>
+                              <label className={`${styles.measureLabel} ${isMissing ? styles.measureLabelMissing : ''}`}>
+                                {pt.label}
+                                {isMissing && <span className={styles.neededTag}>* Needed</span>}
+                              </label>
+                              <div className={`${styles.measureField} ${isMissing ? styles.measureFieldMissing : ''}`}>
+                                <input
+                                  type="number"
+                                  inputMode="decimal"
+                                  step="0.25"
+                                  placeholder="0.0"
+                                  className={styles.measureInput}
+                                  value={garment.measures[pt.key] || ''}
+                                  onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
+                                />
+                                <span className={styles.inchSymbol}>″</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className={styles.notesWrap}>
+                        <label className={styles.label}>Fit & Posture Notes (Optional)</label>
+                        <textarea
+                          className={styles.textarea}
+                          rows={2}
+                          placeholder="e.g. Client likes snug chest, dropped left shoulder, high armhole"
+                          value={garment.measurementNotes}
+                          onChange={(e) => updateGarment(garment.id, { measurementNotes: e.target.value })}
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </section>
 
               {/* Photos & Material */}
