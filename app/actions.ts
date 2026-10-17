@@ -561,7 +561,9 @@ export async function addOrderBatchAction(
     }
   }
 
-  return getOrders(shopId);
+  const orders = await getOrders(shopId);
+  if ('error' in orders) return { error: orders.error };
+  return { orders, insertedIds: (insertedOrders || []).map((o) => o.id as string) };
 }
 
 export async function updateOrderStatusAction(

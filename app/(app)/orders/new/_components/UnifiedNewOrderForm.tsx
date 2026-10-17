@@ -466,7 +466,7 @@ export default function UnifiedNewOrderForm() {
         }
       );
 
-      const createdOrders = await addOrderBatch(garmentsPayload);
+      const createdIds = await addOrderBatch(garmentsPayload);
 
       // Update customer style measurements in profile
       for (const g of garments) {
@@ -484,7 +484,7 @@ export default function UnifiedNewOrderForm() {
         }
       }
 
-      const firstOrderId = createdOrders?.[0]?.id || batchId;
+      const firstOrderId = createdIds?.[0] || batchId;
 
       setCompletedBatch({
         batchId,
@@ -893,6 +893,7 @@ export default function UnifiedNewOrderForm() {
                           <div className={styles.measureField}>
                             <input
                               type="number"
+                              inputMode="decimal"
                               step="0.25"
                               placeholder="0.0"
                               className={styles.measureInput}

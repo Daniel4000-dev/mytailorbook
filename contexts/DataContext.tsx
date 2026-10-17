@@ -73,7 +73,7 @@ interface DataContextValue {
   refreshShop: () => void;
   isLoaded: boolean;
   addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<void>;
+  addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<string[]>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => Promise<void>;
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) => Promise<Customer>;
@@ -237,12 +237,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addOrderBatch = useCallback(
     async (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => {
-      if (!activeBranchId) return;
-      const updated = await addOrderBatchAction(activeBranchId, garments);
-      if (updated && 'error' in updated) throw new Error(updated.error);
-      mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+      if (!activeBranchId) return [];
+      const res = await addOrderBatchAction(activeBranchId, garments);
+      if (res && 'error' in res) throw new Error(res.error);
+      mutate((current) => (current ? { ...current, orders: res.orders as Order[] } : current), { revalidate: false });
 
       logStreakAction('created_order', 20, false);
+      return res.insertedIds;
     },
     [activeBranchId, mutate]
   );

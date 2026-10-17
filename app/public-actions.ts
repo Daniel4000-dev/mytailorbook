@@ -34,7 +34,12 @@ export async function getPublicOrderView(orderId: string): Promise<{
 
   const admin = createAdminClient();
 
-  const { data: row, error } = await admin.from('orders').select('*').eq('id', orderId).single();
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+  const { data: rows, error } = isUuid
+    ? await admin.from('orders').select('*').or(`id.eq.${orderId},batch_id.eq.${orderId}`).order('created_at', { ascending: true }).limit(1)
+    : await admin.from('orders').select('*').eq('id', orderId).limit(1);
+
+  const row = rows?.[0];
   if (error || !row) return null;
 
   const order: Order = {
