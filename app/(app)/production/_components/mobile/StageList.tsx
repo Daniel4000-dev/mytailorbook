@@ -26,6 +26,7 @@ interface StageListProps {
   onAdvance: (orderId: string) => void;
   onRevert: (orderId: string) => void;
   onReassign: (orderId: string, staffUid: string, staffName: string) => void;
+  onBatchClick?: (batchId: string) => void;
   onViewCuttingSlip?: (order: Order) => void;
   onWhatsApp?: (order: Order) => void;
 }
@@ -49,6 +50,7 @@ export default function StageList({
   onAdvance,
   onRevert,
   onReassign,
+  onBatchClick,
   onViewCuttingSlip,
   onWhatsApp,
 }: StageListProps) {
@@ -98,6 +100,7 @@ export default function StageList({
                     onRevert={() => onRevert(order.id)}
                     staffMembers={staffMembers}
                     onReassign={onReassign}
+                    onBatchClick={onBatchClick}
                     onViewCuttingSlip={onViewCuttingSlip}
                     onWhatsApp={onWhatsApp}
                   />

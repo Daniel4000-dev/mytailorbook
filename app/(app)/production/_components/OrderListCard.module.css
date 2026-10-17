@@ -1,4 +1,42 @@
+.cardWrapper {
+  position: relative;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+}
+
+.swipeBackdropRight {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: var(--sf-space-lg);
+  background: linear-gradient(90deg, #10B981, #059669);
+  color: #FFFFFF;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  gap: var(--sf-space-xs);
+  z-index: 0;
+}
+
+.swipeBackdropLeft {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--sf-space-lg);
+  background: linear-gradient(270deg, #64748B, #475569);
+  color: #FFFFFF;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  gap: var(--sf-space-xs);
+  z-index: 0;
+}
+
 .card {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   background: var(--sf-sand);
@@ -8,6 +46,25 @@
   overflow: hidden;
   transition: box-shadow var(--sf-transition-fast);
   animation: cardIn 0.35s ease both;
+}
+
+.claimBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #10B981;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--sf-transition-fast);
+}
+
+.claimBtn:active {
+  transform: scale(0.92);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -127,6 +184,32 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+.batchBadgeInteractive {
+  cursor: pointer;
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.batchBadgeInteractive:hover {
+  background: rgba(15, 23, 42, 0.95);
+  transform: scale(1.04);
+}
+
+.batchBadgeInteractive:active {
+  transform: scale(0.96);
+}
+
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .cardActionGroup {

@@ -82,6 +82,31 @@
   font-size: 14px;
 }
 
+.batchFilterChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  background: #EEF2FF;
+  color: #4338CA;
+  border: 1px solid #C7D2FE;
+  border-radius: var(--sf-radius-full);
+  padding: var(--sf-space-xs) var(--sf-space-md);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  margin-bottom: var(--sf-space-md);
+}
+
+.batchFilterChip button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
 /* Horizontally-scrollable pill rows, bleeding to the screen edge on
    mobile like the mockup. */
 .pillRow {

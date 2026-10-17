@@ -17,6 +17,7 @@ interface KanbanColumnsProps {
   onDragEnd: () => void;
   onDragOver: (status: OrderStatus) => void;
   onDrop: (status: OrderStatus) => void;
+  onBatchClick?: (batchId: string) => void;
   onViewCuttingSlip?: (order: Order) => void;
   onWhatsApp?: (order: Order) => void;
 }
@@ -39,6 +40,7 @@ export default function KanbanColumns({
   onDragEnd,
   onDragOver,
   onDrop,
+  onBatchClick,
   onViewCuttingSlip,
   onWhatsApp,
 }: KanbanColumnsProps) {
@@ -63,6 +65,7 @@ export default function KanbanColumns({
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
             onDrop={onDrop}
+            onBatchClick={onBatchClick}
             onViewCuttingSlip={onViewCuttingSlip}
             onWhatsApp={onWhatsApp}
           />

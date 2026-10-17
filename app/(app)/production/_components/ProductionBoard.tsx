@@ -9,10 +9,13 @@ import { useToast } from '@/contexts/ToastContext';
 import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
-import type { Order, OrderStatus, Role } from '@/lib/types';
+import type { Order, OrderStatus, Role, PaymentMethod } from '@/lib/types';
 import { isOwnerLikeRole, getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
 import { getOrderProgressMessage, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import HandoverPaymentSheet from '../[orderId]/_components/HandoverPaymentSheet';
+import { addPayment } from '@/app/actions/order_payments';
 import KanbanColumns from './desktop/KanbanColumns';
 import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
 import ProductionBoardSkeleton from './ProductionBoardSkeleton';
@@ -38,8 +41,11 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const [stageFilter, setStageFilter] = useState<StageFilter>(ALL_FILTER);
   const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
   const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
+  const [batchFilterId, setBatchFilterId] = useState<string | null>(null);
   const [opFilter, setOpFilter] = useState<OpFilter>('all');
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
+  const [handoverOrder, setHandoverOrder] = useState<Order | null>(null);
+  const [amendmentOrder, setAmendmentOrder] = useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [stageVisibleCounts, setStageVisibleCounts] = useState<Partial<Record<OrderStatus, number>>>({});
   const isDesktop = useIsDesktop();
@@ -93,22 +99,86 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     active.forEach((o) => router.prefetch(`/production/${o.id}`));
   }, [isLoaded, orders, router]);
 
+  const performDelivery = useCallback(async (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+    const fromStatus = order.status;
+    updateOrderStatus(orderId, 'Delivered', user?.uid || '', user?.name || '');
+    const customer = customers.find(c => c.id === order.customerId);
+    if (customer?.whatsappNumber) {
+      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+      const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
+      const msg = getOrderProgressMessage({
+        customerName: customer.fullName,
+        shopName: currentShop?.name || 'us',
+        status: 'Delivered',
+        trackingUrl,
+        customTemplate: currentShop?.stageMessageTemplates?.['Delivered'],
+        includeTrackingLink,
+      });
+      showToast('Moved to Delivered', 'success', {
+        label: '💬 WhatsApp',
+        onClick: () => {
+          window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+        },
+      });
+    } else {
+      showToast('Moved to Delivered', 'success', {
+        label: 'Undo',
+        onClick: () => {
+          updateOrderStatus(orderId, fromStatus, user?.uid || '', user?.name || '');
+        },
+      });
+    }
+  }, [orders, customers, currentShop, updateOrderStatus, user, showToast]);
+
+  const handleRecordPaymentAndDeliver = useCallback(async (amount: number, method: PaymentMethod, note?: string) => {
+    if (!handoverOrder) return;
+    const { data, error } = await addPayment(handoverOrder.id, amount, method, note);
+    if (error) {
+      showToast(error, 'error');
+      return;
+    }
+    if (data) {
+      const newDeposit = handoverOrder.depositPaid + amount;
+      updateOrder(handoverOrder.id, { depositPaid: newDeposit });
+      showToast(`₦${amount.toLocaleString()} payment recorded!`, 'success');
+    }
+    const current = handoverOrder;
+    setHandoverOrder(null);
+    setAmendmentOrder(current);
+  }, [handoverOrder, updateOrder, showToast]);
+
+  const handleDeliverWithBalanceDue = useCallback(async () => {
+    if (!handoverOrder) return;
+    const current = handoverOrder;
+    setHandoverOrder(null);
+    setAmendmentOrder(current);
+  }, [handoverOrder]);
+
   const handleAdvance = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
     const next = getNextStatus(order.status);
     if (!next) return;
 
-    const balance = getBalanceOwed(order);
-    if (next === 'Delivered' && balance > 0) {
-      router.push(ROUTES.productionOrder(orderId));
-      showToast(`₦${balance.toLocaleString()} balance due — please complete handover settlement`, 'info');
+    if (next === 'Delivered') {
+      if (order.isInternalBatch) {
+        performDelivery(orderId);
+      } else {
+        const balance = getBalanceOwed(order);
+        if (balance > 0) {
+          setHandoverOrder(order);
+        } else {
+          setAmendmentOrder(order);
+        }
+      }
       return;
     }
 
     updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
-    if (customer?.whatsappNumber && next !== 'Delivered') {
+    if (customer?.whatsappNumber) {
       const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
@@ -133,7 +203,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         },
       });
     }
-  }, [orders, customers, currentShop, updateOrderStatus, user, showToast, router]);
+  }, [orders, customers, currentShop, updateOrderStatus, user, showToast, performDelivery]);
 
   const handleRevert = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
@@ -153,17 +223,24 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     const order = orders.find((o) => o.id === orderId);
     if (!order || order.status === targetStatus) return;
 
-    const balance = getBalanceOwed(order);
-    if (targetStatus === 'Delivered' && balance > 0) {
-      router.push(ROUTES.productionOrder(orderId));
-      showToast(`₦${balance.toLocaleString()} balance due — please complete handover settlement`, 'info');
+    if (targetStatus === 'Delivered') {
+      if (order.isInternalBatch) {
+        performDelivery(orderId);
+      } else {
+        const balance = getBalanceOwed(order);
+        if (balance > 0) {
+          setHandoverOrder(order);
+        } else {
+          setAmendmentOrder(order);
+        }
+      }
       return;
     }
 
     const fromStatus = order.status;
     updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
-    if (customer?.whatsappNumber && targetStatus !== 'Delivered') {
+    if (customer?.whatsappNumber) {
       const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
@@ -188,7 +265,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         },
       });
     }
-  }, [draggedOrderId, orders, customers, currentShop, updateOrderStatus, user, showToast, router]);
+  }, [draggedOrderId, orders, customers, currentShop, updateOrderStatus, user, showToast, performDelivery]);
 
   const handleWhatsApp = useCallback((order: Order) => {
     const customer = customers.find(c => c.id === order.customerId);
@@ -231,6 +308,10 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       result = result.filter(o => o.assignedTo === user.uid);
     }
 
+    if (batchFilterId) {
+      result = result.filter(o => o.batchId === batchFilterId);
+    }
+
     if (opFilter === 'rush') {
       result = result.filter(o => o.priority === 'rush' || o.priority === 'urgent');
     } else if (opFilter === 'due') {
@@ -247,7 +328,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     }
 
     return result;
-  }, [orders, filterMyTasks, staffFilterId, opFilter, searchQuery, user, userRole]);
+  }, [orders, filterMyTasks, staffFilterId, batchFilterId, opFilter, searchQuery, user, userRole]);
 
   const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Delivered'), [orders]);
   const rushCount = useMemo(() => activeOrders.filter(o => o.priority === 'rush' || o.priority === 'urgent').length, [activeOrders]);
@@ -293,7 +374,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   // now-irrelevant previous list. Adjusted during render (React's guidance
   // for resetting state in response to a prop/derived-value change) rather
   // than in an effect.
-  const filterKey = `${searchQuery}|${filterMyTasks}|${staffFilterId}|${stageFilter}|${opFilter}`;
+  const filterKey = `${searchQuery}|${filterMyTasks}|${staffFilterId}|${batchFilterId}|${stageFilter}|${opFilter}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -386,6 +467,17 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         </div>
       )}
 
+      {batchFilterId && (
+        <div className={styles.batchFilterChip}>
+          <span>
+            Filtering batch orders (<strong>{filteredOrders.length} {filteredOrders.length === 1 ? 'garment' : 'garments'}</strong>)
+          </span>
+          <button type="button" onClick={() => setBatchFilterId(null)} aria-label="Clear batch filter">
+            <Symbol name="close" />
+          </button>
+        </div>
+      )}
+
       {isDesktop ? (
         <KanbanColumns
           getOrdersByStatus={getOrdersByStatus}
@@ -397,6 +489,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           dragOverStatus={dragOverStatus}
           onOpen={handleOpen}
           onReassign={handleReassign}
+          onBatchClick={(batchId) => setBatchFilterId((prev) => (prev === batchId ? null : batchId))}
           onDragStart={setDraggedOrderId}
           onDragEnd={() => {
             setDraggedOrderId(null);
@@ -424,6 +517,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           onAdvance={handleAdvance}
           onRevert={handleRevert}
           onReassign={handleReassign}
+          onBatchClick={(batchId) => setBatchFilterId((prev) => (prev === batchId ? null : batchId))}
           onViewCuttingSlip={setCuttingSlipOrder}
           onWhatsApp={handleWhatsApp}
         />
@@ -434,6 +528,43 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         onClose={() => setCuttingSlipOrder(null)}
         order={cuttingSlipOrder}
         customer={cuttingSlipOrder ? customers.find((c) => c.id === cuttingSlipOrder.customerId) || null : null}
+      />
+
+      {handoverOrder && (
+        <HandoverPaymentSheet
+          isOpen={!!handoverOrder}
+          onClose={() => setHandoverOrder(null)}
+          order={handoverOrder}
+          customer={customers.find((c) => c.id === handoverOrder.customerId) || null}
+          balanceOwed={getBalanceOwed(handoverOrder)}
+          currency={currentShop?.currency}
+          onRecordPaymentAndDeliver={handleRecordPaymentAndDeliver}
+          onDeliverWithBalanceDue={handleDeliverWithBalanceDue}
+        />
+      )}
+
+      <ConfirmDialog
+        isOpen={!!amendmentOrder}
+        onClose={() => {
+          if (!amendmentOrder) return;
+          const orderToDeliver = amendmentOrder;
+          setAmendmentOrder(null);
+          performDelivery(orderToDeliver.id);
+        }}
+        onConfirm={async () => {
+          if (!amendmentOrder) return;
+          const orderToDeliver = amendmentOrder;
+          setAmendmentOrder(null);
+          await performDelivery(orderToDeliver.id);
+          if (orderToDeliver.customerId) {
+            router.push(ROUTES.customerDetail(orderToDeliver.customerId));
+          }
+        }}
+        title="Any Fit Amendments?"
+        description="Since you're delivering this order, did you make any final adjustments to the garment? You can record them now so the customer's next outfit fits perfectly from the start."
+        confirmLabel="Record Amendments"
+        cancelLabel="No, Fits Perfectly"
+        destructive={false}
       />
     </>
   );

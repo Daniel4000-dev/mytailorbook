@@ -23,6 +23,7 @@ interface KanbanColumnProps {
   onDragEnd: () => void;
   onDragOver: (status: OrderStatus) => void;
   onDrop: (status: OrderStatus) => void;
+  onBatchClick?: (batchId: string) => void;
   onViewCuttingSlip?: (order: Order) => void;
   onWhatsApp?: (order: Order) => void;
 }
@@ -44,6 +45,7 @@ export default function KanbanColumn({
   onDragEnd,
   onDragOver,
   onDrop,
+  onBatchClick,
   onViewCuttingSlip,
   onWhatsApp,
 }: KanbanColumnProps) {
@@ -76,6 +78,7 @@ export default function KanbanColumn({
               onOpen={() => onOpen(order.id)}
               staffMembers={staffMembers}
               onReassign={onReassign}
+              onBatchClick={onBatchClick}
               hideFooterActions
               draggable
               onDragStart={(e) => {
