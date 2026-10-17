@@ -1,19 +1,21 @@
 .container {
-  padding: 16px 16px 100px;
+  padding: 16px 16px 110px;
   max-width: 680px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Card Styles ── */
 .card {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-subtle);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(67, 56, 202, 0.03);
+  transition: box-shadow 0.2s ease;
 }
 
 .cardHeader {
@@ -88,16 +90,24 @@
 .searchBox {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--sf-bg-canvas);
-  border: 1px solid var(--sf-border-subtle);
-  border-radius: 10px;
-  padding: 10px 12px;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.035);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 10px 14px;
   margin-bottom: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.searchBox:focus-within {
+  background: var(--sf-bg-surface);
+  border-color: #4338CA;
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12), 0 2px 8px rgba(67, 56, 202, 0.06);
 }
 
 .searchIcon {
   color: var(--sf-text-muted);
+  flex-shrink: 0;
 }
 
 .searchInput {
@@ -105,8 +115,9 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 14px;
+  font-size: 14.5px;
   color: var(--sf-text-primary);
+  font-weight: 500;
 }
 
 .clearSearchBtn {
@@ -150,8 +161,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.12);
-  color: var(--sf-brand-primary);
+  background: rgba(67, 56, 202, 0.08);
+  color: #4338CA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -206,10 +217,10 @@
 
 /* Selected Client Card */
 .selectedClientCard {
-  background: rgba(99, 102, 241, 0.05);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  border-radius: 12px;
-  padding: 14px;
+  background: rgba(67, 56, 202, 0.03);
+  border: 1px solid rgba(67, 56, 202, 0.16);
+  border-radius: 14px;
+  padding: 14px 16px;
 }
 
 .selectedClientHeader {
@@ -222,7 +233,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--sf-brand-primary);
+  background: #4338CA;
   color: #fff;
   display: flex;
   align-items: center;
@@ -230,6 +241,7 @@
   font-size: 18px;
   font-weight: 700;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
 }
 
 .selectedClientName {
@@ -263,8 +275,8 @@
 }
 
 .newBadge {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--sf-brand-primary);
+  background: rgba(67, 56, 202, 0.08);
+  color: #4338CA;
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
@@ -297,49 +309,66 @@
 
 .input {
   width: 100%;
-  padding: 10px 12px;
-  background: var(--sf-bg-surface);
+  padding: 11px 14px;
+  background: var(--sf-bg-canvas);
   border: 1px solid var(--sf-border-subtle);
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
   color: var(--sf-text-primary);
   outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .input:focus {
-  border-color: var(--sf-brand-primary);
+  border-color: #4338CA;
+  background: var(--sf-bg-surface);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
 }
 
 .segmented {
   display: flex;
-  background: var(--sf-bg-surface);
+  background: rgba(0, 0, 0, 0.05);
   padding: 3px;
-  border-radius: 8px;
-  border: 1px solid var(--sf-border-subtle);
-  gap: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  gap: 2px;
+  position: relative;
 }
 
 .segBtn {
   flex: 1;
-  padding: 8px;
+  padding: 7px 12px;
   border: none;
   background: transparent;
   font-size: 13px;
   font-weight: 600;
   color: var(--sf-text-secondary);
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.segBtn:active {
+  transform: scale(0.975);
 }
 
 .segActive {
-  background: var(--sf-brand-primary);
-  color: #fff;
+  background: #ffffff;
+  color: #1C1A28;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .segActiveUrgent {
-  background: #dc2626;
-  color: #fff;
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(49, 46, 129, 0.25);
 }
 
 .inlineActions {
@@ -703,19 +732,17 @@
 
 .photoUploadTrigger {
   border: 1px solid rgba(67, 56, 202, 0.16);
-  border-radius: 12px;
-  padding: 22px 14px;
+  border-radius: 14px;
+  padding: 18px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   cursor: pointer;
-  color: #4338CA;
-  font-size: 12px;
-  font-weight: 600;
   background: rgba(67, 56, 202, 0.02);
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
 }
 
 .photoUploadTrigger:hover {
@@ -724,12 +751,47 @@
   transform: translateY(-1px);
 }
 
+.photoUploadTrigger:active {
+  transform: scale(0.975);
+}
+
+.cameraIconCircle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(67, 56, 202, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4338CA;
+  margin-bottom: 2px;
+  transition: all 0.2s ease;
+}
+
+.photoUploadTrigger:hover .cameraIconCircle {
+  background: rgba(67, 56, 202, 0.15);
+  transform: scale(1.05);
+}
+
+.photoUploadMain {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1C1A28;
+}
+
+.photoUploadSub {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+}
+
 .photoPreviewWrap {
   position: relative;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  height: 120px;
+  height: 130px;
   background: #000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .photoPreviewImg {
@@ -740,18 +802,27 @@
 
 .removePhotoBtn {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 26px;
-  height: 26px;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.removePhotoBtn:hover {
+  background: rgba(220, 38, 38, 0.85);
+  transform: scale(1.08);
 }
 
 /* ── Pricing & Delivery ── */
@@ -786,11 +857,11 @@
 }
 
 .balanceBar {
-  margin: 12px 0 16px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 10px;
-  padding: 10px 14px;
+  margin: 14px 0 16px;
+  background: rgba(5, 150, 105, 0.05);
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  border-radius: 12px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -803,9 +874,11 @@
 }
 
 .balanceValue {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
-  color: var(--sf-success);
+  font-variant-numeric: tabular-nums;
+  color: #047857;
+  letter-spacing: -0.01em;
 }
 
 .deliverySection {
@@ -822,41 +895,93 @@
 
 .quickDateBtn {
   flex: 1;
-  padding: 7px 4px;
-  border: 1px solid var(--sf-border-subtle);
-  background: var(--sf-bg-canvas);
+  padding: 8px 6px;
+  border: 1px solid rgba(67, 56, 202, 0.14);
+  background: rgba(67, 56, 202, 0.03);
   color: var(--sf-text-primary);
   font-size: 12px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
 }
 
 .quickDateBtn:hover {
-  background: var(--sf-surface-hover);
-  border-color: var(--sf-brand-primary);
+  background: rgba(67, 56, 202, 0.08);
+  border-color: rgba(67, 56, 202, 0.3);
+}
+
+.quickDateBtn:active {
+  transform: scale(0.96);
 }
 
 .quickDateBtnActive {
-  background: var(--sf-brand-primary);
+  background: #4338CA;
   color: #fff;
-  border-color: var(--sf-brand-primary);
+  border-color: #4338CA;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.28);
 }
 
 .quickDateBtnActive:hover {
-  background: var(--sf-brand-primary);
+  background: #3730A3;
   color: #fff;
 }
 
 .dateInput {
-  padding: 10px 12px;
+  width: 100%;
+  padding: 11px 14px;
   background: var(--sf-bg-canvas);
   border: 1px solid var(--sf-border-subtle);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
+  font-weight: 600;
   color: var(--sf-text-primary);
   outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dateInput:focus {
+  border-color: #4338CA;
+  background: var(--sf-bg-surface);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
+}
+
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.selectInput {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 11px 36px 11px 14px;
+  background: var(--sf-bg-canvas);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sf-text-primary);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectInput:focus {
+  border-color: #4338CA;
+  background: var(--sf-bg-surface);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
+}
+
+.selectChevron {
+  position: absolute;
+  right: 12px;
+  color: var(--sf-text-muted);
+  pointer-events: none;
 }
 
 /* ── Luxury Floating Mobile Dock ── */
@@ -1113,15 +1238,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: rgba(67, 56, 202, 0.04);
+  border: 1px solid rgba(67, 56, 202, 0.16);
   border-radius: 12px;
 }
 
 .multiGarmentTitle {
   font-size: 13px;
-  color: var(--sf-brand-primary);
-  font-weight: 600;
+  color: #4338CA;
+  font-weight: 700;
 }
 
 .removeGarmentBtn {
@@ -1182,8 +1307,8 @@
   margin-left: 8px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--sf-brand-primary);
-  background: rgba(99, 102, 241, 0.1);
+  color: #4338CA;
+  background: rgba(67, 56, 202, 0.08);
   padding: 2px 6px;
   border-radius: 6px;
 }
@@ -1202,21 +1327,25 @@
 }
 
 .shortcutBtn {
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  background: var(--sf-bg-canvas);
-  border: 1px solid var(--sf-border-subtle);
-  border-radius: 8px;
-  color: var(--sf-text-secondary);
+  background: rgba(67, 56, 202, 0.04);
+  border: 1px solid rgba(67, 56, 202, 0.14);
+  border-radius: 9999px;
+  color: var(--sf-text-primary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .shortcutBtn:hover {
-  border-color: var(--sf-brand-primary);
-  color: var(--sf-brand-primary);
-  background: var(--sf-surface-hover);
+  border-color: rgba(67, 56, 202, 0.35);
+  color: #4338CA;
+  background: rgba(67, 56, 202, 0.08);
+}
+
+.shortcutBtn:active {
+  transform: scale(0.96);
 }
 
 /* ── Workload & Capacity Awareness ── */
@@ -1240,9 +1369,9 @@
 }
 
 .workloadNormal {
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  color: var(--sf-brand-primary);
+  background: rgba(67, 56, 202, 0.05);
+  border: 1px solid rgba(67, 56, 202, 0.18);
+  color: #4338CA;
 }
 
 .workloadHeavy {
@@ -1295,9 +1424,9 @@
 .cuttingSlipBtn {
   width: 100%;
   padding: 13px;
-  background: rgba(99, 102, 241, 0.08);
-  color: var(--sf-brand-primary);
-  border: 1.5px solid rgba(99, 102, 241, 0.25);
+  background: rgba(67, 56, 202, 0.05);
+  color: #4338CA;
+  border: 1.5px solid rgba(67, 56, 202, 0.2);
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
@@ -1311,8 +1440,8 @@
 }
 
 .cuttingSlipBtn:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--sf-brand-primary);
+  background: rgba(67, 56, 202, 0.1);
+  border-color: rgba(67, 56, 202, 0.35);
 }
 
 .cuttingSlipContainer {
@@ -1704,6 +1833,22 @@
   padding: 1px 5px;
   border-radius: 4px;
   text-transform: uppercase;
+}
+
+/* ── Apple HIG Spring Tap Micro-Physics ── */
+.styleCard:active,
+.shortcutBtn:active,
+.quickDateBtn:active,
+.createOrderBtn:active,
+.addGarmentBanner:active,
+.newClientBanner:active,
+.importContactBtn:active,
+.tweakBtn:active,
+.changeClientBtn:active,
+.cuttingSlipBtn:active,
+.segBtn:active {
+  transform: scale(0.975);
+  transition: transform 0.1s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 

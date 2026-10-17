@@ -1241,8 +1241,9 @@ export default function UnifiedNewOrderForm() {
                           type="button"
                           className={styles.removePhotoBtn}
                           onClick={() => updateGarment(garment.id, { fabricImage: null })}
+                          aria-label="Remove fabric photo"
                         >
-                          <Symbol name="close" size={16} />
+                          <Symbol name="close" size={14} />
                         </button>
                       </div>
                     ) : (
@@ -1257,8 +1258,13 @@ export default function UnifiedNewOrderForm() {
                             if (file) handlePhotoUpload(garment.id, file, 'fabric');
                           }}
                         />
-                        <Symbol name="add_a_photo" size={28} />
-                        <span>{garment.uploadingFabric ? 'Uploading…' : 'Snap / Upload Fabric'}</span>
+                        <div className={styles.cameraIconCircle}>
+                          <Symbol name="add_a_photo" size={22} />
+                        </div>
+                        <span className={styles.photoUploadMain}>
+                          {garment.uploadingFabric ? 'Uploading…' : 'Snap Physical Cloth'}
+                        </span>
+                        <span className={styles.photoUploadSub}>Camera or Gallery</span>
                       </label>
                     )}
                   </div>
@@ -1283,8 +1289,9 @@ export default function UnifiedNewOrderForm() {
                           type="button"
                           className={styles.removePhotoBtn}
                           onClick={() => updateGarment(garment.id, { styleReferenceImage: null })}
+                          aria-label="Remove style reference"
                         >
-                          <Symbol name="close" size={16} />
+                          <Symbol name="close" size={14} />
                         </button>
                       </div>
                     ) : (
@@ -1299,8 +1306,13 @@ export default function UnifiedNewOrderForm() {
                             if (file) handlePhotoUpload(garment.id, file, 'styleRef');
                           }}
                         />
-                        <Symbol name="add_photo_alternate" size={28} />
-                        <span>{garment.uploadingStyleRef ? 'Uploading…' : 'Snap / Upload Style'}</span>
+                        <div className={styles.cameraIconCircle}>
+                          <Symbol name="add_photo_alternate" size={22} />
+                        </div>
+                        <span className={styles.photoUploadMain}>
+                          {garment.uploadingStyleRef ? 'Uploading…' : 'Add Style Photo'}
+                        </span>
+                        <span className={styles.photoUploadSub}>Catalog or Inspiration</span>
                       </label>
                     )}
                   </div>
@@ -1553,18 +1565,21 @@ export default function UnifiedNewOrderForm() {
             {staffMembers.length > 0 && (
               <div className={styles.formRow}>
                 <label className={styles.label}>Assign to Staff</label>
-                <select
-                  className={styles.input}
-                  value={assignedStaff}
-                  onChange={(e) => setAssignedStaff(e.target.value)}
-                >
-                  <option value="">Unassigned</option>
-                  {staffMembers.map((s) => (
-                    <option key={s.uid} value={s.uid}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <div className={styles.selectWrapper}>
+                  <select
+                    className={styles.selectInput}
+                    value={assignedStaff}
+                    onChange={(e) => setAssignedStaff(e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {staffMembers.map((s) => (
+                      <option key={s.uid} value={s.uid}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Symbol name="expand_more" size={18} className={styles.selectChevron} />
+                </div>
               </div>
             )}
           </div>
