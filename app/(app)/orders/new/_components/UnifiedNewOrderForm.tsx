@@ -35,6 +35,7 @@ const DEFAULT_POINTS: StyleMeasurePoint[] = [
 export interface GarmentDraft {
   id: string;
   styleName: string;
+  isCustomStyle?: boolean;
   price: string;
   measures: Record<string, string>;
   measurementNotes: string;
@@ -44,6 +45,8 @@ export interface GarmentDraft {
   styleReferenceImage: string | null;
   uploadingFabric: boolean;
   uploadingStyleRef: boolean;
+  materialSuppliedBy: 'customer' | 'shop';
+  fabricNotes: string;
 }
 
 export default function UnifiedNewOrderForm() {
@@ -194,6 +197,7 @@ export default function UnifiedNewOrderForm() {
     {
       id: 'g-1',
       styleName: 'Senator',
+      isCustomStyle: false,
       price: '',
       measures: {},
       measurementNotes: '',
@@ -203,6 +207,8 @@ export default function UnifiedNewOrderForm() {
       styleReferenceImage: null,
       uploadingFabric: false,
       uploadingStyleRef: false,
+      materialSuppliedBy: 'customer',
+      fabricNotes: '',
     },
   ]);
 
@@ -226,10 +232,11 @@ export default function UnifiedNewOrderForm() {
     setGarments((prev) => prev.map((g) => (g.id === id ? { ...g, ...patch } : g)));
   };
 
-  const handleStyleChange = (garmentId: string, newStyle: string) => {
+  const handleStyleChange = (garmentId: string, newStyle: string, isCustom = false) => {
     const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, newStyle);
     updateGarment(garmentId, {
       styleName: newStyle,
+      isCustomStyle: isCustom,
       measures,
       isFitLoaded,
       measurementNotes: notes,
@@ -253,6 +260,7 @@ export default function UnifiedNewOrderForm() {
       {
         id: `g-${Date.now()}`,
         styleName: defaultNextStyle,
+        isCustomStyle: false,
         price: '',
         measures,
         measurementNotes: notes,
@@ -262,6 +270,8 @@ export default function UnifiedNewOrderForm() {
         styleReferenceImage: null,
         uploadingFabric: false,
         uploadingStyleRef: false,
+        materialSuppliedBy: 'customer',
+        fabricNotes: '',
       },
     ]);
     showToast(`Added Outfit #${nextNum}`, 'info');
@@ -356,14 +366,24 @@ export default function UnifiedNewOrderForm() {
   const [submitting, setSubmitting] = useState(false);
   const [completedBatch, setCompletedBatch] = useState<{
     batchId: string;
-    garments: { styleName: string; price: number }[];
+    garments: {
+      styleName: string;
+      price: number;
+      measures: Record<string, string>;
+      measurementNotes: string;
+      fabricNotes: string;
+      materialSuppliedBy: 'customer' | 'shop';
+      fabricImage: string | null;
+    }[];
     totalBill: number;
     depositPaid: number;
     balanceDue: number;
     dueDate: string;
     firstOrderId: string;
+    priority: Priority;
   } | null>(null);
   const [receiptSheetOpen, setReceiptSheetOpen] = useState(false);
+  const [cuttingSlipOpen, setCuttingSlipOpen] = useState(false);
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -433,10 +453,16 @@ export default function UnifiedNewOrderForm() {
           const inspoList: string[] = [];
           if (g.styleReferenceImage) inspoList.push(g.styleReferenceImage);
 
+          const fabricNotePrefix = g.fabricNotes.trim() ? ` [Fabric: ${g.fabricNotes.trim()}]` : '';
+          const garmentName = g.styleName.trim() || 'Custom Outfit';
+          const details = orderNotes.trim()
+            ? `${orderNotes.trim()}${fabricNotePrefix}`
+            : `${garmentName} (${idx + 1} of ${garmentCount}) for ${selectedCustomer.fullName}${fabricNotePrefix}`;
+
           return {
             customerId: selectedCustomer.id,
             customerName: selectedCustomer.fullName,
-            orderDetails: orderNotes.trim() || `${g.styleName} (${idx + 1} of ${garmentCount}) for ${selectedCustomer.fullName}`,
+            orderDetails: details,
             totalBill: unitPrice,
             depositPaid: allocatedDeposit,
             status: 'Documented',
@@ -449,8 +475,8 @@ export default function UnifiedNewOrderForm() {
               ? [{ url: g.fabricImage, stage: 'Documented' as const, uploadedAt: new Date().toISOString() }]
               : [],
             inspirationImages: inspoList,
-            styleName: g.styleName,
-            materialSuppliedBy: 'customer',
+            styleName: garmentName,
+            materialSuppliedBy: g.materialSuppliedBy,
             materialCost: 0,
             otherCosts: 0,
             statusHistory: [
@@ -476,7 +502,7 @@ export default function UnifiedNewOrderForm() {
           if (!isNaN(parsed) && parsed > 0) parsedNumericMeasures[k] = parsed;
         }
         if (Object.keys(parsedNumericMeasures).length > 0) {
-          await updateCustomerStyleProfile(selectedCustomer.id, g.styleName, parsedNumericMeasures).catch(() => {});
+          await updateCustomerStyleProfile(selectedCustomer.id, g.styleName || 'Custom Outfit', parsedNumericMeasures).catch(() => {});
           await updateCustomerMeasurements(selectedCustomer.id, parsedNumericMeasures).catch(() => {});
         }
         if (g.measurementNotes.trim() && g.measurementNotes !== selectedCustomer.measurementNotes) {
@@ -489,14 +515,20 @@ export default function UnifiedNewOrderForm() {
       setCompletedBatch({
         batchId,
         garments: garments.map((g, i) => ({
-          styleName: g.styleName,
+          styleName: g.styleName.trim() || 'Custom Outfit',
           price: g.price ? parseInt(g.price.replace(/,/g, '')) || 0 : Math.round(numericTotal / garmentCount),
+          measures: g.measures,
+          measurementNotes: g.measurementNotes,
+          fabricNotes: g.fabricNotes,
+          materialSuppliedBy: g.materialSuppliedBy,
+          fabricImage: g.fabricImage,
         })),
         totalBill: numericTotal,
         depositPaid: numericDeposit,
         balanceDue: numericBalance,
         dueDate: formattedDueDate,
         firstOrderId,
+        priority,
       });
 
       setReceiptSheetOpen(true);
@@ -539,6 +571,57 @@ export default function UnifiedNewOrderForm() {
       ``,
       `Thank you for your business!`,
     ].join('\n');
+  };
+
+  const getCuttingSlipText = () => {
+    if (!completedBatch || !selectedCustomer) return '';
+    const shopName = currentShop?.name || 'Tailor Studio';
+    const formattedDate = new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+
+    const lines = [
+      `✂️ WORKSHOP CUTTING SLIP`,
+      `Studio: ${shopName}`,
+      `Order: #${completedBatch.firstOrderId.slice(-8).toUpperCase()}`,
+      `Client: ${selectedCustomer.fullName} (${formatPhone(selectedCustomer.whatsappNumber)})`,
+      `Ready By: ${formattedDate} ${completedBatch.priority === 'urgent' ? '⚡ [URGENT / RUSH]' : ''}`,
+      `==============================`,
+    ];
+
+    completedBatch.garments.forEach((g, i) => {
+      lines.push(
+        ``,
+        `OUTFIT #${i + 1}: ${g.styleName.toUpperCase()}`,
+        `Fabric: ${g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Client Fabric'}${g.fabricNotes ? ` (${g.fabricNotes})` : ''}`,
+        `MEASUREMENTS:`
+      );
+      const points = getSpecPointsForStyle(g.styleName);
+      points.forEach((pt) => {
+        const val = g.measures[pt.key];
+        if (val) {
+          lines.push(`• ${pt.label}: ${val}″`);
+        }
+      });
+      if (g.measurementNotes) {
+        lines.push(`Fit Notes: ${g.measurementNotes}`);
+      }
+      lines.push(`------------------------------`);
+    });
+
+    return lines.join('\n');
+  };
+
+  const handleCopyCuttingSlip = async () => {
+    const text = getCuttingSlipText();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Cutting slip copied to clipboard!', 'success');
+    } catch {
+      showToast('Could not copy to clipboard', 'error');
+    }
   };
 
   return (
@@ -795,13 +878,13 @@ export default function UnifiedNewOrderForm() {
 
                 <div className={styles.styleGrid}>
                   {displayedStyles.map((style) => {
-                    const isSelected = garment.styleName === style.name;
+                    const isSelected = !garment.isCustomStyle && garment.styleName === style.name;
                     return (
                       <button
                         key={style.name}
                         type="button"
                         className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
-                        onClick={() => handleStyleChange(garment.id, style.name)}
+                        onClick={() => handleStyleChange(garment.id, style.name, false)}
                       >
                         <div className={styles.styleThumb}>
                           {style.photoUrl ? (
@@ -820,7 +903,34 @@ export default function UnifiedNewOrderForm() {
                       </button>
                     );
                   })}
+
+                  {/* + Custom Style Button */}
+                  <button
+                    type="button"
+                    className={`${styles.styleCard} ${garment.isCustomStyle ? styles.styleCardActive : ''}`}
+                    onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
+                  >
+                    <div className={styles.styleThumb}>
+                      <Symbol name="edit" size={24} />
+                    </div>
+                    <span className={styles.styleName}>+ Custom Style</span>
+                  </button>
                 </div>
+
+                {/* Inline Custom Style Name Input */}
+                {garment.isCustomStyle && (
+                  <div className={styles.customStyleBox}>
+                    <label className={styles.label}>Custom Outfit / Garment Name</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="e.g. 2-Piece Boubou, Jalabiya, Dinner Tuxedo…"
+                      value={garment.styleName}
+                      onChange={(e) => updateGarment(garment.id, { styleName: e.target.value })}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </section>
 
               {/* Measurements */}
@@ -1017,6 +1127,40 @@ export default function UnifiedNewOrderForm() {
                         <span>{garment.uploadingStyleRef ? 'Uploading…' : 'Snap / Upload Style'}</span>
                       </label>
                     )}
+                  </div>
+                </div>
+
+                {/* Fabric Sourcing & Yardage Notes */}
+                <div className={styles.fabricSourceWrap}>
+                  <div className={styles.formRow}>
+                    <label className={styles.label}>Fabric Sourcing</label>
+                    <div className={styles.segmented}>
+                      <button
+                        type="button"
+                        className={`${styles.segBtn} ${garment.materialSuppliedBy === 'customer' ? styles.segActive : ''}`}
+                        onClick={() => updateGarment(garment.id, { materialSuppliedBy: 'customer' })}
+                      >
+                        Client Supplied
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.segBtn} ${garment.materialSuppliedBy === 'shop' ? styles.segActive : ''}`}
+                        onClick={() => updateGarment(garment.id, { materialSuppliedBy: 'shop' })}
+                      >
+                        Shop Sourced
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow} style={{ marginTop: 10 }}>
+                    <label className={styles.label}>Fabric & Yardage Notes (Optional)</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="e.g. 3.5 yards brought, client supplied buttons/lining"
+                      value={garment.fabricNotes}
+                      onChange={(e) => updateGarment(garment.id, { fabricNotes: e.target.value })}
+                    />
                   </div>
                 </div>
 
@@ -1353,6 +1497,16 @@ export default function UnifiedNewOrderForm() {
               <span>Send Receipt via WhatsApp</span>
             </a>
 
+            {/* Workshop Cutting Slip Action */}
+            <button
+              type="button"
+              className={styles.cuttingSlipBtn}
+              onClick={() => setCuttingSlipOpen(true)}
+            >
+              <Symbol name="content_cut" size={18} />
+              <span>Print / View Workshop Cutting Slip</span>
+            </button>
+
             <button
               type="button"
               className={styles.finishBtn}
@@ -1363,6 +1517,113 @@ export default function UnifiedNewOrderForm() {
             >
               Go to Production Queue
             </button>
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* ── WORKSHOP CUTTING SLIP BOTTOMSHEET ── */}
+      <BottomSheet
+        isOpen={cuttingSlipOpen}
+        onClose={() => setCuttingSlipOpen(false)}
+        title="Workshop Cutting Slip"
+      >
+        {completedBatch && selectedCustomer && (
+          <div className={styles.cuttingSlipContainer}>
+            <div className={styles.slipActionsRow}>
+              <button
+                type="button"
+                className={styles.slipActionPrimary}
+                onClick={() => window.print()}
+              >
+                <Symbol name="print" size={18} />
+                <span>Print Slip</span>
+              </button>
+              <button
+                type="button"
+                className={styles.slipActionSecondary}
+                onClick={handleCopyCuttingSlip}
+              >
+                <Symbol name="content_copy" size={18} />
+                <span>Copy Text</span>
+              </button>
+            </div>
+
+            <div className={styles.printableSlip} id="cutting-slip-view">
+              <div className={styles.slipHeader}>
+                <div>
+                  <h3 className={styles.slipShopTitle}>{currentShop?.name || 'Tailor Studio'}</h3>
+                  <span className={styles.slipSubtitle}>WORKSHOP CUTTING SLIP</span>
+                </div>
+                <div className={styles.slipHeaderBadgeWrap}>
+                  <span className={styles.slipOrderId}>#{completedBatch.firstOrderId.slice(-8).toUpperCase()}</span>
+                  {completedBatch.priority === 'urgent' && (
+                    <span className={styles.slipUrgentBadge}>⚡ URGENT</span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.slipClientCard}>
+                <div className={styles.slipInfoRow}>
+                  <span className={styles.slipInfoLabel}>Client:</span>
+                  <span className={styles.slipInfoValue}>{selectedCustomer.fullName}</span>
+                </div>
+                <div className={styles.slipInfoRow}>
+                  <span className={styles.slipInfoLabel}>WhatsApp:</span>
+                  <span className={styles.slipInfoValue}>{formatPhone(selectedCustomer.whatsappNumber)}</span>
+                </div>
+                <div className={styles.slipInfoRow}>
+                  <span className={styles.slipInfoLabel}>Ready Date:</span>
+                  <span className={styles.slipInfoHighlight}>
+                    {new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {completedBatch.garments.map((g, idx) => {
+                const specPoints = getSpecPointsForStyle(g.styleName);
+                return (
+                  <div key={idx} className={styles.slipGarmentBlock}>
+                    <div className={styles.slipGarmentHeader}>
+                      <span className={styles.slipGarmentName}>
+                        Outfit #{idx + 1}: <strong>{g.styleName}</strong>
+                      </span>
+                      <span className={styles.slipSourceBadge}>
+                        {g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Client Fabric'}
+                      </span>
+                    </div>
+
+                    {g.fabricNotes && (
+                      <div className={styles.slipFabricNote}>
+                        <strong>Fabric Note:</strong> {g.fabricNotes}
+                      </div>
+                    )}
+
+                    <div className={styles.slipMeasuresTable}>
+                      {specPoints.map((pt) => {
+                        const val = g.measures[pt.key];
+                        if (!val) return null;
+                        return (
+                          <div key={pt.key} className={styles.slipMeasureRow}>
+                            <span className={styles.slipMeasureLabel}>{pt.label}</span>
+                            <span className={styles.slipMeasureValue}>{val}″</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {g.measurementNotes && (
+                      <div className={styles.slipFitNote}>
+                        <strong>Posture & Fit:</strong> {g.measurementNotes}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </BottomSheet>

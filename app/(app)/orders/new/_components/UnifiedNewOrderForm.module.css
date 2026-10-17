@@ -1117,3 +1117,281 @@
   color: var(--sf-text-primary);
 }
 
+/* ── Custom Style Box ── */
+.customStyleBox {
+  margin-top: 12px;
+  background: var(--sf-bg-canvas);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Fabric Sourcing & Notes ── */
+.fabricSourceWrap {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--sf-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Workshop Cutting Slip ── */
+.cuttingSlipBtn {
+  width: 100%;
+  padding: 13px;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--sf-brand-primary);
+  border: 1.5px solid rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 10px;
+}
+
+.cuttingSlipBtn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--sf-brand-primary);
+}
+
+.cuttingSlipContainer {
+  padding: 12px 16px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.slipActionsRow {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.slipActionPrimary {
+  flex: 1;
+  padding: 12px;
+  background: var(--sf-brand-primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slipActionSecondary {
+  flex: 1;
+  padding: 12px;
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.printableSlip {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.slipHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px dashed #cbd5e1;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.slipShopTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+}
+
+.slipSubtitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.slipHeaderBadgeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.slipOrderId {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.slipUrgentBadge {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.slipClientCard {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slipInfoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.slipInfoLabel {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.slipInfoValue {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.slipInfoHighlight {
+  color: #059669;
+  font-weight: 800;
+}
+
+.slipGarmentBlock {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.slipGarmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.slipGarmentName {
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.slipSourceBadge {
+  font-size: 11px;
+  font-weight: 700;
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.slipFabricNote {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.slipMeasuresTable {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 16px;
+  margin-bottom: 8px;
+}
+
+.slipMeasureRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  border-bottom: 1px dotted #e2e8f0;
+  padding-bottom: 2px;
+}
+
+.slipMeasureLabel {
+  color: #475569;
+}
+
+.slipMeasureValue {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.slipFitNote {
+  background: #f1f5f9;
+  color: #334155;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* ── Print Styling ── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printableSlip,
+  .printableSlip * {
+    visibility: visible;
+  }
+  .printableSlip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none;
+    box-shadow: none;
+  }
+  .slipActionsRow {
+    display: none !important;
+  }
+}
+
+
