@@ -29,18 +29,14 @@
   gap: 12px;
 }
 
-.badgeNumber {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--sf-brand-primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
+.sectionEyebrow {
+  display: block;
+  font-size: 10.5px;
   font-weight: 700;
-  flex-shrink: 0;
+  letter-spacing: 0.08em;
+  color: #4338CA;
+  text-transform: uppercase;
+  margin-bottom: 3px;
 }
 
 .cardTitle {
@@ -48,12 +44,33 @@
   font-size: 17px;
   font-weight: 700;
   color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .cardSubtitle {
   margin: 2px 0 0 0;
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--sf-text-secondary);
+}
+
+.changeClientBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(67, 56, 202, 0.06);
+  border: 1px solid rgba(67, 56, 202, 0.16);
+  color: #4338CA;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.changeClientBtn:hover {
+  background: rgba(67, 56, 202, 0.12);
+  border-color: rgba(67, 56, 202, 0.3);
 }
 
 .textButton {
@@ -172,18 +189,19 @@
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  background: rgba(99, 102, 241, 0.08);
-  color: var(--sf-brand-primary);
-  border: 1px dashed var(--sf-brand-primary);
-  border-radius: 10px;
+  background: rgba(67, 56, 202, 0.05);
+  color: #4338CA;
+  border: 1px solid rgba(67, 56, 202, 0.2);
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .newClientBanner:hover {
-  background: rgba(99, 102, 241, 0.14);
+  background: rgba(67, 56, 202, 0.1);
+  border-color: rgba(67, 56, 202, 0.35);
 }
 
 /* Selected Client Card */
@@ -365,54 +383,118 @@
 
 .styleGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
 }
 
 .styleCard {
+  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-  padding: 10px 6px;
-  background: var(--sf-bg-canvas);
-  border: 1px solid var(--sf-border-subtle);
-  border-radius: 10px;
+  padding: 0;
+  background: var(--sf-bg-surface);
+  border: 1.5px solid var(--sf-border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
   cursor: pointer;
-  transition: all 0.15s ease;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .styleCard:hover {
-  background: var(--sf-surface-hover);
+  border-color: rgba(67, 56, 202, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(67, 56, 202, 0.08);
 }
 
 .styleCardActive {
-  background: rgba(99, 102, 241, 0.08);
-  border-color: var(--sf-brand-primary);
+  border-color: #4338CA;
+  background: rgba(67, 56, 202, 0.02);
+  box-shadow: 0 0 0 1px #4338CA, 0 8px 20px rgba(67, 56, 202, 0.12);
 }
 
-.styleThumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+.styleThumbWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: #f1f5f9;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.04);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sf-text-secondary);
 }
 
 .styleImg {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.styleCard:hover .styleImg {
+  transform: scale(1.04);
+}
+
+.stylePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #f8fafc 0%, #ede9fe 100%);
+  color: #6366f1;
+}
+
+.styleActiveBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #4338CA;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.styleCardInfo {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--sf-bg-surface);
 }
 
 .styleName {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   color: var(--sf-text-primary);
+  line-height: 1.25;
+}
+
+.styleSubtitle {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
   line-height: 1.2;
+}
+
+.customStyleBtnCard {
+  background: rgba(67, 56, 202, 0.02);
+  border-style: solid;
+}
+
+.customStyleThumb {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.06) 0%, rgba(67, 56, 202, 0.12) 100%);
+  color: #4338CA;
 }
 
 /* ── Measurements ── */
@@ -620,25 +702,26 @@
 }
 
 .photoUploadTrigger {
-  border: 1px dashed var(--sf-border-subtle);
-  border-radius: 10px;
-  padding: 24px 12px;
+  border: 1px solid rgba(67, 56, 202, 0.16);
+  border-radius: 12px;
+  padding: 22px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  color: var(--sf-brand-primary);
+  color: #4338CA;
   font-size: 12px;
   font-weight: 600;
-  background: var(--sf-bg-surface);
+  background: rgba(67, 56, 202, 0.02);
   transition: all 0.15s ease;
 }
 
 .photoUploadTrigger:hover {
-  background: var(--sf-surface-hover);
-  border-color: var(--sf-brand-primary);
+  background: rgba(67, 56, 202, 0.06);
+  border-color: rgba(67, 56, 202, 0.35);
+  transform: translateY(-1px);
 }
 
 .photoPreviewWrap {
@@ -776,34 +859,87 @@
   outline: none;
 }
 
-/* ── Footer ── */
-.footerBar {
+/* ── Luxury Floating Mobile Dock ── */
+.floatingDock {
   position: sticky;
   bottom: 0;
-  padding: 16px 0;
-  background: color-mix(in srgb, var(--sf-bg-canvas) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 10;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--sf-bg-surface) 92%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--sf-border-subtle);
+  z-index: 50;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+  margin: 0 -16px -100px -16px;
+}
+
+.dockInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.dockSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.dockLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sf-text-secondary);
+}
+
+.dockTotal {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.02em;
 }
 
 .createOrderBtn {
-  width: 100%;
-  padding: 15px;
-  background: var(--sf-brand-primary);
+  flex: 1;
+  max-width: 340px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #312E81 0%, #4338CA 100%);
   border: none;
   border-radius: 12px;
   color: #fff;
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.createOrderBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1E1B4B 0%, #3730A3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.45);
+}
+
+.createOrderBtn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .createOrderBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* ── Receipt Modal ── */
@@ -1010,7 +1146,7 @@
 .singleGarmentPriceWrap {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px dashed var(--sf-border-subtle);
+  border-top: 1px solid var(--sf-border-subtle);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1021,19 +1157,24 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
-  background: var(--sf-bg-surface);
-  border: 1.5px dashed var(--sf-brand-primary);
+  padding: 14px 18px;
+  background: rgba(67, 56, 202, 0.04);
+  border: 1px solid rgba(67, 56, 202, 0.2);
   border-radius: 14px;
-  color: var(--sf-brand-primary);
-  font-size: 14px;
+  color: #4338CA;
+  font-size: 13.5px;
   font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(67, 56, 202, 0.05);
 }
 
 .addGarmentBanner:hover {
-  background: rgba(99, 102, 241, 0.06);
+  background: rgba(67, 56, 202, 0.08);
+  border-color: rgba(67, 56, 202, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.1);
 }
 
 /* ── Deposit Shortcuts & Pricing Extras ── */
@@ -1116,8 +1257,8 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px 0;
-  border-top: 1px dashed var(--sf-border-subtle);
-  border-bottom: 1px dashed var(--sf-border-subtle);
+  border-top: 1px solid var(--sf-border-subtle);
+  border-bottom: 1px solid var(--sf-border-subtle);
 }
 
 .receiptGarmentSubRow {
@@ -1144,7 +1285,7 @@
 .fabricSourceWrap {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px dashed var(--sf-border-subtle);
+  border-top: 1px solid var(--sf-border-subtle);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1420,20 +1561,21 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 14px;
-  background: rgba(16, 185, 129, 0.08);
-  color: var(--sf-success);
-  border: 1px dashed var(--sf-success);
+  padding: 11px 14px;
+  background: rgba(5, 150, 105, 0.06);
+  color: #047857;
+  border: 1px solid rgba(5, 150, 105, 0.22);
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .importContactBtn:hover {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.35);
 }
 
 .inlineHeaderRow {

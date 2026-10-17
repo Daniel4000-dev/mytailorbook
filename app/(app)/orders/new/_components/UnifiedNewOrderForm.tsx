@@ -722,22 +722,23 @@ export default function UnifiedNewOrderForm() {
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <span className={styles.badgeNumber}>1</span>
               <div>
-                <h2 className={styles.cardTitle}>Client</h2>
+                <span className={styles.sectionEyebrow}>01 • CLIENT PROFILE</span>
+                <h2 className={styles.cardTitle}>Client Record</h2>
                 <p className={styles.cardSubtitle}>Select client or register a walk-in</p>
               </div>
             </div>
             {selectedCustomer && (
               <button
                 type="button"
-                className={styles.textButton}
+                className={styles.changeClientBtn}
                 onClick={() => {
                   setSelectedCustomer(null);
                   setCustomerSearch('');
                 }}
               >
-                Change
+                <Symbol name="edit" size={13} />
+                <span>Change</span>
               </button>
             )}
           </div>
@@ -959,12 +960,12 @@ export default function UnifiedNewOrderForm() {
               <section className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
-                    <span className={styles.badgeNumber}>{isMultiple ? `${idx + 1}A` : '2'}</span>
                     <div>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `02 • OUTFIT #${idx + 1} SILHOUETTE` : '02 • STYLE SELECTION'}</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Style` : 'Garment & Style'}
                       </h2>
-                      <p className={styles.cardSubtitle}>Choose garment type</p>
+                      <p className={styles.cardSubtitle}>Choose garment silhouette & cut</p>
                     </div>
                   </div>
                   <span className={styles.activeStyleTag}>{garment.styleName}</span>
@@ -1008,20 +1009,30 @@ export default function UnifiedNewOrderForm() {
                         className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
                         onClick={() => handleStyleChange(garment.id, style.name, false)}
                       >
-                        <div className={styles.styleThumb}>
+                        <div className={styles.styleThumbWrap}>
                           {style.photoUrl ? (
                             <Image
                               src={style.photoUrl}
                               alt={style.name}
-                              width={60}
-                              height={60}
+                              width={120}
+                              height={150}
                               className={styles.styleImg}
                             />
                           ) : (
-                            <Symbol name="checkroom" size={24} />
+                            <div className={styles.stylePlaceholder}>
+                              <Symbol name="checkroom" size={26} />
+                            </div>
+                          )}
+                          {isSelected && (
+                            <div className={styles.styleActiveBadge}>
+                              <Symbol name="check" size={14} />
+                            </div>
                           )}
                         </div>
-                        <span className={styles.styleName}>{style.name}</span>
+                        <div className={styles.styleCardInfo}>
+                          <span className={styles.styleName}>{style.name}</span>
+                          {style.subtitle && <span className={styles.styleSubtitle}>{style.subtitle}</span>}
+                        </div>
                       </button>
                     );
                   })}
@@ -1029,13 +1040,23 @@ export default function UnifiedNewOrderForm() {
                   {/* + Custom Style Button */}
                   <button
                     type="button"
-                    className={`${styles.styleCard} ${garment.isCustomStyle ? styles.styleCardActive : ''}`}
+                    className={`${styles.styleCard} ${styles.customStyleBtnCard} ${garment.isCustomStyle ? styles.styleCardActive : ''}`}
                     onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
                   >
-                    <div className={styles.styleThumb}>
-                      <Symbol name="edit" size={24} />
+                    <div className={styles.styleThumbWrap}>
+                      <div className={styles.customStyleThumb}>
+                        <Symbol name="edit" size={24} />
+                      </div>
+                      {garment.isCustomStyle && (
+                        <div className={styles.styleActiveBadge}>
+                          <Symbol name="check" size={14} />
+                        </div>
+                      )}
                     </div>
-                    <span className={styles.styleName}>+ Custom Style</span>
+                    <div className={styles.styleCardInfo}>
+                      <span className={styles.styleName}>+ Custom Style</span>
+                      <span className={styles.styleSubtitle}>Studio Bespoke</span>
+                    </div>
                   </button>
                 </div>
 
@@ -1059,10 +1080,10 @@ export default function UnifiedNewOrderForm() {
               <section className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
-                    <span className={styles.badgeNumber}>{isMultiple ? `${idx + 1}B` : '3'}</span>
                     <div>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `03 • OUTFIT #${idx + 1} FIT` : '03 • MEASUREMENTS & FIT'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Measurements` : 'Measurements'}
+                        {isMultiple ? `Outfit #${idx + 1} Measurements` : 'Bespoke Fit Ledger'}
                       </h2>
                       <p className={styles.cardSubtitle}>
                         {garment.styleName} fit specifications (inches)
@@ -1189,12 +1210,12 @@ export default function UnifiedNewOrderForm() {
               <section className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
-                    <span className={styles.badgeNumber}>{isMultiple ? `${idx + 1}C` : '4'}</span>
                     <div>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `04 • OUTFIT #${idx + 1} FABRIC` : '04 • MATERIAL & INSPIRATION'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Photos` : 'Photos & Material'}
+                        {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Inspiration'}
                       </h2>
-                      <p className={styles.cardSubtitle}>Snap fabric to prevent workshop mix-ups</p>
+                      <p className={styles.cardSubtitle}>Snap physical cloth & style inspiration</p>
                     </div>
                   </div>
                 </div>
@@ -1355,10 +1376,10 @@ export default function UnifiedNewOrderForm() {
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <span className={styles.badgeNumber}>5</span>
               <div>
+                <span className={styles.sectionEyebrow}>05 • PRICING & SCHEDULE</span>
                 <h2 className={styles.cardTitle}>Pricing & Delivery</h2>
-                <p className={styles.cardSubtitle}>Price, deposit and deadline</p>
+                <p className={styles.cardSubtitle}>Price, deposit and delivery timeline</p>
               </div>
             </div>
           </div>
@@ -1549,20 +1570,37 @@ export default function UnifiedNewOrderForm() {
           </div>
         </section>
 
-        {/* ── CREATE ORDER CTA ── */}
-        <div className={styles.footerBar}>
-          <button
-            type="button"
-            className={styles.createOrderBtn}
-            disabled={submitting}
-            onClick={handleCreateOrder}
-          >
-            {submitting
-              ? 'Creating Order…'
-              : garments.length > 1
-              ? `Create Order (${garments.length} Outfits)`
-              : 'Create Order'}
-          </button>
+        {/* ── LUXURY FLOATING DOCK ── */}
+        <div className={styles.floatingDock}>
+          <div className={styles.dockInner}>
+            <div className={styles.dockSummary}>
+              <span className={styles.dockLabel}>
+                {garments.length > 1 ? `${garments.length} Outfits Total` : 'Order Total'}
+              </span>
+              <span className={styles.dockTotal}>
+                {currencySymbol}{formatNumber(numericTotal)}
+              </span>
+            </div>
+            <button
+              type="button"
+              className={styles.createOrderBtn}
+              disabled={submitting}
+              onClick={handleCreateOrder}
+            >
+              {submitting ? (
+                <span>Queueing Order…</span>
+              ) : (
+                <>
+                  <span>
+                    {garments.length > 1
+                      ? `Confirm & Queue ${garments.length} Outfits`
+                      : 'Confirm & Queue Order'}
+                  </span>
+                  <Symbol name="arrow_forward_ios" size={14} />
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
