@@ -311,9 +311,18 @@ export default function UnifiedNewOrderForm() {
   };
 
   // ── 4. Financials & Delivery Schedule ──
+  const getDaysFromNow = (days: number) => {
+    const target = new Date();
+    target.setDate(target.getDate() + days);
+    const yyyy = target.getFullYear();
+    const mm = String(target.getMonth() + 1).padStart(2, '0');
+    const dd = String(target.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const [manualTotalBill, setManualTotalBill] = useState('');
   const [depositPaid, setDepositPaid] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState(() => getDaysFromNow(7));
   const [priority, setPriority] = useState<Priority>('normal');
   const [assignedStaff, setAssignedStaff] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
@@ -344,12 +353,7 @@ export default function UnifiedNewOrderForm() {
 
   // Workload Awareness on Due Date
   const setQuickDate = (days: number) => {
-    const target = new Date();
-    target.setDate(target.getDate() + days);
-    const yyyy = target.getFullYear();
-    const mm = String(target.getMonth() + 1).padStart(2, '0');
-    const dd = String(target.getDate()).padStart(2, '0');
-    setDueDate(`${yyyy}-${mm}-${dd}`);
+    setDueDate(getDaysFromNow(days));
   };
 
   const ordersDueOnDate = useMemo(() => {
@@ -1289,21 +1293,21 @@ export default function UnifiedNewOrderForm() {
             <div className={styles.quickDates}>
               <button
                 type="button"
-                className={styles.quickDateBtn}
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(3) ? styles.quickDateBtnActive : ''}`}
                 onClick={() => setQuickDate(3)}
               >
                 In 3 Days
               </button>
               <button
                 type="button"
-                className={styles.quickDateBtn}
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(7) ? styles.quickDateBtnActive : ''}`}
                 onClick={() => setQuickDate(7)}
               >
                 In 1 Week
               </button>
               <button
                 type="button"
-                className={styles.quickDateBtn}
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(14) ? styles.quickDateBtnActive : ''}`}
                 onClick={() => setQuickDate(14)}
               >
                 In 2 Weeks

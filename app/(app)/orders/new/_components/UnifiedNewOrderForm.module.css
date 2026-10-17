@@ -755,6 +755,17 @@
   border-color: var(--sf-brand-primary);
 }
 
+.quickDateBtnActive {
+  background: var(--sf-brand-primary);
+  color: #fff;
+  border-color: var(--sf-brand-primary);
+}
+
+.quickDateBtnActive:hover {
+  background: var(--sf-brand-primary);
+  color: #fff;
+}
+
 .dateInput {
   padding: 10px 12px;
   background: var(--sf-bg-canvas);
