@@ -1479,3 +1479,156 @@
   color: var(--sf-text-secondary);
   line-height: 1.5;
 }
+
+/* ── Mobile Segmented Tab Bar ────────────────────────────────────────── */
+.mobileTabRow {
+  display: flex;
+  background: var(--sf-sand);
+  border-radius: var(--sf-radius-full);
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--sf-border-light);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mobileTabRow::-webkit-scrollbar {
+  display: none;
+}
+
+.mobileTabBtn {
+  flex: 1;
+  min-width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobileTabBtn:active {
+  transform: scale(0.96);
+}
+
+.mobileActiveTab {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-bold);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 1024px) {
+  .mobileTabRow {
+    display: none;
+  }
+}
+
+/* ── Mobile Sticky Bottom Action Bar ──────────────────────────────────── */
+.mobileStickyBottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--sf-border-light);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 50;
+}
+
+.stickyAdvanceBtn {
+  flex: 1;
+  height: 48px;
+  background: var(--sf-accent-emerald);
+  color: #FFFFFF;
+  border-radius: var(--sf-radius-md);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.stickyAdvanceBtn:active {
+  transform: scale(0.97);
+}
+
+.stickyAdvanceBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.stickyWhatsAppBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sf-radius-md);
+  background: #25D366;
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
+  transition: transform var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.stickyWhatsAppBtn:active {
+  transform: scale(0.95);
+}
+
+.stickyWhatsAppBtnFull {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--sf-radius-md);
+  background: #25D366;
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
+  transition: transform var(--sf-transition-fast);
+}
+
+.stickyWhatsAppBtnFull:active {
+  transform: scale(0.97);
+}
+
+.mobileBottomClearance {
+  height: 72px;
+}
+
+@media (min-width: 1024px) {
+  .mobileStickyBottomBar,
+  .mobileBottomClearance {
+    display: none;
+  }
+}
+

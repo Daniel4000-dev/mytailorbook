@@ -30,11 +30,11 @@ interface ProductionBoardProps {
 
 const ACTIVE_STATUSES = ORDER_STATUSES.filter((s) => s !== 'Delivered');
 const STAGE_PAGE_SIZE = 15;
-type OpFilter = 'all' | 'rush' | 'due' | 'unpaid';
+type OpFilter = 'all' | 'rush' | 'due' | 'hold' | 'unpaid';
 
 export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { user } = useAuth();
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, exceptions } = useData();
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -316,6 +316,8 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       result = result.filter(o => o.priority === 'rush' || o.priority === 'urgent');
     } else if (opFilter === 'due') {
       result = result.filter(o => isOverdue(o) || isDueSoon(o));
+    } else if (opFilter === 'hold') {
+      result = result.filter(o => exceptions.some(e => e.orderId === o.id && !e.endDate));
     } else if (opFilter === 'unpaid') {
       result = result.filter(o => getBalanceOwed(o) > 0);
     }
@@ -328,12 +330,48 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     }
 
     return result;
-  }, [orders, filterMyTasks, staffFilterId, batchFilterId, opFilter, searchQuery, user, userRole]);
+  }, [orders, filterMyTasks, staffFilterId, batchFilterId, opFilter, searchQuery, user, userRole, exceptions]);
 
   const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Delivered'), [orders]);
   const rushCount = useMemo(() => activeOrders.filter(o => o.priority === 'rush' || o.priority === 'urgent').length, [activeOrders]);
   const dueCount = useMemo(() => activeOrders.filter(o => isOverdue(o) || isDueSoon(o)).length, [activeOrders]);
+  const holdCount = useMemo(() => activeOrders.filter(o => exceptions.some(e => e.orderId === o.id && !e.endDate)).length, [activeOrders, exceptions]);
   const unpaidCount = useMemo(() => activeOrders.filter(o => getBalanceOwed(o) > 0).length, [activeOrders]);
+
+  const batchOrders = useMemo(
+    () => (batchFilterId ? orders.filter((o) => o.batchId === batchFilterId) : []),
+    [orders, batchFilterId]
+  );
+  const advanceableBatchOrders = useMemo(
+    () => batchOrders.filter((o) => o.status !== 'Delivered' && getNextStatus(o.status)),
+    [batchOrders]
+  );
+  const batchCommonNext = useMemo(() => {
+    if (advanceableBatchOrders.length === 0) return null;
+    const firstNext = getNextStatus(advanceableBatchOrders[0].status);
+    const allSame = advanceableBatchOrders.every((o) => getNextStatus(o.status) === firstNext);
+    return allSame && firstNext ? STATUS_CONFIG[firstNext].label : null;
+  }, [advanceableBatchOrders]);
+
+  const handleBatchBulkAdvance = useCallback(async () => {
+    if (advanceableBatchOrders.length === 0) return;
+    const movingToDelivered = advanceableBatchOrders.filter((o) => getNextStatus(o.status) === 'Delivered');
+    if (movingToDelivered.length > 0) {
+      const hasUnpaid = movingToDelivered.some((o) => getBalanceOwed(o) > 0);
+      if (hasUnpaid) {
+        showToast('Some garments have an outstanding balance. Please settle balances individually before delivery.', 'info');
+        return;
+      }
+    }
+
+    for (const order of advanceableBatchOrders) {
+      const next = getNextStatus(order.status);
+      if (next) {
+        updateOrderStatus(order.id, next, user?.uid || '', user?.name || '');
+      }
+    }
+    showToast(`Advanced ${advanceableBatchOrders.length} garments in batch!`, 'success');
+  }, [advanceableBatchOrders, updateOrderStatus, user, showToast]);
 
   const staffFilterName = staffFilterId ? staffMembers.find((s) => s.uid === staffFilterId)?.name : null;
 
@@ -451,6 +489,12 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           onClick={() => setOpFilter(opFilter === 'due' ? 'all' : 'due')}
         />
         <FilterPill
+          label="🛑 On Hold"
+          count={holdCount}
+          active={opFilter === 'hold'}
+          onClick={() => setOpFilter(opFilter === 'hold' ? 'all' : 'hold')}
+        />
+        <FilterPill
           label="💰 Unpaid"
           count={unpaidCount}
           active={opFilter === 'unpaid'}
@@ -469,12 +513,28 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
 
       {batchFilterId && (
         <div className={styles.batchFilterChip}>
-          <span>
-            Filtering batch orders (<strong>{filteredOrders.length} {filteredOrders.length === 1 ? 'garment' : 'garments'}</strong>)
-          </span>
-          <button type="button" onClick={() => setBatchFilterId(null)} aria-label="Clear batch filter">
-            <Symbol name="close" />
-          </button>
+          <div className={styles.batchChipLeft}>
+            <Symbol name="layers" size={14} />
+            <span>
+              Filtering batch orders (<strong>{filteredOrders.length} {filteredOrders.length === 1 ? 'garment' : 'garments'}</strong>)
+            </span>
+          </div>
+          <div className={styles.batchChipRight}>
+            {advanceableBatchOrders.length > 0 && (
+              <button
+                type="button"
+                className={styles.bulkAdvanceBtn}
+                onClick={handleBatchBulkAdvance}
+                title="Advance all garments in this batch"
+              >
+                <Symbol name="arrow_forward" size={12} />
+                <span>{batchCommonNext ? `Move all to ${batchCommonNext}` : `Advance all (${advanceableBatchOrders.length})`}</span>
+              </button>
+            )}
+            <button type="button" onClick={() => setBatchFilterId(null)} aria-label="Clear batch filter">
+              <Symbol name="close" size={14} />
+            </button>
+          </div>
         </div>
       )}
 

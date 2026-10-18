@@ -58,11 +58,12 @@ export default function OrderListCard({
   onWhatsApp,
 }: OrderListCardProps) {
   const { user } = useAuth();
-  const { currentShop, updateOrder } = useData();
+  const { currentShop, updateOrder, exceptions, resolveException } = useData();
   const { showToast } = useToast();
   const next = getNextStatus(order.status);
   const prev = getPreviousStatus(order.status);
   const balanceOwed = getBalanceOwed(order);
+  const activeException = exceptions.find((e) => e.orderId === order.id && !e.endDate);
 
   // Latest progress photo tells the truest story; fall back to the
   // customer's inspiration photo before the placeholder.
@@ -236,8 +237,26 @@ export default function OrderListCard({
             </div>
           )}
 
-          {/* Priority and Batch Badges */}
+          {/* Priority, Hold and Batch Badges */}
           <div className={styles.badgeOverlayLeft}>
+            {activeException && (
+              <span
+                className={styles.holdBadge}
+                title={`On Hold: ${activeException.reason || 'Workshop delay'}. Click to resolve.`}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (window.confirm(`Resolve hold for this order?\nReason: ${activeException.reason || 'Workshop delay'}`)) {
+                    await resolveException(activeException.id);
+                    showToast('Hold resolved', 'success');
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <Symbol name="warning" size={10} fill />
+                <span>{activeException.reason ? truncateText(activeException.reason, 14) : 'ON HOLD'}</span>
+              </span>
+            )}
             {order.priority === 'rush' && (
               <span className={styles.rushBadge}>⚡ RUSH</span>
             )}

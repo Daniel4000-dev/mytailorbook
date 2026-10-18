@@ -97,6 +97,35 @@
   margin-bottom: var(--sf-space-md);
 }
 
+.batchChipLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+}
+
+.batchChipRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+}
+
+.bulkAdvanceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #4338CA !important;
+  color: #FFFFFF !important;
+  padding: 4px 10px !important;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.bulkAdvanceBtn:active {
+  transform: scale(0.94);
+}
+
 .batchFilterChip button {
   background: transparent;
   border: none;

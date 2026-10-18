@@ -32,6 +32,7 @@ import type { Order, OrderStatus, OrderPhoto, OrderComment, Priority, PaymentMet
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { compressImage } from '@/lib/compressImage';
 import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, FREE_ORDER_INSPIRATION_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import OrderMeasurementsSheet from './_components/OrderMeasurementsSheet';
 import WhatsAppOptionsSheet from './_components/WhatsAppOptionsSheet';
 import HandoverPaymentSheet from './_components/HandoverPaymentSheet';
@@ -39,6 +40,8 @@ import OrderExpenses from './_components/OrderExpenses';
 import OrderPayments from './_components/OrderPayments';
 import OrderMaterials from './_components/OrderMaterials';
 import styles from './page.module.css';
+
+type DetailTab = 'garment' | 'photos' | 'billing' | 'timeline';
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -48,6 +51,8 @@ export default function OrderDetailPage() {
   const isOwnerView = isOwnerLikeRole(userRole);
   const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException } = useData();
   const { showToast } = useToast();
+  const isDesktop = useIsDesktop();
+  const [activeTab, setActiveTab] = useState<DetailTab>('garment');
 
   const order = orders.find((o) => o.id === orderId) || null;
   const customer = order ? customers.find((c) => c.id === order.customerId) || null : null;
@@ -468,8 +473,8 @@ export default function OrderDetailPage() {
            use. Placement is pure CSS grid-area, fully decoupled from DOM
            order, so mobile's flex-column stacking below is completely
            untouched — same source order as always. */}
-        {/* 1. Move to next stage */}
-        {next && (
+        {/* 1. Move to next stage (Desktop top bar) */}
+        {isDesktop && next && (
           <div className={styles.advanceRow + ' ' + styles.gaAdvance}>
             <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
               <>
@@ -544,106 +549,151 @@ export default function OrderDetailPage() {
           )}
         </section>
 
-        {/* 4. Inspiration */}
-        <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaInspo}>
-          <div className={styles.capsHeader}>
-            <h3 className={styles.capsTitle}>Inspiration</h3>
-            {!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT ? (
-              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
-            ) : (
-              <label className={styles.addLink}>
-                <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
-                <Symbol name="add_photo_alternate" size={18} />
-                {uploadingInspo ? 'Uploading…' : 'Add'}
-              </label>
-            )}
+        {/* Mobile Segmented Tab Selector */}
+        {!isDesktop && (
+          <div className={styles.mobileTabRow}>
+            <button
+              type="button"
+              className={`${styles.mobileTabBtn} ${activeTab === 'garment' ? styles.mobileActiveTab : ''}`}
+              onClick={() => setActiveTab('garment')}
+            >
+              <Symbol name="checkroom" size={14} />
+              <span>Garment &amp; Fit</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.mobileTabBtn} ${activeTab === 'photos' ? styles.mobileActiveTab : ''}`}
+              onClick={() => setActiveTab('photos')}
+            >
+              <Symbol name="photo_camera" size={14} />
+              <span>Photos &amp; Chat</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.mobileTabBtn} ${activeTab === 'billing' ? styles.mobileActiveTab : ''}`}
+              onClick={() => setActiveTab('billing')}
+            >
+              <Symbol name="payments" size={14} />
+              <span>Billing &amp; Costs</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.mobileTabBtn} ${activeTab === 'timeline' ? styles.mobileActiveTab : ''}`}
+              onClick={() => setActiveTab('timeline')}
+            >
+              <Symbol name="schedule" size={14} />
+              <span>Timeline</span>
+            </button>
           </div>
-          {(order.inspirationImages || []).length === 0 ? (
-            <div className={styles.emptyPhotoHint}>
-              <Symbol name="add_photo_alternate" className={styles.emptyPhotoIcon} />
-              <span>No reference photo yet — add one if the customer has an inspo they want matched.</span>
+        )}
+
+        {/* 4. Inspiration */}
+        {(isDesktop || activeTab === 'photos') && (
+          <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaInspo}>
+            <div className={styles.capsHeader}>
+              <h3 className={styles.capsTitle}>Inspiration</h3>
+              {!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT ? (
+                <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
+              ) : (
+                <label className={styles.addLink}>
+                  <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
+                  <Symbol name="add_photo_alternate" size={18} />
+                  {uploadingInspo ? 'Uploading…' : 'Add'}
+                </label>
+              )}
             </div>
-          ) : (
-            <div className={styles.inspoGrid}>
-              {(order.inspirationImages || []).map((url, i) => (
-                <div key={i} className={styles.inspoThumb}>
-                  <Image
-                    src={url}
-                    alt={`Inspiration ${i + 1}`}
-                    width={400}
-                    height={400}
-                    onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
-                    style={{ cursor: 'zoom-in' }}
-                  />
-                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
-                    <Symbol name="close" size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+            {(order.inspirationImages || []).length === 0 ? (
+              <div className={styles.emptyPhotoHint}>
+                <Symbol name="add_photo_alternate" className={styles.emptyPhotoIcon} />
+                <span>No reference photo yet — add one if the customer has an inspo they want matched.</span>
+              </div>
+            ) : (
+              <div className={styles.inspoGrid}>
+                {(order.inspirationImages || []).map((url, i) => (
+                  <div key={i} className={styles.inspoThumb}>
+                    <Image
+                      src={url}
+                      alt={`Inspiration ${i + 1}`}
+                      width={400}
+                      height={400}
+                      onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
+                      style={{ cursor: 'zoom-in' }}
+                    />
+                    <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
+                      <Symbol name="close" size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* 6. Progress gallery */}
-        <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaGallery}>
-          <div className={styles.capsHeader}>
-            <h3 className={styles.capsTitle}>Progress Gallery</h3>
-            {!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT ? (
-              <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
+        {(isDesktop || activeTab === 'photos') && (
+          <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaGallery}>
+            <div className={styles.capsHeader}>
+              <h3 className={styles.capsTitle}>Progress Gallery</h3>
+              {!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT ? (
+                <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
+              ) : (
+                <label className={styles.addLink}>
+                  <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                  <Symbol name="add_a_photo" size={18} />
+                  {uploadingPhoto ? 'Uploading…' : 'Add'}
+                </label>
+              )}
+            </div>
+            {(order.images || []).length === 0 ? (
+              <div className={styles.emptyPhotoHint}>
+                <Symbol name="add_a_photo" className={styles.emptyPhotoIcon} />
+                <span>No progress photos yet — snap one as the garment moves through each stage.</span>
+              </div>
             ) : (
-              <label className={styles.addLink}>
-                <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-                <Symbol name="add_a_photo" size={18} />
-                {uploadingPhoto ? 'Uploading…' : 'Add'}
-              </label>
-            )}
-          </div>
-          {(order.images || []).length === 0 ? (
-            <div className={styles.emptyPhotoHint}>
-              <Symbol name="add_a_photo" className={styles.emptyPhotoIcon} />
-              <span>No progress photos yet — snap one as the garment moves through each stage.</span>
-            </div>
-          ) : (
-            <div className={styles.galleryGrid}>
-              {(order.images || []).map((photo, i) => (
-                <div key={i} className={styles.galleryThumb}>
-                  <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
-                  <div className={styles.glassCaption}>
-                    {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+              <div className={styles.galleryGrid}>
+                {(order.images || []).map((photo, i) => (
+                  <div key={i} className={styles.galleryThumb}>
+                    <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
+                    <div className={styles.glassCaption}>
+                      {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                    </div>
+                    <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
+                      <Symbol name="close" size={14} />
+                    </button>
                   </div>
-                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
-                    <Symbol name="close" size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* 5. Order notes */}
-        <section className={styles.card + ' ' + styles.gaNotes}>
-          <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-            <h3 className={styles.capsTitle}>Order Notes</h3>
-            <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
-          </div>
-          <textarea
-            className={styles.notesArea}
-            value={notesDraft ?? order.orderDetails}
-            onChange={(e) => setNotesDraft(e.target.value)}
-            placeholder="Add garment details and tailor notes here…"
-          />
-          <button
-            type="button"
-            className={styles.saveNoteBtn}
-            onClick={handleSaveNotes}
-            disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
-          >
-            {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
-            Save Note
-          </button>
-        </section>
+        {(isDesktop || activeTab === 'garment') && (
+          <section className={styles.card + ' ' + styles.gaNotes}>
+            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
+              <h3 className={styles.capsTitle}>Order Notes</h3>
+              <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
+            </div>
+            <textarea
+              className={styles.notesArea}
+              value={notesDraft ?? order.orderDetails}
+              onChange={(e) => setNotesDraft(e.target.value)}
+              placeholder="Add garment details and tailor notes here…"
+            />
+            <button
+              type="button"
+              className={styles.saveNoteBtn}
+              onClick={handleSaveNotes}
+              disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
+            >
+              {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
+              Save Note
+            </button>
+          </section>
+        )}
 
         {/* Customer comments (from the public tracking page) */}
-        {comments.length > 0 && (
+        {(isDesktop || activeTab === 'photos') && comments.length > 0 && (
           <section className={styles.card + ' ' + styles.gaComments}>
             <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
               <h3 className={styles.capsTitle}>Customer Comments</h3>
@@ -664,7 +714,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* Batch siblings */}
-        {batchSiblings.length > 0 && (
+        {(isDesktop || activeTab === 'garment') && batchSiblings.length > 0 && (
           <section className={styles.card + ' ' + styles.gaBatch}>
             <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
               <h3 className={styles.capsTitle}>From the Same Visit ({batchSiblings.length + 1} items)</h3>
@@ -684,38 +734,40 @@ export default function OrderDetailPage() {
         )}
 
         {/* 7. Measurements */}
-        <section className={styles.card + ' ' + styles.gaMeasure}>
-          <div className={styles.sectionHeaderRow}>
-            <h3 className={styles.sectionTitle}>
-              {usingOrderMeasurements ? 'Measurements (this order)' : "Measurements (customer's body profile)"}
-            </h3>
-            <button
-              type="button"
-              className={styles.roundIconBtn}
-              aria-label="Edit this order's measurements"
-              onClick={() => setEditingMeasurements(true)}
-            >
-              <Symbol name="edit" size={20} />
-            </button>
-          </div>
-          {measurementEntries.length === 0 ? (
-            <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
-          ) : (
-            <>
-              <div className={styles.measureGrid}>
-                {measurementEntries.map(([key, value]) => (
-                  <div key={key} className={styles.measureRow}>
-                    <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
-                    <span className={styles.measureValue}>{value}&quot;</span>
-                  </div>
-                ))}
-              </div>
-              {!usingOrderMeasurements && (
-                <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
-              )}
-            </>
-          )}
-        </section>
+        {(isDesktop || activeTab === 'garment') && (
+          <section className={styles.card + ' ' + styles.gaMeasure}>
+            <div className={styles.sectionHeaderRow}>
+              <h3 className={styles.sectionTitle}>
+                {usingOrderMeasurements ? 'Measurements (this order)' : "Measurements (customer's body profile)"}
+              </h3>
+              <button
+                type="button"
+                className={styles.roundIconBtn}
+                aria-label="Edit this order's measurements"
+                onClick={() => setEditingMeasurements(true)}
+              >
+                <Symbol name="edit" size={20} />
+              </button>
+            </div>
+            {measurementEntries.length === 0 ? (
+              <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
+            ) : (
+              <>
+                <div className={styles.measureGrid}>
+                  {measurementEntries.map(([key, value]) => (
+                    <div key={key} className={styles.measureRow}>
+                      <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
+                      <span className={styles.measureValue}>{value}&quot;</span>
+                    </div>
+                  ))}
+                </div>
+                {!usingOrderMeasurements && (
+                  <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
+                )}
+              </>
+            )}
+          </section>
+        )}
 
         {/* Rail: everything that's about this order rather than the work
            on it — properties, money, comms, history, the destructive
@@ -727,90 +779,92 @@ export default function OrderDetailPage() {
            only its markup position moved, nothing the user sees did. */}
         <div className={styles.railWrap}>
         {/* 3. Metadata */}
-        <section className={styles.card + ' ' + styles.gaMeta + ' ' + styles.orderMeta}>
-          <div className={styles.metaGrid}>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Assigned To</span>
-              <div className={styles.metaAssignee}>
-                <span className={styles.metaAvatar}>
-                  {(order.assignedToName || '—').slice(0, 2).toUpperCase()}
+        {(isDesktop || activeTab === 'timeline') && (
+          <section className={styles.card + ' ' + styles.gaMeta + ' ' + styles.orderMeta}>
+            <div className={styles.metaGrid}>
+              <div className={styles.metaItem}>
+                <span className={styles.metaLabel}>Assigned To</span>
+                <div className={styles.metaAssignee}>
+                  <span className={styles.metaAvatar}>
+                    {(order.assignedToName || '—').slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className={styles.metaValueBold}>{order.assignedToName || 'Unassigned'}</span>
+                </div>
+              </div>
+              <div className={styles.metaItem}>
+                <span className={styles.metaLabel}>Due Date</span>
+                <span className={`${styles.metaValueBold} ${isOverdue(order) ? styles.overdueText : ''}`}>
+                  {order.dueDate
+                    ? new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : 'Not set'}
                 </span>
-                <span className={styles.metaValueBold}>{order.assignedToName || 'Unassigned'}</span>
+              </div>
+              <div className={styles.metaItem}>
+                <span className={styles.metaLabel}>Created</span>
+                <span className={styles.metaValue}>{formatDate(order.createdAt)}</span>
+              </div>
+              <div className={styles.metaItem}>
+                <span className={styles.metaLabel}>Current Stage Entry</span>
+                <span className={styles.metaValue}>
+                  {stageEntry ? `Entered ${STATUS_CONFIG[order.status].label} on ${formatDate(stageEntry.timestamp)}` : '—'}
+                </span>
               </div>
             </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Due Date</span>
-              <span className={`${styles.metaValueBold} ${isOverdue(order) ? styles.overdueText : ''}`}>
-                {order.dueDate
-                  ? new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })
-                  : 'Not set'}
-              </span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Created</span>
-              <span className={styles.metaValue}>{formatDate(order.createdAt)}</span>
-            </div>
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Current Stage Entry</span>
-              <span className={styles.metaValue}>
-                {stageEntry ? `Entered ${STATUS_CONFIG[order.status].label} on ${formatDate(stageEntry.timestamp)}` : '—'}
-              </span>
-            </div>
-          </div>
-          {isOwnerView && !isEditing && (
-            <button type="button" className={styles.metaEditBtn} onClick={startEditing} aria-label="Edit order">
-              <Symbol name="edit" size={18} />
-            </button>
-          )}
-          {isEditing && (
-            <div className={styles.editForm}>
-              <div className={styles.editRow}>
-                <Input label="Due Date" type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
-                <Select
-                  label="Priority"
-                  options={priorityOptions}
-                  value={editPriority}
-                  onChange={(e) => setEditPriority(e.target.value as Priority)}
-                />
+            {isOwnerView && !isEditing && (
+              <button type="button" className={styles.metaEditBtn} onClick={startEditing} aria-label="Edit order">
+                <Symbol name="edit" size={18} />
+              </button>
+            )}
+            {isEditing && (
+              <div className={styles.editForm}>
+                <div className={styles.editRow}>
+                  <Input label="Due Date" type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+                  <Select
+                    label="Priority"
+                    options={priorityOptions}
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value as Priority)}
+                  />
+                </div>
+                <div className={styles.editRow}>
+                  <Select
+                    label="Assign To"
+                    options={staffOptions}
+                    value={editAssignedTo}
+                    onChange={(e) => setEditAssignedTo(e.target.value)}
+                  />
+                  <MoneyInput
+                    label="Total Bill (₦)"
+                    value={editTotalBill}
+                    onChange={setEditTotalBill}
+                  />
+                </div>
+                {FEATURE_FLAGS.costMarginTracking && (
+                  <>
+                    <div className={styles.editRow}>
+                      <Select
+                        label="Material Supplied By"
+                        options={[
+                          { value: 'shop', label: 'Shop' },
+                          { value: 'customer', label: 'Customer' },
+                        ]}
+                        value={editMaterialSuppliedBy}
+                        onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
+                      />
+                    </div>
+                  </>
+                )}
+                <div className={styles.editActions}>
+                  <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+                  <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
+                </div>
               </div>
-              <div className={styles.editRow}>
-                <Select
-                  label="Assign To"
-                  options={staffOptions}
-                  value={editAssignedTo}
-                  onChange={(e) => setEditAssignedTo(e.target.value)}
-                />
-                <MoneyInput
-                  label="Total Bill (₦)"
-                  value={editTotalBill}
-                  onChange={setEditTotalBill}
-                />
-              </div>
-              {FEATURE_FLAGS.costMarginTracking && (
-                <>
-                  <div className={styles.editRow}>
-                    <Select
-                      label="Material Supplied By"
-                      options={[
-                        { value: 'shop', label: 'Shop' },
-                        { value: 'customer', label: 'Customer' },
-                      ]}
-                      value={editMaterialSuppliedBy}
-                      onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
-                    />
-                  </div>
-                </>
-              )}
-              <div className={styles.editActions}>
-                <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
-              </div>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+        )}
 
         {/* 8. Payment summary (owner only) */}
-        {isOwnerView && !order.isInternalBatch && order.customerId && (
+        {(isDesktop || activeTab === 'billing') && isOwnerView && !order.isInternalBatch && order.customerId && (
           <OrderPayments 
             orderId={order.id}
             customerId={order.customerId}
@@ -825,7 +879,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* 8-Staff. Handover payment summary (staff view) */}
-        {!isOwnerView && !order.isInternalBatch && order.customerId && (
+        {(isDesktop || activeTab === 'billing') && !isOwnerView && !order.isInternalBatch && order.customerId && (
           <section className={`${styles.card} ${styles.gaPayment}`}>
             <div className={styles.staffPayHeader}>
               <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Status</h3>
@@ -865,81 +919,85 @@ export default function OrderDetailPage() {
         )}
 
         {/* 8b. Cost & margin (owner only) */}
-        {isOwnerView && FEATURE_FLAGS.costMarginTracking && (
+        {(isDesktop || activeTab === 'billing') && isOwnerView && FEATURE_FLAGS.costMarginTracking && (
           <OrderExpenses orderId={order.id} shopId={order.shopId} totalBill={order.totalBill} currency={currentShop?.currency} />
         )}
 
         {/* 8c. Materials Inventory */}
-        <OrderMaterials orderId={order.id} shopId={order.shopId} />
+        {(isDesktop || activeTab === 'billing') && (
+          <OrderMaterials orderId={order.id} shopId={order.shopId} />
+        )}
 
-        {/* 9. Share & communicate — the WhatsApp FAB already covers sending
-             this exact stage update (same link/message), so no separate
-             button is needed here. */}
-        <section className={styles.card + ' ' + styles.gaShare}>
-          <h3 className={styles.sectionTitle}>Share &amp; Communicate</h3>
-          <div className={styles.trackBlock}>
-            <span className={styles.capsLabel}>Public Tracking Link</span>
-            <div className={styles.trackRow}>
-              <span className={styles.trackUrl}>{trackingUrl.replace(/^https?:\/\//, '')}</span>
-              <button type="button" className={styles.copyBtn} onClick={handleCopyLink} aria-label="Copy tracking link">
-                {copied ? <Symbol name="check" size={16} /> : <Symbol name="content_copy" size={16} />}
-              </button>
+        {/* 9. Share & communicate — the WhatsApp action in header/sticky bar covers sending stage updates */}
+        {(isDesktop || activeTab === 'timeline') && (
+          <section className={styles.card + ' ' + styles.gaShare}>
+            <h3 className={styles.sectionTitle}>Share &amp; Communicate</h3>
+            <div className={styles.trackBlock}>
+              <span className={styles.capsLabel}>Public Tracking Link</span>
+              <div className={styles.trackRow}>
+                <span className={styles.trackUrl}>{trackingUrl.replace(/^https?:\/\//, '')}</span>
+                <button type="button" className={styles.copyBtn} onClick={handleCopyLink} aria-label="Copy tracking link">
+                  {copied ? <Symbol name="check" size={16} /> : <Symbol name="content_copy" size={16} />}
+                </button>
+              </div>
             </div>
-          </div>
-          <label className={styles.toggleRow}>
-            <span>
-              <span className={styles.toggleLabel}>Include in WhatsApp updates</span>
-              <span className={styles.toggleHint}>
-                Adds the tracking link above to this order&apos;s WhatsApp stage messages.
+            <label className={styles.toggleRow}>
+              <span>
+                <span className={styles.toggleLabel}>Include in WhatsApp updates</span>
+                <span className={styles.toggleHint}>
+                  Adds the tracking link above to this order&apos;s WhatsApp stage messages.
+                </span>
               </span>
-            </span>
-            <input
-              type="checkbox"
-              checked={includeTrackingLink}
-              onChange={(e) => handleToggleTrackingLink(e.target.checked)}
-            />
-          </label>
-        </section>
+              <input
+                type="checkbox"
+                checked={includeTrackingLink}
+                onChange={(e) => handleToggleTrackingLink(e.target.checked)}
+              />
+            </label>
+          </section>
+        )}
 
         {/* Activity timeline — full pipeline, done/current/pending. */}
-        <section className={styles.card + ' ' + styles.gaTimeline}>
-          <h3 className={styles.sectionTitle}>Activity Timeline</h3>
-          <div className={styles.timeline}>
-            {ORDER_STATUSES.map((status) => {
-              const entry = order.statusHistory.filter((h) => h.to === status).pop();
-              const currentIndex = ORDER_STATUSES.indexOf(order.status);
-              const stepIndex = ORDER_STATUSES.indexOf(status);
-              // The final stage (Completed/"Delivered") has no "next" to
-              // move on to — once reached it's done, not still "current"
-              // with an in-progress spinner.
-              const isTerminal = status === 'Delivered' && order.status === 'Delivered';
-              const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
-              return (
-                <div key={status} className={styles.timelineStep}>
-                  <div className={styles.timelineLine} />
-                  <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
-                    <Symbol
-                      name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
-                      size={14}
-                    />
+        {(isDesktop || activeTab === 'timeline') && (
+          <section className={styles.card + ' ' + styles.gaTimeline}>
+            <h3 className={styles.sectionTitle}>Activity Timeline</h3>
+            <div className={styles.timeline}>
+              {ORDER_STATUSES.map((status) => {
+                const entry = order.statusHistory.filter((h) => h.to === status).pop();
+                const currentIndex = ORDER_STATUSES.indexOf(order.status);
+                const stepIndex = ORDER_STATUSES.indexOf(status);
+                // The final stage (Completed/"Delivered") has no "next" to
+                // move on to — once reached it's done, not still "current"
+                // with an in-progress spinner.
+                const isTerminal = status === 'Delivered' && order.status === 'Delivered';
+                const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
+                return (
+                  <div key={status} className={styles.timelineStep}>
+                    <div className={styles.timelineLine} />
+                    <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
+                      <Symbol
+                        name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
+                        size={14}
+                      />
+                    </div>
+                    <div>
+                      <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
+                        {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
+                      </p>
+                      <p className={styles.timelineMeta}>
+                        {entry
+                          ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
+                          : state === 'pending' ? 'Pending' : '—'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
-                      {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
-                    </p>
-                    <p className={styles.timelineMeta}>
-                      {entry
-                        ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
-                        : state === 'pending' ? 'Pending' : '—'}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
-        {isOwnerView && (
+        {(isDesktop || activeTab === 'timeline') && isOwnerView && (
           <section className={styles.dangerZone}>
             <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
             <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
@@ -970,31 +1028,49 @@ export default function OrderDetailPage() {
           </section>
         )}
         </div>
+        {!isDesktop && <div className={styles.mobileBottomClearance} />}
       </div>
 
-      {/* Floating WhatsApp shortcut — portaled straight to document.body,
+      {/* Floating mobile sticky bottom bar — portaled straight to document.body,
           see FixedBottomPortal for why. */}
-      {customer && (
-        <>
-          <FixedBottomPortal>
-            <button
-              type="button"
-              onClick={() => setWhatsAppSheetOpen(true)}
-              className={styles.whatsappFab}
-              aria-label={`WhatsApp ${customer.fullName}`}
-            >
-              <WhatsappIcon color="#FFFFFF" size={28} />
-            </button>
-          </FixedBottomPortal>
+      {!isDesktop && (next || customer) && (
+        <FixedBottomPortal>
+          <div className={styles.mobileStickyBottomBar}>
+            {next && (
+              <button
+                type="button"
+                className={styles.stickyAdvanceBtn}
+                onClick={handleAdvance}
+                disabled={advancing}
+              >
+                {advancing && <Symbol name="progress_activity" className="global-spinner" />}
+                <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={18} />
+                <span>Move to {STATUS_CONFIG[next].label}</span>
+              </button>
+            )}
+            {customer && (
+              <button
+                type="button"
+                className={next ? styles.stickyWhatsAppBtn : styles.stickyWhatsAppBtnFull}
+                onClick={() => setWhatsAppSheetOpen(true)}
+                aria-label={`WhatsApp ${customer.fullName}`}
+              >
+                <WhatsappIcon size={22} color="#FFFFFF" />
+                {!next && <span>Message on WhatsApp</span>}
+              </button>
+            )}
+          </div>
+        </FixedBottomPortal>
+      )}
 
-          <WhatsAppOptionsSheet
-            isOpen={whatsAppSheetOpen}
-            onClose={() => setWhatsAppSheetOpen(false)}
-            customerName={customer.fullName}
-            whatsappNumber={customer.whatsappNumber}
-            progressMessage={whatsAppMessage || ''}
-          />
-        </>
+      {customer && (
+        <WhatsAppOptionsSheet
+          isOpen={whatsAppSheetOpen}
+          onClose={() => setWhatsAppSheetOpen(false)}
+          customerName={customer.fullName}
+          whatsappNumber={customer.whatsappNumber}
+          progressMessage={whatsAppMessage || ''}
+        />
       )}
 
 
