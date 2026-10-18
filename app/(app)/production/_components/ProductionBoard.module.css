@@ -68,7 +68,7 @@
 }
 
 .scopeSegmentActive {
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.06);
@@ -87,8 +87,8 @@
 }
 
 .scopeSegmentActive .scopeCountBadge {
-  background: rgba(67, 56, 202, 0.1);
-  color: #4338CA;
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
 }
 
 .opFilterRow {
@@ -304,8 +304,8 @@
   justify-content: center;
   text-align: center;
   padding: 48px 24px;
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-2xl, 16px);
   margin: var(--sf-space-md) 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
@@ -341,7 +341,7 @@
 .crestNeedle {
   position: absolute;
   transform: rotate(24deg) translate(3px, 2px);
-  color: #4338CA;
+  color: var(--sf-accent-emerald);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,7 +369,7 @@
   align-items: center;
   gap: 8px;
   background: var(--sf-text-primary);
-  color: #FFFFFF !important;
+  color: var(--sf-bg-primary) !important;
   padding: 10px 20px;
   border-radius: var(--sf-radius-full);
   font-size: 13px;
@@ -390,7 +390,7 @@
   gap: 6px;
   background: rgba(0, 0, 0, 0.05);
   color: var(--sf-text-primary);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--sf-border-light);
   padding: 8px 16px;
   border-radius: var(--sf-radius-full);
   font-size: 12px;
@@ -401,5 +401,106 @@
 
 .resetFiltersBtn:hover {
   background: rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .scopeSegmentedControl {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  :root:not([data-theme="light"]) .scopeCountBadge {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :root:not([data-theme="light"]) .scopeSegmentActive {
+    background: var(--sf-bg-surface-elevated);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :root:not([data-theme="light"]) .batchFilterChip {
+    background: rgba(99, 102, 241, 0.14);
+    color: #A5B4FC;
+    border-color: rgba(99, 102, 241, 0.28);
+  }
+
+  :root:not([data-theme="light"]) .atelierEmptyContainer {
+    background: var(--sf-bg-surface);
+    border-color: var(--sf-border-light);
+  }
+
+  :root:not([data-theme="light"]) .atelierCrestHalo {
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 70%, transparent 100%);
+    border-color: rgba(99, 102, 241, 0.25);
+  }
+
+  :root:not([data-theme="light"]) .crestNeedle {
+    color: var(--sf-accent-emerald-light);
+  }
+
+  :root:not([data-theme="light"]) .atelierNewOrderBtn {
+    background: #FFFFFF;
+    color: #0D0C17 !important;
+  }
+
+  :root:not([data-theme="light"]) .resetFiltersBtn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  :root:not([data-theme="light"]) .resetFiltersBtn:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+:root[data-theme="dark"] .scopeSegmentedControl {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .scopeCountBadge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:root[data-theme="dark"] .scopeSegmentActive {
+  background: var(--sf-bg-surface-elevated);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="dark"] .batchFilterChip {
+  background: rgba(99, 102, 241, 0.14);
+  color: #A5B4FC;
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+:root[data-theme="dark"] .atelierEmptyContainer {
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-border-light);
+}
+
+:root[data-theme="dark"] .atelierCrestHalo {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 70%, transparent 100%);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+:root[data-theme="dark"] .crestNeedle {
+  color: var(--sf-accent-emerald-light);
+}
+
+:root[data-theme="dark"] .atelierNewOrderBtn {
+  background: #FFFFFF;
+  color: #0D0C17 !important;
+}
+
+:root[data-theme="dark"] .resetFiltersBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .resetFiltersBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 

@@ -1576,7 +1576,7 @@
 }
 
 .mobileActiveTab {
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
   font-weight: var(--sf-weight-bold);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -1594,22 +1594,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.96);
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  background: var(--sf-bg-surface);
+  border-top: 1px solid var(--sf-border-light);
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
   display: flex;
   align-items: center;
   gap: 10px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
   z-index: 50;
-}
-
-@supports (backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)) {
-  .mobileStickyBottomBar {
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
 }
 
 .stickyAdvanceBtn {
@@ -1832,4 +1824,66 @@
   justify-content: flex-end;
   margin-top: 8px;
 }
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card {
+    border-color: var(--sf-border-light);
+  }
+
+  :root:not([data-theme="light"]) .mobileTabRow {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :root:not([data-theme="light"]) .mobileActiveTab {
+    background: var(--sf-bg-surface-elevated);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  :root:not([data-theme="light"]) .mobileStickyBottomBar {
+    background: rgba(27, 26, 43, 0.96);
+    border-top-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  :root:not([data-theme="light"]) .stickyAlterationSquareBtn,
+  :root:not([data-theme="light"]) .stickyAlterationFullBtn {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  :root:not([data-theme="light"]) .stageCurrentBadge {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34D399;
+  }
+}
+
+:root[data-theme="dark"] .card {
+  border-color: var(--sf-border-light);
+}
+
+:root[data-theme="dark"] .mobileTabRow {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="dark"] .mobileActiveTab {
+  background: var(--sf-bg-surface-elevated);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .mobileStickyBottomBar {
+  background: rgba(27, 26, 43, 0.96);
+  border-top-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .stickyAlterationSquareBtn,
+:root[data-theme="dark"] .stickyAlterationFullBtn {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme="dark"] .stageCurrentBadge {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+}
+
 

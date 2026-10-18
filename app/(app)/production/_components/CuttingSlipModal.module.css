@@ -244,3 +244,33 @@
     background: #FFFFFF;
   }
 }
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fabricCard {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  :root:not([data-theme="light"]) .fabricLabel {
+    color: #FBBF24;
+  }
+
+  :root:not([data-theme="light"]) .fabricContent {
+    color: #FDE68A;
+  }
+}
+
+:root[data-theme="dark"] .fabricCard {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+:root[data-theme="dark"] .fabricLabel {
+  color: #FBBF24;
+}
+
+:root[data-theme="dark"] .fabricContent {
+  color: #FDE68A;
+}
+

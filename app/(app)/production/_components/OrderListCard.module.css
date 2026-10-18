@@ -528,3 +528,81 @@
   background: var(--sf-accent-emerald-dark);
 }
 
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card {
+    border-color: var(--sf-border-light);
+  }
+
+  :root:not([data-theme="light"]) .balanceDuePill {
+    background: rgba(245, 158, 11, 0.16);
+    color: #FBBF24;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  :root:not([data-theme="light"]) .paidPill {
+    background: rgba(16, 185, 129, 0.16);
+    color: #34D399;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  :root:not([data-theme="light"]) .claimBtn {
+    background: rgba(16, 185, 129, 0.16);
+    color: #34D399;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  :root:not([data-theme="light"]) .cardActionBtn {
+    background: rgba(30, 27, 46, 0.92);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #EDEDF5;
+  }
+
+  :root:not([data-theme="light"]) .cardActionBtn:hover {
+    background: rgba(45, 41, 68, 0.98);
+  }
+
+  :root:not([data-theme="light"]) .metaRow,
+  :root:not([data-theme="light"]) .footer {
+    border-top-color: var(--sf-border-light);
+  }
+}
+
+:root[data-theme="dark"] .card {
+  border-color: var(--sf-border-light);
+}
+
+:root[data-theme="dark"] .balanceDuePill {
+  background: rgba(245, 158, 11, 0.16);
+  color: #FBBF24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:root[data-theme="dark"] .paidPill {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+:root[data-theme="dark"] .claimBtn {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+:root[data-theme="dark"] .cardActionBtn {
+  background: rgba(30, 27, 46, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #EDEDF5;
+}
+
+:root[data-theme="dark"] .cardActionBtn:hover {
+  background: rgba(45, 41, 68, 0.98);
+}
+
+:root[data-theme="dark"] .metaRow,
+:root[data-theme="dark"] .footer {
+  border-top-color: var(--sf-border-light);
+}
+
+

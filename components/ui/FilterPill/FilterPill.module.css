@@ -91,3 +91,47 @@
 .neutralActive .count {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .neutral {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--sf-text-secondary);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :root:not([data-theme="light"]) .neutral:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--sf-text-primary);
+  }
+
+  :root:not([data-theme="light"]) .count {
+    background: rgba(255, 255, 255, 0.10);
+    color: var(--sf-text-secondary);
+  }
+
+  :root:not([data-theme="light"]) .stage {
+    border-color: color-mix(in srgb, var(--pill-color) 40%, transparent);
+  }
+}
+
+:root[data-theme="dark"] .neutral {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--sf-text-secondary);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .neutral:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-primary);
+}
+
+:root[data-theme="dark"] .count {
+  background: rgba(255, 255, 255, 0.10);
+  color: var(--sf-text-secondary);
+}
+
+:root[data-theme="dark"] .stage {
+  border-color: color-mix(in srgb, var(--pill-color) 40%, transparent);
+}
+
