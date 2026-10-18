@@ -1,6 +1,6 @@
 .cardWrapper {
   position: relative;
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-2xl, 16px);
   overflow: hidden;
 }
 
@@ -39,20 +39,20 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  background: var(--sf-sand);
-  border-radius: var(--sf-radius-md);
-  border: 1px solid var(--sf-border-light);
-  box-shadow: var(--sf-shadow-xs);
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-2xl, 16px);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 16px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: box-shadow var(--sf-transition-fast);
-  animation: cardIn 0.35s ease both;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+  animation: cardIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .claimBtn {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px 8px;
+  gap: 3px;
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
   background: #ECFDF5;
   color: #059669;
@@ -60,7 +60,7 @@
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform var(--sf-transition-fast);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .claimBtn:active {
@@ -68,10 +68,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.card:hover {
-  box-shadow: var(--sf-shadow-md);
-}
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 14px 28px -4px rgba(0, 0, 0, 0.09);
+    border-color: rgba(67, 56, 202, 0.22);
+  }
 }
 
 .draggableCard {
@@ -95,11 +96,21 @@
 .photoArea {
   position: relative;
   width: 100%;
-  height: 176px;
+  height: 184px;
   background: var(--sf-surface-container-high);
   cursor: pointer;
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   transition: filter var(--sf-transition-fast);
+}
+
+.photoArea::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0) 32%, rgba(0, 0, 0, 0) 65%, rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .photoArea:active {
@@ -196,24 +207,24 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #FFFFFF;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .batchBadgeInteractive {
   cursor: pointer;
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease;
 }
 
 .batchBadgeInteractive:hover {
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(15, 23, 42, 0.98);
   transform: scale(1.04);
 }
 
@@ -244,20 +255,18 @@
 }
 
 .cardActionBtn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--sf-radius-full);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(0, 0, 0, 0.08);
   color: var(--sf-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform var(--sf-transition-fast), background-color var(--sf-transition-fast);
-  box-shadow: var(--sf-shadow-xs);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .cardActionBtn:hover {
@@ -266,7 +275,7 @@
 }
 
 .cardActionBtn:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .unreadBadge {
@@ -289,26 +298,26 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .balanceDuePill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
   font-size: 11px;
   font-weight: 700;
-  background: var(--sf-warning-bg, #FEF3C7);
-  color: var(--sf-warning-text, #92400E);
-  border: 1px solid var(--sf-warning-border, #FDE68A);
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
 }
 
 .paidPill {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
   font-size: 11px;
   font-weight: 600;
@@ -321,17 +330,17 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
   font-size: 11px;
   color: var(--sf-text-secondary);
-  background: var(--sf-sand);
-  border: 1px solid var(--sf-border-light);
+  background: rgba(67, 56, 202, 0.05);
+  border: 1px solid rgba(67, 56, 202, 0.12);
 }
 
 /* ── Content ────────────────────────────────────────────────── */
 .content {
-  padding: var(--sf-space-md);
+  padding: 14px 16px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background-color var(--sf-transition-fast);
@@ -354,8 +363,10 @@
 
 .title {
   font-family: var(--sf-font-body);
-  font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-bold);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
   color: var(--sf-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -374,15 +385,15 @@
 }
 
 .customerAvatar {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-surface-container-high);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-bold);
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.08), rgba(99, 102, 241, 0.14));
+  border: 1px solid rgba(67, 56, 202, 0.16);
+  color: var(--sf-accent-emerald);
+  font-size: 13px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -394,9 +405,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--sf-space-sm);
-  margin-top: var(--sf-space-md);
-  padding-top: 12px;
-  border-top: 1px solid var(--sf-border-light);
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   min-width: 0;
 }
 
@@ -465,58 +476,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px var(--sf-space-md);
-  border-top: 1px solid var(--sf-border-light);
+  padding: 10px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .moveBackBtn {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-medium);
+  font-size: 12px;
+  font-weight: 600;
   color: var(--sf-text-secondary);
-  transition: color var(--sf-transition-fast), opacity var(--sf-transition-fast);
-  padding: 6px 4px;
+  transition: color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+  padding: 7px 6px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.moveBackBtn:hover {
-  color: var(--sf-accent-emerald);
+  .moveBackBtn:hover {
+    color: var(--sf-accent-emerald);
+  }
 }
-}
 
-/* Mobile-only — this is the real "advance order status" control on a
-   phone (desktop drags cards between kanban columns instead), so
-   press feedback here matters more than almost anywhere else in the
-   app, not less. */
 .moveBackBtn:active {
   opacity: 0.6;
+  transform: scale(0.96);
 }
 
 .moveNextBtn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 7px 14px;
   background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
-  border-radius: var(--sf-radius-sm);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-bold);
-  box-shadow: var(--sf-shadow-sm);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(16, 185, 129, 0.3);
+  transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.moveNextBtn:hover {
-  background: var(--sf-accent-emerald-light);
-}
+  .moveNextBtn:hover {
+    background: var(--sf-accent-emerald-light);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 4px 12px rgba(16, 185, 129, 0.35);
+  }
 }
 
 .moveNextBtn:active {
   transform: scale(0.95);
   background: var(--sf-accent-emerald-dark);
 }
+

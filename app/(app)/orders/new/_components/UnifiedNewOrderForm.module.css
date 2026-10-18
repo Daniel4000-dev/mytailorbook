@@ -807,10 +807,9 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   color: #fff;
   display: flex;
   align-items: center;
@@ -821,7 +820,7 @@
 }
 
 .removePhotoBtn:hover {
-  background: rgba(220, 38, 38, 0.85);
+  background: rgba(220, 38, 38, 0.95);
   transform: scale(1.08);
 }
 

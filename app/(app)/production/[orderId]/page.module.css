@@ -32,10 +32,10 @@
 .card {
   position: relative;
   background: var(--sf-bg-surface);
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-2xl, 16px);
   padding: var(--sf-space-lg);
-  box-shadow: var(--sf-shadow-sm);
-  border: 1px solid var(--sf-border-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 16px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.07);
 }
 
 /* Cards whose header strip runs edge-to-edge (Inspiration, Gallery) */
@@ -1537,11 +1537,11 @@
 /* ── Mobile Segmented Tab Bar ────────────────────────────────────────── */
 .mobileTabRow {
   display: flex;
-  background: var(--sf-sand);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: var(--sf-radius-full);
   padding: 4px;
   gap: 4px;
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -1567,7 +1567,7 @@
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
-  transition: all var(--sf-transition-fast);
+  transition: all 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1576,10 +1576,10 @@
 }
 
 .mobileActiveTab {
-  background: var(--sf-bg-surface);
+  background: #FFFFFF;
   color: var(--sf-text-primary);
   font-weight: var(--sf-weight-bold);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 @media (min-width: 1024px) {
@@ -1594,16 +1594,22 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--sf-border-light);
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
   z-index: 50;
+}
+
+@supports (backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)) {
+  .mobileStickyBottomBar {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
 }
 
 .stickyAdvanceBtn {
@@ -1611,7 +1617,7 @@
   height: 48px;
   background: var(--sf-accent-emerald);
   color: #FFFFFF;
-  border-radius: var(--sf-radius-md);
+  border-radius: 12px;
   border: none;
   display: flex;
   align-items: center;
@@ -1620,12 +1626,12 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 3px 12px rgba(16, 185, 129, 0.35);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease;
 }
 
 .stickyAdvanceBtn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .stickyAdvanceBtn:disabled {
@@ -1636,7 +1642,7 @@
 .stickyWhatsAppBtn {
   width: 48px;
   height: 48px;
-  border-radius: var(--sf-radius-md);
+  border-radius: 12px;
   background: #25D366;
   color: #FFFFFF;
   border: none;
@@ -1645,7 +1651,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
-  transition: transform var(--sf-transition-fast);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
@@ -1656,7 +1662,7 @@
 .stickyWhatsAppBtnFull {
   flex: 1;
   height: 48px;
-  border-radius: var(--sf-radius-md);
+  border-radius: 12px;
   background: #25D366;
   color: #FFFFFF;
   border: none;
@@ -1668,26 +1674,26 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
-  transition: transform var(--sf-transition-fast);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .stickyWhatsAppBtnFull:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .stickyAlterationSquareBtn {
   width: 48px;
   height: 48px;
-  border-radius: var(--sf-radius-md);
+  border-radius: 12px;
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  border: 1px solid var(--sf-border);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  transition: transform var(--sf-transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
@@ -1698,10 +1704,10 @@
 .stickyAlterationFullBtn {
   flex: 1;
   height: 48px;
-  border-radius: var(--sf-radius-md);
+  border-radius: 12px;
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  border: 1px solid var(--sf-border);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1709,12 +1715,12 @@
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  transition: transform var(--sf-transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .stickyAlterationFullBtn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .mobileBottomClearance {
@@ -1727,6 +1733,7 @@
     display: none;
   }
 }
+
 
 /* ── Stage Picker & Alterations Modal ────────────────────────────── */
 .stageSheetList {

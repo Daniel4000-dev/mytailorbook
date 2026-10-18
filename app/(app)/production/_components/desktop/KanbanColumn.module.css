@@ -4,55 +4,45 @@
   flex: 1 1 0;
   min-width: 280px;
   max-width: 340px;
-  /* Without this, nested flex columns default to min-height:auto at every
-     level, so the browser shrinks cards to fit the constrained column
-     height instead of letting .columnBody scroll — the classic "flex
-     children get squashed instead of scrolling" bug. */
   min-height: 0;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
+  background: rgba(67, 56, 202, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--sf-radius-2xl, 16px);
+  padding: 14px;
   max-height: 100%;
-  /* Tried adding shadow-xs here for consistency with the app's stated
-     "shadows carry separation" rule — an independent review measured it
-     live and found it genuinely imperceptible against the existing 1px
-     border (4% opacity is below the visibility threshold at this size).
-     Consistency with a written rule isn't worth a change nobody can
-     see, so left as border-only. The dropTarget state below keeps its
-     shadow — that one's confirmed visible and useful. */
-  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .column.dropTarget {
-  background: var(--sf-accent-emerald-glow);
+  background: rgba(67, 56, 202, 0.06);
   border-color: var(--sf-accent-emerald);
-  box-shadow: var(--sf-shadow-emerald);
+  box-shadow: 0 0 0 2px var(--sf-accent-emerald), 0 8px 24px rgba(67, 56, 202, 0.14);
 }
 
 .columnHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-sm);
-  border-bottom: 1px solid var(--sf-border-light);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
 
 .columnTitle {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--sf-text-primary);
 }
 
 .columnCount {
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-medium);
+  font-size: 11px;
+  font-weight: 700;
   color: var(--sf-text-secondary);
-  background: var(--sf-bg-surface-hover);
-  padding: 2px 9px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
 }
 
@@ -64,6 +54,17 @@
   flex: 1;
   min-height: 0;
   padding-bottom: var(--sf-space-sm);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+
+.columnBody::-webkit-scrollbar {
+  width: 4px;
+}
+
+.columnBody::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
 }
 
 .columnBody > * {
@@ -71,35 +72,37 @@
 }
 
 .columnEmpty {
-  border: 1px dashed var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
+  border: 1.5px dashed rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
   padding: var(--sf-space-lg);
   text-align: center;
   color: var(--sf-text-tertiary);
   font-size: var(--sf-text-xs);
+  font-weight: 500;
 }
 
 .showMoreBtn {
   width: 100%;
-  padding: var(--sf-space-sm);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-sm);
+  padding: 9px;
+  border: 1px solid rgba(67, 56, 202, 0.18);
+  border-radius: 10px;
   color: var(--sf-accent-emerald);
-  font-weight: var(--sf-weight-semibold);
-  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  font-size: 12px;
   flex-shrink: 0;
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  background: rgba(255, 255, 255, 0.8);
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.showMoreBtn:hover {
-  background: var(--sf-surface-variant);
-}
+  .showMoreBtn:hover {
+    background: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.08);
+  }
 }
 
 .showMoreBtn:active {
   transform: scale(0.98);
-  background: var(--sf-surface-variant);
+  background: rgba(67, 56, 202, 0.08);
 }
-
