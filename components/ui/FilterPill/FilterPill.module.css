@@ -2,73 +2,85 @@
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  height: 40px;
-  padding: 0 20px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: var(--sf-radius-full);
   font-family: var(--sf-font-body);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
+  font-size: 13px;
+  font-weight: 600;
   line-height: 20px;
   border: 1px solid transparent;
-  transition: background-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast), transform var(--sf-transition-fast);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease;
   flex-shrink: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pill:active {
-  transform: scale(0.96);
-  box-shadow: var(--sf-shadow-xs);
+  transform: scale(0.95);
 }
 
-/* Uniform light-indigo track for every idle pill — matches the reference's
-   segmented-control look, where every inactive tab shares one quiet tint
-   and only the selected one goes solid. */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Neutral idle pill */
 .neutral {
-  background: var(--sf-surface-variant);
+  background: rgba(0, 0, 0, 0.04);
   color: var(--sf-text-secondary);
-  border-color: transparent;
+  border-color: rgba(0, 0, 0, 0.05);
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.neutral:hover {
-  background: var(--sf-surface-container-highest);
-}
+  .neutral:hover {
+    background: rgba(0, 0, 0, 0.07);
+    color: var(--sf-text-primary);
+  }
 }
 
 .neutralActive {
   background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
   border-color: var(--sf-accent-emerald);
-  box-shadow: var(--sf-shadow-md);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
 }
 
 .stage {
   background: var(--pill-bg);
   color: var(--pill-color);
-  border-color: color-mix(in srgb, var(--pill-color) 30%, transparent);
+  border-color: color-mix(in srgb, var(--pill-color) 25%, transparent);
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.stage:hover {
-  background: color-mix(in srgb, var(--pill-color) 20%, transparent);
-}
+  .stage:hover {
+    background: color-mix(in srgb, var(--pill-color) 20%, transparent);
+  }
 }
 
 .stageActive {
   background: var(--pill-color);
   color: var(--sf-text-on-accent);
   border-color: var(--pill-color);
-  box-shadow: var(--sf-shadow-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .count {
-  margin-left: 8px;
-  padding: 2px 6px;
-  border-radius: var(--sf-radius-xs);
-  font-size: var(--sf-text-2xs);
-  line-height: 1.2;
-  background: var(--sf-surface-container-high);
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .stage .count {
@@ -77,5 +89,5 @@
 
 .stageActive .count,
 .neutralActive .count {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
 }

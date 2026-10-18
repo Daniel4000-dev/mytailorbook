@@ -434,68 +434,85 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
 
   return (
     <>
-      {/* Search */}
-      <div className={styles.searchBar}>
-        <Symbol name="search" className={styles.searchIcon} />
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder="Search by customer or garment…"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        {searchQuery && (
-          <button type="button" className={styles.searchClearBtn} onClick={() => setSearchQuery('')} aria-label="Clear search">
-            <Symbol name="close" />
-          </button>
+      {/* Atelier Toolbar: Search + Apple Segmented Scope Switcher */}
+      <div className={styles.boardToolbar}>
+        <div className={styles.searchBar}>
+          <Symbol name="search" className={styles.searchIcon} />
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Search by customer or garment…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button type="button" className={styles.searchClearBtn} onClick={() => setSearchQuery('')} aria-label="Clear search">
+              <Symbol name="close" />
+            </button>
+          )}
+        </div>
+
+        {isOwnerLikeRole(userRole) && !staffFilterId && (
+          <div className={styles.scopeSegmentedControl} role="tablist" aria-label="Order Scope">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!filterMyTasks}
+              className={`${styles.scopeSegmentBtn} ${!filterMyTasks ? styles.scopeSegmentActive : ''}`}
+              onClick={() => setFilterMyTasks(false)}
+            >
+              <span>All Orders</span>
+              <span className={styles.scopeCountBadge}>
+                {orders.filter((o) => o.status !== 'Delivered').length}
+              </span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filterMyTasks}
+              className={`${styles.scopeSegmentBtn} ${filterMyTasks ? styles.scopeSegmentActive : ''}`}
+              onClick={() => setFilterMyTasks(true)}
+            >
+              <span>My Orders</span>
+              <span className={styles.scopeCountBadge}>
+                {orders.filter((o) => o.assignedTo === user?.uid && o.status !== 'Delivered').length}
+              </span>
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Owner scope toggle — neutral pills in the new design */}
-      {isOwnerLikeRole(userRole) && !staffFilterId && (
-        <div className={styles.pillRow}>
-          <FilterPill
-            label="All Orders"
-            count={orders.filter((o) => o.status !== 'Delivered').length}
-            active={!filterMyTasks}
-            onClick={() => setFilterMyTasks(false)}
-          />
-          <FilterPill
-            label="My Orders"
-            count={orders.filter((o) => o.assignedTo === user?.uid && o.status !== 'Delivered').length}
-            active={filterMyTasks}
-            onClick={() => setFilterMyTasks(true)}
-          />
-        </div>
-      )}
-
-      {/* Operational Filter Row: Rush, Due Soon, Unpaid */}
-      <div className={styles.pillRow}>
+      {/* Operational Filter Bar: Rush, Due Soon, On Hold, Unpaid (No Emojis) */}
+      <div className={styles.opFilterRow}>
         <FilterPill
           label="All Tasks"
           active={opFilter === 'all'}
           onClick={() => setOpFilter('all')}
         />
         <FilterPill
-          label="⚡ Rush"
+          label="Rush"
+          icon={<Symbol name="bolt" size={12} fill />}
           count={rushCount}
           active={opFilter === 'rush'}
           onClick={() => setOpFilter(opFilter === 'rush' ? 'all' : 'rush')}
         />
         <FilterPill
-          label="⚠️ Due Soon"
+          label="Due Soon"
+          icon={<Symbol name="schedule" size={12} />}
           count={dueCount}
           active={opFilter === 'due'}
           onClick={() => setOpFilter(opFilter === 'due' ? 'all' : 'due')}
         />
         <FilterPill
-          label="🛑 On Hold"
+          label="On Hold"
+          icon={<Symbol name="warning" size={12} />}
           count={holdCount}
           active={opFilter === 'hold'}
           onClick={() => setOpFilter(opFilter === 'hold' ? 'all' : 'hold')}
         />
         <FilterPill
-          label="💰 Unpaid"
+          label="Unpaid"
+          icon={<Symbol name="payments" size={12} />}
           count={unpaidCount}
           active={opFilter === 'unpaid'}
           onClick={() => setOpFilter(opFilter === 'unpaid' ? 'all' : 'unpaid')}
@@ -580,6 +597,14 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           onBatchClick={(batchId) => setBatchFilterId((prev) => (prev === batchId ? null : batchId))}
           onViewCuttingSlip={setCuttingSlipOrder}
           onWhatsApp={handleWhatsApp}
+          onResetFilters={() => {
+            setSearchQuery('');
+            setOpFilter('all');
+            setStageFilter(ALL_FILTER);
+            setStaffFilterId(null);
+            setBatchFilterId(null);
+          }}
+          isFiltered={Boolean(searchQuery || opFilter !== 'all' || stageFilter !== ALL_FILTER || staffFilterId || batchFilterId)}
         />
       )}
 

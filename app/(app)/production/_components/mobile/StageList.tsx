@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import { ORDER_STATUSES, STATUS_CONFIG } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import type { Order, OrderStatus, Role, User } from '@/lib/types';
 import StageBanner from './StageBanner';
 import OrderListCard from '../OrderListCard';
@@ -29,6 +30,8 @@ interface StageListProps {
   onBatchClick?: (batchId: string) => void;
   onViewCuttingSlip?: (order: Order) => void;
   onWhatsApp?: (order: Order) => void;
+  onResetFilters?: () => void;
+  isFiltered?: boolean;
 }
 
 /** Stage filter pills, then vertical stage-by-stage sections of compact
@@ -53,6 +56,8 @@ export default function StageList({
   onBatchClick,
   onViewCuttingSlip,
   onWhatsApp,
+  onResetFilters,
+  isFiltered,
 }: StageListProps) {
   return (
     <>
@@ -74,11 +79,42 @@ export default function StageList({
       </div>
 
       {!hasAnyVisible ? (
-        <EmptyState
-          icon={<Symbol name="checkroom" size={40} />}
-          title="Nothing here yet"
-          description={searchQuery ? 'No orders match your search.' : 'Orders in this stage will appear here.'}
-        />
+        <div className={styles.atelierEmptyContainer}>
+          <div className={styles.atelierCrest}>
+            <div className={styles.atelierCrestHalo} />
+            <div className={styles.crestShears}>
+              <Symbol name="content_cut" size={26} />
+            </div>
+            <div className={styles.crestNeedle}>
+              <Symbol name="needle" size={22} />
+            </div>
+          </div>
+          <h3 className={styles.atelierEmptyTitle}>
+            {searchQuery || isFiltered ? 'No garments match filter' : 'Atelier floor is clear'}
+          </h3>
+          <p className={styles.atelierEmptyDesc}>
+            {searchQuery
+              ? `No active orders found matching "${searchQuery}". Reset filters to see all production orders.`
+              : isFiltered
+              ? 'No orders found for the selected stage or criteria. Try clearing filters to view other orders in production.'
+              : 'Every stitch and cut is accounted for. New garment orders and batch commissions will appear here as they enter production.'}
+          </p>
+          {isFiltered && onResetFilters ? (
+            <button
+              type="button"
+              className={styles.resetFiltersBtn}
+              onClick={onResetFilters}
+            >
+              <Symbol name="close" size={13} />
+              <span>Reset Search & Filters</span>
+            </button>
+          ) : (
+            <Link href={ROUTES.orderNew} className={styles.atelierNewOrderBtn}>
+              <Symbol name="add" size={16} />
+              <span>New Garment Order</span>
+            </Link>
+          )}
+        </div>
       ) : (
         visibleStages.map((status) => {
           const stageOrders = getOrdersByStatus(status);

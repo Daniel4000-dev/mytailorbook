@@ -258,10 +258,16 @@ export default function OrderListCard({
               </span>
             )}
             {order.priority === 'rush' && (
-              <span className={styles.rushBadge}>⚡ RUSH</span>
+              <span className={styles.rushBadge}>
+                <Symbol name="bolt" size={10} fill />
+                <span>RUSH</span>
+              </span>
             )}
             {order.priority === 'urgent' && (
-              <span className={styles.urgentBadge}>URGENT</span>
+              <span className={styles.urgentBadge}>
+                <Symbol name="schedule" size={10} />
+                <span>URGENT</span>
+              </span>
             )}
             {order.batchId && (
               <span
@@ -458,7 +464,7 @@ function DueLine({ order }: { order: Order }) {
 
   let label: string;
   if (isOverdue(order)) label = 'Overdue';
-  else if (order.priority === 'rush') label = dayDiff === 0 ? 'Today (⚡ Rush)' : dayDiff === 1 ? 'Tomorrow (⚡ Rush)' : `${due.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })} (⚡ Rush)`;
+  else if (order.priority === 'rush') label = dayDiff === 0 ? 'Today (Rush)' : dayDiff === 1 ? 'Tomorrow (Rush)' : `${due.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })} (Rush)`;
   else if (dayDiff === 0) label = 'Today';
   else if (dayDiff === 1) label = 'Tomorrow';
   else label = due.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
