@@ -15,6 +15,7 @@ import NotificationBell from '@/components/layout/NotificationBell/NotificationB
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import Input from '@/components/ui/Input/Input';
@@ -73,6 +74,11 @@ export default function OrderDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(false);
   const [editingMeasurements, setEditingMeasurements] = useState(false);
+  const [stagePickerOpen, setStagePickerOpen] = useState(false);
+  const [alterationModalOpen, setAlterationModalOpen] = useState(false);
+  const [alterationNotes, setAlterationNotes] = useState('');
+  const [targetAlterationStage, setTargetAlterationStage] = useState<OrderStatus>('Sewing');
+  const [savingAlteration, setSavingAlteration] = useState(false);
   
   const [loggingException, setLoggingException] = useState(false);
   const [exceptionReason, setExceptionReason] = useState('');
@@ -216,6 +222,61 @@ export default function OrderDetailPage() {
       return;
     }
     await performAdvance(next);
+  };
+
+  const handleSelectStage = async (targetStage: OrderStatus) => {
+    setStagePickerOpen(false);
+    if (!order || targetStage === order.status) return;
+
+    // Moving backward from Ready or Delivered into Sewing or Cutting -> Alteration workflow
+    const isMovingBackwardForRework =
+      (order.status === 'Ready' || order.status === 'Delivered') &&
+      (targetStage === 'Sewing' || targetStage === 'Cutting');
+
+    if (isMovingBackwardForRework) {
+      setTargetAlterationStage(targetStage);
+      setAlterationModalOpen(true);
+      return;
+    }
+
+    // Moving to Delivered
+    if (targetStage === 'Delivered') {
+      if (order.isInternalBatch) {
+        await performAdvance(targetStage);
+      } else if (balanceOwed > 0) {
+        setHandoverSheetOpen(true);
+      } else {
+        setShowAmendmentPrompt(true);
+      }
+      return;
+    }
+
+    await performAdvance(targetStage);
+  };
+
+  const handleConfirmAlteration = async () => {
+    if (!order) return;
+    setSavingAlteration(true);
+    try {
+      const trimmedNotes = alterationNotes.trim();
+      if (trimmedNotes) {
+        const todayStr = new Date().toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' });
+        const alterationHeader = `[Alteration • ${todayStr}${user?.name ? ` by ${user.name}` : ''}]: ${trimmedNotes}`;
+        const updatedDetails = order.orderDetails
+          ? `${alterationHeader}\n\n${order.orderDetails}`
+          : alterationHeader;
+        await updateOrder(order.id, { orderDetails: updatedDetails });
+        setNotesDraft(updatedDetails);
+      }
+      await performAdvance(targetAlterationStage);
+      showToast(`Moved to ${STATUS_CONFIG[targetAlterationStage].label} for alterations`, 'success');
+      setAlterationModalOpen(false);
+      setAlterationNotes('');
+    } catch {
+      showToast('Failed to update order for alteration', 'error');
+    } finally {
+      setSavingAlteration(false);
+    }
   };
 
   const handleRecordPaymentAndDeliver = async (amount: number, method: PaymentMethod, note?: string) => {
@@ -473,16 +534,29 @@ export default function OrderDetailPage() {
            use. Placement is pure CSS grid-area, fully decoupled from DOM
            order, so mobile's flex-column stacking below is completely
            untouched — same source order as always. */}
-        {/* 1. Move to next stage (Desktop top bar) */}
-        {isDesktop && next && (
+        {/* 1. Desktop Stage Action Row */}
+        {isDesktop && (next || order.status === 'Ready' || order.status === 'Delivered') && (
           <div className={styles.advanceRow + ' ' + styles.gaAdvance}>
-            <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
-              <>
+            {(order.status === 'Ready' || order.status === 'Delivered') && (
+              <button
+                type="button"
+                className={styles.reworkBtn}
+                onClick={() => {
+                  setTargetAlterationStage('Sewing');
+                  setAlterationModalOpen(true);
+                }}
+              >
+                <Symbol name="needle" size={16} />
+                <span>{order.status === 'Delivered' ? 'Reopen for Alteration' : 'Needs Alteration'}</span>
+              </button>
+            )}
+            {next && (
+              <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
                 {advancing && <Symbol name="progress_activity" className="global-spinner" />}
                 <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
-                Move to {STATUS_CONFIG[next].label}
-              </>
-            </button>
+                <span>Move to {STATUS_CONFIG[next].label}</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -497,9 +571,17 @@ export default function OrderDetailPage() {
               </div>
             </div>
             <div className={styles.headerRight}>
-              <span className={styles.stagePill} style={{ background: STATUS_CONFIG[order.status].bgColor }}>
-                {STATUS_CONFIG[order.status].label} Stage
-              </span>
+              <button
+                type="button"
+                className={styles.stagePillBtn}
+                style={{ background: STATUS_CONFIG[order.status].bgColor }}
+                onClick={() => setStagePickerOpen(true)}
+                aria-label={`Change stage from ${STATUS_CONFIG[order.status].label}`}
+                title="Tap to change stage"
+              >
+                <span>{STATUS_CONFIG[order.status].label} Stage</span>
+                <Symbol name="expand_more" size={14} />
+              </button>
               {balanceOwed > 0 ? (
                 <span className={styles.balanceHeaderDue}>
                   ₦{formatNumber(balanceOwed)} Due
@@ -1033,10 +1115,22 @@ export default function OrderDetailPage() {
 
       {/* Floating mobile sticky bottom bar — portaled straight to document.body,
           see FixedBottomPortal for why. */}
-      {!isDesktop && (next || customer) && (
+      {!isDesktop && (next || customer || order.status === 'Delivered') && (
         <FixedBottomPortal>
           <div className={styles.mobileStickyBottomBar}>
-            {next && (
+            {order.status === 'Delivered' ? (
+              <button
+                type="button"
+                className={styles.stickyAlterationFullBtn}
+                onClick={() => {
+                  setTargetAlterationStage('Sewing');
+                  setAlterationModalOpen(true);
+                }}
+              >
+                <Symbol name="needle" size={16} />
+                <span>Reopen for Alteration</span>
+              </button>
+            ) : next ? (
               <button
                 type="button"
                 className={styles.stickyAdvanceBtn}
@@ -1047,16 +1141,31 @@ export default function OrderDetailPage() {
                 <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={18} />
                 <span>Move to {STATUS_CONFIG[next].label}</span>
               </button>
+            ) : null}
+
+            {order.status === 'Ready' && (
+              <button
+                type="button"
+                className={styles.stickyAlterationSquareBtn}
+                onClick={() => {
+                  setTargetAlterationStage('Sewing');
+                  setAlterationModalOpen(true);
+                }}
+                aria-label="Send for Alteration"
+                title="Needs Alteration"
+              >
+                <Symbol name="needle" size={18} />
+              </button>
             )}
+
             {customer && (
               <button
                 type="button"
-                className={next ? styles.stickyWhatsAppBtn : styles.stickyWhatsAppBtnFull}
+                className={styles.stickyWhatsAppBtn}
                 onClick={() => setWhatsAppSheetOpen(true)}
                 aria-label={`WhatsApp ${customer.fullName}`}
               >
                 <WhatsappIcon size={22} color="#FFFFFF" />
-                {!next && <span>Message on WhatsApp</span>}
               </button>
             )}
           </div>
@@ -1072,6 +1181,81 @@ export default function OrderDetailPage() {
           progressMessage={whatsAppMessage || ''}
         />
       )}
+
+      {/* 1-Tap Stage Switcher Sheet */}
+      <BottomSheet
+        isOpen={stagePickerOpen}
+        onClose={() => setStagePickerOpen(false)}
+        title="Change Production Stage"
+        variant="modal"
+      >
+        <div className={styles.stageSheetList}>
+          {ORDER_STATUSES.map((status) => {
+            const isCurrent = order.status === status;
+            return (
+              <button
+                key={status}
+                type="button"
+                className={`${styles.stageOptionBtn} ${isCurrent ? styles.stageOptionActive : ''}`}
+                onClick={() => handleSelectStage(status)}
+              >
+                <div className={styles.stageOptionLeft}>
+                  <span
+                    className={styles.stageOptionDot}
+                    style={{ background: STATUS_CONFIG[status].bgColor }}
+                  />
+                  <span className={styles.stageOptionLabel}>{STATUS_CONFIG[status].label} Stage</span>
+                </div>
+                {isCurrent ? (
+                  <span className={styles.stageCurrentBadge}>Current</span>
+                ) : (
+                  <Symbol name="chevron_right" size={18} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </BottomSheet>
+
+      {/* Alterations / Fitting Rework Prompt */}
+      <BottomSheet
+        isOpen={alterationModalOpen}
+        onClose={() => setAlterationModalOpen(false)}
+        title="Send for Alteration / Rework"
+        variant="modal"
+      >
+        <div className={styles.alterationBody}>
+          <p className={styles.alterationDesc}>
+            Specify what fit adjustments or seam alterations are needed. These instructions will be saved to the garment notes and the order will move to <strong>{STATUS_CONFIG[targetAlterationStage].label}</strong>.
+          </p>
+          <textarea
+            className={styles.alterationTextarea}
+            value={alterationNotes}
+            onChange={(e) => setAlterationNotes(e.target.value)}
+            placeholder="e.g. Waist too tight by 1.5 inches, loosen side seams and shorten hem by 1 inch..."
+            autoFocus
+          />
+          <div className={styles.alterationActions}>
+            <Button
+              variant="ghost"
+              onClick={async () => {
+                await performAdvance(targetAlterationStage);
+                setAlterationModalOpen(false);
+                setAlterationNotes('');
+              }}
+            >
+              Skip Note &amp; Move
+            </Button>
+            <Button
+              variant="primary"
+              loading={savingAlteration}
+              onClick={handleConfirmAlteration}
+            >
+              Move to {STATUS_CONFIG[targetAlterationStage].label}
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
 
 
       <ConfirmDialog

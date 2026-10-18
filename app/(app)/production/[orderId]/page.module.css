@@ -63,7 +63,35 @@
 .advanceRow {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: var(--sf-space-sm);
   padding-top: var(--sf-space-sm);
+}
+
+.reworkBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+  padding: 8px 16px;
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  box-shadow: var(--sf-shadow-sm);
+  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reworkBtn:hover {
+    background: var(--sf-bg-surface-hover);
+  }
+}
+
+.reworkBtn:active {
+  transform: scale(0.96);
 }
 
 .advanceBtn {
@@ -72,6 +100,7 @@
   gap: var(--sf-space-sm);
   padding: 8px 24px;
   background: var(--sf-accent-emerald);
+
   color: var(--sf-text-on-accent);
   border-radius: var(--sf-radius-sm);
   font-size: var(--sf-text-sm);
@@ -160,6 +189,31 @@
   color: var(--sf-text-primary);
   white-space: nowrap;
 }
+
+.stagePillBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  transition: transform var(--sf-transition-fast), filter var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.stagePillBtn:hover {
+  filter: brightness(0.96);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.stagePillBtn:active {
+  transform: scale(0.97);
+}
+
 
 .balanceHeaderDue {
   display: inline-flex;
@@ -1621,6 +1675,48 @@
   transform: scale(0.97);
 }
 
+.stickyAlterationSquareBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: transform var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.stickyAlterationSquareBtn:active {
+  transform: scale(0.95);
+}
+
+.stickyAlterationFullBtn {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: transform var(--sf-transition-fast);
+}
+
+.stickyAlterationFullBtn:active {
+  transform: scale(0.97);
+}
+
 .mobileBottomClearance {
   height: 72px;
 }
@@ -1630,5 +1726,103 @@
   .mobileBottomClearance {
     display: none;
   }
+}
+
+/* ── Stage Picker & Alterations Modal ────────────────────────────── */
+.stageSheetList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px 24px 20px;
+}
+
+.stageOptionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  cursor: pointer;
+  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast);
+}
+
+.stageOptionBtn:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border-focus);
+}
+
+.stageOptionActive {
+  border-color: var(--sf-accent-emerald);
+  background: color-mix(in srgb, var(--sf-accent-emerald) 6%, var(--sf-bg-surface));
+}
+
+.stageOptionLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stageOptionDot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--sf-radius-full);
+}
+
+.stageOptionLabel {
+  font-size: 15px;
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+}
+
+.stageCurrentBadge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.alterationBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px 24px 20px;
+}
+
+.alterationDesc {
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.alterationTextarea {
+  width: 100%;
+  min-height: 100px;
+  background: var(--sf-bg-primary);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+  padding: 12px;
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-sm);
+  color: var(--sf-text-primary);
+  resize: vertical;
+}
+
+.alterationTextarea:focus {
+  outline: none;
+  border-color: var(--sf-border-focus);
+}
+
+.alterationActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
