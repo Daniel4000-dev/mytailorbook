@@ -1,550 +1,366 @@
-/**
- * MyStitchBook Mock Data
- *
- * For demonstration purposes. Provides initial state for the context providers.
- */
+import type { Order, Customer, User, ShopException } from '@/lib/types';
 
-import type { User, Customer, Order, ActivityItem, Shop } from './types';
-import { APP_CONFIG } from './config';
-
-// ----------------------------------------------------------------------
-// SHOP (Tenant)
-// ----------------------------------------------------------------------
-
-export const MOCK_SHOP_ID = 'shop-001';
-
-export const MOCK_SHOP: Shop = {
-  id: MOCK_SHOP_ID,
-  slug: 'adebayo-fashion-studio',
-  name: 'Adebayo Fashion Studio',
-  phone: '2348012345678',
-  address: 'Lagos, Nigeria',
-  ownerUid: 'user-owner-001',
-  createdAt: '2024-01-15T09:00:00Z',
-  orgId: 'org-001',
-  isPrimary: true,
-  portfolioTemplate: 'modern',
-  portfolioAccent: 'indigo',
-  portfolioSettings: {},
-  subscriptionStatus: 'free',
-  defaultTrackingLinkEnabled: true,
-};
-
-export const MOCK_SHOPS: Shop[] = [MOCK_SHOP];
-
-// ----------------------------------------------------------------------
-// USERS (Auth)
-//   ADMIN:  adebayo@masterfit.ng  / password123
-//   STAFF:  chioma@masterfit.ng   / password123
-//   STAFF:  tunde@masterfit.ng    / password123
-// ----------------------------------------------------------------------
-
-const RAW_MOCK_USERS: Omit<User, 'shopId'>[] = [
+export const MOCK_STAFF: User[] = [
   {
-    uid: 'user-owner-001',
-    name: 'Adebayo Fashola',
-    email: `adebayo@${APP_CONFIG.domain}`,
+    uid: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e',
+    name: 'Daniel Adekunle',
+    email: 'dadekunle31@gmail.com',
     role: 'OrgAdmin',
-    orgId: 'org-001',
-    createdAt: '2024-01-15T09:00:00Z',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    orgId: 'c8d30370-75ab-43d5-8c3b-fafaf098ebb2',
+    active: true,
+    createdAt: new Date().toISOString(),
   },
   {
-    uid: 'user-staff-001',
-    name: 'Chioma Eze',
-    email: `chioma@${APP_CONFIG.domain}`,
+    uid: 'staff-emeka-01',
+    name: 'Emeka Eze',
+    email: 'emeka@atelier.test',
     role: 'Staff',
-    orgId: 'org-001',
-    createdAt: '2024-03-10T11:00:00Z',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    orgId: 'c8d30370-75ab-43d5-8c3b-fafaf098ebb2',
+    active: true,
+    createdAt: new Date().toISOString(),
   },
   {
-    uid: 'user-staff-002',
-    name: 'Tunde Bakare',
-    email: `tunde@${APP_CONFIG.domain}`,
+    uid: 'staff-blessing-02',
+    name: 'Blessing Oladipo',
+    email: 'blessing@atelier.test',
     role: 'Staff',
-    orgId: 'org-001',
-    createdAt: '2024-06-01T08:30:00Z',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    orgId: 'c8d30370-75ab-43d5-8c3b-fafaf098ebb2',
+    active: true,
+    createdAt: new Date().toISOString(),
   },
 ];
 
-export const MOCK_USERS: User[] = RAW_MOCK_USERS.map((u) => ({ ...u, shopId: MOCK_SHOP_ID }));
-
-const RAW_MOCK_CUSTOMERS: Omit<Customer, 'shopId'>[] = [
+export const MOCK_CUSTOMERS: Customer[] = [
   {
-    id: 'cust-001',
-    fullName: 'Chief Emeka Okafor',
-    whatsappNumber: '2348012345678',
+    id: 'mock-cust-01',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Chief Adeleke Adeleke',
+    whatsappNumber: '2348031234567',
     gender: 'male',
-    measurements: {
-      chest: 44, waist: 38, hips: 42, shoulder: 19,
-      sleeveLength: 25, neck: 16.5, trouserLength: 42,
-      notes: 'Prefers slightly loose fit on agbada',
-    },
-    createdAt: '2024-02-10T10:00:00Z',
+    preferredStyles: ['Agbada', 'Senator'],
+    createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
   },
   {
-    id: 'cust-002',
-    fullName: 'Mrs. Folake Adeyemi',
-    whatsappNumber: '2348098765432',
+    id: 'mock-cust-02',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Dr. Folashade Alakija',
+    whatsappNumber: '2348029876543',
     gender: 'female',
-    measurements: {
-      bust: 38, waist: 30, hips: 42, shoulder: 15,
-      sleeveLength: 22, dressLength: 45,
-      notes: 'Allergic to certain synthetic fabrics',
-    },
-    createdAt: '2024-03-15T14:30:00Z',
+    preferredStyles: ['Evening Gown', 'Corset Dress'],
+    createdAt: new Date(Date.now() - 25 * 86400000).toISOString(),
   },
   {
-    id: 'cust-003',
-    fullName: 'Alhaji Musa Ibrahim',
-    whatsappNumber: '2348055512345',
+    id: 'mock-cust-03',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Senator Ken Nnamani',
+    whatsappNumber: '2348055551234',
     gender: 'male',
-    measurements: {
-      chest: 46, waist: 40, hips: 44, shoulder: 20,
-      sleeveLength: 26, neck: 17, trouserLength: 43,
-    },
-    createdAt: '2024-04-02T09:15:00Z',
+    preferredStyles: ['Dinner Suit', 'Senator'],
+    createdAt: new Date(Date.now() - 20 * 86400000).toISOString(),
   },
   {
-    id: 'cust-004',
-    fullName: 'Dr. Ngozi Ibe',
-    whatsappNumber: '2348033344455',
+    id: 'mock-cust-04',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Hajiya Amina Bello',
+    whatsappNumber: '2348081112233',
     gender: 'female',
-    measurements: {
-      bust: 36, waist: 28, hips: 40, shoulder: 14.5,
-      sleeveLength: 21, dressLength: 40,
-    },
-    createdAt: '2024-05-20T11:45:00Z',
+    preferredStyles: ['Lace Peplum', 'Buba & Wrapper'],
+    createdAt: new Date(Date.now() - 15 * 86400000).toISOString(),
   },
   {
-    id: 'cust-005',
-    fullName: 'Pastor David Okonkwo',
-    whatsappNumber: '2348077788899',
+    id: 'mock-cust-05',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Bankole Wellington',
+    whatsappNumber: '2348064445566',
     gender: 'male',
-    measurements: {
-      chest: 42, waist: 36, hips: 40, shoulder: 18.5,
-      sleeveLength: 24.5, neck: 16, trouserLength: 41,
-    },
-    createdAt: '2024-06-01T16:00:00Z',
+    preferredStyles: ['Kaftan', 'Bespoke Suit'],
+    createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
   },
   {
-    id: 'cust-006',
-    fullName: 'Aisha Bello',
-    whatsappNumber: '2348066677788',
+    id: 'mock-cust-06',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Tiwa Savage-Balogun',
+    whatsappNumber: '2348077778899',
     gender: 'female',
-    measurements: {
-      bust: 34, waist: 26, hips: 38, shoulder: 14,
-      sleeveLength: 21, dressLength: 52,
-      notes: 'Full length preferred for kaftans',
-    },
-    createdAt: '2024-07-12T13:20:00Z',
+    preferredStyles: ['Mermaid Dress', 'Aso-Ebi'],
+    createdAt: new Date(Date.now() - 8 * 86400000).toISOString(),
   },
   {
-    id: 'cust-007',
-    fullName: 'Barr. Chidi Nwankwo',
-    whatsappNumber: '2348044455566',
+    id: 'mock-cust-07',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    fullName: 'Kunle Afolayan',
+    whatsappNumber: '2348090001122',
     gender: 'male',
-    measurements: {
-      chest: 40, waist: 34, hips: 38, shoulder: 18,
-      sleeveLength: 24, neck: 15.5, trouserLength: 40,
-    },
-    createdAt: '2024-08-05T10:10:00Z',
-  },
-  {
-    id: 'cust-008',
-    fullName: 'Iyabo Ogundimu',
-    whatsappNumber: '2348022233344',
-    gender: 'female',
-    measurements: {
-      bust: 40, waist: 32, hips: 44, shoulder: 16,
-      sleeveLength: 22, dressLength: 44,
-      notes: 'Prefers peplum styles',
-    },
-    createdAt: '2024-09-18T15:30:00Z',
+    preferredStyles: ['Senator', 'Kaftan'],
+    createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
   },
 ];
 
-export const MOCK_CUSTOMERS: Customer[] = RAW_MOCK_CUSTOMERS.map((c) => ({ ...c, shopId: MOCK_SHOP_ID }));
+const now = Date.now();
+const oneDay = 86400000;
 
-const RAW_MOCK_ORDERS: Omit<Order, 'shopId'>[] = [
-  // ── Cutting stage ──────────────────────────────────────
+export const MOCK_ORDERS: Order[] = [
+  // 1. Documented
   {
-    id: 'ord-001',
-    customerId: 'cust-001',
-    customerName: 'Chief Emeka Okafor',
-    orderDetails: '3-piece Agbada set — Royal blue Senator fabric, gold embroidery on collar and sleeves. Cap included.',
+    id: 'mock-order-01',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-01',
+    customerName: 'Chief Adeleke Adeleke',
+    orderDetails: 'Royal Indigo Agbada with Hand-Embroidered Aso-Oke Chevrons',
     totalBill: 185000,
     depositPaid: 100000,
     status: 'Documented',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    dueDate: '2025-06-28T00:00:00Z',
-    priority: 'urgent',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Documented', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-18T09:00:00Z' },
-    ],
-    createdAt: '2025-06-18T09:00:00Z',
-    updatedAt: '2025-06-18T09:00:00Z',
-  },
-  {
-    id: 'ord-002',
-    customerId: 'cust-004',
-    customerName: 'Dr. Ngozi Ibe',
-    orderDetails: 'Ankara skirt & blouse — Flared skirt with peplum blouse, Vlisco Holland print.',
-    totalBill: 75000,
-    depositPaid: 40000,
-    status: 'Documented',
-    assignedTo: 'user-staff-002',
-    assignedToName: 'Tunde Bakare',
-    dueDate: '2025-06-30T00:00:00Z',
+    dueDate: new Date(now + 5 * oneDay).toISOString().split('T')[0],
     priority: 'normal',
-    images: [],
     statusHistory: [
-      { from: null, to: 'Documented', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-19T10:30:00Z' },
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 2 * oneDay).toISOString() }
     ],
-    createdAt: '2025-06-19T10:30:00Z',
-    updatedAt: '2025-06-19T10:30:00Z',
-  },
-  {
-    id: 'ord-003',
-    customerId: 'cust-006',
-    customerName: 'Aisha Bello',
-    orderDetails: 'Kaftan dress — Chiffon with lace overlay, dusty pink, full-length with bell sleeves.',
-    totalBill: 95000,
-    depositPaid: 50000,
-    status: 'Cutting',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    dueDate: '2025-06-25T00:00:00Z',
-    priority: 'rush',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-20T08:15:00Z' },
+    payments: [
+      { id: 'pay-01', amount: 100000, note: 'Initial 50% deposit via bank transfer', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 2 * oneDay).toISOString() }
     ],
-    createdAt: '2025-06-20T08:15:00Z',
-    updatedAt: '2025-06-20T08:15:00Z',
+    createdAt: new Date(now - 2 * oneDay).toISOString(),
+    updatedAt: new Date(now - 2 * oneDay).toISOString(),
   },
-
-  // ── Sewing stage ───────────────────────────────────────
+  // 2. Documented (Urgent, Due Tomorrow)
   {
-    id: 'ord-004',
-    customerId: 'cust-002',
-    customerName: 'Mrs. Folake Adeyemi',
-    orderDetails: 'Aso-oke set for wedding — Burgundy and gold, Iro & Buba with Gele. Matching Fila for husband.',
-    totalBill: 350000,
-    depositPaid: 200000,
-    status: 'Sewing',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    dueDate: '2025-06-27T00:00:00Z',
+    id: 'mock-order-02',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-02',
+    customerName: 'Dr. Folashade Alakija',
+    orderDetails: 'Champagne Silk Corset Reception Gown with Feather Trim',
+    totalBill: 240000,
+    depositPaid: 150000,
+    status: 'Documented',
+    dueDate: new Date(now + 1 * oneDay).toISOString().split('T')[0],
     priority: 'urgent',
-    images: [],
     statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-12T14:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-06-16T11:00:00Z' },
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 1 * oneDay).toISOString() }
     ],
-    createdAt: '2025-06-12T14:00:00Z',
-    updatedAt: '2025-06-16T11:00:00Z',
+    payments: [
+      { id: 'pay-02', amount: 150000, note: 'Deposit', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 1 * oneDay).toISOString() }
+    ],
+    createdAt: new Date(now - 1 * oneDay).toISOString(),
+    updatedAt: new Date(now - 1 * oneDay).toISOString(),
   },
+  // 3. Cutting (Assigned to Emeka)
   {
-    id: 'ord-005',
-    customerId: 'cust-003',
-    customerName: 'Alhaji Musa Ibrahim',
-    orderDetails: 'Babariga — White jacquard fabric with silver embroidery. Matching trousers and cap.',
+    id: 'mock-order-03',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-03',
+    customerName: 'Senator Ken Nnamani',
+    orderDetails: 'Emerald Velvet Double-Breasted Dinner Tuxedo',
+    totalBill: 210000,
+    depositPaid: 120000,
+    status: 'Cutting',
+    assignedTo: 'staff-emeka-01',
+    assignedToName: 'Emeka Eze',
+    dueDate: new Date(now + 4 * oneDay).toISOString().split('T')[0],
+    priority: 'normal',
+    statusHistory: [
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 3 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 1 * oneDay).toISOString() }
+    ],
+    payments: [
+      { id: 'pay-03', amount: 120000, note: 'Card payment', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 3 * oneDay).toISOString() }
+    ],
+    createdAt: new Date(now - 3 * oneDay).toISOString(),
+    updatedAt: new Date(now - 1 * oneDay).toISOString(),
+  },
+  // 4. Cutting (On Hold Exception + Assigned to Blessing)
+  {
+    id: 'mock-order-04',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-04',
+    customerName: 'Hajiya Amina Bello',
+    orderDetails: 'Ruby Red Chantilly Lace Peplum Blouse & Wrapper',
+    totalBill: 130000,
+    depositPaid: 70000,
+    status: 'Cutting',
+    assignedTo: 'staff-blessing-02',
+    assignedToName: 'Blessing Oladipo',
+    dueDate: new Date(now + 6 * oneDay).toISOString().split('T')[0],
+    priority: 'normal',
+    statusHistory: [
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 2 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-blessing-02', changedByName: 'Blessing Oladipo', timestamp: new Date(now - 12 * 3600000).toISOString() }
+    ],
+    payments: [
+      { id: 'pay-04', amount: 70000, note: 'Deposit', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 2 * oneDay).toISOString() }
+    ],
+    createdAt: new Date(now - 2 * oneDay).toISOString(),
+    updatedAt: new Date(now - 12 * 3600000).toISOString(),
+  },
+  // 5. Cutting (Batch item 1)
+  {
+    id: 'mock-order-05',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    isInternalBatch: true,
+    batchId: 'rtw-batch-sand-01',
+    customerName: 'Internal Production',
+    orderDetails: 'Ready-To-Wear: Sand Linen Safari Jacket (Batch of 4)',
+    totalBill: 160000,
+    depositPaid: 160000,
+    status: 'Cutting',
+    assignedTo: 'staff-emeka-01',
+    assignedToName: 'Emeka Eze',
+    dueDate: new Date(now + 7 * oneDay).toISOString().split('T')[0],
+    priority: 'normal',
+    batchSizes: [
+      { size: 'M', quantity: 2 },
+      { size: 'L', quantity: 2 },
+    ],
+    statusHistory: [
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 2 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 1 * oneDay).toISOString() }
+    ],
+    payments: [],
+    createdAt: new Date(now - 2 * oneDay).toISOString(),
+    updatedAt: new Date(now - 1 * oneDay).toISOString(),
+  },
+  // 6. Sewing (Rush, Overdue!)
+  {
+    id: 'mock-order-06',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-05',
+    customerName: 'Bankole Wellington',
+    orderDetails: 'Midnight Black Kaftan with Gold Collar Piping',
+    totalBill: 110000,
+    depositPaid: 60000,
+    status: 'Sewing',
+    assignedTo: 'staff-blessing-02',
+    assignedToName: 'Blessing Oladipo',
+    dueDate: new Date(now - 1 * oneDay).toISOString().split('T')[0], // Overdue by 1 day!
+    priority: 'rush',
+    statusHistory: [
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 5 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 4 * oneDay).toISOString() },
+      { from: 'Cutting', to: 'Sewing', changedBy: 'staff-blessing-02', changedByName: 'Blessing Oladipo', timestamp: new Date(now - 2 * oneDay).toISOString() }
+    ],
+    payments: [
+      { id: 'pay-06', amount: 60000, note: 'Deposit', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 5 * oneDay).toISOString() }
+    ],
+    createdAt: new Date(now - 5 * oneDay).toISOString(),
+    updatedAt: new Date(now - 2 * oneDay).toISOString(),
+  },
+  // 7. Sewing (Due soon, Fully Paid, Assigned to Daniel)
+  {
+    id: 'mock-order-07',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-06',
+    customerName: 'Tiwa Savage-Balogun',
+    orderDetails: 'Gold Damask Aso-Ebi Mermaid Dress',
+    totalBill: 195000,
+    depositPaid: 195000, // Fully Paid!
+    status: 'Sewing',
+    assignedTo: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e',
+    assignedToName: 'Daniel Adekunle',
+    dueDate: new Date(now + 2 * oneDay).toISOString().split('T')[0],
+    priority: 'normal',
+    statusHistory: [
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 4 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 3 * oneDay).toISOString() },
+      { from: 'Cutting', to: 'Sewing', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 1 * oneDay).toISOString() }
+    ],
+    payments: [
+      { id: 'pay-07', amount: 195000, note: 'Full payment up-front', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 4 * oneDay).toISOString() }
+    ],
+    createdAt: new Date(now - 4 * oneDay).toISOString(),
+    updatedAt: new Date(now - 1 * oneDay).toISOString(),
+  },
+  // 8. Sewing (Batch item 2)
+  {
+    id: 'mock-order-08',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    isInternalBatch: true,
+    batchId: 'rtw-batch-sand-01',
+    customerName: 'Internal Production',
+    orderDetails: 'Ready-To-Wear: Sand Linen Trousers (Batch of 4)',
     totalBill: 120000,
     depositPaid: 120000,
     status: 'Sewing',
-    assignedTo: 'user-staff-002',
-    assignedToName: 'Tunde Bakare',
-    dueDate: '2025-06-29T00:00:00Z',
+    assignedTo: 'staff-emeka-01',
+    assignedToName: 'Emeka Eze',
+    dueDate: new Date(now + 7 * oneDay).toISOString().split('T')[0],
     priority: 'normal',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-14T09:45:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-06-17T10:00:00Z' },
+    batchSizes: [
+      { size: 'M', quantity: 2 },
+      { size: 'L', quantity: 2 },
     ],
-    createdAt: '2025-06-14T09:45:00Z',
-    updatedAt: '2025-06-17T10:00:00Z',
-  },
-  {
-    id: 'ord-006',
-    customerId: 'cust-005',
-    customerName: 'Pastor David Okonkwo',
-    orderDetails: 'English suit — Navy blue Italian wool, slim fit, 2-button. Matching waistcoat included.',
-    totalBill: 250000,
-    depositPaid: 150000,
-    status: 'Sewing',
-    assignedTo: 'user-staff-002',
-    assignedToName: 'Tunde Bakare',
-    dueDate: '2025-07-05T00:00:00Z',
-    priority: 'normal',
-    images: [],
     statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-10T11:30:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-06-15T16:00:00Z' },
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 3 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 2 * oneDay).toISOString() },
+      { from: 'Cutting', to: 'Sewing', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 1 * oneDay).toISOString() }
     ],
-    createdAt: '2025-06-10T11:30:00Z',
-    updatedAt: '2025-06-15T16:00:00Z',
+    payments: [],
+    createdAt: new Date(now - 3 * oneDay).toISOString(),
+    updatedAt: new Date(now - 1 * oneDay).toISOString(),
   },
+  // 9. Ready (Fully Paid, Assigned to Daniel)
   {
-    id: 'ord-007',
-    customerId: 'cust-008',
-    customerName: 'Iyabo Ogundimu',
-    orderDetails: 'Lace Iro & Buba — French lace, emerald green with gold gele and ipele.',
-    totalBill: 280000,
-    depositPaid: 150000,
-    status: 'Sewing',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    dueDate: '2025-06-26T00:00:00Z',
-    priority: 'rush',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-08T13:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-06-14T09:30:00Z' },
-    ],
-    createdAt: '2025-06-08T13:00:00Z',
-    updatedAt: '2025-06-14T09:30:00Z',
-  },
-
-  // ── Ready stage ────────────────────────────────────────
-  {
-    id: 'ord-008',
-    customerId: 'cust-007',
-    customerName: 'Barr. Chidi Nwankwo',
-    orderDetails: 'Isiagu top — Traditional Igbo lion-head pattern with plain black trousers.',
-    totalBill: 85000,
-    depositPaid: 85000,
+    id: 'mock-order-09',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-07',
+    customerName: 'Kunle Afolayan',
+    orderDetails: 'Ivory & Bronze Brocade 3-Piece Senator Suit',
+    totalBill: 160000,
+    depositPaid: 160000, // Fully Paid!
     status: 'Ready',
-    assignedTo: 'user-staff-002',
-    assignedToName: 'Tunde Bakare',
-    dueDate: '2025-06-20T00:00:00Z',
+    assignedTo: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e',
+    assignedToName: 'Daniel Adekunle',
+    dueDate: new Date(now).toISOString().split('T')[0],
     priority: 'normal',
-    images: [],
     statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-05T10:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-06-10T09:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-06-18T14:00:00Z' },
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 7 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 5 * oneDay).toISOString() },
+      { from: 'Cutting', to: 'Sewing', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 3 * oneDay).toISOString() },
+      { from: 'Sewing', to: 'Ready', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 4 * 3600000).toISOString() }
     ],
-    createdAt: '2025-06-05T10:00:00Z',
-    updatedAt: '2025-06-18T14:00:00Z',
+    payments: [
+      { id: 'pay-09', amount: 160000, note: 'POS', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 7 * oneDay).toISOString() }
+    ],
+    createdAt: new Date(now - 7 * oneDay).toISOString(),
+    updatedAt: new Date(now - 4 * 3600000).toISOString(),
   },
+  // 10. Ready (Balance Due ₦80,000!)
   {
-    id: 'ord-009',
-    customerId: 'cust-001',
-    customerName: 'Chief Emeka Okafor',
-    orderDetails: 'Dashiki shirt — Cotton, earth-tone print, relaxed fit for casual wear.',
-    totalBill: 35000,
-    depositPaid: 35000,
+    id: 'mock-order-10',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    customerId: 'mock-cust-02',
+    customerName: 'Dr. Folashade Alakija',
+    orderDetails: 'Crimson Silk Corset Evening Dress with Gold Beadwork',
+    totalBill: 180000,
+    depositPaid: 100000, // ₦80k balance due
     status: 'Ready',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    dueDate: '2025-06-21T00:00:00Z',
+    assignedTo: 'staff-blessing-02',
+    assignedToName: 'Blessing Oladipo',
+    dueDate: new Date(now + 2 * oneDay).toISOString().split('T')[0],
     priority: 'normal',
-    images: [],
     statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-06T09:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-06-12T10:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-06-19T11:30:00Z' },
+      { from: null, to: 'Documented', changedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', changedByName: 'Daniel Adekunle', timestamp: new Date(now - 6 * oneDay).toISOString() },
+      { from: 'Documented', to: 'Cutting', changedBy: 'staff-emeka-01', changedByName: 'Emeka Eze', timestamp: new Date(now - 4 * oneDay).toISOString() },
+      { from: 'Cutting', to: 'Sewing', changedBy: 'staff-blessing-02', changedByName: 'Blessing Oladipo', timestamp: new Date(now - 2 * oneDay).toISOString() },
+      { from: 'Sewing', to: 'Ready', changedBy: 'staff-blessing-02', changedByName: 'Blessing Oladipo', timestamp: new Date(now - 6 * 3600000).toISOString() }
     ],
-    createdAt: '2025-06-06T09:00:00Z',
-    updatedAt: '2025-06-19T11:30:00Z',
-  },
-  {
-    id: 'ord-010',
-    customerId: 'cust-004',
-    customerName: 'Dr. Ngozi Ibe',
-    orderDetails: 'Corporate dress — Fitted sheath dress, navy blue crepe fabric with peplum detail.',
-    totalBill: 65000,
-    depositPaid: 30000,
-    status: 'Ready',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    dueDate: '2025-06-22T00:00:00Z',
-    priority: 'urgent',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-03T15:20:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-06-10T09:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-06-18T16:45:00Z' },
+    payments: [
+      { id: 'pay-10', amount: 100000, note: 'Deposit', recordedBy: 'f0c51a0c-6bfd-423b-a3db-7c4eca91875e', recordedByName: 'Daniel Adekunle', timestamp: new Date(now - 6 * oneDay).toISOString() }
     ],
-    createdAt: '2025-06-03T15:20:00Z',
-    updatedAt: '2025-06-18T16:45:00Z',
-  },
-
-  // ── Completed stage ────────────────────────────────────
-  {
-    id: 'ord-011',
-    customerId: 'cust-002',
-    customerName: 'Mrs. Folake Adeyemi',
-    orderDetails: 'Sunday dress — Chiffon gown, coral pink, A-line with lace sleeves.',
-    totalBill: 55000,
-    depositPaid: 55000,
-    status: 'Delivered',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    priority: 'normal',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-20T10:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-05-24T09:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-05-30T14:00:00Z' },
-      { from: 'Ready', to: 'Delivered', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-06-01T12:00:00Z' },
-    ],
-    createdAt: '2025-05-20T10:00:00Z',
-    updatedAt: '2025-06-01T12:00:00Z',
-  },
-  {
-    id: 'ord-012',
-    customerId: 'cust-003',
-    customerName: 'Alhaji Musa Ibrahim',
-    orderDetails: 'Casual Senator — Light grey linen, short-sleeve, with matching trousers.',
-    totalBill: 65000,
-    depositPaid: 65000,
-    status: 'Delivered',
-    assignedTo: 'user-staff-002',
-    assignedToName: 'Tunde Bakare',
-    priority: 'normal',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-15T09:30:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-05-20T10:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-05-26T14:00:00Z' },
-      { from: 'Ready', to: 'Delivered', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-28T14:00:00Z' },
-    ],
-    createdAt: '2025-05-15T09:30:00Z',
-    updatedAt: '2025-05-28T14:00:00Z',
-  },
-  {
-    id: 'ord-013',
-    customerId: 'cust-006',
-    customerName: 'Aisha Bello',
-    orderDetails: 'Abaya set — Black with silver stone embellishments, matching hijab and undercap.',
-    totalBill: 45000,
-    depositPaid: 45000,
-    status: 'Delivered',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    priority: 'normal',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-10T12:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-05-14T09:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-05-20T14:00:00Z' },
-      { from: 'Ready', to: 'Delivered', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-22T10:00:00Z' },
-    ],
-    createdAt: '2025-05-10T12:00:00Z',
-    updatedAt: '2025-05-22T10:00:00Z',
-  },
-  {
-    id: 'ord-014',
-    customerId: 'cust-005',
-    customerName: 'Pastor David Okonkwo',
-    orderDetails: 'Choir robe — White polyester with gold sash and cross embroidery on back.',
-    totalBill: 40000,
-    depositPaid: 40000,
-    status: 'Delivered',
-    assignedTo: 'user-staff-002',
-    assignedToName: 'Tunde Bakare',
-    priority: 'normal',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-05T11:00:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-05-10T09:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-002', changedByName: 'Tunde Bakare', timestamp: '2025-05-16T14:00:00Z' },
-      { from: 'Ready', to: 'Delivered', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-18T15:30:00Z' },
-    ],
-    createdAt: '2025-05-05T11:00:00Z',
-    updatedAt: '2025-05-18T15:30:00Z',
-  },
-  {
-    id: 'ord-015',
-    customerId: 'cust-008',
-    customerName: 'Iyabo Ogundimu',
-    orderDetails: 'Casual Ankara top — Off-shoulder crop with puff sleeves, multi-color wax print.',
-    totalBill: 25000,
-    depositPaid: 25000,
-    status: 'Delivered',
-    assignedTo: 'user-staff-001',
-    assignedToName: 'Chioma Eze',
-    priority: 'normal',
-    images: [],
-    statusHistory: [
-      { from: null, to: 'Cutting', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-04-28T14:15:00Z' },
-      { from: 'Cutting', to: 'Sewing', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-05-02T09:00:00Z' },
-      { from: 'Sewing', to: 'Ready', changedBy: 'user-staff-001', changedByName: 'Chioma Eze', timestamp: '2025-05-08T14:00:00Z' },
-      { from: 'Ready', to: 'Delivered', changedBy: 'user-owner-001', changedByName: 'Adebayo Fashola', timestamp: '2025-05-10T09:00:00Z' },
-    ],
-    createdAt: '2025-04-28T14:15:00Z',
-    updatedAt: '2025-05-10T09:00:00Z',
+    createdAt: new Date(now - 6 * oneDay).toISOString(),
+    updatedAt: new Date(now - 6 * 3600000).toISOString(),
   },
 ];
 
-export const MOCK_ORDERS: Order[] = RAW_MOCK_ORDERS.map((o) => ({ ...o, shopId: MOCK_SHOP_ID }));
-
-export const MOCK_ACTIVITIES: ActivityItem[] = [
+export const MOCK_EXCEPTIONS: ShopException[] = [
   {
-    id: 'act-001',
-    orderRef: 'ord-008',
-    customerName: 'Barr. Chidi Nwankwo',
-    action: 'Order moved to Ready',
-    performedBy: 'Tunde Bakare',
-    timestamp: '2025-06-18T14:00:00Z',
-  },
-  {
-    id: 'act-002',
-    orderRef: 'ord-003',
-    customerName: 'Aisha Bello',
-    action: 'New order placed (Rush)',
-    performedBy: 'Adebayo Fashola',
-    timestamp: '2025-06-20T08:15:00Z',
-  },
-  {
-    id: 'act-003',
-    orderRef: 'ord-009',
-    customerName: 'Chief Emeka Okafor',
-    action: 'Order moved to Ready',
-    performedBy: 'Chioma Eze',
-    timestamp: '2025-06-19T11:30:00Z',
-  },
-  {
-    id: 'act-004',
-    orderRef: 'ord-004',
-    customerName: 'Mrs. Folake Adeyemi',
-    action: 'Order moved to Sewing',
-    performedBy: 'Chioma Eze',
-    timestamp: '2025-06-16T11:00:00Z',
-  },
-  {
-    id: 'act-005',
-    orderRef: 'ord-002',
-    customerName: 'Dr. Ngozi Ibe',
-    action: 'New order placed',
-    performedBy: 'Adebayo Fashola',
-    timestamp: '2025-06-19T10:30:00Z',
-  },
-  {
-    id: 'act-006',
-    orderRef: 'ord-010',
-    customerName: 'Dr. Ngozi Ibe',
-    action: 'Order moved to Ready',
-    performedBy: 'Chioma Eze',
-    timestamp: '2025-06-18T16:45:00Z',
-  },
-  {
-    id: 'act-007',
-    orderRef: 'ord-001',
-    customerName: 'Chief Emeka Okafor',
-    action: 'New order placed (Urgent)',
-    performedBy: 'Adebayo Fashola',
-    timestamp: '2025-06-18T09:00:00Z',
-  },
-  {
-    id: 'act-008',
-    orderRef: 'ord-007',
-    customerName: 'Iyabo Ogundimu',
-    action: 'Order moved to Sewing',
-    performedBy: 'Chioma Eze',
-    timestamp: '2025-06-14T09:30:00Z',
+    id: 'mock-exc-01',
+    shopId: '6bd33796-2464-43f9-b140-8f9af54e0699',
+    orderId: 'mock-order-04',
+    type: 'fabric_hold',
+    reason: 'Awaiting customer confirmation on pearl button choice',
+    startDate: new Date(now - 12 * 3600000).toISOString(),
+    createdBy: 'staff-blessing-02',
+    createdAt: new Date(now - 12 * 3600000).toISOString(),
   },
 ];

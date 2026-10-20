@@ -17,6 +17,7 @@ import { logStreakAction } from '@/lib/streakClient';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
+import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_STAFF, MOCK_EXCEPTIONS } from '@/lib/mockData';
 import {
   getShopBundle,
   getOrgBranches,
@@ -72,6 +73,8 @@ interface DataContextValue {
    *  landed yet. */
   refreshShop: () => void;
   isLoaded: boolean;
+  isDemoMode?: boolean;
+  toggleDemoMode?: (enabled?: boolean) => void;
   addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<string[]>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => Promise<void>;
@@ -209,11 +212,41 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
   }, [activeBranchId, orgId, mutate]);
 
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('demo') === 'true' || localStorage.getItem('mtb_demo_mode') === 'true';
+  });
+
+  const [demoOrders, setDemoOrders] = useState<Order[]>(MOCK_ORDERS);
+  const [demoCustomers, setDemoCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
+  const [demoStaff, setDemoStaff] = useState<User[]>(MOCK_STAFF);
+  const [demoExceptions, setDemoExceptions] = useState<ShopException[]>(MOCK_EXCEPTIONS);
+
+  const toggleDemoMode = useCallback((enabled?: boolean) => {
+    setIsDemoMode((prev) => {
+      const next = enabled !== undefined ? enabled : !prev;
+      if (typeof window !== 'undefined') {
+        if (next) {
+          localStorage.setItem('mtb_demo_mode', 'true');
+        } else {
+          localStorage.removeItem('mtb_demo_mode');
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const bundle = data ?? EMPTY_BUNDLE;
-  const { orders, customers, staffMembers, shop: currentShop, exceptions, inventory } = bundle;
+  const orders = isDemoMode ? demoOrders : bundle.orders;
+  const customers = isDemoMode ? demoCustomers : bundle.customers;
+  const staffMembers = isDemoMode ? demoStaff : bundle.staffMembers;
+  const exceptions = isDemoMode ? demoExceptions : bundle.exceptions;
+  const currentShop = bundle.shop;
+  const inventory = bundle.inventory;
   // Only true once we've never had data for this shop — a background
   // revalidation (isValidating) keeps showing the last-known-good data.
-  const isLoaded = !!data;
+  const isLoaded = isDemoMode ? true : !!data;
 
   const addOrder = useCallback(
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
@@ -250,6 +283,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
+      if (isDemoMode) {
+        setDemoOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderId
+              ? {
+                  ...o,
+                  status: newStatus,
+                  statusHistory: [
+                    ...o.statusHistory,
+                    { from: o.status, to: newStatus, changedBy, changedByName, timestamp: new Date().toISOString() },
+                  ],
+                }
+              : o
+          )
+        );
+        return;
+      }
+
       if (!activeBranchId) return;
       await mutate(
         async (current) => {
@@ -280,11 +331,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
         logStreakAction('updated_order', 10, false);
       }
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDemoMode]
   );
 
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
+      if (isDemoMode) {
+        setDemoOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o))
+        );
+        return;
+      }
+
       if (!activeBranchId) return;
       await mutate(
         async (current) => {
@@ -306,7 +364,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       );
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDemoMode]
   );
 
   const addCustomer = useCallback(
@@ -492,6 +550,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteOrder = useCallback(
     async (orderId: string) => {
+      if (isDemoMode) {
+        setDemoOrders((prev) => prev.filter((o) => o.id !== orderId));
+        return {};
+      }
+
       mutate(
         (current) => {
           const state = current || EMPTY_BUNDLE;
@@ -509,7 +572,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       return result;
     },
-    [mutate]
+    [mutate, isDemoMode]
   );
 
   const findOrCreateCustomer = useCallback(
@@ -674,6 +737,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       refreshBranches,
       refreshShop: mutate,
       isLoaded,
+      isDemoMode,
+      toggleDemoMode,
       addOrder,
       addOrderBatch,
       updateOrderStatus,
@@ -700,7 +765,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateInventoryItem,
       deleteInventoryItem,
     }),
-    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
+    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, isDemoMode, toggleDemoMode, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

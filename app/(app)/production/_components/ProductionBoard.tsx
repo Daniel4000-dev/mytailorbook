@@ -34,7 +34,7 @@ type OpFilter = 'all' | 'rush' | 'due' | 'hold' | 'unpaid';
 
 export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { user } = useAuth();
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, exceptions } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, exceptions, isDemoMode, toggleDemoMode } = useData();
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -434,6 +434,40 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
 
   return (
     <>
+      {/* Atelier Preview Mode Banner */}
+      {isDemoMode && (
+        <div className={styles.demoBanner}>
+          <div className={styles.demoBannerLeft}>
+            <Symbol name="visibility" size={16} />
+            <span>
+              <strong>Atelier Preview Active</strong> — 10 sample bespoke garments loaded in-memory. Drag & drop cards, change stages, and test filters freely (nothing touches your database).
+            </span>
+          </div>
+          <button
+            type="button"
+            className={styles.demoExitBtn}
+            onClick={() => toggleDemoMode?.(false)}
+          >
+            Exit Preview
+          </button>
+        </div>
+      )}
+
+      {/* Empty State Help: Offer sample orders preview if atelier floor is currently clear */}
+      {!isDemoMode && orders.filter((o) => o.status !== 'Delivered').length === 0 && (
+        <div className={styles.emptyPromptBanner}>
+          <span>Want to explore the Kanban board and cards with sample bespoke garments?</span>
+          <button
+            type="button"
+            className={styles.demoLaunchBtn}
+            onClick={() => toggleDemoMode?.(true)}
+          >
+            <Symbol name="visibility" size={13} />
+            <span>Load Sample Orders</span>
+          </button>
+        </div>
+      )}
+
       {/* Atelier Toolbar: Search + Apple Segmented Scope Switcher */}
       <div className={styles.boardToolbar}>
         <div className={styles.searchBar}>
@@ -482,13 +516,8 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         )}
       </div>
 
-      {/* Operational Filter Bar: Rush, Due Soon, On Hold, Unpaid (No Emojis) */}
+      {/* Operational Attention Filter Bar (Spotlight toggles, no competing 'All Tasks' button) */}
       <div className={styles.opFilterRow}>
-        <FilterPill
-          label="All Tasks"
-          active={opFilter === 'all'}
-          onClick={() => setOpFilter('all')}
-        />
         <FilterPill
           label="Rush"
           icon={<Symbol name="bolt" size={12} fill />}
@@ -511,12 +540,23 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           onClick={() => setOpFilter(opFilter === 'hold' ? 'all' : 'hold')}
         />
         <FilterPill
-          label="Unpaid"
+          label="Balance Due"
           icon={<Symbol name="payments" size={12} />}
           count={unpaidCount}
           active={opFilter === 'unpaid'}
           onClick={() => setOpFilter(opFilter === 'unpaid' ? 'all' : 'unpaid')}
         />
+        {opFilter !== 'all' && (
+          <button
+            type="button"
+            className={styles.clearFilterChip}
+            onClick={() => setOpFilter('all')}
+            title="Clear attention filter"
+          >
+            <span>Show all</span>
+            <Symbol name="close" size={11} />
+          </button>
+        )}
       </div>
 
       {staffFilterId && (
@@ -605,6 +645,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
             setBatchFilterId(null);
           }}
           isFiltered={Boolean(searchQuery || opFilter !== 'all' || stageFilter !== ALL_FILTER || staffFilterId || batchFilterId)}
+          onPreviewSample={() => toggleDemoMode?.(true)}
         />
       )}
 
