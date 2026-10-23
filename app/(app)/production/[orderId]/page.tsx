@@ -313,7 +313,7 @@ export default function OrderDetailPage() {
           includeTrackingLink,
         });
         showToast(`Moved to ${STATUS_CONFIG[stage].label}`, 'success', {
-          label: '💬 WhatsApp',
+          label: 'WhatsApp',
           onClick: () => {
             window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
           },

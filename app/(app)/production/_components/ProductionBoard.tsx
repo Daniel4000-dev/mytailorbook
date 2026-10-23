@@ -117,7 +117,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         includeTrackingLink,
       });
       showToast('Moved to Delivered', 'success', {
-        label: '💬 WhatsApp',
+        label: 'WhatsApp',
         onClick: () => {
           window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
         },
@@ -190,7 +190,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         includeTrackingLink,
       });
       showToast(`Moved to ${STATUS_CONFIG[next].label}`, 'success', {
-        label: '💬 WhatsApp',
+        label: 'WhatsApp',
         onClick: () => {
           window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
         },
@@ -252,7 +252,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         includeTrackingLink,
       });
       showToast(`Moved to ${STATUS_CONFIG[targetStatus].label}`, 'success', {
-        label: '💬 WhatsApp',
+        label: 'WhatsApp',
         onClick: () => {
           window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
         },
