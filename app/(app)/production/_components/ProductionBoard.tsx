@@ -521,28 +521,28 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         <FilterPill
           label="Rush"
           icon={<Symbol name="bolt" size={12} fill />}
-          count={rushCount}
+          count={rushCount > 0 ? rushCount : undefined}
           active={opFilter === 'rush'}
           onClick={() => setOpFilter(opFilter === 'rush' ? 'all' : 'rush')}
         />
         <FilterPill
           label="Due Soon"
           icon={<Symbol name="schedule" size={12} />}
-          count={dueCount}
+          count={dueCount > 0 ? dueCount : undefined}
           active={opFilter === 'due'}
           onClick={() => setOpFilter(opFilter === 'due' ? 'all' : 'due')}
         />
         <FilterPill
           label="On Hold"
           icon={<Symbol name="warning" size={12} />}
-          count={holdCount}
+          count={holdCount > 0 ? holdCount : undefined}
           active={opFilter === 'hold'}
           onClick={() => setOpFilter(opFilter === 'hold' ? 'all' : 'hold')}
         />
         <FilterPill
           label="Balance Due"
           icon={<Symbol name="payments" size={12} />}
-          count={unpaidCount}
+          count={unpaidCount > 0 ? unpaidCount : undefined}
           active={opFilter === 'unpaid'}
           onClick={() => setOpFilter(opFilter === 'unpaid' ? 'all' : 'unpaid')}
         />
