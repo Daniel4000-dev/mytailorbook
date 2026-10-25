@@ -154,6 +154,14 @@
   gap: var(--sf-space-md);
 }
 
+.heroTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+  flex-wrap: wrap;
+}
+
 .orderChip {
   display: inline-flex;
   align-items: center;

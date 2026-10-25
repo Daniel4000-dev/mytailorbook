@@ -1,0 +1,27 @@
+.shareBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-container-high, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-secondary);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+.shareBtn:hover {
+  background: var(--sf-surface-variant);
+  color: var(--sf-accent-emerald);
+  border-color: var(--sf-border);
+}
+
+.shareBtn:active {
+  transform: scale(0.96);
+}

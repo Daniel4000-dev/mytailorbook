@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
@@ -13,6 +14,7 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
 import RatingForm from './_components/RatingForm/RatingForm';
 import CopyDomain from './_components/CopyDomain';
+import ShareTrackButton from './_components/ShareTrackButton';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -125,10 +127,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       <main className={styles.main}>
         {/* Hero */}
         <section className={styles.hero}>
-          <span className={styles.orderChip}>
-            <Symbol name="verified" size={18} className={styles.orderChipIcon} />
-            Order #{order.id.slice(0, 4).toUpperCase()}
-          </span>
+          <div className={styles.heroTopRow}>
+            <span className={styles.orderChip}>
+              <Symbol name="verified" size={18} className={styles.orderChipIcon} />
+              Order #{order.id.slice(0, 4).toUpperCase()}
+            </span>
+            <ShareTrackButton orderTitle={order.orderDetails} shopName={shop?.name} />
+          </div>
           <h2 className={styles.heroTitle}>Tracking your {order.orderDetails}</h2>
           <p className={styles.heroSub}>
             Hello {order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life
@@ -217,12 +222,12 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             <h3 className={styles.sectionTitle}>Also From Your Visit</h3>
             <div className={styles.siblingList}>
               {batchSiblings.map((sibling) => (
-                <a key={sibling.id} href={ROUTES.track(sibling.id)} className={styles.siblingRow}>
+                <Link key={sibling.id} href={ROUTES.track(sibling.id)} className={styles.siblingRow}>
                   <span className={styles.siblingDetails}>
                     {sibling.orderDetails.length > 60 ? sibling.orderDetails.slice(0, 60) + '…' : sibling.orderDetails}
                   </span>
                   <span className={styles.siblingStatus}>{STAGE_HEADLINES[sibling.status]}</span>
-                </a>
+                </Link>
               ))}
             </div>
           </section>
@@ -232,10 +237,10 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         <section className={styles.card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
             <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Order Summary</h3>
-            <a href={ROUTES.receipt(order.id)} className={styles.receiptLink}>
+            <Link href={ROUTES.receipt(order.id)} className={styles.receiptLink}>
               <Symbol name="receipt_long" size={15} />
               <span>Digital Receipt</span>
-            </a>
+            </Link>
           </div>
           <div className={styles.infoBlock} style={{ marginTop: '12px' }}>
             <span className={styles.infoLabel}>Outfit Details</span>

@@ -26,14 +26,24 @@
 
 .sendBtn {
   width: 100%;
-  padding: 12px;
-  border-radius: var(--sf-radius-sm);
+  min-height: 44px;
+  padding: 12px 18px;
+  border-radius: var(--sf-radius-full, 9999px);
   border: none;
   background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.sendBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .sendBtn:disabled {

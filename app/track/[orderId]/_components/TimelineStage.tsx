@@ -88,7 +88,7 @@ export default function TimelineStage({
           </span>
           <h3 className={styles.stageTitle}>{STAGE_HEADLINES[status]}</h3>
           <span className={`${styles.stagePill} ${isCompleted ? styles.pillDone : isCurrent ? styles.pillNow : styles.pillWait}`}>
-            {isCompleted ? 'Delivered' : isCurrent ? 'In Progress' : 'Pending'}
+            {isCompleted ? (status === 'Delivered' ? 'Delivered' : 'Completed') : isCurrent ? 'In Progress' : 'Pending'}
           </span>
         </div>
       </div>

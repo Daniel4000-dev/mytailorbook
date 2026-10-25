@@ -33,10 +33,19 @@
 .starBtn {
   background: none;
   border: none;
-  padding: 4px;
+  padding: 8px 6px;
   cursor: pointer;
-  font-size: 28px;
-  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sf-radius-full);
+  transition: transform 0.15s ease;
+}
+
+.starBtn:active {
+  transform: scale(1.25);
 }
 
 .starFilled {
@@ -51,7 +60,7 @@
   width: 100%;
   resize: none;
   padding: 10px 12px;
-  border-radius: var(--sf-radius-sm);
+  border-radius: var(--sf-radius-md, 12px);
   border: 1px solid var(--sf-border-light);
   font-family: inherit;
   font-size: 13px;
@@ -82,14 +91,23 @@
 
 .submitBtn {
   width: 100%;
-  height: 44px;
+  min-height: 44px;
   border: none;
-  border-radius: var(--sf-radius-sm);
+  border-radius: var(--sf-radius-full, 9999px);
   background: var(--sf-accent-emerald);
   color: var(--sf-text-on-accent);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .submitBtn:disabled {
