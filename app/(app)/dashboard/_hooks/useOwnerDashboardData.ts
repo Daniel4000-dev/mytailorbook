@@ -89,6 +89,31 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
   const visibleAttentionItems = attentionItems.slice(0, ATTENTION_LIMIT);
   const hasMoreAttentionItems = attentionItems.length > ATTENTION_LIMIT;
 
+  const uncutFabricsCount = useMemo(
+    () => orders.filter((o) => o.status === 'Documented').length,
+    [orders]
+  );
+
+  const inProductionCount = useMemo(
+    () => orders.filter((o) => o.status === 'Cutting' || o.status === 'Sewing').length,
+    [orders]
+  );
+
+  const readyCount = useMemo(
+    () => orders.filter((o) => o.status === 'Ready').length,
+    [orders]
+  );
+
+  const debtTotal = useMemo(
+    () => orders.reduce((sum, o) => sum + Math.max(0, o.totalBill - o.depositPaid), 0),
+    [orders]
+  );
+
+  const debtorsCount = useMemo(
+    () => orders.filter((o) => o.totalBill > o.depositPaid).length,
+    [orders]
+  );
+
   return {
     hideCollected,
     hideProjected,
@@ -99,6 +124,11 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
     projected,
     urgentCount,
     dueTodayCount,
+    uncutFabricsCount,
+    inProductionCount,
+    readyCount,
+    debtTotal,
+    debtorsCount,
     teamSnapshot,
     visibleAttentionItems,
     hasMoreAttentionItems,

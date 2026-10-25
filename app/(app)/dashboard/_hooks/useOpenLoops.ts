@@ -89,16 +89,28 @@ export function useOpenLoops(orders: Order[], customers: Customer[], exceptions:
       });
     }
 
-    // 3. Balances Loops
+    // 3. Uncut Fabrics Loop
+    const uncutOrders = orders.filter((o) => o.status === 'Documented' && !activeExceptionOrderIds.has(o.id));
+    if (uncutOrders.length > 0) {
+      loops.push({
+        id: 'loop-fabrics',
+        category: 'production',
+        title: `${uncutOrders.length} uncut fabric${uncutOrders.length === 1 ? '' : 's'} waiting on the cutting table`,
+        actionText: 'Cut Fabrics',
+        href: '/fabrics',
+        urgency: 'medium',
+      });
+    }
+
+    // 4. Balances Loops (Debt Recovery)
     const deliveredOrdersWithBalance = orders.filter((o) => o.status === 'Delivered' && getBalanceOwed(o) > 0 && !activeExceptionOrderIds.has(o.id));
     if (deliveredOrdersWithBalance.length > 0) {
-      const totalOverdue = deliveredOrdersWithBalance.reduce((sum, o) => sum + getBalanceOwed(o), 0);
       loops.push({
         id: 'loop-balances',
         category: 'balances',
-        title: `₦${totalOverdue.toLocaleString()} in overdue balances still need follow-up`,
-        actionText: 'View Orders',
-        href: '/production',
+        title: `${deliveredOrdersWithBalance.length} client${deliveredOrdersWithBalance.length === 1 ? '' : 's'} with unpaid balances ready for recovery`,
+        actionText: 'Open Collections',
+        href: '/collections',
         urgency: 'high',
       });
     }
