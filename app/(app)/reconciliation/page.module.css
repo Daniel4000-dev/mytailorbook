@@ -1,220 +1,823 @@
+/* ── Till Reconciliation & Financial Audit (Apple Wallet / Inset Grouped aesthetic) ── */
+
 .container {
-  padding: 0 var(--sf-space-md) var(--sf-space-3xl);
-  max-width: var(--sf-max-width-main);
+  padding: 12px 14px 60px;
+  max-width: 680px;
+  width: 100%;
   margin: 0 auto;
-}
-
-.header {
-  margin-top: var(--sf-space-lg);
-  margin-bottom: var(--sf-space-lg);
-  text-align: center;
-}
-
-.title {
-  font-family: var(--font-fraunces);
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  margin: 0 0 var(--sf-space-xs) 0;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: var(--sf-text-secondary);
-  margin: 0;
-}
-
-.tillCard {
-  background: var(--sf-accent);
-  color: var(--sf-bg-main);
-  border-radius: var(--sf-radius-xl);
-  padding: var(--sf-space-xl) var(--sf-space-lg);
-  text-align: center;
-  margin-bottom: var(--sf-space-lg);
-}
-
-.tillLabel {
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.9;
-  margin-bottom: var(--sf-space-sm);
-  display: block;
-}
-
-.tillAmount {
-  font-family: var(--font-fraunces);
-  font-size: 42px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.1;
-}
-
-.summaryRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sf-space-md);
-  margin-bottom: var(--sf-space-xl);
-}
-
-.summaryBox {
-  background: var(--sf-bg-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-md);
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.summaryBoxLabel {
-  font-size: 13px;
-  color: var(--sf-text-secondary);
-  margin-bottom: 4px;
+@media (min-width: 768px) {
+  .container {
+    padding: 24px 20px 80px;
+    gap: 16px;
+  }
 }
 
-.summaryBoxAmount {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-}
-
-.summaryBoxAmount.success {
-  color: var(--sf-success);
-}
-
-.summaryBoxAmount.danger {
-  color: var(--sf-error);
-}
-
-.sectionTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  margin: 0 0 var(--sf-space-md) 0;
-}
-
-.transactionList {
+/* ── 1. Date Navigator Bar ── */
+.dateNavigator {
   display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-xl);
-}
-
-.transactionItem {
-  background: var(--sf-bg-surface);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  border: 1px solid var(--sf-border-default);
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.transactionLeft {
+.dateNavLeft {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-sm);
+  gap: 4px;
 }
 
-.transactionIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+.chevronBtn {
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.transactionIcon.income {
-  background: var(--sf-success-light);
-  color: var(--sf-success);
-}
-
-.transactionIcon.expense {
-  background: var(--sf-error-bg);
-  color: var(--sf-error);
-}
-
-.transactionDesc {
-  display: flex;
-  flex-direction: column;
-}
-
-.transactionName {
-  font-size: 14px;
-  font-weight: 600;
+.chevronBtn:hover:not(:disabled) {
+  background: var(--sf-surface-variant);
   color: var(--sf-text-primary);
 }
 
-.transactionTime {
-  font-size: 12px;
-  color: var(--sf-text-tertiary);
+.chevronBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.transactionRight {
+.datePillGroup {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  gap: 4px;
 }
 
-.transactionAmount {
-  font-size: 15px;
+.dateQuickPill {
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.transactionAmount.income {
-  color: var(--sf-success);
+.dateQuickPill:hover {
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-primary);
 }
 
-.transactionAmount.expense {
-  color: var(--sf-error);
+.dateQuickPillActive {
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  font-weight: 700;
 }
 
-.transactionMethod {
-  font-size: 12px;
-  color: var(--sf-text-secondary);
-  background: var(--sf-bg-main);
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-top: 4px;
-  text-transform: capitalize;
+.calendarPickerWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.emptyState {
-  text-align: center;
-  padding: var(--sf-space-xl) var(--sf-space-md);
-  color: var(--sf-text-secondary);
-  background: var(--sf-bg-surface);
-  border-radius: var(--sf-radius-lg);
-  border: 1px dashed var(--sf-border-default);
+.calendarPickerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.dateFilter {
+.calendarPickerBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.hiddenDateInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.dateSubtitleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--sf-space-lg);
-  padding: var(--sf-space-sm) var(--sf-space-md);
-  background: var(--sf-bg-surface);
-  border-radius: var(--sf-radius-full);
+  margin: 2px 4px 6px 4px;
+  padding: 0 4px;
 }
 
-.dateBtn {
-  background: none;
-  border: none;
+.dateLongText {
+  font-size: 12.5px;
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.netCashflowBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--sf-radius-full);
+  font-variant-numeric: tabular-nums;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.netCashflowBadge[data-positive="false"] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
   color: var(--sf-text-secondary);
-  cursor: pointer;
+  font-size: 13.5px;
+}
+
+/* ── 2. Hero Till Card (Apple Wallet Adire aesthetic) ── */
+.tillHeroCard {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: var(--sf-radius-lg);
+  padding: 20px 18px;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(30, 27, 75, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.tillHeroCard::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.tillHeroTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tillHeroEyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #A5B4FC;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.tillHeroTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.tillCashBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(255, 255, 255, 0.12);
+  color: #E0E7FF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.tillAmountRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tillAmountFigure {
+  font-size: 36px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.tillStatusTag {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(16, 185, 129, 0.25);
+  color: #6EE7B7;
+}
+
+.tillStatusTag[data-in-hand="false"] {
+  background: rgba(239, 68, 68, 0.25);
+  color: #FCA5A5;
+}
+
+.tillFormulaBanner {
   display: flex;
   align-items: center;
-  padding: 4px;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--sf-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  gap: 6px;
 }
 
-.dateBtn:hover {
+.formulaSegment {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.formulaLabel {
+  font-size: 9.5px;
+  color: #C7D2FE;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.formulaValPositive {
+  font-weight: 700;
+  color: #6EE7B7;
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+}
+
+.formulaValNegative {
+  font-weight: 700;
+  color: #FCA5A5;
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+}
+
+.formulaValResult {
+  font-weight: 800;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+.formulaOperator {
+  font-size: 15px;
+  font-weight: 600;
+  color: #818CF8;
+}
+
+/* ── 3. Secondary Financial Summary Grid ── */
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.summaryCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.summaryIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.summaryIconWrap[data-variant="bank"] {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.summaryIconWrap[data-variant="expense"] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+}
+
+.summaryCardEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+}
+
+.summaryCardAmount {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.summaryCardAmount.expenseAmount {
+  color: #DC2626;
+}
+
+.summaryCardBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.breakdownChip {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.breakdownChip strong {
+  color: var(--sf-text-primary);
+  font-weight: 600;
+}
+
+/* ── 4. Quick Actions Bar ── */
+.quickActionsBar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.recordExpenseBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-variant);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.recordExpenseBtn:hover {
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+}
+
+.recordExpenseBtn:active {
+  transform: scale(0.97);
+}
+
+/* ── 5. Segmented Method Filter ── */
+.filterSection {
+  margin-top: 4px;
+}
+
+.segmentedControl {
+  display: flex;
+  background: var(--sf-surface-variant);
+  padding: 3px;
+  border-radius: var(--sf-radius-full);
+  gap: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.segmentBtn {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.segmentBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── 6. Inset Grouped Audit Ledger ── */
+.ledgerSection {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ledgerHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.ledgerSectionTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: 16px;
+  font-weight: 700;
   color: var(--sf-text-primary);
 }
 
-.dateDisplay {
+.ledgerMutedSummary {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.emptyContainer {
+  margin-top: 12px;
+}
+
+.ledgerListCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.ledgerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--sf-border-light);
+  transition: background-color 0.15s ease;
+}
+
+.ledgerRow:last-child {
+  border-bottom: none;
+}
+
+.ledgerRow[role="button"] {
+  cursor: pointer;
+}
+
+.ledgerRow[role="button"]:hover {
+  background-color: var(--sf-bg-surface-secondary);
+}
+
+.ledgerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.craftBadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.craftBadge[data-type="income"] {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.craftBadge[data-type="expense"] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+}
+
+.ledgerTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ledgerDescTitle {
+  font-size: 13.5px;
   font-weight: 600;
+  color: var(--sf-text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ledgerMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.timeTag {
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.methodBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-secondary);
+}
+
+.methodBadge[data-method="cash"] {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.methodBadge[data-method="transfer"] {
+  background: #EEF2FF;
+  color: #4338CA;
+}
+
+.methodBadge[data-method="pos"] {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.categoryBadge {
+  font-size: 10px;
+  color: var(--sf-text-tertiary);
+  background: var(--sf-surface-variant);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ledgerRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ledgerAmountNumeral {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledgerAmountNumeral[data-type="income"] {
+  color: #059669;
+}
+
+.ledgerAmountNumeral[data-type="expense"] {
+  color: #DC2626;
+}
+
+.ledgerChevron {
+  color: var(--sf-text-tertiary);
+}
+
+/* ── 7. Quick Expense BottomSheet Form ── */
+.expenseForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 6px 0 20px 0;
+}
+
+.expenseModalIntro {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.capsLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-secondary);
+}
+
+.amountInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
+  border-radius: var(--sf-radius-md);
+  font-family: var(--sf-font-body);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  transition: all 0.15s ease;
+}
+
+.amountInput:focus {
+  outline: none;
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo-glow);
+}
+
+.methodToggleRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.methodToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--sf-radius-md);
+  border: 1.5px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.methodToggleBtnActive {
+  border-color: var(--sf-brand-indigo);
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  font-weight: 700;
+}
+
+.methodHint {
+  font-size: 11.5px;
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}
+
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.selectInput {
+  width: 100%;
+  height: 46px;
+  padding: 0 36px 0 14px;
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
+  border-radius: var(--sf-radius-md);
   font-size: 14px;
   color: var(--sf-text-primary);
+  appearance: none;
+  cursor: pointer;
+}
+
+.selectInput:focus {
+  outline: none;
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+}
+
+.selectChevron {
+  position: absolute;
+  right: 12px;
+  color: var(--sf-text-tertiary);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
+  border-radius: var(--sf-radius-md);
+  font-size: 14px;
+  color: var(--sf-text-primary);
+  transition: all 0.15s ease;
+}
+
+.input:focus {
+  outline: none;
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+}
+
+.modalActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cancelBtn {
+  height: 44px;
+  padding: 0 16px;
+  color: var(--sf-text-secondary);
+  font-size: 13.5px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+}
+
+.submitExpenseBtn {
+  height: 44px;
+  padding: 0 20px;
+  background: var(--sf-brand-indigo);
+  color: #fff;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  font-size: 13.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--sf-brand-indigo-glow);
+  transition: all 0.15s ease;
+}
+
+.submitExpenseBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submitExpenseBtn:active:not(:disabled) {
+  transform: scale(0.97);
 }

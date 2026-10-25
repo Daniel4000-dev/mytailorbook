@@ -16,14 +16,9 @@
      is an opacity/lightness variant of the same indigo. Text/borders
      are true neutral grays — never a third hue. */
 
-  /* ── Colors: Backgrounds ─────────────────────────────── */
-  /* True white everywhere — page canvas, cards, search bar, nav — the
-     mockup this was benchmarked against never darkens the ground for a
-     plain surface; shadows alone carry all the separation. The only
-     background that ever tints toward the accent is --sf-sand, reserved
-     for cards whose main content is a photo (order cards, style tiles). */
-  --sf-bg-primary: #FFFFFF;
-  --sf-bg-surface: #FFFFFF;
+  /* ── Colors: Backgrounds (Apple iOS System Grouped Contrast) ── */
+  --sf-bg-primary: #F2F2F7;                   /* Apple System Grouped Canvas */
+  --sf-bg-surface: #FFFFFF;                   /* Apple Inset Card Surface */
   --sf-bg-surface-elevated: #FFFFFF;
   --sf-bg-surface-hover: rgba(67, 56, 202, 0.05);
   --sf-bg-input: #FFFFFF;
@@ -41,7 +36,14 @@
   --sf-nav: #23232B;                           /* dark chrome (toasts) */
   --sf-nav-icon: rgba(255, 255, 255, 0.7);
 
-  /* ── Colors: Brand (the ONE accent) ──────────────────── */
+  /* ── Colors: Brand (Adire Indigo #4338CA) ───────────── */
+  --sf-brand-indigo: #4338CA;
+  --sf-brand-indigo-light: #6366F1;
+  --sf-brand-indigo-dark: #312E81;
+  --sf-brand-indigo-glow: rgba(67, 56, 202, 0.12);
+  --sf-brand-primary: #4338CA;
+  --sf-brand-primary-hover: #3730A3;
+
   --sf-accent-emerald: #4338CA;
   --sf-accent-emerald-dark: #312E81;
   --sf-accent-emerald-light: #6366F1;
@@ -152,13 +154,13 @@
      scales up — apply to headings sf-text-2xl and above. */
   --sf-tracking-display: -0.015em;
 
-  /* ── Border Radius (tightened for a more structured, premium feel) ── */
-  --sf-radius-xs: 4px;
-  --sf-radius-sm: 6px;
-  --sf-radius-md: 8px;
-  --sf-radius-lg: 10px;
-  --sf-radius-xl: 12px;
-  --sf-radius-2xl: 14px;
+  /* ── Border Radius (iOS continuous squircle curves) ──────── */
+  --sf-radius-xs: 6px;
+  --sf-radius-sm: 10px;
+  --sf-radius-md: 14px;
+  --sf-radius-lg: 18px;
+  --sf-radius-xl: 22px;
+  --sf-radius-2xl: 26px;
   --sf-radius-full: 9999px;
 
   /* ── Shadows ─────────────────────────────────────────── */
@@ -219,11 +221,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --sf-bg-primary: #131220;
-    --sf-bg-surface: #1B1A2B;
-    --sf-bg-surface-elevated: #211F35;
+    --sf-bg-primary: #0A0910;
+    --sf-bg-surface: #161526;
+    --sf-bg-surface-elevated: #1F1E33;
     --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
-    --sf-bg-input: #1B1A2B;
+    --sf-bg-input: #1F1E33;
     --sf-bg-overlay: rgba(0, 0, 0, 0.55);
     --sf-surface-container-high: rgba(99, 102, 241, 0.14);
     --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
@@ -236,6 +238,13 @@
     --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
     --sf-nav: #2E2D45;
     --sf-nav-icon: rgba(255, 255, 255, 0.75);
+
+    --sf-brand-indigo: #6366F1;
+    --sf-brand-indigo-light: #818CF8;
+    --sf-brand-indigo-dark: #4338CA;
+    --sf-brand-indigo-glow: rgba(99, 102, 241, 0.18);
+    --sf-brand-primary: #6366F1;
+    --sf-brand-primary-hover: #4F46E5;
 
     --sf-accent-emerald: #6366F1;
     --sf-accent-emerald-dark: #4338CA;
@@ -292,11 +301,11 @@
 }
 
 :root[data-theme="dark"] {
-  --sf-bg-primary: #131220;
-  --sf-bg-surface: #1B1A2B;
-  --sf-bg-surface-elevated: #211F35;
+  --sf-bg-primary: #0A0910;
+  --sf-bg-surface: #161526;
+  --sf-bg-surface-elevated: #1F1E33;
   --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
-  --sf-bg-input: #1B1A2B;
+  --sf-bg-input: #1F1E33;
   --sf-bg-overlay: rgba(0, 0, 0, 0.55);
   --sf-surface-container-high: rgba(99, 102, 241, 0.14);
   --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
@@ -309,6 +318,13 @@
   --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
   --sf-nav: #2E2D45;
   --sf-nav-icon: rgba(255, 255, 255, 0.75);
+
+  --sf-brand-indigo: #6366F1;
+  --sf-brand-indigo-light: #818CF8;
+  --sf-brand-indigo-dark: #4338CA;
+  --sf-brand-indigo-glow: rgba(99, 102, 241, 0.18);
+  --sf-brand-primary: #6366F1;
+  --sf-brand-primary-hover: #4F46E5;
 
   --sf-accent-emerald: #6366F1;
   --sf-accent-emerald-dark: #4338CA;

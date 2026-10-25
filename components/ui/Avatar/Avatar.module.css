@@ -3,12 +3,38 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--sf-radius-full);
-  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
+  background: linear-gradient(135deg, var(--sf-brand-indigo), var(--sf-brand-indigo-dark));
   color: var(--sf-text-on-accent);
   font-family: var(--sf-font-heading);
   font-weight: var(--sf-weight-bold);
   flex-shrink: 0;
   user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.16);
+}
+
+.squircle {
+  border-radius: 12px;
+}
+
+.squircle.sm {
+  border-radius: 8px;
+}
+
+.squircle.md {
+  border-radius: 12px;
+}
+
+.squircle.lg {
+  border-radius: 16px;
+}
+
+.squircle.xl {
+  border-radius: 22px;
+}
+
+.circle {
+  border-radius: var(--sf-radius-full);
 }
 
 .sm {
@@ -38,3 +64,4 @@
 .image {
   object-fit: cover;
 }
+

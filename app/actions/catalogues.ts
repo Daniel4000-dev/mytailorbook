@@ -5,46 +5,56 @@ import { StyleCatalogue, StyleCataloguePhoto } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 export async function getCataloguesAction(shopId: string): Promise<StyleCatalogue[]> {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const { data: catRows, error: catError } = await supabase
-    .from('style_catalogues')
-    .select('*')
-    .eq('shop_id', shopId)
-    .order('created_at', { ascending: true });
+    const { data: catRows, error: catError } = await supabase
+      .from('style_catalogues')
+      .select('*')
+      .eq('shop_id', shopId)
+      .order('created_at', { ascending: true });
 
-  if (catError) throw new Error(catError.message);
-  if (!catRows || catRows.length === 0) return [];
+    if (catError) {
+      console.warn('style_catalogues query warning:', catError.message);
+      return [];
+    }
+    if (!catRows || catRows.length === 0) return [];
 
-  const catIds = catRows.map(c => c.id);
+    const catIds = catRows.map(c => c.id);
 
-  const { data: photoRows, error: photoError } = await supabase
-    .from('style_catalogue_photos')
-    .select('*')
-    .in('catalogue_id', catIds)
-    .order('created_at', { ascending: false });
+    const { data: photoRows, error: photoError } = await supabase
+      .from('style_catalogue_photos')
+      .select('*')
+      .in('catalogue_id', catIds)
+      .order('created_at', { ascending: false });
 
-  if (photoError) throw new Error(photoError.message);
+    if (photoError) {
+      console.warn('style_catalogue_photos query warning:', photoError.message);
+    }
 
-  const photosByCat = new Map<string, StyleCataloguePhoto[]>();
-  for (const row of photoRows || []) {
-    const list = photosByCat.get(row.catalogue_id) ?? [];
-    list.push({
+    const photosByCat = new Map<string, StyleCataloguePhoto[]>();
+    for (const row of photoRows || []) {
+      const list = photosByCat.get(row.catalogue_id) ?? [];
+      list.push({
+        id: row.id,
+        catalogueId: row.catalogue_id,
+        imageUrl: row.image_url,
+        createdAt: row.created_at,
+      });
+      photosByCat.set(row.catalogue_id, list);
+    }
+
+    return catRows.map(row => ({
       id: row.id,
-      catalogueId: row.catalogue_id,
-      imageUrl: row.image_url,
+      shopId: row.shop_id,
+      title: row.title,
       createdAt: row.created_at,
-    });
-    photosByCat.set(row.catalogue_id, list);
+      photos: photosByCat.get(row.id) ?? [],
+    }));
+  } catch (err: any) {
+    console.warn('Failed to fetch catalogues:', err?.message);
+    return [];
   }
-
-  return catRows.map(row => ({
-    id: row.id,
-    shopId: row.shop_id,
-    title: row.title,
-    createdAt: row.created_at,
-    photos: photosByCat.get(row.id) ?? [],
-  }));
 }
 
 export async function createCatalogueAction(shopId: string, title: string): Promise<string> {

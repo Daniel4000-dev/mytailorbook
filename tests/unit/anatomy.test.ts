@@ -74,4 +74,15 @@ describe('Anatomical Sanity Engine', () => {
     expect(getMeasurementFingerprint(m1)).toBe(getMeasurementFingerprint(m2));
     expect(getMeasurementFingerprint(m1)).toBe('chest:42|shoulder:18|waist:34');
   });
+
+  it('approves measurements parsed from tailor fraction inputs', () => {
+    const measurements = {
+      neck: 16.5,
+      shoulder: 18.75,
+      chest: 42.25,
+      waist: 34.5,
+    };
+    const result = isValidAnatomy(measurements);
+    expect(result.valid).toBe(true);
+  });
 });

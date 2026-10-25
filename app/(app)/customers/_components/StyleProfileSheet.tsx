@@ -12,6 +12,7 @@ import { getStylePhotos } from '@/lib/style-photos';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { parseMeasurementValue } from '@/lib/formatters';
 import type { Customer, Measurements } from '@/lib/types';
 import styles from './StyleProfileSheet.module.css';
 
@@ -93,8 +94,8 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
     if (!styleName) return;
     const measurements: Measurements = {};
     Object.entries(values).forEach(([key, val]) => {
-      const num = parseFloat(val);
-      if (!isNaN(num)) (measurements as unknown as Record<string, number>)[key] = num;
+      const num = parseMeasurementValue(val);
+      if (num !== null) (measurements as unknown as Record<string, number>)[key] = num;
     });
     if (Object.keys(measurements).length === 0) {
       showToast('Enter at least one measurement before saving', 'error');
@@ -157,7 +158,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
               </Button>
             )}
             <Button variant="primary" fullWidth onClick={handleSave} loading={saving}>
-              {saving ? 'Saving…' : 'Save Styles'}
+              {saving ? 'Saving…' : 'Save Measurements'}
             </Button>
           </div>
         ) : undefined

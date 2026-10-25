@@ -93,6 +93,7 @@ interface MeasurementAnatomyProps {
   selectedPointId?: string;
   onPointSelect: (point: MeasurementPoint) => void;
   onValueChange?: (pointId: string, value: string) => void;
+  onValueBlur?: (pointId: string, value: string) => void;
 }
 
 export default function MeasurementAnatomy({
@@ -101,6 +102,7 @@ export default function MeasurementAnatomy({
   selectedPointId,
   onPointSelect,
   onValueChange,
+  onValueBlur,
 }: MeasurementAnatomyProps) {
   const [viewMode, setViewMode] = useState<'visual' | 'list'>('list');
   const points = gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
@@ -136,16 +138,28 @@ export default function MeasurementAnatomy({
 
       {viewMode === 'list' ? (
         <div className={styles.listView}>
-          {points.map((point) => (
+          {points.map((point, i) => (
             <div key={point.id} className={styles.listRow}>
               <label htmlFor={point.id} className={styles.listLabel}>{point.name}</label>
               <input
                 id={point.id}
                 type="text"
+                enterKeyHint={i < points.length - 1 ? 'next' : 'done'}
                 className={styles.listInput}
                 placeholder="--"
                 value={measurements[point.id] || ''}
                 onChange={(e) => onValueChange?.(point.id, e.target.value)}
+                onBlur={(e) => onValueBlur?.(point.id, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    (e.target as HTMLInputElement).blur();
+                    const nextPoint = points[i + 1];
+                    if (nextPoint) {
+                      document.getElementById(nextPoint.id)?.focus();
+                    }
+                  }
+                }}
               />
             </div>
           ))}

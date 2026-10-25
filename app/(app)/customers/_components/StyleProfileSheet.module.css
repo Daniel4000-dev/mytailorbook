@@ -26,13 +26,13 @@
 @media (hover: hover) and (pointer: fine) {
 
 .pickerCard:hover {
-  border-color: var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
   transform: translateY(-1px);
 }
 }
 
 .pickerCard:active {
-  border-color: var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
   transform: scale(0.98);
 }
 
@@ -67,10 +67,11 @@
   right: 8px;
   padding: 2px 8px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
   text-transform: uppercase;
 }
+

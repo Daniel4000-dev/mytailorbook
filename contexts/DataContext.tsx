@@ -369,21 +369,68 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addCustomer = useCallback(
     async (customerData: Omit<Customer, 'id' | 'shopId' | 'createdAt'>): Promise<Customer> => {
+      const normalizedPhone = normalizePhone(customerData.whatsappNumber);
+
+      if (isDemoMode) {
+        const newCustomer: Customer = {
+          id: `demo-cust-${Date.now()}`,
+          shopId: activeBranchId || '6bd33796-2464-43f9-b140-8f9af54e0699',
+          fullName: customerData.fullName,
+          whatsappNumber: normalizedPhone,
+          gender: customerData.gender,
+          preferredStyles: customerData.preferredStyles || [],
+          measurements: customerData.measurements || {},
+          measurementNotes: customerData.measurementNotes,
+          address: customerData.address,
+          birthdate: customerData.birthdate,
+          wallet_balance: customerData.wallet_balance || 0,
+          fabrics: customerData.fabrics || [],
+          createdAt: new Date().toISOString(),
+        };
+        setDemoCustomers((prev) => [newCustomer, ...prev]);
+        return newCustomer;
+      }
+
       if (!activeBranchId || !orgId) throw new Error('No active shop for the current user');
       const res = await addCustomerAction(activeBranchId, orgId, {
         ...customerData,
-        whatsappNumber: normalizePhone(customerData.whatsappNumber),
+        whatsappNumber: normalizedPhone,
       });
       if (res && 'error' in res) throw new Error(res.error);
       const { newCustomer, customers: updated } = res as { newCustomer: Customer, customers: Customer[] };
       mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
       return newCustomer;
     },
-    [activeBranchId, orgId, mutate]
+    [activeBranchId, orgId, mutate, isDemoMode]
   );
 
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
+      if (isDemoMode) {
+        setDemoCustomers((prev) =>
+          prev.map((c) => {
+            if (c.id !== customerId) return c;
+            const history = Array.isArray(c.measurementsHistory) ? [...c.measurementsHistory] : [];
+            const now = new Date();
+            const lastUpdated = c.measurementsUpdatedAt ? new Date(c.measurementsUpdatedAt) : null;
+            const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
+            if (isDifferentSession && c.measurements && Object.keys(c.measurements).length > 0) {
+              history.unshift({
+                date: c.measurementsUpdatedAt || now.toISOString(),
+                measurements: c.measurements,
+              });
+            }
+            return {
+              ...c,
+              measurements: { ...c.measurements, ...measurements },
+              measurementsUpdatedAt: now.toISOString(),
+              measurementsHistory: history,
+            };
+          })
+        );
+        return;
+      }
+
       if (!orgId) return;
       await mutate(
         async (current) => {
@@ -413,11 +460,45 @@ export function DataProvider({ children }: { children: ReactNode }) {
         triggerCelebration: false,
       });
     },
-    [orgId, mutate]
+    [orgId, mutate, isDemoMode]
   );
 
   const updateCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string, measurements: Measurements, notes?: string) => {
+      if (isDemoMode) {
+        setDemoCustomers((prev) =>
+          prev.map((c) => {
+            if (c.id !== customerId) return c;
+            const existing = c.styleMeasurements || {};
+            const currentStyleData = existing[styleName] || { measurements: {}, updatedAt: new Date().toISOString() };
+            const history = Array.isArray(currentStyleData.history) ? [...currentStyleData.history] : [];
+            const now = new Date();
+            const lastUpdated = currentStyleData.updatedAt ? new Date(currentStyleData.updatedAt) : null;
+            const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
+            if (isDifferentSession && currentStyleData.measurements && Object.keys(currentStyleData.measurements).length > 0) {
+              history.unshift({
+                date: currentStyleData.updatedAt || now.toISOString(),
+                measurements: currentStyleData.measurements,
+              });
+            }
+            return {
+              ...c,
+              styleMeasurements: {
+                ...existing,
+                [styleName]: {
+                  ...currentStyleData,
+                  measurements,
+                  history,
+                  updatedAt: now.toISOString(),
+                  ...(notes !== undefined && { notes }),
+                },
+              },
+            };
+          })
+        );
+        return;
+      }
+
       if (!orgId) return;
       await mutate(
         async (current) => {
@@ -451,11 +532,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       );
     },
-    [orgId, mutate]
+    [orgId, mutate, isDemoMode]
   );
 
   const deleteCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string) => {
+      if (isDemoMode) {
+        setDemoCustomers((prev) =>
+          prev.map((c) => {
+            if (c.id !== customerId) return c;
+            const nextProfiles = { ...(c.styleMeasurements || {}) };
+            delete nextProfiles[styleName];
+            return { ...c, styleMeasurements: nextProfiles };
+          })
+        );
+        return;
+      }
+
       if (!orgId) return;
       await mutate(
         async (current) => {
@@ -482,7 +575,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       );
     },
-    [orgId, mutate]
+    [orgId, mutate, isDemoMode]
   );
 
   const updateCustomerProfile = useCallback(
@@ -490,11 +583,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
       customerId: string,
       updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>
     ) => {
-      if (!orgId) return;
       const normalized =
         updates.whatsappNumber !== undefined
           ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
           : updates;
+
+      if (isDemoMode) {
+        setDemoCustomers((prev) =>
+          prev.map((c) => (c.id === customerId ? { ...c, ...normalized } : c))
+        );
+        return;
+      }
+
+      if (!orgId) return;
 
       await mutate(
         async (current) => {
@@ -522,11 +623,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       ).catch(() => mutate()); // Revalidate if action throws
     },
-    [mutate, orgId]
+    [mutate, orgId, isDemoMode]
   );
 
   const deleteCustomer = useCallback(
     async (customerId: string) => {
+      if (isDemoMode) {
+        setDemoCustomers((prev) => prev.filter((c) => c.id !== customerId));
+        setDemoOrders((prev) => prev.filter((o) => o.customerId !== customerId));
+        return { deletedOrderCount: 0 };
+      }
+
       mutate(
         (current) => {
           const state = current || EMPTY_BUNDLE;
@@ -545,7 +652,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       return result;
     },
-    [mutate]
+    [mutate, isDemoMode]
   );
 
   const deleteOrder = useCallback(

@@ -16,6 +16,7 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { trackEvent } from '@/lib/analytics';
 import { customerSchema, type CustomerInput } from '@/lib/validations';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
+import { normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -125,15 +126,29 @@ export default function NewClientPage() {
 
   const customChips = styleSet.filter((s) => !STYLE_PRESETS.includes(s));
 
-  const onSubmit = async (data: CustomerInput) => {
+  const findDuplicateClient = (phoneInput: string) => {
+    const normalizedInput = normalizePhone(phoneInput);
+    const rawInputDigits = normalizedInput.replace(/\D/g, '');
+    return customers.find((c) => {
+      if (!c.whatsappNumber) return false;
+      const dbNormalized = normalizePhone(c.whatsappNumber);
+      if (dbNormalized === normalizedInput) return true;
+      const rawDbDigits = dbNormalized.replace(/\D/g, '');
+      return rawDbDigits.length >= 10 && rawInputDigits.length >= 10
+        ? rawDbDigits.slice(-10) === rawInputDigits.slice(-10)
+        : rawDbDigits === rawInputDigits;
+    });
+  };
+
+  const onSubmit = async (data: CustomerInput, proceedToOrder: boolean = true) => {
     setApiError('');
     setSubmitting(true);
     try {
-      const normalizedPhone = data.phone.trim();
-      const duplicate = customers.find((c) => c.whatsappNumber === normalizedPhone);
+      const normalizedPhone = normalizePhone(data.phone);
+      const duplicate = findDuplicateClient(data.phone);
 
       if (duplicate) {
-        const errorMsg = `A client with the number ${normalizedPhone} already exists (${duplicate.fullName}).`;
+        const errorMsg = `A client with the number ${data.phone.trim()} already exists (${duplicate.fullName}).`;
         setApiError(errorMsg);
         showToast(errorMsg, 'error');
         setSubmitting(false);
@@ -142,8 +157,8 @@ export default function NewClientPage() {
 
       const measurements: Record<string, number> = {};
       for (const [key, value] of Object.entries(bodyMeasurements)) {
-        const num = parseFloat(value);
-        if (!isNaN(num)) measurements[key] = num;
+        const num = parseMeasurementValue(value);
+        if (num !== null) measurements[key] = num;
       }
       const customer = await addCustomer({
         fullName: data.fullName.trim(),
@@ -157,8 +172,11 @@ export default function NewClientPage() {
       });
       showToast(`${customer.fullName} added to customers`, 'success');
       trackEvent('customer_created');
-      // Step 3: hand straight into the order wizard, pre-filled.
-      router.replace(ROUTES.orderNewForCustomer(customer.id));
+      if (proceedToOrder) {
+        router.replace(ROUTES.orderNewForCustomer(customer.id));
+      } else {
+        router.replace(ROUTES.customerDetail(customer.id));
+      }
     } catch (err) {
       // The client-side duplicate check above reads from the local (SWR)
       // customer list, which can be a beat stale — e.g. another staff
@@ -179,14 +197,7 @@ export default function NewClientPage() {
   };
 
   const handleContinueToMeasurements = (data: CustomerInput) => {
-    const rawInputPhone = data.phone.replace(/\D/g, '');
-    const duplicate = customers.find((c) => {
-      if (!c.whatsappNumber) return false;
-      const rawDbPhone = c.whatsappNumber.replace(/\D/g, '');
-      return rawDbPhone.length >= 10 && rawInputPhone.length >= 10 
-        ? rawDbPhone.slice(-10) === rawInputPhone.slice(-10)
-        : rawDbPhone === rawInputPhone;
-    });
+    const duplicate = findDuplicateClient(data.phone);
 
     if (duplicate) {
       const errorMsg = `A client with the number ${data.phone.trim()} already exists (${duplicate.fullName}).`;
@@ -232,7 +243,9 @@ export default function NewClientPage() {
             <Symbol name="arrow_back" size={28} />
           </button>
           <div className={styles.headerCenter}>
-            <span className={styles.stepLabel}>Step 2 of 3</span>
+            <span className={styles.stepLabel}>
+              {screen === 'profile' ? 'Step 1 of 2: Profile' : 'Step 2 of 2: Measurements'}
+            </span>
             <h1 className={styles.headerTitle}>{screen === 'profile' ? 'New Client' : 'Body Measurements'}</h1>
           </div>
           <span className={styles.headerSpacer} />
@@ -263,7 +276,10 @@ export default function NewClientPage() {
           </nav>
         </div>
         <div className={styles.progressTrack}>
-          <div className={styles.progressFill} />
+          <div
+            className={styles.progressFill}
+            style={{ transform: `scaleX(${screen === 'profile' ? 0.5 : 1})` }}
+          />
         </div>
       </header>
 
@@ -274,30 +290,32 @@ export default function NewClientPage() {
               <div>
                 <h2 className={styles.sectionTitle}>Full-Body Measurements</h2>
                 <p className={styles.sectionSub}>
-                  Optional — tap a card to fill it in, or skip the whole thing and take these at fitting instead.
-                  Whatever you save here pre-fills every garment&apos;s measurements for {watch('fullName') || 'this client'} from now on.
+                  Optional — tap any field to record measurements now, or save and record during fitting.
+                  Whatever you save here pre-fills orders for {watch('fullName') || 'this client'}.
                 </p>
               </div>
 
               {apiError && <div className={styles.errorBanner}>{apiError}</div>}
-
-              <div className={styles.field}>
-                <label className={styles.capsLabel} htmlFor="measurementNotes">Measurement Notes</label>
-                <textarea
-                  id="measurementNotes"
-                  className={styles.textarea}
-                  placeholder="e.g. C42, W36, L40. Client has a dropped left shoulder."
-                  value={measurementNotes}
-                  onChange={(e) => setMeasurementNotes(e.target.value)}
-                  rows={4}
-                />
-              </div>
 
               <StyleMeasureForm
                 spec={bodySpec}
                 values={bodyMeasurements}
                 onChange={(key, value) => setBodyMeasurements((prev) => ({ ...prev, [key]: value }))}
               />
+
+              <div className={styles.insetCard}>
+                <div className={styles.field}>
+                  <label className={styles.capsLabel} htmlFor="measurementNotes">Special Fitting / Posture Notes</label>
+                  <textarea
+                    id="measurementNotes"
+                    className={styles.textarea}
+                    placeholder="e.g. Dropped left shoulder, prefers high-waisted trousers, fitted sleeves."
+                    value={measurementNotes}
+                    onChange={(e) => setMeasurementNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
             </section>
           </div>
         </main>
@@ -311,17 +329,17 @@ export default function NewClientPage() {
                 <h2 className={styles.sectionTitle}>Client Profile</h2>
                 {isContactPickerSupported && (
                   <button type="button" className={styles.importBtn} onClick={handleImportContact}>
-                    <Symbol name="contact_phone" size={20} />
+                    <Symbol name="contact_phone" size={18} />
                     Import Contact
                   </button>
                 )}
               </div>
-              <p className={styles.sectionSub}>Enter the essential details for their client record.</p>
+              <p className={styles.sectionSub}>Enter essential details for their client record.</p>
             </div>
 
             {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
-            <div className={styles.fieldRow}>
+            <div className={styles.insetCard}>
               <div className={styles.field}>
                 <label className={styles.capsLabel} htmlFor="fullName">Full Name</label>
                 <div className={styles.inputWrap}>
@@ -332,10 +350,12 @@ export default function NewClientPage() {
                     placeholder="e.g. Adebayo Ogunlesi"
                     {...register('fullName')}
                   />
-                  <Symbol name="person" size={22} className={styles.inputIcon} />
+                  <Symbol name="person" size={20} className={styles.inputIcon} />
                 </div>
                 {errors.fullName && <div className={styles.errorText}>{errors.fullName.message}</div>}
               </div>
+
+              <div className={styles.hairlineDivider} />
 
               <div className={styles.field}>
                 <label className={styles.capsLabel} htmlFor="phone">Phone Number (WhatsApp)</label>
@@ -352,89 +372,96 @@ export default function NewClientPage() {
                 />
                 {errors.phone && <div className={styles.errorText}>{errors.phone.message}</div>}
               </div>
+
+              {FEATURE_FLAGS.customerAddress && (
+                <>
+                  <div className={styles.hairlineDivider} />
+                  <div className={styles.field}>
+                    <label className={styles.capsLabel} htmlFor="address">Home Address (Optional)</label>
+                    <div className={styles.inputWrap}>
+                      <input
+                        id="address"
+                        type="text"
+                        className={styles.input}
+                        placeholder="e.g. 12 Adeola Street, Lagos"
+                        {...register('address')}
+                      />
+                      <Symbol name="location_on" size={20} className={styles.inputIcon} />
+                    </div>
+                    {errors.address && <div className={styles.errorText}>{errors.address.message}</div>}
+                  </div>
+                </>
+              )}
             </div>
-
-            {FEATURE_FLAGS.customerAddress && (
-              <div className={styles.field}>
-                <label className={styles.capsLabel} htmlFor="address">Home Address (Optional)</label>
-                <div className={styles.inputWrap}>
-                  <input
-                    id="address"
-                    type="text"
-                    className={styles.input}
-                    placeholder="e.g. 12 Adeola Street, Lagos"
-                    {...register('address')}
-                  />
-                  <Symbol name="location_on" size={22} className={styles.inputIcon} />
-                </div>
-                {errors.address && <div className={styles.errorText}>{errors.address.message}</div>}
-              </div>
-            )}
-
-
           </section>
-
-          <hr className={styles.divider} />
 
           {/* Demographics & preferences */}
           <section className={styles.section}>
-            <div className={styles.field}>
-              <span className={styles.capsLabel}>Gender</span>
-              <div className={styles.segment} role="radiogroup" aria-label="Gender">
-                {(['male', 'female'] as const).map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    role="radio"
-                    aria-checked={gender === g}
-                    className={`${styles.segmentBtn} ${gender === g ? styles.segmentBtnActive : ''}`}
-                    onClick={() => {
-                      setValue('gender', g);
-                      // Previously picked chips belong to the other gender's
-                      // catalog — clear rather than leave a stale mismatch.
-                      setValue('preferredStyles', []);
-                    }}
-                  >
-                    {g === 'male' ? 'Male' : 'Female'}
-                  </button>
-                ))}
-              </div>
+            <div>
+              <h2 className={styles.sectionTitle} style={{ fontSize: '18px' }}>Garment Preferences</h2>
             </div>
 
-            <div className={styles.field}>
-              <span className={styles.capsLabel}>Preferred Styles</span>
-              <div className={styles.chips}>
-                {[...STYLE_PRESETS, ...customChips].map((style) => {
-                  const active = styleSet.includes(style);
-                  return (
+            <div className={styles.insetCard}>
+              <div className={styles.field}>
+                <span className={styles.capsLabel}>Gender</span>
+                <div className={styles.segment} role="radiogroup" aria-label="Gender">
+                  {(['male', 'female'] as const).map((g) => (
                     <button
-                      key={style}
+                      key={g}
                       type="button"
-                      className={`${styles.chip} ${active ? styles.chipActive : ''}`}
-                      aria-pressed={active}
-                      onClick={() => toggleStyle(style)}
+                      role="radio"
+                      aria-checked={gender === g}
+                      className={`${styles.segmentBtn} ${gender === g ? styles.segmentBtnActive : ''}`}
+                      onClick={() => {
+                        setValue('gender', g);
+                        // Previously picked chips belong to the other gender's
+                        // catalog — clear rather than leave a stale mismatch.
+                        setValue('preferredStyles', []);
+                      }}
                     >
-                      {active && <Symbol name="check" size={20} />}
-                      {style}
+                      {g === 'male' ? 'Male' : 'Female'}
                     </button>
-                  );
-                })}
-                {showCustomInput ? (
-                  <input
-                    autoFocus
-                    className={`${styles.input} ${styles.customStyleInput}`}
-                    placeholder="Style name…"
-                    value={customStyle}
-                    onChange={(e) => setCustomStyle(e.target.value)}
-                    onBlur={addCustomStyle}
-                    onKeyDown={(e) => e.key === 'Enter' && addCustomStyle()}
-                  />
-                ) : (
-                  <button type="button" className={styles.chip} onClick={() => setShowCustomInput(true)}>
-                    <Symbol name="add" size={20} />
-                    Other
-                  </button>
-                )}
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.hairlineDivider} />
+
+              <div className={styles.field}>
+                <span className={styles.capsLabel}>Preferred Styles</span>
+                <div className={styles.chips}>
+                  {[...STYLE_PRESETS, ...customChips].map((style) => {
+                    const active = styleSet.includes(style);
+                    return (
+                      <button
+                        key={style}
+                        type="button"
+                        className={`${styles.chip} ${active ? styles.chipActive : ''}`}
+                        aria-pressed={active}
+                        onClick={() => toggleStyle(style)}
+                      >
+                        {active && <Symbol name="check" size={16} />}
+                        {style}
+                      </button>
+                    );
+                  })}
+                  {showCustomInput ? (
+                    <input
+                      autoFocus
+                      className={`${styles.input} ${styles.customStyleInput}`}
+                      placeholder="Style name…"
+                      value={customStyle}
+                      onChange={(e) => setCustomStyle(e.target.value)}
+                      onBlur={addCustomStyle}
+                      onKeyDown={(e) => e.key === 'Enter' && addCustomStyle()}
+                    />
+                  ) : (
+                    <button type="button" className={styles.chip} onClick={() => setShowCustomInput(true)}>
+                      <Symbol name="add" size={16} />
+                      Other
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </section>
@@ -449,24 +476,59 @@ export default function NewClientPage() {
           <div className={styles.actionBarInner}>
             {screen === 'measurements' ? (
               <>
-                <button type="button" className={styles.cancelBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
-                  Skip for now
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={() => setScreen('profile')}
+                  disabled={submitting}
+                >
+                  Back
                 </button>
-                <button type="button" className={styles.createBtn} onClick={handleSubmit(onSubmit)} disabled={submitting}>
-                  {submitting && <Symbol name="progress_activity" className="global-spinner" />}
-                  Create Profile & Proceed
-                  <Symbol name="arrow_forward" size={22} />
-                </button>
+                <div className={styles.actionGroupRight}>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    onClick={handleSubmit((data) => onSubmit(data, false))}
+                    disabled={submitting}
+                  >
+                    Save Profile Only
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.createBtn}
+                    onClick={handleSubmit((data) => onSubmit(data, true))}
+                    disabled={submitting}
+                  >
+                    {submitting && <Symbol name="progress_activity" className="global-spinner" />}
+                    Save & Start Order
+                    <Symbol name="arrow_forward" size={18} />
+                  </button>
+                </div>
               </>
             ) : (
               <>
-                <button type="button" className={styles.cancelBtn} onClick={() => router.back()}>
+                <button type="button" className={styles.cancelBtn} onClick={() => router.back()} disabled={submitting}>
                   Cancel
                 </button>
-                <button type="button" className={styles.createBtn} onClick={handleSubmit(handleContinueToMeasurements)} disabled={submitting}>
-                  Continue
-                  <Symbol name="arrow_forward" size={22} />
-                </button>
+                <div className={styles.actionGroupRight}>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    onClick={handleSubmit((data) => onSubmit(data, false))}
+                    disabled={submitting}
+                  >
+                    Save Profile
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.createBtn}
+                    onClick={handleSubmit(handleContinueToMeasurements)}
+                    disabled={submitting}
+                  >
+                    Add Measurements
+                    <Symbol name="arrow_forward" size={18} />
+                  </button>
+                </div>
               </>
             )}
           </div>

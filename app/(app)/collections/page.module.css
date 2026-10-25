@@ -1,171 +1,753 @@
 .container {
-  padding: 0 var(--sf-space-md) var(--sf-space-3xl);
-  max-width: var(--sf-max-width-main);
+  padding: 0 14px 100px;
+  max-width: 680px;
   margin: 0 auto;
 }
 
-.header {
-  margin-top: var(--sf-space-lg);
-  margin-bottom: var(--sf-space-lg);
+/* =========================================================================
+   1. ATELIER DEBT HERO HEADER (Woven Indigo Luxury Card)
+   ========================================================================= */
+
+.heroCard {
+  margin-top: 12px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--sf-radius-lg);
+  padding: 20px 20px 18px;
+  color: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(30, 27, 75, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 140px;
+  background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.heroTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.riskBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(239, 68, 68, 0.24);
+  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.heroAmountRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.heroCurrencySymbol {
+  font-family: var(--font-fraunces, Georgia, serif);
+  font-size: 26px;
+  font-weight: 600;
+  color: #F59E0B;
+}
+
+.heroAmountValue {
+  font-family: var(--font-fraunces, Georgia, serif);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.heroStatsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--sf-radius-md);
+  padding: 10px 14px;
+}
+
+.heroStatItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
   text-align: center;
 }
 
-.title {
-  font-family: var(--font-fraunces);
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  margin: 0 0 var(--sf-space-xs) 0;
+.heroStatLabel {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
 }
 
-.subtitle {
-  font-size: 14px;
-  color: var(--sf-text-secondary);
-  margin: 0;
+.heroStatValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
 }
 
-/* Overview Summary Cards */
-.summaryRow {
-  display: flex;
-  gap: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-xl);
+.heroStatDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
 }
 
-.summaryCard {
-  flex: 1;
-  background: var(--sf-bg-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-md);
+/* =========================================================================
+   2. CONTROLS SECTION: SEARCH & FILTER BAR
+   ========================================================================= */
+
+.controlsSection {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.summaryLabel {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--sf-text-secondary);
-  font-weight: 600;
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: 0 12px;
+  height: 44px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.summaryValue {
-  font-size: 20px;
-  font-weight: 700;
+.searchBar:focus-within {
+  border-color: var(--sf-primary);
+  box-shadow: 0 0 0 3px rgba(30, 27, 75, 0.08);
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+.searchInput::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.clearSearchBtn {
+  background: transparent;
+  border: none;
+  color: var(--sf-text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.clearSearchBtn:hover {
   color: var(--sf-text-primary);
 }
 
-.summaryValue.danger {
-  color: var(--sf-error);
+.filterPillsTrack {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
 }
 
-/* Debtor List */
-.listTitle {
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.filterPillsTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.listMetaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px;
+  font-size: 13px;
+}
+
+.resultsCount {
   color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.sortWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sortLabel {
+  color: var(--sf-text-tertiary);
+  font-size: 12px;
+}
+
+.sortSelect {
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 12px;
   font-weight: 600;
-  margin-bottom: var(--sf-space-md);
+  padding: 4px 8px;
+  border-radius: var(--sf-radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+/* =========================================================================
+   3. DEBTORS LIST & DEBTOR CARDS
+   ========================================================================= */
+
+.debtorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .debtorCard {
-  background: var(--sf-bg-elevated);
+  background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-md);
-  margin-bottom: var(--sf-space-sm);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-sm);
+  gap: 12px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.debtorCard:hover {
+  border-color: var(--sf-border-default);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
 }
 
 .debtorHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid var(--sf-border-light);
-  padding-bottom: var(--sf-space-sm);
+  gap: 12px;
 }
 
-.customerInfo {
+.customerBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.customerMeta {
   display: flex;
   flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
-.customerName {
-  font-size: 16px;
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.customerNameLink {
+  font-size: 15px;
   font-weight: 600;
   color: var(--sf-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customerNameLink:hover {
+  text-decoration: underline;
+  color: var(--sf-primary);
+}
+
+.phoneChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  text-decoration: none;
+  background: var(--sf-bg-surface-variant);
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-sm);
+  transition: color 0.12s ease;
+}
+
+.phoneChip:hover {
+  color: var(--sf-primary);
 }
 
 .orderTitle {
   font-size: 13px;
   color: var(--sf-text-secondary);
-  margin-top: 2px;
+  line-height: 1.3;
 }
 
-.balanceInfo {
-  text-align: right;
+.balanceCapsule {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
-.balanceLabel {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: var(--sf-text-tertiary);
-  font-weight: 600;
-}
-
-.balanceAmount {
-  font-size: 16px;
+.balanceDueTag {
+  background: rgba(220, 38, 38, 0.12);
+  color: #DC2626;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--sf-error);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  letter-spacing: 0.2px;
 }
 
-.actions {
+.balanceFormula {
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+}
+
+.cardStrip {
   display: flex;
-  gap: var(--sf-space-sm);
-  margin-top: 4px;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.btn {
+.stageTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-sm);
+}
+
+.urgentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #DC2626;
+  background: rgba(220, 38, 38, 0.08);
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+}
+
+.cardActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.quickPayBtn {
   flex: 1;
+  height: 40px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border-radius: var(--sf-radius-md) !important;
+}
+
+.whatsAppBtn {
+  flex: 1;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px;
+  gap: 8px;
+  background: #25D366;
+  color: #FFFFFF;
+  border: none;
   border-radius: var(--sf-radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.whatsAppBtn:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+.whatsAppBtn:active {
+  transform: translateY(0);
+}
+
+.whatsAppBtnDisabled {
+  flex: 1;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--sf-bg-surface-variant);
+  color: var(--sf-text-tertiary);
   border: none;
-  transition: all 0.2s ease;
+  border-radius: var(--sf-radius-md);
+  font-size: 14px;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.btnPrimary {
-  background: var(--sf-text-primary);
-  color: var(--sf-bg-main);
+.iconActionBtn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-bg-surface-variant);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
+  flex-shrink: 0;
 }
 
-.btnSecondary {
-  background: var(--sf-bg-hover);
+.iconActionBtn:hover {
+  background: var(--sf-bg-elevated);
+  transform: translateY(-1px);
+}
+
+.iconActionBtn:active {
+  transform: translateY(0);
+}
+
+/* =========================================================================
+   4. EMPTY STATE CONTAINER
+   ========================================================================= */
+
+.emptyContainer {
+  margin-top: 24px;
+  padding: 24px 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+}
+
+/* =========================================================================
+   5. QUICK PAY BOTTOM SHEET FORM
+   ========================================================================= */
+
+.quickPayForm {
+  padding: 16px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sheetContextCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--sf-bg-surface-variant);
+  padding: 12px 14px;
+  border-radius: var(--sf-radius-md);
+}
+
+.sheetContextAvatar {
+  flex-shrink: 0;
+}
+
+.sheetContextDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sheetCustomerName {
+  font-size: 15px;
+  font-weight: 600;
   color: var(--sf-text-primary);
 }
 
-.btnWhatsApp {
-  background: #25D366;
-  color: white;
-}
-
-.emptyState {
-  text-align: center;
-  padding: var(--sf-space-3xl) var(--sf-space-md);
-  background: var(--sf-bg-elevated);
-  border: 1px dashed var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
+.sheetOrderName {
+  font-size: 13px;
   color: var(--sf-text-secondary);
 }
+
+.sheetLedger {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ledgerRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+}
+
+.ledgerDivider {
+  height: 1px;
+  background: var(--sf-border-light);
+  margin: 2px 0;
+}
+
+.ledgerDueRow {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.ledgerDueValue {
+  color: #DC2626;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.walletCallout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--sf-radius-md);
+  padding: 10px 14px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.walletCalloutText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #065F46;
+}
+
+.applyWalletBtn {
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--sf-radius-sm);
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.applyWalletBtn:hover {
+  filter: brightness(0.95);
+}
+
+.presetChipsRow {
+  display: flex;
+  gap: 8px;
+}
+
+.presetChip {
+  flex: 1;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-default);
+  border-radius: var(--sf-radius-full);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: center;
+}
+
+.presetChip:hover {
+  border-color: var(--sf-primary);
+  background: var(--sf-bg-surface-variant);
+}
+
+.presetChip:active {
+  transform: scale(0.98);
+}
+
+.presetChipActive {
+  background: var(--sf-primary) !important;
+  border-color: var(--sf-primary) !important;
+  color: #FFFFFF !important;
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+}
+
+.formCol {
+  flex: 1;
+}
+
+.noteFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.noteLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+}
+
+.noteInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--sf-border-default);
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.noteInput:focus {
+  border-color: var(--sf-primary);
+}
+
+.sheetActionsRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cancelSheetBtn {
+  flex: 1;
+  height: 44px !important;
+  border-radius: var(--sf-radius-md) !important;
+}
+
+.confirmPayBtn {
+  flex: 2;
+  height: 44px !important;
+  border-radius: var(--sf-radius-md) !important;
+  font-weight: 600 !important;
+}
+
+/* =========================================================================
+   6. MOBILE VIEWPORT ADJUSTMENTS (< 480px)
+   ========================================================================= */
+
+@media (max-width: 480px) {
+  .heroCard {
+    padding: 16px 16px 14px;
+  }
+
+  .heroAmountValue {
+    font-size: 28px;
+  }
+
+  .debtorCard {
+    padding: 12px 14px;
+  }
+
+  .debtorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .balanceCapsule {
+    align-items: flex-start;
+  }
+
+  .formRow {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* =========================================================================
+   7. SKELETON LOADING SHIMMER
+   ========================================================================= */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonHero {
+  margin-top: 12px;
+  margin-bottom: 20px;
+  height: 160px;
+  border-radius: var(--sf-radius-lg);
+  background: linear-gradient(90deg, var(--sf-bg-surface) 25%, var(--sf-bg-surface-variant) 50%, var(--sf-bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonControls {
+  height: 90px;
+  border-radius: var(--sf-radius-md);
+  margin-bottom: 16px;
+  background: linear-gradient(90deg, var(--sf-bg-surface) 25%, var(--sf-bg-surface-variant) 50%, var(--sf-bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonCard {
+  height: 130px;
+  border-radius: var(--sf-radius-lg);
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, var(--sf-bg-surface) 25%, var(--sf-bg-surface-variant) 50%, var(--sf-bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+

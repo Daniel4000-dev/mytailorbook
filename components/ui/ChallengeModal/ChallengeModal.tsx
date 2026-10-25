@@ -166,7 +166,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                     className={`${styles.leaderboardRow} ${item.isCurrentUser ? styles.leaderboardRowCurrent : ''}`}
                   >
                     <span className={`${styles.rankBadge} ${item.rank === 1 ? styles.rankTop1 : item.rank === 2 ? styles.rankTop2 : item.rank === 3 ? styles.rankTop3 : ''}`}>
-                      {item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `#${item.rank}`}
+                      {item.rank}
                     </span>
                     <img
                       src={item.avatarUrl || '/images/logo.png'}

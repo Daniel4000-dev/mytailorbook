@@ -114,7 +114,9 @@ export default function TopBar({
                 >
                   <Symbol name={currentTier.icon} size={16} style={{ color: currentTier.color, fontVariationSettings: "'FILL' 1" }} />
                   <span style={{ color: currentTier.color }}>{currentTier.name}</span>
-                  <span style={{ fontSize: '11px', background: 'rgba(234, 179, 8, 0.15)', color: '#eab308', padding: '1px 5px', borderRadius: '100px' }}>🏆</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(234, 179, 8, 0.15)', padding: '2px 5px', borderRadius: '100px' }}>
+                    <Symbol name="workspace_premium" size={12} style={{ color: '#eab308' }} />
+                  </span>
                 </button>
                 {streakIndicator}
               </div>

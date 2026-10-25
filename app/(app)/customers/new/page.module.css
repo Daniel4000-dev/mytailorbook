@@ -36,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--sf-margin-mobile);
+  padding: 0 14px;
 }
 
 .backBtn {
@@ -102,7 +102,7 @@
   width: 100%;
   transform: scaleX(0.666);
   transform-origin: left center;
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   border-radius: 0 var(--sf-radius-full) var(--sf-radius-full) 0;
   /* transform, not width — width triggers layout reflow every frame,
      scaleX is compositor-only (GPU) so this stays smooth on weak CPUs. */
@@ -112,11 +112,12 @@
 /* ── Scroll area ────────────────────────────────────────────── */
 .scroll {
   flex: 1;
-  padding: var(--sf-space-lg) var(--sf-margin-mobile) 140px;
+  padding: 14px 14px 140px;
 }
 
 .formCol {
-  max-width: 448px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -143,26 +144,27 @@
 }
 
 .importBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--sf-space-sm);
-  padding: 6px 12px;
-  background: var(--sf-surface-variant);
-  color: var(--sf-text-secondary);
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
   border-radius: var(--sf-radius-full);
   font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
+  font-weight: var(--sf-weight-semibold);
   transition: all var(--sf-transition-fast);
 }
 
 .importBtn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
+  opacity: 0.8;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .importBtn:hover {
-    background: var(--sf-bg-surface-hover);
-    color: var(--sf-text-primary);
+    background: var(--sf-brand-indigo-glow);
+    opacity: 0.9;
   }
 }
 
@@ -170,11 +172,12 @@
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-2xl);
   line-height: 32px;
-  color: var(--sf-accent-emerald);
+  color: var(--sf-text-primary);
 }
 
 .sectionSub {
   color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
   margin-top: 4px;
 }
 
@@ -192,11 +195,29 @@
   border-top: 1px solid var(--sf-border-light);
 }
 
+/* ── Apple Inset Grouped Card ───────────────────────────────── */
+.insetCard {
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid var(--sf-border-light);
+  padding: 16px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.hairlineDivider {
+  height: 1px;
+  background: var(--sf-border-light);
+  margin: 2px 0;
+}
+
 /* ── Fields ─────────────────────────────────────────────────── */
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-sm);
+  gap: 6px;
 }
 
 .capsLabel {
@@ -214,15 +235,15 @@
 
 .input {
   width: 100%;
-  height: var(--sf-touch-target);
+  height: 48px;
   padding: 0 var(--sf-space-md);
-  background: var(--sf-sand);
-  border: 1px solid var(--sf-border);
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
   border-radius: var(--sf-radius-sm);
   font-family: var(--sf-font-body);
   font-size: var(--sf-text-base);
   color: var(--sf-text-primary);
-  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: all var(--sf-transition-fast);
 }
 
 .input::placeholder {
@@ -231,22 +252,23 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--sf-accent-emerald);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo-glow);
 }
 
 .textarea {
   width: 100%;
   padding: var(--sf-space-md);
-  background: var(--sf-sand);
-  border: 1px solid var(--sf-border);
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
   border-radius: var(--sf-radius-sm);
   font-family: var(--sf-font-body);
   font-size: var(--sf-text-base);
   color: var(--sf-text-primary);
   resize: vertical;
   min-height: 100px;
-  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: all var(--sf-transition-fast);
 }
 
 .textarea::placeholder {
@@ -255,8 +277,9 @@
 
 .textarea:focus {
   outline: none;
-  border-color: var(--sf-accent-emerald);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo-glow);
 }
 
 .inputIcon {
@@ -297,81 +320,83 @@
 /* ── Gender segmented control ───────────────────────────────── */
 .segment {
   display: flex;
-  height: 56px;
-  padding: 4px;
+  height: 44px;
+  padding: 3px;
   background: var(--sf-surface-variant);
-  border-radius: var(--sf-radius-sm);
+  border-radius: 12px;
 }
 
 .segmentBtn {
   flex: 1;
-  border-radius: 6px;
-  font-size: var(--sf-text-base);
+  height: 100%;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--sf-text-secondary);
-  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+  transition: all var(--sf-transition-fast);
 }
 
 .segmentBtn:active {
-  background: var(--sf-bg-surface-hover);
+  opacity: 0.8;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.segmentBtn:hover {
-  background: var(--sf-bg-surface-hover);
-}
+  .segmentBtn:hover:not(.segmentBtnActive) {
+    color: var(--sf-text-primary);
+  }
 }
 
 .segmentBtnActive {
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  font-weight: var(--sf-weight-semibold);
-  box-shadow: var(--sf-shadow-sm);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* ── Style chips ────────────────────────────────────────────── */
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sf-space-sm);
+  gap: 8px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--sf-space-sm);
-  height: var(--sf-touch-target);
-  padding: 0 20px;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-base);
-  transition: background-color var(--sf-transition-fast), transform 120ms ease;
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
+  color: var(--sf-text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.chip:hover {
-  background: var(--sf-surface-variant);
-}
+  .chip:hover {
+    background: var(--sf-surface-container-highest);
+  }
 }
 
 .chip:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 .chipActive {
-  background: var(--sf-secondary-container);
-  border-color: var(--sf-secondary-container);
-  color: var(--sf-accent-emerald);
-  font-weight: var(--sf-weight-semibold);
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
 }
 
 .customStyleInput {
-  width: 160px;
-  height: var(--sf-touch-target);
+  width: 140px;
+  height: 38px;
   border-radius: var(--sf-radius-full);
+  font-size: 14px;
 }
 
 /* ── Fixed action bar (glass) ───────────────────────────────── */
@@ -380,7 +405,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  padding: var(--sf-space-md) var(--sf-margin-mobile) calc(var(--sf-space-xl) + var(--sf-safe-area-bottom));
+  padding: 12px 14px calc(14px + var(--sf-safe-area-bottom));
   background: linear-gradient(145deg, color-mix(in srgb, var(--sf-bg-primary) 85%, transparent) 0%, color-mix(in srgb, var(--sf-bg-primary) 60%, transparent) 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -389,19 +414,32 @@
 }
 
 .actionBarInner {
-  max-width: 448px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: var(--sf-space-md);
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+}
+
+.actionGroupRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  margin-left: auto;
 }
 
 .cancelBtn {
-  height: 56px;
-  padding: 0 var(--sf-space-md);
+  height: 44px;
+  padding: 0 14px;
   color: var(--sf-text-secondary);
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  border-radius: var(--sf-radius-full);
+  background: transparent;
+  border: none;
+  cursor: pointer;
   transition: color var(--sf-transition-fast), opacity var(--sf-transition-fast);
 }
 
@@ -410,41 +448,72 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.cancelBtn:hover {
-  color: var(--sf-accent-emerald);
-}
+  .cancelBtn:hover {
+    color: var(--sf-brand-indigo);
+  }
 }
 
 .createBtn {
-  flex: 1;
-  height: 56px;
-  display: flex;
+  flex: initial;
+  height: 44px;
+  padding: 0 20px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sf-space-sm);
-  background: var(--sf-accent-emerald);
+  gap: 6px;
+  background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
-  border-radius: var(--sf-radius-md);
-  font-size: var(--sf-text-base);
+  border-radius: var(--sf-radius-full);
+  border: none;
+  font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-bold);
-  box-shadow: 0 10px 25px var(--sf-accent-gold-glow);
+  box-shadow: 0 4px 14px var(--sf-brand-indigo-glow);
   transition: transform 120ms ease, background-color var(--sf-transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.createBtn:hover:not(:disabled) {
-  background: var(--sf-accent-emerald-light);
-}
+  .createBtn:hover:not(:disabled) {
+    background: var(--sf-brand-primary-hover);
+  }
 }
 
 .createBtn:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .createBtn:disabled {
   opacity: 0.6;
+}
+
+.secondaryBtn {
+  height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-xs);
+  background: var(--sf-surface-variant);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-primary);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  transition: all var(--sf-transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .secondaryBtn:hover:not(:disabled) {
+    background: var(--sf-bg-surface-hover);
+    border-color: var(--sf-brand-indigo);
+  }
+}
+
+.secondaryBtn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 /* ── Desktop overrides ──────────────────────────────────────────
@@ -463,6 +532,23 @@
    a version where .headerInner was left narrower than the body column
    and a review had to catch it; matching all three here up front avoids
    repeating that. */
+@media (min-width: 768px) {
+  .headerInner,
+  .formCol,
+  .actionBarInner {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .scroll {
+    padding: 20px 20px 140px;
+  }
+
+  .insetCard {
+    padding: 20px;
+  }
+}
+
 @media (min-width: 1024px) {
   .headerInner,
   .formCol,
@@ -534,7 +620,7 @@
   }
 
   .screenRailItem[data-state='current'] {
-    background: var(--sf-accent-emerald-glow);
+    background: var(--sf-brand-indigo-glow);
     color: var(--sf-text-primary);
     font-weight: var(--sf-weight-semibold);
   }
@@ -566,12 +652,12 @@
   }
 
   .screenRailItem[data-state='current'] .screenRailGlyph {
-    background: var(--sf-accent-emerald);
+    background: var(--sf-brand-indigo);
     color: var(--sf-text-on-accent);
   }
 
   .screenRailItem[data-state='done'] .screenRailGlyph {
     background: var(--sf-bg-surface);
-    color: var(--sf-accent-emerald);
+    color: var(--sf-brand-indigo);
   }
 }

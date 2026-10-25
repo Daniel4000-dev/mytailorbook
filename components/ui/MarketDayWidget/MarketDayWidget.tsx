@@ -39,7 +39,9 @@ export default function MarketDayWidget() {
   return (
     <div className={styles.widget}>
       <div className={styles.content}>
-        <span className={styles.title}>🛍️ Sourcing Fabrics?</span>
+        <span className={styles.title} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Symbol name="storefront" size={16} /> Sourcing Fabrics?
+        </span>
         <span className={styles.desc}>Protect your streak on market days.</span>
       </div>
       <button className={styles.btn} onClick={handleMarketDay} disabled={loading}>

@@ -2,34 +2,70 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sf-space-md) 0;
-  margin-bottom: var(--sf-space-md);
+  padding: 14px 4px 10px 4px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--sf-border-light);
+}
+
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stageIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-surface-container-high);
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stageIconWrap[data-stage='Documented'] {
+  background: rgba(148, 163, 184, 0.15);
+  color: #64748B;
+}
+
+.stageIconWrap[data-stage='Cutting'] {
+  background: rgba(99, 102, 241, 0.15);
+  color: #4F46E5;
+}
+
+.stageIconWrap[data-stage='Sewing'] {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0284C7;
+}
+
+.stageIconWrap[data-stage='Ready'] {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.stageIconWrap[data-stage='Delivered'] {
+  background: rgba(100, 116, 139, 0.15);
+  color: #475569;
 }
 
 .title {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-2xl);
-  line-height: 32px;
-  font-weight: var(--sf-weight-semibold);
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 700;
   color: var(--sf-text-primary);
-  white-space: nowrap;
-}
-
-/* "Documented Phase" at 24px serif + count chip is tight on small
-   phones — step the title down before letting anything wrap. */
-@media (max-width: 420px) {
-  .title {
-    font-size: var(--sf-text-xl);
-  }
+  letter-spacing: -0.01em;
+  margin: 0;
 }
 
 .countChip {
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
+  font-size: 11.5px;
+  font-weight: 600;
   color: var(--sf-text-secondary);
-  background: var(--sf-bg-surface-hover);
-  padding: 4px 12px;
+  background: var(--sf-surface-container-high);
+  padding: 3px 10px;
   border-radius: var(--sf-radius-full);
   white-space: nowrap;
 }

@@ -22,24 +22,27 @@
 }
 
 .slipEyebrow {
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
 }
 
 .title {
   margin: 0;
-  font-size: var(--sf-text-xl);
-  font-weight: var(--sf-weight-bold);
+  font-family: var(--sf-font-heading);
+  font-size: 18px;
+  font-weight: 700;
   color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .refTag {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--sf-font-mono, monospace);
   font-size: var(--sf-text-xs);
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-tertiary);
+  font-weight: 600;
 }
 
 .headerRight {
@@ -49,22 +52,27 @@
 }
 
 .printBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--sf-radius-sm);
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
   border: 1px solid var(--sf-border-light);
-  background: var(--sf-sand);
+  background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-medium);
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background var(--sf-transition-fast);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .printBtn:hover {
   background: var(--sf-surface-container-high);
+}
+
+.printBtn:active {
+  transform: scale(0.96);
 }
 
 .customerCard {
@@ -180,23 +188,26 @@
   justify-content: center;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
-  padding: 10px 12px;
+  border-radius: var(--sf-radius-md);
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .measureLabel {
-  font-size: var(--sf-text-2xs);
+  font-size: 11px;
+  font-weight: 600;
   color: var(--sf-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--sf-tracking-caps);
   margin-bottom: 2px;
 }
 
 .measureValue {
-  font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-bold);
+  font-size: 17px;
+  font-weight: 700;
   color: var(--sf-text-primary);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--sf-font-mono, monospace);
+  letter-spacing: -0.02em;
 }
 
 .emptyMeasures {

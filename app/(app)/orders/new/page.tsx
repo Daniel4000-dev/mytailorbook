@@ -16,35 +16,40 @@ function OrderTypeSelector({ onSelect }: { onSelect: (type: 'bespoke' | 'rtw') =
   const router = useRouter();
   
   return (
-    <PageLayout width="narrow" header={<TopBar title="New" showBack onBack={() => router.push(ROUTES.production)} />}>
-      <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h2 style={{ margin: '0 0 8px 0', color: 'var(--sf-text-primary)' }}>What are you creating?</h2>
+    <PageLayout width="narrow" padding="none" header={<TopBar title="New Intake" showBack onBack={() => router.push(ROUTES.production)} />}>
+      <div className={styles.selectorContainer}>
+        <h2 className={styles.selectorTitle}>What are you creating?</h2>
+        <p className={styles.selectorSubtitle}>Select the production workflow for this order</p>
         
-        <div 
+        <button 
+          type="button"
           onClick={() => onSelect('bespoke')}
-          style={{ padding: '20px', borderRadius: '12px', border: '1px solid var(--sf-border-subtle)', background: 'var(--sf-bg-surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
+          className={styles.typeOptionCard}
         >
-          <div style={{ background: 'var(--sf-surface-hover)', padding: '12px', borderRadius: '50%' }}>
+          <div className={styles.typeIconWrap}>
             <Symbol name="person" size={24} />
           </div>
-          <div>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--sf-text-primary)' }}>Custom Order (Bespoke)</h3>
-            <p style={{ margin: 0, fontSize: '14px', color: 'var(--sf-text-secondary)' }}>For a specific customer with unique measurements.</p>
+          <div className={styles.typeTextWrap}>
+            <h3 className={styles.typeOptionTitle}>Custom Order (Bespoke)</h3>
+            <p className={styles.typeOptionDesc}>For a specific customer with unique measurements and style choices.</p>
           </div>
-        </div>
+          <Symbol name="chevron_right" size={20} className={styles.typeChevron} />
+        </button>
 
-        <div 
+        <button 
+          type="button"
           onClick={() => onSelect('rtw')}
-          style={{ padding: '20px', borderRadius: '12px', border: '1px solid var(--sf-border-subtle)', background: 'var(--sf-bg-surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px' }}
+          className={styles.typeOptionCard}
         >
-          <div style={{ background: 'var(--sf-surface-hover)', padding: '12px', borderRadius: '50%' }}>
+          <div className={styles.typeIconWrap}>
             <Symbol name="precision_manufacturing" size={24} />
           </div>
-          <div>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--sf-text-primary)' }}>Production Batch (RTW)</h3>
-            <p style={{ margin: 0, fontSize: '14px', color: 'var(--sf-text-secondary)' }}>Create a batch of standard sizes for your shop floor.</p>
+          <div className={styles.typeTextWrap}>
+            <h3 className={styles.typeOptionTitle}>Production Batch (RTW)</h3>
+            <p className={styles.typeOptionDesc}>Create a batch of standard sizes for your shop floor or retail inventory.</p>
           </div>
-        </div>
+          <Symbol name="chevron_right" size={20} className={styles.typeChevron} />
+        </button>
       </div>
     </PageLayout>
   );

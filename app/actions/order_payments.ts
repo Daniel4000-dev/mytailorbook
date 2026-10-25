@@ -30,13 +30,13 @@ export async function addPayment(orderId: string, amount: number, method: Paymen
     return { error: 'Failed to record payment' };
   }
   
-  // Update the orders table to sync amount_paid for backwards compatibility/simplicity
-  const { data: orderData } = await supabase.from('orders').select('amount_paid').eq('id', orderId).single();
-  const currentPaid = orderData?.amount_paid || 0;
+  // Update the orders table to sync deposit_paid for backwards compatibility/simplicity
+  const { data: orderData } = await supabase.from('orders').select('deposit_paid').eq('id', orderId).single();
+  const currentPaid = orderData?.deposit_paid || 0;
   
   await supabase
     .from('orders')
-    .update({ amount_paid: currentPaid + amount })
+    .update({ deposit_paid: currentPaid + amount })
     .eq('id', orderId);
 
   return { data };

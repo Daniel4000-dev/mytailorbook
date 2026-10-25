@@ -24,10 +24,25 @@
   animation: fadeInUp 0.4s ease both;
 }
 
+.statCardClickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.statCardActive {
+  border-color: var(--sf-brand-indigo, #4338CA);
+  background: var(--sf-secondary-container, rgba(67, 56, 202, 0.08));
+}
+
 @media (hover: hover) and (pointer: fine) {
 
 .statCard:hover {
   border-color: var(--sf-border);
+}
+
+.statCardClickable:hover {
+  border-color: var(--sf-brand-indigo, #4338CA);
+  transform: translateY(-1px);
 }
 }
 
@@ -111,7 +126,8 @@
 }
 
 .styleFilterCardSelected .styleFilterPhoto {
-  border-color: var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo-glow);
 }
 
 .styleFilterCard:active .styleFilterPhoto {
@@ -124,7 +140,7 @@
   margin-top: var(--sf-space-sm);
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-sm);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-sm);
   transition: background-color var(--sf-transition-fast);
@@ -133,44 +149,50 @@
 @media (hover: hover) and (pointer: fine) {
 
 .loadMoreBtn:hover {
-  background: var(--sf-surface-variant);
+  background: var(--sf-brand-indigo-glow);
 }
 }
 
 .loadMoreBtn:active {
-  background: var(--sf-secondary-container);
+  background: var(--sf-brand-indigo-glow);
 }
 
-/* Mobile List */
-.mobileList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
-}
-
-.mobileCard {
+/* Apple Inset Grouped List */
+.groupedList {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
-  padding: var(--sf-space-md);
+  border-radius: var(--sf-radius-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
+}
+
+.tableRowWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: transparent;
   cursor: pointer;
-  transition: all var(--sf-transition-fast);
-  animation: fadeInUp 0.4s ease both;
+  transition: background-color var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.mobileCard:hover {
-  border-color: var(--sf-border);
-}
+.tableRow:active {
+  background: var(--sf-bg-surface-hover);
 }
 
-.mobileCard:active {
-  transform: scale(0.98);
+.rowDivider {
+  height: 1px;
+  background: var(--sf-border-light);
+  margin-left: 70px; /* Inset separator past avatar */
 }
 
 .cardHeader {
@@ -186,10 +208,28 @@
   gap: 2px;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .name {
   font-size: var(--sf-text-base);
   font-weight: var(--sf-weight-semibold);
   color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.genderTagSmall {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-hover);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
 }
 
 .phone {
@@ -197,12 +237,17 @@
   color: var(--sf-text-tertiary);
 }
 
-.addedDate {
-  display: block;
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
-  opacity: 0.75;
+.activeOrdersHint {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo);
   margin-top: 2px;
+}
+
+.chevronIcon {
+  color: var(--sf-text-tertiary);
+  opacity: 0.4;
+  margin-left: 2px;
 }
 
 .cardActionIcon {
@@ -217,14 +262,80 @@
    repeating it on every row was what made the list feel stretched. */
 .owesBadge {
   flex-shrink: 0;
-  align-self: flex-start;
+  align-self: flex-end;
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-semibold);
   color: #B45309;
   background: #FEF3C7;
   padding: 3px 8px;
   border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(245, 158, 11, 0.2);
   white-space: nowrap;
+}
+
+.statValueWarn {
+  color: #B45309;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .statValueWarn {
+    color: #FBBF24;
+  }
+}
+
+:root[data-theme="dark"] .statValueWarn {
+  color: #FBBF24;
+}
+
+.cardRightCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mobileQuickActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quickIconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-secondary);
+  transition: all var(--sf-transition-fast);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .quickIconBtn:hover {
+    background: var(--sf-brand-indigo-glow);
+    color: var(--sf-brand-indigo);
+    border-color: var(--sf-brand-indigo);
+  }
+}
+
+.quickIconBtn:active {
+  transform: scale(0.92);
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+}
+
+.addCustomerBtn {
+  font-size: var(--sf-text-xs);
+  padding: 0 12px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Desktop Table */
@@ -380,7 +491,7 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
   border: none;
   border-radius: var(--sf-radius-md);
@@ -390,16 +501,22 @@
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.reachOutBar:hover {
+  opacity: 0.95;
 }
 
 .reachOutBar:active {
-  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .reachOutHint {
   display: block;
-  background: var(--sf-accent-emerald-glow);
-  color: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   padding: 12px 16px;
   margin-bottom: var(--sf-space-md);
@@ -417,7 +534,7 @@
 }
 
 .contactBadgeDone {
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
 }
 
 .composeWrap,
@@ -500,13 +617,18 @@
   width: 100%;
   height: var(--sf-touch-target);
   margin-top: var(--sf-space-sm);
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
   border: none;
   border-radius: var(--sf-radius-sm);
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-sm);
   cursor: pointer;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.startBtn:hover {
+  opacity: 0.95;
 }
 
 .startBtn:disabled {
@@ -590,6 +712,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  transition: opacity var(--sf-transition-fast);
 }
 
 .skipBtn {
@@ -599,9 +722,13 @@
 }
 
 .shareBtn {
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   border: none;
   color: var(--sf-text-on-accent);
+}
+
+.shareBtn:hover {
+  opacity: 0.95;
 }
 
 .shareBtn:disabled {
@@ -625,7 +752,7 @@
   align-items: center;
   gap: var(--sf-space-sm);
   padding: var(--sf-space-xl) 0;
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
   text-align: center;
 }
 

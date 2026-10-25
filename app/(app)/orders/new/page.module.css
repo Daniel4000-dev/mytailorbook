@@ -803,11 +803,11 @@
   gap: var(--sf-space-sm);
   height: var(--sf-touch-target);
   padding: 0 var(--sf-space-lg);
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-full);
   font-weight: var(--sf-weight-bold);
-  box-shadow: var(--sf-shadow-md);
+  box-shadow: 0 4px 14px var(--sf-brand-indigo-glow);
   transition: background-color var(--sf-transition-fast), transform 120ms ease;
   white-space: nowrap;
 }
@@ -1054,4 +1054,91 @@
   outline: none;
   border-color: var(--sf-accent-emerald);
   box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+}
+
+/* ── Order Type Selector (Apple Inset Grouped) ── */
+.selectorContainer {
+  padding: 16px 14px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.selectorTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.selectorSubtitle {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  margin: -6px 0 6px 0;
+}
+
+.typeOptionCard {
+  padding: 20px 16px;
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.typeOptionCard:hover {
+  border-color: var(--sf-brand-indigo);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--sf-brand-indigo-glow);
+}
+
+.typeOptionCard:active {
+  transform: scale(0.98);
+}
+
+.typeIconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.typeTextWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.typeOptionTitle {
+  margin: 0 0 3px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.typeOptionDesc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.35;
+}
+
+.typeChevron {
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
 }

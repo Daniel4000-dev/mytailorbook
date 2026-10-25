@@ -44,18 +44,18 @@
 .balanceSummary {
   display: flex;
   flex-direction: column;
-  background: var(--sf-sand);
+  background: var(--sf-surface-container-high);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
-  gap: var(--sf-space-xs);
+  padding: 14px 16px;
+  gap: 8px;
 }
 
 .summaryRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: var(--sf-text-xs);
+  font-size: 13px;
   color: var(--sf-text-secondary);
 }
 
@@ -63,17 +63,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--sf-space-xs);
-  border-top: 1px dashed var(--sf-border-light);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-bold);
+  padding-top: 10px;
+  border-top: 1px solid var(--sf-border-light);
+  font-size: 14px;
+  font-weight: 700;
   color: var(--sf-text-primary);
 }
 
 .balanceDueText {
-  color: var(--sf-terracotta, #E05A47);
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-bold);
+  color: #DC2626;
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--sf-font-mono, monospace);
+  letter-spacing: -0.02em;
 }
 
 .section {

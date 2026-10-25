@@ -253,6 +253,48 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  /** Bank & Electronic Transfer Institution */
+  account_balance: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 4L21 9.5H3Z" fill={fill ? color : 'none'} />
+      <path d="M4 10V18M8 10V18M12 10V18M16 10V18M20 10V18" strokeWidth="1.8" />
+      <path d="M2 18H22M1 21H23" strokeWidth="1.8" />
+    </svg>
+  ),
+
+  /** Workshop Maintenance Tool / Spanner */
+  build: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill={fill ? color : 'none'} />
+    </svg>
+  ),
+
+  /** Atelier Order Dispatch / Logistics Van */
+  local_shipping: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="5" width="14" height="11" rx="1.5" fill={fill ? color : 'none'} />
+      <path d="M15 8h4.5l2.5 3v5h-7V8z" fill={fill ? color : 'none'} />
+      <circle cx="5.5" cy="18.5" r="2.5" />
+      <circle cx="17.5" cy="18.5" r="2.5" />
+    </svg>
+  ),
+
+  /** Payment Received / Inflow Diagonal Arrow */
+  south_west: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="19" y1="5" x2="5" y2="19" />
+      <polyline points="15 19 5 19 5 9" />
+    </svg>
+  ),
+
+  /** Expense Disbursed / Outflow Diagonal Arrow */
+  north_east: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="19" x2="19" y2="5" />
+      <polyline points="9 5 19 5 19 15" />
+    </svg>
+  ),
+
   /** Atelier Boutique Storefront */
   storefront: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -1179,6 +1221,14 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill={fill ? color : 'none'} />
       <line x1="12" y1="9" x2="12" y2="13" stroke={fill ? '#fff' : color} strokeWidth="2.5" />
+      <circle cx="12" cy="17" r="1" fill={fill ? '#fff' : color} />
+    </svg>
+  ),
+
+  priority_high: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" fill={fill ? color : 'none'} />
+      <line x1="12" y1="7" x2="12" y2="13" stroke={fill ? '#fff' : color} strokeWidth="2.5" />
       <circle cx="12" cy="17" r="1" fill={fill ? '#fff' : color} />
     </svg>
   ),

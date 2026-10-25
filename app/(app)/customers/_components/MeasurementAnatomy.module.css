@@ -88,7 +88,7 @@
 }
 
 .spanLineFilled {
-  stroke: var(--sf-accent-emerald);
+  stroke: var(--sf-brand-indigo);
   opacity: 0.9;
 }
 
@@ -153,14 +153,14 @@
 
 /* Filled state */
 .filled .pointDot {
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
   border-color: var(--sf-bg-surface-elevated);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald), 0 0 8px var(--sf-accent-emerald-glow);
+  box-shadow: 0 0 0 1px var(--sf-brand-indigo), 0 0 8px var(--sf-brand-indigo-glow);
 }
 
 .filled .pointLabel {
-  color: var(--sf-accent-emerald);
-  border-color: var(--sf-accent-emerald-glow);
+  color: var(--sf-brand-indigo);
+  border-color: var(--sf-brand-indigo-glow);
 }
 
 /* Selected state */
@@ -213,7 +213,7 @@
 }
 
 .legendFilled {
-  background: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo);
 }
 
 @keyframes fadeInUp {
@@ -243,9 +243,9 @@
 }
 
 .viewModeBtnActive {
-  background: rgba(37, 211, 102, 0.1);
-  border-color: var(--sf-accent-emerald);
-  color: var(--sf-accent-emerald);
+  background: var(--sf-secondary-container, rgba(67, 56, 202, 0.12));
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
 }
 
 /* ── List View Input Grid ── */
@@ -296,5 +296,5 @@
 }
 
 .listInput:focus {
-  border-color: var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
 }

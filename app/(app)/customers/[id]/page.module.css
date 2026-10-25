@@ -39,11 +39,12 @@
    across it) but is harmless to leave on. */
 .gaProfiles { order: 1; }
 .gaBody { order: 2; }
-.orderFinancial { order: 3; }
-.orderNotes { order: 4; }
-.gaOrders { order: 5; }
-.orderActions { order: 6; }
-.dangerZone { order: 7; }
+.gaStash { order: 3; }
+.orderFinancial { order: 4; }
+.orderNotes { order: 5; }
+.gaOrders { order: 6; }
+.orderActions { order: 7; }
+.dangerZone { order: 8; }
 
 .editBtn {
   display: flex;
@@ -52,7 +53,7 @@
   width: var(--sf-touch-target);
   height: var(--sf-touch-target);
   border-radius: var(--sf-radius-full);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
   transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
@@ -114,6 +115,20 @@
   text-align: center;
 }
 
+.storeCreditBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
+  padding: 4px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
 .prefChips {
   display: flex;
   flex-wrap: wrap;
@@ -128,8 +143,9 @@
   gap: 6px;
   padding: 4px 12px 4px 4px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-secondary-container);
-  color: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-semibold);
   text-transform: uppercase;
@@ -147,44 +163,226 @@
   padding-left: 12px;
 }
 
-.quickActions {
+/* ── Apple Contacts Action Strip ───────────────────────────── */
+.appleActionStrip {
   display: flex;
-  gap: var(--sf-space-md);
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-  max-width: 320px;
-  margin-top: var(--sf-space-md);
+  max-width: 380px;
+  margin-top: 14px;
 }
 
-.quickActionBtn {
+.applePrimaryActionBtn {
+  flex: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.28);
+  transition: transform var(--sf-transition-fast), opacity var(--sf-transition-fast);
+}
+
+.applePrimaryActionBtn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.appleSecondaryActionBtn {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--sf-transition-fast), background-color var(--sf-transition-fast);
+}
+
+.appleSecondaryActionBtn:active {
+  transform: scale(0.96);
+  background: var(--sf-bg-surface-hover);
+}
+
+/* ── Instagram-Style Metric Strip ──────────────────────────── */
+.metricStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 440px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: 14px 16px;
+  margin-top: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.metricItem {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: var(--sf-touch-target);
-  padding: var(--sf-space-sm);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  color: var(--sf-accent-emerald);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-semibold);
+  gap: 2px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.metricVal {
+  font-family: var(--sf-font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.metricLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
-@media (hover: hover) and (pointer: fine) {
+.metricDivider {
+  width: 1px;
+  height: 24px;
+  background: var(--sf-border-light);
+}
 
-.quickActionBtn:hover {
+/* ── iOS Segmented Control ─────────────────────────────────── */
+.segmentedControl {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 4px;
+  border-radius: var(--sf-radius-lg);
+  gap: 4px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.segmentBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: calc(var(--sf-radius-lg) - 4px);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.segmentActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* ── Instagram Highlights Garment Carousel ─────────────────── */
+.highlightsCarousel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 6px 2px 14px;
+  scrollbar-width: none;
+}
+
+.highlightsCarousel::-webkit-scrollbar {
+  display: none;
+}
+
+.highlightCard {
+  flex-shrink: 0;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.highlightPhotoWrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--sf-bg-surface);
+  border: 2px solid var(--sf-brand-indigo-light);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform var(--sf-transition-fast);
+}
+
+.highlightCard:active .highlightPhotoWrap {
+  transform: scale(0.93);
+}
+
+.highlightImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.highlightPlaceholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
   background: var(--sf-surface-variant);
-}
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-brand-indigo);
 }
 
-.quickActionBtn:active {
-  background: var(--sf-surface-variant);
-  transform: scale(0.97);
+.highlightTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  text-align: center;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highlightSub {
+  font-size: 10px;
+  color: var(--sf-text-tertiary);
+  margin-top: -4px;
+}
+
+.addHighlightCard {
+  border: 1.5px dashed var(--sf-border);
+  border-radius: 20px;
+  background: var(--sf-bg-surface);
 }
 
 /* ── Generic section shell ─────────────────────────────────── */
@@ -207,13 +405,38 @@
   justify-content: space-between;
 }
 
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.debtReminderBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(37, 211, 102, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--sf-transition-fast);
+}
+
+.debtReminderBtn:hover {
+  background: rgba(37, 211, 102, 0.2);
+}
+
 .newBtn {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   height: var(--sf-touch-target);
   padding: 0 var(--sf-space-sm);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
@@ -224,12 +447,12 @@
 @media (hover: hover) and (pointer: fine) {
 
 .newBtn:hover {
-  background: var(--sf-surface-variant);
+  background: var(--sf-brand-indigo-glow);
 }
 }
 
 .newBtn:active {
-  background: var(--sf-surface-variant);
+  background: var(--sf-brand-indigo-glow);
   transform: scale(0.95);
 }
 
@@ -246,7 +469,7 @@
 
 .emptyHintIcon {
   font-size: 26px;
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
   opacity: 0.5;
 }
 
@@ -287,7 +510,11 @@
 }
 
 .warn {
-  color: var(--sf-accent-emerald-dark);
+  color: #D97706;
+}
+
+:root[data-theme="dark"] .warn {
+  color: #FBBF24;
 }
 
 /* ── Measurement profile cards ─────────────────────────────── */
@@ -305,6 +532,14 @@
   border-radius: var(--sf-radius-md);
   overflow: hidden;
   box-shadow: var(--sf-shadow-sm);
+  transition: border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profileCard:hover {
+    border-color: var(--sf-brand-indigo);
+    transform: translateY(-1px);
+  }
 }
 
 .profilePhoto {
@@ -348,8 +583,8 @@
 .viewEditBtn {
   align-self: flex-start;
   padding: 6px 14px;
-  border: 1px solid var(--sf-accent-emerald);
-  color: var(--sf-accent-emerald);
+  border: 1px solid var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
   border-radius: var(--sf-radius-sm);
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-bold);
@@ -360,12 +595,12 @@
 @media (hover: hover) and (pointer: fine) {
 
 .viewEditBtn:hover {
-  background: var(--sf-accent-emerald-glow);
+  background: var(--sf-brand-indigo-glow);
 }
 }
 
 .viewEditBtn:active {
-  background: var(--sf-accent-emerald-glow);
+  background: var(--sf-brand-indigo-glow);
   transform: scale(0.96);
 }
 
@@ -386,8 +621,8 @@
 
 .notesTextarea:focus {
   outline: none;
-  border-color: var(--sf-accent-emerald);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 1px var(--sf-brand-indigo);
 }
 
 .notesTextarea::placeholder {
@@ -418,7 +653,8 @@
 @media (hover: hover) and (pointer: fine) {
 
 .orderCard:hover {
-  border-color: var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
+  transform: translateY(-1px);
 }
 }
 
@@ -471,10 +707,17 @@
 .orderBalance {
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
-  color: var(--sf-accent-emerald-dark);
-  background: var(--sf-accent-emerald-glow);
+  color: #B45309;
+  background: #FEF3C7;
   padding: 4px 10px;
   border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+:root[data-theme="dark"] .orderBalance {
+  color: #FCD34D;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 /* ── Bottom actions ─────────────────────────────────────────── */
@@ -549,10 +792,10 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) 340px;
     /* Needed for .railWrap's `grid-row: 1 / -1` below to mean anything —
-       without an explicit row count, line -1 has no defined target. 4
-       rows = profileBar (its own full-width row) + the 3 main-column
-       items (Measurement Profiles/Full-Body/Recent Orders). */
-    grid-template-rows: auto repeat(3, auto);
+       without an explicit row count, line -1 has no defined target. 5
+       rows = profileBar (its own full-width row) + the 4 main-column
+       items (Measurement Profiles/Full-Body/Fabric Stash/Recent Orders). */
+    grid-template-rows: auto repeat(4, auto);
     column-gap: var(--sf-space-xl);
     row-gap: var(--sf-space-xl);
     align-items: start;
@@ -570,6 +813,7 @@
 
   .gaProfiles,
   .gaBody,
+  .gaStash,
   .gaOrders {
     grid-column: 1;
   }

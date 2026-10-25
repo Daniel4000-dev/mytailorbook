@@ -232,8 +232,11 @@ export default function OrderListCard({
             <Image src={photo} alt={truncateText(cleanOrderDetails || order.orderDetails, 30)} fill sizes="(max-width: 768px) 50vw, 300px" className={styles.photoImg} />
           ) : (
             <div className={styles.photoFallback}>
-              <Symbol name="content_cut" size={34} />
-              <span>No photo yet</span>
+              <div className={styles.fallbackIconCircle}>
+                <Symbol name="content_cut" size={24} />
+              </div>
+              <span className={styles.fallbackStyleName}>{order.styleName || 'Custom Garment'}</span>
+              <span className={styles.fallbackHint}>Tap to view details</span>
             </div>
           )}
 

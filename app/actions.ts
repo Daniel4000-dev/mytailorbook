@@ -756,11 +756,14 @@ export async function updateCustomerMeasurementsAction(customerId: string, measu
     
   if (fetchError) return { error: fetchError.message };
 
-  // 2. Add current to history if it exists and has actual data
+  // 2. Add current to history if it exists, has actual data, and is a different session (> 10 mins)
   const history = Array.isArray(current.measurements_history) ? [...current.measurements_history] : [];
-  if (current.measurements && Object.keys(current.measurements).length > 0) {
+  const now = new Date();
+  const lastUpdated = current.measurements_updated_at ? new Date(current.measurements_updated_at) : null;
+  const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
+  if (isDifferentSession && current.measurements && Object.keys(current.measurements).length > 0) {
     history.unshift({
-      date: current.measurements_updated_at || new Date().toISOString(),
+      date: current.measurements_updated_at || now.toISOString(),
       measurements: current.measurements
     });
   }
@@ -768,7 +771,7 @@ export async function updateCustomerMeasurementsAction(customerId: string, measu
   // 3. Update with new measurements and history
   const { error } = await supabase.from('customers').update({ 
     measurements,
-    measurements_updated_at: new Date().toISOString(),
+    measurements_updated_at: now.toISOString(),
     measurements_history: history
   }).eq('id', customerId);
   
@@ -796,9 +799,12 @@ export async function updateCustomerStyleProfileAction(
   const currentStyleData = existing[styleName] || {};
 
   const history = Array.isArray(currentStyleData.history) ? [...currentStyleData.history] : [];
-  if (currentStyleData.measurements && Object.keys(currentStyleData.measurements).length > 0) {
+  const now = new Date();
+  const lastUpdated = currentStyleData.updatedAt ? new Date(currentStyleData.updatedAt) : null;
+  const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
+  if (isDifferentSession && currentStyleData.measurements && Object.keys(currentStyleData.measurements).length > 0) {
     history.unshift({
-      date: currentStyleData.updatedAt || new Date().toISOString(),
+      date: currentStyleData.updatedAt || now.toISOString(),
       measurements: currentStyleData.measurements
     });
   }
@@ -809,7 +815,7 @@ export async function updateCustomerStyleProfileAction(
       ...currentStyleData,
       measurements,
       history,
-      updatedAt: new Date().toISOString(),
+      updatedAt: now.toISOString(),
       ...(notes !== undefined && { notes })
     },
   };

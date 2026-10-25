@@ -47,8 +47,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--sf-accent-emerald);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 1px var(--sf-brand-indigo);
 }
 
 .phoneRow {
@@ -141,9 +141,9 @@
 }
 
 .chipActive {
-  background: var(--sf-secondary-container);
-  border-color: var(--sf-secondary-container);
-  color: var(--sf-accent-emerald);
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
   font-weight: var(--sf-weight-semibold);
 }
 

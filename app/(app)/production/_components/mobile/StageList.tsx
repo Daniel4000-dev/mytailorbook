@@ -63,21 +63,35 @@ export default function StageList({
 }: StageListProps) {
   return (
     <>
-      <div className={`${styles.pillRow} ${styles.stagePills}`}>
-        <FilterPill
-          label="All"
-          active={stageFilter === ALL_FILTER}
-          onClick={() => setStageFilter(ALL_FILTER)}
-        />
-        {ORDER_STATUSES.map((status) => (
-          <FilterPill
-            key={status}
-            label={STATUS_CONFIG[status].label}
-            count={getOrdersByStatus(status).length}
-            active={stageFilter === status}
-            onClick={() => setStageFilter(stageFilter === status ? ALL_FILTER : status)}
-          />
-        ))}
+      <div className={styles.stageSegmentedWrap}>
+        <div className={styles.stageSegmentedControl} role="tablist" aria-label="Filter stages">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === ALL_FILTER}
+            className={`${styles.stageSegmentBtn} ${stageFilter === ALL_FILTER ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter(ALL_FILTER)}
+          >
+            <span>All</span>
+          </button>
+          {ORDER_STATUSES.map((status) => {
+            const count = getOrdersByStatus(status).length;
+            const isActive = stageFilter === status;
+            return (
+              <button
+                key={status}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`${styles.stageSegmentBtn} ${isActive ? styles.stageSegmentActive : ''}`}
+                onClick={() => setStageFilter(isActive ? ALL_FILTER : status)}
+              >
+                <span>{STATUS_CONFIG[status].label}</span>
+                {count > 0 && <span className={styles.stageSegmentCount}>{count}</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {!hasAnyVisible ? (

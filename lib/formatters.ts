@@ -211,3 +211,75 @@ export function getOrderProgressMessage(params: {
     .replace(/\{shop\}/g, shopName)
     .replace(/\{link\}/g, includeTrackingLink ? trackingUrl : '');
 }
+
+/**
+ * Parses measurement inputs entered by tailors into numeric values.
+ * Handles decimals ("15.5", "38.25"), common fractions ("15 1/2", "38 1/4", "15-1/2"),
+ * inch symbols ("15.5\""), and returns null for empty or non-numeric inputs.
+ */
+export function parseMeasurementValue(val: string | number | undefined | null): number | null {
+  if (val === undefined || val === null) return null;
+  if (typeof val === 'number') return isNaN(val) ? null : val;
+  const clean = String(val).trim().replace(/["”]/g, '').trim();
+  if (!clean || clean === '--') return null;
+
+  // Fraction format e.g. "15 1/2", "15-1/2", "1/2"
+  const fractionMatch = clean.match(/^(\d+)?(?:\s+|-)?(\d+)\/(\d+)$/);
+  if (fractionMatch) {
+    const whole = fractionMatch[1] ? parseFloat(fractionMatch[1]) : 0;
+    const num = parseFloat(fractionMatch[2]);
+    const denom = parseFloat(fractionMatch[3]);
+    if (denom !== 0) {
+      return Number((whole + num / denom).toFixed(3));
+    }
+  }
+
+  const num = parseFloat(clean);
+  return isNaN(num) ? null : num;
+}
+
+/**
+ * Formats a customer's measurements and notes into a clean, ready-to-share
+ * WhatsApp or clipboard text snippet for apprentices, cutters, or clients.
+ */
+export function formatMeasurementsSummary(params: {
+  customerName: string;
+  gender?: 'male' | 'female';
+  measurements?: Record<string, number | string | undefined>;
+  notes?: string;
+  labels?: Record<string, string>;
+}): string {
+  const { customerName, gender, measurements = {}, notes, labels = {} } = params;
+  const lines: string[] = [
+    `*Measurements: ${customerName}*`,
+  ];
+  if (gender) {
+    lines.push(`Gender: ${gender.charAt(0).toUpperCase() + gender.slice(1)}`);
+  }
+
+  const entries = Object.entries(measurements)
+    .filter(([_, val]) => val !== undefined && val !== null && val !== '')
+    .map(([key, val]) => {
+      const label = labels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+      return `• ${label}: ${val}"`;
+    });
+
+  lines.push('');
+  if (entries.length > 0) {
+    lines.push('*Measurements:*');
+    lines.push(...entries);
+  } else {
+    lines.push('_No measurements recorded yet_');
+  }
+
+  if (notes && notes.trim()) {
+    lines.push('');
+    lines.push(`*Notes:* ${notes.trim()}`);
+  }
+
+  lines.push('');
+  lines.push('— via MyTailorBook');
+
+  return lines.join('\n');
+}
+

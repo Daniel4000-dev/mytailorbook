@@ -95,33 +95,38 @@
 }
 
 .advanceBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--sf-space-sm);
-  padding: 8px 24px;
-  background: var(--sf-accent-emerald);
-
-  color: var(--sf-text-on-accent);
-  border-radius: var(--sf-radius-sm);
+  padding: 10px 24px;
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sf-radius-full);
   font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-bold);
-  box-shadow: var(--sf-shadow-sm);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 10px rgba(67, 56, 202, 0.3);
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.advanceBtn:hover {
-  background: var(--sf-accent-emerald-light);
-}
+  .advanceBtn:hover {
+    background: #3730A3;
+    box-shadow: 0 4px 14px rgba(67, 56, 202, 0.4);
+    transform: translateY(-1px);
+  }
 }
 
 .advanceBtn:active:not(:disabled) {
   transform: scale(0.96);
+  background: #312E81;
 }
 
 .advanceBtn:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ── 2. Header card ─────────────────────────────────────────── */
@@ -148,15 +153,17 @@
 .avatarLarge {
   width: 64px;
   height: 64px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-secondary-container);
-  color: var(--sf-accent-emerald);
-  border: 2px solid var(--sf-accent-emerald-light);
+  border-radius: var(--sf-radius-md);
+  background: linear-gradient(135deg, var(--sf-brand-indigo), #4f46e5);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-2xl);
+  font-weight: 700;
   flex-shrink: 0;
 }
 
@@ -1537,11 +1544,11 @@
 /* ── Mobile Segmented Tab Bar ────────────────────────────────────────── */
 .mobileTabRow {
   display: flex;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(120, 120, 128, 0.12);
   border-radius: var(--sf-radius-full);
-  padding: 4px;
-  gap: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid transparent;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -1558,16 +1565,16 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   border-radius: var(--sf-radius-full);
   border: none;
   background: transparent;
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-semibold);
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1578,8 +1585,8 @@
 .mobileActiveTab {
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  font-weight: var(--sf-weight-bold);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 @media (min-width: 1024px) {

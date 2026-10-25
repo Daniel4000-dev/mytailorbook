@@ -17,6 +17,7 @@ import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import Button from '@/components/ui/Button/Button';
 import { formatPhone, formatCurrency, formatShortMonthYear, formatDate, getWhatsAppLink } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Customer } from '@/lib/types';
@@ -29,7 +30,7 @@ import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 40;
-type GenderFilter = 'all' | 'male' | 'female';
+type ClientFilter = 'all' | 'active' | 'owing' | 'male' | 'female';
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -41,6 +42,14 @@ export default function CustomersPage() {
       title="Customers"
       rightAction={
         <div className={styles.headerActions}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => router.push(ROUTES.customerNew)}
+            className={styles.addCustomerBtn}
+          >
+            <Symbol name="person_add" size={16} /> New Client
+          </Button>
           <NotificationBell />
         </div>
       }
@@ -48,7 +57,7 @@ export default function CustomersPage() {
   );
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+  const [clientFilter, setClientFilter] = useState<ClientFilter>('all');
   const [styleFilter, setStyleFilter] = useState<string | null>(null);
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
   const [approvedStyleNames, setApprovedStyleNames] = useState<Set<string>>(new Set());
@@ -144,7 +153,7 @@ export default function CustomersPage() {
   // A new search/filter should start back at the first page rather than
   // staying scrolled deep into a now-irrelevant "load more" position.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setVisibleCount(PAGE_SIZE), [search, genderFilter, styleFilter]);
+  useEffect(() => setVisibleCount(PAGE_SIZE), [search, clientFilter, styleFilter]);
 
   // Styles offered in the filter sheet must satisfy two things at once:
   // (1) at least one customer (scoped to the active gender filter) actually
@@ -157,14 +166,16 @@ export default function CustomersPage() {
   // catalog photo when it's a built-in style; custom styles (free text,
   // no catalog entry) fall back to a text-only chip.
   const availableStyles = useMemo(() => {
-    const scoped = genderFilter === 'all' ? customers : customers.filter((c) => c.gender === genderFilter);
+    const scoped = (clientFilter === 'male' || clientFilter === 'female')
+      ? customers.filter((c) => c.gender === clientFilter)
+      : customers;
     const names = new Set<string>();
     scoped.forEach((c) => c.preferredStyles?.forEach((s) => names.add(s)));
     return Array.from(names)
       .filter((name) => approvedStyleNames.has(name))
       .sort((a, b) => a.localeCompare(b))
       .map((name) => ({ name, photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl }));
-  }, [customers, genderFilter, approvedStyleNames]);
+  }, [customers, clientFilter, approvedStyleNames]);
 
   const openOutreachSheet = () => {
     setOutreachStep('compose');
@@ -251,27 +262,83 @@ export default function CustomersPage() {
     );
   }
 
-  const filtered = customers.filter((c) => {
-    if (genderFilter !== 'all' && c.gender !== genderFilter) return false;
-    if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
-    const q = search.toLowerCase();
-    return c.fullName.toLowerCase().includes(q) || c.whatsappNumber.includes(q);
-  });
+  const filtered = useMemo(() => {
+    const rawSearch = search.toLowerCase().trim();
+    const searchDigits = rawSearch.replace(/\D/g, '');
 
-  const totalCustomers = customers.length;
-  const activeCustomers = customers.filter(c => customerStats[c.id]?.activeOrders > 0).length;
+    return customers.filter((c) => {
+      const stats = customerStats[c.id];
+      if (clientFilter === 'male' && c.gender !== 'male') return false;
+      if (clientFilter === 'female' && c.gender !== 'female') return false;
+      if (clientFilter === 'active' && (!stats || stats.activeOrders <= 0)) return false;
+      if (clientFilter === 'owing' && (!stats || stats.totalBalance <= 0)) return false;
+      if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
+      if (!rawSearch) return true;
+
+      const nameMatches = c.fullName.toLowerCase().includes(rawSearch);
+      const phoneMatches = c.whatsappNumber.includes(rawSearch);
+      const phoneDigitsMatches =
+        searchDigits.length >= 3 &&
+        (c.whatsappNumber.replace(/\D/g, '').includes(searchDigits) ||
+          (searchDigits.startsWith('0') && c.whatsappNumber.replace(/\D/g, '').includes(searchDigits.slice(1))));
+
+      return nameMatches || phoneMatches || phoneDigitsMatches;
+    });
+  }, [customers, clientFilter, styleFilter, search, customerStats]);
+
+  const { totalCustomers, activeCustomers, totalReceivables, owingCount } = useMemo(() => {
+    let active = 0;
+    let receivables = 0;
+    let owing = 0;
+    customers.forEach((c) => {
+      const s = customerStats[c.id];
+      if (s) {
+        if (s.activeOrders > 0) active += 1;
+        if (s.totalBalance > 0) {
+          receivables += s.totalBalance;
+          owing += 1;
+        }
+      }
+    });
+    return {
+      totalCustomers: customers.length,
+      activeCustomers: active,
+      totalReceivables: receivables,
+      owingCount: owing,
+    };
+  }, [customers, customerStats]);
 
   return (
     <PageLayout header={topBar}>
         
         <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
+          <div
+            className={`${styles.statCard} ${styles.statCardClickable} ${clientFilter === 'all' ? styles.statCardActive : ''}`}
+            onClick={() => setClientFilter('all')}
+            title="Show all clients"
+          >
             <div className={styles.statValue}>{totalCustomers}</div>
-            <div className={styles.statLabel}>Total Customers</div>
+            <div className={styles.statLabel}>Total Clients</div>
           </div>
-          <div className={styles.statCard}>
+          <div
+            className={`${styles.statCard} ${styles.statCardClickable} ${clientFilter === 'active' ? styles.statCardActive : ''}`}
+            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
+            title="Filter by clients with active orders"
+          >
             <div className={styles.statValue}>{activeCustomers}</div>
             <div className={styles.statLabel}>Active Orders</div>
+          </div>
+          <div
+            className={`${styles.statCard} ${styles.statCardClickable} ${clientFilter === 'owing' ? styles.statCardActive : ''}`}
+            onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+            title="Filter by clients with pending balances"
+          >
+            <div className={`${styles.statValue} ${totalReceivables > 0 ? styles.statValueWarn : ''}`}>
+              {formatCurrency(totalReceivables)}
+            </div>
+            <div className={styles.statLabel}>
+              {owingCount > 0 ? `${owingCount} owing` : 'Pending Bal.'}
+            </div>
           </div>
         </div>
 
@@ -280,12 +347,22 @@ export default function CustomersPage() {
         </div>
 
         <div className={styles.pillRow}>
-          <FilterPill label="All" active={genderFilter === 'all'} onClick={() => setGenderFilter('all')} />
+          <FilterPill label="All" active={clientFilter === 'all'} onClick={() => setClientFilter('all')} />
+          <FilterPill
+            label={`Active (${activeCustomers})`}
+            active={clientFilter === 'active'}
+            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
+          />
+          <FilterPill
+            label={`Owing (${owingCount})`}
+            active={clientFilter === 'owing'}
+            onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+          />
           <FilterPill
             label="Male"
-            active={genderFilter === 'male'}
+            active={clientFilter === 'male'}
             onClick={() => {
-              setGenderFilter('male');
+              setClientFilter(clientFilter === 'male' ? 'all' : 'male');
               if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
                 setStyleFilter(null);
               }
@@ -293,9 +370,9 @@ export default function CustomersPage() {
           />
           <FilterPill
             label="Female"
-            active={genderFilter === 'female'}
+            active={clientFilter === 'female'}
             onClick={() => {
-              setGenderFilter('female');
+              setClientFilter(clientFilter === 'female' ? 'all' : 'female');
               if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
                 setStyleFilter(null);
               }
@@ -515,28 +592,58 @@ export default function CustomersPage() {
         ) : (
           <>
             {/* Mobile View */}
-            <div className={styles.mobileList}>
-              {filtered.slice(0, visibleCount).map((c, i) => {
+            {/* Apple Inset Grouped List */}
+            <div className={styles.groupedList}>
+              {filtered.slice(0, visibleCount).map((c, i, arr) => {
                 const stats = customerStats[c.id];
+                const isLast = i === arr.length - 1;
                 return (
-                  <div key={c.id} className={styles.mobileCard} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(ROUTES.customerDetail(c.id))}>
-                    <div className={styles.cardHeader}>
-                      <Avatar name={c.fullName} size="md" />
+                  <div key={c.id} className={styles.tableRowWrapper}>
+                    <div
+                      className={styles.tableRow}
+                      onClick={() => router.push(ROUTES.customerDetail(c.id))}
+                    >
+                      <Avatar name={c.fullName} size="md" shape="squircle" />
                       <div className={styles.cardInfo}>
-                        <span className={styles.name}>{c.fullName}</span>
+                        <div className={styles.nameRow}>
+                          <span className={styles.name}>{c.fullName}</span>
+                          {c.gender && (
+                            <span className={styles.genderTagSmall}>
+                              {c.gender === 'female' ? 'F' : 'M'}
+                            </span>
+                          )}
+                        </div>
                         <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
-                        <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
+                        {stats.activeOrders > 0 && (
+                          <span className={styles.activeOrdersHint}>
+                            {stats.activeOrders} active {stats.activeOrders === 1 ? 'order' : 'orders'}
+                          </span>
+                        )}
                         {styleFilter && (
                           <span className={`${styles.contactBadge} ${outreachMap[c.id] ? styles.contactBadgeDone : ''}`}>
                             {outreachMap[c.id] ? `Reached out ${formatDate(outreachMap[c.id])}` : 'Not yet contacted'}
                           </span>
                         )}
                       </div>
-                      {stats.totalBalance > 0 && <span className={styles.owesBadge}>Owes {formatCurrency(stats.totalBalance)}</span>}
-                      <div className={styles.cardActionIcon}>
-                        <Symbol name="chevron_right" />
+                      <div className={styles.cardRightCol}>
+                        {stats.totalBalance > 0 && (
+                          <span className={styles.owesBadge}>Owes {formatCurrency(stats.totalBalance)}</span>
+                        )}
+                        <div className={styles.mobileQuickActions} onClick={(e) => e.stopPropagation()}>
+                          <a
+                            href={getWhatsAppLink(c.whatsappNumber)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.quickIconBtn}
+                            aria-label={`WhatsApp ${c.fullName}`}
+                          >
+                            <WhatsappIcon size={16} />
+                          </a>
+                        </div>
+                        <Symbol name="chevron_right" size={18} className={styles.chevronIcon} />
                       </div>
                     </div>
+                    {!isLast && <div className={styles.rowDivider} />}
                   </div>
                 );
               })}
@@ -591,10 +698,10 @@ export default function CustomersPage() {
                         <td className={styles.alignRight}>
                           <div className={styles.rowActions} onClick={(e) => e.stopPropagation()}>
                             <a href={`tel:${c.whatsappNumber}`} className={styles.actionBtn} aria-label="Call">
-                              <Symbol name="call" />
+                              <Symbol name="call" size={15} /> Call
                             </a>
-                            <a href={`https://wa.me/${c.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className={styles.actionBtn} aria-label="WhatsApp">
-                              <WhatsappIcon /> WhatsApp
+                            <a href={getWhatsAppLink(c.whatsappNumber)} target="_blank" rel="noopener noreferrer" className={styles.actionBtn} aria-label="WhatsApp">
+                              <WhatsappIcon size={15} /> WhatsApp
                             </a>
                           </div>
                         </td>

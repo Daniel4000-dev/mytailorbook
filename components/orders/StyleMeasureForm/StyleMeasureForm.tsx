@@ -101,32 +101,46 @@ export default function StyleMeasureForm({
           const isLocked = lockedKeys?.has(p.key) ?? false;
           return (
             <div key={p.key} className={`${styles.measureCard} ${activeKey === p.key ? styles.measureCardActive : ''} ${isLocked ? styles.measureCardLocked : ''}`}>
-              <div className={styles.measureMain}>
+              <div className={styles.measureInfo}>
                 <label className={styles.measureLabel} htmlFor={`m-${p.key}`}>
-                  {i + 1}. {p.label}
+                  <span className={styles.measureIndex}>{i + 1}</span> {p.label}
                 </label>
-                <span className={styles.measureHint}>{p.hint}</span>
+                {p.hint && <span className={styles.measureHint}>{p.hint}</span>}
+              </div>
+              <div className={styles.measureInputWrap}>
                 <input
                   id={`m-${p.key}`}
                   ref={(el) => { inputRefs.current[p.key] = el; }}
                   className={styles.measureInput}
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="00.0"
+                  type="text"
+                  inputMode="text"
+                  enterKeyHint={i < spec.points.length - 1 ? 'next' : 'done'}
+                  placeholder="0.0"
                   value={values[p.key] || ''}
                   readOnly={isLocked}
                   onFocus={() => onActiveKeyChange?.(p.key)}
                   onChange={(e) => onChange(p.key, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const nextPoint = spec.points[i + 1];
+                      if (nextPoint && inputRefs.current[nextPoint.key]) {
+                        inputRefs.current[nextPoint.key]?.focus();
+                      } else {
+                        inputRefs.current[p.key]?.blur();
+                      }
+                    }
+                  }}
                 />
+                {isLocked && onToggleLock ? (
+                  <label className={styles.lockToggle} title="From body profile — uncheck to edit">
+                    <input type="checkbox" checked={isLocked} onChange={() => onToggleLock(p.key)} />
+                    <Symbol name="lock" size={16} />
+                  </label>
+                ) : (
+                  <span className={styles.unitTag}>IN</span>
+                )}
               </div>
-              {isLocked && onToggleLock ? (
-                <label className={styles.lockToggle} title="From body profile — uncheck to edit">
-                  <input type="checkbox" checked={isLocked} onChange={() => onToggleLock(p.key)} />
-                  <Symbol name="lock" size={16} />
-                </label>
-              ) : (
-                <span className={styles.unitTag}>IN</span>
-              )}
             </div>
           );
         })}

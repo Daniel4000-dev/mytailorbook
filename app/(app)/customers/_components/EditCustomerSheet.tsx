@@ -5,7 +5,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
-import { isValidPhone, formatPhone } from '@/lib/formatters';
+import { isValidPhone, formatPhone, normalizePhone } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import type { Customer } from '@/lib/types';
@@ -22,7 +22,7 @@ interface EditCustomerSheetProps {
 /** Edits an existing customer's profile fields in place — the same fields
  *  collected in the New Client wizard, reused here instead of re-invented. */
 export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCustomerSheetProps) {
-  const { updateCustomerProfile } = useData();
+  const { updateCustomerProfile, customers } = useData();
   const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(customer.fullName);
@@ -80,6 +80,21 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
     }
     if (!isValidPhone(phone)) {
       setError('Enter a valid phone number.');
+      return;
+    }
+    const normalizedNewPhone = normalizePhone(phone);
+    const rawInputDigits = normalizedNewPhone.replace(/\D/g, '');
+    const existingWithPhone = customers.find((c) => {
+      if (c.id === customer.id || !c.whatsappNumber) return false;
+      const dbNormalized = normalizePhone(c.whatsappNumber);
+      if (dbNormalized === normalizedNewPhone) return true;
+      const rawDbDigits = dbNormalized.replace(/\D/g, '');
+      return rawDbDigits.length >= 10 && rawInputDigits.length >= 10
+        ? rawDbDigits.slice(-10) === rawInputDigits.slice(-10)
+        : rawDbDigits === rawInputDigits;
+    });
+    if (existingWithPhone) {
+      setError(`Another client (${existingWithPhone.fullName}) is already registered with this phone number.`);
       return;
     }
     if (birthdate && !/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(birthdate)) {

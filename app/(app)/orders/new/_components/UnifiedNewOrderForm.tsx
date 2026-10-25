@@ -716,10 +716,10 @@ export default function UnifiedNewOrderForm() {
         : `• *Garment:* ${completedBatch.garments[0]?.styleName || 'Custom Outfit'}`;
 
     return [
-      `Hello ${selectedCustomer.fullName.split(' ')[0]}! ✂️`,
+      `Hello ${selectedCustomer.fullName.split(' ')[0]}!`,
       `Thank you for placing your order with *${shopName}*.`,
       ``,
-      `📋 *Order Summary:*`,
+      `*Order Summary:*`,
       garmentLines,
       `• *Total:* ${currencySymbol}${formatNumber(completedBatch.totalBill)}`,
       `• *Deposit Paid:* ${currencySymbol}${formatNumber(completedBatch.depositPaid)}`,
@@ -739,11 +739,11 @@ export default function UnifiedNewOrderForm() {
     const formattedDate = formatSafeDate(completedBatch.dueDate);
 
     const lines = [
-      `✂️ WORKSHOP CUTTING SLIP`,
+      `WORKSHOP CUTTING SLIP`,
       `Studio: ${shopName}`,
       `Order: #${completedBatch.firstOrderId.slice(-8).toUpperCase()}`,
       `Client: ${selectedCustomer.fullName} (${formatPhone(selectedCustomer.whatsappNumber)})`,
-      `Ready By: ${formattedDate} ${completedBatch.priority === 'urgent' ? '⚡ [URGENT / RUSH]' : ''}`,
+      `Ready By: ${formattedDate} ${completedBatch.priority === 'urgent' ? '[URGENT / RUSH]' : ''}`,
       `==============================`,
     ];
 

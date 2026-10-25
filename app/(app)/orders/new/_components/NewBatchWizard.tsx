@@ -87,9 +87,10 @@ export default function NewBatchWizard() {
   return (
     <PageLayout 
       width="narrow"
+      padding="none"
       header={<TopBar title="New Production Batch" showBack onBack={() => router.push(ROUTES.production)} />}
     >
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '680px', margin: '0 auto', width: '100%' }}>
         <div style={{ background: 'var(--sf-bg-surface)', padding: '24px', borderRadius: '12px', border: '1px solid var(--sf-border-subtle)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <Input 
             label="Style / Item Name" 
@@ -145,8 +146,8 @@ export default function NewBatchWizard() {
             />
           </div>
 
-          <div style={{ marginTop: '32px' }}>
-            <Button variant="primary" loading={submitting} onClick={handleSubmit} style={{ width: '100%' }}>Create Batch</Button>
+          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="primary" loading={submitting} onClick={handleSubmit}>Create Batch</Button>
           </div>
         </div>
       </div>

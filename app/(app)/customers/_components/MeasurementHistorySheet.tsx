@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, parseMeasurementValue } from '@/lib/formatters';
 import type { Customer, Measurements } from '@/lib/types';
 import { FEMALE_MEASUREMENT_POINTS, MALE_MEASUREMENT_POINTS } from './MeasurementAnatomy';
-import styles from './StyleProfileSheet.module.css'; // Reuse styles
+import styles from './MeasurementHistorySheet.module.css';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   customer: Customer;
+}
+
+interface TimelineEntry {
+  date: string;
+  measurements: Record<string, number | string | undefined>;
+  isCurrent: boolean;
 }
 
 export default function MeasurementHistorySheet({ isOpen, onClose, customer }: Props) {
@@ -20,7 +26,7 @@ export default function MeasurementHistorySheet({ isOpen, onClose, customer }: P
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
 
   // Combine current and history for a full timeline
-  const timeline: any[] = [];
+  const timeline: TimelineEntry[] = [];
   if (Object.keys(currentMeasurements).length > 0) {
     timeline.push({
       date: currentUpdatedAt || new Date().toISOString(),
@@ -28,68 +34,74 @@ export default function MeasurementHistorySheet({ isOpen, onClose, customer }: P
       isCurrent: true,
     });
   }
-  timeline.push(...history.map(h => ({ ...h, isCurrent: false })));
+  timeline.push(...history.map((h) => ({ ...h, isCurrent: false })));
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Measurement History">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
+      <div className={styles.container}>
         {timeline.length === 0 ? (
-          <div style={{ textAlign: 'center', color: 'var(--sf-text-secondary)', padding: '32px 0' }}>
-            <Symbol name="history" size={32} style={{ opacity: 0.5, marginBottom: '8px' }} />
-            <p>No measurement history available.</p>
+          <div className={styles.emptyState}>
+            <Symbol name="history" size={36} className={styles.emptyIcon} />
+            <p>No measurement history recorded yet.</p>
           </div>
         ) : (
           timeline.map((entry, index) => {
             const isExpanded = expandedIndex === index;
-            // Compare with the PREVIOUS entry (which is chronologically OLDER, so it's index + 1 in the array)
+            // Compare with the PREVIOUS entry (chronologically older, so index + 1)
             const olderEntry = timeline[index + 1];
-            
+
             return (
-              <div key={index} style={{ border: '1px solid var(--sf-border-color)', borderRadius: 'var(--sf-radius-md)', overflow: 'hidden' }}>
+              <div key={index} className={styles.entryCard}>
                 <button
                   type="button"
                   onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '16px',
-                    background: entry.isCurrent ? 'var(--sf-bg-surface-hover)' : 'var(--sf-bg-surface)',
-                    border: 'none',
-                    textAlign: 'left',
-                    cursor: 'pointer'
-                  }}
+                  className={`${styles.entryHeader} ${entry.isCurrent ? styles.currentHeader : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Symbol name="straighten" size={18} style={{ color: entry.isCurrent ? 'var(--sf-text-primary)' : 'var(--sf-text-secondary)' }} />
-                    <span style={{ fontWeight: 500 }}>
-                      {formatDate(entry.date)} {entry.isCurrent && '(Current)'}
+                  <div className={styles.headerTitle}>
+                    <Symbol
+                      name="straighten"
+                      size={18}
+                      className={entry.isCurrent ? styles.iconCurrent : styles.iconPast}
+                    />
+                    <span className={styles.headerDate}>
+                      {formatDate(entry.date)}
                     </span>
+                    {entry.isCurrent && <span className={styles.currentBadge}>Current</span>}
                   </div>
-                  <Symbol name={isExpanded ? 'expand_less' : 'expand_more'} />
+                  <Symbol
+                    name={isExpanded ? 'expand_less' : 'expand_more'}
+                    size={20}
+                    className={styles.toggleIcon}
+                  />
                 </button>
-                
+
                 {isExpanded && (
-                  <div style={{ padding: '0 16px 16px', background: entry.isCurrent ? 'var(--sf-bg-surface-hover)' : 'var(--sf-bg-surface)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                  <div className={styles.entryBody}>
+                    <div className={styles.grid}>
                       {Object.entries(entry.measurements).map(([key, val]) => {
-                        const point = [...FEMALE_MEASUREMENT_POINTS, ...MALE_MEASUREMENT_POINTS].find(p => p.id === key);
-                        if (!point || val === undefined) return null;
-                        
+                        const point = [...FEMALE_MEASUREMENT_POINTS, ...MALE_MEASUREMENT_POINTS].find((p) => p.id === key);
+                        if (!point || val === undefined || val === null || val === '') return null;
+
                         // Check if it changed from the older entry
                         const olderVal = olderEntry?.measurements[key as keyof Measurements];
-                        const diff = olderVal !== undefined ? Number(val) - Number(olderVal) : 0;
-                        
+                        const currentNum = parseMeasurementValue(val);
+                        const olderNum = olderVal !== undefined && olderVal !== null ? parseMeasurementValue(olderVal) : null;
+                        const diff = currentNum !== null && olderNum !== null
+                          ? Math.round((currentNum - olderNum) * 100) / 100
+                          : 0;
+
                         return (
-                          <div key={key} style={{ display: 'flex', flexDirection: 'column', padding: '8px', background: 'var(--sf-bg-default)', borderRadius: 'var(--sf-radius-sm)' }}>
-                            <span style={{ fontSize: '11px', color: 'var(--sf-text-secondary)', textTransform: 'uppercase' }}>{point.name}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontWeight: 500 }}>{String(val)}&quot;</span>
+                          <div key={key} className={styles.item}>
+                            <span className={styles.itemLabel}>{point.name}</span>
+                            <div className={styles.itemValueRow}>
+                              <span className={styles.itemValue}>{String(val)}&quot;</span>
                               {diff !== 0 && (
-                                <span style={{ fontSize: '12px', color: diff > 0 ? '#ef4444' : '#10b981', display: 'flex', alignItems: 'center' }}>
-                                  <Symbol name={diff > 0 ? 'trending_up' : 'trending_down'} size={14} />
-                                  {Math.abs(diff)}&quot;
+                                <span
+                                  className={`${styles.diffBadge} ${diff > 0 ? styles.diffUp : styles.diffDown}`}
+                                  title={`Difference from previous session: ${diff > 0 ? '+' : ''}${diff}"`}
+                                >
+                                  <Symbol name={diff > 0 ? 'trending_up' : 'trending_down'} size={13} />
+                                  {diff > 0 ? `+${diff}` : `${diff}`}&quot;
                                 </span>
                               )}
                             </div>
