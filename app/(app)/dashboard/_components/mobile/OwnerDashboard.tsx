@@ -2,21 +2,21 @@
 
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
+import { ROUTES } from '@/lib/routes';
 import type { Order } from '@/lib/types';
+import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import DiscoverCarousel from './DiscoverCarousel';
-import ShopTodayCard from '../ShopTodayCard';
-import styles from '../../page.module.css';
-import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import TodaysAgendaWidget from '../TodaysAgendaWidget';
+import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import styles from '../../page.module.css';
 
 // ============================================================
-// Owner Dashboard — mobile
+// Owner Dashboard — mobile (Apple / Instagram Atelier Cockpit)
 // ============================================================
 
 export default function OwnerDashboard({
@@ -33,12 +33,8 @@ export default function OwnerDashboard({
     hideCollected,
     hideProjected,
     toggleHideCollected,
-    toggleHideProjected,
     collected,
     monthlyRevenue,
-    projected,
-    urgentCount,
-    dueTodayCount,
     uncutFabricsCount,
     inProductionCount,
     readyCount,
@@ -49,285 +45,181 @@ export default function OwnerDashboard({
 
   const openLoops = useOpenLoops(orders, customers, exceptions);
 
+  // Progressive Onboarding: Days 1-10 top, Days 11-30 bottom, Day 31+ hidden
+  const createdAt = currentShop?.createdAt ? new Date(currentShop.createdAt) : new Date();
+  const daysOld = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 3600 * 24));
+  const showDiscoverTop = daysOld <= 10;
+  const showDiscoverBottom = daysOld > 10 && daysOld <= 30;
+
   return (
     <>
-      {/* Quick 1-Tap Command Center Hub */}
-      <QuickCommandHub
-        onNavigate={onNavigate}
-        uncutFabricsCount={uncutFabricsCount}
-        debtorsCount={debtorsCount}
-      />
-
-      <DiscoverCarousel onNavigate={onNavigate} />
-
-      {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
-
-      {/* Today's Fittings & Appointments */}
-      <TodaysAgendaWidget />
-
-      {/* Workfloor Operational Pulse */}
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Workfloor Pulse</span>
-      </div>
-
-      <div className={styles.operationalGrid}>
-        <button
-          type="button"
-          className={styles.operationalCard}
-          onClick={() => onNavigate('/fabrics')}
-          aria-label="View uncut fabrics on cutting board"
-        >
-          <div className={styles.operationalHeader}>
-            <Symbol name="texture" size={18} className={styles.operationalIcon} />
-            {uncutFabricsCount > 0 && (
-              <span className={styles.operationalBadgeAlert}>
-                <Symbol name="content_cut" size={10} />
-                <span>{uncutFabricsCount}</span>
-              </span>
-            )}
+      {/* 1. Unified Atelier Command Hero Surface */}
+      <section className={styles.atelierHero}>
+        <div className={styles.heroHeader}>
+          <div className={styles.heroIdentity}>
+            <span className={styles.heroGreeting}>Atelier Command</span>
+            <h1 className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</h1>
           </div>
-          <span className={styles.operationalValue}>{uncutFabricsCount}</span>
-          <span className={styles.operationalLabel}>Uncut Fabrics</span>
-        </button>
+          <button
+            type="button"
+            className={styles.heroNewOrderBtn}
+            onClick={() => onNavigate(ROUTES.orderNew)}
+          >
+            <Symbol name="add" size={18} />
+            <span>New Order</span>
+          </button>
+        </div>
 
-        <button
-          type="button"
-          className={styles.operationalCard}
-          onClick={() => onNavigate('/production')}
-          aria-label="View active floor production"
-        >
-          <div className={styles.operationalHeader}>
-            <Symbol name="dry_cleaning" size={18} className={styles.operationalIcon} />
-          </div>
-          <span className={styles.operationalValue}>{inProductionCount}</span>
-          <span className={styles.operationalLabel}>In Production</span>
-        </button>
-
-        <button
-          type="button"
-          className={styles.operationalCard}
-          onClick={() => onNavigate('/production?status=Ready')}
-          aria-label="View garments ready for delivery"
-        >
-          <div className={styles.operationalHeader}>
-            <Symbol name="check_circle" size={18} className={styles.operationalIcon} />
-          </div>
-          <span className={styles.operationalValue}>{readyCount}</span>
-          <span className={styles.operationalLabel}>Ready Pickup</span>
-        </button>
-      </div>
-
-      {/* Financial Health Overview */}
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Executive Pulse</span>
-      </div>
-
-      <div className={styles.financeGrid}>
-        <div className={`${styles.financeCard} ${styles.collectedCard}`}>
-          <div className={styles.cardHeaderRow}>
-            <span className={styles.cardLabel}>Collected</span>
+        {/* Financial Revenue Hero */}
+        <div className={styles.heroRevenueBlock}>
+          <div className={styles.heroRevenueHeader}>
+            <span className={styles.heroRevenueLabel}>Total Collected</span>
             <button
               type="button"
               onClick={toggleHideCollected}
-              className={styles.cardPrivacyBtn}
+              className={styles.heroEyeBtn}
               title={hideCollected ? 'Show Balance' : 'Hide Balance'}
+              aria-label={hideCollected ? 'Show Balance' : 'Hide Balance'}
             >
-              {hideCollected ? <Symbol name="visibility_off" /> : <Symbol name="visibility" />}
+              <Symbol name={hideCollected ? 'visibility_off' : 'visibility'} size={16} />
             </button>
           </div>
-          <span className={styles.cardValue}>
+          <div className={styles.heroRevenueValue}>
             {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
-          </span>
-        </div>
-
-        <div
-          className={`${styles.financeCard} ${debtorsCount > 0 ? styles.alertCard : ''}`}
-          onClick={() => onNavigate('/collections')}
-          style={{ cursor: 'pointer' }}
-        >
-          <div className={styles.cardHeaderRow}>
-            <span className={styles.cardLabel}>Uncollected</span>
-            <Symbol name="account_balance_wallet" size={16} />
           </div>
-          <span className={styles.cardValue}>
-            {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
-          </span>
-        </div>
 
-        <div className={`${styles.financeCard} ${urgentCount > 0 ? styles.alertCard : ''}`}>
-          <div className={styles.cardHeaderRow}>
-            <span className={styles.cardLabel}>Overdue & Rush</span>
-            {urgentCount > 0 && <Symbol name="local_fire_department" size={16} />}
-          </div>
-          <span className={styles.cardValue}>{urgentCount}</span>
-        </div>
-
-        <div className={`${styles.financeCard} ${dueTodayCount > 0 ? styles.dueCard : ''}`}>
-          <div className={styles.cardHeaderRow}>
-            <span className={styles.cardLabel}>Due Today</span>
-            <Symbol name="event" size={16} />
-          </div>
-          <span className={styles.cardValue}>{dueTodayCount}</span>
-        </div>
-      </div>
-
-      {/* Monthly Goal Progress */}
-      <div
-        style={{
-          margin: '16px 4px',
-          padding: '16px',
-          background: 'var(--sf-bg-surface)',
-          borderRadius: 'var(--sf-radius-lg)',
-          border: '1px solid var(--sf-border-light)',
-          boxShadow: 'var(--sf-shadow-xs)',
-        }}
-      >
-        {currentShop?.monthlyRevenueTarget ? (
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginBottom: '8px',
-                fontSize: '13px',
-              }}
-            >
-              <span style={{ fontWeight: 600, color: 'var(--sf-text-primary)' }}>
-                Monthly Target
-              </span>
-              <span style={{ color: 'var(--sf-text-secondary)', fontFamily: 'var(--sf-font-numeric)' }}>
-                {hideCollected ? '******' : formatCurrency(monthlyRevenue, currentShop?.currency)} /{' '}
-                {hideCollected
-                  ? '******'
-                  : formatCurrency(currentShop.monthlyRevenueTarget, currentShop?.currency)}
-              </span>
+          {/* Integrated Monthly Target Progress Bar */}
+          {currentShop?.monthlyRevenueTarget ? (
+            <div className={styles.monthlyProgressWrap}>
+              <div className={styles.monthlyProgressMeta}>
+                <span className={styles.monthlyProgressLabel}>Monthly Goal</span>
+                <span className={styles.monthlyProgressNums}>
+                  {hideCollected ? '******' : formatCurrency(monthlyRevenue, currentShop?.currency)} /{' '}
+                  {hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget, currentShop?.currency)}
+                </span>
+              </div>
+              <div className={styles.monthlyProgressBarTrack}>
+                <div
+                  className={styles.monthlyProgressBarFill}
+                  style={{
+                    width: `${Math.min(100, Math.round((monthlyRevenue / currentShop.monthlyRevenueTarget) * 100))}%`,
+                  }}
+                />
+              </div>
             </div>
-            <div
-              style={{
-                width: '100%',
-                height: '8px',
-                backgroundColor: 'var(--sf-surface-variant)',
-                borderRadius: '4px',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${Math.min(
-                    100,
-                    (monthlyRevenue / currentShop.monthlyRevenueTarget) * 100
-                  )}%`,
-                  height: '100%',
-                  backgroundColor:
-                    monthlyRevenue >= currentShop.monthlyRevenueTarget
-                      ? 'var(--sf-accent-emerald)'
-                      : 'var(--sf-accent-indigo)',
-                  borderRadius: '4px',
-                  transition: 'width 0.5s ease-out',
-                }}
-              />
-            </div>
-            <p
-              style={{
-                marginTop: '8px',
-                fontSize: '12px',
-                color: 'var(--sf-text-secondary)',
-                textAlign: 'center',
-              }}
-            >
-              {monthlyRevenue >= currentShop.monthlyRevenueTarget
-                ? 'Monthly target achieved! Exceptional craftsmanship.'
-                : `${
-                    hideCollected
-                      ? '******'
-                      : formatCurrency(
-                          currentShop.monthlyRevenueTarget - monthlyRevenue,
-                          currentShop?.currency
-                        )
-                  } remaining to hit goal.`}
-            </p>
-            {currentShop.monthlyRevenueTarget > monthlyRevenue && (
-              <button
-                type="button"
-                onClick={() => onNavigate('/quotes')}
-                style={{
-                  marginTop: '12px',
-                  width: '100%',
-                  background: 'var(--sf-surface-variant)',
-                  color: 'var(--sf-text-primary)',
-                  padding: '8px',
-                  borderRadius: 'var(--sf-radius-md)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  border: '1px solid var(--sf-border-light)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                }}
-              >
-                <Symbol name="calculate" size={16} />
-                <span>Send Quotations to Close Gap</span>
-              </button>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <span
-                style={{
-                  display: 'block',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  color: 'var(--sf-text-primary)',
-                }}
-              >
-                Set Atelier Monthly Goal
-              </span>
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--sf-text-secondary)' }}>
-                Track target revenue against actual production.
-              </span>
-            </div>
+          ) : (
             <button
               type="button"
+              className={styles.setGoalPill}
               onClick={() => onNavigate('/settings/studio')}
-              style={{
-                background: 'var(--sf-accent-indigo)',
-                color: '#fff',
-                padding: '7px 14px',
-                borderRadius: 'var(--sf-radius-full)',
-                fontSize: '12px',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-              }}
             >
-              Set Goal
+              <Symbol name="flag" size={14} />
+              <span>Set Monthly Atelier Revenue Target</span>
             </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Shop Today Open Loops */}
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Shop Today</span>
-      </div>
-      <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
+        {/* 4-Pillar Workshop Metric Strip */}
+        <div className={styles.workshopMetricStrip}>
+          <button
+            type="button"
+            className={styles.metricItem}
+            onClick={() => onNavigate('/fabrics')}
+            aria-label="View uncut fabrics on cutting table"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{uncutFabricsCount}</span>
+              {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
+            </div>
+            <span className={styles.metricLabel}>Uncut</span>
+          </button>
 
-      {/* Team Workload Snapshot */}
+          <div className={styles.metricDivider} />
+
+          <button
+            type="button"
+            className={styles.metricItem}
+            onClick={() => onNavigate('/production')}
+            aria-label="View active sewing production queue"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{inProductionCount}</span>
+            </div>
+            <span className={styles.metricLabel}>In Sewing</span>
+          </button>
+
+          <div className={styles.metricDivider} />
+
+          <button
+            type="button"
+            className={styles.metricItem}
+            onClick={() => onNavigate('/production?status=Ready')}
+            aria-label="View ready garments for pickup"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{readyCount}</span>
+            </div>
+            <span className={styles.metricLabel}>Ready</span>
+          </button>
+
+          <div className={styles.metricDivider} />
+
+          <button
+            type="button"
+            className={`${styles.metricItem} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+            onClick={() => onNavigate('/collections')}
+            aria-label="View uncollected debtor balances"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>
+                {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+              </span>
+            </div>
+            <span className={styles.metricLabel}>Debt Due</span>
+          </button>
+        </div>
+      </section>
+
+      {/* 2. Streamlined 3-Utility Quick Actions Bar */}
+      <QuickCommandHub
+        onNavigate={onNavigate}
+        uncutFabricsCount={uncutFabricsCount}
+      />
+
+      {/* 3. Progressive Discover Placement: Top for Days 1 to 10 */}
+      {showDiscoverTop && <DiscoverCarousel onNavigate={onNavigate} />}
+
+      {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
+
+      {/* 4. Unified Today's Priorities Digest (Fittings & Workshop Open Loops) */}
+      <TodayPrioritiesWidget
+        loops={openLoops}
+        onNavigate={onNavigate}
+      />
+
+      {/* 5. Artisan Bench — Team Craft Workload */}
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Team Workload</span>
+        <span className={styles.sectionTitle}>Artisan Bench</span>
       </div>
 
       {teamSnapshot.length === 0 ? (
-        <div style={{ marginTop: 16, marginBottom: 24 }}>
-          <EmptyState
-            icon={<Symbol name="group" size={32} />}
-            title="No artisans assigned yet"
-            description="Invite tailors and apprentices to view their production workloads."
-            action={{ label: 'Manage Team', onClick: () => onNavigate('/settings/staff') }}
-          />
+        <div className={styles.teamInviteCard}>
+          <div className={styles.teamInviteLeft}>
+            <div className={styles.teamInviteIconWrap}>
+              <Symbol name="group_add" size={18} />
+            </div>
+            <div>
+              <span className={styles.teamInviteTitle}>Delegate to Apprentices & Tailors</span>
+              <span className={styles.teamInviteSub}>Assign garments by craft role & track completed pieces</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={styles.teamInviteBtn}
+            onClick={() => onNavigate('/settings/staff')}
+          >
+            Add Team
+          </button>
         </div>
       ) : (
         <div className={styles.teamGrid}>
@@ -350,7 +242,14 @@ export default function OwnerDashboard({
                 ) : (
                   <div className={styles.teamAvatar}>{staff.name[0]}</div>
                 )}
-                <div className={styles.teamName}>{staff.name}</div>
+                <div>
+                  <div className={styles.teamName}>
+                    {staff.name}
+                    <span className={styles.craftBadge}>
+                      {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className={styles.teamStatsRow}>
                 <div className={styles.teamStat}>
@@ -376,6 +275,9 @@ export default function OwnerDashboard({
           ))}
         </div>
       )}
+
+      {/* 6. Progressive Discover Placement: Bottom for Days 11 to 30 */}
+      {showDiscoverBottom && <DiscoverCarousel onNavigate={onNavigate} />}
     </>
   );
 }

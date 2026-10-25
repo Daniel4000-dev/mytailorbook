@@ -1,0 +1,263 @@
+.container {
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-xl);
+  padding: 16px 18px;
+  margin-bottom: var(--sf-space-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerIcon {
+  color: var(--sf-accent-indigo, #4338CA);
+}
+
+.title {
+  font-family: var(--font-fraunces), var(--sf-font-heading), serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.pendingBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.allClearBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #ECFDF5;
+  border: 1px solid #D1FAE5;
+  border-radius: var(--sf-radius-lg);
+  color: #065F46;
+}
+
+.clearIconWrap {
+  color: #059669;
+  display: flex;
+  align-items: center;
+}
+
+.clearText {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--sf-radius-lg);
+  text-align: left;
+  transition: all var(--sf-transition-fast);
+}
+
+/* 1. Fitting Rows — Subtle Royal Violet Tint */
+.fittingRow {
+  background: #F5F3FF;
+  border: 1px solid #EDE9FE;
+}
+
+.fittingBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7C3AED;
+  background: #EDE9FE;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  flex-shrink: 0;
+}
+
+/* 2. Open Loop Rows — Subtle Warm Tint */
+.loopRow {
+  background: #FFFBEB;
+  border: 1px solid #FEF3C7;
+  cursor: pointer;
+  width: 100%;
+}
+
+.loopRow:hover {
+  filter: brightness(0.98);
+  transform: translateY(-1px);
+}
+
+.loopRow:active {
+  transform: scale(0.98);
+}
+
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--sf-radius-full);
+  border: 1.5px solid var(--sf-border-strong, #CBD5E1);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: transparent;
+  transition: all var(--sf-transition-fast);
+}
+
+.checkboxChecked {
+  background: var(--sf-accent-indigo, #4338CA);
+  border-color: var(--sf-accent-indigo, #4338CA);
+  color: #ffffff;
+}
+
+.itemMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  line-height: 1.3;
+}
+
+.itemTitleDone {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.itemSub {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+}
+
+.completedRow {
+  opacity: 0.6;
+}
+
+.loopIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sf-radius-full);
+  background: #FEF3C7;
+  color: #D97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.urgentIcon {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.loopActionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sf-accent-indigo, #4338CA);
+  flex-shrink: 0;
+}
+
+.footerRow {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--sf-border-light);
+}
+
+.calendarLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-accent-indigo, #4338CA);
+  text-decoration: none;
+  padding: 4px 8px;
+  transition: all var(--sf-transition-fast);
+}
+
+.calendarLink:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fittingRow {
+    background: rgba(124, 58, 237, 0.12);
+    border-color: rgba(124, 58, 237, 0.25);
+  }
+  :root:not([data-theme="light"]) .fittingBadge {
+    background: rgba(124, 58, 237, 0.25);
+    color: #C4B5FD;
+  }
+  :root:not([data-theme="light"]) .loopRow {
+    background: rgba(217, 119, 6, 0.12);
+    border-color: rgba(217, 119, 6, 0.25);
+  }
+  :root:not([data-theme="light"]) .allClearBox {
+    background: rgba(5, 150, 105, 0.12);
+    border-color: rgba(5, 150, 105, 0.25);
+    color: #6EE7B7;
+  }
+}
+
+:root[data-theme="dark"] .fittingRow {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.25);
+}
+:root[data-theme="dark"] .fittingBadge {
+  background: rgba(124, 58, 237, 0.25);
+  color: #C4B5FD;
+}
+:root[data-theme="dark"] .loopRow {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.25);
+}
+:root[data-theme="dark"] .allClearBox {
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.25);
+  color: #6EE7B7;
+}

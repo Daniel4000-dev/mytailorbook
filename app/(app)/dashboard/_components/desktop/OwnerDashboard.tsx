@@ -4,21 +4,21 @@ import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { ROUTES } from '@/lib/routes';
 import type { Order } from '@/lib/types';
+import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import DiscoverBanner from './DiscoverBanner';
-import ShopTodayCard from '../ShopTodayCard';
+import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 
 // ============================================================
-// Owner Dashboard — desktop
+// Owner Dashboard — desktop (Executive Atelier Command Center)
 // ============================================================
 
 export default function OwnerDashboard({
@@ -35,10 +35,8 @@ export default function OwnerDashboard({
     hideCollected,
     hideProjected,
     toggleHideCollected,
-    toggleHideProjected,
     collected,
     monthlyRevenue,
-    projected,
     urgentCount,
     dueTodayCount,
     uncutFabricsCount,
@@ -51,13 +49,17 @@ export default function OwnerDashboard({
 
   const openLoops = useOpenLoops(orders, customers, exceptions);
 
+  // Show tips only in first 30 days
+  const createdAt = currentShop?.createdAt ? new Date(currentShop.createdAt) : new Date();
+  const daysOld = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 3600 * 24));
+  const showDiscover = daysOld <= 30;
+
   return (
     <div className={styles.content}>
-      {/* 1-Tap Quick Action Command Hub */}
+      {/* 1-Tap Quick Action Command Utilities */}
       <QuickCommandHub
         onNavigate={onNavigate}
         uncutFabricsCount={uncutFabricsCount}
-        debtorsCount={debtorsCount}
       />
 
       {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
@@ -198,50 +200,15 @@ export default function OwnerDashboard({
                   }}
                 />
               </div>
-              <p style={{ marginTop: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
-                {monthlyRevenue >= currentShop.monthlyRevenueTarget
-                  ? 'Monthly target reached! Exceptional atelier achievement.'
-                  : `${
-                      hideCollected
-                        ? '******'
-                        : formatCurrency(
-                            currentShop.monthlyRevenueTarget - monthlyRevenue,
-                            currentShop?.currency
-                          )
-                    } remaining to hit goal.`}
-              </p>
-              {currentShop.monthlyRevenueTarget > monthlyRevenue && (
-                <button
-                  type="button"
-                  onClick={() => onNavigate('/quotes')}
-                  style={{
-                    marginTop: '12px',
-                    background: 'rgba(255,255,255,0.15)',
-                    color: '#ffffff',
-                    padding: '6px 14px',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Symbol name="calculate" size={16} />
-                  <span>Send Quotations to Close Gap</span>
-                </button>
-              )}
             </div>
           ) : (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ color: '#ffffff' }}>
                 <span style={{ display: 'block', fontWeight: 500, fontSize: '14px' }}>
-                  Set a Monthly Goal
+                  Set Atelier Monthly Goal
                 </span>
                 <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                  Track your revenue targets directly on your dashboard.
+                  Track target revenue directly on your dashboard.
                 </span>
               </div>
               <button
@@ -249,11 +216,11 @@ export default function OwnerDashboard({
                 onClick={() => onNavigate('/settings/studio')}
                 style={{
                   background: '#ffffff',
-                  color: 'var(--sf-nav)',
-                  padding: '6px 14px',
+                  color: '#1E1B4B',
+                  padding: '7px 16px',
                   borderRadius: '16px',
-                  fontSize: '12px',
-                  fontWeight: 600,
+                  fontSize: '13px',
+                  fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
                 }}
@@ -264,8 +231,6 @@ export default function OwnerDashboard({
           )}
         </div>
       </div>
-
-      <DiscoverBanner onNavigate={onNavigate} />
 
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
@@ -320,11 +285,11 @@ export default function OwnerDashboard({
           </div>
 
           <div className={pageStyles.sectionHeader}>
-            <span className={pageStyles.sectionTitle}>Team Snapshot</span>
+            <span className={pageStyles.sectionTitle}>Artisan Bench</span>
           </div>
 
           {teamSnapshot.length === 0 ? (
-            <div style={{ marginTop: 24, marginBottom: 24 }}>
+            <div style={{ marginTop: 16, marginBottom: 24 }}>
               <EmptyState
                 icon={<Symbol name="group" size={32} />}
                 title="No staff added yet"
@@ -353,7 +318,12 @@ export default function OwnerDashboard({
                     ) : (
                       <div className={pageStyles.teamAvatar}>{staff.name[0]}</div>
                     )}
-                    <div className={pageStyles.teamName}>{staff.name}</div>
+                    <div className={pageStyles.teamName}>
+                      {staff.name}
+                      <span className={pageStyles.craftBadge}>
+                        {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                      </span>
+                    </div>
                   </div>
                   <div className={pageStyles.teamStatsRow}>
                     <div className={pageStyles.teamStat}>
@@ -382,13 +352,11 @@ export default function OwnerDashboard({
         </div>
 
         <div className={styles.rail}>
-          {/* Today's Agenda (Appointments & Fittings) */}
-          <TodaysAgendaWidget />
+          {/* Today's Priorities (Unified Fittings & Open Loops) */}
+          <TodayPrioritiesWidget loops={openLoops} onNavigate={onNavigate} />
 
-          <div className={pageStyles.sectionHeader}>
-            <span className={pageStyles.sectionTitle}>Shop Today</span>
-          </div>
-          <ShopTodayCard loops={openLoops} onNavigate={onNavigate} shop={currentShop} />
+          {/* Tips only for first 30 days */}
+          {showDiscover && <DiscoverBanner onNavigate={onNavigate} />}
         </div>
       </div>
     </div>

@@ -1,36 +1,14 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xs);
   margin-bottom: var(--sf-space-md);
-}
-
-.headerRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4px;
-  margin-bottom: 2px;
-}
-
-.title {
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
+  width: 100%;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--sf-space-xs);
-}
-
-@media (min-width: 640px) {
-  .grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
+  gap: var(--sf-space-sm);
 }
 
 .tile {
@@ -40,57 +18,138 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 6px;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
+  padding: 12px 8px;
   border-radius: var(--sf-radius-lg);
-  color: var(--sf-text-primary);
-  text-decoration: none;
   cursor: pointer;
-  box-shadow: var(--sf-shadow-xs);
-  transition:
-    transform var(--sf-transition-fast),
-    background var(--sf-transition-fast),
-    border-color var(--sf-transition-fast),
-    box-shadow var(--sf-transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast), filter var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  min-height: 72px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .tile:hover {
-    background: var(--sf-surface-variant);
-    border-color: var(--sf-border);
-    transform: translateY(-2px);
-    box-shadow: var(--sf-shadow-sm);
-  }
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  filter: brightness(0.98);
 }
 
 .tile:active {
   transform: scale(0.96);
 }
 
+/* 1. Cutting Table — Terracotta / Warm Amber */
+.fabricsTile {
+  background: #FFF7ED;
+  border: 1px solid #FFEDD5;
+  color: #9A3412;
+}
+
+.fabricsTile .iconWrap {
+  background: #FFEDD5;
+  color: #EA580C;
+}
+
+/* 2. Quick Quote — Emerald / Mint */
+.quoteTile {
+  background: #ECFDF5;
+  border: 1px solid #D1FAE5;
+  color: #065F46;
+}
+
+.quoteTile .iconWrap {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+/* 3. Daily Till — Royal Violet */
+.tillTile {
+  background: #F5F3FF;
+  border: 1px solid #EDE9FE;
+  color: #5B21B6;
+}
+
+.tillTile .iconWrap {
+  background: #EDE9FE;
+  color: #7C3AED;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .fabricsTile {
+    background: rgba(234, 88, 12, 0.12);
+    border-color: rgba(234, 88, 12, 0.25);
+    color: #FDBA74;
+  }
+  :root:not([data-theme="light"]) .fabricsTile .iconWrap {
+    background: rgba(234, 88, 12, 0.2);
+    color: #FB923C;
+  }
+  :root:not([data-theme="light"]) .quoteTile {
+    background: rgba(5, 150, 105, 0.12);
+    border-color: rgba(5, 150, 105, 0.25);
+    color: #6EE7B7;
+  }
+  :root:not([data-theme="light"]) .quoteTile .iconWrap {
+    background: rgba(5, 150, 105, 0.2);
+    color: #34D399;
+  }
+  :root:not([data-theme="light"]) .tillTile {
+    background: rgba(124, 58, 237, 0.12);
+    border-color: rgba(124, 58, 237, 0.25);
+    color: #C4B5FD;
+  }
+  :root:not([data-theme="light"]) .tillTile .iconWrap {
+    background: rgba(124, 58, 237, 0.2);
+    color: #A78BFA;
+  }
+}
+
+:root[data-theme="dark"] .fabricsTile {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.25);
+  color: #FDBA74;
+}
+:root[data-theme="dark"] .fabricsTile .iconWrap {
+  background: rgba(234, 88, 12, 0.2);
+  color: #FB923C;
+}
+:root[data-theme="dark"] .quoteTile {
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.25);
+  color: #6EE7B7;
+}
+:root[data-theme="dark"] .quoteTile .iconWrap {
+  background: rgba(5, 150, 105, 0.2);
+  color: #34D399;
+}
+:root[data-theme="dark"] .tillTile {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.25);
+  color: #C4B5FD;
+}
+:root[data-theme="dark"] .tillTile .iconWrap {
+  background: rgba(124, 58, 237, 0.2);
+  color: #A78BFA;
+}
+
 .iconWrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--sf-radius-md);
-  background: var(--sf-surface-variant);
-  color: var(--sf-accent-indigo);
-  transition: background var(--sf-transition-fast), color var(--sf-transition-fast);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  transition: transform var(--sf-transition-fast);
 }
 
 .tile:hover .iconWrap {
-  background: var(--sf-accent-indigo);
-  color: #fff;
+  transform: scale(1.08);
 }
 
 .tileLabel {
   font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-medium);
-  color: var(--sf-text-primary);
+  font-weight: 600;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -98,24 +157,18 @@
   max-width: 100%;
 }
 
-.badge {
+.badgeAlert {
   position: absolute;
   top: 6px;
   right: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
+  padding: 1px 6px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-indigo);
-  color: #fff;
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.badgeAlert {
   background: #DC2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3);
 }

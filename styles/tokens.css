@@ -16,9 +16,9 @@
      is an opacity/lightness variant of the same indigo. Text/borders
      are true neutral grays — never a third hue. */
 
-  /* ── Colors: Backgrounds (Apple iOS System Grouped Contrast) ── */
-  --sf-bg-primary: #F2F2F7;                   /* Apple System Grouped Canvas */
-  --sf-bg-surface: #FFFFFF;                   /* Apple Inset Card Surface */
+  /* ── Colors: Backgrounds (Pure White Luxury Canvas) ── */
+  --sf-bg-primary: #FFFFFF;                   /* Pristine White Canvas */
+  --sf-bg-surface: #FFFFFF;                   /* Card Surface */
   --sf-bg-surface-elevated: #FFFFFF;
   --sf-bg-surface-hover: rgba(67, 56, 202, 0.05);
   --sf-bg-input: #FFFFFF;

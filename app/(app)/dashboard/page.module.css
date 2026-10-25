@@ -962,3 +962,337 @@
   border-radius: var(--sf-radius-full);
 }
 
+/* ── Unified Atelier Command Hero ── */
+.atelierHero {
+  background: linear-gradient(155deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+  border-radius: var(--sf-radius-2xl);
+  padding: 20px 20px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(67, 56, 202, 0.22);
+  margin-bottom: var(--sf-space-md);
+  color: #ffffff;
+}
+
+.atelierHero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 70%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.heroHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.heroIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.heroGreeting {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.heroShopName {
+  font-family: var(--font-fraunces), var(--sf-font-heading), serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.heroNewOrderBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full);
+  background: #ffffff;
+  color: #312E81;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.heroNewOrderBtn:active {
+  transform: scale(0.96);
+}
+
+.heroRevenueBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.heroRevenueHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heroRevenueLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.heroEyeBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.heroEyeBtn:hover {
+  color: #ffffff;
+}
+
+.heroRevenueValue {
+  font-family: var(--sf-font-numeric), sans-serif;
+  font-size: clamp(28px, 7vw, 36px);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Integrated Monthly Progress Bar */
+.monthlyProgressWrap {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.monthlyProgressMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.monthlyProgressLabel {
+  font-weight: 600;
+}
+
+.monthlyProgressNums {
+  font-family: var(--sf-font-numeric), sans-serif;
+  font-weight: 600;
+}
+
+.monthlyProgressBarTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--sf-radius-full);
+  overflow: hidden;
+}
+
+.monthlyProgressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B 0%, #10B981 100%);
+  border-radius: var(--sf-radius-full);
+  transition: width 0.5s ease-out;
+}
+
+.setGoalPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  width: fit-content;
+  transition: background 0.15s ease;
+}
+
+.setGoalPill:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 4-Pillar Workshop Metric Strip */
+.workshopMetricStrip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  border-radius: var(--sf-radius-xl);
+  padding: 10px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+  z-index: 1;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.15s ease;
+}
+
+.metricItem:active {
+  transform: scale(0.95);
+}
+
+.metricTop {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.metricNum {
+  font-family: var(--font-fraunces), var(--sf-font-heading), serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.metricAlertDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #EF4444;
+  box-shadow: 0 0 6px #EF4444;
+}
+
+.metricLabel {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.metricDebtItem .metricNum {
+  color: #FCD34D;
+}
+
+.metricDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Artisan Team Bench */
+.teamInviteCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--sf-radius-xl);
+  padding: 14px 16px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.teamInviteLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.teamInviteIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  background: #EEF2FF;
+  color: #4338CA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.teamInviteTitle {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.teamInviteSub {
+  display: block;
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+}
+
+.teamInviteBtn {
+  background: #4338CA;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.craftBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--sf-radius-full);
+  margin-left: 6px;
+  display: inline-block;
+  background: #EEF2FF;
+  color: #4338CA;
+  border: 1px solid #C7D2FE;
+}
+
+

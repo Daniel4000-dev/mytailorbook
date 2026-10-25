@@ -805,6 +805,15 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  group_add: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill={fill ? color : 'none'} />
+      <circle cx="9" cy="7" r="4" fill={fill ? color : 'none'} />
+      <line x1="19" y1="8" x2="19" y2="14" />
+      <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+  ),
+
   handshake: ({ size, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M11 17l-4 4-5-5 7-7" />
@@ -930,6 +939,13 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
   bookmark: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill={fill ? color : 'none'} />
+    </svg>
+  ),
+
+  flag: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" fill={fill ? color : 'none'} />
+      <line x1="4" y1="22" x2="4" y2="15" />
     </svg>
   ),
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, type UIEvent } from 'react';
+import { useState, useRef, type UIEvent } from 'react';
 import { useData } from '@/contexts/DataContext';
 import Image from 'next/image';
 import { DISCOVER_CARDS } from '../discoverCards';
@@ -8,10 +8,9 @@ import styles from '../../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
 // ============================================================
-// Discover Carousel — a swipeable pointer to features that add real
-// value but aren't sitting on the bottom nav (public tracking, the
-// portfolio link, WhatsApp wording, the style measurement guides).
-// Each card's CTA lands on the exact screen that does the thing.
+// Discover Carousel — a calm, non-intrusive swipeable guide
+// to powerful features (portfolio, tracking, WhatsApp wording, custom styles).
+// Displays for the first 30 days of signup (top for first 10, then bottom).
 // ============================================================
 
 export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: string) => void }) {
@@ -19,25 +18,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (scrollRef.current) {
-        const el = scrollRef.current;
-        const cardWidth = el.firstElementChild?.clientWidth || 0;
-        if (cardWidth > 0) {
-          const gap = 16;
-          const maxScroll = el.scrollWidth - el.clientWidth;
-          let nextScroll = el.scrollLeft + cardWidth + gap;
-          if (nextScroll > maxScroll) nextScroll = 0; // Loop back
-          el.scrollTo({ left: nextScroll, behavior: 'smooth' });
-        }
-      }
-    }, 4000); // Auto-slide every 4 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  // Hide after 30 days
+  // Auto-hide completely after 30 days
   if (currentShop?.createdAt) {
     const createdAt = new Date(currentShop.createdAt);
     const now = new Date();
@@ -46,7 +27,6 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
       return null;
     }
   }
-
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -58,7 +38,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
   return (
     <div className={styles.discoverSection}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Discover</span>
+        <span className={styles.sectionTitle}>Studio Tips & Features</span>
       </div>
       <div ref={scrollRef} className={styles.discoverScroll} onScroll={handleScroll}>
         {DISCOVER_CARDS.map((card) => (
@@ -73,7 +53,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
               <span className={styles.discoverTitle}>{card.title}</span>
               <span className={styles.discoverDesc}>{card.description}</span>
               <span className={styles.discoverCta}>
-                {card.cta} <Symbol name="chevron_right" />
+                {card.cta} <Symbol name="chevron_right" size={14} />
               </span>
             </div>
             {card.image && (
