@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
 import type { CalendarEvent } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import Link from 'next/link';
+import styles from './TodaysAgendaWidget.module.css';
 
 export default function TodaysAgendaWidget() {
   const { user } = useAuth();
@@ -16,13 +16,18 @@ export default function TodaysAgendaWidget() {
   useEffect(() => {
     if (!user?.shopId) return;
     const fetchToday = async () => {
-      const today = new Date();
-      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const allMonth = await getCalendarEvents(user.shopId, monthStr);
-      
-      const todayStr = today.toISOString().split('T')[0];
-      setEvents(allMonth.filter(e => e.date === todayStr));
-      setIsLoading(false);
+      try {
+        const today = new Date();
+        const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        const allMonth = await getCalendarEvents(user.shopId, monthStr);
+        
+        const todayStr = today.toISOString().split('T')[0];
+        setEvents(allMonth.filter(e => e.date === todayStr));
+      } catch (err) {
+        console.error('Failed to fetch today calendar agenda:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchToday();
   }, [user?.shopId]);
@@ -32,76 +37,70 @@ export default function TodaysAgendaWidget() {
   const pendingCount = events.filter(e => e.status !== 'completed').length;
 
   return (
-    <div style={{
-      background: 'var(--sf-bg-surface)',
-      borderRadius: 'var(--sf-radius-xl)',
-      padding: 'var(--sf-space-lg)',
-      marginBottom: 'var(--sf-space-md)',
-      border: '1px solid var(--sf-border-color)',
-      boxShadow: 'var(--sf-shadow-sm)',
-      width: '100%',
-      boxSizing: 'border-box'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sf-space-md)' }}>
-        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--sf-text-primary)', margin: 0 }}>
-          Today&apos;s Agenda
-        </h2>
-        {pendingCount > 0 && (
-          <span style={{ background: 'var(--sf-accent-red)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
-            {pendingCount} Pending
+    <div className={styles.widget}>
+      <div className={styles.header}>
+        <div className={styles.titleRow}>
+          <span className={styles.titleIcon}>
+            <Symbol name="calendar_today" size={16} />
           </span>
-        )}
+          <h2 className={styles.title}>Today&apos;s Schedule &amp; Fittings</h2>
+          {pendingCount > 0 && (
+            <span className={styles.pendingBadge}>
+              {pendingCount} Pending
+            </span>
+          )}
+        </div>
+        <Link href="/calendar" className={styles.calendarLink}>
+          <span>Calendar</span>
+          <Symbol name="chevron_right" size={14} />
+        </Link>
       </div>
 
       {events.length === 0 ? (
-        <EmptyState
-          icon={<Symbol name="event_busy" size={32} />}
-          title="No events scheduled for today"
-          description="Enjoy the breather or check the full calendar."
-          size="sm"
-        />
+        <div className={styles.emptyState}>
+          <div className={styles.emptyLeft}>
+            <Symbol name="calendar_today" size={16} className={styles.emptyIcon} />
+            <span className={styles.emptyText}>No fittings or appointments scheduled today</span>
+          </div>
+          <Link href="/calendar" className={styles.scheduleBtn}>
+            <Symbol name="add" size={12} />
+            <span>Schedule</span>
+          </Link>
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className={styles.eventList}>
           {events.map(evt => {
             const isCompleted = evt.status === 'completed';
             return (
-              <div key={evt.id} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                background: 'var(--sf-bg-surface-hover)',
-                borderRadius: 'var(--sf-radius-md)',
-                opacity: isCompleted ? 0.6 : 1
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button 
+              <div
+                key={evt.id}
+                className={`${styles.eventItem} ${isCompleted ? styles.eventItemCompleted : ''}`}
+              >
+                <div className={styles.eventLeft}>
+                  <button
+                    type="button"
                     onClick={async () => {
                       const newStatus = isCompleted ? 'pending' : 'completed';
-                      setEvents(prev => prev.map(p => p.id === evt.id ? { ...p, status: newStatus } : p));
+                      setEvents(prev =>
+                        prev.map(p => (p.id === evt.id ? { ...p, status: newStatus } : p))
+                      );
                       await updateEventStatus(evt.id, newStatus);
                     }}
-                    style={{
-                      width: 24, height: 24, borderRadius: '50%',
-                      border: `1px solid ${isCompleted ? 'var(--sf-text-primary)' : 'var(--sf-border-base)'}`,
-                      background: isCompleted ? 'var(--sf-text-primary)' : 'transparent',
-                      color: isCompleted ? 'var(--sf-bg-primary)' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer'
-                    }}
+                    className={`${styles.checkBtn} ${isCompleted ? styles.checkBtnCompleted : ''}`}
+                    title={isCompleted ? 'Mark as pending' : 'Mark as done'}
+                    aria-label={isCompleted ? 'Mark as pending' : 'Mark as done'}
                   >
-                    <Symbol name="check" size={16} />
+                    <Symbol name="check" size={12} />
                   </button>
-                  <span style={{ 
-                    fontSize: '0.875rem', 
-                    fontWeight: 500, 
-                    color: 'var(--sf-text-primary)',
-                    textDecoration: isCompleted ? 'line-through' : 'none'
-                  }}>
+                  <span
+                    className={`${styles.eventTitle} ${
+                      isCompleted ? styles.eventTitleCompleted : ''
+                    }`}
+                  >
                     {evt.title}
                   </span>
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--sf-text-secondary)' }}>
+                <span className={styles.eventTime}>
                   {evt.startTime || 'All day'}
                 </span>
               </div>
@@ -109,17 +108,6 @@ export default function TodaysAgendaWidget() {
           })}
         </div>
       )}
-      <Link href="/calendar" style={{
-        display: 'block',
-        textAlign: 'center',
-        marginTop: 'var(--sf-space-md)',
-        fontSize: '0.875rem',
-        fontWeight: 600,
-        color: 'var(--sf-accent-blue)',
-        textDecoration: 'none'
-      }}>
-        Open Full Calendar
-      </Link>
     </div>
   );
 }

@@ -10,7 +10,9 @@ import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import DiscoverCarousel from './DiscoverCarousel';
+import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
+import MilestonesCard from '../MilestonesCard';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from '../../page.module.css';
@@ -35,6 +37,7 @@ export default function OwnerDashboard({
     toggleHideCollected,
     collected,
     monthlyRevenue,
+    urgentCount,
     uncutFabricsCount,
     inProductionCount,
     readyCount,
@@ -119,7 +122,7 @@ export default function OwnerDashboard({
           )}
         </div>
 
-        {/* 4-Pillar Workshop Metric Strip */}
+        {/* 5-Pillar Workshop Metric Strip */}
         <div className={styles.workshopMetricStrip}>
           <button
             type="button"
@@ -166,6 +169,21 @@ export default function OwnerDashboard({
 
           <button
             type="button"
+            className={`${styles.metricItem} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
+            onClick={() => onNavigate('/production')}
+            aria-label="View overdue and urgent orders"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{urgentCount}</span>
+              {urgentCount > 0 && <span className={styles.metricAlertDot} />}
+            </div>
+            <span className={styles.metricLabel}>Overdue</span>
+          </button>
+
+          <div className={styles.metricDivider} />
+
+          <button
+            type="button"
             className={`${styles.metricItem} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
             onClick={() => onNavigate('/collections')}
             aria-label="View uncollected debtor balances"
@@ -191,13 +209,19 @@ export default function OwnerDashboard({
 
       {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
 
-      {/* 4. Unified Today's Priorities Digest (Fittings & Workshop Open Loops) */}
+      {/* 4. Today's Schedule & Fittings (Calendar) */}
+      <TodaysAgendaWidget />
+
+      {/* 5. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
       <TodayPrioritiesWidget
         loops={openLoops}
         onNavigate={onNavigate}
       />
 
-      {/* 5. Artisan Bench — Team Craft Workload */}
+      {/* 6. Studio Milestones & Atelier Growth */}
+      <MilestonesCard />
+
+      {/* 7. Artisan Bench — Team Craft Workload */}
       <div className={styles.sectionHeader}>
         <span className={styles.sectionTitle}>Artisan Bench</span>
       </div>
@@ -276,7 +300,7 @@ export default function OwnerDashboard({
         </div>
       )}
 
-      {/* 6. Progressive Discover Placement: Bottom for Days 11 to 30 */}
+      {/* 8. Progressive Discover Placement: Bottom for Days 11 to 30 */}
       {showDiscoverBottom && <DiscoverCarousel onNavigate={onNavigate} />}
     </>
   );

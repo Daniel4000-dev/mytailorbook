@@ -1152,15 +1152,15 @@
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* 4-Pillar Workshop Metric Strip */
+/* 5-Pillar Workshop Metric Strip */
 .workshopMetricStrip {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   align-items: center;
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(12px);
   border-radius: var(--sf-radius-xl);
-  padding: 10px 4px;
+  padding: 10px 2px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   position: relative;
   z-index: 1;
@@ -1176,7 +1176,7 @@
   border: none;
   color: #ffffff;
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 2px;
   transition: transform 0.15s ease;
 }
 
@@ -1193,7 +1193,7 @@
 
 .metricNum {
   font-family: var(--font-fraunces), var(--sf-font-heading), serif;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #ffffff;
   line-height: 1.2;
@@ -1208,12 +1208,16 @@
 }
 
 .metricLabel {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.7);
   white-space: nowrap;
+}
+
+.metricAlertItem .metricNum {
+  color: #F87171;
 }
 
 .metricDebtItem .metricNum {

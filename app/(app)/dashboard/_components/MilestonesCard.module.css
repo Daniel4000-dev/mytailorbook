@@ -1,33 +1,130 @@
 .card {
-  background-color: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-color);
-  border-radius: var(--sf-radius-xl);
-  padding: 12px 14px;
+  background-color: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--sf-radius-xl, 16px);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   margin-top: 16px;
-  box-shadow: var(--sf-shadow-sm);
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+  width: 100%;
 }
 
-@media (min-width: 768px) {
-  .card {
-    padding: 24px;
-  }
+:global([data-theme='dark']) .card {
+  background: #1B1A2B;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titleIcon {
+  color: var(--sf-accent-indigo, #4338CA);
+  display: flex;
+  align-items: center;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--sf-text-primary);
-  margin: 0;
+  color: var(--sf-text-primary, #111827);
   letter-spacing: -0.01em;
+  margin: 0;
 }
 
 .subtitle {
-  font-size: 14px;
-  color: var(--sf-text-secondary);
-  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: var(--sf-text-secondary, #6B7280);
+  margin: 0;
+}
+
+.nextMoveBox {
+  background: #F8FAFC;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: var(--sf-radius-md, 12px);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+:global([data-theme='dark']) .nextMoveBox {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.nextMoveLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nextMoveTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 2px 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+:global([data-theme='dark']) .nextMoveTag {
+  background: rgba(217, 119, 6, 0.2);
+  color: #FCD34D;
+}
+
+.nextMoveText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nextMoveBtn {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sf-accent-indigo, #4338CA);
+  background: #EEF2FF;
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  padding: 4px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.nextMoveBtn:hover {
+  background: #E0E7FF;
+}
+
+:global([data-theme='dark']) .nextMoveBtn {
+  background: rgba(99, 102, 241, 0.18);
+  color: #C7D2FE;
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .list {
@@ -39,11 +136,7 @@
 .milestone {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border-radius: var(--sf-radius-md);
-  /* Slight negative margin so padding doesn't push the actual content inwards */
-  margin: 0 -12px;
+  gap: 6px;
 }
 
 .milestoneHeader {
@@ -53,61 +146,68 @@
 }
 
 .milestoneTitle {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--sf-text-primary);
+  color: var(--sf-text-primary, #111827);
 }
 
 .milestoneProgressText {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--sf-text-secondary);
-  font-family: var(--sf-font-numeric);
+  color: var(--sf-text-secondary, #6B7280);
+  font-family: var(--sf-font-numeric, -apple-system, sans-serif);
 }
 
 .track {
-  height: 8px;
-  background-color: var(--sf-bg-surface-elevated);
-  border-radius: var(--sf-radius-full);
+  height: 6px;
+  background-color: #F1F5F9;
+  border-radius: var(--sf-radius-full, 9999px);
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+:global([data-theme='dark']) .track {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--sf-accent-emerald-light, #818CF8), var(--sf-accent-emerald, #6366F1), var(--sf-accent-emerald-dark, #4338CA), var(--sf-accent-emerald, #6366F1));
-  background-size: 200% 100%;
-  border-radius: var(--sf-radius-full);
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: shimmer 3s infinite linear;
+  border-radius: var(--sf-radius-full, 9999px);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
+.fillOrders {
+  background: linear-gradient(90deg, #4338CA, #6366F1);
+}
+
+.fillCustomers {
+  background: linear-gradient(90deg, #059669, #10B981);
+}
+
+.fillRevenue {
+  background: linear-gradient(90deg, #7C3AED, #8B5CF6);
 }
 
 .fillAchieved {
-  background: linear-gradient(90deg, var(--sf-stage-ready-bg), var(--sf-stage-ready), var(--sf-stage-ready-bg));
-  background-size: 200% 100%;
+  background: linear-gradient(90deg, #059669, #34D399);
 }
 
 .achievedBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 4px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--sf-bg-primary);
-  background-color: var(--sf-stage-ready);
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
+  color: #065F46;
+  background-color: #ECFDF5;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full, 9999px);
   align-self: flex-start;
-  box-shadow: 0 2px 8px var(--sf-stage-ready-alpha-30, rgba(16, 185, 129, 0.3));
-  animation: badgePulse 2.5s infinite alternate ease-in-out;
+  margin-top: 2px;
 }
 
-@keyframes badgePulse {
-  0% { transform: scale(1); box-shadow: 0 2px 4px var(--sf-stage-ready-alpha-30, rgba(16, 185, 129, 0.2)); }
-  100% { transform: scale(1.03); box-shadow: 0 6px 12px var(--sf-stage-ready-alpha-30, rgba(16, 185, 129, 0.5)); }
+:global([data-theme='dark']) .achievedBadge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6EE7B7;
+  border-color: rgba(16, 185, 129, 0.3);
 }

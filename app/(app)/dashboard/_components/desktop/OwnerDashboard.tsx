@@ -10,7 +10,9 @@ import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import DiscoverBanner from './DiscoverBanner';
+import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
+import MilestonesCard from '../MilestonesCard';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -284,6 +286,9 @@ export default function OwnerDashboard({
             </button>
           </div>
 
+          {/* Today's Schedule & Fittings (Calendar) */}
+          <TodaysAgendaWidget />
+
           <div className={pageStyles.sectionHeader}>
             <span className={pageStyles.sectionTitle}>Artisan Bench</span>
           </div>
@@ -349,6 +354,9 @@ export default function OwnerDashboard({
               ))}
             </div>
           )}
+
+          {/* Studio Milestones & Growth */}
+          <MilestonesCard />
         </div>
 
         <div className={styles.rail}>
