@@ -1,14 +1,14 @@
 .card {
   display: flex;
   flex-direction: column;
-  background: var(--sf-bg-surface);
-  border-radius: var(--sf-radius-xl);
-  border: 1px solid var(--sf-border-light);
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   width: 100%;
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
   transition:
     transform var(--sf-transition-fast),
     box-shadow var(--sf-transition-fast),
@@ -19,8 +19,8 @@
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--sf-shadow-md);
-    border-color: var(--sf-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-color: rgba(67, 56, 202, 0.2);
   }
 }
 
@@ -33,14 +33,14 @@
 .photoWrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
-  background: var(--sf-sand);
+  aspect-ratio: 4 / 3;
+  background: #F8FAFC;
   overflow: hidden;
 }
 
 .photo {
   object-fit: cover;
-  transition: transform 350ms ease;
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -57,12 +57,12 @@
   gap: var(--sf-space-xs);
   width: 100%;
   height: 100%;
-  background: var(--sf-sand);
+  background: #F8FAFC;
   color: var(--sf-text-tertiary);
 }
 
 .noPhotoIcon {
-  color: var(--sf-border);
+  color: rgba(0, 0, 0, 0.18);
 }
 
 .noPhotoText {
@@ -85,20 +85,20 @@
   padding: 3px 8px;
   border-radius: var(--sf-radius-full);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   letter-spacing: 0.02em;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .urgent {
-  background: rgba(99, 102, 241, 0.9);
-  color: #fff;
+  background: rgba(67, 56, 202, 0.88);
+  color: #FFFFFF;
 }
 
 .rush {
-  background: rgba(220, 38, 38, 0.9);
-  color: #fff;
+  background: rgba(220, 38, 38, 0.88);
+  color: #FFFFFF;
 }
 
 /* ── Material Provenance (Top-Right) ──────────── */
@@ -112,23 +112,21 @@
   gap: 4px;
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-medium);
-  padding: 3px 7px;
+  padding: 3px 8px;
   border-radius: var(--sf-radius-full);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .clientMaterial {
-  background: rgba(30, 27, 75, 0.85);
-  color: #E0E7FF;
-  border: 1px solid rgba(165, 180, 252, 0.4);
+  color: #F1F5F9;
 }
 
 .shopMaterial {
-  background: rgba(6, 78, 59, 0.85);
-  color: #D1FAE5;
-  border: 1px solid rgba(110, 231, 183, 0.4);
+  color: #ECFDF5;
 }
 
 /* ── Info footer ───────────────────────────────── */
@@ -136,17 +134,18 @@
 .info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px 12px;
+  gap: 4px;
+  padding: 12px 14px 14px;
 }
 
 .customerName {
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-primary);
+  color: #1C1A28;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
 .meta {
@@ -154,12 +153,13 @@
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  margin-top: 2px;
 }
 
 /* ── Status pill ───────────────────────────────── */
 
 .statusPill {
-  font-size: var(--sf-text-2xs);
+  font-size: 10px;
   font-weight: var(--sf-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
@@ -188,6 +188,7 @@
   color: var(--sf-stage-ready);
 }
 
+.status_Delivered,
 .status_Completed {
   background: var(--sf-stage-completed-bg);
   color: var(--sf-stage-completed);
@@ -207,6 +208,7 @@
 
 .dueDateChip.overdue {
   color: #DC2626;
+  font-weight: var(--sf-weight-semibold);
 }
 
 /* ── Style name ───────────────────────────────── */
@@ -216,8 +218,9 @@
   align-items: center;
   gap: 4px;
   font-size: var(--sf-text-2xs);
-  color: var(--sf-text-tertiary);
+  color: var(--sf-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 1px;
 }

@@ -3,8 +3,8 @@
 .heroWrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  background: var(--sf-sand);
+  aspect-ratio: 16 / 10;
+  background: #F8FAFC;
   overflow: hidden;
   border-radius: var(--sf-radius-xl) var(--sf-radius-xl) 0 0;
 }
@@ -23,10 +23,11 @@
   height: 100%;
   padding: var(--sf-space-lg);
   text-align: center;
+  background: #F8FAFC;
 }
 
 .heroNoPhotoIcon {
-  color: var(--sf-border);
+  color: rgba(0, 0, 0, 0.18);
 }
 
 .heroNoPhotoLabel {
@@ -39,21 +40,21 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sf-space-xs);
-  padding: 8px 16px;
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
+  padding: 9px 18px;
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
   border: none;
   border-radius: var(--sf-radius-full);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
   margin-top: var(--sf-space-xs);
-  box-shadow: var(--sf-shadow-emerald);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25);
   transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
 }
 
 .snapPhotoBtn:hover {
-  background: var(--sf-accent-emerald-dark);
+  background: #3730A3;
 }
 
 .snapPhotoBtn:active {
@@ -68,9 +69,9 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(15, 23, 42, 0.72);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--sf-radius-full);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-medium);
@@ -81,7 +82,7 @@
 }
 
 .replacePhotoBtn:hover {
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .replacePhotoBtn:active {
@@ -109,28 +110,29 @@
 }
 
 .status_Documented {
-  background: rgba(67, 56, 202, 0.85);
-  color: #fff;
+  background: rgba(71, 85, 105, 0.88);
+  color: #FFFFFF;
 }
 
 .status_Cutting {
-  background: rgba(14, 116, 144, 0.9);
-  color: #fff;
+  background: rgba(234, 88, 12, 0.92);
+  color: #FFFFFF;
 }
 
 .status_Sewing {
-  background: rgba(180, 83, 9, 0.9);
-  color: #fff;
+  background: rgba(67, 56, 202, 0.92);
+  color: #FFFFFF;
 }
 
 .status_Ready {
-  background: rgba(22, 101, 52, 0.92);
-  color: #fff;
+  background: rgba(5, 150, 105, 0.92);
+  color: #FFFFFF;
 }
 
-.status_Delivered {
-  background: rgba(27, 27, 34, 0.85);
-  color: rgba(255, 255, 255, 0.9);
+.status_Delivered,
+.status_Completed {
+  background: rgba(51, 65, 85, 0.9);
+  color: #FFFFFF;
 }
 
 /* ── Provenance Banner ───────────────────────── */
@@ -147,15 +149,15 @@
 }
 
 .clientBanner {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(67, 56, 202, 0.06);
   color: #4338CA;
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid rgba(67, 56, 202, 0.15);
 }
 
 .shopBanner {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: rgba(5, 150, 105, 0.06);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.15);
 }
 
 /* ── Body ────────────────────────────────────── */
@@ -169,7 +171,7 @@
 
 .divider {
   height: 1px;
-  background: var(--sf-border-light);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 /* ── Customer & Contact Section ─────────────── */
@@ -177,11 +179,12 @@
 .customerCard {
   display: flex;
   flex-direction: column;
-  background: var(--sf-surface-variant);
-  border-radius: var(--sf-radius-lg);
-  padding: 12px 14px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 14px 16px;
   gap: var(--sf-space-sm);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .customerMetaRow {
@@ -194,22 +197,24 @@
 .customerNameWrap {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-xs);
+  gap: var(--sf-space-sm);
   min-width: 0;
 }
 
 .customerName {
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-primary);
+  color: #1C1A28;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
 }
 
 .customerPhoneText {
   font-size: var(--sf-text-xs);
   color: var(--sf-text-tertiary);
+  margin-top: 1px;
 }
 
 .contactActionsRow {
@@ -224,11 +229,11 @@
   justify-content: center;
   gap: 6px;
   height: 36px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-primary);
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1C1A28;
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-medium);
   text-decoration: none;
@@ -238,7 +243,8 @@
 }
 
 .callBtn:hover {
-  background: var(--sf-surface-variant);
+  background: #F8FAFC;
+  border-color: rgba(0, 0, 0, 0.16);
 }
 
 .callBtn:active {
@@ -255,18 +261,19 @@
   padding: 0 14px;
   border-radius: var(--sf-radius-full);
   background: #25D366;
-  color: #fff;
+  color: #FFFFFF;
   border: none;
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
   transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
   white-space: nowrap;
 }
 
 .whatsappBtn:hover {
-  opacity: 0.92;
+  opacity: 0.94;
 }
 
 .whatsappBtn:active {
@@ -296,7 +303,7 @@
 .rowContent {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   flex: 1;
   min-width: 0;
 }
@@ -309,7 +316,7 @@
 
 .rowValue {
   font-size: var(--sf-text-sm);
-  color: var(--sf-text-primary);
+  color: #1C1A28;
   font-weight: var(--sf-weight-medium);
   line-height: var(--sf-leading-normal);
 }
@@ -330,16 +337,19 @@
   font-weight: var(--sf-weight-semibold);
   padding: 2px 8px;
   border-radius: var(--sf-radius-full);
+  width: fit-content;
 }
 
 .priorityRush {
-  background: rgba(220, 38, 38, 0.12);
+  background: rgba(220, 38, 38, 0.08);
   color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.16);
 }
 
 .priorityUrgent {
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(67, 56, 202, 0.08);
   color: #4338CA;
+  border: 1px solid rgba(67, 56, 202, 0.16);
 }
 
 /* ── Workshop Action Buttons ─────────────────── */
@@ -358,20 +368,20 @@
   gap: var(--sf-space-sm);
   width: 100%;
   padding: 13px var(--sf-space-md);
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
+  background: var(--sf-stage-cutting);
+  color: #FFFFFF;
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   border-radius: var(--sf-radius-lg);
   border: none;
   cursor: pointer;
-  box-shadow: var(--sf-shadow-emerald);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.28);
   transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
   touch-action: manipulation;
 }
 
 .advanceBtn:hover {
-  background: var(--sf-accent-emerald-dark);
+  background: #C2410C;
 }
 
 .advanceBtn:active {
@@ -389,19 +399,21 @@
   justify-content: center;
   gap: 6px;
   flex: 1;
-  padding: 11px var(--sf-space-sm);
-  background: var(--sf-surface-variant);
-  color: var(--sf-text-primary);
+  padding: 12px var(--sf-space-sm);
+  background: #FFFFFF;
+  color: #1C1A28;
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
-  border-radius: var(--sf-radius-md);
-  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 .cuttingSlipBtn:hover {
-  background: var(--sf-border-light);
+  background: #F8FAFC;
+  border-color: rgba(0, 0, 0, 0.16);
 }
 
 .cuttingSlipBtn:active {
@@ -414,19 +426,21 @@
   justify-content: center;
   gap: 6px;
   flex: 1;
-  padding: 11px var(--sf-space-sm);
-  background: var(--sf-surface-variant);
-  color: var(--sf-text-primary);
+  padding: 12px var(--sf-space-sm);
+  background: #FFFFFF;
+  color: #1C1A28;
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
-  border-radius: var(--sf-radius-md);
-  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 .openOrderBtn:hover {
-  background: var(--sf-border-light);
+  background: #F8FAFC;
+  border-color: rgba(0, 0, 0, 0.16);
 }
 
 .openOrderBtn:active {

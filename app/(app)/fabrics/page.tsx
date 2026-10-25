@@ -109,7 +109,7 @@ export default function FabricsPage() {
       <div className={styles.filtersRow}>
         <button
           type="button"
-          className={`${styles.pill} ${stageFilter === 'uncut' ? styles.pillActive : ''}`}
+          className={`${styles.pill} ${stageFilter === 'uncut' ? `${styles.pillActive} ${styles.pillActiveUncut}` : ''}`}
           onClick={() => setStageFilter('uncut')}
         >
           <Symbol name="content_cut" size={14} />
@@ -119,7 +119,7 @@ export default function FabricsPage() {
 
         <button
           type="button"
-          className={`${styles.pill} ${stageFilter === 'production' ? styles.pillActive : ''}`}
+          className={`${styles.pill} ${stageFilter === 'production' ? `${styles.pillActive} ${styles.pillActiveProduction}` : ''}`}
           onClick={() => setStageFilter('production')}
         >
           <Symbol name="dry_cleaning" size={14} />
@@ -129,7 +129,7 @@ export default function FabricsPage() {
 
         <button
           type="button"
-          className={`${styles.pill} ${stageFilter === 'all' ? styles.pillActive : ''}`}
+          className={`${styles.pill} ${stageFilter === 'all' ? `${styles.pillActive} ${styles.pillActiveAll}` : ''}`}
           onClick={() => setStageFilter('all')}
         >
           <Symbol name="texture" size={14} />
