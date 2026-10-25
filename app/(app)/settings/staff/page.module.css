@@ -68,6 +68,40 @@
   border-radius: var(--sf-radius-full);
 }
 
+.craftBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-accent-indigo, #4F46E5);
+  background: rgba(79, 70, 229, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.craftBadgeApprentice {
+  color: #D97706;
+  background: rgba(217, 119, 6, 0.1);
+}
+
+.selectInput {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.selectInput:focus {
+  border-color: var(--sf-accent-indigo, #4F46E5);
+}
+
 /* ── Per-staff action sheet ── */
 .actionList {
   display: flex;

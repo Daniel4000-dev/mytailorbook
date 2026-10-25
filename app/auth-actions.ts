@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
 import { isOrgPremium } from '@/lib/subscription';
-import { isOwnerLikeRole } from '@/lib/types';
+import { isOwnerLikeRole, type AtelierCraftRole } from '@/lib/types';
 
 /**
  * Runs for every first-time sign-in, Google or email — neither gives us a
@@ -176,7 +176,8 @@ export async function createStaffAccount(
   name: string,
   email: string,
   tempPassword: string,
-  role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff'
+  role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff',
+  craftRole: AtelierCraftRole = 'general'
 ): Promise<{ userId?: string; error?: string }> {
   // This function had no caller-authorization check at all — only the admin
   // bypass above, which is about RLS on the *insert* having nothing to
@@ -233,7 +234,7 @@ export async function createStaffAccount(
 
   const { error: profileError } = await admin
     .from('profiles')
-    .insert({ id: authData.user.id, shop_id: shopId, name, role, email });
+    .insert({ id: authData.user.id, shop_id: shopId, name, role, email, craft_role: craftRole });
   if (profileError) {
     return { error: profileError.message };
   }

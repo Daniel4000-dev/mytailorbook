@@ -3,8 +3,9 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
 import Avatar from '@/components/ui/Avatar/Avatar';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import type { User, Order, StatusChange } from '@/lib/types';
+import { CRAFT_ROLE_LABELS } from '@/lib/types';
 
 interface Props {
   isOpen: boolean;
@@ -65,40 +66,86 @@ export default function RunPayrollSheet({ isOpen, onClose, staffMembers, orders,
 
   const totalPayroll = payrollData.reduce((sum, data) => sum + data.earned, 0);
 
+  const handleSharePayoutWhatsApp = (staff: User, earned: number, tasksCompleted: number, ordersList: Order[]) => {
+    const lines = ordersList.map((o) => `• #${o.id.slice(0, 4).toUpperCase()} ${o.styleName || o.orderDetails || 'Garment'}`).join('\n');
+    const msg = `Hello ${staff.name}! Here is your weekly artisan payout summary:
+Total Earned: ${formatCurrency(earned, currency)}
+Garments Completed: ${tasksCompleted}
+${lines ? `\nCompleted Pieces:\n${lines}\n` : ''}
+Thank you for your excellent craftsmanship!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Weekly Payroll Estimate">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '24px' }}>
-        <p style={{ color: 'var(--sf-text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>
-          Calculated based on orders moved to <strong>Ready</strong> or <strong>Delivered</strong> by assigned staff in the last 7 days.
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Weekly Atelier Payroll & Piece-Rate">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '24px' }}>
+        <p style={{ color: 'var(--sf-text-secondary)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
+          Automatically computed from garments moved to <strong>Ready</strong> or <strong>Delivered</strong> by assigned cutters, machinists, and apprentices over the last 7 days.
         </p>
 
-        <div style={{ padding: '24px', background: 'var(--sf-bg-surface-hover)', borderRadius: 'var(--sf-radius-lg)', textAlign: 'center' }}>
-          <div style={{ color: 'var(--sf-text-secondary)', fontSize: '13px', marginBottom: '8px' }}>Total Payout</div>
-          <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+        <div style={{ padding: '20px', background: 'var(--sf-bg-surface-hover, rgba(0,0,0,0.03))', borderRadius: 'var(--sf-radius-lg)', textAlign: 'center', border: '1px solid var(--sf-border-light)' }}>
+          <div style={{ color: 'var(--sf-text-tertiary)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>Total Team Payout</div>
+          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--sf-text-primary)', fontVariantNumeric: 'tabular-nums' }}>
             {formatCurrency(totalPayroll, currency)}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {payrollData.map(({ staff, type, amount, earned, tasksCompleted }) => (
-            <div key={staff.uid} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid var(--sf-border-color)', borderRadius: 'var(--sf-radius-md)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Avatar name={staff.name} imageUrl={staff.avatarUrl} size="sm" />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--sf-text-primary)' }}>{staff.name}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--sf-text-secondary)' }}>
-                    {type === 'salary' ? 'Salary' :
-                     type === 'piece_rate' ? `${formatCurrency(amount, currency)} / piece (${tasksCompleted} completed)` :
-                     type === 'percentage' ? `${amount}% margin (${tasksCompleted} completed)` :
-                     'Unpaid'}
-                  </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {payrollData.map(({ staff, type, amount, earned, tasksCompleted, matchingOrders }) => {
+            const craftLabel = CRAFT_ROLE_LABELS[staff.craftRole || 'general'];
+            return (
+              <div key={staff.uid} style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '14px', border: '1px solid var(--sf-border-light)', borderRadius: 'var(--sf-radius-md)', background: 'var(--sf-bg-surface)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Avatar name={staff.name} imageUrl={staff.avatarUrl} size="sm" />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--sf-text-primary)' }}>{staff.name}</span>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: staff.craftRole === 'apprentice' ? '#D97706' : 'var(--sf-accent-indigo)', background: staff.craftRole === 'apprentice' ? 'rgba(217, 119, 6, 0.1)' : 'rgba(79, 70, 229, 0.08)', padding: '2px 6px', borderRadius: '9999px' }}>
+                          {craftLabel}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '12px', color: 'var(--sf-text-secondary)' }}>
+                        {type === 'salary' ? 'Fixed Weekly Salary' :
+                         type === 'piece_rate' ? `${formatCurrency(amount, currency)} / piece (${tasksCompleted} completed)` :
+                         type === 'percentage' ? `${amount}% margin (${tasksCompleted} completed)` :
+                         staff.craftRole === 'apprentice' ? 'Apprentice Stipend / Unpaid' : 'Unpaid'}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, fontSize: '16px', color: earned > 0 ? 'var(--sf-success, #059669)' : 'var(--sf-text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                      {formatCurrency(earned, currency)}
+                    </div>
+                  </div>
                 </div>
+
+                {earned > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid var(--sf-border-light)' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSharePayoutWhatsApp(staff, earned, tasksCompleted, matchingOrders)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--sf-accent-indigo, #4F46E5)',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: '4px 8px',
+                      }}
+                    >
+                      <Symbol name="share" size={14} />
+                      <span>Share Payout Breakdown</span>
+                    </button>
+                  </div>
+                )}
               </div>
-              <div style={{ fontWeight: 600, color: earned > 0 ? 'var(--sf-success)' : 'var(--sf-text-primary)' }}>
-                {formatCurrency(earned, currency)}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </BottomSheet>

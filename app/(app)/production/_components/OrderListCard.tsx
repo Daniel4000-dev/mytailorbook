@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
 import { truncateText, formatNumber } from '@/lib/formatters';
-import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole, getBalanceOwed } from '@/lib/types';
+import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole, getBalanceOwed, CRAFT_ROLE_LABELS } from '@/lib/types';
 import { getNextStatus, getPreviousStatus } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -402,7 +402,9 @@ export default function OrderListCard({
                     {staffMembers
                       .filter((s) => s.active !== false || s.uid === order.assignedTo)
                       .map((s) => (
-                        <option key={s.uid} value={s.uid}>{s.name}</option>
+                        <option key={s.uid} value={s.uid}>
+                          {s.name} {s.craftRole ? `(${CRAFT_ROLE_LABELS[s.craftRole]})` : ''}
+                        </option>
                       ))}
                   </select>
                 </span>

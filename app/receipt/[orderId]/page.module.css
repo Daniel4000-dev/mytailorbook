@@ -12,8 +12,38 @@
   width: 100%;
   max-width: 560px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sf-space-xs);
   margin-bottom: var(--sf-space-sm);
+  flex-wrap: wrap;
+}
+
+.trackPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-full);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.trackPill:hover {
+  background: var(--sf-bg-hover, rgba(0, 0, 0, 0.04));
+  border-color: var(--sf-border-strong);
+  color: var(--sf-accent-emerald);
+}
+
+.trackPill:active {
+  transform: scale(0.96);
 }
 
 .card {
@@ -301,6 +331,33 @@
   text-align: center;
   color: var(--receipt-muted);
   font-size: 13px;
+}
+
+.atelierContact {
+  margin: var(--sf-space-xs) 0;
+}
+
+.waLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sf-accent-emerald);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-success-bg, rgba(15, 153, 96, 0.08));
+  transition: all 0.15s ease;
+}
+
+.waLink:hover {
+  filter: brightness(1.1);
+  text-decoration: underline;
+}
+
+.waLink:active {
+  transform: scale(0.97);
 }
 
 .poweredBy {

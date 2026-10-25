@@ -18,7 +18,8 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import type { User } from '@/lib/types';
+import type { User, AtelierCraftRole } from '@/lib/types';
+import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
@@ -38,6 +39,7 @@ export default function StaffSettingsPage() {
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
   const [sheetView, setSheetView] = useState<StaffSheetView>('actions');
   const [editName, setEditName] = useState('');
+  const [editCraftRole, setEditCraftRole] = useState<AtelierCraftRole>('general');
   const [editPayrollType, setEditPayrollType] = useState<User['payrollType']>('none');
   const [editPayrollAmount, setEditPayrollAmount] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
@@ -55,11 +57,14 @@ export default function StaffSettingsPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<'Staff' | 'BranchManager' | 'Accountant'>('Staff');
+  const [newStaffCraftRole, setNewStaffCraftRole] = useState<AtelierCraftRole>('tailor');
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState('');
 
   const openStaffSheet = (staff: User) => {
     setActiveStaff(staff);
+    setEditCraftRole(staff.craftRole || 'general');
+    setEditName(staff.name);
     setSheetView('actions');
     setGeneratedPassword(null);
     setCustomPassword('');
@@ -89,7 +94,7 @@ export default function StaffSettingsPage() {
     if (!activeStaff) return;
     setSavingEdit(true);
     try {
-      await updateStaff(activeStaff.uid, { name: editName });
+      await updateStaff(activeStaff.uid, { name: editName, craftRole: editCraftRole });
       showToast('Staff member updated', 'success');
       closeStaffSheet();
     } finally {
@@ -140,13 +145,14 @@ export default function StaffSettingsPage() {
     setAddLoading(true);
     setAddError('');
     try {
-      await addStaff(name, email, password, newStaffRole);
+      await addStaff(name, email, password, newStaffRole, newStaffCraftRole);
       setName('');
       setEmail('');
       setPassword('');
       setNewStaffRole('Staff');
+      setNewStaffCraftRole('tailor');
       setIsAddSheetOpen(false);
-      showToast(`${name} added as staff`, 'success');
+      showToast(`${name} added to atelier team`, 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to add staff member.', 'error');
     } finally {
@@ -158,7 +164,7 @@ export default function StaffSettingsPage() {
     <PageLayout width="narrow"
       header={
         <TopBar
-          title="Staff"
+          title="Staff & Artisans"
           showBack={!isDesktop}
           onBack={() => router.push(ROUTES.settings)}
           rightAction={
@@ -182,7 +188,7 @@ export default function StaffSettingsPage() {
           title="No staff yet"
           description={
             isPremium
-              ? 'Add your first team member to get started.'
+              ? 'Add your first cutter, tailor, or apprentice to get started.'
               : 'Staff accounts are a Premium feature — upgrade to add your first team member.'
           }
         />
@@ -191,6 +197,7 @@ export default function StaffSettingsPage() {
           <div className={styles.card}>
             {staffMembers.map((staff) => {
               const isActive = staff.active !== false;
+              const craftLabel = CRAFT_ROLE_LABELS[staff.craftRole || 'general'];
               return (
                 <button
                   key={staff.uid}
@@ -202,9 +209,20 @@ export default function StaffSettingsPage() {
                   <span className={styles.textCol}>
                     <span className={styles.label}>
                       {staff.name}
+                      <span className={`${styles.craftBadge} ${staff.craftRole === 'apprentice' ? styles.craftBadgeApprentice : ''}`}>
+                        {craftLabel}
+                      </span>
                       {!isActive && <span className={styles.inactiveBadge}>Inactive</span>}
                     </span>
-                    <span className={styles.subtitle}>{staff.role} · {staff.email}</span>
+                    <span className={styles.subtitle}>
+                      {staff.payrollType === 'piece_rate' && staff.payrollAmount
+                        ? `₦${staff.payrollAmount.toLocaleString()} / piece`
+                        : staff.payrollType === 'salary' && staff.payrollAmount
+                        ? `₦${staff.payrollAmount.toLocaleString()} / wk`
+                        : staff.craftRole === 'apprentice'
+                        ? 'Apprentice Stipend'
+                        : staff.role} · {staff.email}
+                    </span>
                   </span>
                   <Symbol name="chevron_right" size={18} className={styles.chevron} />
                 </button>
@@ -268,7 +286,22 @@ export default function StaffSettingsPage() {
         {activeStaff && sheetView === 'edit' && (
           <div className={styles.sheetBody}>
             <Input label="Full Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
-            <div className={styles.sheetActions}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '14px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--sf-text-secondary)' }}>Atelier Craft Specialization</label>
+              <select
+                value={editCraftRole}
+                onChange={(e) => setEditCraftRole(e.target.value as AtelierCraftRole)}
+                className={styles.selectInput}
+              >
+                <option value="cutter">Master Cutter (Pattern & Cutting Table)</option>
+                <option value="tailor">Tailor / Machinist (Assembly & Sewing)</option>
+                <option value="apprentice">Apprentice / Trainee (Finishing & Prep)</option>
+                <option value="finisher">Finisher / Presser (Hemming & Steam)</option>
+                <option value="embroiderer">Embroiderer (Monograms & Stitches)</option>
+                <option value="general">General Artisan</option>
+              </select>
+            </div>
+            <div className={styles.sheetActions} style={{ marginTop: '20px' }}>
               <Button variant="ghost" onClick={() => setSheetView('actions')}>Back</Button>
               <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save</Button>
             </div>
@@ -384,9 +417,24 @@ export default function StaffSettingsPage() {
           <Input label="Full Name" placeholder="e.g. Chioma Eze" value={name} onChange={(e) => setName(e.target.value)} required />
           <Input label="Email/Username" type="email" placeholder="e.g. chioma@mystitchbooks.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input label="Temporary Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label className={styles.label}>Atelier Craft Specialization</label>
+            <select
+              value={newStaffCraftRole}
+              onChange={(e) => setNewStaffCraftRole(e.target.value as AtelierCraftRole)}
+              className={styles.selectInput}
+            >
+              <option value="cutter">Master Cutter (Pattern & Cutting Table)</option>
+              <option value="tailor">Tailor / Machinist (Assembly & Sewing)</option>
+              <option value="apprentice">Apprentice / Trainee (Finishing & Prep)</option>
+              <option value="finisher">Finisher / Presser (Hemming & Steam)</option>
+              <option value="embroiderer">Embroiderer (Monograms & Stitches)</option>
+              <option value="general">General Artisan</option>
+            </select>
+          </div>
           {FEATURE_FLAGS.orgBranchMultiTenancy && (
             <>
-              <label className={styles.label} htmlFor="new-staff-role">Role</label>
+              <label className={styles.label} htmlFor="new-staff-role">Administrative Role</label>
               <select
                 id="new-staff-role"
                 value={newStaffRole}
@@ -398,7 +446,7 @@ export default function StaffSettingsPage() {
                   fontSize: 'var(--sf-text-sm)',
                 }}
               >
-                <option value="Staff">Staff</option>
+                <option value="Staff">Staff / Artisan</option>
                 <option value="BranchManager">Branch Manager</option>
                 <option value="Accountant">Accountant</option>
               </select>

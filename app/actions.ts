@@ -198,6 +198,7 @@ function userFromRow(row: any): User {
     avatarUrl: row.avatar_url || undefined,
     payrollType: row.payroll_type || undefined,
     payrollAmount: row.payroll_amount || undefined,
+    craftRole: row.craft_role || undefined,
     createdAt: row.created_at,
   };
 }
@@ -875,6 +876,7 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
   if (updates.avatarUrl !== undefined) row.avatar_url = updates.avatarUrl || null;
   if (updates.payrollType !== undefined) row.payroll_type = updates.payrollType;
   if (updates.payrollAmount !== undefined) row.payroll_amount = updates.payrollAmount;
+  if (updates.craftRole !== undefined) row.craft_role = updates.craftRole;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
   if (error) return { error: error.message };
   return getStaff(shopId);

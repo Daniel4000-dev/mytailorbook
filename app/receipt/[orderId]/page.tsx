@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
@@ -33,7 +35,11 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
   return (
     <div className={styles.page}>
-      <div className={styles.actionsBar}>
+      <div className={`${styles.actionsBar} noPrint`}>
+        <Link href={`/track/${order.id}`} className={styles.trackPill}>
+          <Symbol name="local_shipping" size={16} />
+          <span>Track Garment</span>
+        </Link>
         <ReceiptActions fileName={`receipt-${order.id.slice(-8).toUpperCase()}`} />
       </div>
 
@@ -136,6 +142,20 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
           <footer className={styles.footer}>
             <p>Thank you for choosing {shop?.name || APP_CONFIG.name}.</p>
+            {shop?.phone && (
+              <p className={styles.atelierContact}>
+                <a
+                  href={`https://wa.me/${shop.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                    `Hello ${shop.name}, I have a question regarding my receipt for order #${order.id.slice(-8).toUpperCase()}.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.waLink}
+                >
+                  <Symbol name="chat" size={14} /> Contact Atelier on WhatsApp
+                </a>
+              </p>
+            )}
             <p className={styles.poweredBy}>Powered by {APP_CONFIG.name}</p>
           </footer>
         </div>

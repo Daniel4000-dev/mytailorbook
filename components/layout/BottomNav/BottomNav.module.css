@@ -1,23 +1,25 @@
-/* Floating glassmorphic pill bottom nav */
+/* Floating glassmorphic pill bottom nav — Apple iOS & Instagram Aesthetics */
 .nav {
   position: fixed;
-  bottom: calc(16px + var(--sf-safe-area-bottom));
-  left: 12px;
-  right: 12px;
-  max-width: 500px;
-  max-width: 460px;
+  bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
+  left: 16px;
+  right: 16px;
+  max-width: 420px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 12px 16px;
-  gap: 8px;
-  background: color-mix(in srgb, var(--sf-bg-surface) 85%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 100px;
-  border: 1px solid color-mix(in srgb, var(--sf-border) 40%, transparent);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 5px 8px;
+  gap: 4px;
+  background: color-mix(in srgb, var(--sf-bg-surface) 82%, transparent);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-radius: var(--sf-radius-pill, 9999px);
+  border: 0.5px solid color-mix(in srgb, var(--sf-border) 45%, transparent);
+  box-shadow:
+    0 4px 20px -2px rgba(0, 0, 0, 0.08),
+    0 12px 32px 0 rgba(0, 0, 0, 0.06),
+    0 0 0 0.5px rgba(255, 255, 255, 0.15) inset;
   z-index: var(--sf-z-sticky);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -28,7 +30,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Item gets surrounded by the rounded pill background when active */
+/* Nav Item */
 .item {
   position: relative;
   display: flex;
@@ -36,30 +38,32 @@
   align-items: center;
   justify-content: center;
   color: var(--sf-text-secondary);
-  opacity: 0.8;
+  opacity: 0.72;
   text-decoration: none;
-  padding: 10px 14px;
+  padding: 6px 10px 5px;
   flex: 1;
-  max-width: 80px;
-  min-width: 56px;
-  border-radius: 100px; /* True pill shape */
-  gap: 4px;
-  transition: all 0.2s ease;
+  max-width: 72px;
+  min-width: 52px;
+  border-radius: var(--sf-radius-pill, 9999px);
+  gap: 3px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .item:hover {
     opacity: 1;
-    background-color: color-mix(in srgb, var(--sf-text-primary) 4%, transparent);
+    background-color: color-mix(in srgb, var(--sf-text-primary) 5%, transparent);
   }
 }
 
 .item:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Active state: Subtle grey pill, icon/text stay neutral (black/white) */
+/* Active state: Subtle frosted highlight, filled icon */
 .active {
   background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
   color: var(--sf-text-primary);
@@ -71,34 +75,42 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
+  width: 24px;
+  height: 24px;
 }
 
-/* Indigo Activity Dot (Unread Badge) */
+/* Emerald Activity Dot (Unread Notification Badge) */
 .activityDot {
   position: absolute;
-  top: -2px;
-  right: -4px;
-  width: 8px;
-  height: 8px;
+  top: -1px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background-color: var(--sf-accent-emerald); /* Indigo in this app */
-  border: 2px solid var(--sf-bg-surface);
+  background-color: var(--sf-accent-emerald, #10B981);
+  border: 1.5px solid var(--sf-bg-surface);
   z-index: 2;
 }
 
 .icon {
-  transition: transform 150ms ease;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
   color: inherit;
 }
 
+/* Apple iOS Tab Bar Typography (10.5px clean medium) */
 .label {
-  font-family: var(--sf-font-body);
-  font-size: 13px;
-  line-height: 14px;
-  font-weight: 600;
-  letter-spacing: var(--sf-tracking-caps);
+  font-family: var(--sf-font-body, -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 10.5px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   white-space: nowrap;
+  transition: font-weight 0.15s ease, color 0.15s ease;
+}
+
+.active .label {
+  font-weight: 600;
+  color: var(--sf-text-primary);
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */

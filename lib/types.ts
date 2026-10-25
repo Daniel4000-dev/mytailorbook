@@ -176,11 +176,23 @@ export interface OrderComment {
 
 export type Priority = 'normal' | 'urgent' | 'rush';
 
+export type AtelierCraftRole = 'cutter' | 'tailor' | 'apprentice' | 'finisher' | 'embroiderer' | 'general';
+
+export const CRAFT_ROLE_LABELS: Record<AtelierCraftRole, string> = {
+  cutter: 'Master Cutter',
+  tailor: 'Tailor / Machinist',
+  apprentice: 'Apprentice / Trainee',
+  finisher: 'Finisher / Presser',
+  embroiderer: 'Embroiderer',
+  general: 'Artisan',
+};
+
 export interface User {
   uid: string;
   name: string;
   email: string;
   role: Role;
+  craftRole?: AtelierCraftRole;
   shopId: string;
   orgId: string;
   active?: boolean; // undefined/true = active, false = deactivated

@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import TimelineStage from './_components/TimelineStage';
@@ -229,25 +230,45 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
         {/* Order summary & financials */}
         <section className={styles.card}>
-          <h3 className={styles.sectionTitle}>Order Summary</h3>
-          <div className={styles.infoBlock}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Order Summary</h3>
+            <a href={ROUTES.receipt(order.id)} className={styles.receiptLink}>
+              <Symbol name="receipt_long" size={15} />
+              <span>Digital Receipt</span>
+            </a>
+          </div>
+          <div className={styles.infoBlock} style={{ marginTop: '12px' }}>
             <span className={styles.infoLabel}>Outfit Details</span>
             <p className={styles.infoValue}>{order.orderDetails}</p>
           </div>
           <div className={styles.billGrid}>
             <div className={styles.billItem}>
               <span className={styles.billLabel}>Total Price</span>
-              <span className={styles.billVal}>{formatCurrency(order.totalBill)}</span>
+              <span className={styles.billVal}>{formatCurrency(order.totalBill, shop?.currency)}</span>
             </div>
             <div className={styles.billItem}>
               <span className={styles.billLabel}>Deposit Paid</span>
-              <span className={styles.billVal}>{formatCurrency(order.depositPaid)}</span>
+              <span className={styles.billVal}>{formatCurrency(order.depositPaid, shop?.currency)}</span>
             </div>
             <div className={`${styles.billItem} ${styles.balanceItem}`}>
               <span className={styles.billLabel}>Balance Due</span>
-              <span className={styles.balanceVal}>{formatCurrency(getBalanceOwed(order))}</span>
+              <span className={styles.balanceVal}>{formatCurrency(getBalanceOwed(order), shop?.currency)}</span>
             </div>
           </div>
+
+          {shop?.phone && (
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sf-border-light)' }}>
+              <a
+                href={`https://wa.me/${shop.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${shop.name}, I am checking in on my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.shopContactBtn}
+              >
+                <WhatsappIcon size={16} />
+                <span>Chat with {shop.name}</span>
+              </a>
+            </div>
+          )}
         </section>
 
         {/* Send a reminder */}

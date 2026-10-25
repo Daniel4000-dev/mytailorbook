@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import useSWR from 'swr';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException, AtelierCraftRole } from '@/lib/types';
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
 import { logStreakAction } from '@/lib/streakClient';
@@ -93,7 +93,7 @@ interface DataContextValue {
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
   findOrCreateCustomer: (fullName: string, whatsappNumber: string) => Promise<Customer>;
-  addStaff: (name: string, email: string, password: string, role?: 'Staff' | 'BranchManager' | 'Accountant') => Promise<void>;
+  addStaff: (name: string, email: string, password: string, role?: 'Staff' | 'BranchManager' | 'Accountant', craftRole?: AtelierCraftRole) => Promise<void>;
   updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
   updateShop: (updates: Partial<Shop>) => Promise<void>;
   upsertCustomStyle: (
@@ -708,9 +708,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const addStaff = useCallback(
-    async (name: string, email: string, password: string, role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff') => {
+    async (name: string, email: string, password: string, role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff', craftRole?: AtelierCraftRole) => {
       if (!activeBranchId) return;
-      const { error } = await createStaffAccount(activeBranchId, name, email, password, role);
+      const { error } = await createStaffAccount(activeBranchId, name, email, password, role, craftRole);
       if (error) throw new Error(error);
       const updated = await getStaff(activeBranchId);
       if (updated && 'error' in updated) throw new Error(updated.error as string);
