@@ -86,18 +86,18 @@
   --sf-info: #4338CA;
   --sf-info-bg: rgba(67, 56, 202, 0.10);
 
-  /* ── Colors: Order Stages (tint ladder of the accent) ── */
-  /* Same hue everywhere; progress = deeper tint. */
-  --sf-stage-documented: #4338CA;
-  --sf-stage-documented-bg: rgba(67, 56, 202, 0.06);
-  --sf-stage-cutting: #4338CA;
-  --sf-stage-cutting-bg: rgba(67, 56, 202, 0.10);
-  --sf-stage-sewing: #4338CA;
-  --sf-stage-sewing-bg: rgba(67, 56, 202, 0.15);
-  --sf-stage-ready: #4338CA;
-  --sf-stage-ready-bg: rgba(67, 56, 202, 0.22);
-  --sf-stage-completed: #4338CA;
-  --sf-stage-completed-bg: rgba(67, 56, 202, 0.08);
+  /* ── Colors: Order Stages (Artisanal Workshop Stage Identity) ── */
+  /* Disciplined semantic tones: calm 8-10% tint backgrounds, never neon */
+  --sf-stage-documented: #475569;             /* Slate Denim */
+  --sf-stage-documented-bg: rgba(71, 85, 105, 0.08);
+  --sf-stage-cutting: #EA580C;                /* Terracotta Cutting Shears */
+  --sf-stage-cutting-bg: rgba(234, 88, 12, 0.08);
+  --sf-stage-sewing: #4338CA;                 /* Atelier Indigo Machine */
+  --sf-stage-sewing-bg: rgba(67, 56, 202, 0.08);
+  --sf-stage-ready: #059669;                  /* Deep Emerald Pick-Up */
+  --sf-stage-ready-bg: rgba(5, 150, 105, 0.08);
+  --sf-stage-completed: #334155;              /* Calm Charcoal Delivery */
+  --sf-stage-completed-bg: rgba(51, 65, 85, 0.06);
 
   /* ── Spacing (4px base unit) ─────────────────────────── */
   --sf-space-2xs: 2px;
@@ -279,16 +279,16 @@
     --sf-info: #6366F1;
     --sf-info-bg: rgba(99, 102, 241, 0.14);
 
-    --sf-stage-documented: #6366F1;
-    --sf-stage-documented-bg: rgba(99, 102, 241, 0.10);
-    --sf-stage-cutting: #6366F1;
-    --sf-stage-cutting-bg: rgba(99, 102, 241, 0.15);
-    --sf-stage-sewing: #6366F1;
-    --sf-stage-sewing-bg: rgba(99, 102, 241, 0.20);
-    --sf-stage-ready: #6366F1;
-    --sf-stage-ready-bg: rgba(99, 102, 241, 0.28);
-    --sf-stage-completed: #6366F1;
-    --sf-stage-completed-bg: rgba(99, 102, 241, 0.13);
+    --sf-stage-documented: #94A3B8;
+    --sf-stage-documented-bg: rgba(148, 163, 184, 0.12);
+    --sf-stage-cutting: #FB923C;
+    --sf-stage-cutting-bg: rgba(251, 146, 60, 0.14);
+    --sf-stage-sewing: #818CF8;
+    --sf-stage-sewing-bg: rgba(129, 140, 248, 0.14);
+    --sf-stage-ready: #34D399;
+    --sf-stage-ready-bg: rgba(52, 211, 153, 0.14);
+    --sf-stage-completed: #CBD5E1;
+    --sf-stage-completed-bg: rgba(203, 213, 225, 0.10);
 
     --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
     --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
@@ -359,16 +359,16 @@
   --sf-info: #6366F1;
   --sf-info-bg: rgba(99, 102, 241, 0.14);
 
-  --sf-stage-documented: #6366F1;
-  --sf-stage-documented-bg: rgba(99, 102, 241, 0.10);
-  --sf-stage-cutting: #6366F1;
-  --sf-stage-cutting-bg: rgba(99, 102, 241, 0.15);
-  --sf-stage-sewing: #6366F1;
-  --sf-stage-sewing-bg: rgba(99, 102, 241, 0.20);
-  --sf-stage-ready: #6366F1;
-  --sf-stage-ready-bg: rgba(99, 102, 241, 0.28);
-  --sf-stage-completed: #6366F1;
-  --sf-stage-completed-bg: rgba(99, 102, 241, 0.13);
+  --sf-stage-documented: #94A3B8;
+  --sf-stage-documented-bg: rgba(148, 163, 184, 0.12);
+  --sf-stage-cutting: #FB923C;
+  --sf-stage-cutting-bg: rgba(251, 146, 60, 0.14);
+  --sf-stage-sewing: #818CF8;
+  --sf-stage-sewing-bg: rgba(129, 140, 248, 0.14);
+  --sf-stage-ready: #34D399;
+  --sf-stage-ready-bg: rgba(52, 211, 153, 0.14);
+  --sf-stage-completed: #CBD5E1;
+  --sf-stage-completed-bg: rgba(203, 213, 225, 0.10);
 
   --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
   --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);

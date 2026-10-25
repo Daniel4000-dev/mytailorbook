@@ -26,28 +26,28 @@
 }
 
 .stageIconWrap[data-stage='Documented'] {
-  background: rgba(148, 163, 184, 0.15);
-  color: #64748B;
+  background: var(--sf-stage-documented-bg);
+  color: var(--sf-stage-documented);
 }
 
 .stageIconWrap[data-stage='Cutting'] {
-  background: rgba(99, 102, 241, 0.15);
-  color: #4F46E5;
+  background: var(--sf-stage-cutting-bg);
+  color: var(--sf-stage-cutting);
 }
 
 .stageIconWrap[data-stage='Sewing'] {
-  background: rgba(14, 165, 233, 0.15);
-  color: #0284C7;
+  background: var(--sf-stage-sewing-bg);
+  color: var(--sf-stage-sewing);
 }
 
 .stageIconWrap[data-stage='Ready'] {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
+  background: var(--sf-stage-ready-bg);
+  color: var(--sf-stage-ready);
 }
 
 .stageIconWrap[data-stage='Delivered'] {
-  background: rgba(100, 116, 139, 0.15);
-  color: #475569;
+  background: var(--sf-stage-completed-bg);
+  color: var(--sf-stage-completed);
 }
 
 .title {

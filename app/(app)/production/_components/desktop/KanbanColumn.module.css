@@ -5,11 +5,12 @@
   min-width: 280px;
   max-width: 340px;
   min-height: 0;
-  background: color-mix(in srgb, var(--sf-bg-surface) 65%, transparent);
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: var(--sf-radius-lg);
   padding: 14px;
   max-height: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -44,23 +45,23 @@
 }
 
 .stageDot[data-stage='Documented'] {
-  background: #94A3B8;
+  background: var(--sf-stage-documented);
 }
 
 .stageDot[data-stage='Cutting'] {
-  background: #6366F1;
+  background: var(--sf-stage-cutting);
 }
 
 .stageDot[data-stage='Sewing'] {
-  background: #0EA5E9;
+  background: var(--sf-stage-sewing);
 }
 
 .stageDot[data-stage='Ready'] {
-  background: #10B981;
+  background: var(--sf-stage-ready);
 }
 
 .stageDot[data-stage='Delivered'] {
-  background: #64748B;
+  background: var(--sf-stage-completed);
 }
 
 .columnTitle {
