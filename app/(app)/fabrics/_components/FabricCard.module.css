@@ -11,7 +11,8 @@
   box-shadow: var(--sf-shadow-sm);
   transition:
     transform var(--sf-transition-fast),
-    box-shadow var(--sf-transition-fast);
+    box-shadow var(--sf-transition-fast),
+    border-color var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -19,6 +20,7 @@
   .card:hover {
     transform: translateY(-2px);
     box-shadow: var(--sf-shadow-md);
+    border-color: var(--sf-border);
   }
 }
 
@@ -49,23 +51,35 @@
 
 .noPhoto {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--sf-space-xs);
   width: 100%;
   height: 100%;
   background: var(--sf-sand);
+  color: var(--sf-text-tertiary);
 }
 
 .noPhotoIcon {
   color: var(--sf-border);
 }
 
-/* ── Priority badge ────────────────────────────── */
+.noPhotoText {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-tertiary);
+}
+
+/* ── Priority badge (Top-Left) ─────────────────── */
 
 .priorityBadge {
   position: absolute;
   top: 8px;
   left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-semibold);
   padding: 3px 8px;
@@ -73,16 +87,48 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .urgent {
-  background: rgba(99, 102, 241, 0.85);
+  background: rgba(99, 102, 241, 0.9);
   color: #fff;
 }
 
 .rush {
-  background: rgba(220, 38, 38, 0.85);
+  background: rgba(220, 38, 38, 0.9);
   color: #fff;
+}
+
+/* ── Material Provenance (Top-Right) ──────────── */
+
+.provenanceBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-medium);
+  padding: 3px 7px;
+  border-radius: var(--sf-radius-full);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.clientMaterial {
+  background: rgba(30, 27, 75, 0.85);
+  color: #E0E7FF;
+  border: 1px solid rgba(165, 180, 252, 0.4);
+}
+
+.shopMaterial {
+  background: rgba(6, 78, 59, 0.85);
+  color: #D1FAE5;
+  border: 1px solid rgba(110, 231, 183, 0.4);
 }
 
 /* ── Info footer ───────────────────────────────── */
@@ -166,6 +212,9 @@
 /* ── Style name ───────────────────────────────── */
 
 .styleName {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: var(--sf-text-2xs);
   color: var(--sf-text-tertiary);
   white-space: nowrap;

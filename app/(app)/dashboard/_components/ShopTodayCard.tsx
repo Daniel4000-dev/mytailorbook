@@ -20,7 +20,7 @@ export default function ShopTodayCard({
 
   // Contextual copy for the assistant
   let title = "Your shop is on track";
-  let subtitle = "You're all caught up ✓";
+  let subtitle = "You're all caught up";
   let emotion = "neutral";
 
   // Check if any milestone was just recently hit (current is very close to target or exactly target)

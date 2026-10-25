@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
@@ -9,10 +9,12 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
-import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone } from '@/lib/formatters';
+import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, type StyleMeasurePoint } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import Avatar from '@/components/ui/Avatar/Avatar';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
@@ -71,6 +73,7 @@ export default function UnifiedNewOrderForm() {
 
   // ── 1. Client State ──
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const measureInputRefs = useRef<Record<string, Record<string, HTMLInputElement | null>>>({});
   const [customerSearch, setCustomerSearch] = useState('');
   const [showInlineNewCustomer, setShowInlineNewCustomer] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState('');
@@ -134,6 +137,37 @@ export default function UnifiedNewOrderForm() {
       if (match) setSelectedCustomer(match);
     }
   }, [searchParams, customers, selectedCustomer]);
+
+  // Pre-populate style, price, and style reference image if passed from Inspiration Catalogues or Quotes
+  useEffect(() => {
+    const styleParam = searchParams.get('style');
+    const styleRefParam = searchParams.get('styleRef');
+    const priceParam = searchParams.get('price');
+    if (styleParam || styleRefParam || priceParam) {
+      setGarments((prev) => {
+        if (prev.length === 0) return prev;
+        const first = prev[0];
+        if (
+          first.styleReferenceImage === styleRefParam &&
+          first.styleName === (styleParam || first.styleName) &&
+          first.price === (priceParam || first.price)
+        ) {
+          return prev;
+        }
+        const updatedStyleName = styleParam || first.styleName;
+        const isCustom = !GARMENT_STYLES.some((s) => s.name.toLowerCase() === updatedStyleName.toLowerCase());
+        const updatedPrice = priceParam || first.price;
+        const updated: GarmentDraft = {
+          ...first,
+          styleName: updatedStyleName,
+          isCustomStyle: isCustom,
+          price: updatedPrice,
+          styleReferenceImage: styleRefParam || first.styleReferenceImage,
+        };
+        return [updated, ...prev.slice(1)];
+      });
+    }
+  }, [searchParams]);
 
   // Smart local phone number search normalization
   const filteredCustomers = useMemo(() => {
@@ -489,17 +523,50 @@ export default function UnifiedNewOrderForm() {
     }
   };
 
+  const formatSafeDate = (dStr: string) => {
+    if (!dStr) return '';
+    const datePart = dStr.split('T')[0];
+    const parts = datePart.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+    return new Date(dStr).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   const handleCreateOrder = async () => {
     if (!selectedCustomer) {
       showToast('Please select or add a client first', 'error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (numericTotal <= 0) {
       showToast('Please enter the price for this order', 'error');
+      const pricingEl = document.getElementById('pricing-card');
+      if (pricingEl) {
+        pricingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = document.getElementById('manual-total-bill');
+        if (input) input.focus();
+      }
       return;
     }
     if (!dueDate) {
       showToast('Please choose a delivery / ready date', 'error');
+      const dateEl = document.getElementById('due-date-input');
+      if (dateEl) {
+        dateEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        dateEl.focus();
+      }
       return;
     }
 
@@ -516,8 +583,8 @@ export default function UnifiedNewOrderForm() {
         (g, idx) => {
           const parsedNumericMeasures: Record<string, number> = {};
           for (const [k, v] of Object.entries(g.measures)) {
-            const parsed = parseFloat(v);
-            if (!isNaN(parsed) && parsed > 0) parsedNumericMeasures[k] = parsed;
+            const parsed = parseMeasurementValue(v);
+            if (parsed !== null && parsed > 0) parsedNumericMeasures[k] = parsed;
           }
 
           const unitPrice = g.price ? parseInt(g.price.replace(/,/g, '')) || 0 : Math.round(numericTotal / garmentCount);
@@ -572,8 +639,8 @@ export default function UnifiedNewOrderForm() {
       for (const g of garments) {
         const parsedNumericMeasures: Record<string, number> = {};
         for (const [k, v] of Object.entries(g.measures)) {
-          const parsed = parseFloat(v);
-          if (!isNaN(parsed) && parsed > 0) parsedNumericMeasures[k] = parsed;
+          const parsed = parseMeasurementValue(v);
+          if (parsed !== null && parsed > 0) parsedNumericMeasures[k] = parsed;
         }
         if (Object.keys(parsedNumericMeasures).length > 0) {
           await updateCustomerStyleProfile(selectedCustomer.id, g.styleName || 'Custom Outfit', parsedNumericMeasures).catch(() => {});
@@ -581,6 +648,29 @@ export default function UnifiedNewOrderForm() {
         }
         if (g.measurementNotes.trim() && g.measurementNotes !== selectedCustomer.measurementNotes) {
           await updateCustomerProfile(selectedCustomer.id, { measurementNotes: g.measurementNotes.trim() }).catch(() => {});
+        }
+      }
+
+      // Auto-sync physical fabric photos to client's stash
+      const newPhysicalFabrics = garments
+        .filter((g) => g.fabricImage && g.materialSuppliedBy === 'customer')
+        .map((g) => g.fabricImage as string);
+
+      if (newPhysicalFabrics.length > 0) {
+        const existingStashUrls = (selectedCustomer.fabrics || []).map((f) =>
+          typeof f === 'string' ? f : f?.url
+        );
+        const uniqueToAdd = newPhysicalFabrics.filter((url) => !existingStashUrls.includes(url));
+        if (uniqueToAdd.length > 0) {
+          const updatedFabrics = [
+            ...(selectedCustomer.fabrics || []),
+            ...uniqueToAdd.map((url) => ({
+              url,
+              stage: 'Documented' as const,
+              uploadedAt: new Date().toISOString(),
+            })),
+          ];
+          await updateCustomerProfile(selectedCustomer.id, { fabrics: updatedFabrics }).catch(() => {});
         }
       }
 
@@ -618,11 +708,7 @@ export default function UnifiedNewOrderForm() {
     if (!completedBatch || !selectedCustomer) return '';
     const shopName = currentShop?.name || 'Our Studio';
     const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}${ROUTES.track(completedBatch.firstOrderId)}` : '';
-    const formattedDate = new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+    const formattedDate = formatSafeDate(completedBatch.dueDate);
 
     const garmentLines =
       completedBatch.garments.length > 1
@@ -650,11 +736,7 @@ export default function UnifiedNewOrderForm() {
   const getCuttingSlipText = () => {
     if (!completedBatch || !selectedCustomer) return '';
     const shopName = currentShop?.name || 'Tailor Studio';
-    const formattedDate = new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+    const formattedDate = formatSafeDate(completedBatch.dueDate);
 
     const lines = [
       `✂️ WORKSHOP CUTTING SLIP`,
@@ -701,6 +783,7 @@ export default function UnifiedNewOrderForm() {
   return (
     <PageLayout
       width="narrow"
+      padding="none"
       header={
         <TopBar
           title="New Order"
@@ -775,9 +858,7 @@ export default function UnifiedNewOrderForm() {
                         className={styles.customerRow}
                         onClick={() => setSelectedCustomer(cust)}
                       >
-                        <div className={styles.avatar}>
-                          {cust.fullName.charAt(0).toUpperCase()}
-                        </div>
+                        <Avatar name={cust.fullName} size="sm" shape="squircle" />
                         <div className={styles.customerDetails}>
                           <span className={styles.customerName}>{cust.fullName}</span>
                           <span className={styles.customerPhone}>
@@ -905,10 +986,8 @@ export default function UnifiedNewOrderForm() {
           ) : (
             <div className={styles.selectedClientCard}>
               <div className={styles.selectedClientHeader}>
-                <div className={styles.avatarLarge}>
-                  {selectedCustomer.fullName.charAt(0).toUpperCase()}
-                </div>
-                <div>
+                <Avatar name={selectedCustomer.fullName} size="lg" shape="squircle" />
+                <div className={styles.selectedClientDetails}>
                   <h3 className={styles.selectedClientName}>{selectedCustomer.fullName}</h3>
                   <p className={styles.selectedClientPhone}>
                     {formatPhone(selectedCustomer.whatsappNumber)}
@@ -1093,12 +1172,12 @@ export default function UnifiedNewOrderForm() {
                 </div>
 
                 {(() => {
-                  const filledPoints = specPoints.filter((pt) => Boolean(garment.measures[pt.key] && parseFloat(garment.measures[pt.key]) > 0));
+                  const filledPoints = specPoints.filter((pt) => Boolean(garment.measures[pt.key] && parseMeasurementValue(garment.measures[pt.key])));
                   const filledCount = filledPoints.length;
                   const totalCount = specPoints.length;
                   const isCompleteFit = totalCount > 0 && filledCount === totalCount;
                   const isPartialFit = garment.isFitLoaded && filledCount > 0 && !isCompleteFit;
-                  const missingPoints = specPoints.filter((pt) => !garment.measures[pt.key] || !parseFloat(garment.measures[pt.key]));
+                  const missingPoints = specPoints.filter((pt) => !garment.measures[pt.key] || !parseMeasurementValue(garment.measures[pt.key]));
 
                   if (garment.isFitLoaded && isCompleteFit && !garment.showTweakMeasurements) {
                     return (
@@ -1106,7 +1185,7 @@ export default function UnifiedNewOrderForm() {
                         <div className={styles.fitBanner}>
                           <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
                           <div>
-                            <strong>Saved fit loaded from previous order (All {totalCount} points ready)</strong>
+                            <strong>Saved fit loaded from client profile (All {totalCount} points ready)</strong>
                             <p>Measurements automatically loaded for {selectedCustomer?.fullName}.</p>
                           </div>
                         </div>
@@ -1142,7 +1221,7 @@ export default function UnifiedNewOrderForm() {
                         <div className={styles.partialFitBanner}>
                           <Symbol name="warning" size={20} className={styles.partialWarningIcon} />
                           <div>
-                            <strong>⚠️ {filledCount} of {totalCount} measurements loaded</strong>
+                            <strong>{filledCount} of {totalCount} measurements loaded</strong>
                             <p>
                               Missing: {missingPoints.map((p) => p.label).join(', ')}. Please tape and enter remaining measurements below to prevent workshop delay.
                             </p>
@@ -1164,27 +1243,51 @@ export default function UnifiedNewOrderForm() {
                       )}
 
                       <div className={styles.measureGrid}>
-                        {specPoints.map((pt) => {
-                          const hasVal = Boolean(garment.measures[pt.key] && parseFloat(garment.measures[pt.key]) > 0);
+                        {specPoints.map((pt, ptIdx) => {
+                          const hasVal = Boolean(garment.measures[pt.key] && parseMeasurementValue(garment.measures[pt.key]));
                           const isMissing = isPartialFit && !hasVal;
 
                           return (
                             <div key={pt.key} className={styles.measureInputWrap}>
-                              <label className={`${styles.measureLabel} ${isMissing ? styles.measureLabelMissing : ''}`}>
-                                {pt.label}
-                                {isMissing && <span className={styles.neededTag}>* Needed</span>}
-                              </label>
+                              <div className={styles.measureLabelWrap}>
+                                <span className={styles.measureIndex}>{ptIdx + 1}</span>
+                                <label className={`${styles.measureLabel} ${isMissing ? styles.measureLabelMissing : ''}`}>
+                                  {pt.label}
+                                  {isMissing && <span className={styles.neededTag}>* Needed</span>}
+                                </label>
+                              </div>
                               <div className={`${styles.measureField} ${isMissing ? styles.measureFieldMissing : ''}`}>
                                 <input
-                                  type="number"
-                                  inputMode="decimal"
-                                  step="0.25"
-                                  placeholder="0.0"
+                                  id={`m-${garment.id}-${pt.key}`}
+                                  ref={(el) => {
+                                    if (!measureInputRefs.current[garment.id]) measureInputRefs.current[garment.id] = {};
+                                    measureInputRefs.current[garment.id][pt.key] = el;
+                                  }}
+                                  type="text"
+                                  inputMode="text"
+                                  enterKeyHint={ptIdx < specPoints.length - 1 ? 'next' : 'done'}
+                                  placeholder="0.0 or 15 1/2"
                                   className={styles.measureInput}
                                   value={garment.measures[pt.key] || ''}
                                   onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      const nextPoint = specPoints[ptIdx + 1];
+                                      if (nextPoint && measureInputRefs.current[garment.id]?.[nextPoint.key]) {
+                                        measureInputRefs.current[garment.id][nextPoint.key]?.focus();
+                                      } else {
+                                        const notesEl = document.getElementById(`notes-${garment.id}`);
+                                        if (notesEl) {
+                                          notesEl.focus();
+                                        } else {
+                                          e.currentTarget.blur();
+                                        }
+                                      }
+                                    }
+                                  }}
                                 />
-                                <span className={styles.inchSymbol}>″</span>
+                                <span className={styles.inchSymbol}>IN</span>
                               </div>
                             </div>
                           );
@@ -1194,6 +1297,7 @@ export default function UnifiedNewOrderForm() {
                       <div className={styles.notesWrap}>
                         <label className={styles.label}>Fit & Posture Notes (Optional)</label>
                         <textarea
+                          id={`notes-${garment.id}`}
                           className={styles.textarea}
                           rows={2}
                           placeholder="e.g. Client likes snug chest, dropped left shoulder, high armhole"
@@ -1219,6 +1323,43 @@ export default function UnifiedNewOrderForm() {
                     </div>
                   </div>
                 </div>
+
+                {/* Customer Fabric Stash Quick Selector */}
+                {selectedCustomer?.fabrics && selectedCustomer.fabrics.length > 0 && (
+                  <div className={styles.stashPickerWrap}>
+                    <span className={styles.stashPickerTitle}>
+                      <Symbol name="inventory_2" size={15} /> Select from {selectedCustomer.fullName.split(' ')[0]}&apos;s Fabric Stash:
+                    </span>
+                    <div className={styles.stashSwatchesRow}>
+                      {selectedCustomer.fabrics.map((swatch, sIdx) => {
+                        const swatchUrl = typeof swatch === 'string' ? swatch : swatch?.url;
+                        if (!swatchUrl) return null;
+                        const isChosen = garment.fabricImage === swatchUrl;
+                        return (
+                          <button
+                            key={sIdx}
+                            type="button"
+                            className={`${styles.stashSwatchBtn} ${isChosen ? styles.stashSwatchChosen : ''}`}
+                            onClick={() =>
+                              updateGarment(garment.id, {
+                                fabricImage: isChosen ? null : swatchUrl,
+                                materialSuppliedBy: 'customer',
+                              })
+                            }
+                            title={`Assign Fabric #${sIdx + 1}`}
+                          >
+                            <Image src={swatchUrl} alt={`Fabric ${sIdx + 1}`} width={64} height={64} className={styles.stashSwatchImg} />
+                            {isChosen && (
+                              <div className={styles.stashSwatchCheck}>
+                                <Symbol name="check" size={14} />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.photoGrid}>
                   {/* Fabric Photo */}
@@ -1385,7 +1526,7 @@ export default function UnifiedNewOrderForm() {
         </button>
 
         {/* ── CARD 5: BILLING & DELIVERY SCHEDULE ── */}
-        <section className={styles.card}>
+        <section className={styles.card} id="pricing-card">
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
@@ -1407,6 +1548,7 @@ export default function UnifiedNewOrderForm() {
               <div className={styles.inputPrefixWrap}>
                 <span className={styles.currencyPrefix}>{currencySymbol}</span>
                 <input
+                  id="manual-total-bill"
                   type="text"
                   inputMode="numeric"
                   className={styles.input}
@@ -1496,9 +1638,17 @@ export default function UnifiedNewOrderForm() {
               >
                 In 2 Weeks
               </button>
+              <button
+                type="button"
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(30) ? styles.quickDateBtnActive : ''}`}
+                onClick={() => setQuickDate(30)}
+              >
+                In 1 Month
+              </button>
             </div>
 
             <input
+              id="due-date-input"
               type="date"
               className={styles.dateInput}
               value={dueDate}
@@ -1556,8 +1706,10 @@ export default function UnifiedNewOrderForm() {
                   type="button"
                   className={`${styles.segBtn} ${priority === 'urgent' ? styles.segActiveUrgent : ''}`}
                   onClick={() => setPriority('urgent')}
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 >
-                  ⚡ Urgent / Rush
+                  <Symbol name="bolt" size={14} />
+                  <span>Urgent / Rush</span>
                 </button>
               </div>
             </div>
@@ -1608,10 +1760,10 @@ export default function UnifiedNewOrderForm() {
                 <>
                   <span>
                     {garments.length > 1
-                      ? `Confirm & Queue ${garments.length} Outfits`
-                      : 'Confirm & Queue Order'}
+                      ? `Queue ${garments.length} Outfits`
+                      : 'Queue Order'}
                   </span>
-                  <Symbol name="arrow_forward_ios" size={14} />
+                  <Symbol name="arrow_forward" size={15} />
                 </>
               )}
             </button>
@@ -1685,11 +1837,7 @@ export default function UnifiedNewOrderForm() {
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Ready By</span>
                 <span className={styles.receiptBold}>
-                  {new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
+                  {formatSafeDate(completedBatch.dueDate)}
                 </span>
               </div>
             </div>
@@ -1701,7 +1849,7 @@ export default function UnifiedNewOrderForm() {
               rel="noopener noreferrer"
               className={styles.whatsappReceiptBtn}
             >
-              <Symbol name="send" size={20} />
+              <WhatsappIcon size={20} />
               <span>Send Receipt via WhatsApp</span>
             </a>
 
@@ -1713,6 +1861,18 @@ export default function UnifiedNewOrderForm() {
             >
               <Symbol name="content_cut" size={18} />
               <span>Print / View Workshop Cutting Slip</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.viewOrderBtn}
+              onClick={() => {
+                setReceiptSheetOpen(false);
+                router.push(ROUTES.productionOrder(completedBatch.firstOrderId));
+              }}
+            >
+              <Symbol name="visibility" size={18} />
+              <span>View Order #{completedBatch.firstOrderId.slice(-6).toUpperCase()} Details</span>
             </button>
 
             <button
@@ -1765,7 +1925,10 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.slipHeaderBadgeWrap}>
                   <span className={styles.slipOrderId}>#{completedBatch.firstOrderId.slice(-8).toUpperCase()}</span>
                   {completedBatch.priority === 'urgent' && (
-                    <span className={styles.slipUrgentBadge}>⚡ URGENT</span>
+                    <span className={styles.slipUrgentBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <Symbol name="bolt" size={11} />
+                      <span>URGENT</span>
+                    </span>
                   )}
                 </div>
               </div>
@@ -1782,11 +1945,7 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.slipInfoRow}>
                   <span className={styles.slipInfoLabel}>Ready Date:</span>
                   <span className={styles.slipInfoHighlight}>
-                    {new Date(completedBatch.dueDate).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+                    {formatSafeDate(completedBatch.dueDate)}
                   </span>
                 </div>
               </div>

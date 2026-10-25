@@ -32,20 +32,25 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
   // First image from order (intake / earliest stage photo)
   const photo = order.images?.[0]?.url ?? null;
   const overdue = isOverdue(order);
+  const isRush = order.priority === 'rush';
+  const isUrgent = order.priority === 'urgent';
+  const hasPriority = isRush || isUrgent;
+  const isClientFabric = order.materialSuppliedBy === 'customer';
+  const isShopFabric = order.materialSuppliedBy === 'shop';
 
   return (
     <button
       type="button"
       className={styles.card}
       onClick={onClick}
-      aria-label={`View fabric for ${order.customerName}`}
+      aria-label={`View fabric for ${order.customerName || 'order'}`}
     >
       {/* Photo area */}
       <div className={styles.photoWrap}>
         {photo ? (
           <Image
             src={photo}
-            alt={`Fabric for ${order.customerName}`}
+            alt={`Fabric for ${order.customerName || 'order'}`}
             fill
             sizes="(max-width: 768px) 50vw, 33vw"
             className={styles.photo}
@@ -54,36 +59,55 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
         ) : (
           <div className={styles.noPhoto}>
             <Symbol name="texture" size={32} className={styles.noPhotoIcon} />
+            <span className={styles.noPhotoText}>No photo</span>
           </div>
         )}
 
-        {/* Priority badge — top-left */}
-        {(order.priority === 'urgent' || order.priority === 'rush') && (
-          <span className={`${styles.priorityBadge} ${order.priority === 'rush' ? styles.rush : styles.urgent}`}>
-            {order.priority === 'rush' ? '🔥 Rush' : '⚡ Urgent'}
+        {/* Priority badge — top-left with native vector icon */}
+        {hasPriority && (
+          <span className={`${styles.priorityBadge} ${isRush ? styles.rush : styles.urgent}`}>
+            <Symbol name={isRush ? 'local_fire_department' : 'bolt'} size={11} />
+            <span>{isRush ? 'Rush' : 'Urgent'}</span>
+          </span>
+        )}
+
+        {/* Material Provenance badge — top-right with native vector icon */}
+        {isClientFabric && (
+          <span className={`${styles.provenanceBadge} ${styles.clientMaterial}`}>
+            <Symbol name="person" size={11} />
+            <span>Client Sourced</span>
+          </span>
+        )}
+        {isShopFabric && (
+          <span className={`${styles.provenanceBadge} ${styles.shopMaterial}`}>
+            <Symbol name="storefront" size={11} />
+            <span>Atelier Stock</span>
           </span>
         )}
       </div>
 
       {/* Info footer */}
       <div className={styles.info}>
-        <span className={styles.customerName}>{order.customerName}</span>
+        <span className={styles.customerName}>{order.customerName || 'Walk-in Client'}</span>
 
         <div className={styles.meta}>
           <span className={`${styles.statusPill} ${styles[`status_${order.status}`]}`}>
-            {STATUS_LABELS[order.status]}
+            {STATUS_LABELS[order.status] || order.status}
           </span>
 
           {order.dueDate && (
             <span className={`${styles.dueDateChip} ${overdue ? styles.overdue : ''}`}>
               <Symbol name={overdue ? 'warning' : 'schedule'} size={11} />
-              {formatDueDate(order.dueDate)}
+              <span>{formatDueDate(order.dueDate)}</span>
             </span>
           )}
         </div>
 
         {order.styleName && (
-          <span className={styles.styleName}>{order.styleName}</span>
+          <span className={styles.styleName}>
+            <Symbol name="checkroom" size={11} />
+            <span>{order.styleName}</span>
+          </span>
         )}
       </div>
     </button>

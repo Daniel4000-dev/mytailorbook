@@ -10,7 +10,7 @@
   padding: 0 var(--sf-space-md);
   gap: var(--sf-space-sm);
   box-shadow: var(--sf-shadow-xs);
-  margin-bottom: var(--sf-space-md);
+  margin-bottom: var(--sf-space-sm);
   transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
@@ -75,10 +75,11 @@
 
 .filtersRow {
   display: flex;
+  align-items: center;
   gap: var(--sf-space-xs);
   overflow-x: auto;
   padding-bottom: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-md);
+  margin-bottom: var(--sf-space-sm);
   scrollbar-width: none;
   -ms-overflow-style: none;
   /* Bleed to edges on mobile to align with content */
@@ -92,14 +93,17 @@
 }
 
 .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
   height: 34px;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: var(--sf-radius-full);
   border: 1px solid var(--sf-border-light);
   background: var(--sf-bg-surface);
   color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
+  font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-medium);
   cursor: pointer;
   transition:
@@ -132,6 +136,23 @@
   }
 }
 
+.pillCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--sf-text-2xs);
+  font-weight: var(--sf-weight-semibold);
+  padding: 1px 6px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-secondary);
+}
+
+.pillActive .pillCount {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
 /* ── Gallery grid ────────────────────────────── */
 
 .grid {
@@ -154,10 +175,6 @@
   }
 }
 
-/* A photo gallery grid should use a wide desktop screen's real estate
-   rather than stopping at the same 4 columns as a tablet — more, smaller
-   tiles read as a considered gallery wall instead of a mobile grid just
-   given more horizontal room. */
 @media (min-width: 1024px) {
   .grid {
     grid-template-columns: repeat(5, 1fr);
@@ -223,36 +240,9 @@
 .emptyDesc {
   font-size: var(--sf-text-sm);
   color: var(--sf-text-secondary);
-  max-width: 280px;
+  max-width: 320px;
   line-height: var(--sf-leading-relaxed);
   margin-top: 2px;
-}
-
-.toggleNoPhotoBtn {
-  margin-top: var(--sf-space-md);
-  height: 38px;
-  padding: 0 var(--sf-space-md);
-  border-radius: var(--sf-radius-full);
-  border: 1px solid var(--sf-border);
-  background: transparent;
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-  cursor: pointer;
-  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
-  touch-action: manipulation;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .toggleNoPhotoBtn:hover {
-    background: var(--sf-surface-variant);
-    border-color: var(--sf-border);
-  }
-}
-
-.toggleNoPhotoBtn:active {
-  transform: scale(0.97);
-  background: var(--sf-surface-variant);
 }
 
 /* ── No-photo toggle (inline when grid has items) ── */
@@ -262,7 +252,7 @@
   align-items: center;
   gap: var(--sf-space-sm);
   margin-top: var(--sf-space-md);
-  font-size: var(--sf-text-sm);
+  font-size: var(--sf-text-xs);
   color: var(--sf-text-secondary);
   cursor: pointer;
   user-select: none;
