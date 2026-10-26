@@ -1,61 +1,227 @@
 'use client';
 
+import { useState } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { ROUTES } from '@/lib/routes';
+import MoreServicesSheet from './MoreServicesSheet';
 import styles from './QuickCommandHub.module.css';
 
 interface QuickCommandHubProps {
   onNavigate: (href: string) => void;
   uncutFabricsCount?: number;
+  inProductionCount?: number;
+  fittingsTodayCount?: number;
+  customersCount?: number;
+  debtorsCount?: number;
+  debtTotal?: number;
 }
 
 export default function QuickCommandHub({
   onNavigate,
   uncutFabricsCount = 0,
+  inProductionCount = 0,
+  fittingsTodayCount = 0,
+  customersCount = 0,
+  debtTotal = 0,
 }: QuickCommandHubProps) {
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+
   return (
     <div className={styles.container}>
-      <div className={styles.grid}>
+      {/* ── Tier 1: High-Frequency Master Actions Bar (3 Core Verbs) ── */}
+      <div className={styles.masterBar}>
         <button
           type="button"
-          className={`${styles.tile} ${styles.fabricsTile}`}
-          onClick={() => onNavigate('/fabrics')}
-          aria-label="Cutting Table"
+          className={styles.primaryActionBtn}
+          onClick={() => onNavigate(ROUTES.orderNew)}
+          aria-label="Create New Bespoke Order"
         >
-          {uncutFabricsCount > 0 && (
-            <span className={styles.badgeAlert}>
-              {uncutFabricsCount} uncut
-            </span>
-          )}
-          <div className={styles.iconWrap}>
-            <Symbol name="texture" size={20} />
-          </div>
-          <span className={styles.tileLabel}>Cutting Table</span>
+          <Symbol name="add" size={17} className={styles.btnIcon} />
+          <span>New Order</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.tile} ${styles.quoteTile}`}
-          onClick={() => onNavigate('/quotes')}
-          aria-label="Quick Quote"
+          className={styles.secondaryActionBtn}
+          onClick={() => onNavigate(ROUTES.customerNew)}
+          aria-label="Measure New Client"
         >
-          <div className={styles.iconWrap}>
-            <Symbol name="calculate" size={20} />
-          </div>
-          <span className={styles.tileLabel}>Quick Quote</span>
+          <Symbol name="straighten" size={16} className={styles.btnIcon} />
+          <span>Measure</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.tile} ${styles.tillTile}`}
-          onClick={() => onNavigate('/reconciliation')}
-          aria-label="Cash Drawer"
+          className={styles.secondaryActionBtn}
+          onClick={() => onNavigate(ROUTES.reconciliation)}
+          aria-label="Record Payment or Till Deposit"
         >
-          <div className={styles.iconWrap}>
-            <Symbol name="point_of_sale" size={20} />
-          </div>
-          <span className={styles.tileLabel}>Daily Till</span>
+          <Symbol name="point_of_sale" size={16} className={styles.btnIcon} />
+          <span>Record Till</span>
         </button>
       </div>
+
+      {/* ── Tier 2: 4×2 Atelier Services Switchboard Grid ── */}
+      <div className={styles.switchboardCard}>
+        <div className={styles.switchboardHeader}>
+          <span className={styles.switchboardEyebrow}>Atelier Services</span>
+          <span className={styles.switchboardCount}>8 quick launch</span>
+        </div>
+
+        <div className={styles.grid}>
+          {/* 1. Cutting Table */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.fabrics)}
+            aria-label="Cutting Table & Fabric Swatches"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(234, 88, 12, 0.08)', color: '#EA580C' }}
+            >
+              <Symbol name="content_cut" size={22} />
+              {uncutFabricsCount > 0 && (
+                <span className={styles.tileBadge}>{uncutFabricsCount}</span>
+              )}
+            </div>
+            <span className={styles.tileLabel}>Cutting Table</span>
+          </button>
+
+          {/* 2. Sewing Production */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.production)}
+            aria-label="Sewing Floor & Production Kanban"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(67, 56, 202, 0.08)', color: '#4338CA' }}
+            >
+              <Symbol name="precision_manufacturing" size={22} />
+              {inProductionCount > 0 && (
+                <span className={`${styles.tileBadge} ${styles.tileBadgeNeutral}`}>
+                  {inProductionCount}
+                </span>
+              )}
+            </div>
+            <span className={styles.tileLabel}>Production</span>
+          </button>
+
+          {/* 3. Fittings & Calendar */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.calendar)}
+            aria-label="Fittings & Workshop Agenda"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(124, 58, 237, 0.08)', color: '#7C3AED' }}
+            >
+              <Symbol name="calendar_today" size={21} />
+              {fittingsTodayCount > 0 && (
+                <span className={styles.tileBadge}>{fittingsTodayCount}</span>
+              )}
+            </div>
+            <span className={styles.tileLabel}>Fittings</span>
+          </button>
+
+          {/* 4. Customer Directory */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.customers)}
+            aria-label="Client Directory & Anatomical Measurements"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(71, 85, 105, 0.08)', color: '#475569' }}
+            >
+              <Symbol name="group" size={22} />
+              {customersCount > 0 && (
+                <span className={`${styles.tileBadge} ${styles.tileBadgeNeutral}`}>
+                  {customersCount}
+                </span>
+              )}
+            </div>
+            <span className={styles.tileLabel}>Customers</span>
+          </button>
+
+          {/* 5. Quick Quote */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.quotes)}
+            aria-label="Quick Price Estimator"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(5, 150, 105, 0.08)', color: '#059669' }}
+            >
+              <Symbol name="calculate" size={22} />
+            </div>
+            <span className={styles.tileLabel}>Quick Quote</span>
+          </button>
+
+          {/* 6. Daily Till */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.reconciliation)}
+            aria-label="Daily Cash Drawer & POS Reconciliation"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(124, 58, 237, 0.08)', color: '#7C3AED' }}
+            >
+              <Symbol name="point_of_sale" size={22} />
+            </div>
+            <span className={styles.tileLabel}>Daily Till</span>
+          </button>
+
+          {/* 7. Style Catalogues */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate('/catalogues')}
+            aria-label="Style Lookbooks & VIP Outreach"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(217, 119, 6, 0.08)', color: '#D97706' }}
+            >
+              <Symbol name="collections_bookmark" size={21} />
+            </div>
+            <span className={styles.tileLabel}>Catalogues</span>
+          </button>
+
+          {/* 8. More Services Launcher */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => setIsMoreOpen(true)}
+            aria-label="More Atelier Tools & Secondary Services"
+          >
+            <div
+              className={styles.iconWrap}
+              style={{ background: 'rgba(100, 116, 139, 0.08)', color: '#64748B' }}
+            >
+              <Symbol name="apps" size={22} />
+            </div>
+            <span className={styles.tileLabel}>More Tools</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Slide-up Sheet for Secondary Atelier Tools ── */}
+      <MoreServicesSheet
+        isOpen={isMoreOpen}
+        onClose={() => setIsMoreOpen(false)}
+        onNavigate={onNavigate}
+        debtTotal={debtTotal}
+      />
     </div>
   );
 }

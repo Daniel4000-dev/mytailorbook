@@ -198,10 +198,15 @@ export default function OwnerDashboard({
         </div>
       </section>
 
-      {/* 2. Streamlined 3-Utility Quick Actions Bar */}
+      {/* 2. OPay-Inspired Master Actions & Atelier Switchboard */}
       <QuickCommandHub
         onNavigate={onNavigate}
         uncutFabricsCount={uncutFabricsCount}
+        inProductionCount={inProductionCount}
+        fittingsTodayCount={dueTodayCount}
+        customersCount={customers?.length || 0}
+        debtorsCount={debtorsCount}
+        debtTotal={debtTotal}
       />
 
       {/* 3. Progressive Discover Placement: Top for Days 1 to 10 */}

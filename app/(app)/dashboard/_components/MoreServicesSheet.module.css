@@ -1,0 +1,104 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sf-space-sm) var(--sf-space-md) var(--sf-space-xl);
+  gap: var(--sf-space-xs);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--sf-transition-fast),
+    background var(--sf-transition-fast),
+    box-shadow var(--sf-transition-fast),
+    border-color var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .item:hover {
+    background: #F8FAFC;
+    border-color: rgba(67, 56, 202, 0.16);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.item:active {
+  transform: scale(0.98);
+}
+
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  min-width: 0;
+  flex: 1;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: #1C1A28;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemSub {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+  flex-shrink: 0;
+  margin-left: var(--sf-space-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  background: rgba(220, 38, 38, 0.08);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.15);
+}
+
+.chevron {
+  color: var(--sf-text-tertiary);
+}

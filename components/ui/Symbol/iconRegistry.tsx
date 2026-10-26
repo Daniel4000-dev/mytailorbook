@@ -994,6 +994,15 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  apps: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" fill={fill ? color : 'none'} />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" fill={fill ? color : 'none'} />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" fill={fill ? color : 'none'} />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" fill={fill ? color : 'none'} />
+    </svg>
+  ),
+
   lock: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill={fill ? color : 'none'} />

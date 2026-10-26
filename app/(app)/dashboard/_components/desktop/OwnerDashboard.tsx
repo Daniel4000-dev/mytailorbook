@@ -58,12 +58,6 @@ export default function OwnerDashboard({
 
   return (
     <div className={styles.content}>
-      {/* 1-Tap Quick Action Command Utilities */}
-      <QuickCommandHub
-        onNavigate={onNavigate}
-        uncutFabricsCount={uncutFabricsCount}
-      />
-
       {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
 
       {/* Hero: Dominant Atelier Financial & Operational Command */}
@@ -233,6 +227,17 @@ export default function OwnerDashboard({
           )}
         </div>
       </div>
+
+      {/* OPay-Inspired Master Actions & Atelier Switchboard */}
+      <QuickCommandHub
+        onNavigate={onNavigate}
+        uncutFabricsCount={uncutFabricsCount}
+        inProductionCount={inProductionCount}
+        fittingsTodayCount={dueTodayCount}
+        customersCount={customers?.length || 0}
+        debtorsCount={debtorsCount}
+        debtTotal={debtTotal}
+      />
 
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
