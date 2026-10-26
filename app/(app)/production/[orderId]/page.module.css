@@ -129,7 +129,232 @@
   cursor: not-allowed;
 }
 
-/* ── 2. Header card ─────────────────────────────────────────── */
+/* ── 2. Luxury Atelier Studio Hero Card ──────────────────────── */
+.heroCard {
+  position: relative;
+  background: var(--sf-bg-surface);
+  border-radius: var(--sf-radius-2xl, 20px);
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 20px -4px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--sf-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.heroTop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+@media (min-width: 640px) {
+  .heroTop {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.heroProfile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.customerAvatar {
+  flex-shrink: 0;
+}
+
+.heroInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.refRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refBadge {
+  font-family: var(--sf-font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--sf-brand-indigo);
+}
+
+.viewProfileBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  transition: color var(--sf-transition-fast);
+}
+
+.viewProfileBtn:hover {
+  color: var(--sf-brand-indigo);
+}
+
+.heroCustomerName {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-2xl);
+  font-weight: var(--sf-weight-bold);
+  line-height: 28px;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.heroGarment {
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  margin: 0;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quickContactGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heroWhatsappBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #25D366;
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.28);
+  transition: transform var(--sf-transition-fast), filter var(--sf-transition-fast);
+}
+
+.heroWhatsappBtn:active {
+  transform: scale(0.96);
+}
+
+.heroCallBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--sf-brand-indigo) 10%, transparent);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.heroCallBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── Interactive Workshop Stage Stepper ───────────────────────────────── */
+.stageRibbon {
+  background: color-mix(in srgb, var(--sf-bg-primary) 65%, transparent);
+  border-radius: 14px;
+  padding: 6px 8px;
+  border: 0.5px solid var(--sf-border-light);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.stageRibbon::-webkit-scrollbar {
+  display: none;
+}
+
+.stageStepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 330px;
+}
+
+.stageStep {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-tertiary);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.stageStep:active {
+  transform: scale(0.96);
+}
+
+.stageStepCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--sf-text-primary) 10%, transparent);
+  color: var(--sf-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.stageStepPast {
+  color: var(--sf-text-secondary);
+}
+
+.stageStepPast .stageStepCircle {
+  background: rgba(16, 185, 129, 0.16);
+  color: #10B981;
+}
+
+.stageStepCurrent {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
+}
+
+.stageStepCurrent .stageStepCircle {
+  background: #FFFFFF;
+  color: var(--sf-brand-indigo);
+}
+
+.stageStepText {
+  letter-spacing: -0.01em;
+}
+
 .headerRow {
   display: flex;
   flex-direction: column;
@@ -148,23 +373,6 @@
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
-}
-
-.avatarLarge {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--sf-radius-md);
-  background: linear-gradient(135deg, var(--sf-brand-indigo), #4f46e5);
-  color: #FFFFFF;
-  border: none;
-  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-2xl);
-  font-weight: 700;
-  flex-shrink: 0;
 }
 
 .customerName {
@@ -753,6 +961,48 @@
 
 .sectionHeaderRow .sectionTitle {
   margin-bottom: 0;
+}
+
+.sectionTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.measureSubtitle {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copySpecBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--sf-brand-indigo) 10%, transparent);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.copySpecBtn:hover {
+  background: color-mix(in srgb, var(--sf-brand-indigo) 16%, transparent);
+}
+
+.copySpecBtn:active {
+  transform: scale(0.96);
 }
 
 .roundIconBtn {
@@ -1837,6 +2087,52 @@
 }
 
 /* Dark mode adjustments */
+:global([data-theme='dark']) .heroCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='dark']) .refBadge {
+  background: rgba(99, 102, 241, 0.22);
+  color: #A5B4FC;
+}
+
+:global([data-theme='dark']) .viewProfileBtn:hover {
+  color: #A5B4FC;
+}
+
+:global([data-theme='dark']) .heroCallBtn {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #A5B4FC;
+}
+
+:global([data-theme='dark']) .stageRibbon {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .stageStepPast .stageStepCircle {
+  background: rgba(16, 185, 129, 0.22);
+  color: #34D399;
+}
+
+:global([data-theme='dark']) .stageStepCurrent {
+  background: #6366F1;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.45);
+}
+
+:global([data-theme='dark']) .copySpecBtn {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #A5B4FC;
+}
+
+:global([data-theme='dark']) .copySpecBtn:hover {
+  background: rgba(99, 102, 241, 0.25);
+}
+
 :global([data-theme='dark']) .card {
   background: var(--sf-bg-surface, #161526);
   border-color: rgba(255, 255, 255, 0.08);
@@ -1913,6 +2209,52 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .heroCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .refBadge {
+    background: rgba(99, 102, 241, 0.22);
+    color: #A5B4FC;
+  }
+
+  :global(:root:not([data-theme="light"])) .viewProfileBtn:hover {
+    color: #A5B4FC;
+  }
+
+  :global(:root:not([data-theme="light"])) .heroCallBtn {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #A5B4FC;
+  }
+
+  :global(:root:not([data-theme="light"])) .stageRibbon {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .stageStepPast .stageStepCircle {
+    background: rgba(16, 185, 129, 0.22);
+    color: #34D399;
+  }
+
+  :global(:root:not([data-theme="light"])) .stageStepCurrent {
+    background: #6366F1;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.45);
+  }
+
+  :global(:root:not([data-theme="light"])) .copySpecBtn {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #A5B4FC;
+  }
+
+  :global(:root:not([data-theme="light"])) .copySpecBtn:hover {
+    background: rgba(99, 102, 241, 0.25);
+  }
+
   :global(:root:not([data-theme="light"])) .card {
     background: var(--sf-bg-surface, #161526);
     border-color: rgba(255, 255, 255, 0.08);

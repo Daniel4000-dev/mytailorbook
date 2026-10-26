@@ -13,6 +13,7 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import Avatar from '@/components/ui/Avatar/Avatar';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
@@ -497,6 +498,19 @@ export default function OrderDetailPage() {
         ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
       );
 
+  const handleCopyMeasurements = () => {
+    if (measurementEntries.length === 0) return;
+    const lines = [
+      `*MEASUREMENTS SPEC: ${order.customerName || 'Customer'}*`,
+      `Garment: ${order.orderDetails || 'Custom Order'}`,
+      `Order: #${orderRef}`,
+      '',
+      ...measurementEntries.map(([k, v]) => `• ${MEASUREMENT_LABELS[k] || k}: ${v}"`),
+    ];
+    navigator.clipboard.writeText(lines.join('\n'));
+    showToast('Measurements copied to clipboard', 'success');
+  };
+
   return (
     <PageLayout
       header={
@@ -560,17 +574,33 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        {/* 2. Order / customer header */}
-        <section className={styles.card + ' ' + styles.gaHeader}>
-          <div className={styles.headerRow}>
-            <div className={styles.headerLeft}>
-              <div className={styles.avatarLarge}>{order.customerName ? order.customerName[0].toUpperCase() : '?'}</div>
-              <div>
-                <h2 className={styles.customerName}>{order.customerName}</h2>
-                <p className={styles.garmentSubtitle}>{order.orderDetails}</p>
+        {/* 2. Order / customer header — Luxury Atelier Studio Hero Card */}
+        <section className={styles.heroCard + ' ' + styles.gaHeader}>
+          <div className={styles.heroTop}>
+            <div className={styles.heroProfile}>
+              <Avatar
+                name={order.customerName || 'Customer'}
+                imageUrl={customer?.avatarUrl}
+                size="lg"
+                shape="squircle"
+                className={styles.customerAvatar}
+              />
+              <div className={styles.heroInfo}>
+                <div className={styles.refRow}>
+                  <span className={styles.refBadge}>Order #{orderRef}</span>
+                  {customer && (
+                    <Link href={ROUTES.customerDetail(customer.id)} className={styles.viewProfileBtn}>
+                      <span>Client Profile</span>
+                      <Symbol name="arrow_forward" size={12} />
+                    </Link>
+                  )}
+                </div>
+                <h2 className={styles.heroCustomerName}>{order.customerName}</h2>
+                <p className={styles.heroGarment}>{order.orderDetails}</p>
               </div>
             </div>
-            <div className={styles.headerRight}>
+
+            <div className={styles.heroActions}>
               <button
                 type="button"
                 className={styles.stagePillBtn}
@@ -582,6 +612,7 @@ export default function OrderDetailPage() {
                 <span>{STATUS_CONFIG[order.status].label} Stage</span>
                 <Symbol name="expand_more" size={14} />
               </button>
+
               {balanceOwed > 0 ? (
                 <span className={styles.balanceHeaderDue}>
                   ₦{formatNumber(balanceOwed)} Due
@@ -591,17 +622,63 @@ export default function OrderDetailPage() {
                   <Symbol name="check" size={13} /> Paid in Full
                 </span>
               )}
+
               {customer && (
-                <a
-                  className={styles.callBtn}
-                  href={`tel:+${customer.whatsappNumber}`}
-                  aria-label={`Call ${customer.fullName}`}
-                >
-                  <Symbol name="call" size={20} />
-                </a>
+                <div className={styles.quickContactGroup}>
+                  {customer.whatsappNumber && (
+                    <button
+                      type="button"
+                      className={styles.heroWhatsappBtn}
+                      onClick={() => setWhatsAppSheetOpen(true)}
+                      aria-label={`WhatsApp ${customer.fullName}`}
+                      title="Send WhatsApp update"
+                    >
+                      <WhatsappIcon size={14} />
+                      <span>WhatsApp</span>
+                    </button>
+                  )}
+                  <a
+                    className={styles.heroCallBtn}
+                    href={`tel:+${customer.whatsappNumber || customer.phone}`}
+                    aria-label={`Call ${customer.fullName}`}
+                    title="Call client"
+                  >
+                    <Symbol name="call" size={14} />
+                    <span>Call</span>
+                  </a>
+                </div>
               )}
             </div>
           </div>
+
+          {/* Interactive Workshop Stage Stepper Bar */}
+          <div className={styles.stageRibbon}>
+            <div className={styles.stageStepper}>
+              {ORDER_STATUSES.map((status, idx) => {
+                const isCurrent = order.status === status;
+                const isPast = ORDER_STATUSES.indexOf(order.status) > idx;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    className={`${styles.stageStep} ${isCurrent ? styles.stageStepCurrent : ''} ${isPast ? styles.stageStepPast : ''}`}
+                    onClick={() => handleSelectStage(status)}
+                    title={`Switch to ${STATUS_CONFIG[status].label}`}
+                  >
+                    <div className={styles.stageStepCircle}>
+                      {isPast ? (
+                        <Symbol name="check" size={11} />
+                      ) : (
+                        <span>{idx + 1}</span>
+                      )}
+                    </div>
+                    <span className={styles.stageStepText}>{STATUS_CONFIG[status].label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {(isOverdue(order) || order.priority !== 'normal') && (
             <div className={styles.flagRow}>
               {isOverdue(order) && <span className={styles.flagChip}>Overdue</span>}
@@ -610,6 +687,7 @@ export default function OrderDetailPage() {
               )}
             </div>
           )}
+
           {activeException ? (
             <div className={styles.exceptionBanner}>
               <div className={styles.exceptionBannerContent}>
@@ -815,21 +893,40 @@ export default function OrderDetailPage() {
           </section>
         )}
 
-        {/* 7. Measurements */}
+        {/* 7. Measurements — Craft Spec Section */}
         {(isDesktop || activeTab === 'garment') && (
           <section className={styles.card + ' ' + styles.gaMeasure}>
             <div className={styles.sectionHeaderRow}>
-              <h3 className={styles.sectionTitle}>
-                {usingOrderMeasurements ? 'Measurements (this order)' : "Measurements (customer's body profile)"}
-              </h3>
-              <button
-                type="button"
-                className={styles.roundIconBtn}
-                aria-label="Edit this order's measurements"
-                onClick={() => setEditingMeasurements(true)}
-              >
-                <Symbol name="edit" size={20} />
-              </button>
+              <div className={styles.sectionTitleGroup}>
+                <h3 className={styles.sectionTitle}>
+                  {usingOrderMeasurements ? 'Garment Measurements' : "Body Profile Measurements"}
+                </h3>
+                <span className={styles.measureSubtitle}>
+                  {usingOrderMeasurements ? 'Specific to this outfit' : 'From customer body profile'}
+                </span>
+              </div>
+              <div className={styles.sectionActions}>
+                {measurementEntries.length > 0 && (
+                  <button
+                    type="button"
+                    className={styles.copySpecBtn}
+                    onClick={handleCopyMeasurements}
+                    aria-label="Copy measurements spec"
+                    title="Copy specification to clipboard"
+                  >
+                    <Symbol name="content_copy" size={13} />
+                    <span>Copy Specs</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={styles.roundIconBtn}
+                  aria-label="Edit this order's measurements"
+                  onClick={() => setEditingMeasurements(true)}
+                >
+                  <Symbol name="edit" size={18} />
+                </button>
+              </div>
             </div>
             {measurementEntries.length === 0 ? (
               <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
