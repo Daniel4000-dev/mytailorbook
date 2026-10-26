@@ -572,80 +572,132 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .card {
-    border-color: var(--sf-border-light);
-  }
-
-  :root:not([data-theme="light"]) .balanceDuePill {
-    background: rgba(245, 158, 11, 0.16);
-    color: #FBBF24;
-    border-color: rgba(245, 158, 11, 0.3);
-  }
-
-  :root:not([data-theme="light"]) .paidPill {
-    background: rgba(16, 185, 129, 0.16);
-    color: #34D399;
-    border-color: rgba(16, 185, 129, 0.3);
-  }
-
-  :root:not([data-theme="light"]) .claimBtn {
-    background: rgba(16, 185, 129, 0.16);
-    color: #34D399;
-    border-color: rgba(16, 185, 129, 0.3);
-  }
-
-  :root:not([data-theme="light"]) .cardActionBtn {
-    background: rgba(30, 27, 46, 0.92);
-    border-color: rgba(255, 255, 255, 0.14);
-    color: #EDEDF5;
-  }
-
-  :root:not([data-theme="light"]) .cardActionBtn:hover {
-    background: rgba(45, 41, 68, 0.98);
-  }
-
-  :root:not([data-theme="light"]) .metaRow,
-  :root:not([data-theme="light"]) .footer {
-    border-top-color: var(--sf-border-light);
-  }
+:global([data-theme='dark']) .card {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
-:root[data-theme="dark"] .card {
-  border-color: var(--sf-border-light);
+:global([data-theme='dark']) .customerAvatar {
+  background: rgba(255, 255, 255, 0.06);
+  color: #CBD5E1;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-:root[data-theme="dark"] .balanceDuePill {
+:global([data-theme='dark']) .fabricPill {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94A3B8;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .fallbackIconCircle {
+  background: #161526;
+  color: #818CF8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .balanceDuePill {
   background: rgba(245, 158, 11, 0.16);
   color: #FBBF24;
   border-color: rgba(245, 158, 11, 0.3);
 }
 
-:root[data-theme="dark"] .paidPill {
+:global([data-theme='dark']) .paidPill {
   background: rgba(16, 185, 129, 0.16);
   color: #34D399;
   border-color: rgba(16, 185, 129, 0.3);
 }
 
-:root[data-theme="dark"] .claimBtn {
+:global([data-theme='dark']) .claimBtn {
   background: rgba(16, 185, 129, 0.16);
   color: #34D399;
   border-color: rgba(16, 185, 129, 0.3);
 }
 
-:root[data-theme="dark"] .cardActionBtn {
+:global([data-theme='dark']) .cardActionBtn {
   background: rgba(30, 27, 46, 0.92);
   border-color: rgba(255, 255, 255, 0.14);
   color: #EDEDF5;
 }
 
-:root[data-theme="dark"] .cardActionBtn:hover {
+:global([data-theme='dark']) .cardActionBtn:hover {
   background: rgba(45, 41, 68, 0.98);
 }
 
-:root[data-theme="dark"] .metaRow,
-:root[data-theme="dark"] .footer {
-  border-top-color: var(--sf-border-light);
+:global([data-theme='dark']) .moveNextBtn {
+  background: #6366F1;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+}
+
+:global([data-theme='dark']) .metaRow,
+:global([data-theme='dark']) .footer {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .card {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  }
+
+  :global(:root:not([data-theme="light"])) .customerAvatar {
+    background: rgba(255, 255, 255, 0.06);
+    color: #CBD5E1;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(:root:not([data-theme="light"])) .fabricPill {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94A3B8;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(:root:not([data-theme="light"])) .fallbackIconCircle {
+    background: #161526;
+    color: #818CF8;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .balanceDuePill {
+    background: rgba(245, 158, 11, 0.16);
+    color: #FBBF24;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .paidPill {
+    background: rgba(16, 185, 129, 0.16);
+    color: #34D399;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .claimBtn {
+    background: rgba(16, 185, 129, 0.16);
+    color: #34D399;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .cardActionBtn {
+    background: rgba(30, 27, 46, 0.92);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #EDEDF5;
+  }
+
+  :global(:root:not([data-theme="light"])) .cardActionBtn:hover {
+    background: rgba(45, 41, 68, 0.98);
+  }
+
+  :global(:root:not([data-theme="light"])) .moveNextBtn {
+    background: #6366F1;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .metaRow,
+  :global(:root:not([data-theme="light"])) .footer {
+    border-top-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
 }
 
 

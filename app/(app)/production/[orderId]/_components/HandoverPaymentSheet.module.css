@@ -148,3 +148,92 @@
   margin: 0;
   line-height: 1.4;
 }
+
+/* Dark mode adjustments */
+:global([data-theme='dark']) .container {
+  background: var(--sf-bg-surface, #161526);
+  color: var(--sf-text-primary);
+}
+
+:global([data-theme='dark']) .iconCircle {
+  background: rgba(217, 119, 6, 0.2);
+  color: #FCD34D;
+}
+
+:global([data-theme='dark']) .balanceSummary {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .summaryRow {
+  color: var(--sf-text-secondary, #A5A3BC);
+}
+
+:global([data-theme='dark']) .summaryRowTotal {
+  border-top-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .balanceDueText {
+  color: #F87171;
+}
+
+:global([data-theme='dark']) .noteInput {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .noteInput:focus {
+  border-color: #818CF8;
+}
+
+:global([data-theme='dark']) .dividerWithText::before,
+:global([data-theme='dark']) .dividerWithText::after {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .container {
+    background: var(--sf-bg-surface, #161526);
+    color: var(--sf-text-primary);
+  }
+
+  :global(:root:not([data-theme="light"])) .iconCircle {
+    background: rgba(217, 119, 6, 0.2);
+    color: #FCD34D;
+  }
+
+  :global(:root:not([data-theme="light"])) .balanceSummary {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .summaryRow {
+    color: var(--sf-text-secondary, #A5A3BC);
+  }
+
+  :global(:root:not([data-theme="light"])) .summaryRowTotal {
+    border-top-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .balanceDueText {
+    color: #F87171;
+  }
+
+  :global(:root:not([data-theme="light"])) .noteInput {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .noteInput:focus {
+    border-color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .dividerWithText::before,
+  :global(:root:not([data-theme="light"])) .dividerWithText::after {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}

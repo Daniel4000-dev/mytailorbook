@@ -257,31 +257,79 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .fabricCard {
-    background: rgba(245, 158, 11, 0.12);
-    border-color: rgba(245, 158, 11, 0.25);
-  }
-
-  :root:not([data-theme="light"]) .fabricLabel {
-    color: #FBBF24;
-  }
-
-  :root:not([data-theme="light"]) .fabricContent {
-    color: #FDE68A;
-  }
+:global([data-theme='dark']) .container {
+  background: var(--sf-bg-surface, #161526);
+  color: var(--sf-text-primary);
 }
 
-:root[data-theme="dark"] .fabricCard {
+:global([data-theme='dark']) .customerCard,
+:global([data-theme='dark']) .notesCard,
+:global([data-theme='dark']) .emptyMeasures {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .measureTile {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .printBtn,
+:global([data-theme='dark']) .actionIconBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .fabricCard {
   background: rgba(245, 158, 11, 0.12);
   border-color: rgba(245, 158, 11, 0.25);
 }
 
-:root[data-theme="dark"] .fabricLabel {
+:global([data-theme='dark']) .fabricLabel {
   color: #FBBF24;
 }
 
-:root[data-theme="dark"] .fabricContent {
+:global([data-theme='dark']) .fabricContent {
   color: #FDE68A;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .container {
+    background: var(--sf-bg-surface, #161526);
+    color: var(--sf-text-primary);
+  }
+
+  :global(:root:not([data-theme="light"])) .customerCard,
+  :global(:root:not([data-theme="light"])) .notesCard,
+  :global(:root:not([data-theme="light"])) .emptyMeasures {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .measureTile {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .printBtn,
+  :global(:root:not([data-theme="light"])) .actionIconBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .fabricCard {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  :global(:root:not([data-theme="light"])) .fabricLabel {
+    color: #FBBF24;
+  }
+
+  :global(:root:not([data-theme="light"])) .fabricContent {
+    color: #FDE68A;
+  }
 }
 

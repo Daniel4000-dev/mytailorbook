@@ -495,104 +495,158 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .scopeSegmentedControl {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.06);
-  }
-
-  :root:not([data-theme="light"]) .scopeCountBadge {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--sf-text-secondary);
-  }
-
-  :root:not([data-theme="light"]) .scopeSegmentActive {
-    background: var(--sf-bg-surface-elevated);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  }
-
-  :root:not([data-theme="light"]) .batchFilterChip {
-    background: rgba(99, 102, 241, 0.14);
-    color: #A5B4FC;
-    border-color: rgba(99, 102, 241, 0.28);
-  }
-
-  :root:not([data-theme="light"]) .atelierEmptyContainer {
-    background: var(--sf-bg-surface);
-    border-color: var(--sf-border-light);
-  }
-
-  :root:not([data-theme="light"]) .atelierCrestHalo {
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 70%, transparent 100%);
-    border-color: rgba(99, 102, 241, 0.25);
-  }
-
-  :root:not([data-theme="light"]) .crestNeedle {
-    color: var(--sf-accent-emerald-light);
-  }
-
-  :root:not([data-theme="light"]) .atelierNewOrderBtn {
-    background: #FFFFFF;
-    color: #0D0C17 !important;
-  }
-
-  :root:not([data-theme="light"]) .resetFiltersBtn {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-
-  :root:not([data-theme="light"]) .resetFiltersBtn:hover {
-    background: rgba(255, 255, 255, 0.12);
-  }
+:global([data-theme='dark']) .searchInput {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-:root[data-theme="dark"] .scopeSegmentedControl {
+:global([data-theme='dark']) .searchInput:focus {
+  border-color: #818CF8;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+:global([data-theme='dark']) .scopeSegmentedControl,
+:global([data-theme='dark']) .stageSegmentedControl {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.06);
 }
 
-:root[data-theme="dark"] .scopeCountBadge {
+:global([data-theme='dark']) .scopeCountBadge,
+:global([data-theme='dark']) .stageSegmentCount {
   background: rgba(255, 255, 255, 0.08);
   color: var(--sf-text-secondary);
 }
 
-:root[data-theme="dark"] .scopeSegmentActive {
-  background: var(--sf-bg-surface-elevated);
+:global([data-theme='dark']) .scopeSegmentActive,
+:global([data-theme='dark']) .stageSegmentActive {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
-:root[data-theme="dark"] .batchFilterChip {
-  background: rgba(99, 102, 241, 0.14);
-  color: #A5B4FC;
-  border-color: rgba(99, 102, 241, 0.28);
+:global([data-theme='dark']) .scopeSegmentActive .scopeCountBadge,
+:global([data-theme='dark']) .stageSegmentActive .stageSegmentCount {
+  background: rgba(99, 102, 241, 0.2);
+  color: #C7D2FE;
 }
 
-:root[data-theme="dark"] .atelierEmptyContainer {
-  background: var(--sf-bg-surface);
-  border-color: var(--sf-border-light);
+:global([data-theme='dark']) .batchFilterChip {
+  background: rgba(99, 102, 241, 0.16);
+  color: #C7D2FE;
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
-:root[data-theme="dark"] .atelierCrestHalo {
+:global([data-theme='dark']) .bulkAdvanceBtn {
+  background: #6366F1 !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+:global([data-theme='dark']) .atelierEmptyContainer {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .atelierCrestHalo {
   background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 70%, transparent 100%);
   border-color: rgba(99, 102, 241, 0.25);
 }
 
-:root[data-theme="dark"] .crestNeedle {
-  color: var(--sf-accent-emerald-light);
+:global([data-theme='dark']) .crestNeedle {
+  color: #34D399;
 }
 
-:root[data-theme="dark"] .atelierNewOrderBtn {
+:global([data-theme='dark']) .atelierNewOrderBtn {
   background: #FFFFFF;
   color: #0D0C17 !important;
 }
 
-:root[data-theme="dark"] .resetFiltersBtn {
+:global([data-theme='dark']) .resetFiltersBtn {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-:root[data-theme="dark"] .resetFiltersBtn:hover {
+:global([data-theme='dark']) .resetFiltersBtn:hover {
   background: rgba(255, 255, 255, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .searchInput {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  :global(:root:not([data-theme="light"])) .searchInput:focus {
+    border-color: #818CF8;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  }
+
+  :global(:root:not([data-theme="light"])) .scopeSegmentedControl,
+  :global(:root:not([data-theme="light"])) .stageSegmentedControl {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .scopeCountBadge,
+  :global(:root:not([data-theme="light"])) .stageSegmentCount {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .scopeSegmentActive,
+  :global(:root:not([data-theme="light"])) .stageSegmentActive {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .scopeSegmentActive .scopeCountBadge,
+  :global(:root:not([data-theme="light"])) .stageSegmentActive .stageSegmentCount {
+    background: rgba(99, 102, 241, 0.2);
+    color: #C7D2FE;
+  }
+
+  :global(:root:not([data-theme="light"])) .batchFilterChip {
+    background: rgba(99, 102, 241, 0.16);
+    color: #C7D2FE;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .bulkAdvanceBtn {
+    background: #6366F1 !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .atelierEmptyContainer {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .atelierCrestHalo {
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0.04) 70%, transparent 100%);
+    border-color: rgba(99, 102, 241, 0.25);
+  }
+
+  :global(:root:not([data-theme="light"])) .crestNeedle {
+    color: #34D399;
+  }
+
+  :global(:root:not([data-theme="light"])) .atelierNewOrderBtn {
+    background: #FFFFFF;
+    color: #0D0C17 !important;
+  }
+
+  :global(:root:not([data-theme="light"])) .resetFiltersBtn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  :global(:root:not([data-theme="light"])) .resetFiltersBtn:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
 }
 
 /* Clear filter chip */
@@ -700,55 +754,55 @@
   border-color: rgba(99, 102, 241, 0.35);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .demoBanner {
-    background: rgba(99, 102, 241, 0.14);
-    border-color: rgba(99, 102, 241, 0.3);
-  }
-
-  :root:not([data-theme="light"]) .demoBannerLeft strong {
-    color: #A5B4FC;
-  }
-
-  :root:not([data-theme="light"]) .demoExitBtn {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.14);
-    color: #FFFFFF;
-  }
-
-  :root:not([data-theme="light"]) .demoLaunchBtn {
-    background: rgba(99, 102, 241, 0.18);
-    color: #C7D2FE;
-    border-color: rgba(99, 102, 241, 0.35);
-  }
-
-  :root:not([data-theme="light"]) .clearFilterChip:hover {
-    background: rgba(255, 255, 255, 0.06);
-  }
-}
-
-:root[data-theme="dark"] .demoBanner {
+:global([data-theme='dark']) .demoBanner {
   background: rgba(99, 102, 241, 0.14);
   border-color: rgba(99, 102, 241, 0.3);
 }
 
-:root[data-theme="dark"] .demoBannerLeft strong {
+:global([data-theme='dark']) .demoBannerLeft strong {
   color: #A5B4FC;
 }
 
-:root[data-theme="dark"] .demoExitBtn {
+:global([data-theme='dark']) .demoExitBtn {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.14);
   color: #FFFFFF;
 }
 
-:root[data-theme="dark"] .demoLaunchBtn {
+:global([data-theme='dark']) .demoLaunchBtn {
   background: rgba(99, 102, 241, 0.18);
   color: #C7D2FE;
   border-color: rgba(99, 102, 241, 0.35);
 }
 
-:root[data-theme="dark"] .clearFilterChip:hover {
+:global([data-theme='dark']) .clearFilterChip:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .demoBanner {
+    background: rgba(99, 102, 241, 0.14);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .demoBannerLeft strong {
+    color: #A5B4FC;
+  }
+
+  :global(:root:not([data-theme="light"])) .demoExitBtn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .demoLaunchBtn {
+    background: rgba(99, 102, 241, 0.18);
+    color: #C7D2FE;
+    border-color: rgba(99, 102, 241, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .clearFilterChip:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 

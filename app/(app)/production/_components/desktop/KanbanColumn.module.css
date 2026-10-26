@@ -170,31 +170,65 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .column {
-    background: rgba(99, 102, 241, 0.04);
-  }
-
-  :root:not([data-theme="light"]) .columnEmpty {
-    border-color: rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  :root:not([data-theme="light"]) .showMoreBtn:hover {
-    background: var(--sf-bg-surface-elevated);
-  }
+:global([data-theme='dark']) .column {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
-:root[data-theme="dark"] .column {
-  background: rgba(99, 102, 241, 0.04);
+:global([data-theme='dark']) .columnHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
-:root[data-theme="dark"] .columnEmpty {
+:global([data-theme='dark']) .columnCount {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .columnEmpty {
   border-color: rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.02);
 }
 
-:root[data-theme="dark"] .showMoreBtn:hover {
-  background: var(--sf-bg-surface-elevated);
+:global([data-theme='dark']) .showMoreBtn {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #34D399;
+}
+
+:global([data-theme='dark']) .showMoreBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .column {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  }
+
+  :global(:root:not([data-theme="light"])) .columnHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .columnCount {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .columnEmpty {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  :global(:root:not([data-theme="light"])) .showMoreBtn {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #34D399;
+  }
+
+  :global(:root:not([data-theme="light"])) .showMoreBtn:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 

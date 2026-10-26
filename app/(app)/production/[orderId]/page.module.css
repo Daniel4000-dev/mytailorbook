@@ -1833,64 +1833,128 @@
 }
 
 /* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .card {
-    border-color: var(--sf-border-light);
-  }
-
-  :root:not([data-theme="light"]) .mobileTabRow {
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  :root:not([data-theme="light"]) .mobileActiveTab {
-    background: var(--sf-bg-surface-elevated);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  }
-
-  :root:not([data-theme="light"]) .mobileStickyBottomBar {
-    background: rgba(27, 26, 43, 0.96);
-    border-top-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
-  }
-
-  :root:not([data-theme="light"]) .stickyAlterationSquareBtn,
-  :root:not([data-theme="light"]) .stickyAlterationFullBtn {
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-
-  :root:not([data-theme="light"]) .stageCurrentBadge {
-    background: rgba(16, 185, 129, 0.2);
-    color: #34D399;
-  }
+:global([data-theme='dark']) .card {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
-:root[data-theme="dark"] .card {
-  border-color: var(--sf-border-light);
-}
-
-:root[data-theme="dark"] .mobileTabRow {
+:global([data-theme='dark']) .reworkBtn {
   background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
 }
 
-:root[data-theme="dark"] .mobileActiveTab {
-  background: var(--sf-bg-surface-elevated);
+:global([data-theme='dark']) .advanceBtn {
+  background: #6366F1;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+:global([data-theme='dark']) .mobileTabRow {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .mobileActiveTab {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-:root[data-theme="dark"] .mobileStickyBottomBar {
-  background: rgba(27, 26, 43, 0.96);
+:global([data-theme='dark']) .mobileStickyBottomBar {
+  background: rgba(22, 21, 38, 0.94);
+  backdrop-filter: blur(20px);
   border-top-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
 }
 
-:root[data-theme="dark"] .stickyAlterationSquareBtn,
-:root[data-theme="dark"] .stickyAlterationFullBtn {
+:global([data-theme='dark']) .stickyAlterationSquareBtn,
+:global([data-theme='dark']) .stickyAlterationFullBtn {
+  background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
 }
 
-:root[data-theme="dark"] .stageCurrentBadge {
+:global([data-theme='dark']) .stageCurrentBadge {
   background: rgba(16, 185, 129, 0.2);
   color: #34D399;
+}
+
+:global([data-theme='dark']) .stageOptionBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .stageOptionBtn:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+:global([data-theme='dark']) .alterationTextarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .card {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  }
+
+  :global(:root:not([data-theme="light"])) .reworkBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .advanceBtn {
+    background: #6366F1;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .mobileTabRow {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .mobileActiveTab {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .mobileStickyBottomBar {
+    background: rgba(22, 21, 38, 0.94);
+    backdrop-filter: blur(20px);
+    border-top-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .stickyAlterationSquareBtn,
+  :global(:root:not([data-theme="light"])) .stickyAlterationFullBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .stageCurrentBadge {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34D399;
+  }
+
+  :global(:root:not([data-theme="light"])) .stageOptionBtn {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .stageOptionBtn:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  :global(:root:not([data-theme="light"])) .alterationTextarea {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
 }
 
 

@@ -69,3 +69,23 @@
   border-radius: var(--sf-radius-full);
   white-space: nowrap;
 }
+
+:global([data-theme='dark']) .banner {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .countChip {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .banner {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .countChip {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+}
