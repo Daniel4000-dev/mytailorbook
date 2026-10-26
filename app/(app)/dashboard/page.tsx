@@ -13,7 +13,7 @@ import styles from './page.module.css';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, loading } = useAuth();
   const { orders, staffMembers, isLoaded } = useData();
 
   const topBar = (
@@ -22,7 +22,7 @@ export default function DashboardPage() {
     />
   );
 
-  if (!isLoaded) {
+  if (loading || !isLoaded) {
     return (
       <PageLayout className={styles.pageGrid} header={topBar}>
         <DashboardSkeleton />

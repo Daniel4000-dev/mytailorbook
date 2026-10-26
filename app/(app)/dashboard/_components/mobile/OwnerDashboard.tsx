@@ -38,6 +38,7 @@ export default function OwnerDashboard({
     collected,
     monthlyRevenue,
     urgentCount,
+    dueTodayCount,
     uncutFabricsCount,
     inProductionCount,
     readyCount,
