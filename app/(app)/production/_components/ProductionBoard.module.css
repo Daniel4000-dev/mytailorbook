@@ -457,7 +457,7 @@
   align-items: center;
   gap: 7px;
   background: rgba(99, 102, 241, 0.08);
-  color: var(--sf-accent-indigo);
+  color: var(--sf-brand-indigo, #4338CA);
   border: 1px solid rgba(99, 102, 241, 0.22);
   padding: 10px 18px;
   border-radius: var(--sf-radius-full);
@@ -667,7 +667,7 @@
 
 .clearFilterChip:hover {
   color: var(--sf-text-primary);
-  border-color: var(--sf-border-hover);
+  border-color: var(--sf-border);
   background: rgba(0, 0, 0, 0.03);
 }
 
@@ -695,7 +695,7 @@
 }
 
 .demoBannerLeft strong {
-  color: var(--sf-accent-indigo);
+  color: var(--sf-brand-indigo, #4338CA);
   font-weight: 700;
 }
 
@@ -715,7 +715,7 @@
 
 .demoExitBtn:hover {
   background: var(--sf-bg-surface-elevated);
-  border-color: var(--sf-border-hover);
+  border-color: var(--sf-border);
 }
 
 /* Empty Prompt Banner */
@@ -738,7 +738,7 @@
   align-items: center;
   gap: 6px;
   background: rgba(99, 102, 241, 0.09);
-  color: var(--sf-accent-indigo);
+  color: var(--sf-brand-indigo, #4338CA);
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: var(--sf-radius-full);
   padding: 6px 14px;

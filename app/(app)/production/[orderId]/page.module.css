@@ -1398,7 +1398,7 @@
 
 .exceptionResolveBtn {
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-color);
+  border: 1px solid var(--sf-border);
   color: var(--sf-text-primary);
   padding: 6px 14px;
   border-radius: var(--sf-radius-full);
@@ -1439,7 +1439,7 @@
 }
 
 .logExceptionBtn:hover {
-  border-color: var(--sf-border-hover);
+  border-color: var(--sf-border);
   color: var(--sf-text-primary);
   background: var(--sf-bg-surface-hover);
 }
@@ -1894,6 +1894,17 @@
   color: #FFFFFF;
 }
 
+:global([data-theme='dark']) .exceptionResolveBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .exceptionResolveBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #FBBF24;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .card {
     background: var(--sf-bg-surface, #161526);
@@ -1954,6 +1965,17 @@
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.12);
     color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .exceptionResolveBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .exceptionResolveBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #FBBF24;
   }
 }
 
