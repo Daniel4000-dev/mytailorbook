@@ -20,6 +20,7 @@ import KanbanColumns from './desktop/KanbanColumns';
 import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
 import ProductionBoardSkeleton from './ProductionBoardSkeleton';
 import CuttingSlipModal from './CuttingSlipModal';
+import ProductionFilterSheet from './ProductionFilterSheet';
 import styles from './ProductionBoard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
@@ -43,6 +44,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
   const [batchFilterId, setBatchFilterId] = useState<string | null>(null);
   const [opFilter, setOpFilter] = useState<OpFilter>('all');
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
   const [handoverOrder, setHandoverOrder] = useState<Order | null>(null);
   const [amendmentOrder, setAmendmentOrder] = useState<Order | null>(null);
@@ -333,10 +335,32 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   }, [orders, filterMyTasks, staffFilterId, batchFilterId, opFilter, searchQuery, user, userRole, exceptions]);
 
   const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Delivered'), [orders]);
+  const totalOrdersCount = activeOrders.length;
+  const myOrdersCount = useMemo(() => activeOrders.filter(o => o.assignedTo === user?.uid).length, [activeOrders, user]);
   const rushCount = useMemo(() => activeOrders.filter(o => o.priority === 'rush' || o.priority === 'urgent').length, [activeOrders]);
   const dueCount = useMemo(() => activeOrders.filter(o => isOverdue(o) || isDueSoon(o)).length, [activeOrders]);
   const holdCount = useMemo(() => activeOrders.filter(o => exceptions.some(e => e.orderId === o.id && !e.endDate)).length, [activeOrders, exceptions]);
   const unpaidCount = useMemo(() => activeOrders.filter(o => getBalanceOwed(o) > 0).length, [activeOrders]);
+
+  const activeAttentionFiltersCount = useMemo(() => {
+    let count = 0;
+    if (isOwnerLikeRole(userRole) && filterMyTasks) count++;
+    if (staffFilterId) count++;
+    if (batchFilterId) count++;
+    if (opFilter !== 'all') count++;
+    return count;
+  }, [userRole, filterMyTasks, staffFilterId, batchFilterId, opFilter]);
+
+  const hasAttentionAlert = rushCount > 0 || dueCount > 0 || holdCount > 0;
+
+  const handleClearAllAttentionFilters = useCallback(() => {
+    setOpFilter('all');
+    if (isOwnerLikeRole(userRole)) {
+      setFilterMyTasks(false);
+    }
+    setStaffFilterId(null);
+    setBatchFilterId(null);
+  }, [userRole]);
 
   const batchOrders = useMemo(
     () => (batchFilterId ? orders.filter((o) => o.batchId === batchFilterId) : []),
@@ -468,25 +492,44 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         </div>
       )}
 
-      {/* Atelier Toolbar: Search + Apple Segmented Scope Switcher */}
+      {/* Atelier Toolbar: Search + Mobile Filter Button + Desktop Scope Switcher */}
       <div className={styles.boardToolbar}>
-        <div className={styles.searchBar}>
-          <Symbol name="search" className={styles.searchIcon} />
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search by customer or garment…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button type="button" className={styles.searchClearBtn} onClick={() => setSearchQuery('')} aria-label="Clear search">
-              <Symbol name="close" />
+        <div className={styles.searchBarWrap}>
+          <div className={styles.searchBar}>
+            <Symbol name="search" className={styles.searchIcon} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search by customer or garment…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button type="button" className={styles.searchClearBtn} onClick={() => setSearchQuery('')} aria-label="Clear search">
+                <Symbol name="close" />
+              </button>
+            )}
+          </div>
+
+          {!isDesktop && (
+            <button
+              type="button"
+              className={`${styles.filterMenuBtn} ${activeAttentionFiltersCount > 0 ? styles.filterMenuBtnActive : ''}`}
+              onClick={() => setIsFilterSheetOpen(true)}
+              aria-label="Filter orders"
+            >
+              <Symbol name="tune" size={16} />
+              <span className={styles.filterMenuBtnText}>Filter</span>
+              {activeAttentionFiltersCount > 0 ? (
+                <span className={styles.filterCountBadge}>{activeAttentionFiltersCount}</span>
+              ) : hasAttentionAlert ? (
+                <span className={styles.filterAlertDot} title="Items need attention" />
+              ) : null}
             </button>
           )}
         </div>
 
-        {isOwnerLikeRole(userRole) && !staffFilterId && (
+        {isDesktop && isOwnerLikeRole(userRole) && !staffFilterId && (
           <div className={styles.scopeSegmentedControl} role="tablist" aria-label="Order Scope">
             <button
               type="button"
@@ -496,9 +539,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
               onClick={() => setFilterMyTasks(false)}
             >
               <span>All Orders</span>
-              <span className={styles.scopeCountBadge}>
-                {orders.filter((o) => o.status !== 'Delivered').length}
-              </span>
+              <span className={styles.scopeCountBadge}>{totalOrdersCount}</span>
             </button>
             <button
               type="button"
@@ -508,58 +549,160 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
               onClick={() => setFilterMyTasks(true)}
             >
               <span>My Orders</span>
-              <span className={styles.scopeCountBadge}>
-                {orders.filter((o) => o.assignedTo === user?.uid && o.status !== 'Delivered').length}
-              </span>
+              <span className={styles.scopeCountBadge}>{myOrdersCount}</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* Operational Attention Filter Bar (Spotlight toggles, no competing 'All Tasks' button) */}
-      <div className={styles.opFilterRow}>
-        <FilterPill
-          label="Rush"
-          icon={<Symbol name="bolt" size={12} fill />}
-          count={rushCount > 0 ? rushCount : undefined}
-          active={opFilter === 'rush'}
-          onClick={() => setOpFilter(opFilter === 'rush' ? 'all' : 'rush')}
-        />
-        <FilterPill
-          label="Due Soon"
-          icon={<Symbol name="schedule" size={12} />}
-          count={dueCount > 0 ? dueCount : undefined}
-          active={opFilter === 'due'}
-          onClick={() => setOpFilter(opFilter === 'due' ? 'all' : 'due')}
-        />
-        <FilterPill
-          label="On Hold"
-          icon={<Symbol name="warning" size={12} />}
-          count={holdCount > 0 ? holdCount : undefined}
-          active={opFilter === 'hold'}
-          onClick={() => setOpFilter(opFilter === 'hold' ? 'all' : 'hold')}
-        />
-        <FilterPill
-          label="Balance Due"
-          icon={<Symbol name="payments" size={12} />}
-          count={unpaidCount > 0 ? unpaidCount : undefined}
-          active={opFilter === 'unpaid'}
-          onClick={() => setOpFilter(opFilter === 'unpaid' ? 'all' : 'unpaid')}
-        />
-        {opFilter !== 'all' && (
+      {/* Active Filter Strip (Mobile: visible only when attention/scope filters active) */}
+      {!isDesktop && activeAttentionFiltersCount > 0 && (
+        <div className={styles.activeFilterStrip}>
+          {isOwnerLikeRole(userRole) && filterMyTasks && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setFilterMyTasks(false)}
+              aria-label="Remove My Orders filter"
+            >
+              <span>My Orders</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
+          {opFilter === 'rush' && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setOpFilter('all')}
+              aria-label="Remove Rush filter"
+            >
+              <Symbol name="bolt" size={12} fill />
+              <span>Rush</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
+          {opFilter === 'due' && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setOpFilter('all')}
+              aria-label="Remove Due Soon filter"
+            >
+              <Symbol name="schedule" size={12} />
+              <span>Due Soon</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
+          {opFilter === 'hold' && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setOpFilter('all')}
+              aria-label="Remove On Hold filter"
+            >
+              <Symbol name="warning" size={12} />
+              <span>On Hold</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
+          {opFilter === 'unpaid' && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setOpFilter('all')}
+              aria-label="Remove Balance Due filter"
+            >
+              <Symbol name="payments" size={12} />
+              <span>Balance Due</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
+          {staffFilterId && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setStaffFilterId(null)}
+              aria-label="Remove Staff filter"
+            >
+              <span>{staffFilterName || 'Staff'}</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
+          {batchFilterId && (
+            <button
+              type="button"
+              className={styles.activeFilterTag}
+              onClick={() => setBatchFilterId(null)}
+              aria-label="Remove Batch filter"
+            >
+              <Symbol name="layers" size={12} />
+              <span>Batch</span>
+              <Symbol name="close" size={12} />
+            </button>
+          )}
+
           <button
             type="button"
-            className={styles.clearFilterChip}
-            onClick={() => setOpFilter('all')}
-            title="Clear attention filter"
+            className={styles.activeFilterClearAll}
+            onClick={handleClearAllAttentionFilters}
           >
-            <span>Show all</span>
-            <Symbol name="close" size={11} />
+            Clear all
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {staffFilterId && (
+      {/* Desktop Operational Attention Filter Bar */}
+      {isDesktop && (
+        <div className={styles.opFilterRow}>
+          <FilterPill
+            label="Rush"
+            icon={<Symbol name="bolt" size={12} fill />}
+            count={rushCount > 0 ? rushCount : undefined}
+            active={opFilter === 'rush'}
+            onClick={() => setOpFilter(opFilter === 'rush' ? 'all' : 'rush')}
+          />
+          <FilterPill
+            label="Due Soon"
+            icon={<Symbol name="schedule" size={12} />}
+            count={dueCount > 0 ? dueCount : undefined}
+            active={opFilter === 'due'}
+            onClick={() => setOpFilter(opFilter === 'due' ? 'all' : 'due')}
+          />
+          <FilterPill
+            label="On Hold"
+            icon={<Symbol name="warning" size={12} />}
+            count={holdCount > 0 ? holdCount : undefined}
+            active={opFilter === 'hold'}
+            onClick={() => setOpFilter(opFilter === 'hold' ? 'all' : 'hold')}
+          />
+          <FilterPill
+            label="Balance Due"
+            icon={<Symbol name="payments" size={12} />}
+            count={unpaidCount > 0 ? unpaidCount : undefined}
+            active={opFilter === 'unpaid'}
+            onClick={() => setOpFilter(opFilter === 'unpaid' ? 'all' : 'unpaid')}
+          />
+          {opFilter !== 'all' && (
+            <button
+              type="button"
+              className={styles.clearFilterChip}
+              onClick={() => setOpFilter('all')}
+              title="Clear attention filter"
+            >
+              <span>Show all</span>
+              <Symbol name="close" size={11} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {isDesktop && staffFilterId && (
         <div className={styles.staffFilterChip}>
           <span>Viewing orders assigned to <strong>{staffFilterName || 'staff member'}</strong></span>
           <button type="button" onClick={() => setStaffFilterId(null)} aria-label="Clear filter">
@@ -691,6 +834,37 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         confirmLabel="Record Amendments"
         cancelLabel="No, Fits Perfectly"
         destructive={false}
+      />
+
+      <ProductionFilterSheet
+        isOpen={isFilterSheetOpen}
+        onClose={() => setIsFilterSheetOpen(false)}
+        filterMyTasks={filterMyTasks}
+        setFilterMyTasks={setFilterMyTasks}
+        staffFilterId={staffFilterId}
+        setStaffFilterId={setStaffFilterId}
+        staffMembers={staffMembers}
+        isOwnerLike={isOwnerLikeRole(userRole)}
+        totalOrdersCount={totalOrdersCount}
+        myOrdersCount={myOrdersCount}
+        opFilter={opFilter}
+        setOpFilter={setOpFilter}
+        rushCount={rushCount}
+        dueCount={dueCount}
+        holdCount={holdCount}
+        unpaidCount={unpaidCount}
+        onReset={() => {
+          setOpFilter('all');
+          if (isOwnerLikeRole(userRole)) {
+            setFilterMyTasks(false);
+          }
+          setStaffFilterId(null);
+        }}
+        hasActiveFilters={Boolean(
+          (isOwnerLikeRole(userRole) && filterMyTasks) ||
+          staffFilterId !== null ||
+          opFilter !== 'all'
+        )}
       />
     </>
   );

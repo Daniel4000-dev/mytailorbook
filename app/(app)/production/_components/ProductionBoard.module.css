@@ -31,6 +31,33 @@
     justify-content: space-between;
     gap: var(--sf-space-md);
   }
+
+  .searchBarWrap {
+    flex: 1;
+    max-width: 480px;
+  }
+
+  .filterMenuBtn {
+    display: none;
+  }
+
+  .activeFilterStrip {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .scopeSegmentedControl,
+  .opFilterRow {
+    display: none;
+  }
+}
+
+.searchBarWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
 }
 
 .searchBar {
@@ -38,6 +65,108 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
+}
+
+.filterMenuBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.filterMenuBtn:active {
+  transform: scale(0.96);
+}
+
+.filterMenuBtnActive {
+  background: rgba(67, 56, 202, 0.09);
+  border-color: var(--sf-brand-indigo, #4338CA);
+  color: var(--sf-brand-indigo, #4338CA);
+}
+
+.filterMenuBtnText {
+  font-size: 12.5px;
+}
+
+.filterCountBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.filterAlertDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #EF4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.activeFilterStrip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: var(--sf-space-sm);
+  padding-bottom: 2px;
+}
+
+.activeFilterStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.activeFilterTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--sf-transition-fast);
+}
+
+.activeFilterTag:active {
+  transform: scale(0.95);
+}
+
+.activeFilterClearAll {
+  background: transparent;
+  border: none;
+  color: var(--sf-text-tertiary);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 4px 8px;
+  text-decoration: underline;
 }
 
 .scopeSegmentedControl {
@@ -779,6 +908,30 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+:global([data-theme='dark']) .filterMenuBtn {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-secondary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .filterMenuBtnActive {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: #818CF8;
+  color: #C7D2FE;
+}
+
+:global([data-theme='dark']) .filterCountBadge {
+  background: #6366F1;
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .activeFilterTag {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #C7D2FE;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .demoBanner {
     background: rgba(99, 102, 241, 0.14);
@@ -803,6 +956,30 @@
 
   :global(:root:not([data-theme="light"])) .clearFilterChip:hover {
     background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .filterMenuBtn {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--sf-text-secondary);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .filterMenuBtnActive {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: #818CF8;
+    color: #C7D2FE;
+  }
+
+  :global(:root:not([data-theme="light"])) .filterCountBadge {
+    background: #6366F1;
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .activeFilterTag {
+    background: rgba(99, 102, 241, 0.16);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #C7D2FE;
   }
 }
 
