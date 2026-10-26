@@ -25,7 +25,7 @@ import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
-import { formatCurrency, formatDate, formatPhone, getWhatsAppLink, truncateText, formatMonthYear, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements, Customer, Order, OrderPhoto } from '@/lib/types';
 import { compressImage } from '@/lib/compressImage';
@@ -123,8 +123,6 @@ function CustomerProfileContent({
     router.push(ROUTES.customers);
   };
 
-  // Initialize from customer measurements — this component only mounts once
-  // real customer data is available, so these initializers see real values.
   const [measurements, setMeasurements] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     if (customer.measurements) {
@@ -146,19 +144,22 @@ function CustomerProfileContent({
   const [uploadingFabric, setUploadingFabric] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
 
-  const id = customer.id;
-  const custOrders = orders
-    .filter((o) => o.customerId === id)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const totalSpend = custOrders.reduce((s, o) => s + o.totalBill, 0);
-  const totalOwed = custOrders.reduce((s, o) => s + getBalanceOwed(o), 0);
+  const custOrders = useMemo(
+    () =>
+      orders
+        .filter((o) => o.customerId === customer.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [orders, customer.id]
+  );
+  const totalSpend = useMemo(() => custOrders.reduce((s, o) => s + o.totalBill, 0), [custOrders]);
+  const totalOwed = useMemo(() => custOrders.reduce((s, o) => s + getBalanceOwed(o), 0), [custOrders]);
 
-  // Order rows are plain divs (not <Link>), so warm their routes proactively
-  // rather than waiting for the click.
+  const hasActiveOrder = useMemo(() => custOrders.some((o) => o.status !== 'Delivered'), [custOrders]);
+  const hasReadyOrder = useMemo(() => custOrders.some((o) => o.status === 'Ready'), [custOrders]);
+
   useEffect(() => {
-    custOrders.slice(0, 30).forEach((o) => router.prefetch(`/production/${o.id}`));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customer.id]);
+    custOrders.slice(0, 30).forEach((o) => router.prefetch(ROUTES.productionOrder(o.id)));
+  }, [custOrders, router]);
 
   const stylePhotos = useMemo(() => getStylePhotos(GARMENT_STYLES), []);
   const profileEntries = useMemo(
@@ -175,9 +176,9 @@ function CustomerProfileContent({
   };
 
   const handleMeasurementChange = (pointId: string, val: string) => {
-    setMeasurements(prev => ({
+    setMeasurements((prev) => ({
       ...prev,
-      [pointId]: val
+      [pointId]: val,
     }));
   };
 
@@ -236,9 +237,9 @@ function CustomerProfileContent({
   const handleSaveMeasurement = () => {
     if (selectedPoint) {
       const newVal = currentValue;
-      setMeasurements(prev => ({
+      setMeasurements((prev) => ({
         ...prev,
-        [selectedPoint.id]: newVal
+        [selectedPoint.id]: newVal,
       }));
 
       const updatedMeasurements: Measurements = {
@@ -267,7 +268,7 @@ function CustomerProfileContent({
 
   const handleClearMeasurement = () => {
     if (selectedPoint) {
-      setMeasurements(prev => {
+      setMeasurements((prev) => {
         const copy = { ...prev };
         delete copy[selectedPoint.id];
         return copy;
@@ -355,144 +356,121 @@ function CustomerProfileContent({
           title="Client Profile"
           showBack
           rightAction={
-            <button type="button" className={styles.editBtn} onClick={() => setEditOpen(true)} aria-label="Edit profile">
-              <Symbol name="edit" size={22} />
+            <button
+              type="button"
+              className={styles.editBtn}
+              onClick={() => setEditOpen(true)}
+              aria-label="Edit profile"
+            >
+              <Symbol name="edit" size={20} />
             </button>
           }
         />
       }
     >
-      {/* Desktop: identity + quick stats span the full width as one band up
-         top, then the record detail (styles/measurements/notes/orders)
-         splits into two columns below it. Mobile: all wrappers are plain
-         blocks, so nothing about the visual order changes there. */}
       <div className={styles.profileBar}>
-      {/* Profile header */}
-      <section className={styles.profileHeader}>
-        <Avatar name={customer.fullName} size="xl" shape="squircle" />
-        <h2 className={styles.name}>{customer.fullName}</h2>
-        <div className={styles.metaRow}>
-          <span style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', fontWeight: 500 }}>
-            {formatPhone(customer.whatsappNumber)}
-          </span>
-          <button
-            type="button"
-            className={styles.genderTag}
-            onClick={() => setEditOpen(true)}
-            title="Tap to edit gender / profile"
-          >
-            {customer.gender}
-          </button>
-        </div>
-
-        {FEATURE_FLAGS.customerAddress && customer.address && (
-          <span className={styles.customerAddress}>
-            <Symbol name="location_on" size={12} /> {customer.address}
-          </span>
-        )}
-
-        {customer.birthdate && (
-          <span className={styles.customerAddress}>
-            <Symbol name="cake" size={12} /> Born {customer.birthdate}
-          </span>
-        )}
-
-        {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
-          <div className={styles.storeCreditBadge}>
-            <Symbol name="account_balance_wallet" size={14} />
-            Store Credit: {new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(customer.wallet_balance)}
-          </div>
-        )}
-
-        {/* Apple Contacts Action Strip */}
-        <div className={styles.appleActionStrip}>
-          <button
-            type="button"
-            className={styles.applePrimaryActionBtn}
-            onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}
-          >
-            <Symbol name="add_circle" size={18} />
-            <span>New Order</span>
-          </button>
-          <a
-            href={getWhatsAppLink(customer.whatsappNumber)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.appleSecondaryActionBtn}
-          >
-            <WhatsappIcon size={18} />
-            <span>WhatsApp</span>
-          </a>
-          <a href={`tel:+${customer.whatsappNumber}`} className={styles.appleSecondaryActionBtn}>
-            <Symbol name="call" size={18} />
-            <span>Call</span>
-          </a>
-        </div>
-
-        {/* Instagram-Style Metric Strip */}
-        <div className={styles.metricStrip}>
-          <div className={styles.metricItem} onClick={() => setActiveTab('orders')}>
-            <span className={styles.metricVal}>{custOrders.length}</span>
-            <span className={styles.metricLabel}>Orders</span>
-          </div>
-          <div className={styles.metricDivider} />
-          <div className={styles.metricItem} onClick={() => setActiveTab('orders')}>
-            <span className={styles.metricVal}>{formatCurrency(totalSpend)}</span>
-            <span className={styles.metricLabel}>Total Spent</span>
-          </div>
-          <div className={styles.metricDivider} />
-          <div className={styles.metricItem} onClick={() => setActiveTab('orders')}>
-            <span className={`${styles.metricVal} ${totalOwed > 0 ? styles.warn : ''}`}>
-              {formatCurrency(totalOwed)}
-            </span>
-            <span className={styles.metricLabel}>
-              {totalOwed > 0 ? 'Balance Due' : 'Zero Debt'}
-            </span>
-          </div>
-        </div>
-
-        {/* iOS Segmented Control */}
-        <div className={styles.segmentedControl}>
-          <button
-            type="button"
-            className={`${styles.segmentBtn} ${activeTab === 'measurements' ? styles.segmentActive : ''}`}
-            onClick={() => setActiveTab('measurements')}
-          >
-            <Symbol name="straighten" size={16} />
-            <span>Fit & Styles</span>
-          </button>
-          <button
-            type="button"
-            className={`${styles.segmentBtn} ${activeTab === 'fabrics' ? styles.segmentActive : ''}`}
-            onClick={() => setActiveTab('fabrics')}
-          >
-            <Symbol name="texture" size={16} />
-            <span>Fabric Stash ({(customer.fabrics || []).length})</span>
-          </button>
-          <button
-            type="button"
-            className={`${styles.segmentBtn} ${activeTab === 'orders' ? styles.segmentActive : ''}`}
-            onClick={() => setActiveTab('orders')}
-          >
-            <Symbol name="inventory_2" size={16} />
-            <span>Orders ({custOrders.length})</span>
-          </button>
-        </div>
-      </section>
-      </div>
-
-      {/* ── TAB 1: MEASUREMENTS & STYLES ── */}
-      {activeTab === 'measurements' && (
-        <div className={styles.tabContent}>
-          {/* Garment Style Profiles (Instagram Highlights Carousel) */}
-          <section className={styles.section}>
-            <div className={styles.sectionTitleRow}>
-              <h3 className={styles.sectionTitle}>Garment Style Profiles</h3>
-              <button type="button" className={styles.newBtn} onClick={() => setStyleSheet({ open: true, style: null })}>
-                <Symbol name="add" size={18} /> NEW
-              </button>
+        {/* ── 1. Luxury Profile Header (Instagram Profile Style) ── */}
+        <section className={styles.profileHeader}>
+          {/* Avatar with Gradient / Ready Ring */}
+          <div className={styles.avatarWrap}>
+            <div
+              className={`${styles.avatarRing} ${
+                hasReadyOrder
+                  ? styles.ringReady
+                  : hasActiveOrder
+                  ? styles.ringGradient
+                  : styles.ringNeutral
+              }`}
+            >
+              <div className={styles.avatarInner}>
+                <Avatar name={customer.fullName} size="xl" shape="circle" />
+              </div>
             </div>
+            {hasReadyOrder ? (
+              <span className={styles.onlineBadge} title="Ready for pickup" />
+            ) : hasActiveOrder ? (
+              <span className={styles.activeBadge} title="Garment in production" />
+            ) : null}
+          </div>
 
+          <h2 className={styles.name}>{customer.fullName}</h2>
+
+          <div className={styles.metaRow}>
+            <span className={styles.phoneText}>{formatPhone(customer.whatsappNumber)}</span>
+            {customer.gender && (
+              <button
+                type="button"
+                className={styles.genderTag}
+                onClick={() => setEditOpen(true)}
+                title="Tap to edit gender"
+              >
+                {customer.gender}
+              </button>
+            )}
+          </div>
+
+          {FEATURE_FLAGS.customerAddress && customer.address && (
+            <span className={styles.customerAddress}>
+              <Symbol name="storefront" size={12} /> {customer.address}
+            </span>
+          )}
+
+          {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
+            <div className={styles.storeCreditBadge}>
+              <Symbol name="account_balance_wallet" size={14} />
+              Store Credit: {formatCurrency(customer.wallet_balance)}
+            </div>
+          )}
+
+          {/* Borderless Instagram-Style 3-Metric Pulse */}
+          <div className={styles.metricStrip}>
+            <div className={styles.metricItem} onClick={() => setActiveTab('orders')} title="View orders">
+              <span className={styles.metricVal}>{custOrders.length}</span>
+              <span className={styles.metricLabel}>Orders</span>
+            </div>
+            <div className={styles.metricDivider} />
+            <div className={styles.metricItem} onClick={() => setActiveTab('orders')} title="View total spent">
+              <span className={styles.metricVal}>{formatCurrency(totalSpend)}</span>
+              <span className={styles.metricLabel}>Total Spent</span>
+            </div>
+            <div className={styles.metricDivider} />
+            <div className={styles.metricItem} onClick={() => setActiveTab('orders')} title="View balance due">
+              <span className={`${styles.metricVal} ${totalOwed > 0 ? styles.warn : ''}`}>
+                {formatCurrency(totalOwed)}
+              </span>
+              <span className={styles.metricLabel}>
+                {totalOwed > 0 ? 'Balance Due' : 'Zero Debt'}
+              </span>
+            </div>
+          </div>
+
+          {/* Apple Contacts Action Strip */}
+          <div className={styles.appleActionStrip}>
+            <button
+              type="button"
+              className={styles.applePrimaryActionBtn}
+              onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}
+            >
+              <Symbol name="add_circle" size={17} />
+              <span>New Order</span>
+            </button>
+            <a
+              href={getWhatsAppLink(customer.whatsappNumber)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.appleSecondaryActionBtn}
+            >
+              <WhatsappIcon size={16} />
+              <span>WhatsApp</span>
+            </a>
+            <a href={`tel:+${customer.whatsappNumber}`} className={styles.appleSecondaryActionBtn}>
+              <Symbol name="call" size={16} />
+              <span>Call</span>
+            </a>
+          </div>
+
+          {/* ── 2. Promoted Instagram Story Highlights (Garment Style Profiles) ── */}
+          <div className={styles.highlightsSection}>
             <div className={styles.highlightsCarousel}>
               {profileEntries.map(([styleName, profile]) => {
                 const pointsCount = Object.keys(profile.measurements || {}).length;
@@ -502,13 +480,20 @@ function CustomerProfileContent({
                     type="button"
                     className={styles.highlightCard}
                     onClick={() => setStyleSheet({ open: true, style: styleName })}
+                    title={`View ${styleName} measurements`}
                   >
                     <div className={styles.highlightPhotoWrap}>
                       {stylePhotos[styleName] ? (
-                        <Image src={stylePhotos[styleName]} alt="" width={72} height={72} className={styles.highlightImg} />
+                        <Image
+                          src={stylePhotos[styleName]}
+                          alt={styleName}
+                          width={64}
+                          height={64}
+                          className={styles.highlightImg}
+                        />
                       ) : (
                         <div className={styles.highlightPlaceholder}>
-                          <Symbol name="checkroom" size={28} />
+                          <Symbol name="checkroom" size={24} />
                         </div>
                       )}
                     </div>
@@ -521,16 +506,50 @@ function CustomerProfileContent({
                 type="button"
                 className={styles.highlightCard}
                 onClick={() => setStyleSheet({ open: true, style: null })}
+                title="Add new garment style"
               >
                 <div className={`${styles.highlightPhotoWrap} ${styles.addHighlightCard}`}>
-                  <Symbol name="add" size={24} style={{ color: 'var(--sf-brand-indigo)' }} />
+                  <Symbol name="add" size={22} style={{ color: 'var(--sf-brand-indigo)' }} />
                 </div>
                 <span className={styles.highlightTitle}>+ Add Style</span>
                 <span className={styles.highlightSub}>New Fit</span>
               </button>
             </div>
-          </section>
+          </div>
 
+          {/* ── 3. Sleek Instagram Tab Bar ── */}
+          <div className={styles.igTabBar}>
+            <button
+              type="button"
+              className={`${styles.igTabBtn} ${activeTab === 'measurements' ? styles.igTabActive : ''}`}
+              onClick={() => setActiveTab('measurements')}
+            >
+              <Symbol name="straighten" size={16} />
+              <span>Fits & Anatomy</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.igTabBtn} ${activeTab === 'fabrics' ? styles.igTabActive : ''}`}
+              onClick={() => setActiveTab('fabrics')}
+            >
+              <Symbol name="texture" size={16} />
+              <span>Fabric Stash ({(customer.fabrics || []).length})</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.igTabBtn} ${activeTab === 'orders' ? styles.igTabActive : ''}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              <Symbol name="inventory_2" size={16} />
+              <span>Orders ({custOrders.length})</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* ── TAB 1: FITS & ANATOMY ── */}
+      {activeTab === 'measurements' && (
+        <div className={styles.tabContent}>
           {/* Full-body reference profile */}
           <section className={styles.section}>
             <div className={styles.sectionTitleRow}>
@@ -542,10 +561,15 @@ function CustomerProfileContent({
                   onClick={handleCopyMeasurements}
                   title="Copy measurements summary to clipboard"
                 >
-                  <Symbol name="content_copy" size={16} /> COPY
+                  <Symbol name="content_copy" size={14} /> COPY
                 </button>
-                <button type="button" className={styles.newBtn} onClick={() => setHistorySheetOpen(true)}>
-                  <Symbol name="history" size={16} /> HISTORY
+                <button
+                  type="button"
+                  className={styles.newBtn}
+                  onClick={() => setHistorySheetOpen(true)}
+                  title="View measurement history"
+                >
+                  <Symbol name="history" size={14} /> HISTORY
                 </button>
               </div>
             </div>
@@ -573,36 +597,48 @@ function CustomerProfileContent({
         </div>
       )}
 
-      {/* ── TAB 2: FABRIC STASH ── */}
+      {/* ── TAB 2: FABRIC STASH (Instagram 3-Column Grid) ── */}
       {activeTab === 'fabrics' && (
         <section className={styles.section}>
           <div className={styles.sectionTitleRow}>
             <h3 className={styles.sectionTitle}>Fabric Stash</h3>
             <label className={styles.newBtn}>
-              <input type="file" accept="image/*" multiple hidden onChange={handleFabricUpload} disabled={uploadingFabric} />
-              <Symbol name="add_a_photo" size={18} /> {uploadingFabric ? 'UPLOADING...' : 'SNAP CLOTH'}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={handleFabricUpload}
+                disabled={uploadingFabric}
+              />
+              <Symbol name="add_a_photo" size={16} /> {uploadingFabric ? 'UPLOADING...' : 'SNAP CLOTH'}
             </label>
           </div>
-          
+
           {(customer.fabrics || []).length === 0 ? (
             <div className={styles.emptyHint}>
               <Symbol name="texture" className={styles.emptyHintIcon} />
               <span>No fabrics stashed. Dropped off Aso Ebi or cloth? Snap a picture here.</span>
             </div>
           ) : (
-            <div className={styles.inspoGrid}>
+            <div className={styles.fabricGrid}>
               {(customer.fabrics || []).map((photo, i) => (
-                <div key={i} className={styles.inspoThumb}>
+                <div key={i} className={styles.fabricGridItem}>
                   <Image
                     src={photo.url}
                     alt={`Fabric ${i + 1}`}
-                    width={400}
-                    height={400}
+                    width={320}
+                    height={320}
                     onClick={(e) => setLightbox({ src: photo.url, rect: e.currentTarget.getBoundingClientRect() })}
-                    style={{ cursor: 'zoom-in', objectFit: 'cover', width: '100%', height: '100%', borderRadius: 'var(--sf-radius-md)' }}
+                    className={styles.fabricGridImg}
                   />
-                  <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveFabric(i)} aria-label="Remove fabric">
-                    <Symbol name="close" size={14} />
+                  <button
+                    type="button"
+                    className={styles.photoRemoveBtn}
+                    onClick={() => handleRemoveFabric(i)}
+                    aria-label="Remove fabric"
+                  >
+                    <Symbol name="close" size={12} />
                   </button>
                 </div>
               ))}
@@ -629,7 +665,7 @@ function CustomerProfileContent({
                   className={styles.debtReminderBtn}
                   title="Send WhatsApp payment reminder"
                 >
-                  <Symbol name="send" size={14} /> Remind via WhatsApp
+                  <Symbol name="send" size={13} /> Remind via WhatsApp
                 </a>
               )}
             </div>
@@ -654,7 +690,7 @@ function CustomerProfileContent({
           {/* Action to create order */}
           <div className={styles.orderActionRow}>
             <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}>
-              <Symbol name="add_circle" size={20} /> Create New Order
+              <Symbol name="add_circle" size={18} /> Create New Order
             </Button>
           </div>
 
@@ -763,7 +799,7 @@ function CustomerProfileContent({
         customer={customer}
         initialStyle={styleSheet.style}
       />
-      
+
       <MeasurementHistorySheet
         isOpen={historySheetOpen}
         onClose={() => setHistorySheetOpen(false)}
