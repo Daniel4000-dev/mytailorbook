@@ -1143,29 +1143,27 @@
   width: calc(100% - 24px);
   max-width: 480px;
   padding: 10px 14px 10px 18px;
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(28px) saturate(210%);
-  -webkit-backdrop-filter: blur(28px) saturate(210%);
-  border: 1px solid rgba(255, 255, 255, 0.60);
+  background: color-mix(in srgb, var(--sf-bg-surface) 72%, transparent);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg);
   z-index: 50;
-  box-shadow:
-    0 12px 36px 0 rgba(0, 0, 0, 0.14),
-    0 4px 12px 0 rgba(0, 0, 0, 0.06),
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme='dark']) .floatingDock {
-  background: rgba(20, 18, 36, 0.38);
-  backdrop-filter: blur(32px) saturate(220%);
-  -webkit-backdrop-filter: blur(32px) saturate(220%);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 16px 40px 0 rgba(0, 0, 0, 0.45),
-    0 4px 12px 0 rgba(0, 0, 0, 0.25),
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.12);
+  background: rgba(18, 17, 34, 0.70);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .floatingDock {
+    background: rgba(18, 17, 34, 0.70);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
 }
 
 @media (min-width: 768px) {

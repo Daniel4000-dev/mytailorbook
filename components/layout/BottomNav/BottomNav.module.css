@@ -1,53 +1,47 @@
-/* Authentic Apple VisionOS & Instagram Crystal Liquid Glass Bottom Nav */
+/* Floating glassmorphic pill bottom nav — Apple iOS & Instagram Aesthetics */
 .nav {
   position: fixed;
-  bottom: max(16px, calc(12px + env(safe-area-inset-bottom, 0px)));
-  left: 20px;
-  right: 20px;
-  max-width: 350px;
+  bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
+  left: 16px;
+  right: 16px;
+  max-width: 360px;
   height: 52px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0 8px;
-  background: rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(28px) saturate(210%);
-  -webkit-backdrop-filter: blur(28px) saturate(210%);
+  padding: 0 6px;
+  background: color-mix(in srgb, var(--sf-bg-surface) 65%, transparent);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   border-radius: var(--sf-radius-pill, 9999px);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 0.5px solid color-mix(in srgb, var(--sf-border) 40%, transparent);
   box-shadow:
-    0 12px 36px 0 rgba(0, 0, 0, 0.16),
-    0 4px 12px 0 rgba(0, 0, 0, 0.08),
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.25);
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: var(--sf-z-sticky);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
 }
 
 :global([data-theme='dark']) .nav {
-  background: rgba(20, 18, 36, 0.35);
-  backdrop-filter: blur(32px) saturate(220%);
-  -webkit-backdrop-filter: blur(32px) saturate(220%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(18, 17, 34, 0.65);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 0.5px solid rgba(99, 102, 241, 0.16);
   box-shadow:
-    0 16px 40px 0 rgba(0, 0, 0, 0.45),
-    0 4px 12px 0 rgba(0, 0, 0, 0.25),
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.12);
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .nav {
-    background: rgba(20, 18, 36, 0.35);
-    backdrop-filter: blur(32px) saturate(220%);
-    -webkit-backdrop-filter: blur(32px) saturate(220%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(18, 17, 34, 0.65);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border: 0.5px solid rgba(99, 102, 241, 0.16);
     box-shadow:
-      0 16px 40px 0 rgba(0, 0, 0, 0.45),
-      0 4px 12px 0 rgba(0, 0, 0, 0.25),
-      inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
-      inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.12);
+      0 8px 32px rgba(0, 0, 0, 0.55),
+      0 2px 8px rgba(0, 0, 0, 0.35);
   }
 }
 
@@ -63,12 +57,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sf-text-primary);
-  opacity: 0.78;
+  color: var(--sf-text-secondary);
+  opacity: 0.75;
   text-decoration: none;
   height: 38px;
   flex: 1;
-  max-width: 58px;
+  max-width: 60px;
   min-width: 44px;
   border-radius: var(--sf-radius-pill, 9999px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -79,7 +73,7 @@
 @media (hover: hover) and (pointer: fine) {
   .item:hover {
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: color-mix(in srgb, var(--sf-text-primary) 5%, transparent);
   }
 }
 
@@ -88,22 +82,16 @@
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Active state: Soft frosted pill capsule matching screenshot */
+/* Active state: Subtle frosted highlight matching Instagram */
 .active {
-  background-color: rgba(255, 255, 255, 0.45);
+  background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
   color: var(--sf-text-primary);
   opacity: 1;
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.08),
-    inset 0 0.5px 1px rgba(255, 255, 255, 0.6);
 }
 
 :global([data-theme='dark']) .active {
-  background-color: rgba(255, 255, 255, 0.16);
-  color: #FFFFFF;
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    inset 0 0.5px 1px rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-primary);
 }
 
 .iconWrapper {
@@ -133,27 +121,36 @@
   color: inherit;
 }
 
-/* Profile circular avatar item */
+/* Profile circular avatar item — strictly no white border */
+.profileItem.active {
+  background-color: transparent !important;
+}
+
 .avatarWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   padding: 1.5px;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .activeAvatar {
-  outline: 2px solid var(--sf-text-primary);
+  outline: 2px solid var(--sf-brand-indigo) !important;
   outline-offset: 1.5px;
 }
 
 :global([data-theme='dark']) .activeAvatar {
-  outline-color: #FFFFFF;
+  outline-color: var(--sf-brand-indigo) !important;
 }
 
 .navAvatar {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.20);
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */
