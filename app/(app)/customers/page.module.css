@@ -1,91 +1,546 @@
+/* ============================================================
+   MyStitchBook: Instagram Direct / Messenger Smooth Aesthetic
+   Zero heavy borders, zero table frames — continuous fluid feed
+   ============================================================ */
 
-/* Stats */
-.statsContainer {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-xs);
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.addCustomerBtn {
+  font-size: var(--sf-text-xs);
+  padding: 0 14px;
+  height: 36px;
+  border-radius: var(--sf-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--sf-brand-indigo);
+  color: var(--sf-text-on-accent);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.addCustomerBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── 1. Top Story Notes Carousel (Active Workshop Fits) ──────── */
+.storiesSection {
+  margin: 0 -16px var(--sf-space-sm);
+  padding: 0 0 4px;
 }
 
 @media (min-width: 1024px) {
-  .statsContainer {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--sf-space-md);
+  .storiesSection {
+    margin: 0 0 var(--sf-space-md);
   }
 }
 
-.statCard {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-md);
-  padding: 10px 12px;
+.storiesTrack {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  transition: all var(--sf-transition-fast);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  animation: fadeInUp 0.4s ease both;
-}
-
-.statCardClickable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.statCardActive {
-  border-color: var(--sf-brand-indigo, #4338CA);
-  background: rgba(67, 56, 202, 0.08);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .statCard:hover {
-    border-color: var(--sf-border);
-  }
-
-  .statCardClickable:hover {
-    border-color: var(--sf-brand-indigo, #4338CA);
-    transform: translateY(-1px);
-  }
-}
-
-.statValue {
-  font-family: var(--sf-font-heading);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.statLabel {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--sf-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.actionArea {
-  width: 100%;
-}
-
-/* Horizontally-scrollable pill row for gender/style filters — bleeds to
-   the screen edge on mobile, no visible scrollbar. */
-.pillRow {
-  display: flex;
-  gap: 12px;
+  gap: 14px;
   overflow-x: auto;
-  padding-bottom: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-sm);
-  -ms-overflow-style: none;
+  padding: 4px 16px 8px;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.pillRow::-webkit-scrollbar {
+.storiesTrack::-webkit-scrollbar {
   display: none;
 }
 
+.storyItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  width: 72px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+
+.storyItem:active {
+  transform: scale(0.95);
+}
+
+.storyBubble {
+  position: relative;
+  background: var(--sf-bg-surface, #FFFFFF);
+  color: var(--sf-text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+  max-width: 74px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  z-index: 2;
+  margin-bottom: 2px;
+}
+
+.storyBubbleTail {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--sf-bg-surface, #FFFFFF);
+}
+
+.storyAvatarWrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storyRing {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  padding: 2.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storyRingGradient {
+  background: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #EC4899 100%);
+}
+
+.storyRingReady {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.storyRingNeutral {
+  background: transparent;
+  padding: 0;
+}
+
+.storyAvatarInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  padding: 2px;
+  background: var(--sf-bg-primary, #FFFFFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storyAvatarInnerPlain {
+  padding: 0;
+  background: transparent;
+}
+
+.storyName {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+/* ── 2. Search & Integrated Filter Bar ──────────────────────── */
+.searchBarRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--sf-space-sm);
+  width: 100%;
+}
+
+.searchBarPill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--sf-radius-full);
+  height: 40px;
+  padding: 0 14px;
+  transition: background var(--sf-transition-fast);
+}
+
+.searchBarPill:focus-within {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.searchIcon {
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+  min-width: 0;
+  font-family: inherit;
+}
+
+.searchInput::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.searchClearBtn {
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filterActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-brand-indigo);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.filterActionBtn:active {
+  transform: scale(0.96);
+}
+
+.filterActionBtnActive {
+  background: rgba(67, 56, 202, 0.12);
+  color: var(--sf-brand-indigo);
+}
+
+/* ── 3. Soft Capsule Filter Pills (No Hard Borders) ─────────── */
+.pillTrack {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: var(--sf-space-md);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pillTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.softPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.softPill:active {
+  transform: scale(0.96);
+}
+
+.softPillActive {
+  background: rgba(67, 56, 202, 0.12);
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
+}
+
+.pillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sf-brand-indigo);
+  display: inline-block;
+}
+
+.pillDotAmber {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F59E0B;
+  display: inline-block;
+}
+
+/* ── 4. Customer Feed (Continuous, Borderless Rows) ──────────── */
+.customerFeed {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.customerRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 4px;
+  border-radius: var(--sf-radius-md);
+  cursor: pointer;
+  transition: background-color var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.customerRow:active {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .customerRow:hover {
+    background: var(--sf-bg-surface-hover);
+  }
+}
+
+.avatarWrap {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarRing {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  padding: 2.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ringGradient {
+  background: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #EC4899 100%);
+}
+
+.ringReady {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.avatarInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  padding: 2px;
+  background: var(--sf-bg-primary, #FFFFFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarInnerPlain {
+  padding: 0;
+  background: transparent;
+}
+
+.circleAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.onlineBadge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #10B981;
+  border: 2px solid var(--sf-bg-primary, #FFFFFF);
+  z-index: 2;
+}
+
+.activeBadge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #6366F1;
+  border: 2px solid var(--sf-bg-primary, #FFFFFF);
+  z-index: 2;
+}
+
+.customerInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+}
+
+.customerHeaderLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.customerName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.genderSubtle {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sf-brand-indigo);
+  background: rgba(67, 56, 202, 0.08);
+  padding: 1px 5px;
+  border-radius: var(--sf-radius-full);
+  line-height: 1.2;
+}
+
+.customerSubtitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.subtitleText {
+  font-size: 13px;
+  color: var(--sf-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.rightActionCol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.owesPill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.activeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6366F1;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.quickActionIcons {
+  display: flex;
+  align-items: center;
+}
+
+.whatsappActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--sf-text-tertiary);
+  text-decoration: none;
+  transition: all var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .whatsappActionBtn:hover {
+    background: rgba(37, 211, 102, 0.12);
+    color: #25D366;
+  }
+}
+
+.whatsappActionBtn:active {
+  transform: scale(0.92);
+}
+
+.loadMoreBtn {
+  width: 100%;
+  height: 42px;
+  margin-top: var(--sf-space-md);
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
+  font-size: var(--sf-text-sm);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.loadMoreBtn:active {
+  transform: scale(0.98);
+  background: rgba(67, 56, 202, 0.12);
+}
+
+/* ── 5. Style Filter BottomSheet ─────────────────────────────── */
 .noStylesHint {
   padding: var(--sf-space-lg);
   text-align: center;
@@ -143,348 +598,7 @@
   transform: scale(0.96);
 }
 
-.loadMoreBtn {
-  width: 100%;
-  height: var(--sf-touch-target);
-  margin-top: var(--sf-space-sm);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-sm);
-  color: var(--sf-brand-indigo);
-  font-weight: var(--sf-weight-semibold);
-  font-size: var(--sf-text-sm);
-  transition: background-color var(--sf-transition-fast);
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-.loadMoreBtn:hover {
-  background: var(--sf-brand-indigo-glow);
-}
-}
-
-.loadMoreBtn:active {
-  background: var(--sf-brand-indigo-glow);
-}
-
-/* Apple Inset Grouped List */
-.groupedList {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.02);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.tableRowWrapper {
-  display: flex;
-  flex-direction: column;
-}
-
-.tableRow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  background: transparent;
-  cursor: pointer;
-  transition: background-color var(--sf-transition-fast);
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.tableRow:active {
-  background: var(--sf-bg-surface-hover);
-}
-
-.rowDivider {
-  height: 1px;
-  background: var(--sf-border-light);
-  margin-left: 70px; /* Inset separator past avatar */
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--sf-space-md);
-}
-
-.cardInfo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.nameRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.name {
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-primary);
-  letter-spacing: -0.01em;
-}
-
-.genderTagSmall {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 1px 6px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface-hover);
-  color: var(--sf-brand-indigo);
-  border: 1px solid var(--sf-border-light);
-}
-
-.phone {
-  font-size: var(--sf-text-sm);
-  color: var(--sf-text-tertiary);
-}
-
-.activeOrdersHint {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--sf-brand-indigo);
-  margin-top: 2px;
-}
-
-.chevronIcon {
-  color: var(--sf-text-tertiary);
-  opacity: 0.4;
-  margin-left: 2px;
-}
-
-.cardActionIcon {
-  color: var(--sf-text-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Balance-owed is the one number worth surfacing without a tap — everything
-   else (order count, total spend) is one tap away in the profile, and
-   repeating it on every row was what made the list feel stretched. */
-.owesBadge {
-  flex-shrink: 0;
-  align-self: flex-end;
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-semibold);
-  color: #B45309;
-  background: #FEF3C7;
-  padding: 3px 8px;
-  border-radius: var(--sf-radius-full);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  white-space: nowrap;
-}
-
-.statValueWarn {
-  color: #B45309;
-}
-
-.cardRightCol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.mobileQuickActions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.quickIconBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  color: var(--sf-text-secondary);
-  transition: all var(--sf-transition-fast);
-  text-decoration: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .quickIconBtn:hover {
-    background: var(--sf-brand-indigo-glow);
-    color: var(--sf-brand-indigo);
-    border-color: var(--sf-brand-indigo);
-  }
-}
-
-.quickIconBtn:active {
-  transform: scale(0.92);
-  background: var(--sf-brand-indigo-glow);
-  color: var(--sf-brand-indigo);
-}
-
-.addCustomerBtn {
-  font-size: var(--sf-text-xs);
-  padding: 0 12px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Desktop Table */
-.desktopTableContainer {
-  display: none;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
-  overflow: hidden;
-}
-
-@media (min-width: 1024px) {
-  .mobileList {
-    display: none;
-  }
-  .desktopTableContainer {
-    display: block;
-  }
-}
-
-.desktopTable {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.desktopTable th {
-  padding: 10px var(--sf-space-md);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-secondary);
-  border-bottom: 1px solid var(--sf-border-light);
-  background: var(--sf-bg-surface-elevated);
-  white-space: nowrap;
-}
-
-/* Tightened vertical padding (16px -> 10px) — same density move already
-   applied to the Dashboard's Team Snapshot cards and the Fabrics grid.
-   A data table meant to be scanned row-by-row benefits from more rows
-   fitting per screen more than it needs mobile-style breathing room;
-   horizontal padding stays put since that's what keeps columns from
-   feeling cramped side-to-side. */
-.desktopTable td {
-  padding: 10px var(--sf-space-md);
-  border-bottom: 1px solid var(--sf-border-light);
-  vertical-align: middle;
-}
-
-.tableRow {
-  cursor: pointer;
-  transition: background var(--sf-transition-fast);
-  animation: fadeInUp 0.4s ease both;
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-.tableRow:hover {
-  background: var(--sf-bg-surface-hover);
-}
-}
-
-.tableRow:active {
-  background: var(--sf-surface-variant);
-}
-
-.tableRow:last-child td {
-  border-bottom: none;
-}
-
-.customerCell {
-  display: flex;
-  align-items: center;
-  gap: var(--sf-space-sm);
-}
-
-.orderBadge {
-  display: inline-block;
-  padding: 4px 10px;
-  background: var(--sf-bg-surface-elevated);
-  border-radius: var(--sf-radius-full);
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-primary);
-  border: 1px solid var(--sf-border-light);
-}
-
-.currencyCell {
-  font-family: var(--sf-font-mono, monospace);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-}
-
-.currencyCell.hasBalance {
-  color: var(--sf-warning);
-}
-
-.alignRight {
-  text-align: right;
-}
-
-.rowActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--sf-space-sm);
-}
-
-.actionBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-medium);
-  text-decoration: none;
-  transition: all var(--sf-transition-fast);
-  gap: 6px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-.actionBtn:hover {
-  background: var(--sf-bg-surface-hover);
-  color: var(--sf-text-primary);
-  border-color: var(--sf-border);
-}
-}
-
-.actionBtn:active {
-  transform: scale(0.95);
-  background: var(--sf-surface-variant);
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .statCard,
-  .mobileCard,
-  .tableRow {
-    animation: none;
-  }
-}
-
-/* ── Outreach ─────────────────────────────────────────────── */
+/* ── 6. Outreach Flow ────────────────────────────────────────── */
 .reachOutBar {
   display: flex;
   align-items: center;
@@ -493,8 +607,8 @@
   background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
   border: none;
-  border-radius: var(--sf-radius-md);
-  padding: 12px 16px;
+  border-radius: var(--sf-radius-full);
+  padding: 12px 18px;
   margin-bottom: var(--sf-space-md);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
@@ -515,13 +629,13 @@
   display: block;
   background: var(--sf-brand-indigo-glow);
   color: var(--sf-brand-indigo);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: 12px 16px;
+  border-radius: var(--sf-radius-full);
+  padding: 10px 16px;
   margin-bottom: var(--sf-space-md);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-medium);
   text-decoration: none;
+  text-align: center;
 }
 
 .contactBadge {
@@ -577,9 +691,9 @@
   gap: 2px;
   max-height: 260px;
   overflow-y: auto;
-  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-sm);
   padding: 4px;
+  background: var(--sf-bg-surface-elevated);
 }
 
 .customerPickRow {
@@ -595,10 +709,9 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.customerPickRow:hover {
-  background: var(--sf-bg-surface-hover);
-}
+  .customerPickRow:hover {
+    background: var(--sf-bg-surface-hover);
+  }
 }
 
 .customerPickRow:active {
@@ -619,7 +732,7 @@
   background: var(--sf-brand-indigo);
   color: var(--sf-text-on-accent);
   border: none;
-  border-radius: var(--sf-radius-sm);
+  border-radius: var(--sf-radius-full);
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-sm);
   cursor: pointer;
@@ -703,7 +816,7 @@
 .shareBtn {
   flex: 1;
   height: var(--sf-touch-target);
-  border-radius: var(--sf-radius-sm);
+  border-radius: var(--sf-radius-full);
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-sm);
   cursor: pointer;
@@ -760,160 +873,94 @@
   margin: 0;
 }
 
-.clearFilterChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 32px;
-  padding: 0 10px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: all var(--sf-transition-fast);
-}
-
-.clearFilterChip:active {
-  transform: scale(0.96);
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: var(--sf-space-md);
-}
-
-/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
-:global([data-theme='dark']) .statCard {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-:global([data-theme='dark']) .statCardActive {
-  background: rgba(99, 102, 241, 0.16);
-  border-color: #818CF8;
-}
-
-:global([data-theme='dark']) .statValue {
+/* ── 7. Dark Mode Overrides (data-theme="dark") ───────────────── */
+:global([data-theme='dark']) .storyBubble {
+  background: #1E1D32;
   color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-:global([data-theme='dark']) .statValueWarn {
-  color: #FBBF24;
+:global([data-theme='dark']) .storyBubbleTail {
+  border-top-color: #1E1D32;
 }
 
-:global([data-theme='dark']) .statLabel {
-  color: var(--sf-text-secondary);
+:global([data-theme='dark']) .storyAvatarInner,
+:global([data-theme='dark']) .avatarInner {
+  background: #0A0910;
 }
 
-:global([data-theme='dark']) .groupedList {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+:global([data-theme='dark']) .onlineBadge,
+:global([data-theme='dark']) .activeBadge {
+  border-color: #0A0910;
 }
 
-:global([data-theme='dark']) .tableRow:active {
+:global([data-theme='dark']) .searchBarPill {
   background: rgba(255, 255, 255, 0.06);
 }
 
-:global([data-theme='dark']) .rowDivider {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme='dark']) .name {
-  color: #FFFFFF;
-}
-
-:global([data-theme='dark']) .genderTagSmall {
-  background: rgba(255, 255, 255, 0.08);
-  color: #818CF8;
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme='dark']) .activeOrdersHint {
-  color: #818CF8;
-}
-
-:global([data-theme='dark']) .owesBadge {
-  color: #FBBF24;
-  background: rgba(245, 158, 11, 0.16);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-:global([data-theme='dark']) .quickIconBtn {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--sf-text-secondary);
-}
-
-:global([data-theme='dark']) .quickIconBtn:hover,
-:global([data-theme='dark']) .quickIconBtn:active {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: #818CF8;
-  color: #818CF8;
-}
-
-:global([data-theme='dark']) .clearFilterChip {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--sf-text-secondary);
-}
-
-:global([data-theme='dark']) .desktopTableContainer {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-:global([data-theme='dark']) .desktopTable th {
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-  color: var(--sf-text-secondary);
-}
-
-:global([data-theme='dark']) .desktopTable td {
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme='dark']) .tableRow:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-:global([data-theme='dark']) .tableRow:active {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme='dark']) .orderBadge {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
-}
-
-:global([data-theme='dark']) .actionBtn {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--sf-text-secondary);
-}
-
-:global([data-theme='dark']) .actionBtn:hover {
+:global([data-theme='dark']) .searchBarPill:focus-within {
   background: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
-:global([data-theme='dark']) .reachOutHint {
-  background: rgba(99, 102, 241, 0.16);
-  border-color: rgba(99, 102, 241, 0.3);
+:global([data-theme='dark']) .searchClearBtn {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:global([data-theme='dark']) .filterActionBtn {
+  background: rgba(255, 255, 255, 0.06);
   color: #818CF8;
 }
 
-:global([data-theme='dark']) .styleFilterPhoto {
+:global([data-theme='dark']) .filterActionBtnActive {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .softPill {
   background: rgba(255, 255, 255, 0.06);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .softPillActive {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .customerRow:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :global([data-theme='dark']) .customerRow:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+:global([data-theme='dark']) .customerName {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .genderSubtle {
+  background: rgba(99, 102, 241, 0.18);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .owesPill {
+  color: #FBBF24;
+  background: rgba(245, 158, 11, 0.18);
+}
+
+:global([data-theme='dark']) .loadMoreBtn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .queueCard,
+:global([data-theme='dark']) .queueNotePreview {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
 }
 
 :global([data-theme='dark']) .noteInput {
@@ -922,187 +969,101 @@
   color: #FFFFFF;
 }
 
-:global([data-theme='dark']) .customerPickList {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-:global([data-theme='dark']) .customerPickRow:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-:global([data-theme='dark']) .customerPickRow:active {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-:global([data-theme='dark']) .queueCard {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:global([data-theme='dark']) .queueNotePreview {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--sf-text-secondary);
-}
-
 :global([data-theme='dark']) .skipBtn {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--sf-text-secondary);
 }
 
-/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+/* ── 8. Dark Mode Overrides (prefers-color-scheme: dark) ──────── */
 @media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme="light"])) .statCard {
-    background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-
-  :global(:root:not([data-theme="light"])) .statCardActive {
-    background: rgba(99, 102, 241, 0.16);
-    border-color: #818CF8;
-  }
-
-  :global(:root:not([data-theme="light"])) .statValue {
+  :global(:root:not([data-theme="light"])) .storyBubble {
+    background: #1E1D32;
     color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
 
-  :global(:root:not([data-theme="light"])) .statValueWarn {
-    color: #FBBF24;
+  :global(:root:not([data-theme="light"])) .storyBubbleTail {
+    border-top-color: #1E1D32;
   }
 
-  :global(:root:not([data-theme="light"])) .statLabel {
-    color: var(--sf-text-secondary);
+  :global(:root:not([data-theme="light"])) .storyAvatarInner,
+  :global(:root:not([data-theme="light"])) .avatarInner {
+    background: #0A0910;
   }
 
-  :global(:root:not([data-theme="light"])) .groupedList {
-    background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  :global(:root:not([data-theme="light"])) .onlineBadge,
+  :global(:root:not([data-theme="light"])) .activeBadge {
+    border-color: #0A0910;
   }
 
-  :global(:root:not([data-theme="light"])) .tableRow:active {
+  :global(:root:not([data-theme="light"])) .searchBarPill {
     background: rgba(255, 255, 255, 0.06);
   }
 
-  :global(:root:not([data-theme="light"])) .rowDivider {
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  :global(:root:not([data-theme="light"])) .name {
-    color: #FFFFFF;
-  }
-
-  :global(:root:not([data-theme="light"])) .genderTagSmall {
-    background: rgba(255, 255, 255, 0.08);
-    color: #818CF8;
-    border-color: rgba(255, 255, 255, 0.06);
-  }
-
-  :global(:root:not([data-theme="light"])) .activeOrdersHint {
-    color: #818CF8;
-  }
-
-  :global(:root:not([data-theme="light"])) .owesBadge {
-    color: #FBBF24;
-    background: rgba(245, 158, 11, 0.16);
-    border-color: rgba(245, 158, 11, 0.3);
-  }
-
-  :global(:root:not([data-theme="light"])) .quickIconBtn {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: var(--sf-text-secondary);
-  }
-
-  :global(:root:not([data-theme="light"])) .quickIconBtn:hover,
-  :global(:root:not([data-theme="light"])) .quickIconBtn:active {
-    background: rgba(99, 102, 241, 0.2);
-    border-color: #818CF8;
-    color: #818CF8;
-  }
-
-  :global(:root:not([data-theme="light"])) .clearFilterChip {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: var(--sf-text-secondary);
-  }
-
-  :global(:root:not([data-theme="light"])) .desktopTableContainer {
-    background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  :global(:root:not([data-theme="light"])) .desktopTable th {
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-    color: var(--sf-text-secondary);
-  }
-
-  :global(:root:not([data-theme="light"])) .desktopTable td {
-    border-bottom-color: rgba(255, 255, 255, 0.06);
-  }
-
-  :global(:root:not([data-theme="light"])) .tableRow:hover {
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  :global(:root:not([data-theme="light"])) .tableRow:active {
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  :global(:root:not([data-theme="light"])) .orderBadge {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: #FFFFFF;
-  }
-
-  :global(:root:not([data-theme="light"])) .actionBtn {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: var(--sf-text-secondary);
-  }
-
-  :global(:root:not([data-theme="light"])) .actionBtn:hover {
+  :global(:root:not([data-theme="light"])) .searchBarPill:focus-within {
     background: rgba(255, 255, 255, 0.1);
-    color: #FFFFFF;
-    border-color: rgba(255, 255, 255, 0.15);
   }
 
-  :global(:root:not([data-theme="light"])) .reachOutHint {
-    background: rgba(99, 102, 241, 0.16);
-    border-color: rgba(99, 102, 241, 0.3);
+  :global(:root:not([data-theme="light"])) .searchClearBtn {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  :global(:root:not([data-theme="light"])) .filterActionBtn {
+    background: rgba(255, 255, 255, 0.06);
     color: #818CF8;
   }
 
-  :global(:root:not([data-theme="light"])) .styleFilterPhoto {
+  :global(:root:not([data-theme="light"])) .filterActionBtnActive {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .softPill {
     background: rgba(255, 255, 255, 0.06);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .softPillActive {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .customerRow:active {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  :global(:root:not([data-theme="light"])) .customerName {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .genderSubtle {
+    background: rgba(99, 102, 241, 0.18);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .owesPill {
+    color: #FBBF24;
+    background: rgba(245, 158, 11, 0.18);
+  }
+
+  :global(:root:not([data-theme="light"])) .loadMoreBtn {
+    background: rgba(255, 255, 255, 0.06);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .queueCard,
+  :global(:root:not([data-theme="light"])) .queueNotePreview {
+    background: rgba(255, 255, 255, 0.06);
+    color: #FFFFFF;
   }
 
   :global(:root:not([data-theme="light"])) .noteInput {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.1);
     color: #FFFFFF;
-  }
-
-  :global(:root:not([data-theme="light"])) .customerPickList {
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  :global(:root:not([data-theme="light"])) .customerPickRow:hover {
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  :global(:root:not([data-theme="light"])) .customerPickRow:active {
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  :global(:root:not([data-theme="light"])) .queueCard {
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  :global(:root:not([data-theme="light"])) .queueNotePreview {
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--sf-text-secondary);
   }
 
   :global(:root:not([data-theme="light"])) .skipBtn {

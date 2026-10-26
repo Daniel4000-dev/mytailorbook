@@ -10,17 +10,15 @@ import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
-import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
-import { formatPhone, formatCurrency, formatShortMonthYear, formatDate, getWhatsAppLink } from '@/lib/formatters';
+import { formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getInitials } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import type { Customer } from '@/lib/types';
+import type { Customer, Order } from '@/lib/types';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
 import type { StylePhotoSubmission } from '@/lib/types';
@@ -32,29 +30,21 @@ import styles from './page.module.css';
 const PAGE_SIZE = 40;
 type ClientFilter = 'all' | 'active' | 'owing' | 'male' | 'female';
 
+interface CustomerStatDetail {
+  totalOrders: number;
+  activeOrders: number;
+  totalSpend: number;
+  totalBalance: number;
+  activeOrder?: Order;
+  latestOrder?: Order;
+}
+
 export default function CustomersPage() {
   const router = useRouter();
   const { user, isOwner, loading: authLoading } = useAuth();
   const { currentShop, customers, orders, isLoaded } = useData();
   const { showToast } = useToast();
-  const topBar = (
-    <TopBar
-      title="Customers"
-      rightAction={
-        <div className={styles.headerActions}>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => router.push(ROUTES.customerNew)}
-            className={styles.addCustomerBtn}
-          >
-            <Symbol name="person_add" size={16} /> New Client
-          </Button>
-          <NotificationBell />
-        </div>
-      }
-    />
-  );
+
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [clientFilter, setClientFilter] = useState<ClientFilter>('all');
@@ -62,17 +52,7 @@ export default function CustomersPage() {
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
   const [approvedStyleNames, setApprovedStyleNames] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (!currentShop?.id) return;
-    getApprovedStyleNamesAction(currentShop.id).then((names) => {
-      if (!names || 'error' in names) return;
-      setApprovedStyleNames(new Set(names));
-    });
-  }, [currentShop?.id]);
-
-  // Outreach: this style's saved (owner-approved) photos, and who's already
-  // been contacted about it — fetched fresh whenever the active style
-  // changes, one query each, never per customer row.
+  // Outreach states
   const [savedPhotos, setSavedPhotos] = useState<StylePhotoSubmission[]>([]);
   const [outreachMap, setOutreachMap] = useState<Record<string, string>>({});
   const [isOutreachSheetOpen, setIsOutreachSheetOpen] = useState(false);
@@ -86,16 +66,18 @@ export default function CustomersPage() {
   const [selectionMode, setSelectionMode] = useState<'everyone' | 'choose'>('everyone');
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
 
-  // Compose → queue is a full content swap inside the same open sheet,
-  // and the queue itself pages one customer at a time (queueIndex) —
-  // reset the sheet's own scroll on each so it doesn't carry over.
+  useEffect(() => {
+    if (!currentShop?.id) return;
+    getApprovedStyleNamesAction(currentShop.id).then((names) => {
+      if (!names || 'error' in names) return;
+      setApprovedStyleNames(new Set(names));
+    });
+  }, [currentShop?.id]);
+
   useEffect(() => {
     if (isOutreachSheetOpen) scrollContentToTop();
   }, [isOutreachSheetOpen, outreachStep, queueIndex]);
 
-  // Reset immediately when the active style changes — adjusted during
-  // render rather than in the effect below, which only handles the actual
-  // (async) fetch once a style is selected.
   const [prevStyleFilter, setPrevStyleFilter] = useState(styleFilter);
   if (styleFilter !== prevStyleFilter) {
     setPrevStyleFilter(styleFilter);
@@ -112,7 +94,6 @@ export default function CustomersPage() {
     getOutreachLogAction(currentShop.id, styleFilter).then((entries) => {
       if (!entries || 'error' in entries) return;
       const map: Record<string, string> = {};
-      // Entries come back newest-first — first write per customer wins, i.e. the latest.
       entries.forEach((e) => {
         if (!map[e.customerId]) map[e.customerId] = e.contactedAt;
       });
@@ -120,51 +101,47 @@ export default function CustomersPage() {
     });
   }, [styleFilter, currentShop]);
 
-  // Calculate order stats per customer
+  // Derive order stats and identify active & latest garment per customer
   const customerStats = useMemo(() => {
-    const stats: Record<string, { totalOrders: number; activeOrders: number; totalSpend: number; totalBalance: number }> = {};
+    const stats: Record<string, CustomerStatDetail> = {};
     
     customers.forEach(c => {
       stats[c.id] = { totalOrders: 0, activeOrders: 0, totalSpend: 0, totalBalance: 0 };
     });
 
-    orders.forEach(o => {
+    const sortedOrders = [...orders].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    sortedOrders.forEach(o => {
       if (o.customerId && stats[o.customerId]) {
-        stats[o.customerId].totalOrders += 1;
+        const s = stats[o.customerId];
+        s.totalOrders += 1;
         if (o.status !== 'Delivered') {
-          stats[o.customerId].activeOrders += 1;
+          s.activeOrders += 1;
+          if (!s.activeOrder) {
+            s.activeOrder = o;
+          }
         }
-        stats[o.customerId].totalSpend += o.totalBill;
-        stats[o.customerId].totalBalance += getBalanceOwed(o);
+        if (!s.latestOrder) {
+          s.latestOrder = o;
+        }
+        s.totalSpend += o.totalBill;
+        s.totalBalance += getBalanceOwed(o);
       }
     });
     return stats;
   }, [customers, orders]);
 
-  // Rows are plain divs/<tr>s (not <Link>), so Next never gets a chance to
-  // prefetch these routes on its own — warm them proactively instead of
-  // waiting for the click, capped so a very large customer book doesn't
-  // fire an unbounded burst of requests.
+  // Pre-fetch customer profile routes
   useEffect(() => {
     if (!isLoaded) return;
-    customers.slice(0, 60).forEach((c) => router.prefetch(`/customers/${c.id}`));
+    customers.slice(0, 60).forEach((c) => router.prefetch(ROUTES.customerDetail(c.id)));
   }, [isLoaded, customers, router]);
 
-  // A new search/filter should start back at the first page rather than
-  // staying scrolled deep into a now-irrelevant "load more" position.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setVisibleCount(PAGE_SIZE), [search, clientFilter, styleFilter]);
 
-  // Styles offered in the filter sheet must satisfy two things at once:
-  // (1) at least one customer (scoped to the active gender filter) actually
-  // prefers it, so outreach has someone to reach, and (2) the Style Gallery
-  // has an owner-approved photo for it, so there's something real to show
-  // them. Deliberately NOT decoupled from preference — offering a style
-  // with zero matching customers would send the tailor into an outreach
-  // flow that immediately dead-ends at "0 customers," which reads as
-  // broken rather than as an honest empty state. Each resolves to its
-  // catalog photo when it's a built-in style; custom styles (free text,
-  // no catalog entry) fall back to a text-only chip.
   const availableStyles = useMemo(() => {
     const scoped = (clientFilter === 'male' || clientFilter === 'female')
       ? customers.filter((c) => c.gender === clientFilter)
@@ -176,6 +153,108 @@ export default function CustomersPage() {
       .sort((a, b) => a.localeCompare(b))
       .map((name) => ({ name, photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl }));
   }, [customers, clientFilter, approvedStyleNames]);
+
+  // Filtered customer list
+  const filtered = useMemo(() => {
+    const rawSearch = search.toLowerCase().trim();
+    const searchDigits = rawSearch.replace(/\D/g, '');
+
+    return customers.filter((c) => {
+      const stats = customerStats[c.id];
+      if (clientFilter === 'male' && c.gender !== 'male') return false;
+      if (clientFilter === 'female' && c.gender !== 'female') return false;
+      if (clientFilter === 'active' && (!stats || stats.activeOrders <= 0)) return false;
+      if (clientFilter === 'owing' && (!stats || stats.totalBalance <= 0)) return false;
+      if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
+      if (!rawSearch) return true;
+
+      const nameMatches = c.fullName.toLowerCase().includes(rawSearch);
+      const phoneMatches = c.whatsappNumber.includes(rawSearch);
+      const phoneDigitsMatches =
+        searchDigits.length >= 3 &&
+        (c.whatsappNumber.replace(/\D/g, '').includes(searchDigits) ||
+          (searchDigits.startsWith('0') && c.whatsappNumber.replace(/\D/g, '').includes(searchDigits.slice(1))));
+
+      return nameMatches || phoneMatches || phoneDigitsMatches;
+    });
+  }, [customers, clientFilter, styleFilter, search, customerStats]);
+
+  const { totalCustomers, activeCustomers, owingCount } = useMemo(() => {
+    let active = 0;
+    let owing = 0;
+    customers.forEach((c) => {
+      const s = customerStats[c.id];
+      if (s) {
+        if (s.activeOrders > 0) active += 1;
+        if (s.totalBalance > 0) owing += 1;
+      }
+    });
+    return {
+      totalCustomers: customers.length,
+      activeCustomers: active,
+      owingCount: owing,
+    };
+  }, [customers, customerStats]);
+
+  // Active / VIP clients for Instagram-style Story Notes Row
+  const storyClients = useMemo(() => {
+    const activeOrOwing = customers.filter(c => {
+      const s = customerStats[c.id];
+      return s && (s.activeOrders > 0 || s.totalBalance > 0);
+    });
+
+    const list = [...activeOrOwing];
+    if (list.length < 8) {
+      customers.forEach(c => {
+        if (!list.some(p => p.id === c.id) && list.length < 8) {
+          list.push(c);
+        }
+      });
+    }
+
+    return list.slice(0, 10).map(c => {
+      const s = customerStats[c.id];
+      let noteText = 'Client';
+      let noteIcon = 'person';
+      let isReady = false;
+      let hasActive = false;
+
+      if (s?.activeOrder) {
+        hasActive = true;
+        if (s.activeOrder.status === 'Ready') {
+          noteText = 'Ready';
+          noteIcon = 'checkroom';
+          isReady = true;
+        } else if (s.activeOrder.status === 'Sewing') {
+          noteText = 'In Sewing';
+          noteIcon = 'needle';
+        } else if (s.activeOrder.status === 'Cutting') {
+          noteText = 'In Cutting';
+          noteIcon = 'content_cut';
+        } else {
+          noteText = s.activeOrder.styleName ? s.activeOrder.styleName.split(' ')[0] : 'In Progress';
+          noteIcon = 'inventory_2';
+        }
+      } else if (s && s.totalBalance > 0) {
+        noteText = `₦${Math.round(s.totalBalance / 1000)}k due`;
+        noteIcon = 'payments';
+      } else {
+        noteText = c.preferredStyles?.[0] || 'Atelier';
+        noteIcon = 'star';
+      }
+
+      const firstName = c.fullName.split(' ')[0] || c.fullName;
+
+      return {
+        customer: c,
+        noteText,
+        noteIcon,
+        isReady,
+        hasActive,
+        firstName,
+      };
+    });
+  }, [customers, customerStats]);
 
   const openOutreachSheet = () => {
     setOutreachStep('compose');
@@ -224,7 +303,6 @@ export default function CustomersPage() {
         window.open(getWhatsAppLink(customer.whatsappNumber, personalNote), '_blank');
         showToast('Photo sharing isn’t supported here — sent the note only. Attach the photo yourself, then mark as sent.', 'info');
       }
-      // 'cancelled': user backed out of the share sheet — stay put, no toast.
     } catch {
       showToast('Could not open the share sheet', 'error');
     } finally {
@@ -240,12 +318,25 @@ export default function CustomersPage() {
     setQueueIndex((i) => i + 1);
   }, [queueList, queueIndex, styleFilter, currentShop, user]);
 
-  // authLoading starts true on every mount/auth-state event and only
-  // flips once the profile (and its role) has actually resolved —
-  // checking isOwner before that resolves is checking a value that
-  // hasn't been determined yet, not a real "not the owner" answer. This
-  // previously flashed Access Denied at real owners on every reload,
-  // exactly like the same bug already fixed once on the Settings page.
+  const topBar = (
+    <TopBar
+      title="Customers"
+      rightAction={
+        <div className={styles.headerActions}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => router.push(ROUTES.customerNew)}
+            className={styles.addCustomerBtn}
+          >
+            <Symbol name="person_add" size={16} /> New Client
+          </Button>
+          <NotificationBell />
+        </div>
+      }
+    />
+  );
+
   if (authLoading || !isLoaded) {
     return (
       <PageLayout header={topBar}>
@@ -257,284 +348,302 @@ export default function CustomersPage() {
   if (!isOwner) {
     return (
       <PageLayout header={topBar}>
-        <EmptyState icon={<Symbol name="person_off" />} title="Access Denied" description="Only owners can view the customer directory." />
+        <EmptyState
+          icon={<Symbol name="person_off" />}
+          title="Access Denied"
+          description="Only owners can view the customer directory."
+        />
       </PageLayout>
     );
   }
 
-  const filtered = useMemo(() => {
-    const rawSearch = search.toLowerCase().trim();
-    const searchDigits = rawSearch.replace(/\D/g, '');
-
-    return customers.filter((c) => {
-      const stats = customerStats[c.id];
-      if (clientFilter === 'male' && c.gender !== 'male') return false;
-      if (clientFilter === 'female' && c.gender !== 'female') return false;
-      if (clientFilter === 'active' && (!stats || stats.activeOrders <= 0)) return false;
-      if (clientFilter === 'owing' && (!stats || stats.totalBalance <= 0)) return false;
-      if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
-      if (!rawSearch) return true;
-
-      const nameMatches = c.fullName.toLowerCase().includes(rawSearch);
-      const phoneMatches = c.whatsappNumber.includes(rawSearch);
-      const phoneDigitsMatches =
-        searchDigits.length >= 3 &&
-        (c.whatsappNumber.replace(/\D/g, '').includes(searchDigits) ||
-          (searchDigits.startsWith('0') && c.whatsappNumber.replace(/\D/g, '').includes(searchDigits.slice(1))));
-
-      return nameMatches || phoneMatches || phoneDigitsMatches;
-    });
-  }, [customers, clientFilter, styleFilter, search, customerStats]);
-
-  const { totalCustomers, activeCustomers, totalReceivables, owingCount } = useMemo(() => {
-    let active = 0;
-    let receivables = 0;
-    let owing = 0;
-    customers.forEach((c) => {
-      const s = customerStats[c.id];
-      if (s) {
-        if (s.activeOrders > 0) active += 1;
-        if (s.totalBalance > 0) {
-          receivables += s.totalBalance;
-          owing += 1;
-        }
-      }
-    });
-    return {
-      totalCustomers: customers.length,
-      activeCustomers: active,
-      totalReceivables: receivables,
-      owingCount: owing,
-    };
-  }, [customers, customerStats]);
+  const shopInitials = getInitials(currentShop?.name || 'MyTailorBook');
 
   return (
     <PageLayout header={topBar}>
-        
-        <div className={styles.statsContainer}>
-          <div
-            className={`${styles.statCard} ${styles.statCardClickable} ${clientFilter === 'all' ? styles.statCardActive : ''}`}
-            onClick={() => setClientFilter('all')}
-            title="Show all clients"
-          >
-            <div className={styles.statValue}>{totalCustomers}</div>
-            <div className={styles.statLabel}>Total Clients</div>
-          </div>
-          <div
-            className={`${styles.statCard} ${styles.statCardClickable} ${clientFilter === 'active' ? styles.statCardActive : ''}`}
-            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
-            title="Filter by clients with active orders"
-          >
-            <div className={styles.statValue}>{activeCustomers}</div>
-            <div className={styles.statLabel}>Active Orders</div>
-          </div>
-          <div
-            className={`${styles.statCard} ${styles.statCardClickable} ${clientFilter === 'owing' ? styles.statCardActive : ''}`}
-            onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
-            title="Filter by clients with pending balances"
-          >
-            <div className={`${styles.statValue} ${totalReceivables > 0 ? styles.statValueWarn : ''}`}>
-              {formatCurrency(totalReceivables)}
-            </div>
-            <div className={styles.statLabel}>
-              {owingCount > 0 ? `${owingCount} owing` : 'Pending Bal.'}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.actionArea}>
-          <SearchBar value={search} onChange={setSearch} placeholder="Search by name or phone..." />
-        </div>
-
-        <div className={styles.pillRow}>
-          <FilterPill
-            label="All"
-            icon={<Symbol name="group" size={12} />}
-            active={clientFilter === 'all'}
-            onClick={() => setClientFilter('all')}
+      {/* ── 1. Search Bar with Integrated Filter (Instagram Pill Style) ── */}
+      <div className={styles.searchBarRow}>
+        <div className={styles.searchBarPill}>
+          <Symbol name="search" size={16} className={styles.searchIcon} />
+          <input
+            type="text"
+            className={styles.searchInput}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search clients, styles, phone..."
           />
-          <FilterPill
-            label="Active"
-            icon={<Symbol name="inventory_2" size={12} />}
-            count={activeCustomers > 0 ? activeCustomers : undefined}
-            active={clientFilter === 'active'}
-            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
-          />
-          <FilterPill
-            label="Owing"
-            icon={<Symbol name="payments" size={12} />}
-            count={owingCount > 0 ? owingCount : undefined}
-            active={clientFilter === 'owing'}
-            onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
-          />
-          <FilterPill
-            label="Male"
-            active={clientFilter === 'male'}
-            onClick={() => {
-              setClientFilter(clientFilter === 'male' ? 'all' : 'male');
-              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
-                setStyleFilter(null);
-              }
-            }}
-          />
-          <FilterPill
-            label="Female"
-            active={clientFilter === 'female'}
-            onClick={() => {
-              setClientFilter(clientFilter === 'female' ? 'all' : 'female');
-              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
-                setStyleFilter(null);
-              }
-            }}
-          />
-          <FilterPill
-            label={styleFilter || 'Style'}
-            icon={<Symbol name="checkroom" size={12} />}
-            active={!!styleFilter}
-            onClick={() => setIsStyleSheetOpen(true)}
-          />
-          {styleFilter && (
+          {search && (
             <button
               type="button"
-              className={styles.clearFilterChip}
-              onClick={() => setStyleFilter(null)}
-              title="Clear style filter"
+              className={styles.searchClearBtn}
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
             >
-              <span>Clear style</span>
-              <Symbol name="close" size={11} />
+              <Symbol name="close" size={12} />
             </button>
           )}
         </div>
+        <button
+          type="button"
+          className={`${styles.filterActionBtn} ${styleFilter ? styles.filterActionBtnActive : ''}`}
+          onClick={() => setIsStyleSheetOpen(true)}
+          title="Filter styles"
+        >
+          <Symbol name="tune" size={14} />
+          <span>{styleFilter || 'Filter'}</span>
+        </button>
+      </div>
 
-        <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">
-          {availableStyles.length === 0 ? (
-            <p className={styles.noStylesHint}>
-              No styles to filter by yet — a style shows up here once it has both an approved Style Gallery photo
-              and at least one customer who prefers it.
-            </p>
-          ) : (
-            <div className={styles.styleFilterGrid}>
-              {availableStyles.map((s) => (
-                <button
-                  key={s.name}
-                  type="button"
-                  className={`${styles.styleFilterCard} ${styleFilter === s.name ? styles.styleFilterCardSelected : ''}`}
-                  onClick={() => {
-                    setStyleFilter(styleFilter === s.name ? null : s.name);
-                    setIsStyleSheetOpen(false);
-                  }}
-                >
-                  {s.photoUrl ? (
-                    <div className={styles.styleFilterPhoto}>
-                      <Image src={s.photoUrl} alt="" width={200} height={200} />
+      {/* ── 2. Top Story Notes Carousel (Instagram Highlights / Notes) ── */}
+      {storyClients.length > 0 && (
+        <section className={styles.storiesSection} aria-label="Active fits & clients">
+          <div className={styles.storiesTrack}>
+            {/* Atelier Story Bubble */}
+            <div
+              className={styles.storyItem}
+              onClick={() => router.push(ROUTES.customerNew)}
+              title="Add new client"
+            >
+              <div className={styles.storyBubble}>
+                <Symbol name="auto_awesome" size={10} />
+                <span>Atelier</span>
+                <span className={styles.storyBubbleTail} />
+              </div>
+              <div className={styles.storyAvatarWrap}>
+                <div className={`${styles.storyRing} ${styles.storyRingGradient}`}>
+                  <div className={styles.storyAvatarInner}>
+                    <Avatar name={shopInitials} size="lg" shape="circle" />
+                  </div>
+                </div>
+              </div>
+              <span className={styles.storyName}>Your note</span>
+            </div>
+
+            {/* Client Story Bubbles */}
+            {storyClients.map((item) => (
+              <div
+                key={item.customer.id}
+                className={styles.storyItem}
+                onClick={() => router.push(ROUTES.customerDetail(item.customer.id))}
+                title={`View ${item.customer.fullName}`}
+              >
+                <div className={styles.storyBubble}>
+                  <Symbol name={item.noteIcon} size={10} />
+                  <span>{item.noteText}</span>
+                  <span className={styles.storyBubbleTail} />
+                </div>
+                <div className={styles.storyAvatarWrap}>
+                  <div
+                    className={`${styles.storyRing} ${
+                      item.isReady
+                        ? styles.storyRingReady
+                        : item.hasActive
+                        ? styles.storyRingGradient
+                        : styles.storyRingNeutral
+                    }`}
+                  >
+                    <div
+                      className={`${styles.storyAvatarInner} ${
+                        !item.hasActive && !item.isReady ? styles.storyAvatarInnerPlain : ''
+                      }`}
+                    >
+                      <Avatar name={item.customer.fullName} size="lg" shape="circle" />
                     </div>
-                  ) : (
-                    <div className={styles.styleFilterPhoto} aria-hidden="true" />
-                  )}
-                  <span>{s.name}</span>
+                  </div>
+                </div>
+                <span className={styles.storyName}>{item.firstName}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 3. Soft Filter Pills (Borderless Capsules) ──────────────── */}
+      <div className={styles.pillTrack}>
+        <button
+          type="button"
+          className={`${styles.softPill} ${clientFilter === 'all' ? styles.softPillActive : ''}`}
+          onClick={() => setClientFilter('all')}
+        >
+          {clientFilter === 'all' && <span className={styles.pillDot} />}
+          <span>All {totalCustomers > 0 ? totalCustomers : ''}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.softPill} ${clientFilter === 'active' ? styles.softPillActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
+        >
+          {clientFilter === 'active' && <span className={styles.pillDot} />}
+          <span>In Production {activeCustomers > 0 ? activeCustomers : ''}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.softPill} ${clientFilter === 'owing' ? styles.softPillActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+        >
+          {clientFilter === 'owing' && <span className={styles.pillDotAmber} />}
+          <span>Owing {owingCount > 0 ? owingCount : ''}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.softPill} ${clientFilter === 'male' ? styles.softPillActive : ''}`}
+          onClick={() => {
+            setClientFilter(clientFilter === 'male' ? 'all' : 'male');
+            if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
+              setStyleFilter(null);
+            }
+          }}
+        >
+          <span>Men</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.softPill} ${clientFilter === 'female' ? styles.softPillActive : ''}`}
+          onClick={() => {
+            setClientFilter(clientFilter === 'female' ? 'all' : 'female');
+            if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
+              setStyleFilter(null);
+            }
+          }}
+        >
+          <span>Women</span>
+        </button>
+
+        {styleFilter && (
+          <button
+            type="button"
+            className={`${styles.softPill} ${styles.softPillActive}`}
+            onClick={() => setStyleFilter(null)}
+            title="Clear style filter"
+          >
+            <span>{styleFilter}</span>
+            <Symbol name="close" size={11} />
+          </button>
+        )}
+      </div>
+
+      {/* Style Filter BottomSheet */}
+      <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">
+        {availableStyles.length === 0 ? (
+          <p className={styles.noStylesHint}>
+            No styles to filter by yet — a style shows up here once it has both an approved Style Gallery photo
+            and at least one customer who prefers it.
+          </p>
+        ) : (
+          <div className={styles.styleFilterGrid}>
+            {availableStyles.map((s) => (
+              <button
+                key={s.name}
+                type="button"
+                className={`${styles.styleFilterCard} ${styleFilter === s.name ? styles.styleFilterCardSelected : ''}`}
+                onClick={() => {
+                  setStyleFilter(styleFilter === s.name ? null : s.name);
+                  setIsStyleSheetOpen(false);
+                }}
+              >
+                {s.photoUrl ? (
+                  <div className={styles.styleFilterPhoto}>
+                    <Image src={s.photoUrl} alt="" width={200} height={200} />
+                  </div>
+                ) : (
+                  <div className={styles.styleFilterPhoto} aria-hidden="true" />
+                )}
+                <span>{s.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* Outreach Action Bar */}
+      {styleFilter && (
+        savedPhotos.length > 0 ? (
+          <button type="button" className={styles.reachOutBar} onClick={openOutreachSheet}>
+            <Symbol name="ios_share" size={18} />
+            <span>Reach out to {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
+          </button>
+        ) : (
+          <a href={ROUTES.styleDetail(styleFilter)} className={styles.reachOutHint}>
+            No approved photos yet for {styleFilter} — add one in Style Gallery
+          </a>
+        )
+      )}
+
+      {/* Outreach Sheet */}
+      <BottomSheet
+        isOpen={isOutreachSheetOpen}
+        onClose={closeOutreachSheet}
+        title={outreachStep === 'compose' ? `Reach Out — ${styleFilter}` : undefined}
+      >
+        {outreachStep === 'compose' ? (
+          <div className={styles.composeWrap}>
+            <span className={styles.composeLabel}>Choose a photo</span>
+            <div className={styles.styleFilterGrid}>
+              {savedPhotos.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`${styles.styleFilterCard} ${selectedPhoto?.id === p.id ? styles.styleFilterCardSelected : ''}`}
+                  onClick={() => setSelectedPhoto(p)}
+                >
+                  <div className={styles.styleFilterPhoto}>
+                    <Image src={p.photoUrl} alt="" width={200} height={200} />
+                  </div>
                 </button>
               ))}
             </div>
-          )}
-        </BottomSheet>
+            <span className={styles.composeLabel}>Note (use {'{name}'} to insert each customer&apos;s first name)</span>
+            <textarea
+              className={styles.noteInput}
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              rows={3}
+            />
 
-        {styleFilter && (
-          savedPhotos.length > 0 ? (
-            <button type="button" className={styles.reachOutBar} onClick={openOutreachSheet}>
-              <Symbol name="ios_share" size={18} />
-              <span>Reach out to {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
-            </button>
-          ) : (
-            <a href={ROUTES.styleDetail(styleFilter)} className={styles.reachOutHint}>
-              No approved photos yet for {styleFilter} — add one in Style Gallery
-            </a>
-          )
-        )}
+            <span className={styles.composeLabel}>Who should get this?</span>
+            <div className={styles.pillTrack}>
+              <button
+                type="button"
+                className={`${styles.softPill} ${selectionMode === 'everyone' ? styles.softPillActive : ''}`}
+                onClick={() => setSelectionMode('everyone')}
+              >
+                <span>Everyone</span>
+              </button>
+              <button
+                type="button"
+                className={`${styles.softPill} ${selectionMode === 'choose' ? styles.softPillActive : ''}`}
+                onClick={() => setSelectionMode('choose')}
+              >
+                <span>Choose People</span>
+              </button>
+            </div>
 
-        <BottomSheet
-          isOpen={isOutreachSheetOpen}
-          onClose={closeOutreachSheet}
-          title={outreachStep === 'compose' ? `Reach Out — ${styleFilter}` : undefined}
-        >
-          {outreachStep === 'compose' ? (
-            <div className={styles.composeWrap}>
-              <span className={styles.composeLabel}>Choose a photo</span>
-              <div className={styles.styleFilterGrid}>
-                {savedPhotos.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className={`${styles.styleFilterCard} ${selectedPhoto?.id === p.id ? styles.styleFilterCardSelected : ''}`}
-                    onClick={() => setSelectedPhoto(p)}
-                  >
-                    <div className={styles.styleFilterPhoto}>
-                      <Image src={p.photoUrl} alt="" width={200} height={200} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <span className={styles.composeLabel}>Note (use {'{name}'} to insert each customer&apos;s first name)</span>
-              <textarea
-                className={styles.noteInput}
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                rows={3}
-              />
+            {(() => {
+              const notYetContacted = filtered.filter((c) => !outreachMap[c.id]);
+              const everyoneTarget = includeContacted ? filtered : notYetContacted;
+              const chosenTarget = filtered.filter((c) => selectedCustomerIds.has(c.id));
+              const queueTarget = selectionMode === 'everyone' ? everyoneTarget : chosenTarget;
 
-              <span className={styles.composeLabel}>Who should get this?</span>
-              <div className={styles.pillRow}>
-                <FilterPill label="Everyone" active={selectionMode === 'everyone'} onClick={() => setSelectionMode('everyone')} />
-                <FilterPill label="Choose People" active={selectionMode === 'choose'} onClick={() => setSelectionMode('choose')} />
-              </div>
-
-              {(() => {
-                const notYetContacted = filtered.filter((c) => !outreachMap[c.id]);
-                const everyoneTarget = includeContacted ? filtered : notYetContacted;
-                const chosenTarget = filtered.filter((c) => selectedCustomerIds.has(c.id));
-                const queueTarget = selectionMode === 'everyone' ? everyoneTarget : chosenTarget;
-
-                if (selectionMode === 'choose') {
-                  return (
-                    <>
-                      <div className={styles.customerPickList}>
-                        {filtered.map((c) => (
-                          <label key={c.id} className={styles.customerPickRow}>
-                            <input
-                              type="checkbox"
-                              checked={selectedCustomerIds.has(c.id)}
-                              onChange={() => toggleCustomerSelection(c.id)}
-                            />
-                            <span>{c.fullName}</span>
-                            {outreachMap[c.id] && <span className={styles.pickContactedTag}>Already contacted</span>}
-                          </label>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.startBtn}
-                        disabled={!selectedPhoto || queueTarget.length === 0}
-                        onClick={() => startQueue(queueTarget)}
-                      >
-                        {queueTarget.length === 0
-                          ? 'Select at least one customer'
-                          : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
-                      </button>
-                    </>
-                  );
-                }
-
+              if (selectionMode === 'choose') {
                 return (
                   <>
-                    {filtered.length > notYetContacted.length && (
-                      <label className={styles.includeContactedRow}>
-                        <input
-                          type="checkbox"
-                          checked={includeContacted}
-                          onChange={(e) => setIncludeContacted(e.target.checked)}
-                        />
-                        Include the {filtered.length - notYetContacted.length} already contacted
-                      </label>
-                    )}
+                    <div className={styles.customerPickList}>
+                      {filtered.map((c) => (
+                        <label key={c.id} className={styles.customerPickRow}>
+                          <input
+                            type="checkbox"
+                            checked={selectedCustomerIds.has(c.id)}
+                            onChange={() => toggleCustomerSelection(c.id)}
+                          />
+                          <span>{c.fullName}</span>
+                          {outreachMap[c.id] && <span className={styles.pickContactedTag}>Already contacted</span>}
+                        </label>
+                      ))}
+                    </div>
                     <button
                       type="button"
                       className={styles.startBtn}
@@ -542,208 +651,210 @@ export default function CustomersPage() {
                       onClick={() => startQueue(queueTarget)}
                     >
                       {queueTarget.length === 0
-                        ? 'Everyone here has already been contacted'
+                        ? 'Select at least one customer'
                         : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
                     </button>
                   </>
                 );
-              })()}
-            </div>
-          ) : (
-            <div className={styles.queueWrap}>
-              {queueIndex >= queueList.length ? (
-                <div className={styles.queueDone}>
-                  <Symbol name="check_circle" size={40} />
-                  <p>All done — reached out to everyone in this list.</p>
-                  <button type="button" className={styles.startBtn} onClick={closeOutreachSheet}>Close</button>
-                </div>
-              ) : (
+              }
+
+              return (
                 <>
-                  <p className={styles.queuePosition}>Customer {queueIndex + 1} of {queueList.length}</p>
-                  <div className={styles.queueCard}>
-                    <Avatar name={queueList[queueIndex].fullName} size="md" />
-                    <div>
-                      <p className={styles.queueName}>{queueList[queueIndex].fullName}</p>
-                      <p className={styles.queuePhone}>{formatPhone(queueList[queueIndex].whatsappNumber)}</p>
-                      {outreachMap[queueList[queueIndex].id] && (
-                        <span className={styles.contactedTag}>
-                          Already reached out {formatDate(outreachMap[queueList[queueIndex].id])}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {selectedPhoto && (
-                    <div className={styles.queuePreviewPhoto}>
-                      <Image src={selectedPhoto.photoUrl} alt="" width={200} height={200} />
-                    </div>
+                  {filtered.length > notYetContacted.length && (
+                    <label className={styles.includeContactedRow}>
+                      <input
+                        type="checkbox"
+                        checked={includeContacted}
+                        onChange={(e) => setIncludeContacted(e.target.checked)}
+                      />
+                      Include the {filtered.length - notYetContacted.length} already contacted
+                    </label>
                   )}
-                  <p className={styles.queueNotePreview}>
-                    {noteText.replace(/\{name\}/g, queueList[queueIndex].fullName.split(' ')[0])}
-                  </p>
-                  <div className={styles.queueActions}>
-                    <button type="button" className={styles.skipBtn} onClick={() => setQueueIndex((i) => i + 1)}>
-                      Skip
-                    </button>
-                    <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
-                      <>
-                        {sharing && <Symbol name="progress_activity" className="global-spinner" />}
-                        <Symbol name="ios_share" size={18} /> Share
-                      </>
-                    </button>
-                  </div>
-                  <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>
-                    Already sent this manually — just mark as contacted
+                  <button
+                    type="button"
+                    className={styles.startBtn}
+                    disabled={!selectedPhoto || queueTarget.length === 0}
+                    onClick={() => startQueue(queueTarget)}
+                  >
+                    {queueTarget.length === 0
+                      ? 'Everyone here has already been contacted'
+                      : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
                   </button>
                 </>
-              )}
-            </div>
-          )}
-        </BottomSheet>
-
-        {filtered.length === 0 ? (
-          customers.length === 0 ? (
-            <EmptyState
-              image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
-              title="No customers yet"
-              description="Your customer book starts with your first order — create one and the customer is saved here automatically." action={{ label: "Create Order", href: "/orders/new" }}
-            />
-          ) : (
-            <EmptyState icon={<Symbol name="person_off" />} title="No customers found" description="Try a different search or filter" action={{ label: "Add Customer", href: "/customers/new" }} />
-          )
+              );
+            })()}
+          </div>
         ) : (
-          <>
-            {/* Mobile View */}
-            {/* Apple Inset Grouped List */}
-            <div className={styles.groupedList}>
-              {filtered.slice(0, visibleCount).map((c, i, arr) => {
-                const stats = customerStats[c.id];
-                const isLast = i === arr.length - 1;
-                return (
-                  <div key={c.id} className={styles.tableRowWrapper}>
+          <div className={styles.queueWrap}>
+            {queueIndex >= queueList.length ? (
+              <div className={styles.queueDone}>
+                <Symbol name="check_circle" size={40} />
+                <p>All done — reached out to everyone in this list.</p>
+                <button type="button" className={styles.startBtn} onClick={closeOutreachSheet}>Close</button>
+              </div>
+            ) : (
+              <>
+                <p className={styles.queuePosition}>Customer {queueIndex + 1} of {queueList.length}</p>
+                <div className={styles.queueCard}>
+                  <Avatar name={queueList[queueIndex].fullName} size="md" shape="circle" />
+                  <div>
+                    <p className={styles.queueName}>{queueList[queueIndex].fullName}</p>
+                    <p className={styles.queuePhone}>{formatPhone(queueList[queueIndex].whatsappNumber)}</p>
+                    {outreachMap[queueList[queueIndex].id] && (
+                      <span className={styles.contactedTag}>
+                        Already reached out {formatDate(outreachMap[queueList[queueIndex].id])}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {selectedPhoto && (
+                  <div className={styles.queuePreviewPhoto}>
+                    <Image src={selectedPhoto.photoUrl} alt="" width={200} height={200} />
+                  </div>
+                )}
+                <p className={styles.queueNotePreview}>
+                  {noteText.replace(/\{name\}/g, queueList[queueIndex].fullName.split(' ')[0])}
+                </p>
+                <div className={styles.queueActions}>
+                  <button type="button" className={styles.skipBtn} onClick={() => setQueueIndex((i) => i + 1)}>
+                    Skip
+                  </button>
+                  <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
+                    <>
+                      {sharing && <Symbol name="progress_activity" className="global-spinner" />}
+                      <Symbol name="ios_share" size={18} /> Share
+                    </>
+                  </button>
+                </div>
+                <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>
+                  Already sent this manually — just mark as contacted
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* ── 4. Customer Feed (Continuous, Borderless List) ───────────── */}
+      {filtered.length === 0 ? (
+        customers.length === 0 ? (
+          <EmptyState
+            image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
+            title="No customers yet"
+            description="Your customer book starts with your first order — create one and the customer is saved here automatically."
+            action={{ label: 'Create Order', href: ROUTES.orderNew }}
+          />
+        ) : (
+          <EmptyState
+            icon={<Symbol name="person_off" />}
+            title="No customers found"
+            description="Try a different search or filter"
+            action={{ label: 'Add Customer', href: ROUTES.customerNew }}
+          />
+        )
+      ) : (
+        <>
+          <div className={styles.customerFeed}>
+            {filtered.slice(0, visibleCount).map((c) => {
+              const stats = customerStats[c.id];
+              const hasActive = stats && stats.activeOrders > 0;
+              const isReady = stats?.activeOrder?.status === 'Ready';
+              const hasBalance = stats && stats.totalBalance > 0;
+
+              // Conversational subtitle
+              let subtitle = '';
+              if (stats?.activeOrder) {
+                const garment = stats.activeOrder.styleName || 'Custom Garment';
+                const stage = stats.activeOrder.status === 'Ready' ? 'Ready for pickup' : `In ${stats.activeOrder.status}`;
+                subtitle = `${garment} · ${stage}`;
+                if (hasBalance) {
+                  subtitle += ` · ₦${Math.round(stats.totalBalance).toLocaleString()} due`;
+                }
+              } else if (hasBalance) {
+                subtitle = `₦${Math.round(stats.totalBalance).toLocaleString()} balance due · ${formatPhone(c.whatsappNumber)}`;
+              } else if (stats?.latestOrder) {
+                const garment = stats.latestOrder.styleName || 'Bespoke Order';
+                subtitle = `Last: ${garment} · ${formatShortMonthYear(stats.latestOrder.createdAt)}`;
+              } else {
+                subtitle = `Client · ${formatPhone(c.whatsappNumber)}`;
+              }
+
+              return (
+                <div
+                  key={c.id}
+                  className={styles.customerRow}
+                  onClick={() => router.push(ROUTES.customerDetail(c.id))}
+                >
+                  <div className={styles.avatarWrap}>
                     <div
-                      className={styles.tableRow}
-                      onClick={() => router.push(ROUTES.customerDetail(c.id))}
+                      className={`${styles.avatarRing} ${
+                        isReady
+                          ? styles.ringReady
+                          : hasActive
+                          ? styles.ringGradient
+                          : ''
+                      }`}
                     >
-                      <Avatar name={c.fullName} size="md" shape="squircle" />
-                      <div className={styles.cardInfo}>
-                        <div className={styles.nameRow}>
-                          <span className={styles.name}>{c.fullName}</span>
-                          {c.gender && (
-                            <span className={styles.genderTagSmall}>
-                              {c.gender === 'female' ? 'F' : 'M'}
-                            </span>
-                          )}
-                        </div>
-                        <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
-                        {stats.activeOrders > 0 && (
-                          <span className={styles.activeOrdersHint}>
-                            {stats.activeOrders} active {stats.activeOrders === 1 ? 'order' : 'orders'}
-                          </span>
-                        )}
-                        {styleFilter && (
-                          <span className={`${styles.contactBadge} ${outreachMap[c.id] ? styles.contactBadgeDone : ''}`}>
-                            {outreachMap[c.id] ? `Reached out ${formatDate(outreachMap[c.id])}` : 'Not yet contacted'}
-                          </span>
-                        )}
-                      </div>
-                      <div className={styles.cardRightCol}>
-                        {stats.totalBalance > 0 && (
-                          <span className={styles.owesBadge}>Owes {formatCurrency(stats.totalBalance)}</span>
-                        )}
-                        <div className={styles.mobileQuickActions} onClick={(e) => e.stopPropagation()}>
-                          <a
-                            href={getWhatsAppLink(c.whatsappNumber)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.quickIconBtn}
-                            aria-label={`WhatsApp ${c.fullName}`}
-                          >
-                            <WhatsappIcon size={16} />
-                          </a>
-                        </div>
-                        <Symbol name="chevron_right" size={18} className={styles.chevronIcon} />
+                      <div className={`${styles.avatarInner} ${!hasActive && !isReady ? styles.avatarInnerPlain : ''}`}>
+                        <Avatar name={c.fullName} size="lg" shape="circle" className={styles.circleAvatar} />
                       </div>
                     </div>
-                    {!isLast && <div className={styles.rowDivider} />}
+                    {isReady ? (
+                      <span className={styles.onlineBadge} title="Ready for pickup" />
+                    ) : hasActive ? (
+                      <span className={styles.activeBadge} title="In production" />
+                    ) : null}
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Desktop View */}
-            <div className={styles.desktopTableContainer}>
-              <table className={styles.desktopTable}>
-                <thead>
-                  <tr>
-                    <th>Customer</th>
-                    <th>Contact</th>
-                    <th>Orders (Active)</th>
-                    <th>Total Spend</th>
-                    <th>Balance</th>
-                    <th className={styles.alignRight}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.slice(0, visibleCount).map((c, i) => {
-                    const stats = customerStats[c.id];
-                    return (
-                      <tr key={c.id} className={styles.tableRow} style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} onClick={() => router.push(ROUTES.customerDetail(c.id))}>
-                        <td>
-                          <div className={styles.customerCell}>
-                            <Avatar name={c.fullName} size="sm" />
-                            <span className={styles.name}>{c.fullName}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={styles.phone}>{formatPhone(c.whatsappNumber)}</span>
-                          <span className={styles.addedDate}>Added {formatShortMonthYear(c.createdAt)}</span>
-                          {styleFilter && (
-                            <span className={`${styles.contactBadge} ${outreachMap[c.id] ? styles.contactBadgeDone : ''}`}>
-                              {outreachMap[c.id] ? `Reached out ${formatDate(outreachMap[c.id])}` : 'Not yet contacted'}
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <span className={styles.orderBadge}>
-                            {stats.totalOrders} ({stats.activeOrders} active)
-                          </span>
-                        </td>
-                        <td>
-                          <span className={styles.currencyCell}>{formatCurrency(stats.totalSpend)}</span>
-                        </td>
-                        <td>
-                          <span className={`${styles.currencyCell} ${stats.totalBalance > 0 ? styles.hasBalance : ''}`}>
-                            {formatCurrency(stats.totalBalance)}
-                          </span>
-                        </td>
-                        <td className={styles.alignRight}>
-                          <div className={styles.rowActions} onClick={(e) => e.stopPropagation()}>
-                            <a href={`tel:${c.whatsappNumber}`} className={styles.actionBtn} aria-label="Call">
-                              <Symbol name="call" size={15} /> Call
-                            </a>
-                            <a href={getWhatsAppLink(c.whatsappNumber)} target="_blank" rel="noopener noreferrer" className={styles.actionBtn} aria-label="WhatsApp">
-                              <WhatsappIcon size={15} /> WhatsApp
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                  <div className={styles.customerInfo}>
+                    <div className={styles.customerHeaderLine}>
+                      <span className={styles.customerName}>{c.fullName}</span>
+                      {c.gender && (
+                        <span className={styles.genderSubtle}>{c.gender === 'female' ? 'F' : 'M'}</span>
+                      )}
+                    </div>
+                    <div className={styles.customerSubtitle}>
+                      <span className={styles.subtitleText}>{subtitle}</span>
+                    </div>
+                  </div>
 
-            {filtered.length > visibleCount && (
-              <button
-                type="button"
-                className={styles.loadMoreBtn}
-                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              >
-                Load {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more ({filtered.length - visibleCount} remaining)
-              </button>
-            )}
-          </>
-        )}
-      </PageLayout>
+                  <div className={styles.rightActionCol}>
+                    {hasBalance && (
+                      <span className={styles.owesPill}>
+                        ₦{Math.round(stats.totalBalance).toLocaleString()}
+                      </span>
+                    )}
+                    {hasActive && !hasBalance && (
+                      <span className={styles.activeDot} />
+                    )}
+                    <div className={styles.quickActionIcons} onClick={(e) => e.stopPropagation()}>
+                      <a
+                        href={getWhatsAppLink(c.whatsappNumber)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.whatsappActionBtn}
+                        aria-label={`WhatsApp ${c.fullName}`}
+                      >
+                        <WhatsappIcon size={18} />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filtered.length > visibleCount && (
+            <button
+              type="button"
+              className={styles.loadMoreBtn}
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            >
+              Load {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more ({filtered.length - visibleCount} remaining)
+            </button>
+          )}
+        </>
+      )}
+    </PageLayout>
   );
 }
