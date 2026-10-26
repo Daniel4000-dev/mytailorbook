@@ -1,44 +1,53 @@
-/* Floating glassmorphic pill bottom nav — Apple iOS & Instagram Aesthetics */
+/* Authentic Apple VisionOS & Instagram Crystal Liquid Glass Bottom Nav */
 .nav {
   position: fixed;
-  bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
-  left: 16px;
-  right: 16px;
-  max-width: 360px;
+  bottom: max(16px, calc(12px + env(safe-area-inset-bottom, 0px)));
+  left: 20px;
+  right: 20px;
+  max-width: 350px;
   height: 52px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0 6px;
-  background: color-mix(in srgb, var(--sf-bg-surface) 68%, transparent);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(28px) saturate(210%);
+  -webkit-backdrop-filter: blur(28px) saturate(210%);
   border-radius: var(--sf-radius-pill, 9999px);
-  border: 0.5px solid color-mix(in srgb, var(--sf-border) 35%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.10),
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 0 0 0.5px rgba(255, 255, 255, 0.22) inset;
+    0 12px 36px 0 rgba(0, 0, 0, 0.16),
+    0 4px 12px 0 rgba(0, 0, 0, 0.08),
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.25);
   z-index: var(--sf-z-sticky);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
 }
 
 :global([data-theme='dark']) .nav {
-  background: rgba(18, 17, 34, 0.70);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(20, 18, 36, 0.35);
+  backdrop-filter: blur(32px) saturate(220%);
+  -webkit-backdrop-filter: blur(32px) saturate(220%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 0.5px rgba(255, 255, 255, 0.08) inset;
+    0 16px 40px 0 rgba(0, 0, 0, 0.45),
+    0 4px 12px 0 rgba(0, 0, 0, 0.25),
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .nav {
-    background: rgba(18, 17, 34, 0.70);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(20, 18, 36, 0.35);
+    backdrop-filter: blur(32px) saturate(220%);
+    -webkit-backdrop-filter: blur(32px) saturate(220%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 0.5px rgba(255, 255, 255, 0.08) inset;
+      0 16px 40px 0 rgba(0, 0, 0, 0.45),
+      0 4px 12px 0 rgba(0, 0, 0, 0.25),
+      inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -0.5px 1px 0 rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -54,12 +63,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sf-text-secondary);
-  opacity: 0.75;
+  color: var(--sf-text-primary);
+  opacity: 0.78;
   text-decoration: none;
   height: 38px;
   flex: 1;
-  max-width: 60px;
+  max-width: 58px;
   min-width: 44px;
   border-radius: var(--sf-radius-pill, 9999px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -70,7 +79,7 @@
 @media (hover: hover) and (pointer: fine) {
   .item:hover {
     opacity: 1;
-    background-color: color-mix(in srgb, var(--sf-text-primary) 5%, transparent);
+    background-color: rgba(255, 255, 255, 0.25);
   }
 }
 
@@ -79,16 +88,22 @@
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Active state: Soft capsule pill behind icon */
+/* Active state: Soft frosted pill capsule matching screenshot */
 .active {
-  background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
+  background-color: rgba(255, 255, 255, 0.45);
   color: var(--sf-text-primary);
   opacity: 1;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    inset 0 0.5px 1px rgba(255, 255, 255, 0.6);
 }
 
 :global([data-theme='dark']) .active {
-  background-color: rgba(255, 255, 255, 0.10);
+  background-color: rgba(255, 255, 255, 0.16);
   color: #FFFFFF;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.3),
+    inset 0 0.5px 1px rgba(255, 255, 255, 0.25);
 }
 
 .iconWrapper {
@@ -138,7 +153,7 @@
 }
 
 .navAvatar {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.20);
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */
