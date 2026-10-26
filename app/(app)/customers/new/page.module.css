@@ -405,12 +405,14 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: color-mix(in srgb, var(--sf-bg-surface) 70%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid var(--sf-border-light);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(18px) saturate(190%);
+  -webkit-backdrop-filter: blur(18px) saturate(190%);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
   z-index: var(--sf-z-sticky);
+  transform: translateZ(0);
+  will-change: transform, backdrop-filter;
 }
 
 .actionBarInner {
@@ -733,11 +735,13 @@
 }
 
 :global([data-theme='dark']) .actionBar {
-  background: rgba(18, 17, 34, 0.70);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(18, 17, 34, 0.45);
+  backdrop-filter: blur(18px) saturate(190%);
+  -webkit-backdrop-filter: blur(18px) saturate(190%);
   border-top-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  transform: translateZ(0);
+  will-change: transform, backdrop-filter;
 }
 
 :global([data-theme='dark']) .screenRailItem {
@@ -827,11 +831,13 @@
   }
 
   :global(:root:not([data-theme="light"])) .actionBar {
-    background: rgba(18, 17, 34, 0.70);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(18, 17, 34, 0.45);
+    backdrop-filter: blur(18px) saturate(190%);
+    -webkit-backdrop-filter: blur(18px) saturate(190%);
     border-top-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+    transform: translateZ(0);
+    will-change: transform, backdrop-filter;
   }
 
   :global(:root:not([data-theme="light"])) .screenRailItem {
