@@ -75,3 +75,33 @@
   text-transform: uppercase;
 }
 
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .pickerCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .pickerPhoto {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .pickerName {
+  color: #FFFFFF;
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .pickerCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .pickerPhoto {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .pickerName {
+    color: #FFFFFF;
+  }
+}
+

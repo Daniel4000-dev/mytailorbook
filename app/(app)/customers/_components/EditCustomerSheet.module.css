@@ -152,3 +152,91 @@
   height: var(--sf-touch-target);
   border-radius: var(--sf-radius-full);
 }
+
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .input {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .input:focus {
+  border-color: #818CF8;
+}
+
+:global([data-theme='dark']) .phonePrefix {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .segment {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .segmentBtn {
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .segmentBtnActive {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .chip {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .chipActive {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #818CF8;
+  color: #818CF8;
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .input {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .input:focus {
+    border-color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .phonePrefix {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .segment {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentBtn {
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentBtnActive {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .chip {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .chipActive {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #818CF8;
+    color: #818CF8;
+  }
+}

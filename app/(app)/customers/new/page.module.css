@@ -661,3 +661,189 @@
     color: var(--sf-brand-indigo);
   }
 }
+
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .header {
+  background: var(--sf-bg-primary);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .insetCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .hairlineDivider {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .input {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .input:focus {
+  background: var(--sf-bg-surface, #161526);
+  border-color: #818CF8;
+}
+
+:global([data-theme='dark']) .textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .textarea:focus {
+  background: var(--sf-bg-surface, #161526);
+  border-color: #818CF8;
+}
+
+:global([data-theme='dark']) .segment {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .segmentBtn {
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .segmentBtnActive {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .presetChip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .presetChipActive {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #818CF8;
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .secondaryBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .actionBar {
+  background: rgba(22, 21, 38, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .screenRailItem {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .screenRailItem[data-state='current'] {
+  background: rgba(99, 102, 241, 0.2);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .screenRailGlyph {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-secondary);
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .header {
+    background: var(--sf-bg-primary);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .insetCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .hairlineDivider {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .input {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .input:focus {
+    background: var(--sf-bg-surface, #161526);
+    border-color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .textarea {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .textarea:focus {
+    background: var(--sf-bg-surface, #161526);
+    border-color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .segment {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentBtn {
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentBtnActive {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .presetChip {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .presetChipActive {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #818CF8;
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .secondaryBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .actionBar {
+    background: rgba(22, 21, 38, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .screenRailItem {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .screenRailItem[data-state='current'] {
+    background: rgba(99, 102, 241, 0.2);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .screenRailGlyph {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--sf-text-secondary);
+  }
+}

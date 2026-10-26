@@ -513,10 +513,6 @@
   color: #D97706;
 }
 
-:root[data-theme="dark"] .warn {
-  color: #FBBF24;
-}
-
 /* ── Measurement profile cards ─────────────────────────────── */
 .profileList {
   display: flex;
@@ -714,11 +710,6 @@
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-:root[data-theme="dark"] .orderBalance {
-  color: #FCD34D;
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.3);
-}
 
 /* ── Bottom actions ─────────────────────────────────────────── */
 .actionBar {
@@ -840,5 +831,280 @@
   .orderCard,
   .profileCard {
     box-shadow: none;
+  }
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+}
+
+.orderActionRow {
+  display: flex;
+  gap: 10px;
+}
+
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .profileBar {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .profileHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .name {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .genderTag {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .storeCreditBadge {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .appleSecondaryActionBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .appleSecondaryActionBtn:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .metricStrip {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .metricVal {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .metricDivider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .warn {
+  color: #FBBF24;
+}
+
+:global([data-theme='dark']) .segmentedControl {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .segmentBtn {
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .segmentActive {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .highlightPhotoWrap {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+:global([data-theme='dark']) .addHighlightCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+:global([data-theme='dark']) .highlightTitle {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .highlightPlaceholder {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .notesTextarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .statCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .statValue {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .orderCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .orderTitle,
+:global([data-theme='dark']) .orderAmount {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .orderBalance {
+  color: #FBBF24;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global([data-theme='dark']) .dangerZone {
+  background: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+:global([data-theme='dark']) .dangerZoneHint {
+  color: var(--sf-text-secondary);
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .profileBar {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .profileHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .name {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .genderTag {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .storeCreditBadge {
+    background: rgba(99, 102, 241, 0.16);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .appleSecondaryActionBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .appleSecondaryActionBtn:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(:root:not([data-theme="light"])) .metricStrip {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .metricVal {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .metricDivider {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .warn {
+    color: #FBBF24;
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentedControl {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentBtn {
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentActive {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .highlightPhotoWrap {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .addHighlightCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  :global(:root:not([data-theme="light"])) .highlightTitle {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .highlightPlaceholder {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .notesTextarea {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .statCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .statValue {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .orderCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .orderTitle,
+  :global(:root:not([data-theme="light"])) .orderAmount {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .orderBalance {
+    color: #FBBF24;
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .dangerZone {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .dangerZoneHint {
+    color: var(--sf-text-secondary);
   }
 }

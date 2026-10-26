@@ -2,25 +2,28 @@
 /* Stats */
 .statsContainer {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--sf-space-md);
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sf-space-sm);
+  margin-bottom: var(--sf-space-xs);
 }
 
 @media (min-width: 1024px) {
   .statsContainer {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sf-space-md);
   }
 }
 
 .statCard {
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
-  padding: var(--sf-space-md);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xs);
+  gap: 2px;
   transition: all var(--sf-transition-fast);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   animation: fadeInUp 0.4s ease both;
 }
 
@@ -31,30 +34,36 @@
 
 .statCardActive {
   border-color: var(--sf-brand-indigo, #4338CA);
-  background: var(--sf-secondary-container, rgba(67, 56, 202, 0.08));
+  background: rgba(67, 56, 202, 0.08);
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .statCard:hover {
+    border-color: var(--sf-border);
+  }
 
-.statCard:hover {
-  border-color: var(--sf-border);
-}
-
-.statCardClickable:hover {
-  border-color: var(--sf-brand-indigo, #4338CA);
-  transform: translateY(-1px);
-}
+  .statCardClickable:hover {
+    border-color: var(--sf-brand-indigo, #4338CA);
+    transform: translateY(-1px);
+  }
 }
 
 .statValue {
-  font-size: var(--sf-text-2xl);
-  font-weight: var(--sf-weight-bold);
+  font-family: var(--sf-font-heading);
+  font-size: 18px;
+  font-weight: 700;
   color: var(--sf-text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 .statLabel {
-  font-size: var(--sf-text-sm);
+  font-size: 11px;
+  font-weight: 500;
   color: var(--sf-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actionArea {
@@ -275,16 +284,6 @@
 
 .statValueWarn {
   color: #B45309;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .statValueWarn {
-    color: #FBBF24;
-  }
-}
-
-:root[data-theme="dark"] .statValueWarn {
-  color: #FBBF24;
 }
 
 .cardRightCol {
@@ -761,20 +760,354 @@
   margin: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .owesBadge {
-    color: #FBBF24;
-    background: rgba(245, 158, 11, 0.16);
-  }
+.clearFilterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
 }
 
-:root[data-theme="dark"] .owesBadge {
-  color: #FBBF24;
-  background: rgba(245, 158, 11, 0.16);
+.clearFilterChip:active {
+  transform: scale(0.96);
 }
 
 .headerActions {
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
+}
+
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .statCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .statCardActive {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: #818CF8;
+}
+
+:global([data-theme='dark']) .statValue {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .statValueWarn {
+  color: #FBBF24;
+}
+
+:global([data-theme='dark']) .statLabel {
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .groupedList {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .tableRow:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .rowDivider {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .name {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .genderTagSmall {
+  background: rgba(255, 255, 255, 0.08);
+  color: #818CF8;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .activeOrdersHint {
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .owesBadge {
+  color: #FBBF24;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global([data-theme='dark']) .quickIconBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .quickIconBtn:hover,
+:global([data-theme='dark']) .quickIconBtn:active {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #818CF8;
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .clearFilterChip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .desktopTableContainer {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .desktopTable th {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .desktopTable td {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .tableRow:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+:global([data-theme='dark']) .tableRow:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .orderBadge {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .actionBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .actionBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+:global([data-theme='dark']) .reachOutHint {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .styleFilterPhoto {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .noteInput {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .customerPickList {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .customerPickRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-theme='dark']) .customerPickRow:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .queueCard {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .queueNotePreview {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .skipBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-secondary);
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .statCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .statCardActive {
+    background: rgba(99, 102, 241, 0.16);
+    border-color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .statValue {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .statValueWarn {
+    color: #FBBF24;
+  }
+
+  :global(:root:not([data-theme="light"])) .statLabel {
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .groupedList {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .tableRow:active {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .rowDivider {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .name {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .genderTagSmall {
+    background: rgba(255, 255, 255, 0.08);
+    color: #818CF8;
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .activeOrdersHint {
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .owesBadge {
+    color: #FBBF24;
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .quickIconBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .quickIconBtn:hover,
+  :global(:root:not([data-theme="light"])) .quickIconBtn:active {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #818CF8;
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .clearFilterChip {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .desktopTableContainer {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .desktopTable th {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .desktopTable td {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .tableRow:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  :global(:root:not([data-theme="light"])) .tableRow:active {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .orderBadge {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .actionBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .actionBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  :global(:root:not([data-theme="light"])) .reachOutHint {
+    background: rgba(99, 102, 241, 0.16);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .styleFilterPhoto {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .noteInput {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .customerPickList {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .customerPickRow:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  :global(:root:not([data-theme="light"])) .customerPickRow:active {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .queueCard {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .queueNotePreview {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .skipBtn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--sf-text-secondary);
+  }
 }

@@ -347,14 +347,23 @@ export default function CustomersPage() {
         </div>
 
         <div className={styles.pillRow}>
-          <FilterPill label="All" active={clientFilter === 'all'} onClick={() => setClientFilter('all')} />
           <FilterPill
-            label={`Active (${activeCustomers})`}
+            label="All"
+            icon={<Symbol name="group" size={12} />}
+            active={clientFilter === 'all'}
+            onClick={() => setClientFilter('all')}
+          />
+          <FilterPill
+            label="Active"
+            icon={<Symbol name="inventory_2" size={12} />}
+            count={activeCustomers > 0 ? activeCustomers : undefined}
             active={clientFilter === 'active'}
             onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
           />
           <FilterPill
-            label={`Owing (${owingCount})`}
+            label="Owing"
+            icon={<Symbol name="payments" size={12} />}
+            count={owingCount > 0 ? owingCount : undefined}
             active={clientFilter === 'owing'}
             onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
           />
@@ -380,9 +389,21 @@ export default function CustomersPage() {
           />
           <FilterPill
             label={styleFilter || 'Style'}
+            icon={<Symbol name="checkroom" size={12} />}
             active={!!styleFilter}
             onClick={() => setIsStyleSheetOpen(true)}
           />
+          {styleFilter && (
+            <button
+              type="button"
+              className={styles.clearFilterChip}
+              onClick={() => setStyleFilter(null)}
+              title="Clear style filter"
+            >
+              <span>Clear style</span>
+              <Symbol name="close" size={11} />
+            </button>
+          )}
         </div>
 
         <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">

@@ -371,7 +371,7 @@ function CustomerProfileContent({
       <section className={styles.profileHeader}>
         <Avatar name={customer.fullName} size="xl" shape="squircle" />
         <h2 className={styles.name}>{customer.fullName}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div className={styles.metaRow}>
           <span style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', fontWeight: 500 }}>
             {formatPhone(customer.whatsappNumber)}
           </span>
@@ -483,7 +483,7 @@ function CustomerProfileContent({
 
       {/* ── TAB 1: MEASUREMENTS & STYLES ── */}
       {activeTab === 'measurements' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-lg)' }}>
+        <div className={styles.tabContent}>
           {/* Garment Style Profiles (Instagram Highlights Carousel) */}
           <section className={styles.section}>
             <div className={styles.sectionTitleRow}>
@@ -613,7 +613,7 @@ function CustomerProfileContent({
 
       {/* ── TAB 3: ORDERS & FINANCIALS ── */}
       {activeTab === 'orders' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-lg)' }}>
+        <div className={styles.tabContent}>
           {/* Financial Summary */}
           <section className={styles.section}>
             <div className={styles.sectionTitleRow}>
@@ -652,7 +652,7 @@ function CustomerProfileContent({
           </section>
 
           {/* Action to create order */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className={styles.orderActionRow}>
             <Button variant="primary" fullWidth onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}>
               <Symbol name="add_circle" size={20} /> Create New Order
             </Button>

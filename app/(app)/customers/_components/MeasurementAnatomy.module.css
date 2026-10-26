@@ -298,3 +298,87 @@
 .listInput:focus {
   border-color: var(--sf-brand-indigo);
 }
+
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .anatomyContainer {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .counter {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .bodyPart {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+:global([data-theme='dark']) .spanLine {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+:global([data-theme='dark']) .listRow {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .listLabel {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .listInput {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .listInput:focus {
+  border-color: #818CF8;
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .anatomyContainer {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .counter {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .bodyPart {
+    fill: rgba(255, 255, 255, 0.08);
+    stroke: rgba(255, 255, 255, 0.12);
+  }
+
+  :global(:root:not([data-theme="light"])) .spanLine {
+    stroke: rgba(255, 255, 255, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .listRow {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .listLabel {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .listInput {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .listInput:focus {
+    border-color: #818CF8;
+  }
+}

@@ -1,0 +1,219 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 24px;
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--sf-text-secondary);
+  padding: 36px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.emptyIcon {
+  opacity: 0.4;
+  color: var(--sf-text-secondary);
+}
+
+.entryCard {
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: var(--sf-bg-surface);
+}
+
+.entryHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  transition: background-color 0.15s ease;
+}
+
+.entryHeader:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.currentHeader {
+  background: var(--sf-bg-surface-hover);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconCurrent {
+  color: var(--sf-brand-indigo);
+}
+
+.iconPast {
+  color: var(--sf-text-secondary);
+}
+
+.headerDate {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--sf-text-primary);
+}
+
+.currentBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+}
+
+.toggleIcon {
+  color: var(--sf-text-secondary);
+}
+
+.entryBody {
+  padding: 0 16px 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (min-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+}
+
+.itemLabel {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.itemValueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.itemValue {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--sf-text-primary);
+}
+
+.diffBadge {
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.diffUp {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.diffDown {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
+:global([data-theme='dark']) .entryCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .entryHeader {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .entryHeader:hover,
+:global([data-theme='dark']) .currentHeader {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-theme='dark']) .headerDate {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .currentBadge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .item {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .itemValue {
+  color: #FFFFFF;
+}
+
+/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .entryCard {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .entryHeader {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .entryHeader:hover,
+  :global(:root:not([data-theme="light"])) .currentHeader {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  :global(:root:not([data-theme="light"])) .headerDate {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .currentBadge {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .item {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .itemValue {
+    color: #FFFFFF;
+  }
+}
