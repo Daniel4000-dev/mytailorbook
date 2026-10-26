@@ -2,13 +2,13 @@
 .collapsed {}
 
 .sidebar {
+  display: none !important;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%; /* Spans the full width of the screen */
   height: 100dvh;
   padding: 40px 0; /* Control horizontal padding per section */
-  display: flex;
   flex-direction: column;
   z-index: 1;
   opacity: 0;
@@ -266,6 +266,7 @@
   .mobileFooter { display: none !important; }
   .desktopFooter { display: flex !important; }
   .sidebar {
+    display: flex !important;
     width: 280px;
     opacity: 1 !important;
     pointer-events: auto !important;

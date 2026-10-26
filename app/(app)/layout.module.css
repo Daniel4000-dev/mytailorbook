@@ -12,28 +12,11 @@
 }
 
 .depthLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100dvh;
-  max-width: var(--sf-max-width-desktop);
-  margin: 0 auto;
-  background-color: var(--sf-bg-surface); /* Offset stacked card background */
-  border-radius: 0;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  transform: none;
-  pointer-events: none;
-  z-index: 5;
-  opacity: 0;
-  box-shadow: -10px 15px 30px rgba(27, 27, 34, 0.05);
+  display: none !important;
 }
 
 .depthLayer.menuOpen {
-  opacity: 0.6;
-  border-radius: 28px;
-  transform: scale(0.64) translate(68%, 8vh); /* Stacked under-layer shifted down & right */
-  height: 100dvh;
+  display: none !important;
 }
 
 .appShell {
@@ -45,35 +28,23 @@
   margin: 0 auto;
   position: relative;
   background-color: var(--sf-bg-primary); /* Main page canvas */
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   transform: none;
   border-radius: 0;
   z-index: 10;
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  box-shadow: none;
   overflow: hidden;
 }
 
 .appShell.menuOpen {
-  transform: scale(0.68) translate(76%, 8vh); /* Main card scaled down and pushed right & down */
-  border-radius: 28px;
-  box-shadow: -15px 25px 45px rgba(27, 27, 34, 0.09), 0 5px 15px rgba(0, 0, 0, 0.02);
-  height: 100dvh; /* Contain to viewport height */
-  overflow: hidden; /* Hide any overflowing page content */
-  user-select: none;
+  transform: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: 100dvh;
+  overflow: hidden;
 }
 
-/* menuOpenOverlay (see layout.tsx) is what actually blocks interaction
-   with the shrunk page and closes the menu on tap — a single real element
-   sitting on top, not a wildcard pointer-events toggle. A wildcard "disable
-   everything, then re-enable buttons" approach is exactly what let clicks
-   reach real buttons/links underneath while the menu was open. */
 .menuOpenOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  cursor: pointer;
-  pointer-events: auto;
-  background: transparent;
+  display: none !important;
 }
 
 .main {
