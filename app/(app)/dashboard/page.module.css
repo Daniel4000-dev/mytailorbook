@@ -1299,4 +1299,73 @@
   border: 1px solid #C7D2FE;
 }
 
+.teamBenchCard {
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--sf-radius-xl, 16px);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+:global([data-theme='dark']) .teamBenchCard {
+  background: #1B1A2B;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.teamBenchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.teamBenchTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teamBenchIcon {
+  color: var(--sf-accent-indigo, #4338CA);
+  display: flex;
+  align-items: center;
+}
+
+.teamBenchTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary, #111827);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.teamBenchBadge {
+  background: rgba(67, 56, 202, 0.08);
+  color: #4338CA;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.teamBenchLink {
+  background: none;
+  border: none;
+  color: var(--sf-text-secondary, #6B7280);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.teamBenchLink:hover {
+  color: var(--sf-accent-indigo, #4338CA);
+}
+
 

@@ -1,70 +1,102 @@
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
-import pageStyles from '../../page.module.css';
-import discoverStyles from './DiscoverBanner.module.css';
 import styles from './OwnerDashboard.module.css';
 
-// Mirrors desktop/OwnerDashboard.tsx's layout 1:1 (discover banner, finance
-// row, two-column team/attention split) so nothing reflows once real data
-// arrives.
+// Mirrors desktop/OwnerDashboard.tsx's modern luxury layout so nothing reflows
 export default function DashboardSkeleton() {
   return (
     <div className={styles.content}>
-      <div className={discoverStyles.banner}>
-        <Skeleton width={36} height={36} borderRadius="50%" />
-        <div className={discoverStyles.text}>
-          <Skeleton width={160} height={14} />
-          <Skeleton width={220} height={12} />
+      {/* Atelier Hero Skeleton */}
+      <div className={styles.hero} style={{ minHeight: '190px' }}>
+        <div className={styles.heroTop}>
+          <div className={styles.heroIdentity}>
+            <Skeleton width={120} height={12} />
+            <Skeleton width={180} height={20} />
+          </div>
+          <Skeleton width={160} height={38} borderRadius={10} />
+        </div>
+
+        <div className={styles.heroMain}>
+          <div className={styles.heroPrimaryStat}>
+            <Skeleton width={90} height={12} />
+            <Skeleton width={140} height={32} />
+          </div>
+          <div className={styles.heroStatRow}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={styles.heroStat}>
+                <Skeleton width={80} height={12} />
+                <Skeleton width={60} height={20} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className={pageStyles.sectionHeader}>
-        <Skeleton width={140} height={16} />
+      {/* Switchboard Skeleton */}
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '20px',
+        border: '1px solid rgba(0, 0, 0, 0.06)',
+        padding: '16px',
+        marginBottom: '16px',
+      }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '12px' }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <Skeleton width={44} height={44} borderRadius={14} />
+              <Skeleton width={64} height={12} />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className={pageStyles.financeGrid}>
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className={pageStyles.financeCard}>
-            <Skeleton width={90} height={12} />
-            <Skeleton width={70} height={22} borderRadius={4} />
-          </div>
-        ))}
-      </div>
-
+      {/* 2-Column Content Skeleton */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
-          <div className={pageStyles.sectionHeader}>
-            <Skeleton width={130} height={16} />
+          {/* Agenda Card Skeleton */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid rgba(0, 0, 0, 0.06)',
+            padding: '16px',
+            marginBottom: '16px',
+          }}>
+            <Skeleton width={180} height={16} />
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <Skeleton width="100%" height={48} borderRadius={12} />
+              <Skeleton width="100%" height={48} borderRadius={12} />
+            </div>
           </div>
-          <div className={styles.teamGrid}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className={pageStyles.teamCard}>
-                <div className={pageStyles.teamCardHeader}>
-                  <Skeleton width={36} height={36} borderRadius="50%" />
-                  <Skeleton width={80} height={14} />
-                </div>
-                <div className={pageStyles.teamStatsRow}>
-                  <Skeleton width={28} height={20} />
-                  <Skeleton width={28} height={20} />
-                  <Skeleton width={28} height={20} />
-                </div>
-              </div>
-            ))}
+
+          {/* Team Bench Card Skeleton */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid rgba(0, 0, 0, 0.06)',
+            padding: '16px',
+            marginBottom: '16px',
+          }}>
+            <Skeleton width={140} height={16} />
+            <div style={{ marginTop: '14px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} width="100%" height={70} borderRadius={12} />
+              ))}
+            </div>
           </div>
         </div>
 
         <div className={styles.rail}>
-          <div className={pageStyles.sectionHeader}>
+          {/* Priorities Rail Card Skeleton */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid rgba(0, 0, 0, 0.06)',
+            padding: '16px',
+          }}>
             <Skeleton width={150} height={16} />
-          </div>
-          <div className={pageStyles.attentionList}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className={pageStyles.attentionRow}>
-                <div className={pageStyles.attentionInfo}>
-                  <Skeleton width={120} height={14} />
-                  <Skeleton width={180} height={12} />
-                </div>
-              </div>
-            ))}
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <Skeleton width="100%" height={56} borderRadius={12} />
+              <Skeleton width="100%" height={56} borderRadius={12} />
+            </div>
           </div>
         </div>
       </div>

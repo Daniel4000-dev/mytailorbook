@@ -9,14 +9,12 @@ import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
-import DiscoverBanner from './DiscoverBanner';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import MilestonesCard from '../MilestonesCard';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 
 // ============================================================
@@ -43,18 +41,12 @@ export default function OwnerDashboard({
     dueTodayCount,
     uncutFabricsCount,
     inProductionCount,
-    readyCount,
     debtTotal,
     debtorsCount,
     teamSnapshot,
   } = useOwnerDashboardData(orders, staffMembers);
 
   const openLoops = useOpenLoops(orders, customers, exceptions);
-
-  // Show tips only in first 30 days
-  const createdAt = currentShop?.createdAt ? new Date(currentShop.createdAt) : new Date();
-  const daysOld = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 3600 * 24));
-  const showDiscover = daysOld <= 30;
 
   return (
     <div className={styles.content}>
@@ -242,121 +234,100 @@ export default function OwnerDashboard({
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
-          {/* Workfloor Floor Overview */}
-          <div className={pageStyles.sectionHeader}>
-            <span className={pageStyles.sectionTitle}>Workfloor Operations</span>
-          </div>
-
-          <div className={pageStyles.operationalGrid}>
-            <button
-              type="button"
-              className={pageStyles.operationalCard}
-              onClick={() => onNavigate('/fabrics')}
-            >
-              <div className={pageStyles.operationalHeader}>
-                <Symbol name="texture" size={18} className={pageStyles.operationalIcon} />
-                {uncutFabricsCount > 0 && (
-                  <span className={pageStyles.operationalBadgeAlert}>
-                    <Symbol name="content_cut" size={10} />
-                    <span>{uncutFabricsCount}</span>
-                  </span>
-                )}
-              </div>
-              <span className={pageStyles.operationalValue}>{uncutFabricsCount}</span>
-              <span className={pageStyles.operationalLabel}>Uncut Fabrics</span>
-            </button>
-
-            <button
-              type="button"
-              className={pageStyles.operationalCard}
-              onClick={() => onNavigate('/production')}
-            >
-              <div className={pageStyles.operationalHeader}>
-                <Symbol name="dry_cleaning" size={18} className={pageStyles.operationalIcon} />
-              </div>
-              <span className={pageStyles.operationalValue}>{inProductionCount}</span>
-              <span className={pageStyles.operationalLabel}>In Production</span>
-            </button>
-
-            <button
-              type="button"
-              className={pageStyles.operationalCard}
-              onClick={() => onNavigate('/production?status=Ready')}
-            >
-              <div className={pageStyles.operationalHeader}>
-                <Symbol name="check_circle" size={18} className={pageStyles.operationalIcon} />
-              </div>
-              <span className={pageStyles.operationalValue}>{readyCount}</span>
-              <span className={pageStyles.operationalLabel}>Ready for Pickup</span>
-            </button>
-          </div>
-
           {/* Today's Schedule & Fittings (Calendar) */}
           <TodaysAgendaWidget />
 
-          <div className={pageStyles.sectionHeader}>
-            <span className={pageStyles.sectionTitle}>Artisan Bench</span>
-          </div>
-
+          {/* Artisan Bench — Team Craft Workload */}
           {teamSnapshot.length === 0 ? (
-            <div style={{ marginTop: 16, marginBottom: 24 }}>
-              <EmptyState
-                icon={<Symbol name="group" size={32} />}
-                title="No staff added yet"
-                description="Invite your team to view their live workloads."
-                action={{ label: 'Invite Team', onClick: () => onNavigate('/settings/staff') }}
-              />
+            <div className={pageStyles.teamInviteCard}>
+              <div className={pageStyles.teamInviteLeft}>
+                <div className={pageStyles.teamInviteIconWrap}>
+                  <Symbol name="group_add" size={18} />
+                </div>
+                <div>
+                  <span className={pageStyles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
+                  <span className={pageStyles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={pageStyles.teamInviteBtn}
+                onClick={() => onNavigate('/settings/staff')}
+              >
+                Add Team
+              </button>
             </div>
           ) : (
-            <div className={styles.teamGrid}>
-              {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+            <div className={pageStyles.teamBenchCard}>
+              <div className={pageStyles.teamBenchHeader}>
+                <div className={pageStyles.teamBenchTitleRow}>
+                  <span className={pageStyles.teamBenchIcon}>
+                    <Symbol name="group" size={16} />
+                  </span>
+                  <h2 className={pageStyles.teamBenchTitle}>Artisan Bench</h2>
+                  <span className={pageStyles.teamBenchBadge}>
+                    {teamSnapshot.length} Active
+                  </span>
+                </div>
                 <button
-                  key={staff.uid}
-                  className={pageStyles.teamCard}
-                  onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
                   type="button"
+                  className={pageStyles.teamBenchLink}
+                  onClick={() => onNavigate('/settings/staff')}
                 >
-                  <div className={pageStyles.teamCardHeader}>
-                    {staff.avatarUrl ? (
-                      <Image
-                        src={staff.avatarUrl}
-                        alt=""
-                        width={40}
-                        height={40}
-                        className={pageStyles.teamAvatarImage}
-                      />
-                    ) : (
-                      <div className={pageStyles.teamAvatar}>{staff.name[0]}</div>
-                    )}
-                    <div className={pageStyles.teamName}>
-                      {staff.name}
-                      <span className={pageStyles.craftBadge}>
-                        {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={pageStyles.teamStatsRow}>
-                    <div className={pageStyles.teamStat}>
-                      <span className={pageStyles.teamStatValue}>{active}</span>
-                      <span className={pageStyles.teamStatLabel}>Active</span>
-                    </div>
-                    <div className={pageStyles.teamStat}>
-                      <span
-                        className={`${pageStyles.teamStatValue} ${
-                          overdue > 0 ? pageStyles.teamStatAlert : ''
-                        }`}
-                      >
-                        {overdue}
-                      </span>
-                      <span className={pageStyles.teamStatLabel}>Overdue</span>
-                    </div>
-                    <div className={pageStyles.teamStat}>
-                      <span className={pageStyles.teamStatValue}>{completed}</span>
-                      <span className={pageStyles.teamStatLabel}>Done</span>
-                    </div>
-                  </div>
+                  <span>Manage</span>
+                  <Symbol name="chevron_right" size={14} />
                 </button>
-              ))}
+              </div>
+              <div className={styles.teamGrid}>
+                {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+                  <button
+                    key={staff.uid}
+                    className={pageStyles.teamCard}
+                    onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
+                    type="button"
+                  >
+                    <div className={pageStyles.teamCardHeader}>
+                      {staff.avatarUrl ? (
+                        <Image
+                          src={staff.avatarUrl}
+                          alt=""
+                          width={40}
+                          height={40}
+                          className={pageStyles.teamAvatarImage}
+                        />
+                      ) : (
+                        <div className={pageStyles.teamAvatar}>{staff.name[0]}</div>
+                      )}
+                      <div className={pageStyles.teamName}>
+                        {staff.name}
+                        <span className={pageStyles.craftBadge}>
+                          {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={pageStyles.teamStatsRow}>
+                      <div className={pageStyles.teamStat}>
+                        <span className={pageStyles.teamStatValue}>{active}</span>
+                        <span className={pageStyles.teamStatLabel}>Active</span>
+                      </div>
+                      <div className={pageStyles.teamStat}>
+                        <span
+                          className={`${pageStyles.teamStatValue} ${
+                            overdue > 0 ? pageStyles.teamStatAlert : ''
+                          }`}
+                        >
+                          {overdue}
+                        </span>
+                        <span className={pageStyles.teamStatLabel}>Overdue</span>
+                      </div>
+                      <div className={pageStyles.teamStat}>
+                        <span className={pageStyles.teamStatValue}>{completed}</span>
+                        <span className={pageStyles.teamStatLabel}>Done</span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -367,9 +338,6 @@ export default function OwnerDashboard({
         <div className={styles.rail}>
           {/* Today's Priorities (Unified Fittings & Open Loops) */}
           <TodayPrioritiesWidget loops={openLoops} onNavigate={onNavigate} />
-
-          {/* Tips only for first 30 days */}
-          {showDiscover && <DiscoverBanner onNavigate={onNavigate} />}
         </div>
       </div>
     </div>

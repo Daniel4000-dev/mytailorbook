@@ -9,7 +9,6 @@ import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
-import DiscoverCarousel from './DiscoverCarousel';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import MilestonesCard from '../MilestonesCard';
@@ -48,12 +47,6 @@ export default function OwnerDashboard({
   } = useOwnerDashboardData(orders, staffMembers);
 
   const openLoops = useOpenLoops(orders, customers, exceptions);
-
-  // Progressive Onboarding: Days 1-10 top, Days 11-30 bottom, Day 31+ hidden
-  const createdAt = currentShop?.createdAt ? new Date(currentShop.createdAt) : new Date();
-  const daysOld = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 3600 * 24));
-  const showDiscoverTop = daysOld <= 10;
-  const showDiscoverBottom = daysOld > 10 && daysOld <= 30;
 
   return (
     <>
@@ -210,28 +203,21 @@ export default function OwnerDashboard({
         debtTotal={debtTotal}
       />
 
-      {/* 3. Progressive Discover Placement: Top for Days 1 to 10 */}
-      {showDiscoverTop && <DiscoverCarousel onNavigate={onNavigate} />}
-
       {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
 
-      {/* 4. Today's Schedule & Fittings (Calendar) */}
+      {/* 3. Today's Schedule & Fittings (Calendar) */}
       <TodaysAgendaWidget />
 
-      {/* 5. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
+      {/* 4. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
       <TodayPrioritiesWidget
         loops={openLoops}
         onNavigate={onNavigate}
       />
 
-      {/* 6. Studio Milestones & Atelier Growth */}
+      {/* 5. Studio Milestones & Atelier Growth */}
       <MilestonesCard />
 
-      {/* 7. Artisan Bench — Team Craft Workload */}
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Artisan Bench</span>
-      </div>
-
+      {/* 6. Artisan Bench — Team Craft Workload */}
       {teamSnapshot.length === 0 ? (
         <div className={styles.teamInviteCard}>
           <div className={styles.teamInviteLeft}>
@@ -239,8 +225,8 @@ export default function OwnerDashboard({
               <Symbol name="group_add" size={18} />
             </div>
             <div>
-              <span className={styles.teamInviteTitle}>Delegate to Apprentices & Tailors</span>
-              <span className={styles.teamInviteSub}>Assign garments by craft role & track completed pieces</span>
+              <span className={styles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
+              <span className={styles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
             </div>
           </div>
           <button
@@ -252,62 +238,80 @@ export default function OwnerDashboard({
           </button>
         </div>
       ) : (
-        <div className={styles.teamGrid}>
-          {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+        <div className={styles.teamBenchCard}>
+          <div className={styles.teamBenchHeader}>
+            <div className={styles.teamBenchTitleRow}>
+              <span className={styles.teamBenchIcon}>
+                <Symbol name="group" size={16} />
+              </span>
+              <h2 className={styles.teamBenchTitle}>Artisan Bench</h2>
+              <span className={styles.teamBenchBadge}>
+                {teamSnapshot.length} Active
+              </span>
+            </div>
             <button
-              key={staff.uid}
-              className={styles.teamCard}
-              onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
               type="button"
+              className={styles.teamBenchLink}
+              onClick={() => onNavigate('/settings/staff')}
             >
-              <div className={styles.teamCardHeader}>
-                {staff.avatarUrl ? (
-                  <Image
-                    src={staff.avatarUrl}
-                    alt=""
-                    width={36}
-                    height={36}
-                    className={styles.teamAvatarImage}
-                  />
-                ) : (
-                  <div className={styles.teamAvatar}>{staff.name[0]}</div>
-                )}
-                <div>
-                  <div className={styles.teamName}>
-                    {staff.name}
-                    <span className={styles.craftBadge}>
-                      {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
-                    </span>
+              <span>Manage</span>
+              <Symbol name="chevron_right" size={14} />
+            </button>
+          </div>
+          <div className={styles.teamGrid}>
+            {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+              <button
+                key={staff.uid}
+                className={styles.teamCard}
+                onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
+                type="button"
+              >
+                <div className={styles.teamCardHeader}>
+                  {staff.avatarUrl ? (
+                    <Image
+                      src={staff.avatarUrl}
+                      alt=""
+                      width={36}
+                      height={36}
+                      className={styles.teamAvatarImage}
+                    />
+                  ) : (
+                    <div className={styles.teamAvatar}>{staff.name[0]}</div>
+                  )}
+                  <div>
+                    <div className={styles.teamName}>
+                      {staff.name}
+                      <span className={styles.craftBadge}>
+                        {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className={styles.teamStatsRow}>
-                <div className={styles.teamStat}>
-                  <span className={styles.teamStatValue}>{active}</span>
-                  <span className={styles.teamStatLabel}>Active</span>
+                <div className={styles.teamStatsRow}>
+                  <div className={styles.teamStat}>
+                    <span className={styles.teamStatValue}>{active}</span>
+                    <span className={styles.teamStatLabel}>Active</span>
+                  </div>
+                  <div className={styles.teamStat}>
+                    <span
+                      className={`${styles.teamStatValue} ${
+                        overdue > 0 ? styles.teamStatAlert : ''
+                      }`}
+                    >
+                      {overdue}
+                    </span>
+                    <span className={styles.teamStatLabel}>Overdue</span>
+                  </div>
+                  <div className={styles.teamStat}>
+                    <span className={styles.teamStatValue}>{completed}</span>
+                    <span className={styles.teamStatLabel}>Done</span>
+                  </div>
                 </div>
-                <div className={styles.teamStat}>
-                  <span
-                    className={`${styles.teamStatValue} ${
-                      overdue > 0 ? styles.teamStatAlert : ''
-                    }`}
-                  >
-                    {overdue}
-                  </span>
-                  <span className={styles.teamStatLabel}>Overdue</span>
-                </div>
-                <div className={styles.teamStat}>
-                  <span className={styles.teamStatValue}>{completed}</span>
-                  <span className={styles.teamStatLabel}>Done</span>
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       )}
-
-      {/* 8. Progressive Discover Placement: Bottom for Days 11 to 30 */}
-      {showDiscoverBottom && <DiscoverCarousel onNavigate={onNavigate} />}
     </>
   );
 }

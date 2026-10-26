@@ -63,11 +63,6 @@ export default function QuickCommandHub({
 
       {/* ── Tier 2: 4×2 Atelier Services Switchboard Grid ── */}
       <div className={styles.switchboardCard}>
-        <div className={styles.switchboardHeader}>
-          <span className={styles.switchboardEyebrow}>Atelier Services</span>
-          <span className={styles.switchboardCount}>8 quick launch</span>
-        </div>
-
         <div className={styles.grid}>
           {/* 1. Cutting Table */}
           <button
