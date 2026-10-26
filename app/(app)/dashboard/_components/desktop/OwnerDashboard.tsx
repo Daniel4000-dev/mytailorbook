@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
-import { ROUTES } from '@/lib/routes';
 import type { Order } from '@/lib/types';
 import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
@@ -58,17 +57,6 @@ export default function OwnerDashboard({
           <div className={styles.heroIdentity}>
             <span className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</span>
           </div>
-          <button
-            type="button"
-            className={styles.heroCta}
-            onClick={() => onNavigate(ROUTES.orderNew)}
-          >
-            <Symbol name="add" size={18} />
-            <span>New Bespoke Order</span>
-          </button>
-        </div>
-
-        <div className={styles.heroMain}>
           <div className={styles.heroPrimaryStat}>
             <div className={styles.heroPrimaryLabelRow}>
               <span className={styles.heroPrimaryLabel}>Total Collected</span>
@@ -89,7 +77,9 @@ export default function OwnerDashboard({
               {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
             </span>
           </div>
+        </div>
 
+        <div className={styles.heroMain}>
           <div className={styles.heroStatRow}>
             <div
               className={styles.heroStat}

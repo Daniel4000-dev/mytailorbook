@@ -10,18 +10,12 @@
    (accent, text, danger red) is the same token every other card on this
    screen already uses. */
 .hero {
-  /* A deep indigo gradient, not flat neutral dark chrome — the previous
-     background (--sf-nav, a plain near-black gray) had nothing tying it
-     to the brand accent besides the small radial glow layered on top, so
-     it read as generic "dark mode card" rather than deliberately ours.
-     Both stops stay within the app's one accent hue (see --sf-accent-
-     emerald-dark), just at different depths — no new color introduced. */
   background: linear-gradient(160deg, var(--sf-accent-emerald-dark) 0%, var(--sf-nav) 100%);
   border-radius: var(--sf-radius-xl);
-  padding: var(--sf-space-xl) var(--sf-space-2xl) var(--sf-space-lg);
+  padding: 18px 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-lg);
+  gap: var(--sf-space-md);
   position: relative;
   overflow: hidden;
   box-shadow: var(--sf-shadow-lg);
@@ -42,6 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sf-space-lg);
   position: relative;
   z-index: 1;
 }
@@ -50,6 +45,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
 .heroEyebrow {
@@ -68,61 +65,27 @@
   color: #ffffff;
 }
 
-/* The app's one consistent "create" action shape — reuse this exact
-   treatment anywhere else a primary create action is needed, rather than
-   inventing another shape per screen. */
-.heroCta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 var(--sf-space-lg);
-  border-radius: var(--sf-radius-full);
-  border: none;
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
-}
-
-.heroCta:active {
-  transform: scale(0.97);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .heroCta:hover {
-    background: var(--sf-accent-emerald-dark);
-    transform: translateY(-1px);
-  }
-}
-
-.heroMain {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--sf-space-xl);
-  position: relative;
-  z-index: 1;
-}
-
 .heroPrimaryStat {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xs);
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .heroPrimaryLabelRow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--sf-space-sm);
+  gap: var(--sf-space-xs);
+  justify-content: flex-end;
 }
 
 .heroPrimaryLabel {
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
   color: var(--sf-nav-icon);
 }
 
@@ -131,9 +94,11 @@
   border: none;
   color: var(--sf-nav-icon);
   cursor: pointer;
+  padding: 0;
   display: flex;
   align-items: center;
-  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  line-height: 1;
+  transition: color var(--sf-transition-fast);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -146,28 +111,31 @@
   transform: scale(0.9);
 }
 
-/* The one number per screen allowed to be this large — everything else
-   on the page reads as detail beside it. Uses --sf-font-numeric
-   (Manrope), the same "glanceable balance" numeral face already used
-   for every other money figure in the app — the hero never actually
-   picked that up before, it was on the generic heading font. A
-   business-critical number stays on the app's most legible numeral
-   face; craft goes on the shop name below instead, not on the figure
-   someone's reading to make a payment decision. */
 .heroPrimaryValue {
   font-family: var(--sf-font-numeric);
-  font-size: 3.5rem;
-  line-height: 1;
+  font-size: 1.5rem;
+  line-height: 1.15;
   font-weight: 800;
-  letter-spacing: -1.5px;
+  letter-spacing: -0.02em;
   color: #ffffff;
+}
+
+.heroMain {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .heroStatRow {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-lg);
-  padding-bottom: 2px;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--sf-radius-lg);
+  padding: 10px var(--sf-space-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .heroStat {

@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
-import { ROUTES } from '@/lib/routes';
 import type { Order } from '@/lib/types';
 import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
@@ -56,64 +55,45 @@ export default function OwnerDashboard({
           <div className={styles.heroIdentity}>
             <h1 className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</h1>
           </div>
-          <button
-            type="button"
-            className={styles.heroNewOrderBtn}
-            onClick={() => onNavigate(ROUTES.orderNew)}
-          >
-            <Symbol name="add" size={18} />
-            <span>New Order</span>
-          </button>
-        </div>
-
-        {/* Financial Revenue Hero */}
-        <div className={styles.heroRevenueBlock}>
-          <div className={styles.heroRevenueHeader}>
-            <span className={styles.heroRevenueLabel}>Total Collected</span>
-            <button
-              type="button"
-              onClick={toggleHideCollected}
-              className={styles.heroEyeBtn}
-              title={hideCollected ? 'Show Balance' : 'Hide Balance'}
-              aria-label={hideCollected ? 'Show Balance' : 'Hide Balance'}
-            >
-              <Symbol name={hideCollected ? 'visibility_off' : 'visibility'} size={16} />
-            </button>
-          </div>
-          <div className={styles.heroRevenueValue}>
-            {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
-          </div>
-
-          {/* Integrated Monthly Target Progress Bar */}
-          {currentShop?.monthlyRevenueTarget ? (
-            <div className={styles.monthlyProgressWrap}>
-              <div className={styles.monthlyProgressMeta}>
-                <span className={styles.monthlyProgressLabel}>Monthly Goal</span>
-                <span className={styles.monthlyProgressNums}>
-                  {hideCollected ? '******' : formatCurrency(monthlyRevenue, currentShop?.currency)} /{' '}
-                  {hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget, currentShop?.currency)}
-                </span>
-              </div>
-              <div className={styles.monthlyProgressBarTrack}>
-                <div
-                  className={styles.monthlyProgressBarFill}
-                  style={{
-                    width: `${Math.min(100, Math.round((monthlyRevenue / currentShop.monthlyRevenueTarget) * 100))}%`,
-                  }}
-                />
-              </div>
+          <div className={styles.heroRevenueBlock}>
+            <div className={styles.heroRevenueHeader}>
+              <span className={styles.heroRevenueLabel}>Total Collected</span>
+              <button
+                type="button"
+                onClick={toggleHideCollected}
+                className={styles.heroEyeBtn}
+                title={hideCollected ? 'Show Balance' : 'Hide Balance'}
+                aria-label={hideCollected ? 'Show Balance' : 'Hide Balance'}
+              >
+                <Symbol name={hideCollected ? 'visibility_off' : 'visibility'} size={14} />
+              </button>
             </div>
-          ) : (
-            <button
-              type="button"
-              className={styles.setGoalPill}
-              onClick={() => onNavigate('/settings/studio')}
-            >
-              <Symbol name="flag" size={14} />
-              <span>Set Monthly Atelier Revenue Target</span>
-            </button>
-          )}
+            <div className={styles.heroRevenueValue}>
+              {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
+            </div>
+          </div>
         </div>
+
+        {/* Integrated Monthly Target Progress Bar */}
+        {currentShop?.monthlyRevenueTarget ? (
+          <div className={styles.monthlyProgressWrap}>
+            <div className={styles.monthlyProgressMeta}>
+              <span className={styles.monthlyProgressLabel}>Monthly Goal</span>
+              <span className={styles.monthlyProgressNums}>
+                {hideCollected ? '******' : formatCurrency(monthlyRevenue, currentShop?.currency)} /{' '}
+                {hideCollected ? '******' : formatCurrency(currentShop.monthlyRevenueTarget, currentShop?.currency)}
+              </span>
+            </div>
+            <div className={styles.monthlyProgressBarTrack}>
+              <div
+                className={styles.monthlyProgressBarFill}
+                style={{
+                  width: `${Math.min(100, Math.round((monthlyRevenue / currentShop.monthlyRevenueTarget) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
 
         {/* 5-Pillar Workshop Metric Strip */}
         <div className={styles.workshopMetricStrip}>
