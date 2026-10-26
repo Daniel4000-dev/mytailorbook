@@ -9,8 +9,7 @@ export default function DashboardSkeleton() {
       <div className={styles.hero} style={{ minHeight: '190px' }}>
         <div className={styles.heroTop}>
           <div className={styles.heroIdentity}>
-            <Skeleton width={120} height={12} />
-            <Skeleton width={180} height={20} />
+            <Skeleton width={180} height={24} />
           </div>
           <Skeleton width={160} height={38} borderRadius={10} />
         </div>

@@ -54,7 +54,6 @@ export default function OwnerDashboard({
       <section className={styles.atelierHero}>
         <div className={styles.heroHeader}>
           <div className={styles.heroIdentity}>
-            <span className={styles.heroGreeting}>Atelier Command</span>
             <h1 className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</h1>
           </div>
           <button
@@ -241,12 +240,10 @@ export default function OwnerDashboard({
         <div className={styles.teamBenchCard}>
           <div className={styles.teamBenchHeader}>
             <div className={styles.teamBenchTitleRow}>
-              <span className={styles.teamBenchIcon}>
-                <Symbol name="group" size={16} />
-              </span>
-              <h2 className={styles.teamBenchTitle}>Artisan Bench</h2>
+              <Symbol name="group" size={16} className={styles.teamBenchIcon} />
+              <span className={styles.teamBenchTitle}>Team Workload</span>
               <span className={styles.teamBenchBadge}>
-                {teamSnapshot.length} Active
+                {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
               </span>
             </div>
             <button
@@ -266,46 +263,43 @@ export default function OwnerDashboard({
                 onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
                 type="button"
               >
-                <div className={styles.teamCardHeader}>
+                <div className={styles.teamCardLeft}>
                   {staff.avatarUrl ? (
                     <Image
                       src={staff.avatarUrl}
                       alt=""
-                      width={36}
-                      height={36}
+                      width={38}
+                      height={38}
                       className={styles.teamAvatarImage}
                     />
                   ) : (
                     <div className={styles.teamAvatar}>{staff.name[0]}</div>
                   )}
-                  <div>
-                    <div className={styles.teamName}>
-                      {staff.name}
+                  <div className={styles.teamInfo}>
+                    <div className={styles.teamNameRow}>
+                      <span className={styles.teamName}>{staff.name}</span>
                       <span className={styles.craftBadge}>
                         {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
                       </span>
                     </div>
+                    <span className={styles.teamCompletedNote}>
+                      {completed} completed piece{completed === 1 ? '' : 's'}
+                    </span>
                   </div>
                 </div>
-                <div className={styles.teamStatsRow}>
-                  <div className={styles.teamStat}>
-                    <span className={styles.teamStatValue}>{active}</span>
-                    <span className={styles.teamStatLabel}>Active</span>
-                  </div>
-                  <div className={styles.teamStat}>
-                    <span
-                      className={`${styles.teamStatValue} ${
-                        overdue > 0 ? styles.teamStatAlert : ''
-                      }`}
-                    >
-                      {overdue}
+
+                <div className={styles.teamCardRight}>
+                  <div className={styles.teamBadges}>
+                    <span className={styles.teamActiveBadge}>
+                      {active} Active
                     </span>
-                    <span className={styles.teamStatLabel}>Overdue</span>
+                    {overdue > 0 && (
+                      <span className={styles.teamOverdueBadge}>
+                        {overdue} Overdue
+                      </span>
+                    )}
                   </div>
-                  <div className={styles.teamStat}>
-                    <span className={styles.teamStatValue}>{completed}</span>
-                    <span className={styles.teamStatLabel}>Done</span>
-                  </div>
+                  <Symbol name="chevron_right" size={16} className={styles.teamChevron} />
                 </div>
               </button>
             ))}

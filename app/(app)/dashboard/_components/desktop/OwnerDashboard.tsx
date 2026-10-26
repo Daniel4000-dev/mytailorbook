@@ -56,7 +56,6 @@ export default function OwnerDashboard({
       <div className={styles.hero}>
         <div className={styles.heroTop}>
           <div className={styles.heroIdentity}>
-            <span className={styles.heroEyebrow}>Atelier Command Center</span>
             <span className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</span>
           </div>
           <button
@@ -261,12 +260,10 @@ export default function OwnerDashboard({
             <div className={pageStyles.teamBenchCard}>
               <div className={pageStyles.teamBenchHeader}>
                 <div className={pageStyles.teamBenchTitleRow}>
-                  <span className={pageStyles.teamBenchIcon}>
-                    <Symbol name="group" size={16} />
-                  </span>
-                  <h2 className={pageStyles.teamBenchTitle}>Artisan Bench</h2>
+                  <Symbol name="group" size={16} className={pageStyles.teamBenchIcon} />
+                  <span className={pageStyles.teamBenchTitle}>Team Workload</span>
                   <span className={pageStyles.teamBenchBadge}>
-                    {teamSnapshot.length} Active
+                    {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
                   </span>
                 </div>
                 <button
@@ -286,44 +283,43 @@ export default function OwnerDashboard({
                     onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
                     type="button"
                   >
-                    <div className={pageStyles.teamCardHeader}>
+                    <div className={pageStyles.teamCardLeft}>
                       {staff.avatarUrl ? (
                         <Image
                           src={staff.avatarUrl}
                           alt=""
-                          width={40}
-                          height={40}
+                          width={38}
+                          height={38}
                           className={pageStyles.teamAvatarImage}
                         />
                       ) : (
                         <div className={pageStyles.teamAvatar}>{staff.name[0]}</div>
                       )}
-                      <div className={pageStyles.teamName}>
-                        {staff.name}
-                        <span className={pageStyles.craftBadge}>
-                          {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                      <div className={pageStyles.teamInfo}>
+                        <div className={pageStyles.teamNameRow}>
+                          <span className={pageStyles.teamName}>{staff.name}</span>
+                          <span className={pageStyles.craftBadge}>
+                            {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                          </span>
+                        </div>
+                        <span className={pageStyles.teamCompletedNote}>
+                          {completed} completed piece{completed === 1 ? '' : 's'}
                         </span>
                       </div>
                     </div>
-                    <div className={pageStyles.teamStatsRow}>
-                      <div className={pageStyles.teamStat}>
-                        <span className={pageStyles.teamStatValue}>{active}</span>
-                        <span className={pageStyles.teamStatLabel}>Active</span>
-                      </div>
-                      <div className={pageStyles.teamStat}>
-                        <span
-                          className={`${pageStyles.teamStatValue} ${
-                            overdue > 0 ? pageStyles.teamStatAlert : ''
-                          }`}
-                        >
-                          {overdue}
+
+                    <div className={pageStyles.teamCardRight}>
+                      <div className={pageStyles.teamBadges}>
+                        <span className={pageStyles.teamActiveBadge}>
+                          {active} Active
                         </span>
-                        <span className={pageStyles.teamStatLabel}>Overdue</span>
+                        {overdue > 0 && (
+                          <span className={pageStyles.teamOverdueBadge}>
+                            {overdue} Overdue
+                          </span>
+                        )}
                       </div>
-                      <div className={pageStyles.teamStat}>
-                        <span className={pageStyles.teamStatValue}>{completed}</span>
-                        <span className={pageStyles.teamStatLabel}>Done</span>
-                      </div>
+                      <Symbol name="chevron_right" size={16} className={pageStyles.teamChevron} />
                     </div>
                   </button>
                 ))}
