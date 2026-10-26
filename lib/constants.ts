@@ -568,5 +568,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers', bespokeOnly: true },
   { label: 'Collections', href: '/collections', icon: 'account_balance_wallet', ownerOnly: true, hideFromBottomNav: true },
   { label: 'Reconciliation', href: '/reconciliation', icon: 'point_of_sale', ownerOnly: true, hideFromBottomNav: true },
-  { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true, hideFromBottomNav: true },
+  { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true, tourId: 'settings' },
 ];

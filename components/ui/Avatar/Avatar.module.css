@@ -17,6 +17,10 @@
   border-radius: 12px;
 }
 
+.squircle.xs {
+  border-radius: 6px;
+}
+
 .squircle.sm {
   border-radius: 8px;
 }
@@ -35,6 +39,12 @@
 
 .circle {
   border-radius: var(--sf-radius-full);
+}
+
+.xs {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
 }
 
 .sm {

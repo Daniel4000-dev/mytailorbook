@@ -1601,7 +1601,9 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--sf-bg-surface);
+  background: color-mix(in srgb, var(--sf-bg-surface) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid var(--sf-border-light);
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
   display: flex;
@@ -1861,8 +1863,9 @@
 }
 
 :global([data-theme='dark']) .mobileStickyBottomBar {
-  background: rgba(22, 21, 38, 0.94);
-  backdrop-filter: blur(20px);
+  background: rgba(18, 17, 34, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-top-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
 }
@@ -1934,8 +1937,9 @@
   }
 
   :global(:root:not([data-theme="light"])) .mobileStickyBottomBar {
-    background: rgba(22, 21, 38, 0.94);
-    backdrop-filter: blur(20px);
+    background: rgba(18, 17, 34, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-top-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
   }

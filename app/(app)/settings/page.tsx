@@ -15,6 +15,7 @@ import Input from '@/components/ui/Input/Input';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
+import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
@@ -133,12 +134,16 @@ export default function SettingsPage() {
   return (
     <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
       <button type="button" className={styles.identityStrip} onClick={() => router.push(ROUTES.settingsAccount)}>
-        <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
+        <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" shape="circle" />
         <div className={styles.identityText}>
           <span className={styles.identityName}>{user?.name}</span>
-          <span className={styles.identityRole}>{user?.role} Account</span>
+          <div className={styles.identityBadgeRow}>
+            <span className={styles.onlineDot} />
+            <span className={styles.identityRole}>{user?.role || 'Owner'} Account</span>
+          </div>
+          <span className={styles.identitySubtitle}>{currentShop?.name || user?.email}</span>
         </div>
-        <Symbol name="chevron_right" size={18} className={styles.identityChevron} />
+        <Symbol name="chevron_right" size={20} className={styles.identityChevron} />
       </button>
 
       <div className={styles.groups}>
@@ -148,12 +153,14 @@ export default function SettingsPage() {
           <div className={styles.groupCard}>
             <SettingsRow
               icon="storefront"
+              iconColor="indigo"
               label="Studio Profile"
               subtitle={currentShop?.name || 'Unnamed Studio'}
               onClick={() => router.push(ROUTES.settingsStudio)}
             />
             <SettingsRow
               icon="image"
+              iconColor="purple"
               label="Shop Logo"
               subtitle={currentShop?.logoUrl ? 'Set' : 'Not set'}
               meta={
@@ -176,7 +183,9 @@ export default function SettingsPage() {
                 hydration and click targeting), so this is built as a plain,
                 non-interactive row instead. */}
             <div className={billingRowStyles.row}>
-              <Symbol name="workspace_premium" size={20} className={billingRowStyles.icon} />
+              <div className={`${billingRowStyles.iconTile} ${billingRowStyles.tile_amber}`}>
+                <Symbol name="workspace_premium" size={18} className={billingRowStyles.iconGlyph} />
+              </div>
               <span className={billingRowStyles.textCol}>
                 <span className={billingRowStyles.label}>MyStitchBook Pro</span>
                 <span className={billingRowStyles.subtitle}>
@@ -199,6 +208,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>App Experience</span>
+          <div className={styles.groupCard}>
+            <AppearanceToggle />
+          </div>
+        </div>
+
         {FEATURE_FLAGS.orgBranchMultiTenancy && (
           <div className={styles.group}>
             <span className={styles.groupLabel}>Your Organization</span>
@@ -207,6 +223,7 @@ export default function SettingsPage() {
                 <SettingsRow
                   key={branch.id}
                   icon="storefront"
+                  iconColor="blue"
                   label={branch.name}
                   subtitle={
                     branch.isPrimary
@@ -219,6 +236,7 @@ export default function SettingsPage() {
               ))}
               <SettingsRow
                 icon="add"
+                iconColor="blue"
                 label="Add Branch"
                 subtitle="Add another physical location"
                 onClick={() => setAddBranchOpen(true)}
@@ -232,6 +250,7 @@ export default function SettingsPage() {
           <div className={styles.groupCard}>
             <SettingsRow
               icon="group"
+              iconColor="emerald"
               label="Staff"
               subtitle={`${activeStaffCount} active`}
               meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
@@ -245,6 +264,7 @@ export default function SettingsPage() {
           <div className={styles.groupCard}>
             <SettingsRow
               icon="checkroom"
+              iconColor="rose"
               label="Custom Styles"
               subtitle={customStylesCount > 0 ? `${customStylesCount} added` : 'None yet'}
               onClick={() => router.push(ROUTES.settingsStyles)}
@@ -252,6 +272,7 @@ export default function SettingsPage() {
             {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
               <SettingsRow
                 icon="straighten"
+                iconColor="slate"
                 label="Size Charts"
                 subtitle="Standard measurements for production batches"
                 onClick={() => router.push('/settings/size-charts')}
@@ -268,6 +289,7 @@ export default function SettingsPage() {
                not two that land in the same place. */}
             <SettingsRow
               icon="forum"
+              iconColor="blue"
               label="Messages &amp; Templates"
               subtitle="Reach-out note and per-stage WhatsApp wording"
               onClick={() => router.push(ROUTES.settingsMessages)}
@@ -280,6 +302,7 @@ export default function SettingsPage() {
           <div className={styles.groupCard}>
             <SettingsRow
               icon="photo_library"
+              iconColor="purple"
               label="Manage Portfolio Photos"
               subtitle="Choose what customers see"
               onClick={() => router.push(ROUTES.settingsPortfolio)}
@@ -293,6 +316,7 @@ export default function SettingsPage() {
             <div className={styles.groupCard}>
               <SettingsRow
                 icon="bar_chart"
+                iconColor="emerald"
                 label="Reports"
                 subtitle="Revenue, outstanding balance, and margin"
                 onClick={() => router.push(ROUTES.settingsReports)}
@@ -307,6 +331,7 @@ export default function SettingsPage() {
           <div className={styles.groupCard}>
             <SettingsRow
               icon="history"
+              iconColor="slate"
               label="Activity Log"
               subtitle="See who did what, and when"
               onClick={() => router.push(ROUTES.settingsActivity)}

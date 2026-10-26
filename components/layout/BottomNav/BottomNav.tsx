@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { NAV_ITEMS } from '@/lib/constants';
 import CustomNavIcon from "@/components/ui/CustomNavIcon/CustomNavIcon";
-import Symbol from '@/components/ui/Symbol/Symbol';
+import Avatar from '@/components/ui/Avatar/Avatar';
 import styles from './BottomNav.module.css';
 
 /** Must be a descendant of <Link> — useLinkStatus only reports the pending
@@ -18,22 +18,58 @@ import styles from './BottomNav.module.css';
  *  has `display: contents` (.linkReset) so its own box collapses to
  *  nothing and generates no rect at all; AppTour's getBoundingClientRect
  *  needs the element that actually occupies space on screen. */
-function NavItemContent({ icon, label, isActive, tourId, hasActivity }: { icon: string; label: string; isActive: boolean; tourId?: string; hasActivity?: boolean }) {
+function NavItemContent({
+  icon,
+  label,
+  isActive,
+  tourId,
+  hasActivity,
+  isProfile,
+  userAvatarUrl,
+  userName,
+}: {
+  icon: string;
+  label: string;
+  isActive: boolean;
+  tourId?: string;
+  hasActivity?: boolean;
+  isProfile?: boolean;
+  userAvatarUrl?: string;
+  userName?: string;
+}) {
   const active = isActive;
   return (
-    <div className={`${styles.item} ${active ? styles.active : ''}`} data-tour-id={tourId}>
+    <div
+      className={`${styles.item} ${active ? styles.active : ''} ${isProfile ? styles.profileItem : ''}`}
+      data-tour-id={tourId}
+      aria-label={label}
+      title={label}
+    >
       <div className={styles.iconWrapper}>
-        <CustomNavIcon name={icon} fill={active} size={24} className={styles.icon} />
-        {hasActivity && <div className={styles.activityDot} />}
+        {isProfile ? (
+          <div className={`${styles.avatarWrapper} ${active ? styles.activeAvatar : ''}`}>
+            <Avatar
+              name={userName || 'Studio Master'}
+              imageUrl={userAvatarUrl}
+              size="xs"
+              shape="circle"
+              className={styles.navAvatar}
+            />
+          </div>
+        ) : (
+          <>
+            <CustomNavIcon name={icon} fill={active} size={24} className={styles.icon} />
+            {hasActivity && <div className={styles.activityDot} />}
+          </>
+        )}
       </div>
-      <span className={styles.label}>{label}</span>
     </div>
   );
 }
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { isOwner, loading } = useAuth();
+  const { user, isOwner, loading } = useAuth();
   const { currentShop, isLoaded } = useData();
 
   // Owner-only items (e.g. Customers) depend on `isOwner`, which starts
@@ -53,15 +89,26 @@ export default function BottomNav() {
   });
 
   return (
-    <nav className={styles.nav}>
+    <nav className={styles.nav} aria-label="Bottom Navigation">
       {visibleItems.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+        const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
+        const isProfile = item.href === '/settings';
         return (
-          <Link key={item.href} href={item.href} className={styles.linkReset}>
-            <NavItemContent icon={item.icon} label={item.label} isActive={isActive} tourId={item.tourId} hasActivity={item.label === "Production"} />
+          <Link key={item.href} href={item.href} className={styles.linkReset} aria-label={item.label}>
+            <NavItemContent
+              icon={item.icon}
+              label={item.label}
+              isActive={isActive}
+              tourId={item.tourId}
+              hasActivity={item.label === "Production"}
+              isProfile={isProfile}
+              userAvatarUrl={user?.avatarUrl}
+              userName={user?.name}
+            />
           </Link>
         );
       })}
     </nav>
   );
 }
+

@@ -7,19 +7,33 @@
   margin: 0 auto;
 }
 
-/* ── Identity strip ── */
+/* ── Identity strip (Apple ID / Studio Director Card) ── */
 .identityStrip {
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
   width: 100%;
-  background: none;
-  border: none;
-  padding: var(--sf-space-sm) 0;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg, 16px);
+  padding: 16px 18px;
   margin-top: var(--sf-space-sm);
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: var(--sf-shadow-xs);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.identityStrip:active {
+  transform: scale(0.99);
+  background: var(--sf-bg-surface-hover);
+}
+
+:global([data-theme='dark']) .identityStrip {
+  background: var(--sf-bg-surface);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
 .identityText {
@@ -34,15 +48,39 @@
   font-size: var(--sf-text-lg);
   font-weight: 700;
   color: var(--sf-text-primary);
+  line-height: 1.25;
+}
+
+.identityBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.onlineDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--sf-accent-emerald, #10B981);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
 }
 
 .identityRole {
-  font-size: var(--sf-text-xs);
-  font-weight: 600;
-  color: var(--sf-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sf-brand-indigo);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  margin-top: 2px;
+}
+
+.identitySubtitle {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .identityChevron {
@@ -64,20 +102,25 @@
 }
 
 .groupLabel {
-  font-size: var(--sf-text-xs);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-text-secondary);
-  padding: 0 4px;
+  color: var(--sf-text-tertiary);
+  padding: 0 6px;
 }
 
 .groupCard {
   background: var(--sf-bg-surface-elevated);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  border-radius: var(--sf-radius-lg, 16px);
   overflow: hidden;
   box-shadow: var(--sf-shadow-xs);
+}
+
+:global([data-theme='dark']) .groupCard {
+  background: var(--sf-bg-surface);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .logoThumb {
