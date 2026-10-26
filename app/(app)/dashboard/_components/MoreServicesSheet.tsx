@@ -32,8 +32,7 @@ export default function MoreServicesSheet({
       sub: 'Follow up unpaid balances on WhatsApp',
       icon: 'account_balance_wallet',
       href: '/collections',
-      iconColor: '#DC2626',
-      iconBg: 'rgba(220, 38, 38, 0.08)',
+      iconClass: styles.iconDebt,
       badge: debtTotal > 0 ? formatCurrency(debtTotal, currentShop?.currency) : null,
     },
     {
@@ -41,8 +40,7 @@ export default function MoreServicesSheet({
       sub: 'Threads, linings, zippers & accessories',
       icon: 'inventory_2',
       href: '/inventory',
-      iconColor: '#059669',
-      iconBg: 'rgba(5, 150, 105, 0.08)',
+      iconClass: styles.iconInventory,
       badge: null,
     },
     {
@@ -50,8 +48,7 @@ export default function MoreServicesSheet({
       sub: 'Public digital portfolio & client inquiries',
       icon: 'storefront',
       href: '/portfolio',
-      iconColor: '#4338CA',
-      iconBg: 'rgba(67, 56, 202, 0.08)',
+      iconClass: styles.iconPortfolio,
       badge: null,
     },
     {
@@ -59,8 +56,7 @@ export default function MoreServicesSheet({
       sub: 'Assign garments to cutters and apprentices',
       icon: 'group_add',
       href: '/settings',
-      iconColor: '#7C3AED',
-      iconBg: 'rgba(124, 58, 237, 0.08)',
+      iconClass: styles.iconTeam,
       badge: null,
     },
     {
@@ -68,8 +64,7 @@ export default function MoreServicesSheet({
       sub: 'Shop profile, currency, invoice branding',
       icon: 'settings',
       href: '/settings',
-      iconColor: '#475569',
-      iconBg: 'rgba(71, 85, 105, 0.08)',
+      iconClass: styles.iconSettings,
       badge: null,
     },
   ];
@@ -90,10 +85,7 @@ export default function MoreServicesSheet({
             onClick={() => handleSelect(s.href)}
           >
             <div className={styles.itemLeft}>
-              <div
-                className={styles.iconWrap}
-                style={{ background: s.iconBg, color: s.iconColor }}
-              >
+              <div className={`${styles.iconWrap} ${s.iconClass}`}>
                 <Symbol name={s.icon} size={22} />
               </div>
               <div className={styles.itemInfo}>

@@ -15,7 +15,6 @@ import Input from '@/components/ui/Input/Input';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
-import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
@@ -143,12 +142,6 @@ export default function SettingsPage() {
       </button>
 
       <div className={styles.groups}>
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Preferences</span>
-          <div className={styles.groupCard}>
-            <AppearanceToggle />
-          </div>
-        </div>
 
         <div className={styles.group}>
           <span className={styles.groupLabel}>Your Studio</span>

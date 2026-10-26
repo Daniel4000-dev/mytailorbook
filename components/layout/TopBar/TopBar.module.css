@@ -109,18 +109,18 @@
   margin-top: 2px;
 }
 
-/* Profile Mode Styles — a warm banner echoing the auth screens' hero panel */
+/* Profile Mode Styles — a clean, edge-to-edge header row matching Apple/Instagram standards */
 .profileHeaderContent {
   display: flex;
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, var(--sf-bg-surface) 0%, var(--sf-accent-gold-soft) 100%);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-sm) var(--sf-space-md) var(--sf-space-sm) var(--sf-space-xs);
-  margin: var(--sf-space-sm) 0;
-  box-shadow: var(--sf-shadow-xs);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
 }
 
 .greetingWrapper {
@@ -192,8 +192,14 @@
   border-radius: 50%;
 }
 
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .avatarOnlineDot {
+    border-color: #161526;
+  }
+}
+
 :global([data-theme='dark']) .avatarOnlineDot {
-  border-color: #131220;
+  border-color: #161526;
 }
 
 .profileAvatarBtnSmall {

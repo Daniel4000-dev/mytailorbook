@@ -71,10 +71,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate(ROUTES.fabrics)}
             aria-label="Cutting Table & Fabric Swatches"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(234, 88, 12, 0.08)', color: '#EA580C' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconCutting}`}>
               <Symbol name="content_cut" size={22} />
               {uncutFabricsCount > 0 && (
                 <span className={styles.tileBadge}>{uncutFabricsCount}</span>
@@ -90,10 +87,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate(ROUTES.production)}
             aria-label="Sewing Floor & Production Kanban"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(67, 56, 202, 0.08)', color: '#4338CA' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconSewing}`}>
               <Symbol name="precision_manufacturing" size={22} />
               {inProductionCount > 0 && (
                 <span className={`${styles.tileBadge} ${styles.tileBadgeNeutral}`}>
@@ -111,10 +105,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate(ROUTES.calendar)}
             aria-label="Fittings & Workshop Agenda"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(124, 58, 237, 0.08)', color: '#7C3AED' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconFittings}`}>
               <Symbol name="calendar_today" size={21} />
               {fittingsTodayCount > 0 && (
                 <span className={styles.tileBadge}>{fittingsTodayCount}</span>
@@ -130,10 +121,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate(ROUTES.customers)}
             aria-label="Client Directory & Anatomical Measurements"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(71, 85, 105, 0.08)', color: '#475569' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconCustomers}`}>
               <Symbol name="group" size={22} />
               {customersCount > 0 && (
                 <span className={`${styles.tileBadge} ${styles.tileBadgeNeutral}`}>
@@ -151,10 +139,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate(ROUTES.quotes)}
             aria-label="Quick Price Estimator"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(5, 150, 105, 0.08)', color: '#059669' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconQuotes}`}>
               <Symbol name="calculate" size={22} />
             </div>
             <span className={styles.tileLabel}>Quick Quote</span>
@@ -167,10 +152,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate(ROUTES.reconciliation)}
             aria-label="Daily Cash Drawer & POS Reconciliation"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(124, 58, 237, 0.08)', color: '#7C3AED' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconTill}`}>
               <Symbol name="point_of_sale" size={22} />
             </div>
             <span className={styles.tileLabel}>Daily Till</span>
@@ -183,10 +165,7 @@ export default function QuickCommandHub({
             onClick={() => onNavigate('/catalogues')}
             aria-label="Style Lookbooks & VIP Outreach"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(217, 119, 6, 0.08)', color: '#D97706' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconLookbook}`}>
               <Symbol name="collections_bookmark" size={21} />
             </div>
             <span className={styles.tileLabel}>Catalogues</span>
@@ -199,10 +178,7 @@ export default function QuickCommandHub({
             onClick={() => setIsMoreOpen(true)}
             aria-label="More Atelier Tools & Secondary Services"
           >
-            <div
-              className={styles.iconWrap}
-              style={{ background: 'rgba(100, 116, 139, 0.08)', color: '#64748B' }}
-            >
+            <div className={`${styles.iconWrap} ${styles.iconMore}`}>
               <Symbol name="apps" size={22} />
             </div>
             <span className={styles.tileLabel}>More Tools</span>

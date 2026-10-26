@@ -9,6 +9,7 @@
    ============================================================ */
 
 :root {
+  color-scheme: light;
   /* ── Two-color system ────────────────────────────────── */
   /* Rule: ONE accent — Adire indigo #4338CA (the dye of Nigerian
      cloth). The canvas is a tint of it so light it can be mistaken for
@@ -221,6 +222,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --sf-bg-primary: #0A0910;
     --sf-bg-surface: #161526;
     --sf-bg-surface-elevated: #1F1E33;
@@ -301,6 +303,7 @@
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --sf-bg-primary: #0A0910;
   --sf-bg-surface: #161526;
   --sf-bg-surface-elevated: #1F1E33;

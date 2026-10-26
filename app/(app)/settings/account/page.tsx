@@ -12,7 +12,6 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from '../_components/PushNotificationToggle';
@@ -72,10 +71,6 @@ export default function AccountSettingsPage() {
         </div>
       </div>
       <p className={styles.readonlyEmail}>{user?.email}</p>
-
-      <div className={styles.groupCard}>
-        <AppearanceToggle />
-      </div>
 
       <div className={styles.card}>
         {FEATURE_FLAGS.profilePictures && (

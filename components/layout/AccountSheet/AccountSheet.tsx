@@ -87,70 +87,23 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
           </div>
         )}
 
-        {/* 3. Fast Settings & Management Links */}
-        <div className={styles.menuList}>
-          {isOwner && (
-            <button
-              type="button"
-              className={styles.menuItem}
-              onClick={() => handleNavigate('/settings')}
-            >
-              <div className={styles.menuItemLeft}>
-                <div className={styles.menuIconWrap}>
-                  <Symbol name="settings" size={18} />
-                </div>
-                <span className={styles.menuItemLabel}>Atelier Settings</span>
-              </div>
-              <Symbol name="chevron_right" size={16} className={styles.menuChevron} />
-            </button>
-          )}
-
-          {isOwner && (
-            <button
-              type="button"
-              className={styles.menuItem}
-              onClick={() => handleNavigate('/settings/staff')}
-            >
-              <div className={styles.menuItemLeft}>
-                <div className={styles.menuIconWrap}>
-                  <Symbol name="group" size={18} />
-                </div>
-                <span className={styles.menuItemLabel}>Team &amp; Apprentices</span>
-              </div>
-              <Symbol name="chevron_right" size={16} className={styles.menuChevron} />
-            </button>
-          )}
-
-          <button
-            type="button"
-            className={styles.menuItem}
-            onClick={() => handleNavigate('/portfolio')}
-          >
-            <div className={styles.menuItemLeft}>
-              <div className={styles.menuIconWrap}>
-                <Symbol name="storefront" size={18} />
-              </div>
-              <span className={styles.menuItemLabel}>Public Client Lookbook</span>
+        {/* 3. Atelier Settings Link */}
+        <button
+          type="button"
+          className={styles.settingsRow}
+          onClick={() => handleNavigate('/settings')}
+        >
+          <div className={styles.settingsRowLeft}>
+            <div className={styles.settingsIconWrap}>
+              <Symbol name="settings" size={18} />
             </div>
-            <Symbol name="chevron_right" size={16} className={styles.menuChevron} />
-          </button>
-
-          {isOwner && (
-            <button
-              type="button"
-              className={styles.menuItem}
-              onClick={() => handleNavigate('/settings/reports')}
-            >
-              <div className={styles.menuItemLeft}>
-                <div className={styles.menuIconWrap}>
-                  <Symbol name="bar_chart" size={18} />
-                </div>
-                <span className={styles.menuItemLabel}>Reports &amp; Analytics</span>
-              </div>
-              <Symbol name="chevron_right" size={16} className={styles.menuChevron} />
-            </button>
-          )}
-        </div>
+            <div className={styles.settingsInfo}>
+              <span className={styles.settingsTitle}>Settings</span>
+              <span className={styles.settingsSub}>Studio profile, staff, and preferences</span>
+            </div>
+          </div>
+          <Symbol name="chevron_right" size={18} className={styles.menuChevron} />
+        </button>
 
         {/* 4. Appearance / Theme Segment */}
         <div className={styles.branchSection}>

@@ -580,6 +580,13 @@
   transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .teamCard {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
 :global([data-theme='dark']) .teamCard {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
@@ -590,6 +597,12 @@
     background: #F1F5F9;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .teamCard:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 
   :global([data-theme='dark']) .teamCard:hover {
@@ -621,6 +634,13 @@
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .teamAvatar {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
+  }
 }
 
 :global([data-theme='dark']) .teamAvatar {
@@ -672,6 +692,14 @@
   flex-shrink: 0;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .craftBadge {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818CF8;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+}
+
 :global([data-theme='dark']) .craftBadge {
   background: rgba(99, 102, 241, 0.15);
   color: #818CF8;
@@ -708,10 +736,29 @@
   white-space: nowrap;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .teamActiveBadge {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818CF8;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+  :root:not([data-theme="light"]) .teamOverdueBadge {
+    background: rgba(220, 38, 38, 0.2);
+    color: #F87171;
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+}
+
 :global([data-theme='dark']) .teamActiveBadge {
   background: rgba(99, 102, 241, 0.15);
   color: #818CF8;
   border-color: rgba(99, 102, 241, 0.3);
+}
+
+:global([data-theme='dark']) .teamOverdueBadge {
+  background: rgba(220, 38, 38, 0.2);
+  color: #F87171;
+  border-color: rgba(220, 38, 38, 0.3);
 }
 
 .teamOverdueBadge {
@@ -1314,12 +1361,24 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-xl);
   padding: 14px 16px;
   margin-top: 8px;
   margin-bottom: 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .teamInviteCard {
+    background: var(--sf-bg-surface-elevated, #1F1E33);
+    border-color: var(--sf-border);
+  }
+}
+
+:global([data-theme='dark']) .teamInviteCard {
+  background: var(--sf-bg-surface-elevated, #1F1E33);
+  border-color: var(--sf-border);
 }
 
 .teamInviteLeft {
@@ -1338,6 +1397,18 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .teamInviteIconWrap {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
+  }
+}
+
+:global([data-theme='dark']) .teamInviteIconWrap {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818CF8;
 }
 
 .teamInviteTitle {
@@ -1365,21 +1436,9 @@
   flex-shrink: 0;
 }
 
-.craftBadge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: var(--sf-radius-full);
-  margin-left: 6px;
-  display: inline-block;
-  background: #EEF2FF;
-  color: #4338CA;
-  border: 1px solid #C7D2FE;
-}
-
 .teamBenchCard {
   background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.06));
   border-radius: var(--sf-radius-xl, 16px);
   padding: 16px;
   margin-bottom: 16px;
@@ -1388,8 +1447,15 @@
   width: 100%;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .teamBenchCard {
+    background: #161526;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
 :global([data-theme='dark']) .teamBenchCard {
-  background: #1B1A2B;
+  background: #161526;
   border-color: rgba(255, 255, 255, 0.08);
 }
 

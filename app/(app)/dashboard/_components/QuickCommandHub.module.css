@@ -54,9 +54,9 @@
   height: 46px;
   padding: 0 10px;
   border-radius: 14px;
-  background: #FFFFFF;
-  color: #1C1A28;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
@@ -68,8 +68,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .secondaryActionBtn:hover {
-    background: #F8FAFC;
-    border-color: rgba(67, 56, 202, 0.16);
+    background: var(--sf-bg-surface-hover);
+    border-color: var(--sf-border-focus);
   }
 }
 
@@ -84,10 +84,10 @@
 .switchboardCard {
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: var(--sf-bg-surface);
   border-radius: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--sf-border-light);
+  box-shadow: var(--sf-shadow-xs, 0 2px 8px rgba(0, 0, 0, 0.03));
   padding: 16px 10px 14px;
 }
 
@@ -129,6 +129,115 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+/* Specific icon classes with light and dark mode adaptation */
+.iconCutting {
+  background: rgba(234, 88, 12, 0.09);
+  color: #EA580C;
+}
+
+.iconSewing {
+  background: rgba(67, 56, 202, 0.09);
+  color: #4338CA;
+}
+
+.iconFittings {
+  background: rgba(124, 58, 237, 0.09);
+  color: #7C3AED;
+}
+
+.iconCustomers {
+  background: rgba(71, 85, 105, 0.09);
+  color: #475569;
+}
+
+.iconQuotes {
+  background: rgba(5, 150, 105, 0.09);
+  color: #059669;
+}
+
+.iconTill {
+  background: rgba(124, 58, 237, 0.09);
+  color: #7C3AED;
+}
+
+.iconLookbook {
+  background: rgba(217, 119, 6, 0.09);
+  color: #D97706;
+}
+
+.iconMore {
+  background: rgba(100, 116, 139, 0.09);
+  color: #64748B;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .iconCutting {
+    background: rgba(251, 146, 60, 0.16);
+    color: #FB923C;
+  }
+  :root:not([data-theme="light"]) .iconSewing {
+    background: rgba(129, 140, 248, 0.18);
+    color: #818CF8;
+  }
+  :root:not([data-theme="light"]) .iconFittings {
+    background: rgba(167, 139, 250, 0.18);
+    color: #C4B5FD;
+  }
+  :root:not([data-theme="light"]) .iconCustomers {
+    background: rgba(148, 163, 184, 0.18);
+    color: #CBD5E1;
+  }
+  :root:not([data-theme="light"]) .iconQuotes {
+    background: rgba(52, 211, 153, 0.18);
+    color: #34D399;
+  }
+  :root:not([data-theme="light"]) .iconTill {
+    background: rgba(167, 139, 250, 0.18);
+    color: #C4B5FD;
+  }
+  :root:not([data-theme="light"]) .iconLookbook {
+    background: rgba(251, 191, 36, 0.18);
+    color: #FCD34D;
+  }
+  :root:not([data-theme="light"]) .iconMore {
+    background: rgba(148, 163, 184, 0.18);
+    color: #94A3B8;
+  }
+}
+
+:root[data-theme="dark"] .iconCutting {
+  background: rgba(251, 146, 60, 0.16);
+  color: #FB923C;
+}
+:root[data-theme="dark"] .iconSewing {
+  background: rgba(129, 140, 248, 0.18);
+  color: #818CF8;
+}
+:root[data-theme="dark"] .iconFittings {
+  background: rgba(167, 139, 250, 0.18);
+  color: #C4B5FD;
+}
+:root[data-theme="dark"] .iconCustomers {
+  background: rgba(148, 163, 184, 0.18);
+  color: #CBD5E1;
+}
+:root[data-theme="dark"] .iconQuotes {
+  background: rgba(52, 211, 153, 0.18);
+  color: #34D399;
+}
+:root[data-theme="dark"] .iconTill {
+  background: rgba(167, 139, 250, 0.18);
+  color: #C4B5FD;
+}
+:root[data-theme="dark"] .iconLookbook {
+  background: rgba(251, 191, 36, 0.18);
+  color: #FCD34D;
+}
+:root[data-theme="dark"] .iconMore {
+  background: rgba(148, 163, 184, 0.18);
+  color: #94A3B8;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .tile:hover .iconWrap {
     transform: translateY(-2px);
@@ -139,7 +248,7 @@
 .tileLabel {
   font-size: 11px;
   font-weight: var(--sf-weight-semibold);
-  color: #1C1A28;
+  color: var(--sf-text-primary);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -165,7 +274,7 @@
   color: #FFFFFF;
   font-size: 9px;
   font-weight: 700;
-  border: 2px solid #FFFFFF;
+  border: 2px solid var(--sf-bg-surface);
   box-shadow: 0 1px 4px rgba(220, 38, 38, 0.35);
   line-height: 1;
 }
