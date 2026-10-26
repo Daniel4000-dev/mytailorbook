@@ -10,7 +10,12 @@
   transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
-:global([data-theme='dark']) .widget,
+:global([data-theme='dark']) .widget {
+  background: var(--sf-bg-surface, #161526);
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.24));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .widget {
     background: var(--sf-bg-surface, #161526);
@@ -38,7 +43,10 @@
   align-items: center;
 }
 
-:global([data-theme='dark']) .titleIcon,
+:global([data-theme='dark']) .titleIcon {
+  color: #818CF8;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .titleIcon {
     color: #818CF8;
@@ -69,7 +77,12 @@
   border: 1px solid rgba(220, 38, 38, 0.15);
 }
 
-:global([data-theme='dark']) .pendingBadge,
+:global([data-theme='dark']) .pendingBadge {
+  background: rgba(220, 38, 38, 0.2);
+  color: #F87171;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .pendingBadge {
     background: rgba(220, 38, 38, 0.2);
@@ -93,7 +106,10 @@
   opacity: 0.8;
 }
 
-:global([data-theme='dark']) .calendarLink,
+:global([data-theme='dark']) .calendarLink {
+  color: #818CF8;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .calendarLink {
     color: #818CF8;
@@ -118,7 +134,11 @@
   gap: 12px;
 }
 
-:global([data-theme='dark']) .eventItem,
+:global([data-theme='dark']) .eventItem {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .eventItem {
     background: rgba(255, 255, 255, 0.04);
@@ -131,7 +151,10 @@
   background: #F1F5F9;
 }
 
-:global([data-theme='dark']) .eventItemCompleted,
+:global([data-theme='dark']) .eventItemCompleted {
+  background: rgba(255, 255, 255, 0.02);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .eventItemCompleted {
     background: rgba(255, 255, 255, 0.02);
@@ -166,7 +189,10 @@
   border-color: var(--sf-brand-indigo, #4338CA);
 }
 
-:global([data-theme='dark']) .checkBtn,
+:global([data-theme='dark']) .checkBtn {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .checkBtn {
     border-color: rgba(255, 255, 255, 0.25);
@@ -179,7 +205,11 @@
   color: #FFFFFF;
 }
 
-:global([data-theme='dark']) .checkBtnCompleted,
+:global([data-theme='dark']) .checkBtnCompleted {
+  background: #10B981;
+  border-color: #10B981;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .checkBtnCompleted {
     background: #10B981;
@@ -213,7 +243,11 @@
   font-family: var(--sf-font-numeric, -apple-system, sans-serif);
 }
 
-:global([data-theme='dark']) .eventTime,
+:global([data-theme='dark']) .eventTime {
+  background: rgba(99, 102, 241, 0.18);
+  color: #A5B4FC;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .eventTime {
     background: rgba(99, 102, 241, 0.18);
@@ -232,10 +266,14 @@
   gap: 12px;
 }
 
-:global([data-theme='dark']) .emptyState,
+:global([data-theme='dark']) .emptyState {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .emptyState {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.12);
   }
 }
@@ -252,10 +290,30 @@
   flex-shrink: 0;
 }
 
+:global([data-theme='dark']) .emptyIcon {
+  color: var(--sf-text-tertiary, #9592B8);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .emptyIcon {
+    color: var(--sf-text-tertiary, #9592B8);
+  }
+}
+
 .emptyText {
   font-size: 13px;
   color: var(--sf-text-secondary, #6B7280);
   font-weight: 500;
+}
+
+:global([data-theme='dark']) .emptyText {
+  color: var(--sf-text-secondary, #A5A3BC);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .emptyText {
+    color: var(--sf-text-secondary, #A5A3BC);
+  }
 }
 
 .scheduleBtn {
@@ -279,17 +337,23 @@
   background: #E0E7FF;
 }
 
-:global([data-theme='dark']) .scheduleBtn,
+:global([data-theme='dark']) .scheduleBtn {
+  background: rgba(99, 102, 241, 0.18);
+  color: #C7D2FE;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+:global([data-theme='dark']) .scheduleBtn:hover {
+  background: rgba(99, 102, 241, 0.28);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .scheduleBtn {
     background: rgba(99, 102, 241, 0.18);
     color: #C7D2FE;
     border-color: rgba(99, 102, 241, 0.3);
   }
-}
 
-:global([data-theme='dark']) .scheduleBtn:hover,
-@media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .scheduleBtn:hover {
     background: rgba(99, 102, 241, 0.28);
   }

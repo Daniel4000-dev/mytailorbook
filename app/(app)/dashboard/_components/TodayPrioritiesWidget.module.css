@@ -11,7 +11,12 @@
   transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
-:global([data-theme='dark']) .container,
+:global([data-theme='dark']) .container {
+  background: var(--sf-bg-surface, #161526);
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.24));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .container {
     background: var(--sf-bg-surface, #161526);
@@ -36,7 +41,10 @@
   color: var(--sf-brand-indigo, #4338CA);
 }
 
-:global([data-theme='dark']) .headerIcon,
+:global([data-theme='dark']) .headerIcon {
+  color: #818CF8;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .headerIcon {
     color: #818CF8;
@@ -62,7 +70,12 @@
   border: 1px solid #FECACA;
 }
 
-:global([data-theme='dark']) .pendingBadge,
+:global([data-theme='dark']) .pendingBadge {
+  background: rgba(220, 38, 38, 0.2);
+  color: #F87171;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .pendingBadge {
     background: rgba(220, 38, 38, 0.2);
@@ -82,7 +95,12 @@
   color: #065F46;
 }
 
-:global([data-theme='dark']) .allClearBox,
+:global([data-theme='dark']) .allClearBox {
+  background: rgba(5, 150, 105, 0.15);
+  border-color: rgba(5, 150, 105, 0.3);
+  color: #6EE7B7;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .allClearBox {
     background: rgba(5, 150, 105, 0.15);
@@ -97,7 +115,10 @@
   align-items: center;
 }
 
-:global([data-theme='dark']) .clearIconWrap,
+:global([data-theme='dark']) .clearIconWrap {
+  color: #34D399;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .clearIconWrap {
     color: #34D399;
@@ -132,7 +153,11 @@
   border: 1px solid #EDE9FE;
 }
 
-:global([data-theme='dark']) .fittingRow,
+:global([data-theme='dark']) .fittingRow {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .fittingRow {
     background: rgba(124, 58, 237, 0.15);
@@ -150,7 +175,11 @@
   flex-shrink: 0;
 }
 
-:global([data-theme='dark']) .fittingBadge,
+:global([data-theme='dark']) .fittingBadge {
+  background: rgba(124, 58, 237, 0.28);
+  color: #C4B5FD;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .fittingBadge {
     background: rgba(124, 58, 237, 0.28);
@@ -166,7 +195,11 @@
   width: 100%;
 }
 
-:global([data-theme='dark']) .loopRow,
+:global([data-theme='dark']) .loopRow {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .loopRow {
     background: rgba(217, 119, 6, 0.12);
@@ -205,7 +238,10 @@
   transition: all var(--sf-transition-fast);
 }
 
-:global([data-theme='dark']) .checkbox,
+:global([data-theme='dark']) .checkbox {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .checkbox {
     border-color: rgba(255, 255, 255, 0.25);
@@ -218,7 +254,12 @@
   color: #ffffff;
 }
 
-:global([data-theme='dark']) .checkboxChecked,
+:global([data-theme='dark']) .checkboxChecked {
+  background: #6366F1;
+  border-color: #6366F1;
+  color: #0D0C17;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .checkboxChecked {
     background: #6366F1;
@@ -251,6 +292,16 @@
   color: var(--sf-text-secondary, #6B7280);
 }
 
+:global([data-theme='dark']) .itemSub {
+  color: var(--sf-text-secondary, #A5A3BC);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .itemSub {
+    color: var(--sf-text-secondary, #A5A3BC);
+  }
+}
+
 .completedRow {
   opacity: 0.6;
 }
@@ -267,7 +318,11 @@
   flex-shrink: 0;
 }
 
-:global([data-theme='dark']) .loopIconWrap,
+:global([data-theme='dark']) .loopIconWrap {
+  background: rgba(217, 119, 6, 0.25);
+  color: #FCD34D;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .loopIconWrap {
     background: rgba(217, 119, 6, 0.25);
@@ -280,7 +335,11 @@
   color: #DC2626;
 }
 
-:global([data-theme='dark']) .urgentIcon,
+:global([data-theme='dark']) .urgentIcon {
+  background: rgba(220, 38, 38, 0.25);
+  color: #F87171;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .urgentIcon {
     background: rgba(220, 38, 38, 0.25);
@@ -298,7 +357,10 @@
   flex-shrink: 0;
 }
 
-:global([data-theme='dark']) .loopActionPill,
+:global([data-theme='dark']) .loopActionPill {
+  color: #818CF8;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .loopActionPill {
     color: #818CF8;
@@ -328,7 +390,10 @@
   text-decoration: underline;
 }
 
-:global([data-theme='dark']) .calendarLink,
+:global([data-theme='dark']) .calendarLink {
+  color: #818CF8;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .calendarLink {
     color: #818CF8;

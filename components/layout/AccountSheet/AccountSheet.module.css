@@ -16,7 +16,11 @@
   border-radius: 18px;
 }
 
-:global([data-theme='dark']) .profileBanner,
+:global([data-theme='dark']) .profileBanner {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .profileBanner {
     background: rgba(255, 255, 255, 0.04);
@@ -57,7 +61,10 @@
   border-radius: 50%;
 }
 
-:global([data-theme='dark']) .onlineDot,
+:global([data-theme='dark']) .onlineDot {
+  border-color: #161526;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .onlineDot {
     border-color: #161526;
@@ -98,7 +105,12 @@
   border: 1px solid var(--sf-border);
 }
 
-:global([data-theme='dark']) .roleBadge,
+:global([data-theme='dark']) .roleBadge {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818CF8;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .roleBadge {
     background: rgba(99, 102, 241, 0.15);
@@ -151,7 +163,12 @@
   cursor: pointer;
 }
 
-:global([data-theme='dark']) .branchSelect,
+:global([data-theme='dark']) .branchSelect {
+  background: #1F1E33;
+  border-color: rgba(99, 102, 241, 0.24);
+  color: #EDEDF5;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .branchSelect {
     background: #1F1E33;
@@ -211,7 +228,11 @@
   flex-shrink: 0;
 }
 
-:global([data-theme='dark']) .settingsIconWrap,
+:global([data-theme='dark']) .settingsIconWrap {
+  background: rgba(99, 102, 241, 0.16);
+  color: #818CF8;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .settingsIconWrap {
     background: rgba(99, 102, 241, 0.16);
@@ -252,7 +273,11 @@
   gap: 4px;
 }
 
-:global([data-theme='dark']) .themeSegment,
+:global([data-theme='dark']) .themeSegment {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .themeSegment {
     background: rgba(255, 255, 255, 0.04);
@@ -282,7 +307,12 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-:global([data-theme='dark']) .themeBtnActive,
+:global([data-theme='dark']) .themeBtnActive {
+  background: #1F1E33;
+  color: #EDEDF5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .themeBtnActive {
     background: #1F1E33;
@@ -309,7 +339,12 @@
   margin-top: 4px;
 }
 
-:global([data-theme='dark']) .logoutBtn,
+:global([data-theme='dark']) .logoutBtn {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #F87171;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .logoutBtn {
     background: rgba(239, 68, 68, 0.1);
@@ -322,7 +357,10 @@
   background: #FEE2E2;
 }
 
-:global([data-theme='dark']) .logoutBtn:hover,
+:global([data-theme='dark']) .logoutBtn:hover {
+  background: rgba(239, 68, 68, 0.18);
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .logoutBtn:hover {
     background: rgba(239, 68, 68, 0.18);
