@@ -1478,6 +1478,16 @@
   align-items: center;
 }
 
+:global([data-theme='dark']) .teamBenchIcon {
+  color: #818CF8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .teamBenchIcon {
+    color: #818CF8;
+  }
+}
+
 .teamBenchTitle {
   font-size: 15px;
   font-weight: 700;
@@ -1495,6 +1505,18 @@
   border-radius: 12px;
 }
 
+:global([data-theme='dark']) .teamBenchBadge {
+  background: rgba(99, 102, 241, 0.16);
+  color: #C7D2FE;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .teamBenchBadge {
+    background: rgba(99, 102, 241, 0.16);
+    color: #C7D2FE;
+  }
+}
+
 .teamBenchLink {
   background: none;
   border: none;
@@ -1506,10 +1528,28 @@
   gap: 2px;
   cursor: pointer;
   padding: 0;
+  transition: color var(--sf-transition-fast);
 }
 
 .teamBenchLink:hover {
   color: var(--sf-accent-indigo, #4338CA);
+}
+
+:global([data-theme='dark']) .teamBenchLink {
+  color: var(--sf-text-secondary, #A5A3BC);
+}
+
+:global([data-theme='dark']) .teamBenchLink:hover {
+  color: #818CF8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .teamBenchLink {
+    color: var(--sf-text-secondary, #A5A3BC);
+  }
+  :global(:root:not([data-theme="light"])) .teamBenchLink:hover {
+    color: #818CF8;
+  }
 }
 
 

@@ -63,11 +63,11 @@
 .pendingBadge {
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full, 9999px);
-  background: #FEE2E2;
+  background: #FEF2F2;
   color: #DC2626;
-  border: 1px solid #FECACA;
+  border: 1px solid rgba(220, 38, 38, 0.15);
 }
 
 :global([data-theme='dark']) .pendingBadge {
@@ -89,22 +89,22 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: #ECFDF5;
-  border: 1px solid #D1FAE5;
+  background: #F0FDF4;
+  border: 1px solid #DCFCE7;
   border-radius: var(--sf-radius-lg, 14px);
-  color: #065F46;
+  color: #166534;
 }
 
 :global([data-theme='dark']) .allClearBox {
-  background: rgba(5, 150, 105, 0.15);
-  border-color: rgba(5, 150, 105, 0.3);
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.25);
   color: #6EE7B7;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .allClearBox {
-    background: rgba(5, 150, 105, 0.15);
-    border-color: rgba(5, 150, 105, 0.3);
+    background: rgba(5, 150, 105, 0.12);
+    border-color: rgba(5, 150, 105, 0.25);
     color: #6EE7B7;
   }
 }
@@ -142,78 +142,79 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
+  background: #F8FAFC;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: var(--sf-radius-lg, 14px);
   text-align: left;
-  transition: all var(--sf-transition-fast);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
-/* 1. Fitting Rows — Subtle Royal Violet Tint */
-.fittingRow {
-  background: #F5F3FF;
-  border: 1px solid #EDE9FE;
-}
-
-:global([data-theme='dark']) .fittingRow {
-  background: rgba(124, 58, 237, 0.15);
-  border-color: rgba(124, 58, 237, 0.3);
+:global([data-theme='dark']) .itemRow {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme="light"])) .fittingRow {
-    background: rgba(124, 58, 237, 0.15);
-    border-color: rgba(124, 58, 237, 0.3);
+  :global(:root:not([data-theme="light"])) .itemRow {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
   }
+}
+
+/* 1. Fitting Rows — Inherits calm neutral surface */
+.fittingRow {
+  /* Inherits neutral surface from .itemRow */
 }
 
 .fittingBadge {
   font-size: 11px;
   font-weight: 700;
-  color: #7C3AED;
-  background: #EDE9FE;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: #EEF2FF;
+  border: 1px solid rgba(67, 56, 202, 0.12);
   padding: 2px 8px;
   border-radius: var(--sf-radius-full, 9999px);
   flex-shrink: 0;
 }
 
 :global([data-theme='dark']) .fittingBadge {
-  background: rgba(124, 58, 237, 0.28);
-  color: #C4B5FD;
+  background: rgba(99, 102, 241, 0.18);
+  color: #C7D2FE;
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .fittingBadge {
-    background: rgba(124, 58, 237, 0.28);
-    color: #C4B5FD;
+    background: rgba(99, 102, 241, 0.18);
+    color: #C7D2FE;
+    border-color: rgba(99, 102, 241, 0.3);
   }
 }
 
-/* 2. Open Loop Rows — Subtle Warm Tint */
+/* 2. Open Loop Rows — Inherits calm neutral surface with interactive lift */
 .loopRow {
-  background: #FFFBEB;
-  border: 1px solid #FEF3C7;
   cursor: pointer;
   width: 100%;
 }
 
-:global([data-theme='dark']) .loopRow {
-  background: rgba(217, 119, 6, 0.12);
-  border-color: rgba(217, 119, 6, 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme="light"])) .loopRow {
-    background: rgba(217, 119, 6, 0.12);
-    border-color: rgba(217, 119, 6, 0.25);
+@media (hover: hover) and (pointer: fine) {
+  .loopRow:hover {
+    background: #F1F5F9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .loopRow:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+  }
+  :global([data-theme='dark']) .loopRow:hover {
+    background: rgba(255, 255, 255, 0.07);
   }
 }
 
-.loopRow:hover {
-  filter: brightness(0.98);
-  transform: translateY(-1px);
-}
-
 .loopRow:active {
-  transform: scale(0.98);
+  transform: scale(0.985);
 }
 
 .itemLeft {
@@ -310,8 +311,9 @@
   width: 28px;
   height: 28px;
   border-radius: var(--sf-radius-full, 9999px);
-  background: #FEF3C7;
-  color: #D97706;
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,31 +321,36 @@
 }
 
 :global([data-theme='dark']) .loopIconWrap {
-  background: rgba(217, 119, 6, 0.25);
-  color: #FCD34D;
+  background: rgba(99, 102, 241, 0.16);
+  color: #818CF8;
+  border-color: rgba(99, 102, 241, 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .loopIconWrap {
-    background: rgba(217, 119, 6, 0.25);
-    color: #FCD34D;
+    background: rgba(99, 102, 241, 0.16);
+    color: #818CF8;
+    border-color: rgba(99, 102, 241, 0.25);
   }
 }
 
 .urgentIcon {
-  background: #FEE2E2;
+  background: #FEF2F2;
   color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.15);
 }
 
 :global([data-theme='dark']) .urgentIcon {
-  background: rgba(220, 38, 38, 0.25);
+  background: rgba(220, 38, 38, 0.2);
   color: #F87171;
+  border-color: rgba(220, 38, 38, 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .urgentIcon {
-    background: rgba(220, 38, 38, 0.25);
+    background: rgba(220, 38, 38, 0.2);
     color: #F87171;
+    border-color: rgba(220, 38, 38, 0.35);
   }
 }
 

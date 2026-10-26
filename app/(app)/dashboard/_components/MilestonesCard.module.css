@@ -116,22 +116,25 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #B45309;
-  background: #FEF3C7;
-  padding: 2px 6px;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: #EEF2FF;
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  padding: 2px 7px;
   border-radius: 6px;
   flex-shrink: 0;
 }
 
 :global([data-theme='dark']) .nextMoveTag {
-  background: rgba(217, 119, 6, 0.2);
-  color: #FCD34D;
+  background: rgba(99, 102, 241, 0.18);
+  color: #C7D2FE;
+  border-color: rgba(99, 102, 241, 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .nextMoveTag {
-    background: rgba(217, 119, 6, 0.2);
-    color: #FCD34D;
+    background: rgba(99, 102, 241, 0.18);
+    color: #C7D2FE;
+    border-color: rgba(99, 102, 241, 0.28);
   }
 }
 
@@ -252,20 +255,38 @@
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fillOrders {
-  background: linear-gradient(90deg, #4338CA, #6366F1);
-}
-
-.fillCustomers {
-  background: linear-gradient(90deg, #059669, #10B981);
-}
-
+.fillOrders,
+.fillCustomers,
 .fillRevenue {
-  background: linear-gradient(90deg, #7C3AED, #8B5CF6);
+  background: linear-gradient(90deg, #4338CA 0%, #6366F1 100%);
+}
+
+:global([data-theme='dark']) .fillOrders,
+:global([data-theme='dark']) .fillCustomers,
+:global([data-theme='dark']) .fillRevenue {
+  background: linear-gradient(90deg, #6366F1 0%, #818CF8 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .fillOrders,
+  :global(:root:not([data-theme="light"])) .fillCustomers,
+  :global(:root:not([data-theme="light"])) .fillRevenue {
+    background: linear-gradient(90deg, #6366F1 0%, #818CF8 100%);
+  }
 }
 
 .fillAchieved {
-  background: linear-gradient(90deg, #059669, #34D399);
+  background: linear-gradient(90deg, #059669 0%, #10B981 100%);
+}
+
+:global([data-theme='dark']) .fillAchieved {
+  background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .fillAchieved {
+    background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+  }
 }
 
 .achievedBadge {
