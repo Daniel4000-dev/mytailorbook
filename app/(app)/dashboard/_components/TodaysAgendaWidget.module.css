@@ -1,17 +1,22 @@
 .widget {
   background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.06));
   border-radius: var(--sf-radius-xl, 16px);
   padding: 16px;
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   box-sizing: border-box;
   width: 100%;
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
-:global([data-theme='dark']) .widget {
-  background: #1B1A2B;
-  border-color: rgba(255, 255, 255, 0.08);
+:global([data-theme='dark']) .widget,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .widget {
+    background: var(--sf-bg-surface, #161526);
+    border-color: var(--sf-border, rgba(99, 102, 241, 0.24));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  }
 }
 
 .header {
@@ -28,9 +33,16 @@
 }
 
 .titleIcon {
-  color: var(--sf-accent-indigo, #4338CA);
+  color: var(--sf-brand-indigo, #4338CA);
   display: flex;
   align-items: center;
+}
+
+:global([data-theme='dark']) .titleIcon,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .titleIcon {
+    color: #818CF8;
+  }
 }
 
 .title {
@@ -57,25 +69,35 @@
   border: 1px solid rgba(220, 38, 38, 0.15);
 }
 
-:global([data-theme='dark']) .pendingBadge {
-  background: rgba(220, 38, 38, 0.2);
-  color: #F87171;
-  border-color: rgba(220, 38, 38, 0.3);
+:global([data-theme='dark']) .pendingBadge,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .pendingBadge {
+    background: rgba(220, 38, 38, 0.2);
+    color: #F87171;
+    border-color: rgba(220, 38, 38, 0.3);
+  }
 }
 
 .calendarLink {
   font-size: 12px;
   font-weight: 600;
-  color: var(--sf-accent-indigo, #4338CA);
+  color: var(--sf-brand-indigo, #4338CA);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, color var(--sf-transition-fast);
 }
 
 .calendarLink:hover {
   opacity: 0.8;
+}
+
+:global([data-theme='dark']) .calendarLink,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .calendarLink {
+    color: #818CF8;
+  }
 }
 
 .eventList {
@@ -92,13 +114,16 @@
   background: #F8FAFC;
   border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: var(--sf-radius-md, 12px);
-  transition: opacity 0.2s ease, background 0.2s ease;
+  transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
   gap: 12px;
 }
 
-:global([data-theme='dark']) .eventItem {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.06);
+:global([data-theme='dark']) .eventItem,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .eventItem {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .eventItemCompleted {
@@ -106,8 +131,11 @@
   background: #F1F5F9;
 }
 
-:global([data-theme='dark']) .eventItemCompleted {
-  background: rgba(255, 255, 255, 0.02);
+:global([data-theme='dark']) .eventItemCompleted,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .eventItemCompleted {
+    background: rgba(255, 255, 255, 0.02);
+  }
 }
 
 .eventLeft {
@@ -135,13 +163,28 @@
 }
 
 .checkBtn:hover {
-  border-color: var(--sf-accent-indigo, #4338CA);
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+:global([data-theme='dark']) .checkBtn,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .checkBtn {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
 }
 
 .checkBtnCompleted {
-  background: var(--sf-accent-emerald, #059669);
-  border-color: var(--sf-accent-emerald, #059669);
+  background: #059669;
+  border-color: #059669;
   color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .checkBtnCompleted,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .checkBtnCompleted {
+    background: #10B981;
+    border-color: #10B981;
+  }
 }
 
 .eventTitle {
@@ -161,7 +204,7 @@
 .eventTime {
   font-size: 11px;
   font-weight: 600;
-  color: var(--sf-accent-indigo, #4338CA);
+  color: var(--sf-brand-indigo, #4338CA);
   background: #EEF2FF;
   padding: 3px 8px;
   border-radius: 8px;
@@ -170,9 +213,12 @@
   font-family: var(--sf-font-numeric, -apple-system, sans-serif);
 }
 
-:global([data-theme='dark']) .eventTime {
-  background: rgba(99, 102, 241, 0.18);
-  color: #A5B4FC;
+:global([data-theme='dark']) .eventTime,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .eventTime {
+    background: rgba(99, 102, 241, 0.18);
+    color: #A5B4FC;
+  }
 }
 
 .emptyState {
@@ -186,9 +232,12 @@
   gap: 12px;
 }
 
-:global([data-theme='dark']) .emptyState {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.1);
+:global([data-theme='dark']) .emptyState,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .emptyState {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
 }
 
 .emptyLeft {
@@ -212,7 +261,7 @@
 .scheduleBtn {
   font-size: 12px;
   font-weight: 600;
-  color: var(--sf-accent-indigo, #4338CA);
+  color: var(--sf-brand-indigo, #4338CA);
   background: #EEF2FF;
   border: 1px solid rgba(67, 56, 202, 0.12);
   padding: 5px 12px;
@@ -230,8 +279,18 @@
   background: #E0E7FF;
 }
 
-:global([data-theme='dark']) .scheduleBtn {
-  background: rgba(99, 102, 241, 0.18);
-  color: #C7D2FE;
-  border-color: rgba(99, 102, 241, 0.3);
+:global([data-theme='dark']) .scheduleBtn,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .scheduleBtn {
+    background: rgba(99, 102, 241, 0.18);
+    color: #C7D2FE;
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+}
+
+:global([data-theme='dark']) .scheduleBtn:hover,
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .scheduleBtn:hover {
+    background: rgba(99, 102, 241, 0.28);
+  }
 }

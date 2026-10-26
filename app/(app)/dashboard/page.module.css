@@ -581,7 +581,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .teamCard {
+  :global(:root:not([data-theme="light"])) .teamCard {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(255, 255, 255, 0.08);
   }
@@ -600,7 +600,7 @@
   }
 
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .teamCard:hover {
+    :global(:root:not([data-theme="light"])) .teamCard:hover {
       background: rgba(255, 255, 255, 0.08);
     }
   }
@@ -637,7 +637,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .teamAvatar {
+  :global(:root:not([data-theme="light"])) .teamAvatar {
     background: rgba(99, 102, 241, 0.2);
     color: #818CF8;
   }
@@ -693,7 +693,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .craftBadge {
+  :global(:root:not([data-theme="light"])) .craftBadge {
     background: rgba(99, 102, 241, 0.15);
     color: #818CF8;
     border-color: rgba(99, 102, 241, 0.3);
@@ -737,12 +737,12 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .teamActiveBadge {
+  :global(:root:not([data-theme="light"])) .teamActiveBadge {
     background: rgba(99, 102, 241, 0.15);
     color: #818CF8;
     border-color: rgba(99, 102, 241, 0.3);
   }
-  :root:not([data-theme="light"]) .teamOverdueBadge {
+  :global(:root:not([data-theme="light"])) .teamOverdueBadge {
     background: rgba(220, 38, 38, 0.2);
     color: #F87171;
     border-color: rgba(220, 38, 38, 0.3);
@@ -960,22 +960,22 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .attentionAvatar_alert {
+  :global(:root:not([data-theme="light"])) .attentionAvatar_alert {
     background: rgba(239, 68, 68, 0.16);
     color: #F87171;
   }
-  :root:not([data-theme="light"]) .attentionAvatar_warning {
+  :global(:root:not([data-theme="light"])) .attentionAvatar_warning {
     background: rgba(245, 158, 11, 0.16);
     color: #FBBF24;
   }
 }
 
-:root[data-theme="dark"] .attentionAvatar_alert {
+:global([data-theme='dark']) .attentionAvatar_alert {
   background: rgba(239, 68, 68, 0.16);
   color: #F87171;
 }
 
-:root[data-theme="dark"] .attentionAvatar_warning {
+:global([data-theme='dark']) .attentionAvatar_warning {
   background: rgba(245, 158, 11, 0.16);
   color: #FBBF24;
 }
@@ -1370,7 +1370,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .teamInviteCard {
+  :global(:root:not([data-theme="light"])) .teamInviteCard {
     background: var(--sf-bg-surface-elevated, #1F1E33);
     border-color: var(--sf-border);
   }
@@ -1400,7 +1400,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .teamInviteIconWrap {
+  :global(:root:not([data-theme="light"])) .teamInviteIconWrap {
     background: rgba(99, 102, 241, 0.2);
     color: #818CF8;
   }
@@ -1448,7 +1448,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .teamBenchCard {
+  :global(:root:not([data-theme="light"])) .teamBenchCard {
     background: #161526;
     border-color: rgba(255, 255, 255, 0.08);
   }

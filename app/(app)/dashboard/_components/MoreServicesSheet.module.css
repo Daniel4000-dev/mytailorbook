@@ -82,53 +82,53 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .item {
+  :global(:root:not([data-theme="light"])) .item {
     background: var(--sf-bg-surface-elevated, #1F1E33);
     border-color: var(--sf-border);
   }
-  :root:not([data-theme="light"]) .iconDebt {
+  :global(:root:not([data-theme="light"])) .iconDebt {
     background: rgba(239, 68, 68, 0.18);
     color: #F87171;
   }
-  :root:not([data-theme="light"]) .iconInventory {
+  :global(:root:not([data-theme="light"])) .iconInventory {
     background: rgba(52, 211, 153, 0.18);
     color: #34D399;
   }
-  :root:not([data-theme="light"]) .iconPortfolio {
+  :global(:root:not([data-theme="light"])) .iconPortfolio {
     background: rgba(129, 140, 248, 0.18);
     color: #818CF8;
   }
-  :root:not([data-theme="light"]) .iconTeam {
+  :global(:root:not([data-theme="light"])) .iconTeam {
     background: rgba(167, 139, 250, 0.18);
     color: #C4B5FD;
   }
-  :root:not([data-theme="light"]) .iconSettings {
+  :global(:root:not([data-theme="light"])) .iconSettings {
     background: rgba(148, 163, 184, 0.18);
     color: #CBD5E1;
   }
 }
 
-:root[data-theme="dark"] .item {
+:global([data-theme='dark']) .item {
   background: var(--sf-bg-surface-elevated, #1F1E33);
   border-color: var(--sf-border);
 }
-:root[data-theme="dark"] .iconDebt {
+:global([data-theme='dark']) .iconDebt {
   background: rgba(239, 68, 68, 0.18);
   color: #F87171;
 }
-:root[data-theme="dark"] .iconInventory {
+:global([data-theme='dark']) .iconInventory {
   background: rgba(52, 211, 153, 0.18);
   color: #34D399;
 }
-:root[data-theme="dark"] .iconPortfolio {
+:global([data-theme='dark']) .iconPortfolio {
   background: rgba(129, 140, 248, 0.18);
   color: #818CF8;
 }
-:root[data-theme="dark"] .iconTeam {
+:global([data-theme='dark']) .iconTeam {
   background: rgba(167, 139, 250, 0.18);
   color: #C4B5FD;
 }
-:root[data-theme="dark"] .iconSettings {
+:global([data-theme='dark']) .iconSettings {
   background: rgba(148, 163, 184, 0.18);
   color: #CBD5E1;
 }
@@ -178,14 +178,14 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .badge {
+  :global(:root:not([data-theme="light"])) .badge {
     background: rgba(239, 68, 68, 0.18);
     color: #F87171;
     border-color: rgba(239, 68, 68, 0.35);
   }
 }
 
-:root[data-theme="dark"] .badge {
+:global([data-theme='dark']) .badge {
   background: rgba(239, 68, 68, 0.18);
   color: #F87171;
   border-color: rgba(239, 68, 68, 0.35);

@@ -171,69 +171,69 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .iconCutting {
+  :global(:root:not([data-theme="light"])) .iconCutting {
     background: rgba(251, 146, 60, 0.16);
     color: #FB923C;
   }
-  :root:not([data-theme="light"]) .iconSewing {
+  :global(:root:not([data-theme="light"])) .iconSewing {
     background: rgba(129, 140, 248, 0.18);
     color: #818CF8;
   }
-  :root:not([data-theme="light"]) .iconFittings {
+  :global(:root:not([data-theme="light"])) .iconFittings {
     background: rgba(167, 139, 250, 0.18);
     color: #C4B5FD;
   }
-  :root:not([data-theme="light"]) .iconCustomers {
+  :global(:root:not([data-theme="light"])) .iconCustomers {
     background: rgba(148, 163, 184, 0.18);
     color: #CBD5E1;
   }
-  :root:not([data-theme="light"]) .iconQuotes {
+  :global(:root:not([data-theme="light"])) .iconQuotes {
     background: rgba(52, 211, 153, 0.18);
     color: #34D399;
   }
-  :root:not([data-theme="light"]) .iconTill {
+  :global(:root:not([data-theme="light"])) .iconTill {
     background: rgba(167, 139, 250, 0.18);
     color: #C4B5FD;
   }
-  :root:not([data-theme="light"]) .iconLookbook {
+  :global(:root:not([data-theme="light"])) .iconLookbook {
     background: rgba(251, 191, 36, 0.18);
     color: #FCD34D;
   }
-  :root:not([data-theme="light"]) .iconMore {
+  :global(:root:not([data-theme="light"])) .iconMore {
     background: rgba(148, 163, 184, 0.18);
     color: #94A3B8;
   }
 }
 
-:root[data-theme="dark"] .iconCutting {
+:global([data-theme='dark']) .iconCutting {
   background: rgba(251, 146, 60, 0.16);
   color: #FB923C;
 }
-:root[data-theme="dark"] .iconSewing {
+:global([data-theme='dark']) .iconSewing {
   background: rgba(129, 140, 248, 0.18);
   color: #818CF8;
 }
-:root[data-theme="dark"] .iconFittings {
+:global([data-theme='dark']) .iconFittings {
   background: rgba(167, 139, 250, 0.18);
   color: #C4B5FD;
 }
-:root[data-theme="dark"] .iconCustomers {
+:global([data-theme='dark']) .iconCustomers {
   background: rgba(148, 163, 184, 0.18);
   color: #CBD5E1;
 }
-:root[data-theme="dark"] .iconQuotes {
+:global([data-theme='dark']) .iconQuotes {
   background: rgba(52, 211, 153, 0.18);
   color: #34D399;
 }
-:root[data-theme="dark"] .iconTill {
+:global([data-theme='dark']) .iconTill {
   background: rgba(167, 139, 250, 0.18);
   color: #C4B5FD;
 }
-:root[data-theme="dark"] .iconLookbook {
+:global([data-theme='dark']) .iconLookbook {
   background: rgba(251, 191, 36, 0.18);
   color: #FCD34D;
 }
-:root[data-theme="dark"] .iconMore {
+:global([data-theme='dark']) .iconMore {
   background: rgba(148, 163, 184, 0.18);
   color: #94A3B8;
 }
