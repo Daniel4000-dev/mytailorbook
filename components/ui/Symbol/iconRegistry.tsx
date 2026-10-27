@@ -74,6 +74,27 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  /** Production Capacity & Speed Gauge */
+  speed: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4a9 9 0 0 0-9 9c0 2.5 1 4.7 2.7 6.3L7 18" />
+      <path d="M17 18l1.3 1.3A8.96 8.96 0 0 0 21 13a9 9 0 0 0-9-9" />
+      <path d="M12 9l2.5 3.5" strokeWidth="2.2" />
+      <circle cx="12" cy="14" r="2" fill={fill ? color : 'none'} strokeWidth="1.8" />
+      <path d="M8 12h.01M16 12h.01M12 7h.01" strokeWidth="2.5" />
+    </svg>
+  ),
+
+  /** High-Volume Production Facility / Garment Factory */
+  factory: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 20h20" strokeWidth="2" />
+      <path d="M4 20V9l5 3V9l5 3V4h6v16H4z" fill={fill ? color : 'none'} />
+      <rect x="15" y="7" width="2" height="2" fill={fill ? '#fff' : color} stroke="none" />
+      <rect x="15" y="11" width="2" height="2" fill={fill ? '#fff' : color} stroke="none" />
+    </svg>
+  ),
+
   /** Tailor's Tape Measure with brass clip & millimeter/inch graduation ticks */
   straighten: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
