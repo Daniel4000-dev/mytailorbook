@@ -73,61 +73,51 @@ export default function BottomNav() {
   const { user, isOwner, loading } = useAuth();
   const { currentShop, isLoaded } = useData();
   const [isCompact, setIsCompact] = useState(false);
+  const isCompactRef = useRef(false);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
-    let ticking = false;
+    let mainEl: HTMLElement | null = document.querySelector('main');
 
-    const getMainScrollTop = (): number => {
-      const main = document.querySelector('main');
-      if (main && typeof main.scrollTop === 'number' && main.scrollHeight > main.clientHeight) {
-        return main.scrollTop;
+    const handleScroll = () => {
+      if (!mainEl || !mainEl.isConnected) {
+        mainEl = document.querySelector('main');
       }
-      return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    };
+      const currentY = mainEl ? mainEl.scrollTop : (window.scrollY || document.documentElement.scrollTop || 0);
+      const delta = currentY - lastScrollY.current;
 
-    const handleScroll = (e?: Event) => {
-      // If the scroll came from a nested horizontal scroller (e.g., fabric swatches, pills), ignore
-      if (e?.target instanceof HTMLElement && e.target.tagName !== 'MAIN') {
-        const target = e.target;
-        if (target.scrollHeight <= target.clientHeight + 10 && target.scrollWidth > target.clientWidth) {
-          return;
+      // Near top of page: always expand
+      if (currentY < 15) {
+        if (isCompactRef.current) {
+          isCompactRef.current = false;
+          setIsCompact(false);
+        }
+      } else if (delta > 6) {
+        // Immediate scale down when scrolling down
+        if (!isCompactRef.current) {
+          isCompactRef.current = true;
+          setIsCompact(true);
+        }
+      } else if (delta < -3) {
+        // Instant spring back up when scrolling up
+        if (isCompactRef.current) {
+          isCompactRef.current = false;
+          setIsCompact(false);
         }
       }
 
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentY = getMainScrollTop();
-          const delta = currentY - lastScrollY.current;
-
-          // If near the top of the page, always stay full-size
-          if (currentY < 30) {
-            setIsCompact(false);
-          } else if (delta > 8) {
-            // Scrolling DOWN -> compact/scale down
-            setIsCompact(true);
-          } else if (delta < -5) {
-            // Scrolling UP -> expand immediately
-            setIsCompact(false);
-          }
-
-          lastScrollY.current = currentY;
-          ticking = false;
-        });
-        ticking = true;
-      }
+      lastScrollY.current = currentY;
     };
 
-    const mainEl = document.querySelector('main');
     if (mainEl) {
       mainEl.addEventListener('scroll', handleScroll, { passive: true });
     }
-    // Also capture at window level for any sub-container or document scroll
     window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
 
     // Reset state on navigation
+    isCompactRef.current = false;
     setIsCompact(false);
-    lastScrollY.current = getMainScrollTop();
+    lastScrollY.current = mainEl ? mainEl.scrollTop : (window.scrollY || 0);
 
     return () => {
       if (mainEl) {
@@ -136,6 +126,13 @@ export default function BottomNav() {
       window.removeEventListener('scroll', handleScroll, { capture: true });
     };
   }, [pathname]);
+
+  const handleRestore = () => {
+    if (isCompactRef.current) {
+      isCompactRef.current = false;
+      setIsCompact(false);
+    }
+  };
 
   // Owner-only items (e.g. Customers) depend on `isOwner`, which starts
   // false until the profile finishes loading — rendering before then would
@@ -157,9 +154,10 @@ export default function BottomNav() {
     <nav
       className={`${styles.nav} ${isCompact ? styles.navCompact : ''}`}
       aria-label="Bottom Navigation"
-      onMouseEnter={() => setIsCompact(false)}
-      onTouchStart={() => setIsCompact(false)}
-      onClick={() => setIsCompact(false)}
+      onPointerDown={handleRestore}
+      onTouchStart={handleRestore}
+      onClick={handleRestore}
+      onMouseEnter={handleRestore}
     >
       {visibleItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));

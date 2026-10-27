@@ -22,8 +22,8 @@
   z-index: var(--sf-z-sticky);
   transform: translate3d(0, 0, 0);
   transform-origin: center bottom;
-  will-change: transform, backdrop-filter, opacity;
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background-color 0.2s ease, box-shadow 0.25s ease;
+  will-change: transform, opacity;
+  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.15s ease, background-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .nav.navCompact {
@@ -58,7 +58,7 @@
     0 10px 32px rgba(0, 0, 0, 0.45),
     0 2px 8px rgba(0, 0, 0, 0.25);
   transform: translate3d(0, 0, 0);
-  will-change: transform, backdrop-filter;
+  will-change: transform, opacity;
 }
 
 :global([data-theme='dark']) .nav.navCompact {
@@ -85,7 +85,7 @@
       0 10px 32px rgba(0, 0, 0, 0.45),
       0 2px 8px rgba(0, 0, 0, 0.25);
     transform: translate3d(0, 0, 0);
-    will-change: transform, backdrop-filter;
+    will-change: transform, opacity;
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact {
