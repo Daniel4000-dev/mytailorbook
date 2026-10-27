@@ -2093,4 +2093,198 @@
   transition: transform 0.1s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* ── Universal Dark Mode Refinement ── */
+:global([data-theme='dark']) .card {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='dark']) .selectedClientCard {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .searchBox {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .customerRow {
+  background: transparent;
+}
+
+:global([data-theme='dark']) .customerRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .inlineForm {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .input,
+:global([data-theme='dark']) .dateInput,
+:global([data-theme='dark']) .selectInput,
+:global([data-theme='dark']) .textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-primary);
+}
+
+:global([data-theme='dark']) .styleCard {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .styleCardInfo {
+  background: transparent;
+}
+
+:global([data-theme='dark']) .styleCardActive {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 1.5px var(--sf-brand-indigo), 0 8px 24px rgba(99, 102, 241, 0.25);
+}
+
+:global([data-theme='dark']) .measureField .measureInput {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-primary);
+}
+
+:global([data-theme='dark']) .measurePill {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .photoBox {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .photoUploadTrigger {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:global([data-theme='dark']) .stashPickerWrap {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .stashSwatchBtn {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .quickDateBtn,
+:global([data-theme='dark']) .shortcutBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .balanceBar {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .card {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .selectedClientCard {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .searchBox {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .customerRow {
+    background: transparent;
+  }
+
+  :global(:root:not([data-theme="light"])) .customerRow:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  :global(:root:not([data-theme="light"])) .inlineForm {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .input,
+  :global(:root:not([data-theme="light"])) .dateInput,
+  :global(:root:not([data-theme="light"])) .selectInput,
+  :global(:root:not([data-theme="light"])) .textarea {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--sf-text-primary);
+  }
+
+  :global(:root:not([data-theme="light"])) .styleCard {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .styleCardInfo {
+    background: transparent;
+  }
+
+  :global(:root:not([data-theme="light"])) .styleCardActive {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--sf-brand-indigo);
+    box-shadow: 0 0 0 1.5px var(--sf-brand-indigo), 0 8px 24px rgba(99, 102, 241, 0.25);
+  }
+
+  :global(:root:not([data-theme="light"])) .measureField .measureInput {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--sf-text-primary);
+  }
+
+  :global(:root:not([data-theme="light"])) .measurePill {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .photoBox {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .photoUploadTrigger {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  :global(:root:not([data-theme="light"])) .stashPickerWrap {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .stashSwatchBtn {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(:root:not([data-theme="light"])) .quickDateBtn,
+  :global(:root:not([data-theme="light"])) .shortcutBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .balanceBar {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+}
+
+
 

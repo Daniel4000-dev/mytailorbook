@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -71,6 +72,39 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { user, isOwner, loading } = useAuth();
   const { currentShop, isLoaded } = useData();
+  const [isCompact, setIsCompact] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentY = window.scrollY;
+          const delta = currentY - lastScrollY.current;
+
+          // If near the top of the page, always stay full-size
+          if (currentY < 30) {
+            setIsCompact(false);
+          } else if (delta > 10) {
+            // Scrolling DOWN -> compact/scale down
+            setIsCompact(true);
+          } else if (delta < -8) {
+            // Scrolling UP -> expand immediately
+            setIsCompact(false);
+          }
+
+          lastScrollY.current = currentY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Owner-only items (e.g. Customers) depend on `isOwner`, which starts
   // false until the profile finishes loading — rendering before then would
@@ -89,7 +123,12 @@ export default function BottomNav() {
   });
 
   return (
-    <nav className={styles.nav} aria-label="Bottom Navigation">
+    <nav
+      className={`${styles.nav} ${isCompact ? styles.navCompact : ''}`}
+      aria-label="Bottom Navigation"
+      onMouseEnter={() => setIsCompact(false)}
+      onTouchStart={() => setIsCompact(false)}
+    >
       {visibleItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
         const isProfile = item.href === '/settings';

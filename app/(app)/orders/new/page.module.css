@@ -1083,39 +1083,46 @@
 }
 
 .typeOptionCard {
-  padding: 20px 16px;
-  border-radius: var(--sf-radius-lg);
+  padding: 22px 18px;
+  border-radius: var(--sf-radius-lg, 16px);
   border: 1px solid var(--sf-border-light);
   background: var(--sf-bg-surface);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
+  transform: translateZ(0);
 }
 
 .typeOptionCard:hover {
   border-color: var(--sf-brand-indigo);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px var(--sf-brand-indigo-glow);
+  box-shadow: 0 10px 24px var(--sf-brand-indigo-glow);
 }
 
 .typeOptionCard:active {
   transform: scale(0.98);
+  transition: transform 0.1s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .typeIconWrap {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--sf-radius-md);
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   background: var(--sf-brand-indigo-glow);
   color: var(--sf-brand-indigo);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.typeOptionCard:hover .typeIconWrap {
+  transform: scale(1.06);
 }
 
 .typeTextWrap {
@@ -1124,7 +1131,8 @@
 }
 
 .typeOptionTitle {
-  margin: 0 0 3px 0;
+  margin: 0 0 4px 0;
+  font-family: var(--sf-font-heading);
   font-size: 16px;
   font-weight: 700;
   color: var(--sf-text-primary);
@@ -1135,10 +1143,54 @@
   margin: 0;
   font-size: 13px;
   color: var(--sf-text-secondary);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .typeChevron {
   color: var(--sf-text-tertiary);
   flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
+
+.typeOptionCard:hover .typeChevron {
+  color: var(--sf-brand-indigo);
+  transform: translateX(3px);
+}
+
+/* Dark mode Order Type Selector */
+:global([data-theme='dark']) .typeOptionCard {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='dark']) .typeOptionCard:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+}
+
+:global([data-theme='dark']) .typeIconWrap {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .typeOptionCard {
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .typeOptionCard:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: var(--sf-brand-indigo);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+  }
+
+  :global(:root:not([data-theme="light"])) .typeIconWrap {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+  }
+}
+

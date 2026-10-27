@@ -21,8 +21,21 @@
     0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: var(--sf-z-sticky);
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+  transform-origin: center bottom;
+  will-change: transform, backdrop-filter, opacity;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background-color 0.2s ease;
+}
+
+.navCompact {
+  transform: translateZ(0) scale(0.88);
+  opacity: 0.80;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navCompact:hover {
+    transform: translateZ(0) scale(1);
+    opacity: 1;
+  }
 }
 
 :global([data-theme='dark']) .nav {

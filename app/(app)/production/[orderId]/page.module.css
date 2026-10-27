@@ -2329,6 +2329,266 @@
     background: rgba(255, 255, 255, 0.1);
     border-color: #FBBF24;
   }
+
+  :global(:root:not([data-theme="light"])) .heroAdvanceBtn {
+    background: #6366F1;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+  }
+
+  :global(:root:not([data-theme="light"])) .heroReworkBtn {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #FBBF24;
+  }
+
+  :global(:root:not([data-theme="light"])) .heroMetaChip {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .dossierTabBar {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .dossierTabActive {
+    background: var(--sf-bg-surface, #161526);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(:root:not([data-theme="light"])) .actionPillBtn {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #A5B4FC;
+  }
+
+  :global(:root:not([data-theme="light"])) .actionPillBtn:hover {
+    background: rgba(99, 102, 241, 0.25);
+  }
+}
+
+/* ── Luxury Atelier Production Dossier Components ─────────────── */
+.heroAdvanceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
+  transition: transform var(--sf-transition-fast), filter var(--sf-transition-fast);
+}
+
+.heroAdvanceBtn:active {
+  transform: scale(0.96);
+}
+
+.heroReworkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--sf-accent-amber) 12%, transparent);
+  color: #D97706;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.heroReworkBtn:active {
+  transform: scale(0.96);
+}
+
+.heroMetaStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.heroMetaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: color-mix(in srgb, var(--sf-text-primary) 5%, transparent);
+  color: var(--sf-text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 0.5px solid var(--sf-border-light);
+}
+
+.heroMetaChipOverdue {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.heroMetaChipPriority {
+  background: rgba(245, 158, 11, 0.14);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.dossierTabBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--sf-text-primary) 6%, transparent);
+  border-radius: var(--sf-radius-full);
+  border: 0.5px solid var(--sf-border-light);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.dossierTabBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  white-space: nowrap;
+}
+
+.dossierTabBtn:active {
+  transform: scale(0.96);
+}
+
+.dossierTabActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.tabBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--sf-radius-full);
+  background: color-mix(in srgb, var(--sf-brand-indigo) 15%, transparent);
+  color: var(--sf-brand-indigo);
+}
+
+.tabDueDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #EF4444;
+}
+
+.dossierBody {
+  width: 100%;
+}
+
+.tabContentGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  animation: tabFadeIn 0.2s ease-out;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.actionPillBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--sf-brand-indigo) 10%, transparent);
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionPillBtn:hover {
+  background: color-mix(in srgb, var(--sf-brand-indigo) 16%, transparent);
+}
+
+.actionPillBtn:active {
+  transform: scale(0.96);
+}
+
+.notesActionRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+:global([data-theme='dark']) .heroAdvanceBtn {
+  background: #6366F1;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+}
+
+:global([data-theme='dark']) .heroReworkBtn {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #FBBF24;
+}
+
+:global([data-theme='dark']) .heroMetaChip {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .dossierTabBar {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .dossierTabActive {
+  background: var(--sf-bg-surface, #161526);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='dark']) .actionPillBtn {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #A5B4FC;
+}
+
+:global([data-theme='dark']) .actionPillBtn:hover {
+  background: rgba(99, 102, 241, 0.25);
 }
 
 

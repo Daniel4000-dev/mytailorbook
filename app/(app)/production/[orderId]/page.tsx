@@ -43,7 +43,7 @@ import OrderPayments from './_components/OrderPayments';
 import OrderMaterials from './_components/OrderMaterials';
 import styles from './page.module.css';
 
-type DetailTab = 'garment' | 'photos' | 'billing' | 'timeline';
+type DetailTab = 'spec' | 'feed' | 'ledger';
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -54,7 +54,7 @@ export default function OrderDetailPage() {
   const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException } = useData();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
-  const [activeTab, setActiveTab] = useState<DetailTab>('garment');
+  const [activeTab, setActiveTab] = useState<DetailTab>('spec');
 
   const order = orders.find((o) => o.id === orderId) || null;
   const customer = order ? customers.find((c) => c.id === order.customerId) || null : null;
@@ -548,39 +548,12 @@ export default function OrderDetailPage() {
            use. Placement is pure CSS grid-area, fully decoupled from DOM
            order, so mobile's flex-column stacking below is completely
            untouched — same source order as always. */}
-        {/* 1. Desktop Stage Action Row */}
-        {isDesktop && (next || order.status === 'Ready' || order.status === 'Delivered') && (
-          <div className={styles.advanceRow + ' ' + styles.gaAdvance}>
-            {(order.status === 'Ready' || order.status === 'Delivered') && (
-              <button
-                type="button"
-                className={styles.reworkBtn}
-                onClick={() => {
-                  setTargetAlterationStage('Sewing');
-                  setAlterationModalOpen(true);
-                }}
-              >
-                <Symbol name="needle" size={16} />
-                <span>{order.status === 'Delivered' ? 'Reopen for Alteration' : 'Needs Alteration'}</span>
-              </button>
-            )}
-            {next && (
-              <button type="button" className={styles.advanceBtn} onClick={handleAdvance} disabled={advancing}>
-                {advancing && <Symbol name="progress_activity" className="global-spinner" />}
-                <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={20} />
-                <span>Move to {STATUS_CONFIG[next].label}</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* 2. Order / customer header — Luxury Atelier Studio Hero Card */}
+        {/* 1. Luxury Atelier Studio Command Hero Card */}
         <section className={styles.heroCard + ' ' + styles.gaHeader}>
           <div className={styles.heroTop}>
             <div className={styles.heroProfile}>
               <Avatar
                 name={order.customerName || 'Customer'}
-                imageUrl={customer?.avatarUrl}
                 size="lg"
                 shape="squircle"
                 className={styles.customerAvatar}
@@ -601,6 +574,31 @@ export default function OrderDetailPage() {
             </div>
 
             <div className={styles.heroActions}>
+              {/* Desktop Direct Move / Alteration CTA */}
+              {isDesktop && (
+                <>
+                  {(order.status === 'Ready' || order.status === 'Delivered') && (
+                    <button
+                      type="button"
+                      className={styles.heroReworkBtn}
+                      onClick={() => {
+                        setTargetAlterationStage('Sewing');
+                        setAlterationModalOpen(true);
+                      }}
+                    >
+                      <Symbol name="needle" size={14} />
+                      <span>{order.status === 'Delivered' ? 'Reopen Alteration' : 'Needs Alteration'}</span>
+                    </button>
+                  )}
+                  {next && (
+                    <button type="button" className={styles.heroAdvanceBtn} onClick={handleAdvance} disabled={advancing}>
+                      {advancing ? <Symbol name="progress_activity" className="global-spinner" /> : <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={14} />}
+                      <span>Move to {STATUS_CONFIG[next].label}</span>
+                    </button>
+                  )}
+                </>
+              )}
+
               <button
                 type="button"
                 className={styles.stagePillBtn}
@@ -639,7 +637,7 @@ export default function OrderDetailPage() {
                   )}
                   <a
                     className={styles.heroCallBtn}
-                    href={`tel:+${customer.whatsappNumber || customer.phone}`}
+                    href={`tel:+${customer.whatsappNumber}`}
                     aria-label={`Call ${customer.fullName}`}
                     title="Call client"
                   >
@@ -649,6 +647,34 @@ export default function OrderDetailPage() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Integrated Workshop Production Facts Strip */}
+          <div className={styles.heroMetaStrip}>
+            <div className={`${styles.heroMetaChip} ${isOverdue(order) ? styles.heroMetaChipOverdue : ''}`}>
+              <Symbol name="event" size={13} />
+              <span>
+                {order.dueDate
+                  ? `${isOverdue(order) ? 'Overdue · ' : 'Due '}${new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
+                  : 'Due: Not set'}
+              </span>
+            </div>
+            <div className={styles.heroMetaChip}>
+              <Symbol name="person" size={13} />
+              <span>{order.assignedToName ? `${order.assignedToName}` : 'Unassigned'}</span>
+            </div>
+            {order.priority !== 'normal' && (
+              <div className={`${styles.heroMetaChip} ${styles.heroMetaChipPriority}`}>
+                <Symbol name="bolt" size={13} />
+                <span>{order.priority === 'rush' ? 'Rush Order' : 'Urgent'}</span>
+              </div>
+            )}
+            {batchSiblings.length > 0 && (
+              <div className={styles.heroMetaChip}>
+                <Symbol name="layers" size={13} />
+                <span>Batch: {batchSiblings.length + 1} Outfits</span>
+              </div>
+            )}
           </div>
 
           {/* Interactive Workshop Stage Stepper Bar */}
@@ -679,15 +705,6 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {(isOverdue(order) || order.priority !== 'normal') && (
-            <div className={styles.flagRow}>
-              {isOverdue(order) && <span className={styles.flagChip}>Overdue</span>}
-              {order.priority !== 'normal' && (
-                <span className={styles.flagChip}>{order.priority === 'rush' ? 'Rush' : 'Urgent'}</span>
-              )}
-            </div>
-          )}
-
           {activeException ? (
             <div className={styles.exceptionBanner}>
               <div className={styles.exceptionBannerContent}>
@@ -709,503 +726,526 @@ export default function OrderDetailPage() {
           )}
         </section>
 
-        {/* Mobile Segmented Tab Selector */}
-        {!isDesktop && (
-          <div className={styles.mobileTabRow}>
-            <button
-              type="button"
-              className={`${styles.mobileTabBtn} ${activeTab === 'garment' ? styles.mobileActiveTab : ''}`}
-              onClick={() => setActiveTab('garment')}
-            >
-              <Symbol name="checkroom" size={14} />
-              <span>Garment &amp; Fit</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.mobileTabBtn} ${activeTab === 'photos' ? styles.mobileActiveTab : ''}`}
-              onClick={() => setActiveTab('photos')}
-            >
-              <Symbol name="photo_camera" size={14} />
-              <span>Photos &amp; Chat</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.mobileTabBtn} ${activeTab === 'billing' ? styles.mobileActiveTab : ''}`}
-              onClick={() => setActiveTab('billing')}
-            >
-              <Symbol name="payments" size={14} />
-              <span>Billing &amp; Costs</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.mobileTabBtn} ${activeTab === 'timeline' ? styles.mobileActiveTab : ''}`}
-              onClick={() => setActiveTab('timeline')}
-            >
-              <Symbol name="schedule" size={14} />
-              <span>Timeline</span>
-            </button>
-          </div>
-        )}
+        {/* 2. Luxury Atelier Dossier Segmented Tab Control */}
+        <div className={styles.dossierTabBar}>
+          <button
+            type="button"
+            className={`${styles.dossierTabBtn} ${activeTab === 'spec' ? styles.dossierTabActive : ''}`}
+            onClick={() => setActiveTab('spec')}
+          >
+            <Symbol name="checkroom" size={15} />
+            <span>Craft Spec</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.dossierTabBtn} ${activeTab === 'feed' ? styles.dossierTabActive : ''}`}
+            onClick={() => setActiveTab('feed')}
+          >
+            <Symbol name="photo_camera" size={15} />
+            <span>Workshop Feed</span>
+            {(order.images?.length || 0) > 0 && (
+              <span className={styles.tabBadge}>{order.images?.length}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`${styles.dossierTabBtn} ${activeTab === 'ledger' ? styles.dossierTabActive : ''}`}
+            onClick={() => setActiveTab('ledger')}
+          >
+            <Symbol name="payments" size={15} />
+            <span>Ledger &amp; Costs</span>
+            {balanceOwed > 0 && <span className={styles.tabDueDot} />}
+          </button>
+        </div>
 
-        {/* 4. Inspiration */}
-        {(isDesktop || activeTab === 'photos') && (
-          <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaInspo}>
-            <div className={styles.capsHeader}>
-              <h3 className={styles.capsTitle}>Inspiration</h3>
-              {!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT ? (
-                <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
-              ) : (
-                <label className={styles.addLink}>
-                  <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
-                  <Symbol name="add_photo_alternate" size={18} />
-                  {uploadingInspo ? 'Uploading…' : 'Add'}
-                </label>
-              )}
-            </div>
-            {(order.inspirationImages || []).length === 0 ? (
-              <div className={styles.emptyPhotoHint}>
-                <Symbol name="add_photo_alternate" className={styles.emptyPhotoIcon} />
-                <span>No reference photo yet — add one if the customer has an inspo they want matched.</span>
-              </div>
-            ) : (
-              <div className={styles.inspoGrid}>
-                {(order.inspirationImages || []).map((url, i) => (
-                  <div key={i} className={styles.inspoThumb}>
-                    <Image
-                      src={url}
-                      alt={`Inspiration ${i + 1}`}
-                      width={400}
-                      height={400}
-                      onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
-                      style={{ cursor: 'zoom-in' }}
-                    />
-                    <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
-                      <Symbol name="close" size={14} />
+        {/* 3. Luxury Atelier Production Dossier Content */}
+        <div className={styles.dossierBody}>
+          {/* ── PILLAR 1: CRAFT SPEC ── */}
+          {activeTab === 'spec' && (
+            <div className={styles.tabContentGroup}>
+              {/* Measurements — Craft Spec Section */}
+              <section className={styles.card + ' ' + styles.gaMeasure}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>
+                      {usingOrderMeasurements ? 'Garment Measurements' : "Body Profile Measurements"}
+                    </h3>
+                    <span className={styles.measureSubtitle}>
+                      {usingOrderMeasurements ? 'Specific to this outfit' : 'From customer body profile'}
+                    </span>
+                  </div>
+                  <div className={styles.sectionActions}>
+                    {measurementEntries.length > 0 && (
+                      <button
+                        type="button"
+                        className={styles.copySpecBtn}
+                        onClick={handleCopyMeasurements}
+                        aria-label="Copy measurements spec"
+                        title="Copy specification to clipboard"
+                      >
+                        <Symbol name="content_copy" size={13} />
+                        <span>Copy Specs</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.roundIconBtn}
+                      aria-label="Edit this order's measurements"
+                      onClick={() => setEditingMeasurements(true)}
+                    >
+                      <Symbol name="edit" size={18} />
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* 6. Progress gallery */}
-        {(isDesktop || activeTab === 'photos') && (
-          <section className={styles.card + ' ' + styles.flushCard + ' ' + styles.gaGallery}>
-            <div className={styles.capsHeader}>
-              <h3 className={styles.capsTitle}>Progress Gallery</h3>
-              {!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT ? (
-                <span className={styles.emptyNote}>Free plan limit reached ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
-              ) : (
-                <label className={styles.addLink}>
-                  <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-                  <Symbol name="add_a_photo" size={18} />
-                  {uploadingPhoto ? 'Uploading…' : 'Add'}
-                </label>
-              )}
-            </div>
-            {(order.images || []).length === 0 ? (
-              <div className={styles.emptyPhotoHint}>
-                <Symbol name="add_a_photo" className={styles.emptyPhotoIcon} />
-                <span>No progress photos yet — snap one as the garment moves through each stage.</span>
-              </div>
-            ) : (
-              <div className={styles.galleryGrid}>
-                {(order.images || []).map((photo, i) => (
-                  <div key={i} className={styles.galleryThumb}>
-                    <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
-                    <div className={styles.glassCaption}>
-                      {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
-                    </div>
-                    <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
-                      <Symbol name="close" size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* 5. Order notes */}
-        {(isDesktop || activeTab === 'garment') && (
-          <section className={styles.card + ' ' + styles.gaNotes}>
-            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-              <h3 className={styles.capsTitle}>Order Notes</h3>
-              <Symbol name="sticky_note_2" size={16} className={styles.capsIcon} />
-            </div>
-            <textarea
-              className={styles.notesArea}
-              value={notesDraft ?? order.orderDetails}
-              onChange={(e) => setNotesDraft(e.target.value)}
-              placeholder="Add garment details and tailor notes here…"
-            />
-            <button
-              type="button"
-              className={styles.saveNoteBtn}
-              onClick={handleSaveNotes}
-              disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
-            >
-              {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
-              Save Note
-            </button>
-          </section>
-        )}
-
-        {/* Customer comments (from the public tracking page) */}
-        {(isDesktop || activeTab === 'photos') && comments.length > 0 && (
-          <section className={styles.card + ' ' + styles.gaComments}>
-            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-              <h3 className={styles.capsTitle}>Customer Comments</h3>
-              <Symbol name="chat_bubble" size={16} className={styles.capsIcon} />
-            </div>
-            <div className={styles.commentList}>
-              {comments.map((c) => (
-                <div key={c.id} className={styles.commentRow}>
-                  <div className={styles.commentMeta}>
-                    <span className={styles.commentStage}>{c.stage}</span>
-                    <span className={styles.commentDate}>{formatDate(c.createdAt)}</span>
-                  </div>
-                  <p className={styles.commentMessage}>{c.message}</p>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Batch siblings */}
-        {(isDesktop || activeTab === 'garment') && batchSiblings.length > 0 && (
-          <section className={styles.card + ' ' + styles.gaBatch}>
-            <div className={styles.capsHeader + ' ' + styles.capsHeaderPlain}>
-              <h3 className={styles.capsTitle}>From the Same Visit ({batchSiblings.length + 1} items)</h3>
-              <Symbol name="layers" size={16} className={styles.capsIcon} />
-            </div>
-            <div className={styles.batchList}>
-              {batchSiblings.map((sibling) => (
-                <Link key={sibling.id} href={ROUTES.productionOrder(sibling.id)} className={styles.batchRow}>
-                  <span className={styles.batchDetails}>{sibling.orderDetails}</span>
-                  <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
-                    {sibling.status}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 7. Measurements — Craft Spec Section */}
-        {(isDesktop || activeTab === 'garment') && (
-          <section className={styles.card + ' ' + styles.gaMeasure}>
-            <div className={styles.sectionHeaderRow}>
-              <div className={styles.sectionTitleGroup}>
-                <h3 className={styles.sectionTitle}>
-                  {usingOrderMeasurements ? 'Garment Measurements' : "Body Profile Measurements"}
-                </h3>
-                <span className={styles.measureSubtitle}>
-                  {usingOrderMeasurements ? 'Specific to this outfit' : 'From customer body profile'}
-                </span>
-              </div>
-              <div className={styles.sectionActions}>
-                {measurementEntries.length > 0 && (
-                  <button
-                    type="button"
-                    className={styles.copySpecBtn}
-                    onClick={handleCopyMeasurements}
-                    aria-label="Copy measurements spec"
-                    title="Copy specification to clipboard"
-                  >
-                    <Symbol name="content_copy" size={13} />
-                    <span>Copy Specs</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={styles.roundIconBtn}
-                  aria-label="Edit this order's measurements"
-                  onClick={() => setEditingMeasurements(true)}
-                >
-                  <Symbol name="edit" size={18} />
-                </button>
-              </div>
-            </div>
-            {measurementEntries.length === 0 ? (
-              <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
-            ) : (
-              <>
-                <div className={styles.measureGrid}>
-                  {measurementEntries.map(([key, value]) => (
-                    <div key={key} className={styles.measureRow}>
-                      <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
-                      <span className={styles.measureValue}>{value}&quot;</span>
-                    </div>
-                  ))}
-                </div>
-                {!usingOrderMeasurements && (
-                  <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
-                )}
-              </>
-            )}
-          </section>
-        )}
-
-        {/* Rail: everything that's about this order rather than the work
-           on it — properties, money, comms, history, the destructive
-           action — as one persistent column next to the main content, the
-           same split Linear/GitHub use. On mobile this wrapper is
-           `display: contents` (it disappears from layout entirely) and
-           every child below carries an explicit `order` so the visual
-           sequence stays byte-identical to before this section existed —
-           only its markup position moved, nothing the user sees did. */}
-        <div className={styles.railWrap}>
-        {/* 3. Metadata */}
-        {(isDesktop || activeTab === 'timeline') && (
-          <section className={styles.card + ' ' + styles.gaMeta + ' ' + styles.orderMeta}>
-            <div className={styles.metaGrid}>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Assigned To</span>
-                <div className={styles.metaAssignee}>
-                  <span className={styles.metaAvatar}>
-                    {(order.assignedToName || '—').slice(0, 2).toUpperCase()}
-                  </span>
-                  <span className={styles.metaValueBold}>{order.assignedToName || 'Unassigned'}</span>
-                </div>
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Due Date</span>
-                <span className={`${styles.metaValueBold} ${isOverdue(order) ? styles.overdueText : ''}`}>
-                  {order.dueDate
-                    ? new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })
-                    : 'Not set'}
-                </span>
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Created</span>
-                <span className={styles.metaValue}>{formatDate(order.createdAt)}</span>
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>Current Stage Entry</span>
-                <span className={styles.metaValue}>
-                  {stageEntry ? `Entered ${STATUS_CONFIG[order.status].label} on ${formatDate(stageEntry.timestamp)}` : '—'}
-                </span>
-              </div>
-            </div>
-            {isOwnerView && !isEditing && (
-              <button type="button" className={styles.metaEditBtn} onClick={startEditing} aria-label="Edit order">
-                <Symbol name="edit" size={18} />
-              </button>
-            )}
-            {isEditing && (
-              <div className={styles.editForm}>
-                <div className={styles.editRow}>
-                  <Input label="Due Date" type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
-                  <Select
-                    label="Priority"
-                    options={priorityOptions}
-                    value={editPriority}
-                    onChange={(e) => setEditPriority(e.target.value as Priority)}
-                  />
-                </div>
-                <div className={styles.editRow}>
-                  <Select
-                    label="Assign To"
-                    options={staffOptions}
-                    value={editAssignedTo}
-                    onChange={(e) => setEditAssignedTo(e.target.value)}
-                  />
-                  <MoneyInput
-                    label="Total Bill (₦)"
-                    value={editTotalBill}
-                    onChange={setEditTotalBill}
-                  />
-                </div>
-                {FEATURE_FLAGS.costMarginTracking && (
+                {measurementEntries.length === 0 ? (
+                  <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
+                ) : (
                   <>
-                    <div className={styles.editRow}>
-                      <Select
-                        label="Material Supplied By"
-                        options={[
-                          { value: 'shop', label: 'Shop' },
-                          { value: 'customer', label: 'Customer' },
-                        ]}
-                        value={editMaterialSuppliedBy}
-                        onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
-                      />
+                    <div className={styles.measureGrid}>
+                      {measurementEntries.map(([key, value]) => (
+                        <div key={key} className={styles.measureRow}>
+                          <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
+                          <span className={styles.measureValue}>{value}&quot;</span>
+                        </div>
+                      ))}
                     </div>
+                    {!usingOrderMeasurements && (
+                      <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
+                    )}
                   </>
                 )}
-                <div className={styles.editActions}>
-                  <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                  <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
+              </section>
+
+              {/* Fabric & Inspiration Media Card */}
+              <section className={styles.card + ' ' + styles.gaInspo}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Fabric &amp; Style Inspiration</h3>
+                    <span className={styles.measureSubtitle}>Reference photos provided for this order</span>
+                  </div>
+                  <div className={styles.sectionActions}>
+                    {(!isPremium && (order.inspirationImages?.length || 0) >= FREE_ORDER_INSPIRATION_PHOTO_LIMIT) ? (
+                      <span className={styles.emptyNote}>Limit ({FREE_ORDER_INSPIRATION_PHOTO_LIMIT})</span>
+                    ) : (
+                      <label className={styles.actionPillBtn}>
+                        <input type="file" accept="image/*" multiple hidden onChange={handleInspoUpload} disabled={uploadingInspo} />
+                        <Symbol name="add_photo_alternate" size={15} />
+                        <span>{uploadingInspo ? 'Uploading…' : 'Add Photo'}</span>
+                      </label>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </section>
-        )}
+                {(order.inspirationImages || []).length === 0 ? (
+                  <div className={styles.emptyPhotoHint}>
+                    <Symbol name="add_photo_alternate" className={styles.emptyPhotoIcon} />
+                    <span>No reference photos attached yet — add customer inspiration photos or swatches here.</span>
+                  </div>
+                ) : (
+                  <div className={styles.inspoGrid}>
+                    {(order.inspirationImages || []).map((url, i) => (
+                      <div key={i} className={styles.inspoThumb}>
+                        <Image
+                          src={url}
+                          alt={`Inspiration ${i + 1}`}
+                          width={400}
+                          height={400}
+                          onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
+                          style={{ cursor: 'zoom-in' }}
+                        />
+                        <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
+                          <Symbol name="close" size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
 
-        {/* 8. Payment summary (owner only) */}
-        {(isDesktop || activeTab === 'billing') && isOwnerView && !order.isInternalBatch && order.customerId && (
-          <OrderPayments 
-            orderId={order.id}
-            customerId={order.customerId}
-            walletBalance={customer?.wallet_balance || 0}
-            totalBill={order.totalBill}
-            initialAmountPaid={order.depositPaid}
-            currency={currentShop?.currency}
-            onPaymentAdded={(newTotal) => {
-              updateOrder(order.id, { depositPaid: newTotal });
-            }}
-          />
-        )}
+              {/* Order notes */}
+              <section className={styles.card + ' ' + styles.gaNotes}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Garment Notes &amp; Cutting Instructions</h3>
+                    <span className={styles.measureSubtitle}>Special styling requests, lining, stay, or collar notes</span>
+                  </div>
+                  <Symbol name="sticky_note_2" size={18} className={styles.capsIcon} />
+                </div>
+                <textarea
+                  className={styles.notesArea}
+                  value={notesDraft ?? order.orderDetails}
+                  onChange={(e) => setNotesDraft(e.target.value)}
+                  placeholder="Add garment details and tailor notes here…"
+                  rows={3}
+                />
+                <div className={styles.notesActionRow}>
+                  <button
+                    type="button"
+                    className={styles.saveNoteBtn}
+                    onClick={handleSaveNotes}
+                    disabled={savingNotes || notesDraft === null || notesDraft.trim() === '' || notesDraft === order.orderDetails}
+                  >
+                    {savingNotes && <Symbol name="progress_activity" className="global-spinner" />}
+                    <span>Save Notes</span>
+                  </button>
+                </div>
+              </section>
 
-        {/* 8-Staff. Handover payment summary (staff view) */}
-        {(isDesktop || activeTab === 'billing') && !isOwnerView && !order.isInternalBatch && order.customerId && (
-          <section className={`${styles.card} ${styles.gaPayment}`}>
-            <div className={styles.staffPayHeader}>
-              <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Status</h3>
-              {balanceOwed > 0 ? (
-                <span className={styles.balanceHeaderDue}>₦{formatNumber(balanceOwed)} Due</span>
-              ) : (
-                <span className={styles.balanceHeaderPaid}><Symbol name="check" size={14} /> Fully Paid</span>
+              {/* Batch siblings */}
+              {batchSiblings.length > 0 && (
+                <section className={styles.card + ' ' + styles.gaBatch}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div className={styles.sectionTitleGroup}>
+                      <h3 className={styles.sectionTitle}>From the Same Drop-off ({batchSiblings.length + 1} items)</h3>
+                      <span className={styles.measureSubtitle}>Sibling garments created in this same order batch</span>
+                    </div>
+                    <Symbol name="layers" size={18} className={styles.capsIcon} />
+                  </div>
+                  <div className={styles.batchList}>
+                    {batchSiblings.map((sibling) => (
+                      <Link key={sibling.id} href={ROUTES.productionOrder(sibling.id)} className={styles.batchRow}>
+                        <span className={styles.batchDetails}>{sibling.orderDetails}</span>
+                        <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
+                          {sibling.status}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
               )}
             </div>
-            <div className={styles.staffPayRows}>
-              <div className={styles.payRow}>
-                <span className={styles.payLabel}>Total Bill</span>
-                <span className={styles.payValue}>{formatCurrency(order.totalBill, currentShop?.currency)}</span>
-              </div>
-              <div className={styles.payRow}>
-                <span className={styles.payLabel}>Amount Paid</span>
-                <span className={styles.payValue}>{formatCurrency(order.depositPaid, currentShop?.currency)}</span>
-              </div>
-              <div className={styles.payRowTotal}>
-                <span>Balance at Handover</span>
-                <span className={balanceOwed > 0 ? styles.balanceDue : undefined}>
-                  {formatCurrency(balanceOwed, currentShop?.currency)}
-                </span>
-              </div>
-            </div>
-            {balanceOwed > 0 && (
-              <button
-                type="button"
-                className={styles.staffCollectBtn}
-                onClick={() => setHandoverSheetOpen(true)}
-              >
-                <Symbol name="payments" size={18} />
-                <span>Record Balance Collection</span>
-              </button>
-            )}
-          </section>
-        )}
+          )}
 
-        {/* 8b. Cost & margin (owner only) */}
-        {(isDesktop || activeTab === 'billing') && isOwnerView && FEATURE_FLAGS.costMarginTracking && (
-          <OrderExpenses orderId={order.id} shopId={order.shopId} totalBill={order.totalBill} currency={currentShop?.currency} />
-        )}
+          {/* ── PILLAR 2: WORKSHOP FEED ── */}
+          {activeTab === 'feed' && (
+            <div className={styles.tabContentGroup}>
+              {/* Progress gallery */}
+              <section className={styles.card + ' ' + styles.gaGallery}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Workshop Progress Photos</h3>
+                    <span className={styles.measureSubtitle}>Stage-stamped snapshots as garment is crafted</span>
+                  </div>
+                  <div className={styles.sectionActions}>
+                    {(!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT) ? (
+                      <span className={styles.emptyNote}>Limit ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
+                    ) : (
+                      <label className={styles.actionPillBtn}>
+                        <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                        <Symbol name="add_a_photo" size={15} />
+                        <span>{uploadingPhoto ? 'Uploading…' : 'Snap Photo'}</span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+                {(order.images || []).length === 0 ? (
+                  <div className={styles.emptyPhotoHint}>
+                    <Symbol name="add_a_photo" className={styles.emptyPhotoIcon} />
+                    <span>No progress photos yet — snap one as the garment moves through Cutting, Sewing, or Fitting.</span>
+                  </div>
+                ) : (
+                  <div className={styles.galleryGrid}>
+                    {(order.images || []).map((photo, i) => (
+                      <div key={i} className={styles.galleryThumb}>
+                        <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
+                        <div className={styles.glassCaption}>
+                          {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                        </div>
+                        <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
+                          <Symbol name="close" size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
 
-        {/* 8c. Materials Inventory */}
-        {(isDesktop || activeTab === 'billing') && (
-          <OrderMaterials orderId={order.id} shopId={order.shopId} />
-        )}
+              {/* Share & communicate — Public Live Tracking */}
+              <section className={styles.card + ' ' + styles.gaShare}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Client Live Tracking</h3>
+                    <span className={styles.measureSubtitle}>Share real-time progress portal with client</span>
+                  </div>
+                </div>
+                <div className={styles.trackBlock}>
+                  <span className={styles.capsLabel}>Public Tracking Link</span>
+                  <div className={styles.trackRow}>
+                    <span className={styles.trackUrl}>{trackingUrl.replace(/^https?:\/\//, '')}</span>
+                    <button type="button" className={styles.copyBtn} onClick={handleCopyLink} aria-label="Copy tracking link">
+                      {copied ? <Symbol name="check" size={16} /> : <Symbol name="content_copy" size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <label className={styles.toggleRow}>
+                  <span>
+                    <span className={styles.toggleLabel}>Include in WhatsApp updates</span>
+                    <span className={styles.toggleHint}>
+                      Adds the live tracking link above to WhatsApp stage notifications for this client.
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={includeTrackingLink}
+                    onChange={(e) => handleToggleTrackingLink(e.target.checked)}
+                  />
+                </label>
+              </section>
 
-        {/* 9. Share & communicate — the WhatsApp action in header/sticky bar covers sending stage updates */}
-        {(isDesktop || activeTab === 'timeline') && (
-          <section className={styles.card + ' ' + styles.gaShare}>
-            <h3 className={styles.sectionTitle}>Share &amp; Communicate</h3>
-            <div className={styles.trackBlock}>
-              <span className={styles.capsLabel}>Public Tracking Link</span>
-              <div className={styles.trackRow}>
-                <span className={styles.trackUrl}>{trackingUrl.replace(/^https?:\/\//, '')}</span>
-                <button type="button" className={styles.copyBtn} onClick={handleCopyLink} aria-label="Copy tracking link">
-                  {copied ? <Symbol name="check" size={16} /> : <Symbol name="content_copy" size={16} />}
-                </button>
-              </div>
-            </div>
-            <label className={styles.toggleRow}>
-              <span>
-                <span className={styles.toggleLabel}>Include in WhatsApp updates</span>
-                <span className={styles.toggleHint}>
-                  Adds the tracking link above to this order&apos;s WhatsApp stage messages.
-                </span>
-              </span>
-              <input
-                type="checkbox"
-                checked={includeTrackingLink}
-                onChange={(e) => handleToggleTrackingLink(e.target.checked)}
-              />
-            </label>
-          </section>
-        )}
-
-        {/* Activity timeline — full pipeline, done/current/pending. */}
-        {(isDesktop || activeTab === 'timeline') && (
-          <section className={styles.card + ' ' + styles.gaTimeline}>
-            <h3 className={styles.sectionTitle}>Activity Timeline</h3>
-            <div className={styles.timeline}>
-              {ORDER_STATUSES.map((status) => {
-                const entry = order.statusHistory.filter((h) => h.to === status).pop();
-                const currentIndex = ORDER_STATUSES.indexOf(order.status);
-                const stepIndex = ORDER_STATUSES.indexOf(status);
-                // The final stage (Completed/"Delivered") has no "next" to
-                // move on to — once reached it's done, not still "current"
-                // with an in-progress spinner.
-                const isTerminal = status === 'Delivered' && order.status === 'Delivered';
-                const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
-                return (
-                  <div key={status} className={styles.timelineStep}>
-                    <div className={styles.timelineLine} />
-                    <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
-                      <Symbol
-                        name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
-                        size={14}
-                      />
+              {/* Customer comments (from public tracking page) */}
+              {comments.length > 0 && (
+                <section className={styles.card + ' ' + styles.gaComments}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div className={styles.sectionTitleGroup}>
+                      <h3 className={styles.sectionTitle}>Client Comments &amp; Feedback</h3>
+                      <span className={styles.measureSubtitle}>Sent by client through the live tracking page</span>
                     </div>
-                    <div>
-                      <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
-                        {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
-                      </p>
-                      <p className={styles.timelineMeta}>
-                        {entry
-                          ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
-                          : state === 'pending' ? 'Pending' : '—'}
-                      </p>
+                    <Symbol name="chat_bubble" size={18} className={styles.capsIcon} />
+                  </div>
+                  <div className={styles.commentList}>
+                    {comments.map((c) => (
+                      <div key={c.id} className={styles.commentRow}>
+                        <div className={styles.commentMeta}>
+                          <span className={styles.commentStage}>{c.stage}</span>
+                          <span className={styles.commentDate}>{formatDate(c.createdAt)}</span>
+                        </div>
+                        <p className={styles.commentMessage}>{c.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {/* ── PILLAR 3: LEDGER & COSTS ── */}
+          {activeTab === 'ledger' && (
+            <div className={styles.tabContentGroup}>
+              {/* Payment summary (owner view) */}
+              {isOwnerView && !order.isInternalBatch && order.customerId && (
+                <OrderPayments 
+                  orderId={order.id}
+                  customerId={order.customerId}
+                  walletBalance={customer?.wallet_balance || 0}
+                  totalBill={order.totalBill}
+                  initialAmountPaid={order.depositPaid}
+                  currency={currentShop?.currency}
+                  onPaymentAdded={(newTotal) => {
+                    updateOrder(order.id, { depositPaid: newTotal });
+                  }}
+                />
+              )}
+
+              {/* Staff Handover payment summary */}
+              {!isOwnerView && !order.isInternalBatch && order.customerId && (
+                <section className={`${styles.card} ${styles.gaPayment}`}>
+                  <div className={styles.staffPayHeader}>
+                    <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Status</h3>
+                    {balanceOwed > 0 ? (
+                      <span className={styles.balanceHeaderDue}>₦{formatNumber(balanceOwed)} Due</span>
+                    ) : (
+                      <span className={styles.balanceHeaderPaid}><Symbol name="check" size={14} /> Fully Paid</span>
+                    )}
+                  </div>
+                  <div className={styles.staffPayRows}>
+                    <div className={styles.payRow}>
+                      <span className={styles.payLabel}>Total Bill</span>
+                      <span className={styles.payValue}>{formatCurrency(order.totalBill, currentShop?.currency)}</span>
+                    </div>
+                    <div className={styles.payRow}>
+                      <span className={styles.payLabel}>Amount Paid</span>
+                      <span className={styles.payValue}>{formatCurrency(order.depositPaid, currentShop?.currency)}</span>
+                    </div>
+                    <div className={styles.payRowTotal}>
+                      <span>Balance at Handover</span>
+                      <span className={balanceOwed > 0 ? styles.balanceDue : undefined}>
+                        {formatCurrency(balanceOwed, currentShop?.currency)}
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                  {balanceOwed > 0 && (
+                    <button
+                      type="button"
+                      className={styles.staffCollectBtn}
+                      onClick={() => setHandoverSheetOpen(true)}
+                    >
+                      <Symbol name="payments" size={18} />
+                      <span>Record Balance Collection</span>
+                    </button>
+                  )}
+                </section>
+              )}
 
-        {(isDesktop || activeTab === 'timeline') && isOwnerView && (
-          <section className={styles.dangerZone}>
-            <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
-            <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              disabled={deletingOrder}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--sf-space-sm)',
-                padding: 'var(--sf-space-sm) var(--sf-space-md)',
-                borderRadius: 'var(--sf-radius-md)',
-                border: 'none',
-                background: 'var(--sf-error-bg)',
-                color: 'var(--sf-error)',
-                fontWeight: 'var(--sf-weight-medium)',
-                cursor: deletingOrder ? 'not-allowed' : 'pointer',
-                opacity: deletingOrder ? 0.6 : 1,
-                marginTop: 'var(--sf-space-sm)',
-              }}
-            >
-                <>
-                  {deletingOrder && <Symbol name="progress_activity" className="global-spinner" />}
-                  <Symbol name="delete" /> Delete Order
-                </>
-            </button>
-          </section>
-        )}
+              {/* Cost & margin (owner only) */}
+              {isOwnerView && FEATURE_FLAGS.costMarginTracking && (
+                <OrderExpenses orderId={order.id} shopId={order.shopId} totalBill={order.totalBill} currency={currentShop?.currency} />
+              )}
+
+              {/* Materials Inventory */}
+              <OrderMaterials orderId={order.id} shopId={order.shopId} />
+
+              {/* Production Metadata & Assignment Settings */}
+              <section className={styles.card + ' ' + styles.gaMeta}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Order Production Settings</h3>
+                    <span className={styles.measureSubtitle}>Due date, assigned cutter/tailor, and priority</span>
+                  </div>
+                  {isOwnerView && !isEditing && (
+                    <button type="button" className={styles.actionPillBtn} onClick={startEditing}>
+                      <Symbol name="edit" size={14} />
+                      <span>Edit Settings</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className={styles.metaGrid}>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Assigned Artisan</span>
+                    <div className={styles.metaAssignee}>
+                      <span className={styles.metaAvatar}>
+                        {(order.assignedToName || '—').slice(0, 2).toUpperCase()}
+                      </span>
+                      <span className={styles.metaValueBold}>{order.assignedToName || 'Unassigned'}</span>
+                    </div>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Due Date</span>
+                    <span className={`${styles.metaValueBold} ${isOverdue(order) ? styles.overdueText : ''}`}>
+                      {order.dueDate
+                        ? new Date(order.dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : 'Not set'}
+                    </span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Intake Date</span>
+                    <span className={styles.metaValue}>{formatDate(order.createdAt)}</span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Current Stage Entry</span>
+                    <span className={styles.metaValue}>
+                      {stageEntry ? `Entered ${STATUS_CONFIG[order.status].label} on ${formatDate(stageEntry.timestamp)}` : '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {isEditing && (
+                  <div className={styles.editForm}>
+                    <div className={styles.editRow}>
+                      <Input label="Due Date" type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} />
+                      <Select
+                        label="Priority"
+                        options={priorityOptions}
+                        value={editPriority}
+                        onChange={(e) => setEditPriority(e.target.value as Priority)}
+                      />
+                    </div>
+                    <div className={styles.editRow}>
+                      <Select
+                        label="Assign To"
+                        options={staffOptions}
+                        value={editAssignedTo}
+                        onChange={(e) => setEditAssignedTo(e.target.value)}
+                      />
+                      <MoneyInput
+                        label="Total Bill (₦)"
+                        value={editTotalBill}
+                        onChange={setEditTotalBill}
+                      />
+                    </div>
+                    {FEATURE_FLAGS.costMarginTracking && (
+                      <div className={styles.editRow}>
+                        <Select
+                          label="Material Supplied By"
+                          options={[
+                            { value: 'shop', label: 'Shop' },
+                            { value: 'customer', label: 'Customer' },
+                          ]}
+                          value={editMaterialSuppliedBy}
+                          onChange={(e) => setEditMaterialSuppliedBy(e.target.value as 'shop' | 'customer')}
+                        />
+                      </div>
+                    )}
+                    <div className={styles.editActions}>
+                      <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
+                      <Button variant="primary" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Activity timeline — full pipeline */}
+              <section className={styles.card + ' ' + styles.gaTimeline}>
+                <div className={styles.sectionHeaderRow}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Activity Timeline</h3>
+                    <span className={styles.measureSubtitle}>Stage progression &amp; audit history</span>
+                  </div>
+                </div>
+                <div className={styles.timeline}>
+                  {ORDER_STATUSES.map((status) => {
+                    const entry = order.statusHistory.filter((h) => h.to === status).pop();
+                    const currentIndex = ORDER_STATUSES.indexOf(order.status);
+                    const stepIndex = ORDER_STATUSES.indexOf(status);
+                    const isTerminal = status === 'Delivered' && order.status === 'Delivered';
+                    const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
+                    return (
+                      <div key={status} className={styles.timelineStep}>
+                        <div className={styles.timelineLine} />
+                        <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
+                          <Symbol
+                            name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
+                            size={14}
+                          />
+                        </div>
+                        <div>
+                          <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
+                            {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
+                          </p>
+                          <p className={styles.timelineMeta}>
+                            {entry
+                              ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
+                              : state === 'pending' ? 'Pending' : '—'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Danger Zone */}
+              {isOwnerView && (
+                <section className={styles.dangerZone}>
+                  <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
+                  <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDelete(true)}
+                    disabled={deletingOrder}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--sf-space-sm)',
+                      padding: 'var(--sf-space-sm) var(--sf-space-md)',
+                      borderRadius: 'var(--sf-radius-md)',
+                      border: 'none',
+                      background: 'var(--sf-error-bg)',
+                      color: 'var(--sf-error)',
+                      fontWeight: 'var(--sf-weight-medium)',
+                      cursor: deletingOrder ? 'not-allowed' : 'pointer',
+                      opacity: deletingOrder ? 0.6 : 1,
+                      marginTop: 'var(--sf-space-sm)',
+                    }}
+                  >
+                    <>
+                      {deletingOrder && <Symbol name="progress_activity" className="global-spinner" />}
+                      <Symbol name="delete" /> Delete Order
+                    </>
+                  </button>
+                </section>
+              )}
+            </div>
+          )}
         </div>
         {!isDesktop && <div className={styles.mobileBottomClearance} />}
       </div>
