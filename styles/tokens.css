@@ -200,7 +200,7 @@
   --sf-max-width: 480px;
   --sf-max-width-tablet: 768px;
   --sf-max-width-desktop: 1280px;   /* mockup max-w-7xl */
-  --sf-bottom-nav-height: 76px;
+  --sf-bottom-nav-height: 84px;
   --sf-top-bar-height: 56px;
   --sf-fab-size: 56px;
   --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);

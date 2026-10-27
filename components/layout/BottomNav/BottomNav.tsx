@@ -59,7 +59,7 @@ function NavItemContent({
           </div>
         ) : (
           <>
-            <CustomNavIcon name={icon} fill={active} size={24} className={styles.icon} />
+            <CustomNavIcon name={icon} fill={active} size={26} className={styles.icon} />
             {hasActivity && <div className={styles.activityDot} />}
           </>
         )}
