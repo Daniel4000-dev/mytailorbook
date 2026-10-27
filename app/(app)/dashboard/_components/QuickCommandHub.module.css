@@ -191,10 +191,13 @@
 .iconCutting,
 .iconSewing,
 .iconFittings,
-.iconCustomers,
+.iconPortfolio,
 .iconQuotes,
+.iconCollections,
 .iconTill,
+.iconInventory,
 .iconLookbook,
+.iconCustomers,
 .iconMore {
   background: rgba(67, 56, 202, 0.07);
   color: var(--sf-brand-indigo, #4338CA);
@@ -205,10 +208,13 @@
   :global(:root:not([data-theme="light"])) .iconCutting,
   :global(:root:not([data-theme="light"])) .iconSewing,
   :global(:root:not([data-theme="light"])) .iconFittings,
-  :global(:root:not([data-theme="light"])) .iconCustomers,
+  :global(:root:not([data-theme="light"])) .iconPortfolio,
   :global(:root:not([data-theme="light"])) .iconQuotes,
+  :global(:root:not([data-theme="light"])) .iconCollections,
   :global(:root:not([data-theme="light"])) .iconTill,
+  :global(:root:not([data-theme="light"])) .iconInventory,
   :global(:root:not([data-theme="light"])) .iconLookbook,
+  :global(:root:not([data-theme="light"])) .iconCustomers,
   :global(:root:not([data-theme="light"])) .iconMore {
     background: rgba(99, 102, 241, 0.12);
     color: #818CF8;
@@ -219,10 +225,13 @@
 :global([data-theme='dark']) .iconCutting,
 :global([data-theme='dark']) .iconSewing,
 :global([data-theme='dark']) .iconFittings,
-:global([data-theme='dark']) .iconCustomers,
+:global([data-theme='dark']) .iconPortfolio,
 :global([data-theme='dark']) .iconQuotes,
+:global([data-theme='dark']) .iconCollections,
 :global([data-theme='dark']) .iconTill,
+:global([data-theme='dark']) .iconInventory,
 :global([data-theme='dark']) .iconLookbook,
+:global([data-theme='dark']) .iconCustomers,
 :global([data-theme='dark']) .iconMore {
   background: rgba(99, 102, 241, 0.12);
   color: #818CF8;

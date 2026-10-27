@@ -19,9 +19,8 @@ interface QuickCommandHubProps {
 export default function QuickCommandHub({
   onNavigate,
   uncutFabricsCount = 0,
-  inProductionCount = 0,
   fittingsTodayCount = 0,
-  customersCount = 0,
+  debtorsCount = 0,
   debtTotal = 0,
 }: QuickCommandHubProps) {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -61,7 +60,20 @@ export default function QuickCommandHub({
         </button>
       </div>
 
-      {/* ── Tier 2: 4×2 Atelier Services Switchboard Grid ── */}
+      {/* ── Tier 2: 4×2 Strategic Atelier Switchboard Grid ──
+          Strictly routes NOT captured on the Bottom Nav (Production, Catalogues, Customers, Settings),
+          arranged in strict order of tailor workflow priority:
+          Row 1: The Workshop Floor & Client Showcase
+          1. Cutting Table (Fabrics awaiting pattern drafting & cutting)
+          2. Fittings (Today's client fitting appointments & trials)
+          3. Portfolio (Showcase masterworks & public storefront link)
+          4. Quick Quote (Rapid price calculations for prospects)
+          Row 2: Atelier Finances, Materials & Secondary Tools
+          5. Collections (Uncollected balances & debt recovery)
+          6. Daily Till (Cash drawer & operational expense tracking)
+          7. Inventory (Haberdashery, trims, buttons & notions)
+          8. More Tools (Slide-up launcher for Team bench, Stock POS, etc.)
+      */}
       <div className={styles.switchboardCard}>
         <div className={styles.grid}>
           {/* 1. Cutting Table */}
@@ -80,25 +92,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Cutting Table</span>
           </button>
 
-          {/* 2. Sewing Production */}
-          <button
-            type="button"
-            className={styles.tile}
-            onClick={() => onNavigate(ROUTES.production)}
-            aria-label="Sewing Floor & Production Kanban"
-          >
-            <div className={`${styles.iconWrap} ${styles.iconSewing}`}>
-              <Symbol name="precision_manufacturing" size={22} />
-              {inProductionCount > 0 && (
-                <span className={`${styles.tileBadge} ${styles.tileBadgeNeutral}`}>
-                  {inProductionCount}
-                </span>
-              )}
-            </div>
-            <span className={styles.tileLabel}>Production</span>
-          </button>
-
-          {/* 3. Fittings & Calendar */}
+          {/* 2. Fittings & Workshop Calendar */}
           <button
             type="button"
             className={styles.tile}
@@ -114,25 +108,20 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Fittings</span>
           </button>
 
-          {/* 4. Customer Directory */}
+          {/* 3. Portfolio & Atelier Storefront */}
           <button
             type="button"
             className={styles.tile}
-            onClick={() => onNavigate(ROUTES.customers)}
-            aria-label="Client Directory & Anatomical Measurements"
+            onClick={() => onNavigate(ROUTES.portfolio)}
+            aria-label="Studio Showcase & Public Digital Storefront"
           >
-            <div className={`${styles.iconWrap} ${styles.iconCustomers}`}>
-              <Symbol name="group" size={22} />
-              {customersCount > 0 && (
-                <span className={`${styles.tileBadge} ${styles.tileBadgeNeutral}`}>
-                  {customersCount}
-                </span>
-              )}
+            <div className={`${styles.iconWrap} ${styles.iconPortfolio}`}>
+              <Symbol name="photo_library" size={22} />
             </div>
-            <span className={styles.tileLabel}>Customers</span>
+            <span className={styles.tileLabel}>Portfolio</span>
           </button>
 
-          {/* 5. Quick Quote */}
+          {/* 4. Quick Quote Estimator */}
           <button
             type="button"
             className={styles.tile}
@@ -145,12 +134,30 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Quick Quote</span>
           </button>
 
-          {/* 6. Daily Till */}
+          {/* 5. Collections & Debt Recovery */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.collections)}
+            aria-label="Debt Recovery & Client Balances"
+          >
+            <div className={`${styles.iconWrap} ${styles.iconCollections}`}>
+              <Symbol name="account_balance_wallet" size={22} />
+              {debtorsCount > 0 && (
+                <span className={`${styles.tileBadge} ${styles.tileBadgeDebt}`}>
+                  {debtorsCount}
+                </span>
+              )}
+            </div>
+            <span className={styles.tileLabel}>Collections</span>
+          </button>
+
+          {/* 6. Daily Till & Cash Drawer */}
           <button
             type="button"
             className={styles.tile}
             onClick={() => onNavigate(ROUTES.reconciliation)}
-            aria-label="Daily Cash Drawer & POS Reconciliation"
+            aria-label="Daily Cash Drawer & Workshop Expenses"
           >
             <div className={`${styles.iconWrap} ${styles.iconTill}`}>
               <Symbol name="point_of_sale" size={22} />
@@ -158,17 +165,17 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Daily Till</span>
           </button>
 
-          {/* 7. Style Catalogues */}
+          {/* 7. Materials & Trims Inventory */}
           <button
             type="button"
             className={styles.tile}
-            onClick={() => onNavigate('/catalogues')}
-            aria-label="Style Lookbooks & VIP Outreach"
+            onClick={() => onNavigate(ROUTES.inventory)}
+            aria-label="Haberdashery, Trims & Accessories Inventory"
           >
-            <div className={`${styles.iconWrap} ${styles.iconLookbook}`}>
-              <Symbol name="collections_bookmark" size={21} />
+            <div className={`${styles.iconWrap} ${styles.iconInventory}`}>
+              <Symbol name="inventory_2" size={21} />
             </div>
-            <span className={styles.tileLabel}>Catalogues</span>
+            <span className={styles.tileLabel}>Inventory</span>
           </button>
 
           {/* 8. More Services Launcher */}

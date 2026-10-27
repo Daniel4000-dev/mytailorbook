@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -10,12 +10,25 @@ import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import type { PublicPortfolio, PortfolioOutfit } from '@/app/public-actions';
+import { DEFAULT_MOCK_PORTFOLIO } from '@/lib/mockPortfolio';
 import styles from './PortfolioTemplate.module.css';
 
 const EDITORIAL_EXPERIENCE = [
-  { num: '01', title: 'The Consultation', text: 'An intimate conversation about your vision, lifestyle, and how you want to feel. We measure not just for fit, but for character.' },
-  { num: '02', title: 'The Cut', text: 'Patterns drafted from scratch. Fabric cut with precision. Every line engineered to drape flawlessly over your unique frame.' },
-  { num: '03', title: 'The Commission', text: 'Hand-finished, pressed, and presented. A garment built to endure, delivered with uncompromising quality.' },
+  {
+    num: '01',
+    title: 'The Consultation',
+    text: 'An intimate conversation about your vision, lifestyle, and how you want to feel. We measure not just for fit, but for character.',
+  },
+  {
+    num: '02',
+    title: 'The Cut',
+    text: 'Patterns drafted from scratch. Fabric cut with precision. Every line engineered to drape flawlessly over your unique frame.',
+  },
+  {
+    num: '03',
+    title: 'The Commission',
+    text: 'Hand-finished, pressed, and presented. A garment built to endure, delivered with uncompromising quality.',
+  },
 ];
 
 /** Curated accent palette — a tailor picks one of these in Settings, never
@@ -36,89 +49,61 @@ const ACCENTS: Record<string, { accent: string; accentDark: string; accentLight:
   plum: { accent: '#6B3F5C', accentDark: '#4A2B40', accentLight: '#8F5A7C' },
 };
 
-function monthOf(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' });
-}
-
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   shown: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
 };
 
-interface LightboxState {
-  outfitIndex: number;
-  photoIndex: number;
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className={styles.starRow} aria-label={`${rating} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Symbol
+          key={star}
+          name="star"
+          size={16}
+          className={star <= rating ? styles.starFilled : styles.starEmpty}
+        />
+      ))}
+    </div>
+  );
 }
 
-const MOCK_OUTFITS = [
-  {
-    id: 'mock-1',
-    title: 'The Modern Agbada',
-    category: 'Agbada',
-    startingPrice: 350,
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/mock_agbada_1789589437748.jpg', angle: 'front' as any }],
-    storyModeEnabled: true,
-    storyCaption: 'Crafted for a groom who wanted a balance between deep traditional roots and a razor-sharp modern silhouette. We spent three days perfecting the hand-embroidery on the chest, ensuring the heavy thread sat perfectly flat against the raw silk.',
-    storyPhotos: [
-      '/images/mock/mock_process_chalk_1789591170047.jpg',
-      '/images/mock/mock_process_sewing_1789591187626.jpg'
-    ],
-    materials: '100% Raw Silk & Gold Thread',
-  },
-  {
-    id: 'mock-2',
-    title: 'Executive Bespoke Suit',
-    category: 'Suits',
-    startingPrice: 500,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/mock_suit_nigerian_1789589547408.jpg', angle: 'front' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  },
-  {
-    id: 'mock-3',
-    title: 'Bespoke Lapel Detail',
-    category: 'Detail',
-    startingPrice: null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/mock_detail_nigerian_1789589583459.jpg', angle: 'detail' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  }
-];
-
 export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPortfolio }) {
-  const { shop: realShop, stats, testimonials } = portfolio;
-  
-  // MOCK DATA INJECTION
+  const realShop = portfolio.shop;
   const shop = {
     ...realShop,
-    phone: realShop.phone || '08000000000', // Ensure WhatsApp button always renders
-    bio: realShop.bio || "Started in a single room in Surulere, we have spent the last decade mastering the art of bespoke tailoring. Every stitch is a testament to our dedication to the craft, and every garment is a narrative woven for the wearer."
+    phone: realShop.phone || '+2348030000000',
+    bio:
+      realShop.bio ||
+      DEFAULT_MOCK_PORTFOLIO.shop.bio,
+    tagline: realShop.tagline || DEFAULT_MOCK_PORTFOLIO.shop.tagline,
   };
-  const outfits = portfolio.outfits && portfolio.outfits.length > 0 ? portfolio.outfits : MOCK_OUTFITS;
-  const mockFont = 'Playfair Display'; // Mock font selection
-  
+
+  const outfits = portfolio.outfits ?? DEFAULT_MOCK_PORTFOLIO.outfits;
+  const stats = portfolio.stats ?? DEFAULT_MOCK_PORTFOLIO.stats;
+  const testimonials =
+    portfolio.testimonials && portfolio.testimonials.length > 0
+      ? portfolio.testimonials
+      : DEFAULT_MOCK_PORTFOLIO.testimonials;
+  const ratingSummary = portfolio.ratingSummary ?? DEFAULT_MOCK_PORTFOLIO.ratingSummary;
+
   const palette = ACCENTS[shop.portfolioAccent] || ACCENTS.indigo;
   const reduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 800], ['0%', '40%']);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [storyOutfit, setStoryOutfit] = useState<any | null>(null);
-  const [shared, setShared] = useState(false);
+  const [storyOutfit, setStoryOutfit] = useState<PortfolioOutfit | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [leadForm, setLeadForm] = useState({ name: '', email: '', message: '', submitted: false });
 
-  const categories = useMemo(() => ['All', ...Array.from(new Set(outfits.map(o => o.category).filter(Boolean) as string[]))], [outfits]);
-  
+  const categories = useMemo(
+    () => ['All', ...Array.from(new Set(outfits.map((o) => o.category).filter(Boolean) as string[]))],
+    [outfits]
+  );
+
   const filteredOutfits = useMemo(() => {
     if (activeCategory === 'All') return outfits;
-    return outfits.filter(o => o.category === activeCategory);
+    return outfits.filter((o) => o.category === activeCategory);
   }, [activeCategory, outfits]);
 
   const heroPhoto = outfits[0]?.displayPhotos[0];
@@ -126,76 +111,36 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
   const whatsappHref = shop.phone ? getWhatsAppLink(shop.phone) : null;
   const hasStory = Boolean(shop.tagline || shop.bio || shop.foundedYear);
 
-  const handleShare = async () => {
-    // Always the canonical production domain — this view can also render
-    // inside the authenticated app (a different route) or a preview
-    // deployment, where window.location.origin would leak an in-app path
-    // or the wrong domain that a visitor couldn't open/wouldn't recognize.
-    const url = `${APP_CONFIG.baseUrl}${ROUTES.studio(shop.slug)}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `${shop.name} — Bespoke Tailoring`, url });
-        return;
-      }
-    } catch {
-      /* user dismissed the share sheet */
-      return;
-    }
-    await navigator.clipboard.writeText(url);
-    setShared(true);
-    setTimeout(() => setShared(false), 2000);
-  };
+  const currentIndex = storyOutfit ? filteredOutfits.findIndex((o) => o.id === storyOutfit.id) : -1;
+  const hasNext = currentIndex !== -1 && currentIndex < filteredOutfits.length - 1;
+  const hasPrev = currentIndex > 0;
 
   const reveal = (delay = 0) =>
     reduceMotion
       ? {}
-      : { initial: 'hidden', whileInView: 'shown', viewport: { once: true, margin: '-60px' }, variants: fadeUp, transition: { delay } };
-
-  const handleLeadSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLeadForm(prev => ({ ...prev, submitted: true }));
-    setTimeout(() => setLeadForm({ name: '', email: '', message: '', submitted: false }), 4000);
-  };
-
-  const currentIndex = storyOutfit ? filteredOutfits.findIndex(o => o.id === storyOutfit.id) : -1;
-  const hasNext = currentIndex !== -1 && currentIndex < filteredOutfits.length - 1;
-  const hasPrev = currentIndex > 0;
+      : {
+        initial: 'hidden',
+        whileInView: 'shown',
+        viewport: { once: true, margin: '-60px' },
+        variants: fadeUp,
+        transition: { delay },
+      };
 
   useEffect(() => {
     if (storyOutfit) {
       document.body.style.overflow = 'hidden';
-      // Fallback for iOS
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
-
-      const scrollY = window.scrollY;
-
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') setStoryOutfit(null);
         if (e.key === 'ArrowRight' && hasNext) setStoryOutfit(filteredOutfits[currentIndex + 1]);
         if (e.key === 'ArrowLeft' && hasPrev) setStoryOutfit(filteredOutfits[currentIndex - 1]);
       };
       window.addEventListener('keydown', handleKeyDown);
-      
-      const timer = setTimeout(() => {
-        const closeBtn = document.querySelector(`.${styles.storyClose}`) as HTMLButtonElement;
-        if (closeBtn) closeBtn.focus();
-      }, 100);
 
       return () => {
         document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
-        document.body.style.top = '';
-        window.scrollTo(0, scrollY);
         window.removeEventListener('keydown', handleKeyDown);
-        clearTimeout(timer);
       };
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [storyOutfit, hasNext, hasPrev, currentIndex, filteredOutfits]);
 
   return (
@@ -206,13 +151,8 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
         ['--m-accent' as string]: palette.accent,
         ['--m-accent-dark' as string]: palette.accentDark,
         ['--m-accent-light' as string]: palette.accentLight,
-        fontFamily: `"${mockFont}", ${shop.portfolioAccent === 'classic' ? 'serif' : 'sans-serif'}`
       }}
     >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
-      `}</style>
-      
       {/* 1. Hero — Full screen editorial presentation */}
       <section className={styles.hero}>
         {heroPhoto ? (
@@ -220,7 +160,11 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             className={styles.heroPhoto}
             style={{ backgroundImage: `url(${heroPhoto.url})`, y: heroY }}
             animate={reduceMotion ? undefined : { scale: [1, 1.05] }}
-            transition={reduceMotion ? undefined : { duration: 20, repeat: Infinity, repeatType: 'reverse', ease: 'linear' }}
+            transition={
+              reduceMotion
+                ? undefined
+                : { duration: 20, repeat: Infinity, repeatType: 'reverse', ease: 'linear' }
+            }
           />
         ) : (
           <div className={styles.heroFallback} />
@@ -233,105 +177,239 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
           transition={reduceMotion ? undefined : { duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className={styles.avatar}>
-            {shop.logoUrl ? <Image src={shop.logoUrl} alt="" width={88} height={88} /> : shop.name[0]?.toUpperCase()}
+            {shop.logoUrl ? (
+              <Image src={shop.logoUrl} alt="" width={88} height={88} />
+            ) : (
+              shop.name[0]?.toUpperCase()
+            )}
           </div>
           <span className={styles.eyebrow}>Bespoke Tailoring{city ? ` · ${city}` : ''}</span>
           <h1 className={styles.heroName}>{shop.name}</h1>
           {shop.tagline && <p className={styles.heroTagline}>{shop.tagline}</p>}
           {whatsappHref && (
-            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={`${styles.ctaPrimary} ${styles.heroMobileOnly}`}>
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.ctaPrimary} ${styles.heroMobileOnly}`}
+            >
               <WhatsappIcon size={20} /> Chat on WhatsApp
             </a>
           )}
         </motion.div>
       </section>
 
-      {/* Below the hero: single flowing editorial column */}
+      {/* 2. Apple Liquid Glass Trust Bar */}
       <div className={styles.mainCol}>
+        <motion.section className={styles.trustBar} {...reveal()}>
+          <div className={styles.trustMetric}>
+            <div className={styles.trustMetricIcon}>
+              <Symbol name="checkroom" size={22} />
+            </div>
+            <div className={styles.trustMetricContent}>
+              <span className={styles.trustMetricValue}>
+                {stats.completed > 0 ? `${stats.completed}+` : '100+'}
+              </span>
+              <span className={styles.trustMetricLabel}>Garments Completed</span>
+            </div>
+          </div>
+          <div className={styles.trustMetric}>
+            <div className={styles.trustMetricIcon}>
+              <Symbol name="verified" size={22} />
+            </div>
+            <div className={styles.trustMetricContent}>
+              <span className={styles.trustMetricValue}>
+                {stats.onTimePercent ? `${stats.onTimePercent}%` : '99%'}
+              </span>
+              <span className={styles.trustMetricLabel}>On-Time Completion</span>
+            </div>
+          </div>
+          <div className={styles.trustMetric}>
+            <div className={styles.trustMetricIcon}>
+              <Symbol name="star" size={22} />
+            </div>
+            <div className={styles.trustMetricContent}>
+              <span className={styles.trustMetricValue}>
+                {ratingSummary ? `${ratingSummary.average.toFixed(1)} / 5.0` : '4.9 / 5.0'}
+              </span>
+              <span className={styles.trustMetricLabel}>
+                Client Satisfaction {ratingSummary?.count ? `(${ratingSummary.count})` : ''}
+              </span>
+            </div>
+          </div>
+          <div className={styles.trustMetric}>
+            <div className={styles.trustMetricIcon}>
+              <Symbol name="straighten" size={22} />
+            </div>
+            <div className={styles.trustMetricContent}>
+              <span className={styles.trustMetricValue}>1-on-1</span>
+              <span className={styles.trustMetricLabel}>Bespoke Pattern Drafting</span>
+            </div>
+          </div>
+        </motion.section>
 
-          {/* 4. Gallery — one tile per published outfit, not one per photo.
-              A brand-new shop with nothing published yet still gets a
-              branded section here, not a silent gap in the page. */}
-          {outfits.length === 0 ? (
-            <motion.section className={styles.galleryEmpty} {...reveal()}>
-              <Symbol name="checkroom" size={36} className={styles.galleryEmptyIcon} />
-              <h2 className={styles.galleryEmptyTitle}>Work In Progress</h2>
-              <p className={styles.galleryEmptyBody}>
-                {shop.name} is still building their gallery here — finished pieces get added as orders are completed. Reach out below to be one of the first shown.
-              </p>
-            </motion.section>
-          ) : (
-            <section className={styles.gallerySection}>
-              <div className={styles.galleryHeader}>
-                <motion.div className={styles.categoryFilters} {...reveal(0.1)}>
-                  {categories.map((cat, idx) => (
-                    <button 
-                      key={idx}
-                      className={`${styles.categoryFilterBtn} ${activeCategory === cat ? styles.categoryFilterBtnActive : ''}`}
-                      onClick={() => setActiveCategory(cat)}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </motion.div>
-              </div>
-              <div className={styles.lookbookGrid}>
-                {filteredOutfits.map((o, i) => (
-                  <motion.div 
-                    key={o.id} 
-                    className={styles.outfitTile}
-                    {...reveal((i % 4) * 0.08)}
+        {/* 3. Atelier Philosophy / Story */}
+        {hasStory && (
+          <motion.section className={styles.storySection} {...reveal(0.05)}>
+            <span className={styles.storyEyebrow}>Our Philosophy</span>
+            <p className={styles.storyBody}>{shop.bio}</p>
+          </motion.section>
+        )}
+
+        {/* 4. Lookbook Gallery (Pinterest Masonry) */}
+        {outfits.length === 0 ? (
+          <motion.section className={styles.galleryEmpty} {...reveal()}>
+            <Symbol name="checkroom" size={36} className={styles.galleryEmptyIcon} />
+            <h2 className={styles.galleryEmptyTitle}>Work In Progress</h2>
+            <p className={styles.galleryEmptyBody}>
+              {shop.name} is still curating this bespoke lookbook — finished commissions will appear
+              here as they are completed.
+            </p>
+          </motion.section>
+        ) : (
+          <section className={styles.gallerySection}>
+            <div className={styles.galleryHeader}>
+              <motion.div className={styles.categoryFilters} {...reveal(0.1)}>
+                {categories.map((cat, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={`${styles.categoryFilterBtn} ${activeCategory === cat ? styles.categoryFilterBtnActive : ''
+                      }`}
+                    onClick={() => setActiveCategory(cat)}
                   >
-                    <motion.button
-                      type="button"
-                      className={styles.outfitTileBtn}
-                      onClick={() => setStoryOutfit(o)}
-                      aria-label={`View ${o.title || 'outfit'}`}
-                      layoutId={`outfit-container-${o.id}`}
+                    {cat}
+                  </button>
+                ))}
+              </motion.div>
+            </div>
+            <div className={styles.lookbookGrid}>
+              {filteredOutfits.map((o, i) => (
+                <motion.div key={o.id} className={styles.outfitTile} {...reveal((i % 4) * 0.08)}>
+                  <motion.button
+                    type="button"
+                    className={styles.outfitTileBtn}
+                    onClick={() => setStoryOutfit(o)}
+                    aria-label={`View bespoke commission: ${o.title || 'outfit'}`}
+                    layoutId={`outfit-container-${o.id}`}
+                  >
+                    <motion.div
+                      layoutId={`outfit-image-${o.id}-0`}
+                      style={{ position: 'absolute', inset: 0 }}
                     >
-                      <motion.div layoutId={`outfit-image-${o.id}-0`} style={{ position: 'absolute', inset: 0 }}>
-                        <div style={{ position: 'absolute', inset: 0 }}>
-                          <Image src={o.displayPhotos[0].url} alt="" fill sizes="(max-width: 768px) 50vw, 400px" className={styles.outfitTileImg} loading={i > 3 ? 'lazy' : undefined} />
-                        </div>
-                      </motion.div>
-                      {o.storyModeEnabled && (
-                        <span className={styles.storyBadge}>
-                          View Commission
-                        </span>
-                      )}
-                    </motion.button>
-                    <div className={styles.outfitTileMeta}>
+                      <div style={{ position: 'absolute', inset: 0 }}>
+                        <Image
+                          src={o.displayPhotos[0]?.url || '/images/blog/agbada-ceremonial-amurode.jpg'}
+                          alt={o.title || ''}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className={styles.outfitTileImg}
+                          loading={i > 3 ? 'lazy' : undefined}
+                        />
+                      </div>
+                    </motion.div>
+                    {(o.storyModeEnabled || (o.storyPhotos && o.storyPhotos.length > 0)) && (
+                      <span className={styles.storyBadge}>
+                        <Symbol name="auto_awesome" size={12} />
+                        <span>Commission Story</span>
+                      </span>
+                    )}
+                  </motion.button>
+                  <div className={styles.outfitTileMeta}>
+                    <div>
                       {o.category && <span className={styles.outfitTileCategory}>{o.category}</span>}
                       {o.title && <h3 className={styles.outfitTileTitle}>{o.title}</h3>}
-                      {o.startingPrice && <span className={styles.outfitTilePrice}>From {formatCurrency(o.startingPrice, 'NGN')}</span>}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            </section>
-          )}
+                    {o.startingPrice && (
+                      <span className={styles.outfitTilePrice}>
+                        From {formatCurrency(o.startingPrice, 'NGN')}
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
 
-          {!portfolio.isPremium && (
-            <footer className={styles.footer}>
-              <p>
-                Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
-              </p>
-            </footer>
-          )}
-        </div>
+        {/* 5. The 3-Step Bespoke Journey (Editorial Experience) */}
+        <motion.section className={styles.experienceSection} {...reveal(0.1)}>
+          <div className={styles.experienceGrid}>
+            {EDITORIAL_EXPERIENCE.map((step) => (
+              <div key={step.num} className={styles.experienceStep}>
+                <span className={styles.experienceNum}>{step.num}</span>
+                <h3 className={styles.experienceTitle}>{step.title}</h3>
+                <p className={styles.experienceText}>{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* 6. Verified Client Reviews */}
+        {testimonials.length > 0 && (
+          <motion.section className={styles.reviewsSection} {...reveal(0.1)}>
+            <h2 className={styles.sectionTitle}>Client Experiences</h2>
+            <p className={styles.reviewsSub}>
+              Reflections from esteemed clients on completed commissions.
+            </p>
+            <div className={styles.reviewsRow}>
+              {testimonials.map((t, i) => (
+                <div key={`${t.customerName}-${i}`} className={styles.reviewCard}>
+                  <StarRating rating={t.rating} />
+                  {t.comment && <p className={styles.reviewQuote}>&ldquo;{t.comment}&rdquo;</p>}
+                  <span className={styles.reviewAttrib}>{t.customerName}</span>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {/* 7. Direct Bespoke Commission / WhatsApp consultation */}
+        <motion.section className={styles.commissionSection} {...reveal(0.1)}>
+          <div className={styles.commissionCard}>
+            <h2 className={styles.commissionTitle}>Commission Your Bespoke Piece</h2>
+            <p className={styles.commissionSubtitle}>
+              Every bespoke garment begins with a personal conversation. Reach out directly to
+              discuss fabrics, timings, and measurements.
+            </p>
+            {whatsappHref && (
+              <div className={styles.commissionDirect}>
+                <a
+                  href={`${whatsappHref}&text=${encodeURIComponent(
+                    `Hello ${shop.name}, I would like to inquire about commissioning a bespoke garment.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.ctaPrimary}
+                >
+                  <WhatsappIcon size={20} /> Start Commission on WhatsApp
+                </a>
+              </div>
+            )}
+          </div>
+        </motion.section>
+
+        {!portfolio.isPremium && (
+          <footer className={styles.footer}>
+            <p>
+              Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
+            </p>
+          </footer>
+        )}
+      </div>
 
       {/* Floating Action Button (WhatsApp) */}
       {whatsappHref && (
         <FixedBottomPortal>
-          <a 
-            href={whatsappHref} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className={styles.whatsappFab} 
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.whatsappFab}
             aria-label="Chat on WhatsApp"
-            style={{ 
+            style={{
               ['--m-accent' as string]: palette.accent,
-              ['--m-accent-fg' as string]: '#ffffff'
+              ['--m-accent-fg' as string]: '#ffffff',
             }}
           >
             <WhatsappIcon size={28} />
@@ -341,116 +419,145 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
 
       {/* Story viewer — Bespoke Case Study Modal */}
       {storyOutfit && (
-        <div className={styles.storyOverlay} role="dialog" aria-label="Creation story" onClick={() => setStoryOutfit(null)}>
-          <button type="button" className={styles.storyClose} aria-label="Close" onClick={() => setStoryOutfit(null)}>
+        <div
+          className={styles.storyOverlay}
+          role="dialog"
+          aria-label="Creation story"
+          onClick={() => setStoryOutfit(null)}
+        >
+          <button
+            type="button"
+            className={styles.storyClose}
+            aria-label="Close"
+            onClick={() => setStoryOutfit(null)}
+          >
             <Symbol name="close" size={28} />
           </button>
-          
+
           <div className={styles.caseStudyContainer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.caseStudyLeft}>
-              <motion.div 
+              <motion.div
                 layoutId={`outfit-image-${storyOutfit.id}-0`}
                 className={styles.caseStudyHero}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
-                onDragEnd={(e, { offset }) => {
-                  if (offset.x < -50 && hasNext) {
-                    setStoryOutfit(filteredOutfits[currentIndex + 1]);
-                  } else if (offset.x > 50 && hasPrev) {
-                    setStoryOutfit(filteredOutfits[currentIndex - 1]);
-                  }
-                }}
               >
                 <div style={{ position: 'absolute', inset: 0 }}>
                   <Image
-                    src={storyOutfit.displayPhotos[0].url}
+                    src={
+                      storyOutfit.displayPhotos[0]?.url ||
+                      '/images/blog/agbada-ceremonial-amurode.jpg'
+                    }
                     alt={storyOutfit.title || 'Bespoke garment detail'}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     style={{ objectFit: 'cover' }}
                   />
                 </div>
-                
+
                 {hasPrev && (
-                  <button type="button" className={`${styles.galleryNavBtn} ${styles.galleryNavPrev}`} onClick={(e) => { e.stopPropagation(); setStoryOutfit(filteredOutfits[currentIndex - 1]); }} aria-label="Previous Outfit">
+                  <button
+                    type="button"
+                    className={`${styles.galleryNavBtn} ${styles.galleryNavPrev}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStoryOutfit(filteredOutfits[currentIndex - 1]);
+                    }}
+                    aria-label="Previous Outfit"
+                  >
                     <Symbol name="chevron_left" size={24} />
                   </button>
                 )}
                 {hasNext && (
-                  <button type="button" className={`${styles.galleryNavBtn} ${styles.galleryNavNext}`} onClick={(e) => { e.stopPropagation(); setStoryOutfit(filteredOutfits[currentIndex + 1]); }} aria-label="Next Outfit">
+                  <button
+                    type="button"
+                    className={`${styles.galleryNavBtn} ${styles.galleryNavNext}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStoryOutfit(filteredOutfits[currentIndex + 1]);
+                    }}
+                    aria-label="Next Outfit"
+                  >
                     <Symbol name="chevron_right" size={24} />
                   </button>
                 )}
               </motion.div>
             </div>
-            
+
             <div className={styles.caseStudyRight}>
-              <div className={`${styles.caseStudyContent} ${storyOutfit.storyPhotos.length === 0 && !storyOutfit.storyCaption ? styles.caseStudyContentEmpty : ''}`}>
+              <div
+                className={`${styles.caseStudyContent} ${(!storyOutfit.storyPhotos || storyOutfit.storyPhotos.length === 0) &&
+                    !storyOutfit.storyCaption
+                    ? styles.caseStudyContentEmpty
+                    : ''
+                  }`}
+              >
                 <span className={styles.caseStudyShopName}>{shop.name}</span>
                 <h3 className={styles.caseStudyTitle}>{storyOutfit.title || 'Bespoke Commission'}</h3>
-                
+
                 {storyOutfit.materials && (
                   <div className={styles.caseStudyMaterials}>
                     <span className={styles.caseStudyMetaLabel}>Fabric & Materials</span>
                     <p className={styles.caseStudyMetaValue}>{storyOutfit.materials}</p>
                   </div>
                 )}
-                
+
                 {storyOutfit.startingPrice && (
                   <div className={styles.caseStudyMaterials}>
                     <span className={styles.caseStudyMetaLabel}>Starting Commission</span>
-                    <p className={styles.caseStudyMetaValue}>{formatCurrency(storyOutfit.startingPrice, 'NGN')}</p>
+                    <p className={styles.caseStudyMetaValue}>
+                      {formatCurrency(storyOutfit.startingPrice, 'NGN')}
+                    </p>
                   </div>
                 )}
-                
+
                 {storyOutfit.storyCaption && (
                   <p className={styles.caseStudyNarrative}>{storyOutfit.storyCaption}</p>
                 )}
-                
+
                 {whatsappHref && (
-                  <a 
-                    href={`${whatsappHref}&text=${encodeURIComponent(`Hello, I'm interested in commissioning something similar to '${storyOutfit.title}'.`)}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href={`${whatsappHref}&text=${encodeURIComponent(
+                      `Hello ${shop.name}, I'm interested in commissioning something similar to '${storyOutfit.title}'.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={styles.caseStudyCta}
                   >
                     <WhatsappIcon size={18} /> Inquire about this piece
                   </a>
                 )}
-                
-                <div className={styles.caseStudyProcess}>
-                  {storyOutfit.storyPhotos.map((url: string, i: number) => (
-                    <div key={i} className={styles.caseStudyStep}>
-                      <img 
-                        src={url} 
-                        alt={`Making process ${i + 1}`} 
-                        loading="lazy"
-                        style={{ width: '100%', height: 'auto', display: 'block' }} 
-                      />
-                    </div>
-                  ))}
-                </div>
-                
-                {whatsappHref && (storyOutfit.storyPhotos.length > 0 || storyOutfit.storyCaption) && (
-                  <a 
-                    href={`${whatsappHref}&text=${encodeURIComponent(`Hello, I'm interested in commissioning something similar to '${storyOutfit.title}'.`)}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className={`${styles.caseStudyCta} ${styles.caseStudyCtaBottom}`}
-                  >
-                    <WhatsappIcon size={18} /> Inquire about this piece
-                  </a>
+
+                {storyOutfit.storyPhotos && storyOutfit.storyPhotos.length > 0 && (
+                  <div className={styles.caseStudyProcess}>
+                    {storyOutfit.storyPhotos.map((url: string, i: number) => (
+                      <div key={i} className={styles.caseStudyStep}>
+                        <img
+                          src={url}
+                          alt={`Making process ${i + 1}`}
+                          loading="lazy"
+                          style={{ width: '100%', height: 'auto', display: 'block' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 )}
+
+                {whatsappHref &&
+                  ((storyOutfit.storyPhotos && storyOutfit.storyPhotos.length > 0) ||
+                    storyOutfit.storyCaption) && (
+                    <a
+                      href={`${whatsappHref}&text=${encodeURIComponent(
+                        `Hello ${shop.name}, I'm interested in commissioning something similar to '${storyOutfit.title}'.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.caseStudyCta} ${styles.caseStudyCtaBottom}`}
+                    >
+                      <WhatsappIcon size={18} /> Inquire about this piece
+                    </a>
+                  )}
               </div>
             </div>
           </div>
-          
-          {/* Focus Trap Guard */}
-          <div tabIndex={0} aria-hidden="true" onFocus={() => {
-            const closeBtn = document.querySelector(`.${styles.storyClose}`) as HTMLButtonElement;
-            if (closeBtn) closeBtn.focus();
-          }} />
         </div>
       )}
     </div>
