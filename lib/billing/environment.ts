@@ -23,16 +23,28 @@ export function getBillingEnv(): 'live' | 'test' {
   return env;
 }
 
+function parseJwtPayload(token: string): { role?: string; ref?: string } {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return {};
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch {
+    return {};
+  }
+}
+
 export function validateBillingEnvironment() {
   const billingEnv = getBillingEnv();
   const dbEnv = process.env.DATABASE_ENV;
   const paystackKey = process.env.PAYSTACK_SECRET_KEY;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
 
   if (!paystackKey) throw new Error('PAYSTACK_SECRET_KEY is missing');
   if (!supabaseUrl) throw new Error('NEXT_PUBLIC_SUPABASE_URL is missing');
-  if (!serviceRoleKey) throw new Error('SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is missing');
+  if (!serviceRoleKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is missing');
 
   const actualRef = getProjectRef(supabaseUrl);
   if (!actualRef) throw new Error('Malformed NEXT_PUBLIC_SUPABASE_URL');
@@ -40,6 +52,14 @@ export function validateBillingEnvironment() {
   // Guard against accidentally passing a publishable key to the admin client
   if (serviceRoleKey.startsWith('sb_publishable_') || serviceRoleKey.startsWith('pk_')) {
     throw new Error('CRITICAL: Admin client requires a secret key, but a publishable/public key was provided.');
+  }
+
+  const payload = parseJwtPayload(serviceRoleKey);
+  if (payload.role && payload.role !== 'service_role') {
+    throw new Error(`CRITICAL: Admin client requires a key with role "service_role", but provided key has role "${payload.role}".`);
+  }
+  if (payload.ref && actualRef && payload.ref !== actualRef) {
+    throw new Error(`CRITICAL: Admin client key belongs to project "${payload.ref}", but database URL points to "${actualRef}".`);
   }
 
   // 1. BILLING_ENV=live requires sk_live_

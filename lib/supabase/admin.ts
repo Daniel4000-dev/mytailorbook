@@ -13,6 +13,18 @@ function getProjectRef(url?: string): string {
   }
 }
 
+function parseJwtPayload(token: string): { role?: string; ref?: string } {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return {};
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch {
+    return {};
+  }
+}
+
 function validateAdminEnvironment() {
   const dbEnv = process.env.DATABASE_ENV;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -41,14 +53,22 @@ function validateAdminEnvironment() {
     throw new Error('DATABASE_ENV must be production, staging, or development');
   }
 
-  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   if (!secretKey) {
-    throw new Error('CRITICAL: SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY is missing');
+    throw new Error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is missing');
   }
   
   // Guard against accidentally passing a publishable key to the admin client
   if (secretKey.startsWith('sb_publishable_') || secretKey.startsWith('pk_')) {
     throw new Error('CRITICAL: Admin client requires a secret key, but a publishable/public key was provided.');
+  }
+
+  const payload = parseJwtPayload(secretKey);
+  if (payload.role && payload.role !== 'service_role') {
+    throw new Error(`CRITICAL: Admin client requires a key with role "service_role", but provided key has role "${payload.role}".`);
+  }
+  if (payload.ref && actualRef && payload.ref !== actualRef) {
+    throw new Error(`CRITICAL: Admin client key belongs to project "${payload.ref}", but database URL points to "${actualRef}".`);
   }
 }
 
@@ -61,7 +81,7 @@ export function createAdminClient() {
   validateAdminEnvironment();
   
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
 
   return createClient(
     supabaseUrl!,
