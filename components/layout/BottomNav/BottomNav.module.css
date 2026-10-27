@@ -12,15 +12,16 @@
   justify-content: space-around;
   align-items: center;
   padding: 0 8px;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.30);
   backdrop-filter: blur(20px) saturate(190%);
   -webkit-backdrop-filter: blur(20px) saturate(190%);
   border-radius: var(--sf-radius-pill, 9999px);
-  border: 0.5px solid rgba(255, 255, 255, 0.65);
+  border: 0.5px solid rgba(255, 255, 255, 0.50);
   box-shadow:
     0 10px 36px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: var(--sf-z-sticky);
+  opacity: 0.86;
   transform: translate3d(0, 0, 0);
   transform-origin: center bottom;
   will-change: transform, opacity;
@@ -29,7 +30,7 @@
 
 .nav.navCompact {
   transform: translate3d(0, 6px, 0) scale(0.86);
-  opacity: 0.82;
+  opacity: 0.86;
   box-shadow:
     0 6px 20px rgba(0, 0, 0, 0.06),
     0 1px 4px rgba(0, 0, 0, 0.03);
@@ -38,7 +39,7 @@
 @media (hover: hover) and (pointer: fine) {
   .nav.navCompact:hover {
     transform: translate3d(0, 0, 0) scale(1);
-    opacity: 1;
+    opacity: 0.86;
     box-shadow:
       0 10px 36px rgba(0, 0, 0, 0.08),
       0 2px 8px rgba(0, 0, 0, 0.04);
@@ -47,24 +48,25 @@
 
 .nav.navCompact:active {
   transform: translate3d(0, 0, 0) scale(1);
-  opacity: 1;
+  opacity: 0.86;
 }
 
 :global([data-theme='dark']) .nav {
-  background: rgba(18, 17, 32, 0.48);
+  background: rgba(18, 17, 32, 0.32);
   backdrop-filter: blur(20px) saturate(190%);
   -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border: 0.5px solid rgba(255, 255, 255, 0.10);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 12px 38px rgba(0, 0, 0, 0.50),
     0 2px 8px rgba(0, 0, 0, 0.30);
+  opacity: 0.86;
   transform: translate3d(0, 0, 0);
   will-change: transform, opacity;
 }
 
 :global([data-theme='dark']) .nav.navCompact {
   transform: translate3d(0, 6px, 0) scale(0.86);
-  opacity: 0.82;
+  opacity: 0.86;
   box-shadow:
     0 6px 22px rgba(0, 0, 0, 0.38),
     0 1px 4px rgba(0, 0, 0, 0.2);
@@ -73,25 +75,26 @@
 :global([data-theme='dark']) .nav.navCompact:hover,
 :global([data-theme='dark']) .nav.navCompact:active {
   transform: translate3d(0, 0, 0) scale(1);
-  opacity: 1;
+  opacity: 0.86;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .nav {
-    background: rgba(18, 17, 32, 0.48);
+    background: rgba(18, 17, 32, 0.32);
     backdrop-filter: blur(20px) saturate(190%);
     -webkit-backdrop-filter: blur(20px) saturate(190%);
-    border: 0.5px solid rgba(255, 255, 255, 0.10);
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
     box-shadow:
       0 12px 38px rgba(0, 0, 0, 0.50),
       0 2px 8px rgba(0, 0, 0, 0.30);
+    opacity: 0.86;
     transform: translate3d(0, 0, 0);
     will-change: transform, opacity;
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact {
     transform: translate3d(0, 6px, 0) scale(0.86);
-    opacity: 0.82;
+    opacity: 0.86;
     box-shadow:
       0 6px 22px rgba(0, 0, 0, 0.38),
       0 1px 4px rgba(0, 0, 0, 0.2);
@@ -100,7 +103,7 @@
   :global(:root:not([data-theme="light"])) .nav.navCompact:hover,
   :global(:root:not([data-theme="light"])) .nav.navCompact:active {
     transform: translate3d(0, 0, 0) scale(1);
-    opacity: 1;
+    opacity: 0.86;
   }
 }
 
