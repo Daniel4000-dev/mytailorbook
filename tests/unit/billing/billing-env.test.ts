@@ -9,6 +9,8 @@ describe('Billing Environment Safety', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_SECRET_KEY;
   });
 
   afterEach(() => {

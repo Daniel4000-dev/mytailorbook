@@ -53,14 +53,17 @@ function validateAdminEnvironment() {
     throw new Error('DATABASE_ENV must be production, staging, or development');
   }
 
-  const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  const rawService = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const rawSecret = process.env.SUPABASE_SECRET_KEY;
+
+  if ((rawService && (rawService.startsWith('sb_publishable_') || rawService.startsWith('pk_'))) ||
+      (rawSecret && (rawSecret.startsWith('sb_publishable_') || rawSecret.startsWith('pk_')))) {
+    throw new Error('CRITICAL: Admin client requires a secret key, but a publishable/public key was provided.');
+  }
+
+  const secretKey = rawService || rawSecret;
   if (!secretKey) {
     throw new Error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is missing');
-  }
-  
-  // Guard against accidentally passing a publishable key to the admin client
-  if (secretKey.startsWith('sb_publishable_') || secretKey.startsWith('pk_')) {
-    throw new Error('CRITICAL: Admin client requires a secret key, but a publishable/public key was provided.');
   }
 
   const payload = parseJwtPayload(secretKey);
