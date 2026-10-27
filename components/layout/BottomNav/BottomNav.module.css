@@ -20,22 +20,33 @@
     0 8px 32px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: var(--sf-z-sticky);
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
   transform-origin: center bottom;
   will-change: transform, backdrop-filter, opacity;
-  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background-color 0.2s ease;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background-color 0.2s ease, box-shadow 0.25s ease;
 }
 
-.navCompact {
-  transform: translateZ(0) scale(0.88);
-  opacity: 0.80;
+.nav.navCompact {
+  transform: translate3d(0, 4px, 0) scale(0.88);
+  opacity: 0.82;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .navCompact:hover {
-    transform: translateZ(0) scale(1);
+  .nav.navCompact:hover {
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.04);
   }
+}
+
+.nav.navCompact:active {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
 }
 
 :global([data-theme='dark']) .nav {
@@ -46,8 +57,22 @@
   box-shadow:
     0 10px 32px rgba(0, 0, 0, 0.45),
     0 2px 8px rgba(0, 0, 0, 0.25);
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
   will-change: transform, backdrop-filter;
+}
+
+:global([data-theme='dark']) .nav.navCompact {
+  transform: translate3d(0, 4px, 0) scale(0.88);
+  opacity: 0.82;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.35),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+:global([data-theme='dark']) .nav.navCompact:hover,
+:global([data-theme='dark']) .nav.navCompact:active {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,10 +84,25 @@
     box-shadow:
       0 10px 32px rgba(0, 0, 0, 0.45),
       0 2px 8px rgba(0, 0, 0, 0.25);
-    transform: translateZ(0);
+    transform: translate3d(0, 0, 0);
     will-change: transform, backdrop-filter;
   }
+
+  :global(:root:not([data-theme="light"])) .nav.navCompact {
+    transform: translate3d(0, 4px, 0) scale(0.88);
+    opacity: 0.82;
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.35),
+      0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  :global(:root:not([data-theme="light"])) .nav.navCompact:hover,
+  :global(:root:not([data-theme="light"])) .nav.navCompact:active {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
 }
+
 
 .linkReset {
   display: contents;

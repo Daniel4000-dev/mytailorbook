@@ -78,19 +78,35 @@ export default function BottomNav() {
   useEffect(() => {
     let ticking = false;
 
-    const handleScroll = () => {
+    const getMainScrollTop = (): number => {
+      const main = document.querySelector('main');
+      if (main && typeof main.scrollTop === 'number' && main.scrollHeight > main.clientHeight) {
+        return main.scrollTop;
+      }
+      return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    };
+
+    const handleScroll = (e?: Event) => {
+      // If the scroll came from a nested horizontal scroller (e.g., fabric swatches, pills), ignore
+      if (e?.target instanceof HTMLElement && e.target.tagName !== 'MAIN') {
+        const target = e.target;
+        if (target.scrollHeight <= target.clientHeight + 10 && target.scrollWidth > target.clientWidth) {
+          return;
+        }
+      }
+
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const currentY = window.scrollY;
+          const currentY = getMainScrollTop();
           const delta = currentY - lastScrollY.current;
 
           // If near the top of the page, always stay full-size
           if (currentY < 30) {
             setIsCompact(false);
-          } else if (delta > 10) {
+          } else if (delta > 8) {
             // Scrolling DOWN -> compact/scale down
             setIsCompact(true);
-          } else if (delta < -8) {
+          } else if (delta < -5) {
             // Scrolling UP -> expand immediately
             setIsCompact(false);
           }
@@ -102,9 +118,24 @@ export default function BottomNav() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      mainEl.addEventListener('scroll', handleScroll, { passive: true });
+    }
+    // Also capture at window level for any sub-container or document scroll
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+
+    // Reset state on navigation
+    setIsCompact(false);
+    lastScrollY.current = getMainScrollTop();
+
+    return () => {
+      if (mainEl) {
+        mainEl.removeEventListener('scroll', handleScroll);
+      }
+      window.removeEventListener('scroll', handleScroll, { capture: true });
+    };
+  }, [pathname]);
 
   // Owner-only items (e.g. Customers) depend on `isOwner`, which starts
   // false until the profile finishes loading — rendering before then would
@@ -128,6 +159,7 @@ export default function BottomNav() {
       aria-label="Bottom Navigation"
       onMouseEnter={() => setIsCompact(false)}
       onTouchStart={() => setIsCompact(false)}
+      onClick={() => setIsCompact(false)}
     >
       {visibleItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
