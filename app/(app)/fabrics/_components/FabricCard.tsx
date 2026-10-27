@@ -38,6 +38,10 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
   const isClientFabric = order.materialSuppliedBy === 'customer';
   const isShopFabric = order.materialSuppliedBy === 'shop';
 
+  // Extract yardage from orderDetails if mentioned (e.g. "4.0 yds", "7.0 yards")
+  const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
+  const yardage = yardageMatch ? `${yardageMatch[1]} yds` : null;
+
   return (
     <button
       type="button"
@@ -82,6 +86,14 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
           <span className={`${styles.provenanceBadge} ${styles.shopMaterial}`}>
             <Symbol name="storefront" size={11} />
             <span>Atelier Stock</span>
+          </span>
+        )}
+
+        {/* Yardage tag — bottom-right */}
+        {yardage && (
+          <span className={styles.yardageBadge}>
+            <Symbol name="straighten" size={11} />
+            <span>{yardage}</span>
           </span>
         )}
       </div>
