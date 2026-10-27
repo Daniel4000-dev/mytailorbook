@@ -1,32 +1,43 @@
+/* ============================================================
+   Lookbook Hub Dashboard Styles
+   Pinterest Visual Discovery • Apple Atelier Aesthetics
+   Continuous Liquid Glass • Strictly Zero Emojis
+   ============================================================ */
+
 .container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--sf-bg);
-  padding-bottom: 96px;
+  background-color: var(--sf-bg-primary);
+  padding-bottom: var(--sf-space-3xl);
+  position: relative;
 }
 
 .content {
-  padding: 16px;
-  max-width: 960px;
+  padding: var(--sf-space-md);
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--sf-space-lg);
 }
 
-/* Atelier Hero Banner */
+/* ── Atelier Hero Liquid Glass Banner ── */
 .heroBanner {
-  background: linear-gradient(135deg, rgba(30, 27, 75, 0.05) 0%, rgba(49, 46, 129, 0.08) 100%);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg);
-  padding: 20px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-xl, 22px);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 24px -4px rgba(67, 56, 202, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .heroText {
@@ -46,20 +57,20 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-pill, 9999px);
-  background: var(--sf-surface);
-  border: 1px solid var(--sf-border);
+  padding: 4px 12px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border-light);
   font-size: 12px;
   font-weight: 600;
-  color: var(--sf-text-secondary);
+  color: var(--sf-brand-indigo);
 }
 
 .heroTitle {
   margin: 0;
-  font-size: 20px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.02em;
   color: var(--sf-text-primary);
 }
 
@@ -68,7 +79,7 @@
   font-size: 14px;
   line-height: 1.5;
   color: var(--sf-text-secondary);
-  max-width: 600px;
+  max-width: 620px;
 }
 
 .heroActions {
@@ -79,22 +90,25 @@
 }
 
 .primaryCreateBtn {
-  background: var(--sf-brand-primary, #1E1B4B);
-  color: #fff;
+  background: var(--sf-accent-emerald);
+  color: var(--sf-text-on-accent, #FFFFFF);
   border: none;
-  padding: 10px 18px;
-  border-radius: var(--sf-radius-md, 10px);
-  font-size: 14px;
-  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--sf-font-body), sans-serif;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+  box-shadow: 0 4px 14px var(--sf-accent-emerald-glow);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  min-height: 42px;
 }
 
 .primaryCreateBtn:hover {
-  opacity: 0.94;
+  background: var(--sf-accent-emerald-dark);
   transform: translateY(-1px);
 }
 
@@ -102,117 +116,199 @@
   transform: scale(0.98);
 }
 
-.secondaryShareBtn,
-.previewBtn {
-  background: var(--sf-surface);
+.secondaryShareBtn {
+  background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  border: 1px solid var(--sf-border);
-  padding: 10px 16px;
-  border-radius: var(--sf-radius-md, 10px);
-  font-size: 14px;
+  border: 1px solid var(--sf-border-light);
+  padding: 10px 18px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
   font-weight: 600;
+  font-family: var(--sf-font-body), sans-serif;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s ease;
+  min-height: 42px;
 }
 
-.secondaryShareBtn:hover,
-.previewBtn:hover {
-  background: var(--sf-bg);
+.secondaryShareBtn:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border);
   transform: translateY(-1px);
 }
 
-.secondaryShareBtn:active,
-.previewBtn:active {
-  transform: scale(0.98);
+.previewBtn {
+  background: transparent;
+  color: var(--sf-brand-indigo);
+  border: 1px solid var(--sf-border-light);
+  padding: 10px 16px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sf-font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  min-height: 42px;
 }
 
-/* Grid layout */
-.grid {
+.previewBtn:hover {
+  background: var(--sf-sand);
+}
+
+/* ── Apple Segmented Control (Albums vs Feed) ── */
+.segmentedWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.segmentedControl {
+  display: inline-flex;
+  background: var(--sf-sand);
+  padding: 4px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border-light);
+  gap: 4px;
+}
+
+.segmentBtn {
+  background: transparent;
+  border: none;
+  padding: 7px 18px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sf-font-body), sans-serif;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.segmentBtn:hover {
+  color: var(--sf-text-primary);
+}
+
+.segmentBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Albums Grid (Pinterest Board Style) ── */
+.albumsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
 }
 
-@media (max-width: 480px) {
-  .grid {
+@media (max-width: 640px) {
+  .albumsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }
 
-/* Album Card */
-.card {
-  background: var(--sf-surface);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg, 16px);
+.albumCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg, 18px);
   overflow: hidden;
   cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-  position: relative;
-  text-decoration: none;
+  user-select: none;
+  box-shadow: 0 4px 16px -4px rgba(27, 27, 34, 0.05);
 }
 
-.card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(30, 27, 75, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+.albumCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px -6px rgba(67, 56, 202, 0.15);
+  border-color: var(--sf-border);
 }
 
-.card:active {
+.albumCard:active {
   transform: scale(0.98);
 }
 
-.cardThumb {
+/* Pinterest Board Collage (1 large + 2 stacked small) */
+.albumCollage {
   width: 100%;
-  aspect-ratio: 4 / 4.5;
-  background: var(--sf-bg);
-  position: relative;
+  aspect-ratio: 4 / 3.8;
+  background: var(--sf-sand);
+  display: flex;
+  gap: 2px;
   overflow: hidden;
+  position: relative;
 }
 
-.coverImg {
+.collageMain {
+  flex: 2;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.collageSide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+}
+
+.collageSideThumb {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: rgba(67, 56, 202, 0.06);
+}
+
+.collageImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transition: transform 0.3s ease;
 }
 
-.card:hover .coverImg {
+.albumCard:hover .collageImg {
   transform: scale(1.03);
 }
 
-.emptyThumb {
+.emptyCollage {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: var(--sf-text-secondary);
-  opacity: 0.6;
-}
-
-.emptyThumbText {
+  gap: 6px;
+  color: var(--sf-text-tertiary);
   font-size: 12px;
-  font-weight: 500;
 }
 
-.photoCountBadge {
+.collageCountBadge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(15, 23, 42, 0.72);
+  top: 10px;
+  right: 10px;
+  background: rgba(20, 20, 25, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: var(--sf-radius-pill, 9999px);
+  color: #FFFFFF;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
   font-size: 11px;
   font-weight: 600;
   display: inline-flex;
@@ -220,81 +316,158 @@
   gap: 4px;
 }
 
-.cardInfo {
-  padding: 12px 14px;
+.albumInfo {
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.cardHeader {
+.albumHeaderRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.cardTitle {
+.albumTitle {
   margin: 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--sf-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.cardChevron {
-  color: var(--sf-text-secondary);
-  opacity: 0.6;
+.albumArrow {
+  color: var(--sf-text-tertiary);
+  transition: transform 0.15s ease;
   flex-shrink: 0;
 }
 
-.cardSub {
+.albumCard:hover .albumArrow {
+  transform: translateX(2px);
+  color: var(--sf-brand-indigo);
+}
+
+.albumSub {
   margin: 0;
   font-size: 12px;
   color: var(--sf-text-secondary);
 }
 
-/* Skeleton Loading */
-.skeletonCard {
-  background: var(--sf-surface);
-  border: 1px solid var(--sf-border);
+/* ── Pinterest Staggered Masonry (for "All Inspirations" mode) ── */
+.masonryGrid {
+  column-count: 4;
+  column-gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .masonryGrid { column-count: 3; column-gap: 12px; }
+}
+
+@media (max-width: 640px) {
+  .masonryGrid { column-count: 2; column-gap: 10px; }
+}
+
+.pinCard {
+  break-inside: avoid;
+  margin-bottom: 14px;
   border-radius: var(--sf-radius-lg, 16px);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  box-shadow: 0 4px 16px -4px rgba(27, 27, 34, 0.05);
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
 }
 
-.skeletonInfo {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.pinCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -4px rgba(67, 56, 202, 0.14);
 }
 
-/* Empty State */
+.pinImg {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.pinAlbumBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(20, 20, 25, 0.72);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.pinOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(15,14,23,0.7) 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 10px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.pinCard:hover .pinOverlay {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .pinOverlay { opacity: 1; }
+}
+
+.pinOrderBtn {
+  background: var(--sf-accent-emerald);
+  color: #FFFFFF;
+  border: none;
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* ── Empty State & Quick Start ── */
 .emptyWrap {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .quickStartCard {
-  background: var(--sf-surface);
-  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-surface);
+  border: 1px dashed var(--sf-border);
   border-radius: var(--sf-radius-lg, 16px);
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .quickStartTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .quickStartPresets {
@@ -303,19 +476,41 @@
   gap: 8px;
 }
 
-/* Sheet Form */
+.presetChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-brand-indigo);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.presetChip:hover {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo);
+  transform: translateY(-1px);
+}
+
+/* ── Create Album Sheet ── */
 .sheetBody {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 4px 0 16px 0;
+  gap: 18px;
+  padding: 0 4px 16px;
 }
 
 .sheetSubtitle {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
   color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
 }
 
 .formGroup {
@@ -333,17 +528,19 @@
 .titleInput {
   width: 100%;
   padding: 12px 14px;
-  background: var(--sf-bg);
-  border: 1px solid var(--sf-border);
-  color: var(--sf-text-primary);
   border-radius: var(--sf-radius-md, 10px);
-  font-size: 16px;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 15px;
+  font-family: inherit;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.15s ease;
 }
 
 .titleInput:focus {
-  border-color: var(--sf-brand-primary, #1E1B4B);
+  border-color: var(--sf-brand-indigo);
 }
 
 .presetSection {
@@ -355,7 +552,9 @@
 .presetLabel {
   font-size: 12px;
   font-weight: 600;
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .presetChips {
@@ -364,35 +563,16 @@
   gap: 8px;
 }
 
-.presetChip {
-  background: var(--sf-bg);
-  color: var(--sf-text-primary);
-  border: 1px solid var(--sf-border);
-  padding: 6px 12px;
-  border-radius: var(--sf-radius-pill, 9999px);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-}
-
-.presetChip:hover {
-  background: var(--sf-surface);
-  border-color: var(--sf-brand-primary);
-}
-
 .presetChipActive {
-  background: var(--sf-brand-primary, #1E1B4B);
-  color: #fff;
-  border-color: var(--sf-brand-primary, #1E1B4B);
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo);
 }
 
 .sheetActions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   margin-top: 8px;
 }

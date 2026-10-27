@@ -11,13 +11,19 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { StyleCatalogue, StyleCataloguePhoto, Customer } from '@/lib/types';
 import {
   getCataloguesAction,
   addCataloguePhotoAction,
   deleteCataloguePhotoAction,
   deleteCatalogueAction,
+  updateCatalogueAction,
 } from '@/app/actions/catalogues';
+import {
+  getStoredMockCatalogues,
+  saveMockCatalogues,
+} from '@/lib/mockCatalogues';
 import { compressImage } from '@/lib/compressImage';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { createClient } from '@/lib/supabase/client';
@@ -34,9 +40,14 @@ export default function CatalogueDetailPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
+  const [isMockMode, setIsMockMode] = useState(false);
 
   // Sheets and Dialogs state
   const [showBroadcast, setShowBroadcast] = useState(false);
+  const [showEditTitle, setShowEditTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [savingTitle, setSavingTitle] = useState(false);
+
   const [inspectedPhoto, setInspectedPhoto] = useState<StyleCataloguePhoto | null>(null);
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [isDeletingAlbum, setIsDeletingAlbum] = useState(false);
@@ -45,18 +56,38 @@ export default function CatalogueDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!currentShop) return;
-    getCataloguesAction(currentShop.id)
-      .then((res) => {
-        const cat = res.find((c) => c.id === catalogueId);
-        setCatalogue(cat || null);
-        setLoading(false);
-      })
-      .catch((err) => {
-        showToast(err.message, 'error');
-        setLoading(false);
-      });
-  }, [currentShop, catalogueId, showToast]);
+    const loadData = async () => {
+      if (currentShop) {
+        try {
+          const res = await getCataloguesAction(currentShop.id);
+          const found = res.find((c) => c.id === catalogueId);
+          if (found) {
+            setCatalogue(found);
+            setEditedTitle(found.title);
+            setIsMockMode(false);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // ignore, fall back to mock
+        }
+      }
+
+      // Check stored frontend mock catalogues
+      const mocks = getStoredMockCatalogues();
+      const mockFound = mocks.find((c) => c.id === catalogueId);
+      if (mockFound) {
+        setCatalogue(mockFound);
+        setEditedTitle(mockFound.title);
+        setIsMockMode(true);
+      } else {
+        setCatalogue(null);
+      }
+      setLoading(false);
+    };
+
+    loadData();
+  }, [currentShop, catalogueId]);
 
   // Smart case-insensitive matching between album title and customer preferredStyles
   const matchingCustomers = useMemo(() => {
@@ -77,10 +108,43 @@ export default function CatalogueDetailPage() {
   // Multi-photo batch upload with client-side compression
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length === 0 || !currentShop || !catalogue) return;
+    if (files.length === 0 || !catalogue) return;
 
     setUploading(true);
     setUploadProgress({ current: 0, total: files.length });
+
+    if (isMockMode || !currentShop) {
+      // Mock mode photo upload via local object URLs
+      const newPhotos: StyleCataloguePhoto[] = [];
+      for (let i = 0; i < files.length; i++) {
+        setUploadProgress({ current: i + 1, total: files.length });
+        const file = files[i];
+        const localUrl = URL.createObjectURL(file);
+        newPhotos.push({
+          id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          catalogueId: catalogue.id,
+          imageUrl: localUrl,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      const updatedPhotos = [...(catalogue.photos || []), ...newPhotos];
+      const updatedCat: StyleCatalogue = { ...catalogue, photos: updatedPhotos };
+      setCatalogue(updatedCat);
+
+      const allMocks = getStoredMockCatalogues();
+      const idx = allMocks.findIndex((c) => c.id === catalogue.id);
+      if (idx !== -1) {
+        allMocks[idx] = updatedCat;
+        saveMockCatalogues(allMocks);
+      }
+
+      showToast(`Added ${newPhotos.length} inspiration looks to mock album!`, 'success');
+      setUploading(false);
+      setUploadProgress(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     let successCount = 0;
     const supabase = createClient();
@@ -107,7 +171,7 @@ export default function CatalogueDetailPage() {
     }
 
     if (successCount > 0) {
-      showToast(`Added ${successCount} inspiration ${successCount === 1 ? 'photo' : 'photos'}!`, 'success');
+      showToast(`Added ${successCount} inspiration ${successCount === 1 ? 'look' : 'looks'}!`, 'success');
       const updated = await getCataloguesAction(currentShop.id);
       setCatalogue(updated.find((c) => c.id === catalogueId) || null);
     } else {
@@ -119,19 +183,62 @@ export default function CatalogueDetailPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  // Save renamed album title
+  const handleSaveTitle = async () => {
+    if (!catalogue || !editedTitle.trim()) return;
+    setSavingTitle(true);
+    try {
+      if (isMockMode || !currentShop) {
+        const updatedCat = { ...catalogue, title: editedTitle.trim() };
+        setCatalogue(updatedCat);
+        const allMocks = getStoredMockCatalogues();
+        const idx = allMocks.findIndex((c) => c.id === catalogue.id);
+        if (idx !== -1) {
+          allMocks[idx] = updatedCat;
+          saveMockCatalogues(allMocks);
+        }
+        showToast('Album title updated!', 'success');
+      } else {
+        await updateCatalogueAction(catalogue.id, editedTitle.trim());
+        setCatalogue((prev) => (prev ? { ...prev, title: editedTitle.trim() } : null));
+        showToast('Album title updated', 'success');
+      }
+      setShowEditTitle(false);
+    } catch (err: any) {
+      showToast(err.message || 'Could not update title', 'error');
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
   // Delete single photo
   const confirmDeletePhoto = async () => {
-    if (!photoToDelete) return;
+    if (!photoToDelete || !catalogue) return;
     setDeleting(true);
     try {
-      await deleteCataloguePhotoAction(photoToDelete);
-      setCatalogue((prev) =>
-        prev ? { ...prev, photos: prev.photos?.filter((p) => p.id !== photoToDelete) } : null
-      );
+      if (isMockMode || !currentShop) {
+        const filtered = (catalogue.photos || []).filter((p) => p.id !== photoToDelete);
+        const updatedCat = { ...catalogue, photos: filtered };
+        setCatalogue(updatedCat);
+
+        const allMocks = getStoredMockCatalogues();
+        const idx = allMocks.findIndex((c) => c.id === catalogue.id);
+        if (idx !== -1) {
+          allMocks[idx] = updatedCat;
+          saveMockCatalogues(allMocks);
+        }
+        showToast('Photo removed from demo album', 'success');
+      } else {
+        await deleteCataloguePhotoAction(photoToDelete);
+        setCatalogue((prev) =>
+          prev ? { ...prev, photos: prev.photos?.filter((p) => p.id !== photoToDelete) } : null
+        );
+        showToast('Photo removed from album', 'success');
+      }
+
       if (inspectedPhoto?.id === photoToDelete) {
         setInspectedPhoto(null);
       }
-      showToast('Photo removed from album', 'success');
     } catch (err: any) {
       showToast(err.message, 'error');
     } finally {
@@ -142,10 +249,18 @@ export default function CatalogueDetailPage() {
 
   // Delete entire album
   const confirmDeleteAlbum = async () => {
+    if (!catalogue) return;
     setDeleting(true);
     try {
-      await deleteCatalogueAction(catalogueId);
-      showToast('Album deleted', 'info');
+      if (isMockMode || !currentShop) {
+        const allMocks = getStoredMockCatalogues();
+        const filtered = allMocks.filter((c) => c.id !== catalogue.id);
+        saveMockCatalogues(filtered);
+        showToast('Album removed from demo data', 'info');
+      } else {
+        await deleteCatalogueAction(catalogueId);
+        showToast('Album deleted', 'info');
+      }
       router.push('/catalogues');
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -164,22 +279,19 @@ export default function CatalogueDetailPage() {
 
   // Broadcast General WhatsApp message
   const handleGeneralBroadcast = () => {
-    if (!currentShop?.slug || !catalogue) {
-      showToast('Please set your studio URL slug first', 'info');
-      router.push('/settings/studio');
-      return;
-    }
-    const url = `https://mytailorbook.com/catalogue/${currentShop.slug}?album=${catalogue.id}`;
-    const text = `Good day! Check out our freshly curated ${catalogue.title} inspirations. Let us know which design you love and we will craft it for you: ${url}`;
+    const slug = currentShop?.slug || 'demo';
+    const shopName = currentShop?.name || 'MyTailorBook Atelier';
+    const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
+    const text = `Good day! Explore our freshly curated ${catalogue?.title} inspirations from ${shopName}. Let us know which design you love: ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     setShowBroadcast(false);
   };
 
   // Individual Client WhatsApp Outreach
   const handleCustomerOutreach = (customer: Customer) => {
-    if (!currentShop?.slug || !catalogue) return;
-    const url = `https://mytailorbook.com/catalogue/${currentShop.slug}?album=${catalogue.id}`;
-    const message = `Good day Chief ${customer.fullName}! We just updated our atelier with new ${catalogue.title} inspirations that match your style profile. Take a look here: ${url}`;
+    const slug = currentShop?.slug || 'demo';
+    const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
+    const message = `Good day Chief ${customer.fullName}! We just updated our atelier lookbook with new ${catalogue?.title} designs that match your personal style preferences. Take a look here: ${url}`;
     const link = getWhatsAppLink(customer.whatsappNumber, message);
     window.open(link, '_blank');
   };
@@ -191,7 +303,9 @@ export default function CatalogueDetailPage() {
         <div className={styles.content}>
           <div className={styles.skeletonGrid}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} width="100%" height="180px" borderRadius="var(--sf-radius-md)" />
+              <div key={i} className={styles.skeletonCard}>
+                <Skeleton width="100%" height="220px" borderRadius="var(--sf-radius-lg)" />
+              </div>
             ))}
           </div>
         </div>
@@ -207,8 +321,8 @@ export default function CatalogueDetailPage() {
           <EmptyState
             icon={<Symbol name="photo_library" size={40} />}
             title="Album Not Found"
-            description="This album may have been deleted or moved."
-            action={{ label: 'Return to Catalogues', onClick: () => router.push('/catalogues') }}
+            description="This collection may have been removed or reorganized."
+            action={{ label: 'Return to Lookbooks', onClick: () => router.push('/catalogues') }}
           />
         </div>
       </div>
@@ -235,13 +349,32 @@ export default function CatalogueDetailPage() {
       />
 
       <div className={styles.content}>
-        {/* Album Sub-Header & Actions */}
+        {/* ── Apple Liquid Glass Album Info Card ── */}
         <div className={styles.albumHeaderCard}>
           <div className={styles.albumMeta}>
-            <span className={styles.albumCountBadge}>
-              <Symbol name="collections" size={14} />
-              <span>{photos.length} {photos.length === 1 ? 'inspiration look' : 'inspiration looks'}</span>
-            </span>
+            <div className={styles.badgeRow}>
+              <span className={styles.albumCountBadge}>
+                <Symbol name="collections" size={14} />
+                <span>{photos.length} {photos.length === 1 ? 'inspiration look' : 'inspiration looks'}</span>
+              </span>
+              {isMockMode && (
+                <span className={styles.albumCountBadge} style={{ background: 'rgba(67, 56, 202, 0.12)', color: 'var(--sf-brand-indigo)' }}>
+                  <Symbol name="auto_awesome" size={12} />
+                  <span>Frontend Demo Album</span>
+                </span>
+              )}
+              <button
+                type="button"
+                className={styles.editTitleBtn}
+                onClick={() => {
+                  setEditedTitle(catalogue.title);
+                  setShowEditTitle(true);
+                }}
+              >
+                <Symbol name="edit" size={13} />
+                <span>Edit Title</span>
+              </button>
+            </div>
             <p className={styles.albumTip}>
               Consult with walk-ins on this screen. Tap any photo to inspect or convert directly into a bespoke order cutting slip.
             </p>
@@ -283,7 +416,7 @@ export default function CatalogueDetailPage() {
           </div>
         </div>
 
-        {/* Photos Masonry Grid */}
+        {/* ── True Pinterest Staggered Masonry Grid ── */}
         {photos.length > 0 ? (
           <div className={styles.masonryGrid}>
             {photos.map((photo) => (
@@ -300,7 +433,12 @@ export default function CatalogueDetailPage() {
                   }
                 }}
               >
-                <img src={photo.imageUrl} alt={catalogue.title} className={styles.photoImg} />
+                <img
+                  src={photo.imageUrl}
+                  alt={catalogue.title}
+                  loading="lazy"
+                  className={styles.photoImg}
+                />
                 <div className={styles.photoOverlay}>
                   <button
                     type="button"
@@ -332,9 +470,9 @@ export default function CatalogueDetailPage() {
         ) : (
           <div className={styles.emptyCard}>
             <EmptyState
-              icon={<Symbol name="add_a_photo" size={48} />}
-              title="No Style Photos Yet"
-              description="Upload showroom pictures, client fitting samples, or fabric inspiration to build this album. You can select multiple photos at once."
+              icon={<Symbol name="add_a_photo" size={44} />}
+              title="No Style Photos in This Album"
+              description="Upload showroom pictures, client fitting samples, or fabric inspiration to build this collection. You can select multiple photos at once."
               action={{
                 label: 'Add Inspiration Photos',
                 onClick: () => fileInputRef.current?.click(),
@@ -344,7 +482,7 @@ export default function CatalogueDetailPage() {
         )}
       </div>
 
-      {/* Photo Inspector BottomSheet */}
+      {/* ── Photo Inspector BottomSheet ── */}
       <BottomSheet
         isOpen={Boolean(inspectedPhoto)}
         onClose={() => setInspectedPhoto(null)}
@@ -379,7 +517,7 @@ export default function CatalogueDetailPage() {
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                 >
-                  <Symbol name="share" size={16} />
+                  <WhatsappIcon size={16} />
                   <span>Share on WhatsApp</span>
                 </button>
 
@@ -388,7 +526,7 @@ export default function CatalogueDetailPage() {
                   className={styles.inspectDeleteBtn}
                   onClick={() => setPhotoToDelete(inspectedPhoto.id)}
                 >
-                  <Symbol name="delete" size={16} />
+                  <Symbol name="delete" size={15} />
                   <span>Remove</span>
                 </button>
               </div>
@@ -397,7 +535,55 @@ export default function CatalogueDetailPage() {
         )}
       </BottomSheet>
 
-      {/* Broadcast Sheet */}
+      {/* ── Edit Album Title Sheet ── */}
+      <BottomSheet
+        isOpen={showEditTitle}
+        onClose={() => setShowEditTitle(false)}
+        title="Rename Album"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 4px 16px' }}>
+          <div>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', display: 'block', marginBottom: '6px' }}>
+              Album Title
+            </label>
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              placeholder="e.g. Royal Agbada Collection"
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                borderRadius: 'var(--sf-radius-md, 10px)',
+                border: '1px solid var(--sf-border-light)',
+                background: 'var(--sf-bg-surface)',
+                color: 'var(--sf-text-primary)',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveTitle();
+                }
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setShowEditTitle(false)} disabled={savingTitle}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSaveTitle} disabled={savingTitle || !editedTitle.trim()}>
+              {savingTitle ? 'Saving...' : 'Save Title'}
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* ── VIP Client Broadcast Sheet ── */}
       <BottomSheet
         isOpen={showBroadcast}
         onClose={() => setShowBroadcast(false)}
@@ -432,7 +618,7 @@ export default function CatalogueDetailPage() {
                     className={styles.clientMessageBtn}
                     onClick={() => handleCustomerOutreach(cust)}
                   >
-                    <Symbol name="chat" size={14} />
+                    <WhatsappIcon size={14} />
                     <span>Message</span>
                   </button>
                 </div>
@@ -460,7 +646,7 @@ export default function CatalogueDetailPage() {
         </div>
       </BottomSheet>
 
-      {/* Confirm Dialog: Single Photo Removal */}
+      {/* ── Confirm Dialogs ── */}
       <ConfirmDialog
         isOpen={Boolean(photoToDelete)}
         onClose={() => setPhotoToDelete(null)}
@@ -472,7 +658,6 @@ export default function CatalogueDetailPage() {
         loading={deleting}
       />
 
-      {/* Confirm Dialog: Album Deletion */}
       <ConfirmDialog
         isOpen={isDeletingAlbum}
         onClose={() => setIsDeletingAlbum(false)}

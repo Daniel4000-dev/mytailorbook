@@ -69,6 +69,15 @@ export async function createCatalogueAction(shopId: string, title: string): Prom
   return data.id;
 }
 
+export async function updateCatalogueAction(catalogueId: string, title: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('style_catalogues')
+    .update({ title: title.trim() })
+    .eq('id', catalogueId);
+  if (error) throw new Error(error.message);
+}
+
 export async function deleteCatalogueAction(catalogueId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
