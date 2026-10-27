@@ -1,10 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNetwork } from '@/lib/hooks/useNetwork';
 import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
@@ -14,7 +12,6 @@ import { getTierForXp } from '@/lib/gamification';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
 import ChallengeModal from '@/components/ui/ChallengeModal/ChallengeModal';
-import AccountSheet from '../AccountSheet/AccountSheet';
 
 interface TopBarProps {
   title?: string;
@@ -38,14 +35,10 @@ export default function TopBar({
   brandMode,
 }: TopBarProps) {
   const router = useRouter();
-  const { user } = useAuth();
   const { isOnline } = useNetwork();
   const { currentShop } = useData();
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
-  const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false);
-
-  const userInitial = user?.name?.charAt(0) || user?.email?.charAt(0) || 'A';
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -53,7 +46,6 @@ export default function TopBar({
   };
 
   const finalRightAction = rightAction || actions;
-  
 
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
@@ -81,19 +73,9 @@ export default function TopBar({
         {brandMode ? (
           <div className={styles.profileHeaderContent}>
             <div className={styles.left}>
-              <button
-                type="button"
-                className={styles.profileAvatarBtn}
-                onClick={() => setIsAccountSheetOpen(true)}
-                aria-label="Open account and atelier menu"
-              >
-                {user?.avatarUrl ? (
-                  <Image src={user.avatarUrl} alt="" width={36} height={36} className={styles.avatarImg} />
-                ) : (
-                  <span className={styles.avatarInitial}>{userInitial.toUpperCase()}</span>
-                )}
-                <span className={styles.avatarOnlineDot} />
-              </button>
+              <div className={styles.brandLogoWrap}>
+                <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
+              </div>
               {leftAction}
             </div>
             <div className={styles.right}>
@@ -143,22 +125,9 @@ export default function TopBar({
           <>
             <div className={styles.left}>
               {leftAction}
-              {showBack ? (
+              {showBack && (
                 <button className={styles.backBtn} onClick={handleBack} aria-label="Go back">
                   <Symbol name="arrow_back" size={24} />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.profileAvatarBtnSmall}
-                  onClick={() => setIsAccountSheetOpen(true)}
-                  aria-label="Open account and atelier menu"
-                >
-                  {user?.avatarUrl ? (
-                    <Image src={user.avatarUrl} alt="" width={30} height={30} className={styles.avatarImgSmall} />
-                  ) : (
-                    <span className={styles.avatarInitialSmall}>{userInitial.toUpperCase()}</span>
-                  )}
                 </button>
               )}
             </div>
@@ -186,10 +155,6 @@ export default function TopBar({
         )}
       </header>
 
-      <AccountSheet
-        isOpen={isAccountSheetOpen}
-        onClose={() => setIsAccountSheetOpen(false)}
-      />
 
       <StreakModal 
         isOpen={isStreakModalOpen} 
