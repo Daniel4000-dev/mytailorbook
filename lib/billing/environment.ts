@@ -114,8 +114,8 @@ export function validateWebhookEnvironment(mode: 'live' | 'test') {
 
 export function getPlanCode(interval: 'monthly' | 'yearly'): string {
   const code = interval === 'yearly' 
-    ? process.env.PAYSTACK_YEARLY_PLAN_CODE 
-    : process.env.PAYSTACK_MONTHLY_PLAN_CODE;
+    ? (process.env.PAYSTACK_YEARLY_PLAN_CODE || process.env.NEXT_PUBLIC_PAYSTACK_YEARLY_PLAN_CODE)
+    : (process.env.PAYSTACK_MONTHLY_PLAN_CODE || process.env.NEXT_PUBLIC_PAYSTACK_PLAN_CODE);
     
   if (!code) {
     throw new Error(`Missing plan code configuration for interval: ${interval}`);
