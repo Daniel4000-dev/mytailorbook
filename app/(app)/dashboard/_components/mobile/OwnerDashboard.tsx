@@ -51,8 +51,32 @@ export default function OwnerDashboard({
     <>
       {/* 1. Unified Atelier Command Hero Surface */}
       <section className={styles.atelierHero}>
+        {/* Tailor's Hand-Basting Pick-Stitch Border */}
+        <div className={styles.heroStitchBorder} aria-hidden="true" />
+
+        {/* Sartorial Heritage Watermark Crest */}
+        <div className={styles.heroWatermark} aria-hidden="true">
+          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="90" cy="90" r="82" stroke="white" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
+            <circle cx="90" cy="90" r="70" stroke="white" strokeWidth="0.7" opacity="0.3" />
+            <circle cx="90" cy="90" r="54" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity="0.35" />
+            <circle cx="90" cy="90" r="38" stroke="white" strokeWidth="0.7" opacity="0.25" />
+            <path d="M50 130L130 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+            <path d="M130 130L50 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+            <circle cx="48" cy="132" r="14" stroke="white" strokeWidth="2" opacity="0.5" />
+            <circle cx="132" cy="132" r="14" stroke="white" strokeWidth="2" opacity="0.5" />
+            <circle cx="90" cy="90" r="4.5" fill="white" opacity="0.8" />
+            <path d="M90 20V160" stroke="white" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.45" />
+            <ellipse cx="90" cy="30" rx="3" ry="7" stroke="white" strokeWidth="1.2" opacity="0.7" />
+          </svg>
+        </div>
+
         <div className={styles.heroHeader}>
           <div className={styles.heroIdentity}>
+            <div className={styles.heroHallmark}>
+              <Symbol name="needle" size={9} />
+              <span>BESPOKE ATELIER</span>
+            </div>
             <h1 className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</h1>
           </div>
           <div className={styles.heroRevenueBlock}>
@@ -72,6 +96,15 @@ export default function OwnerDashboard({
               {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
             </div>
           </div>
+        </div>
+
+        {/* Engraved Sartorial Selvedge Strip */}
+        <div className={styles.engravedSelvedgeStrip} aria-hidden="true">
+          <span className={styles.selvedgeRulerTicks} />
+          <span className={styles.selvedgeLabel}>
+            ATELIER COMMAND · REF #{currentShop?.id?.slice(0, 4)?.toUpperCase() || 'SUITE'}
+          </span>
+          <span className={styles.selvedgeRulerTicks} />
         </div>
 
         {/* Integrated Monthly Target Progress Bar */}
