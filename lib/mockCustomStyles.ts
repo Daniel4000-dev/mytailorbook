@@ -94,3 +94,4 @@ export const MOCK_ATELIER_STYLES: AtelierCustomStyle[] = [
     ],
   },
 ];
+

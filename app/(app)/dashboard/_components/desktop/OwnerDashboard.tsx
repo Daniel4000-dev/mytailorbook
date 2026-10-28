@@ -15,6 +15,7 @@ import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
+import { ROUTES } from '@/lib/routes';
 
 // ============================================================
 // Owner Dashboard — desktop (Executive Atelier Command Center)
@@ -91,7 +92,12 @@ export default function OwnerDashboard({
                 )}
               </button>
             </div>
-            <span className={styles.heroPrimaryValue}>
+            <span
+              className={styles.heroPrimaryValue}
+              onClick={() => onNavigate(ROUTES.reports)}
+              style={{ cursor: 'pointer' }}
+              title="Open Financial Intelligence"
+            >
               {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
             </span>
           </div>

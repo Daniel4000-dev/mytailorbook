@@ -340,14 +340,6 @@ export default function SettingsPage() {
               subtitle={`${user?.name || 'Owner'} · ${user?.email || 'Manage login'}`}
               onClick={() => router.push(ROUTES.settingsAccount)}
             />
-            {FEATURE_FLAGS.financialReporting && (
-              <SettingsRow
-                icon="bar_chart"
-                label="Financial Reports &amp; Margin"
-                subtitle="Revenue, outstanding balance, and margin"
-                onClick={() => router.push(ROUTES.settingsReports)}
-              />
-            )}
             {FEATURE_FLAGS.auditLog && (
               <SettingsRow
                 icon="history"

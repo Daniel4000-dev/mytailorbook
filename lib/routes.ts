@@ -112,6 +112,7 @@ export const ROUTES = {
   inventory: '/inventory',
   quotes: '/quotes',
   stock: '/stock', // New RTW Stock / POS route
+  reports: '/reports', // Standalone Financial Intelligence & Margin Telemetry
   reconciliation: '/reconciliation',
   calendar: '/calendar',
   calendarWithFilter: (filter: string) => `/calendar?filter=${filter}`,
@@ -190,7 +191,7 @@ export function isPublicPath(pathname: string) {
  *  what lives at app.<domain> once the two are split by hostname. Auth
  *  pages count as app-side even though they're unauthenticated, since
  *  they're part of getting into the app, not marketing content. */
-export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.collections, ROUTES.inventory, ROUTES.quotes, ROUTES.stock, ROUTES.reconciliation, ROUTES.calendar, ROUTES.admin, '/auth'];
+export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.collections, ROUTES.inventory, ROUTES.quotes, ROUTES.stock, ROUTES.reports, ROUTES.reconciliation, ROUTES.calendar, ROUTES.admin, '/auth'];
 
 export function isAppPath(pathname: string) {
   if ((AUTH_PAGES as readonly string[]).includes(pathname)) return true;
@@ -222,6 +223,7 @@ export const SEARCH_DISALLOW = [
   ROUTES.inventory,
   ROUTES.quotes,
   ROUTES.stock,
+  ROUTES.reports,
   ROUTES.reconciliation,
   ROUTES.calendar,
   ROUTES.admin,

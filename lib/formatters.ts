@@ -178,6 +178,8 @@ export const DEFAULT_STAGE_MESSAGES: Record<OrderStatus, string> = {
   Delivered: `Hi {name}, your outfit is complete and ready for you from {shop}! Thank you for your patience. You can monitor its progress anytime here: {link}`,
 };
 
+export const DEFAULT_EVENT_PHOTO_MESSAGE = `Hi {name}, we hope you had a wonderful time at your event! We would love to feature your look in the {shop} lookbook. Kindly share a few photos of you in your outfit, and feel free to tag us on Instagram ({instagram}).`;
+
 /**
  * The stage-specific WhatsApp update a tailor sends a customer from the
  * order detail sheet — worded around whatever stage the order is actually
@@ -197,8 +199,29 @@ export function getOrderProgressMessage(params: {
    *  may phrase its closing differently) just has its {link} token blanked
    *  instead, since we can't know how they worded it. */
   includeTrackingLink?: boolean;
+  orderId?: string;
+  instagram?: string;
+  tiktok?: string;
+  website?: string;
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+  };
 }): string {
-  const { customerName, shopName, status, trackingUrl, customTemplate, includeTrackingLink = true } = params;
+  const {
+    customerName,
+    shopName,
+    status,
+    trackingUrl,
+    customTemplate,
+    includeTrackingLink = true,
+    orderId,
+    instagram,
+    tiktok,
+    website,
+    bankDetails,
+  } = params;
   const firstName = customerName.trim().split(' ')[0] || customerName;
   let template = customTemplate || DEFAULT_STAGE_MESSAGES[status];
 
@@ -206,10 +229,27 @@ export function getOrderProgressMessage(params: {
     template = template.replace(/\s*You can monitor its progress anytime here: \{link\}/i, '');
   }
 
+  const formattedBank = bankDetails && (bankDetails.bankName || bankDetails.accountNumber)
+    ? [
+        bankDetails.bankName ? `Bank: ${bankDetails.bankName}` : '',
+        bankDetails.accountNumber ? `Account: ${bankDetails.accountNumber}` : '',
+        bankDetails.accountName ? `Name: ${bankDetails.accountName}` : '',
+      ].filter(Boolean).join('\n')
+    : '';
+
+  const cleanIg = instagram ? (instagram.startsWith('@') ? instagram : `@${instagram}`) : '';
+  const cleanTiktok = tiktok ? (tiktok.startsWith('@') ? tiktok : `@${tiktok}`) : '';
+
   return template
     .replace(/\{name\}/g, firstName)
     .replace(/\{shop\}/g, shopName)
-    .replace(/\{link\}/g, includeTrackingLink ? trackingUrl : '');
+    .replace(/\{link\}/g, includeTrackingLink ? trackingUrl : '')
+    .replace(/\{orderId\}/g, orderId || '')
+    .replace(/\{instagram\}/g, cleanIg)
+    .replace(/\{handle\}/g, cleanIg)
+    .replace(/\{tiktok\}/g, cleanTiktok)
+    .replace(/\{website\}/g, website || '')
+    .replace(/\{bank_details\}/g, formattedBank);
 }
 
 /**

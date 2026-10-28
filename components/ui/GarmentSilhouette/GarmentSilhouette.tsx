@@ -228,3 +228,4 @@ export default function GarmentSilhouette({ type, name, size = 48, className }: 
     </svg>
   );
 }
+

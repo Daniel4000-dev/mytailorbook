@@ -13,6 +13,7 @@ import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import MilestonesCard from '../MilestonesCard';
 import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { ROUTES } from '@/lib/routes';
 import styles from '../../page.module.css';
 
 // ============================================================
@@ -88,7 +89,12 @@ export default function OwnerDashboard({
                 <Symbol name={hideCollected ? 'visibility_off' : 'visibility'} size={14} />
               </button>
             </div>
-            <div className={styles.heroRevenueValue}>
+            <div
+              className={styles.heroRevenueValue}
+              onClick={() => onNavigate(ROUTES.reports)}
+              style={{ cursor: 'pointer' }}
+              title="Open Financial Intelligence"
+            >
               {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
             </div>
           </div>
@@ -96,7 +102,12 @@ export default function OwnerDashboard({
 
         {/* Integrated Monthly Target Progress Bar */}
         {currentShop?.monthlyRevenueTarget ? (
-          <div className={styles.monthlyProgressWrap}>
+          <div
+            className={styles.monthlyProgressWrap}
+            onClick={() => onNavigate(ROUTES.reports)}
+            style={{ cursor: 'pointer' }}
+            title="Open Financial Intelligence"
+          >
             <div className={styles.monthlyProgressMeta}>
               <span className={styles.monthlyProgressLabel}>Monthly Goal</span>
               <span className={styles.monthlyProgressNums}>

@@ -2,137 +2,328 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-import { useNotifications, type NotificationItem } from '@/lib/hooks/useNotifications';
+import Image from 'next/image';
+import { useNotifications, type NotificationItem, type NotificationCategory } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
-import { formatDate } from '@/lib/formatters';
+import { useData } from '@/contexts/DataContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
+import { getInitials } from '@/lib/formatters';
+import { ROUTES } from '@/lib/routes';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
-import TopBar from '@/components/layout/TopBar/TopBar';
-import SearchBar from '@/components/ui/SearchBar/SearchBar';
-import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import styles from './page.module.css';
 
-type FilterMode = 'all' | 'unread' | 'read';
+type FilterTab = 'all' | NotificationCategory | 'unread';
 
-function groupLabel(timestamp: string): string {
+const GROUP_ORDER = ['Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Older'] as const;
+
+function formatInstagramRelativeTime(timestamp: string): string {
+  const diffMs = Date.now() - new Date(timestamp).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w`;
+  const months = Math.floor(days / 30);
+  return `${months}mo`;
+}
+
+function getInstagramGroupLabel(timestamp: string): typeof GROUP_ORDER[number] {
   const date = new Date(timestamp);
   const now = new Date();
-  const dayMs = 24 * 60 * 60 * 1000;
-  const dateDay = Math.floor(date.setHours(0, 0, 0, 0) / dayMs);
-  const todayDay = Math.floor(new Date(now).setHours(0, 0, 0, 0) / dayMs);
-  if (dateDay === todayDay) return 'Today';
-  if (dateDay === todayDay - 1) return 'Yesterday';
-  return 'Earlier';
+
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
+  const sevenDaysStart = todayStart - 7 * 24 * 60 * 60 * 1000;
+  const thirtyDaysStart = todayStart - 30 * 24 * 60 * 60 * 1000;
+
+  const time = date.getTime();
+  if (time >= todayStart) return 'Today';
+  if (time >= yesterdayStart) return 'Yesterday';
+  if (time >= sevenDaysStart) return 'Last 7 days';
+  if (time >= thirtyDaysStart) return 'Last 30 days';
+  return 'Older';
 }
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const isDesktop = useIsDesktop();
+  const { currentShop } = useData();
   const { notifications, isLoaded } = useNotifications();
   const { readIds, markRead, markAllRead } = useNotificationReadState();
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<FilterMode>('all');
 
-  const unreadCount = useMemo(() => notifications.filter((n) => !readIds.has(n.id)).length, [notifications, readIds]);
-  const readCount = notifications.length - unreadCount;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<FilterTab>('all');
+
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !readIds.has(n.id)).length,
+    [notifications, readIds]
+  );
 
   const filtered = useMemo(() => {
     let list = notifications;
-    if (filter === 'unread') list = list.filter((n) => !readIds.has(n.id));
-    if (filter === 'read') list = list.filter((n) => readIds.has(n.id));
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      list = list.filter((n) => n.title.toLowerCase().includes(q) || n.subtitle.toLowerCase().includes(q));
+
+    if (activeTab === 'unread') {
+      list = list.filter((n) => !readIds.has(n.id));
+    } else if (activeTab !== 'all') {
+      list = list.filter((n) => n.category === activeTab);
     }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          n.subtitle.toLowerCase().includes(q) ||
+          (n.actorName && n.actorName.toLowerCase().includes(q))
+      );
+    }
+
     return list;
-  }, [notifications, filter, query, readIds]);
+  }, [notifications, activeTab, searchQuery, readIds]);
 
   const groups = useMemo(() => {
-    const map = new Map<string, typeof filtered>();
+    const map = new Map<string, NotificationItem[]>();
     filtered.forEach((n) => {
-      const label = groupLabel(n.timestamp);
+      const label = getInstagramGroupLabel(n.timestamp);
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
     });
-    return Array.from(map.entries());
+
+    return GROUP_ORDER.filter((label) => map.has(label)).map((label) => [label, map.get(label)!] as const);
   }, [filtered]);
 
   const handleSelect = (n: NotificationItem) => {
     markRead(n.id);
-    router.push(n.href || `/production?order=${n.orderId}`);
+    if (n.href) {
+      router.push(n.href);
+    } else if (n.orderId) {
+      router.push(`/production?order=${n.orderId}`);
+    }
   };
 
+  const studioHandle = currentShop?.socialLinks?.instagram || currentShop?.name?.toLowerCase().replace(/\s+/g, '_') || 'mystitchbook_atelier';
+  const cleanHandle = studioHandle.startsWith('@') ? studioHandle.slice(1) : studioHandle;
+
   return (
-    <PageLayout
-      header={
-        <TopBar
-          title="Notifications"
-          showBack
-          rightAction={
-            unreadCount > 0 ? (
+    <PageLayout width="narrow" padding="none">
+      <div className={styles.page}>
+        {/* Instagram-Inspired Header */}
+        <div className={styles.headerWrap}>
+          <button
+            type="button"
+            className={styles.headerIconBtn}
+            onClick={() => router.push(ROUTES.dashboard)}
+            aria-label="Back"
+          >
+            <Symbol name="chevron_left" size={20} />
+          </button>
+
+          <button
+            type="button"
+            className={styles.headerTitleBtn}
+            onClick={() => router.push(ROUTES.settingsStudio)}
+          >
+            <span className={styles.headerHandle}>_{cleanHandle}</span>
+            <Symbol name="verified" size={15} className={styles.headerVerified} />
+            <Symbol name="expand_more" size={16} className={styles.headerChevron} />
+          </button>
+
+          <div className={styles.headerActions}>
+            {unreadCount > 0 && (
               <button
                 type="button"
-                className={styles.markAllBtn}
+                className={styles.headerIconBtn}
                 onClick={() => markAllRead(notifications.map((n) => n.id))}
                 title="Mark all as read"
+                aria-label="Mark all as read"
               >
-                <Symbol name="done_all" />
+                <Symbol name="done_all" size={18} />
               </button>
-            ) : undefined
-          }
-        />
-      }
-    >
-      {/* A flat chronological feed doesn't benefit from a two-pane split
-         the way a detail page does — it just needs a sane reading-width
-         cap so it doesn't stretch edge-to-edge on a wide desktop window.
-         640px is a no-op on any real phone viewport, so mobile is
-         unaffected. */}
-      <div className={styles.page}>
-      <SearchBar value={query} onChange={setQuery} placeholder="Search notifications..." />
+            )}
+            <button
+              type="button"
+              className={styles.headerIconBtn}
+              onClick={() => router.push(ROUTES.settingsMessages)}
+              title="Notification settings"
+              aria-label="Notification settings"
+            >
+              <Symbol name="notifications" size={18} />
+            </button>
+          </div>
+        </div>
 
-      <div className={styles.pillRow}>
-        <FilterPill label="All" count={notifications.length} active={filter === 'all'} onClick={() => setFilter('all')} />
-        <FilterPill label="Unread" count={unreadCount} active={filter === 'unread'} onClick={() => setFilter('unread')} />
-        <FilterPill label="Read" count={readCount} active={filter === 'read'} onClick={() => setFilter('read')} />
-      </div>
-
-      {groups.length === 0 ? (
-        <div style={{ marginTop: 24 }}>
-          <EmptyState
-            icon={<Symbol name="notifications_off" size={32} />}
-            title={!isLoaded ? 'Loading...' : filter === 'unread' ? "You're all caught up" : filter === 'read' ? 'Nothing read yet' : query ? 'No notifications match your search' : 'No notifications yet'}
-            description={!isLoaded ? 'Loading your notifications…' : filter === 'unread' ? 'Nothing unread.' : ''}
+        {/* Search Bar */}
+        <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search orders, clients, or alerts..."
           />
         </div>
-      ) : (
-        groups.map(([label, items]) => (
-          <div key={label} className={styles.group}>
-            <span className={styles.groupLabel}>{label}</span>
-            <div className={styles.rowList}>
-              {items.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  className={`${styles.row} ${readIds.has(n.id) ? styles.read : ''}`}
-                  onClick={() => handleSelect(n)}
-                >
-                  <span className={`${styles.rowIcon} ${styles[n.tone]}`}>{n.icon}</span>
-                  <span className={styles.rowBody}>
-                    <span className={styles.rowTitle}>{n.title}</span>
-                    <span className={styles.rowSubtitle}>{n.subtitle}</span>
-                  </span>
-                  <span className={styles.rowMeta}>
-                    <span className={styles.rowTime}>{formatDate(n.timestamp)}</span>
-                    {!readIds.has(n.id) && <span className={styles.unreadDot} />}
-                  </span>
-                </button>
-              ))}
-            </div>
+
+        {/* Filter Pills */}
+        <div className={styles.filterRow} role="tablist">
+          <button
+            type="button"
+            className={`${styles.filterPill} ${activeTab === 'all' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            All
+            <span className={styles.filterCount}>{notifications.length}</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.filterPill} ${activeTab === 'production' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('production')}
+          >
+            Production
+          </button>
+          <button
+            type="button"
+            className={`${styles.filterPill} ${activeTab === 'clients' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('clients')}
+          >
+            Clients &amp; Lookbook
+          </button>
+          <button
+            type="button"
+            className={`${styles.filterPill} ${activeTab === 'payments' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('payments')}
+          >
+            Payments
+          </button>
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              className={`${styles.filterPill} ${activeTab === 'unread' ? styles.filterPillActive : ''}`}
+              onClick={() => setActiveTab('unread')}
+            >
+              Unread
+              <span className={styles.filterCount}>{unreadCount}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Instagram Activity Grouped List */}
+        {groups.length === 0 ? (
+          <div className={styles.emptyStateWrap}>
+            <Symbol name="notifications_off" size={40} style={{ color: 'var(--sf-text-tertiary)' }} />
+            <h3 className={styles.emptyStateTitle}>
+              {!isLoaded
+                ? 'Loading atelier activity...'
+                : activeTab === 'unread'
+                ? "You're all caught up"
+                : searchQuery
+                ? 'No activity matches your search'
+                : 'No atelier activity yet'}
+            </h3>
+            <p className={styles.emptyStateDesc}>
+              {activeTab === 'unread'
+                ? 'All customer fitting comments, workshop stage transitions, and lookbook reactions have been reviewed.'
+                : 'When clients approve quotes, artisans cut fabrics, or payments arrive, they will appear right here.'}
+            </p>
           </div>
-        ))
-      )}
+        ) : (
+          groups.map(([label, items]) => (
+            <div key={label} className={styles.group}>
+              <span className={styles.groupLabel}>{label}</span>
+              <div className={styles.rowList}>
+                {items.map((n) => {
+                  const isUnread = !readIds.has(n.id);
+                  const actor = n.actorName || (n.title.split(' ')[0] + ' ' + (n.title.split(' ')[1] || ''));
+                  const badgeIcon = n.badgeIcon || (n.tone === 'alert' ? 'warning' : 'check_circle');
+                  const badgeBg = n.badgeBg || (n.tone === 'alert' ? '#FEE2E2' : '#D1FAE5');
+                  const badgeColor = n.badgeColor || (n.tone === 'alert' ? '#DC2626' : '#059669');
+
+                  return (
+                    <div
+                      key={n.id}
+                      className={`${styles.row} ${isUnread ? styles.rowUnread : ''}`}
+                      onClick={() => handleSelect(n)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      {/* Left: Avatar with Overlapping Icon Badge */}
+                      <div className={styles.avatarWrap}>
+                        <div className={styles.avatarCircle}>
+                          {n.actorAvatarUrl ? (
+                            <Image
+                              src={n.actorAvatarUrl}
+                              alt={actor}
+                              className={styles.avatarImg}
+                              width={44}
+                              height={44}
+                              unoptimized
+                            />
+                          ) : (
+                            <span>{getInitials(actor)}</span>
+                          )}
+                        </div>
+                        <div
+                          className={styles.avatarBadge}
+                          style={{ background: badgeBg, color: badgeColor }}
+                        >
+                          <Symbol name={badgeIcon} size={11} />
+                        </div>
+                      </div>
+
+                      {/* Middle: Instagram Styled Sentence & Action */}
+                      <div className={styles.contentCol}>
+                        <p className={styles.activitySentence}>
+                          <span className={styles.actorName}>{actor}</span>{' '}
+                          {n.title.replace(actor, '').trim() || n.title}
+                          <span className={styles.timeTag}>
+                            {formatInstagramRelativeTime(n.timestamp)}
+                          </span>
+                        </p>
+                        <div className={styles.subActionRow}>
+                          {n.actionLabel && (
+                            <button
+                              type="button"
+                              className={styles.actionPillBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelect(n);
+                              }}
+                            >
+                              {n.actionLabel}
+                            </button>
+                          )}
+                          <span className={styles.subContext}>{n.subtitle}</span>
+                        </div>
+                      </div>
+
+                      {/* Right: Media Thumbnail or Unread Dot */}
+                      <div className={styles.rightWrap}>
+                        {n.thumbnailUrl ? (
+                          <Image
+                            src={n.thumbnailUrl}
+                            alt="Media Preview"
+                            className={styles.mediaThumb}
+                            width={44}
+                            height={44}
+                            unoptimized
+                          />
+                        ) : (
+                          <div className={styles.mediaSilhouette}>
+                            <Symbol name="checkroom" size={18} />
+                          </div>
+                        )}
+                        {isUnread && <div className={styles.unreadDot} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </PageLayout>
   );

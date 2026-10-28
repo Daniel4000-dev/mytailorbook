@@ -12,7 +12,7 @@ import Button from '@/components/ui/Button/Button';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ORDER_STATUSES, STATUS_CONFIG } from '@/lib/constants';
-import { DEFAULT_STAGE_MESSAGES } from '@/lib/formatters';
+import { DEFAULT_STAGE_MESSAGES, DEFAULT_EVENT_PHOTO_MESSAGE } from '@/lib/formatters';
 import type { OrderStatus } from '@/lib/types';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
@@ -31,6 +31,10 @@ export default function MessageTemplatesSettingsPage() {
   const [noteDraft, setNoteDraft] = useState('');
   const [savingNote, setSavingNote] = useState(false);
 
+  const [editingEventPhoto, setEditingEventPhoto] = useState(false);
+  const [eventPhotoDraft, setEventPhotoDraft] = useState('');
+  const [savingEventPhoto, setSavingEventPhoto] = useState(false);
+
   const templates = currentShop?.stageMessageTemplates || {};
 
   const openNoteEditor = () => {
@@ -46,6 +50,22 @@ export default function MessageTemplatesSettingsPage() {
       setEditingNote(false);
     } finally {
       setSavingNote(false);
+    }
+  };
+
+  const openEventPhotoEditor = () => {
+    setEventPhotoDraft(currentShop?.eventPhotoTemplate || DEFAULT_EVENT_PHOTO_MESSAGE);
+    setEditingEventPhoto(true);
+  };
+
+  const handleSaveEventPhoto = async () => {
+    setSavingEventPhoto(true);
+    try {
+      await updateShop({ eventPhotoTemplate: eventPhotoDraft });
+      showToast('Event photo template saved', 'success');
+      setEditingEventPhoto(false);
+    } finally {
+      setSavingEventPhoto(false);
     }
   };
 
@@ -79,9 +99,11 @@ export default function MessageTemplatesSettingsPage() {
     }
   };
 
-  const insertVariable = (token: string, isNote: boolean = false) => {
-    if (isNote) {
+  const insertVariable = (token: string, mode: 'stage' | 'note' | 'event' = 'stage') => {
+    if (mode === 'note') {
       setNoteDraft((prev) => `${prev} ${token}`);
+    } else if (mode === 'event') {
+      setEventPhotoDraft((prev) => `${prev} ${token}`);
     } else {
       setDraft((prev) => `${prev} ${token}`);
     }
@@ -89,11 +111,25 @@ export default function MessageTemplatesSettingsPage() {
 
   const getRenderedPreview = (text: string) => {
     const studioName = currentShop?.name || 'House of Savile';
+    const ig = currentShop?.socialLinks?.instagram || '@houseofsavile';
+    const cleanIg = ig.startsWith('@') ? ig : `@${ig}`;
+    const tiktok = currentShop?.socialLinks?.tiktok || '@houseofsavile';
+    const cleanTiktok = tiktok.startsWith('@') ? tiktok : `@${tiktok}`;
+    const web = currentShop?.socialLinks?.website || 'savile.atelier.ng';
+    const bank = currentShop?.bankDetails?.bankName
+      ? `${currentShop.bankDetails.bankName} - ${currentShop.bankDetails.accountNumber || '0123456789'}`
+      : 'Access Bank - 0123456789';
+
     return text
       .replace(/\{name\}/g, 'Chief Emeka')
       .replace(/\{shop\}/g, studioName)
       .replace(/\{link\}/g, `mytailorbook.com/t/ord_204`)
-      .replace(/\{orderId\}/g, 'ORD-204');
+      .replace(/\{orderId\}/g, 'ORD-204')
+      .replace(/\{instagram\}/g, cleanIg)
+      .replace(/\{handle\}/g, cleanIg)
+      .replace(/\{tiktok\}/g, cleanTiktok)
+      .replace(/\{website\}/g, web)
+      .replace(/\{bank_details\}/g, bank);
   };
 
   return (
@@ -117,7 +153,17 @@ export default function MessageTemplatesSettingsPage() {
             Reach-Out Note Template
           </span>
           <span className={styles.subtitle}>
-            {(currentShop?.outreachTemplate || 'Using default').slice(0, 40)}
+            {(currentShop?.outreachTemplate || 'Using default').slice(0, 36)}
+          </span>
+          <Symbol name="chevron_right" size={18} className={styles.chevron} />
+        </button>
+
+        <button type="button" className={styles.row} onClick={openEventPhotoEditor}>
+          <span className={styles.subtitle} style={{ flex: 'none', color: 'var(--sf-text-primary)', fontWeight: 'var(--sf-weight-medium)' }}>
+            Event Photo Request Template
+          </span>
+          <span className={styles.subtitle}>
+            {(currentShop?.eventPhotoTemplate || 'Using default').slice(0, 36)}
           </span>
           <Symbol name="chevron_right" size={18} className={styles.chevron} />
         </button>
@@ -166,28 +212,42 @@ export default function MessageTemplatesSettingsPage() {
               <button
                 type="button"
                 className={styles.variableChip}
-                onClick={() => insertVariable('{name}')}
+                onClick={() => insertVariable('{name}', 'stage')}
               >
                 + Client Name
               </button>
               <button
                 type="button"
                 className={styles.variableChip}
-                onClick={() => insertVariable('{shop}')}
+                onClick={() => insertVariable('{shop}', 'stage')}
               >
                 + Studio Name
               </button>
               <button
                 type="button"
                 className={styles.variableChip}
-                onClick={() => insertVariable('{link}')}
+                onClick={() => insertVariable('{instagram}', 'stage')}
+              >
+                + Instagram
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{bank_details}', 'stage')}
+              >
+                + Bank Details
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{link}', 'stage')}
               >
                 + Tracking Link
               </button>
               <button
                 type="button"
                 className={styles.variableChip}
-                onClick={() => insertVariable('{orderId}')}
+                onClick={() => insertVariable('{orderId}', 'stage')}
               >
                 + Order Number
               </button>
@@ -244,16 +304,23 @@ export default function MessageTemplatesSettingsPage() {
               <button
                 type="button"
                 className={styles.variableChip}
-                onClick={() => insertVariable('{name}', true)}
+                onClick={() => insertVariable('{name}', 'note')}
               >
                 + Client Name
               </button>
               <button
                 type="button"
                 className={styles.variableChip}
-                onClick={() => insertVariable('{shop}', true)}
+                onClick={() => insertVariable('{shop}', 'note')}
               >
                 + Studio Name
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{instagram}', 'note')}
+              >
+                + Instagram
               </button>
             </div>
           </div>
@@ -283,6 +350,80 @@ export default function MessageTemplatesSettingsPage() {
               Cancel
             </Button>
             <Button variant="primary" loading={savingNote} onClick={handleSaveNote}>
+              Save Template
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* Event Photo Request Editor Sheet */}
+      <BottomSheet
+        isOpen={editingEventPhoto}
+        onClose={() => setEditingEventPhoto(false)}
+        title="Event Photo Request Template"
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          <div className={styles.variableChipsSection}>
+            <span className={styles.variableChipsLabel}>Quick Insert Variable</span>
+            <div className={styles.variableChipsRow}>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{name}', 'event')}
+              >
+                + Client Name
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{shop}', 'event')}
+              >
+                + Studio Name
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{instagram}', 'event')}
+              >
+                + Instagram
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            className={styles.textarea}
+            value={eventPhotoDraft}
+            onChange={(e) => setEventPhotoDraft(e.target.value)}
+            rows={4}
+          />
+
+          <div className={styles.chatPreviewSection}>
+            <span className={styles.chatPreviewLabel}>Live Client WhatsApp Preview</span>
+            <div className={styles.chatPreviewWrap}>
+              <div className={styles.chatBubble}>
+                <div>{getRenderedPreview(eventPhotoDraft) || 'Message preview will appear here...'}</div>
+                <div className={styles.chatMeta}>
+                  <span>14:32</span>
+                  <span className={styles.chatTicks}>vv</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className={styles.resetLink}
+            onClick={() => setEventPhotoDraft(DEFAULT_EVENT_PHOTO_MESSAGE)}
+          >
+            Reset to Atelier Default
+          </button>
+
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setEditingEventPhoto(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingEventPhoto} onClick={handleSaveEventPhoto}>
               Save Template
             </Button>
           </div>

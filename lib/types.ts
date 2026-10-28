@@ -62,6 +62,21 @@ export interface Shop {
   /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
    *  just mean those sections collapse in the public view. */
   portfolioSettings?: { tagline?: string; bio?: string; foundedYear?: number };
+  /** Custom template for asking clients to send pictures of them wearing the garment at their event/occasion. */
+  eventPhotoTemplate?: string;
+  /** Studio social media handles & web presence for lookbooks and client communication */
+  socialLinks?: {
+    instagram?: string;
+    tiktok?: string;
+    website?: string;
+    facebook?: string;
+  };
+  /** Direct bank transfer details auto-injected into quotes, receipts and WhatsApp deposit reminders */
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+  };
   monthlyRevenueTarget?: number;
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;

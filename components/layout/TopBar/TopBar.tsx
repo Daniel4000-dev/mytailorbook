@@ -12,6 +12,7 @@ import { getTierForXp } from '@/lib/gamification';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
 import ChallengeModal from '@/components/ui/ChallengeModal/ChallengeModal';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 
 interface TopBarProps {
   title?: string;
@@ -79,16 +80,7 @@ export default function TopBar({
               {leftAction}
             </div>
             <div className={styles.right}>
-              <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-                {!isOnline ? (
-                  <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
-                ) : (
-                  <>
-                    <Symbol name="notifications" size={24} />
-                    <span className={styles.notificationBadge} />
-                  </>
-                )}
-              </button>
+              <NotificationBell />
 
               <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px' }}>
                 <button

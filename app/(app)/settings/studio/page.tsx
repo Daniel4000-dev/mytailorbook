@@ -46,6 +46,20 @@ export default function StudioSettingsPage() {
   const [draftValue, setDraftValue] = useState('');
   const [savingField, setSavingField] = useState(false);
 
+  // Social Links state
+  const [linksOpen, setLinksOpen] = useState(false);
+  const [draftInstagram, setDraftInstagram] = useState('');
+  const [draftTiktok, setDraftTiktok] = useState('');
+  const [draftWebsite, setDraftWebsite] = useState('');
+  const [savingLinks, setSavingLinks] = useState(false);
+
+  // Bank Settlement state
+  const [bankOpen, setBankOpen] = useState(false);
+  const [draftBankName, setDraftBankName] = useState('');
+  const [draftAccountNumber, setDraftAccountNumber] = useState('');
+  const [draftAccountName, setDraftAccountName] = useState('');
+  const [savingBank, setSavingBank] = useState(false);
+
   // Benchmarks state
   const [targetRevenue, setTargetRevenue] = useState<number>(currentShop?.monthlyRevenueTarget || 1000000);
   const [weeklyCap, setWeeklyCap] = useState<number>(currentShop?.weeklyCapacity || 5);
@@ -101,6 +115,89 @@ export default function StudioSettingsPage() {
     } finally {
       setSavingField(false);
     }
+  };
+
+  const openLinksEditor = () => {
+    setDraftInstagram(currentShop?.socialLinks?.instagram || '');
+    setDraftTiktok(currentShop?.socialLinks?.tiktok || '');
+    setDraftWebsite(currentShop?.socialLinks?.website || '');
+    setLinksOpen(true);
+  };
+
+  const handleSaveLinks = async () => {
+    setSavingLinks(true);
+    try {
+      const formattedInsta = draftInstagram.trim()
+        ? (draftInstagram.trim().startsWith('@') || draftInstagram.trim().includes('http') ? draftInstagram.trim() : `@${draftInstagram.trim()}`)
+        : undefined;
+      const formattedTiktok = draftTiktok.trim()
+        ? (draftTiktok.trim().startsWith('@') || draftTiktok.trim().includes('http') ? draftTiktok.trim() : `@${draftTiktok.trim()}`)
+        : undefined;
+      await updateShop({
+        socialLinks: {
+          instagram: formattedInsta,
+          tiktok: formattedTiktok,
+          website: draftWebsite.trim() || undefined,
+        },
+      });
+      showToast('Social media links updated', 'success');
+      setLinksOpen(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update links', 'error');
+    } finally {
+      setSavingLinks(false);
+    }
+  };
+
+  const openBankEditor = () => {
+    setDraftBankName(currentShop?.bankDetails?.bankName || '');
+    setDraftAccountNumber(currentShop?.bankDetails?.accountNumber || '');
+    setDraftAccountName(currentShop?.bankDetails?.accountName || '');
+    setBankOpen(true);
+  };
+
+  const handleSaveBank = async () => {
+    setSavingBank(true);
+    try {
+      await updateShop({
+        bankDetails: {
+          bankName: draftBankName.trim() || undefined,
+          accountNumber: draftAccountNumber.trim() || undefined,
+          accountName: draftAccountName.trim() || undefined,
+        },
+      });
+      showToast('Bank transfer details updated', 'success');
+      setBankOpen(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update bank details', 'error');
+    } finally {
+      setSavingBank(false);
+    }
+  };
+
+  const handleCopyBankDetails = async () => {
+    const bankString = `Bank: ${draftBankName || currentShop?.bankDetails?.bankName || 'GTBank'}\nAccount: ${draftAccountNumber || currentShop?.bankDetails?.accountNumber || '0123456789'}\nName: ${draftAccountName || currentShop?.bankDetails?.accountName || currentShop?.name || 'Studio Bespoke'}`;
+    await navigator.clipboard.writeText(bankString);
+    showToast('Bank details copied to clipboard', 'success');
+  };
+
+  const handleOpenSocial = (type: 'instagram' | 'tiktok' | 'website') => {
+    let url = '';
+    if (type === 'instagram') {
+      const handle = (draftInstagram || currentShop?.socialLinks?.instagram || '').replace(/^@/, '').replace(/.*instagram\.com\//, '').replace(/\/$/, '');
+      if (!handle) return;
+      url = `https://instagram.com/${handle}`;
+    } else if (type === 'tiktok') {
+      const handle = (draftTiktok || currentShop?.socialLinks?.tiktok || '').replace(/^@/, '').replace(/.*tiktok\.com\/@?/, '').replace(/\/$/, '');
+      if (!handle) return;
+      url = `https://tiktok.com/@${handle}`;
+    } else if (type === 'website') {
+      let raw = (draftWebsite || currentShop?.socialLinks?.website || '');
+      if (!raw) return;
+      if (!raw.startsWith('http://') && !raw.startsWith('https://')) raw = `https://${raw}`;
+      url = raw;
+    }
+    if (url) window.open(url, '_blank');
   };
 
   const handleSelectBusinessMode = async (mode: 'bespoke' | 'rtw' | 'hybrid') => {
@@ -290,6 +387,46 @@ export default function StudioSettingsPage() {
               ) : (
                 <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
                   Add WhatsApp number
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={openLinksEditor}
+          >
+            <span className={styles.rowLabel}>Links</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.socialLinks?.instagram || currentShop?.socialLinks?.tiktok || currentShop?.socialLinks?.website ? (
+                <span className={styles.rowValue}>
+                  {currentShop.socialLinks.instagram || currentShop.socialLinks.tiktok || currentShop.socialLinks.website}
+                </span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Add links
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={openBankEditor}
+          >
+            <span className={styles.rowLabel}>Bank Details</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.bankDetails?.bankName ? (
+                <span className={styles.rowValue}>
+                  {currentShop.bankDetails.bankName} · {currentShop.bankDetails.accountNumber}
+                </span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Add bank account for transfers
                 </span>
               )}
               <Symbol name="chevron_right" size={18} className={styles.chevron} />
@@ -614,6 +751,186 @@ export default function StudioSettingsPage() {
             </Button>
             <Button variant="primary" loading={savingField} onClick={handleSaveField}>
               Save
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* Links & Social Presence Bottom Sheet */}
+      <BottomSheet
+        isOpen={linksOpen}
+        onClose={() => setLinksOpen(false)}
+        title="Social Media & Links"
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          <Input
+            label="Instagram Handle"
+            value={draftInstagram}
+            onChange={(e) => setDraftInstagram(e.target.value)}
+            placeholder="@houseofsavile"
+          />
+
+          <Input
+            label="TikTok Handle"
+            value={draftTiktok}
+            onChange={(e) => setDraftTiktok(e.target.value)}
+            placeholder="@savilecouture"
+          />
+
+          <Input
+            label="Website URL"
+            value={draftWebsite}
+            onChange={(e) => setDraftWebsite(e.target.value)}
+            placeholder="houseofsavile.com"
+          />
+
+          {(draftInstagram || draftTiktok || draftWebsite) && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+              {draftInstagram && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSocial('instagram')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--sf-border-light)',
+                    background: 'var(--sf-bg-surface-sunken)',
+                    color: 'var(--sf-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Symbol name="open_in_new" size={14} /> Visit Instagram
+                </button>
+              )}
+              {draftTiktok && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSocial('tiktok')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--sf-border-light)',
+                    background: 'var(--sf-bg-surface-sunken)',
+                    color: 'var(--sf-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Symbol name="open_in_new" size={14} /> Visit TikTok
+                </button>
+              )}
+              {draftWebsite && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSocial('website')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--sf-border-light)',
+                    background: 'var(--sf-bg-surface-sunken)',
+                    color: 'var(--sf-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Symbol name="open_in_new" size={14} /> Open Website
+                </button>
+              )}
+            </div>
+          )}
+
+          <p className={styles.sheetHelp}>
+            Used to auto-populate the {'{instagram}'} variable in client messages (e.g. event photo requests) and displayed on your public lookbook.
+          </p>
+
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setLinksOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingLinks} onClick={handleSaveLinks}>
+              Save Links
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* Bank Settlement Details Bottom Sheet */}
+      <BottomSheet
+        isOpen={bankOpen}
+        onClose={() => setBankOpen(false)}
+        title="Bank Transfer Details"
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          <Input
+            label="Bank Name"
+            value={draftBankName}
+            onChange={(e) => setDraftBankName(e.target.value)}
+            placeholder="e.g. Guaranty Trust Bank (GTBank)"
+          />
+
+          <Input
+            label="Account Number"
+            value={draftAccountNumber}
+            onChange={(e) => setDraftAccountNumber(e.target.value)}
+            placeholder="0123456789"
+          />
+
+          <Input
+            label="Account Name"
+            value={draftAccountName}
+            onChange={(e) => setDraftAccountName(e.target.value)}
+            placeholder="e.g. House of Savile Bespoke Ltd"
+          />
+
+          {(draftBankName || draftAccountNumber) && (
+            <div style={{ marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={handleCopyBankDetails}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '999px',
+                  border: '1px solid var(--sf-border-light)',
+                  background: 'var(--sf-bg-surface-sunken)',
+                  color: 'var(--sf-text-primary)',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Symbol name="content_copy" size={14} /> Test Copy Bank Details
+              </button>
+            </div>
+          )}
+
+          <p className={styles.sheetHelp}>
+            Auto-injected into quotes, receipts, invoices, and WhatsApp deposit payment reminders via the {'{bank_details}'} tag.
+          </p>
+
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setBankOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingBank} onClick={handleSaveBank}>
+              Save Bank Details
             </Button>
           </div>
         </div>

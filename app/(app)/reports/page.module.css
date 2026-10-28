@@ -1,0 +1,227 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg, 20px);
+  padding-bottom: 48px;
+}
+
+.heroBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  flex-wrap: wrap;
+}
+
+.introCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: var(--sf-text-xl, 20px);
+  font-weight: var(--sf-weight-semibold, 600);
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--sf-text-sm, 14px);
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.rangeRow {
+  display: flex;
+  gap: 6px;
+  background: var(--sf-bg-surface-elevated, #ffffff);
+  padding: 4px;
+  border-radius: var(--sf-radius-full, 999px);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+}
+
+.rangeBtn {
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full, 999px);
+  border: none;
+  background: none;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-xs, 12px);
+  font-weight: var(--sf-weight-medium, 500);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rangeBtnActive {
+  background: var(--sf-text-primary, #111827);
+  color: #ffffff;
+  font-weight: var(--sf-weight-semibold, 600);
+}
+
+/* ── 4-Metric Dominant Telemetry Grid ── */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sf-space-md, 16px);
+}
+
+@media (min-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.metricCard {
+  background: var(--sf-bg-surface-elevated, #ffffff);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  border-radius: var(--sf-radius-lg, 16px);
+  padding: var(--sf-space-md, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metricLabel {
+  font-size: var(--sf-text-xs, 12px);
+  color: var(--sf-text-secondary);
+  font-weight: var(--sf-weight-medium, 500);
+}
+
+.metricIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-bg-surface-sunken, #f3f4f6);
+  color: var(--sf-text-primary);
+}
+
+.metricValue {
+  font-size: var(--sf-text-xl, 22px);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.metricSub {
+  font-size: var(--sf-text-xs, 11px);
+  color: var(--sf-text-tertiary, #9ca3af);
+}
+
+/* ── Analytical Visual Surface ── */
+.panelCard {
+  background: var(--sf-bg-surface-elevated, #ffffff);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  border-radius: var(--sf-radius-lg, 16px);
+  padding: var(--sf-space-lg, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--sf-space-sm, 8px);
+  border-bottom: 1px solid var(--sf-border-subtle, #f3f4f6);
+}
+
+.panelTitle {
+  font-size: var(--sf-text-sm, 14px);
+  font-weight: var(--sf-weight-semibold, 600);
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profitableBadge {
+  font-size: var(--sf-text-xs, 11px);
+  font-weight: var(--sf-weight-medium, 500);
+  color: var(--sf-color-primary, #047857);
+  background: rgba(4, 120, 87, 0.08);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+/* ── Expense Breakdown Rows ── */
+.expenseList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expenseRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--sf-text-sm, 14px);
+}
+
+.expenseName {
+  color: var(--sf-text-secondary);
+}
+
+.expenseAmount {
+  font-weight: var(--sf-weight-semibold, 600);
+  color: var(--sf-text-primary);
+}
+
+/* ── Profitable Style Hero ── */
+.profitableCutWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sf-space-md, 16px);
+  background: var(--sf-bg-surface-sunken, #f9fafb);
+  border-radius: var(--sf-radius-md, 12px);
+  border: 1px solid var(--sf-border-subtle, #f3f4f6);
+}
+
+.cutInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cutName {
+  font-size: var(--sf-text-base, 15px);
+  font-weight: var(--sf-weight-semibold, 600);
+  color: var(--sf-text-primary);
+}
+
+.cutCount {
+  font-size: var(--sf-text-xs, 12px);
+  color: var(--sf-text-secondary);
+}
+
+.cutProfitWrap {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cutProfitVal {
+  font-size: var(--sf-text-base, 15px);
+  font-weight: 700;
+  color: var(--sf-color-primary, #047857);
+}
+
+.cutProfitLabel {
+  font-size: var(--sf-text-xs, 11px);
+  color: var(--sf-text-secondary);
+}
+

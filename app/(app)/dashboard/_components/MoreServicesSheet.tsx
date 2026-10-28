@@ -4,6 +4,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatCurrency } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
+import { ROUTES } from '@/lib/routes';
 import styles from './MoreServicesSheet.module.css';
 
 interface MoreServicesSheetProps {
@@ -27,6 +28,14 @@ export default function MoreServicesSheet({
   };
 
   const services = [
+    {
+      title: 'Financial Intelligence & Margins',
+      sub: 'Revenue, margin, customer debt & expense telemetry',
+      icon: 'bar_chart',
+      href: ROUTES.reports,
+      iconClass: styles.iconDebt,
+      badge: null,
+    },
     {
       title: 'Ready-to-Wear Stock / POS',
       sub: 'Off-the-rack garments & walk-in sales',
