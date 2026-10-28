@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import useSWR from 'swr';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException, AtelierCraftRole } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException, AtelierCraftRole, CalendarEvent } from '@/lib/types';
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
 import { logStreakAction } from '@/lib/streakClient';
@@ -50,9 +50,10 @@ interface ShopBundle {
   shop: Shop | null;
   exceptions: ShopException[];
   inventory: import('@/lib/types').InventoryItem[];
+  calendarEvents: CalendarEvent[];
 }
 
-const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [], inventory: [] };
+const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [], inventory: [], calendarEvents: [] };
 
 interface DataContextValue {
   orders: Order[];
@@ -61,6 +62,7 @@ interface DataContextValue {
   shops: Shop[];
   exceptions: ShopException[];
   inventory: import('@/lib/types').InventoryItem[];
+  calendarEvents: CalendarEvent[];
   currentShop: Shop | null;
   activeBranchId: string | null;
   setActiveBranchId: (shopId: string) => void;
@@ -200,6 +202,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, () => mutate())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
       // Picks up the Paystack webhook flipping subscription_status once a
       // payment (popup or otherwise) actually clears — without this, the
       // in-app UI would keep showing "Free" until something else happened
@@ -244,6 +247,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const exceptions = isDemoMode ? demoExceptions : bundle.exceptions;
   const currentShop = bundle.shop;
   const inventory = bundle.inventory;
+  const calendarEvents = bundle.calendarEvents || [];
   // Only true once we've never had data for this shop — a background
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = isDemoMode ? true : !!data;
@@ -838,6 +842,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       shops: branches,
       exceptions,
       inventory,
+      calendarEvents,
       currentShop,
       activeBranchId,
       setActiveBranchId,
@@ -872,7 +877,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateInventoryItem,
       deleteInventoryItem,
     }),
-    [orders, customers, staffMembers, branches, exceptions, inventory, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, isDemoMode, toggleDemoMode, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
+    [orders, customers, staffMembers, branches, exceptions, inventory, calendarEvents, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, isDemoMode, toggleDemoMode, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

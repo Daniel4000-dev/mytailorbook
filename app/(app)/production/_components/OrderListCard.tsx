@@ -72,7 +72,18 @@ export default function OrderListCard({
 
   const fabricMatch = order.orderDetails.match(/\[Fabric:\s*([^\]]+)\]/i);
   const fabricNote = fabricMatch ? fabricMatch[1] : null;
-  const cleanOrderDetails = order.orderDetails.replace(/\[Fabric:\s*[^\]]+\]/i, '').trim();
+
+  const embellishmentMatch = order.orderDetails.match(/\[Embellishment:\s*([^|\]]+)(?:\|[^\]]*)?\]/i);
+  const embellishmentStatusMatch = order.orderDetails.match(/Status:\s*([^|\]]+)/i);
+  const embellishmentStatus = embellishmentStatusMatch ? embellishmentStatusMatch[1].trim() : null;
+  const isWithArtisan = embellishmentStatus?.toLowerCase().includes('artisan') || embellishmentStatus?.toLowerCase().includes('progress');
+  const embellishmentType = embellishmentMatch ? embellishmentMatch[1].trim() : null;
+
+  const cleanOrderDetails = order.orderDetails
+    .replace(/\[Fabric:\s*[^\]]+\]/i, '')
+    .replace(/\[Embellishment:[^\]]+\]/i, '')
+    .replace(/\[Awaiting Sourcing\]/i, '')
+    .trim();
 
   const batchMatch = order.orderDetails.match(/\((\d+\s*of\s*\d+)\)/i);
   const batchLabel = batchMatch ? `Batch • ${batchMatch[1]}` : 'Batch';
@@ -272,6 +283,12 @@ export default function OrderListCard({
                 <span>URGENT</span>
               </span>
             )}
+            {isWithArtisan && (
+              <span className={styles.artisanBadge} title={`With Artisan: ${embellishmentType || 'Specialist'}`}>
+                <Symbol name="diamond" size={10} fill />
+                <span>ARTISAN ({truncateText(embellishmentType || 'BEADING', 10)})</span>
+              </span>
+            )}
             {order.batchId && (
               <span
                 className={`${styles.batchBadge} ${onBatchClick ? styles.batchBadgeInteractive : ''}`}
@@ -373,6 +390,14 @@ export default function OrderListCard({
             {fabricNote && (
               <span className={styles.fabricPill} title={`Fabric: ${fabricNote}`}>
                 <Symbol name="texture" size={11} /> {truncateText(fabricNote, 18)}
+              </span>
+            )}
+            {embellishmentType && (
+              <span
+                className={styles.embellishmentPill}
+                title={`Artisan Craft: ${embellishmentType} (${embellishmentStatus || 'Pending'})`}
+              >
+                <Symbol name="diamond" size={11} /> {truncateText(embellishmentType, 16)}
               </span>
             )}
           </div>

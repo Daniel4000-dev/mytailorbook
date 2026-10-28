@@ -90,7 +90,13 @@ export function useOpenLoops(orders: Order[], customers: Customer[], exceptions:
     }
 
     // 3. Uncut Fabrics Loop
-    const uncutOrders = orders.filter((o) => o.status === 'Documented' && !activeExceptionOrderIds.has(o.id));
+    const uncutOrders = orders.filter((o) => {
+      if (o.status !== 'Documented') return false;
+      if (activeExceptionOrderIds.has(o.id)) return false;
+      // If flagged as awaiting fabric sourcing or client fabric drop-off, pause from urgent alert
+      if (o.orderDetails?.includes('[Awaiting Sourcing]') || o.orderDetails?.includes('[Fabric Pending]')) return false;
+      return true;
+    });
     if (uncutOrders.length > 0) {
       loops.push({
         id: 'loop-fabrics',

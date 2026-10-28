@@ -7,7 +7,7 @@ import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { sendPushToShop } from '@/lib/push';
 import { formatCurrency } from '@/lib/formatters';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem, CalendarEvent, CalendarEventType } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
 // ----------------------------------------------------------------------
@@ -289,15 +289,35 @@ function shopFromRow(row: any): Shop {
 // stops the worst case from being literally unbounded until then.
 const SHOP_BUNDLE_ROW_LIMIT = 2000;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function calendarEventFromRow(row: any): CalendarEvent {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    title: row.title,
+    description: row.description || undefined,
+    type: row.type as CalendarEventType,
+    date: row.date,
+    startTime: row.start_time || undefined,
+    endTime: row.end_time || undefined,
+    relatedOrderId: row.related_order_id || undefined,
+    relatedCustomerId: row.related_customer_id || undefined,
+    assignedTo: row.assigned_to || undefined,
+    status: row.status || 'pending',
+    createdAt: row.created_at,
+  };
+}
+
 export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
-  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes, inventoryRes] = await Promise.all([
+  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes, inventoryRes, calendarRes] = await Promise.all([
     supabase.from('shops').select('*').eq('id', shopId).single(),
     supabase.from('customers').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
     supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
     supabase.from('profiles').select('*').eq('shop_id', shopId),
     supabase.from('shop_exceptions').select('*').eq('shop_id', shopId),
-    supabase.from('inventory').select('*').eq('shop_id', shopId)
+    supabase.from('inventory').select('*').eq('shop_id', shopId),
+    supabase.from('calendar_events').select('*').eq('shop_id', shopId).order('date', { ascending: true }).limit(500),
   ]);
 
   if (shopRes.error) console.error('shopRes error:', shopRes.error);
@@ -305,6 +325,7 @@ export async function getShopBundle(shopId: string, orgId: string) {
   if (ordersRes.error) console.error('ordersRes error:', ordersRes.error);
   if (profilesRes.error) console.error('profilesRes error:', profilesRes.error);
   if (inventoryRes.error) console.error('inventoryRes error:', inventoryRes.error);
+  if (calendarRes.error) console.error('calendarRes error:', calendarRes.error);
 
   return {
     shop: shopRes.data ? shopFromRow(shopRes.data) : null,
@@ -313,6 +334,7 @@ export async function getShopBundle(shopId: string, orgId: string) {
     staffMembers: (profilesRes.data || []).map(userFromRow),
     exceptions: (exceptionsRes.data || []).map(exceptionFromRow),
     inventory: (inventoryRes.data || []).map(inventoryItemFromRow),
+    calendarEvents: (calendarRes.data || []).map(calendarEventFromRow),
   };
 }
 

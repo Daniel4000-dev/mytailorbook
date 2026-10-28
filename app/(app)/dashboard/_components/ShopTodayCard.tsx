@@ -1,5 +1,6 @@
 import { motion, Variants } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { useData } from '@/contexts/DataContext';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
 import { useMilestones } from '../_hooks/useMilestones';
 import styles from './ShopTodayCard.module.css';
@@ -15,8 +16,14 @@ export default function ShopTodayCard({
   shop: any;
 }) {
   const { milestones } = useMilestones();
+  const { calendarEvents } = useData();
   const isAllCaughtUp = loops.length === 0;
   const currentStreak = shop?.streakCurrent || 0;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isMarketRunToday = (calendarEvents || []).some(
+    (e) => e.date === todayStr && e.type === 'market_run'
+  );
 
   // Contextual copy for the assistant
   let title = "Your shop is on track";
@@ -26,7 +33,11 @@ export default function ShopTodayCard({
   // Check if any milestone was just recently hit (current is very close to target or exactly target)
   const newlyHitMilestone = milestones.find(m => m.achieved && m.current >= m.target && m.current <= m.target + 2);
 
-  if (newlyHitMilestone && isAllCaughtUp) {
+  if (isMarketRunToday) {
+    title = "Out Sourcing Materials";
+    subtitle = `Fabric market run active today. Your ${currentStreak > 0 ? `${currentStreak}-day ` : ''}streak is fully protected!`;
+    emotion = "celebratory";
+  } else if (newlyHitMilestone && isAllCaughtUp) {
     title = "Milestone reached!";
     subtitle = `${newlyHitMilestone.title}. Look at you running an actual system!`;
     emotion = "celebratory";

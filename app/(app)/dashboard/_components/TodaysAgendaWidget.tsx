@@ -1,57 +1,74 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
-import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
+import { useData } from '@/contexts/DataContext';
+import { updateEventStatus } from '@/app/actions/calendar';
+import { ROUTES } from '@/lib/routes';
 import type { CalendarEvent } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './TodaysAgendaWidget.module.css';
 
 export default function TodaysAgendaWidget() {
-  const { user } = useAuth();
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { calendarEvents, orders, isLoaded } = useData();
+  const [localStatuses, setLocalStatuses] = useState<Record<string, 'pending' | 'completed'>>({});
 
-  useEffect(() => {
-    if (!user?.shopId) return;
-    const fetchToday = async () => {
-      try {
-        const today = new Date();
-        const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        const allMonth = await getCalendarEvents(user.shopId, monthStr);
-        
-        const todayStr = today.toISOString().split('T')[0];
-        setEvents(allMonth.filter(e => e.date === todayStr));
-      } catch (err) {
-        console.error('Failed to fetch today calendar agenda:', err);
-      } finally {
-        setIsLoading(false);
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  // Merge today's calendar events with orders due today — fully synchronous, 0ms lag
+  const events = useMemo(() => {
+    const list: CalendarEvent[] = (calendarEvents || [])
+      .filter((e) => e.date === todayStr)
+      .map((e) => (localStatuses[e.id] ? { ...e, status: localStatuses[e.id] } : e));
+
+    // Merge in any orders due today that aren't already represented as deadlines
+    orders.forEach((order) => {
+      if (order.dueDate && order.dueDate.split('T')[0] === todayStr) {
+        const alreadyHasDeadline = list.some(
+          (e) => e.relatedOrderId === order.id || e.id === `order-deadline-${order.id}`
+        );
+        if (!alreadyHasDeadline) {
+          list.push({
+            id: `order-deadline-${order.id}`,
+            shopId: order.shopId,
+            title: `${order.customerName} Delivery`,
+            date: todayStr,
+            type: 'dispatch',
+            relatedOrderId: order.id,
+            relatedCustomerId: order.customerId,
+            description: order.orderDetails,
+            status: order.status === 'Delivered' ? 'completed' : 'pending',
+            createdAt: order.createdAt,
+          });
+        }
       }
-    };
-    fetchToday();
-  }, [user?.shopId]);
+    });
 
-  if (isLoading) return null;
+    return list.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+  }, [calendarEvents, orders, todayStr, localStatuses]);
 
-  const pendingCount = events.filter(e => e.status !== 'completed').length;
+  if (!isLoaded) return null;
+
+  const pendingCount = events.filter((e) => e.status !== 'completed').length;
+  const fittingsCount = events.filter((e) => e.type === 'fitting').length;
 
   return (
     <div className={styles.widget}>
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <span className={styles.titleIcon}>
-            <Symbol name="calendar_today" size={16} />
+            <Symbol name="calendar_today" size={17} />
           </span>
           <h2 className={styles.title}>Today&apos;s Schedule &amp; Fittings</h2>
           {pendingCount > 0 && (
-            <span className={styles.pendingBadge}>
-              {pendingCount} Pending
-            </span>
+            <span className={styles.pendingBadge}>{pendingCount} Pending</span>
+          )}
+          {fittingsCount > 0 && (
+            <span className={styles.fittingCountBadge}>{fittingsCount} Try-ons</span>
           )}
         </div>
-        <Link href="/calendar" className={styles.calendarLink}>
-          <span>Calendar</span>
+        <Link href={ROUTES.calendarWithFilter('fitting')} className={styles.calendarLink}>
+          <span>Lounge</span>
           <Symbol name="chevron_right" size={14} />
         </Link>
       </div>
@@ -62,36 +79,39 @@ export default function TodaysAgendaWidget() {
             <Symbol name="calendar_today" size={16} className={styles.emptyIcon} />
             <span className={styles.emptyText}>No fittings or appointments scheduled today</span>
           </div>
-          <Link href="/calendar" className={styles.scheduleBtn}>
+          <Link href={ROUTES.calendarWithFilter('fitting')} className={styles.scheduleBtn}>
             <Symbol name="add" size={12} />
             <span>Schedule</span>
           </Link>
         </div>
       ) : (
         <div className={styles.eventList}>
-          {events.map(evt => {
+          {events.map((evt) => {
             const isCompleted = evt.status === 'completed';
+            const isFitting = evt.type === 'fitting';
+            const isDeadline = evt.id.startsWith('order-deadline-') || evt.type === 'dispatch';
+
             return (
               <div
                 key={evt.id}
                 className={`${styles.eventItem} ${isCompleted ? styles.eventItemCompleted : ''}`}
               >
                 <div className={styles.eventLeft}>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const newStatus = isCompleted ? 'pending' : 'completed';
-                      setEvents(prev =>
-                        prev.map(p => (p.id === evt.id ? { ...p, status: newStatus } : p))
-                      );
-                      await updateEventStatus(evt.id, newStatus);
-                    }}
-                    className={`${styles.checkBtn} ${isCompleted ? styles.checkBtnCompleted : ''}`}
-                    title={isCompleted ? 'Mark as pending' : 'Mark as done'}
-                    aria-label={isCompleted ? 'Mark as pending' : 'Mark as done'}
-                  >
-                    <Symbol name="check" size={12} />
-                  </button>
+                  {!isDeadline && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const newStatus = isCompleted ? 'pending' : 'completed';
+                        setLocalStatuses((prev) => ({ ...prev, [evt.id]: newStatus }));
+                        await updateEventStatus(evt.id, newStatus);
+                      }}
+                      className={`${styles.checkBtn} ${isCompleted ? styles.checkBtnCompleted : ''}`}
+                      title={isCompleted ? 'Mark as pending' : 'Mark as done'}
+                      aria-label={isCompleted ? 'Mark as pending' : 'Mark as done'}
+                    >
+                      <Symbol name="check" size={12} />
+                    </button>
+                  )}
                   <span
                     className={`${styles.eventTitle} ${
                       isCompleted ? styles.eventTitleCompleted : ''
@@ -99,6 +119,12 @@ export default function TodaysAgendaWidget() {
                   >
                     {evt.title}
                   </span>
+                  {isFitting && (
+                    <span className={styles.fittingMiniPill}>Fitting</span>
+                  )}
+                  {isDeadline && (
+                    <span className={styles.deadlineMiniPill}>Dispatch</span>
+                  )}
                 </div>
                 <span className={styles.eventTime}>
                   {evt.startTime || 'All day'}

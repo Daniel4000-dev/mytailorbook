@@ -41,6 +41,7 @@ import HandoverPaymentSheet from './_components/HandoverPaymentSheet';
 import OrderExpenses from './_components/OrderExpenses';
 import OrderPayments from './_components/OrderPayments';
 import OrderMaterials from './_components/OrderMaterials';
+import OrderEmbellishmentTracker from './_components/OrderEmbellishmentTracker';
 import ScheduleFittingPromptModal from '../_components/ScheduleFittingPromptModal';
 import { createCalendarEvent } from '@/app/actions/calendar';
 import styles from './page.module.css';
@@ -489,6 +490,31 @@ export default function OrderDetailPage() {
     }
   };
 
+  const handleEventPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    if (!isPremium && (order.images?.length || 0) + files.length > FREE_ORDER_PROGRESS_PHOTO_LIMIT) {
+      showToast(`Free plan limit: ${FREE_ORDER_PROGRESS_PHOTO_LIMIT} photos per order. Upgrade to add more.`, 'error');
+      e.target.value = '';
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const uploaded: OrderPhoto[] = [];
+      for (const file of Array.from(files)) {
+        const url = await uploadToStorage(file, 'event/');
+        uploaded.push({ url, stage: 'Delivered', uploadedAt: new Date().toISOString() });
+      }
+      await updateOrder(order.id, { images: [...(order.images || []), ...uploaded] });
+      showToast(uploaded.length > 1 ? `${uploaded.length} event photos added to Lookbook` : 'Client event photo added to Lookbook', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to upload event photo', 'error');
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
+  };
+
   const handleRemovePhoto = async (index: number) => {
     const removed = (order.images || [])[index];
     await updateOrder(order.id, { images: (order.images || []).filter((_, i) => i !== index) });
@@ -923,6 +949,16 @@ export default function OrderDetailPage() {
                 )}
               </section>
 
+              {/* Artisan Embellishment & Beading Tracker */}
+              <OrderEmbellishmentTracker
+                order={order}
+                onUpdateOrderDetails={async (newDetails) => {
+                  await updateOrder(order.id, { orderDetails: newDetails });
+                  showToast('Embellishment spec updated', 'success');
+                }}
+                currency={currentShop?.currency}
+              />
+
               {/* Order notes */}
               <section className={styles.card + ' ' + styles.gaNotes}>
                 <div className={styles.sectionHeaderRow}>
@@ -991,11 +1027,18 @@ export default function OrderDetailPage() {
                     {(!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT) ? (
                       <span className={styles.emptyNote}>Limit ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
                     ) : (
-                      <label className={styles.actionPillBtn}>
-                        <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-                        <Symbol name="add_a_photo" size={15} />
-                        <span>{uploadingPhoto ? 'Uploading…' : 'Snap Photo'}</span>
-                      </label>
+                      <>
+                        <label className={styles.actionPillBtn}>
+                          <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                          <Symbol name="add_a_photo" size={15} />
+                          <span>{uploadingPhoto ? 'Uploading…' : 'Snap Photo'}</span>
+                        </label>
+                        <label className={styles.actionPillBtn} title="Upload client photos from WhatsApp / event">
+                          <input type="file" accept="image/*" multiple hidden onChange={handleEventPhotoUpload} disabled={uploadingPhoto} />
+                          <Symbol name="photo_camera" size={15} />
+                          <span>Add Client Event Photos</span>
+                        </label>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1010,7 +1053,13 @@ export default function OrderDetailPage() {
                       <div key={i} className={styles.galleryThumb}>
                         <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
                         <div className={styles.glassCaption}>
-                          {photo.stage} · {new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                          {photo.stage === 'Delivered' ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <Symbol name="auto_awesome" size={11} /> Client Event · Lookbook
+                            </span>
+                          ) : (
+                            `${photo.stage} · ${new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
+                          )}
                         </div>
                         <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
                           <Symbol name="close" size={14} />
@@ -1378,6 +1427,10 @@ export default function OrderDetailPage() {
           customerName={customer.fullName}
           whatsappNumber={customer.whatsappNumber}
           progressMessage={whatsAppMessage || ''}
+          orderStatus={order.status}
+          garmentName={order.styleName || order.orderDetails}
+          shopName={currentShop?.name}
+          orderRef={orderRef}
         />
       )}
 

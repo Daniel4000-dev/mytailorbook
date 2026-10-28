@@ -208,6 +208,21 @@
   box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4);
 }
 
+.artisanBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.4);
+}
+
 .holdBadge {
   display: inline-flex;
   align-items: center;
@@ -369,6 +384,25 @@
   color: #475569;
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
+}
+
+.embellishmentPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  color: #7C3AED;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+:global([data-theme='dark']) .embellishmentPill {
+  color: #C4B5FD;
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 /* ── Content ────────────────────────────────────────────────── */
