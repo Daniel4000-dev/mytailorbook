@@ -1,0 +1,192 @@
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px 0 12px;
+}
+
+.orderPreviewCard {
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-card);
+  border-radius: var(--sf-radius-lg, 16px);
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.previewAvatar {
+  flex-shrink: 0;
+}
+
+.previewInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clientName {
+  font-family: var(--font-fraunces, Georgia, serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.orderDetails {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.dueBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.readyBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.fieldSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.timePresetsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.timeChip {
+  background: var(--sf-bg-surface-variant);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.timeChip:hover {
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-border-default);
+  color: var(--sf-text-primary);
+}
+
+.timeChipActive {
+  background: var(--sf-primary);
+  color: #FFFFFF !important;
+  border-color: var(--sf-primary);
+  box-shadow: 0 2px 8px rgba(49, 46, 129, 0.25);
+}
+
+.whatsappToggleCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(37, 211, 102, 0.07);
+  border: 1px solid rgba(37, 211, 102, 0.25);
+  border-radius: var(--sf-radius-md, 12px);
+  gap: 12px;
+}
+
+.whatsappLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.whatsappTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.whatsappDesc {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  accent-color: #25D366;
+  cursor: pointer;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.scheduleBtn {
+  width: 100%;
+}
+
+.skipBtn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: var(--sf-radius-md, 10px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.skipBtn:hover {
+  background: var(--sf-bg-surface-variant);
+  color: var(--sf-text-primary);
+}
+

@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import FAB from '@/components/ui/FAB/FAB';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import AddEventSheet from './_components/AddEventSheet';
-import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
+import FittingVerdictModal from './_components/FittingVerdictModal';
+import { getCalendarEvents, updateEventStatus, recordFittingVerdict } from '@/app/actions/calendar';
 import { getWhatsAppLink, formatPhone } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import type { CalendarEvent, Order } from '@/lib/types';
@@ -23,18 +23,28 @@ import styles from './page.module.css';
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type CalendarViewMode = 'grid' | 'agenda';
+type CraftFilter = 'all' | 'fitting' | 'dispatch' | 'tasks';
 
-export default function CalendarPage() {
+function CalendarContent() {
   const { user } = useAuth();
   const { orders, customers, currentShop, isLoaded, isDemoMode } = useData();
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
+
+  const initialFilterParam = searchParams.get('filter');
+  const initialFilter: CraftFilter =
+    initialFilterParam === 'fitting' || initialFilterParam === 'dispatch' || initialFilterParam === 'tasks'
+      ? initialFilterParam
+      : 'all';
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<CalendarViewMode>('grid');
+  const [craftFilter, setCraftFilter] = useState<CraftFilter>(initialFilter);
   const [selectedDateStr, setSelectedDateStr] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [verdictEvent, setVerdictEvent] = useState<CalendarEvent | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
@@ -87,6 +97,28 @@ export default function CalendarPage() {
     return combined;
   }, [events, orders, currentYear, currentMonth]);
 
+  // Craft filter matching helper
+  const isMatchingCraft = (e: CalendarEvent, filter: CraftFilter) => {
+    if (filter === 'all') return true;
+    if (filter === 'fitting') return e.type === 'fitting';
+    if (filter === 'dispatch') return e.type === 'dispatch' || e.id.startsWith('order-deadline-');
+    if (filter === 'tasks') return e.type !== 'fitting' && !e.id.startsWith('order-deadline-') && e.type !== 'dispatch';
+    return true;
+  };
+
+  // Month totals for filter badge counters
+  const monthCounts = useMemo(() => {
+    const fittings = allEvents.filter((e) => e.type === 'fitting').length;
+    const dispatches = allEvents.filter((e) => e.type === 'dispatch' || e.id.startsWith('order-deadline-')).length;
+    const tasks = allEvents.filter((e) => e.type !== 'fitting' && !e.id.startsWith('order-deadline-') && e.type !== 'dispatch').length;
+    return {
+      all: allEvents.length,
+      fittings,
+      dispatches,
+      tasks,
+    };
+  }, [allEvents]);
+
   // Today helpers
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
@@ -102,14 +134,14 @@ export default function CalendarPage() {
     gridCells.push(<div key={`empty-${i}`} className={`${styles.dayCell} ${styles.empty}`} />);
   }
 
-  // Active day events for the selected date
+  // Active day events for the selected date, filtered by craft filter
   const selectedDayEvents = useMemo(() => {
     return allEvents
-      .filter((e) => e.date === selectedDateStr)
+      .filter((e) => e.date === selectedDateStr && isMatchingCraft(e, craftFilter))
       .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
-  }, [allEvents, selectedDateStr]);
+  }, [allEvents, selectedDateStr, craftFilter]);
 
-  // Upcoming 3-Day Agenda
+  // Upcoming 3-Day Agenda, filtered by craft filter
   const upcomingAgendaDays = useMemo(() => {
     const days = [];
     for (let i = 0; i < 3; i++) {
@@ -117,7 +149,7 @@ export default function CalendarPage() {
       d.setDate(d.getDate() + i);
       const dateStr = d.toISOString().split('T')[0];
       const dayEvents = allEvents
-        .filter((e) => e.date === dateStr)
+        .filter((e) => e.date === dateStr && isMatchingCraft(e, craftFilter))
         .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
 
       let title = 'Today';
@@ -132,7 +164,7 @@ export default function CalendarPage() {
       });
     }
     return days;
-  }, [allEvents, todayDate]);
+  }, [allEvents, todayDate, craftFilter]);
 
   // Month navigation handlers
   const handlePrevMonth = () => {
@@ -178,10 +210,47 @@ export default function CalendarPage() {
 
     const timeStr = evt.startTime ? ` at ${evt.startTime}` : '';
     const shopName = currentShop?.name || 'our atelier';
-    const address = currentShop?.address || 'our studio';
-    const message = `Hello ${customer.fullName},\n\nWarm greetings from ${shopName}.\n\nThis is a friendly reminder regarding your bespoke fitting appointment scheduled for ${evt.date}${timeStr}.\n\nAtelier Address: ${address}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
+    const address = currentShop?.address || '';
+    const addrText = address ? `\n\nAtelier Address: ${address}.` : '';
+    const message = `Hello ${customer.fullName},\n\nWarm greetings from ${shopName}.\n\nThis is a friendly reminder regarding your bespoke fitting appointment scheduled for ${evt.date}${timeStr}.${addrText}\n\nPlease let us know if you need to adjust this timing. See you soon!`;
 
     window.open(getWhatsAppLink(customer.whatsappNumber, message), '_blank');
+  };
+
+  const handleVerdictApproved = async () => {
+    if (!verdictEvent) return;
+    const res = await recordFittingVerdict(verdictEvent.id, 'approved');
+    if (res.success) {
+      setEvents((prev) =>
+        prev.map((p) => (p.id === verdictEvent.id ? { ...p, status: 'completed' } : p))
+      );
+      showToast('Fitting confirmed and marked Approved!', 'success');
+    } else {
+      showToast('Failed to record verdict', 'error');
+    }
+    setVerdictEvent(null);
+  };
+
+  const handleVerdictAlterations = async (notes: string) => {
+    if (!verdictEvent) return;
+    const res = await recordFittingVerdict(verdictEvent.id, 'alterations', notes);
+    if (res.success) {
+      setEvents((prev) =>
+        prev.map((p) =>
+          p.id === verdictEvent.id
+            ? {
+                ...p,
+                status: 'completed',
+                description: `${p.description || ''}\n[Fitting Alteration]: ${notes}`,
+              }
+            : p
+        )
+      );
+      showToast('Alterations recorded and order returned to Sewing bench', 'success');
+    } else {
+      showToast('Failed to record alterations', 'error');
+    }
+    setVerdictEvent(null);
   };
 
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
@@ -193,9 +262,16 @@ export default function CalendarPage() {
     const isSelected = dateStr === selectedDateStr;
     const dayEvents = allEvents.filter((e) => e.date === dateStr);
 
-    const hasDeadlines = dayEvents.some((e) => e.id.startsWith('order-deadline-'));
+    const hasDeadlines = dayEvents.some((e) => e.id.startsWith('order-deadline-') || e.type === 'dispatch');
     const hasFittings = dayEvents.some((e) => e.type === 'fitting');
-    const hasOtherTasks = dayEvents.some((e) => e.type !== 'fitting' && !e.id.startsWith('order-deadline-'));
+    const hasOtherTasks = dayEvents.some((e) => e.type !== 'fitting' && !e.id.startsWith('order-deadline-') && e.type !== 'dispatch');
+
+    // Dot visibility according to active craft filter
+    const showDeadlinesDot = (craftFilter === 'all' || craftFilter === 'dispatch') && hasDeadlines;
+    const showFittingsDot = (craftFilter === 'all' || craftFilter === 'fitting') && hasFittings;
+    const showTasksDot = (craftFilter === 'all' || craftFilter === 'tasks') && hasOtherTasks;
+
+    const visibleDesktopEvents = dayEvents.filter((e) => isMatchingCraft(e, craftFilter));
 
     gridCells.push(
       <div
@@ -207,18 +283,18 @@ export default function CalendarPage() {
 
         {/* Mobile Craft Event Dots */}
         <div className={styles.mobileDotsRow}>
-          {hasDeadlines && <span className={`${styles.eventDot} ${styles.eventDotDeadline}`} title="Delivery Deadline" />}
-          {hasFittings && <span className={`${styles.eventDot} ${styles.eventDotFitting}`} title="Bespoke Fitting" />}
-          {hasOtherTasks && <span className={`${styles.eventDot} ${styles.eventDotTask}`} title="Shop Task" />}
+          {showDeadlinesDot && <span className={`${styles.eventDot} ${styles.eventDotDeadline}`} title="Delivery Deadline" />}
+          {showFittingsDot && <span className={`${styles.eventDot} ${styles.eventDotFitting}`} title="Bespoke Fitting" />}
+          {showTasksDot && <span className={`${styles.eventDot} ${styles.eventDotTask}`} title="Workshop Task" />}
         </div>
 
         {/* Desktop Event Pills */}
         <div className={styles.desktopEventsCol}>
-          {dayEvents.slice(0, 3).map((evt) => (
+          {visibleDesktopEvents.slice(0, 3).map((evt) => (
             <div
               key={evt.id}
               className={`${styles.desktopEventBadge} ${
-                evt.id.startsWith('order-deadline-')
+                evt.id.startsWith('order-deadline-') || evt.type === 'dispatch'
                   ? styles.eventDeadline
                   : evt.type === 'fitting'
                   ? styles.eventFitting
@@ -228,8 +304,8 @@ export default function CalendarPage() {
               <span>{evt.title}</span>
             </div>
           ))}
-          {dayEvents.length > 3 && (
-            <span className={styles.desktopMoreCount}>+{dayEvents.length - 3} more</span>
+          {visibleDesktopEvents.length > 3 && (
+            <span className={styles.desktopMoreCount}>+{visibleDesktopEvents.length - 3} more</span>
           )}
         </div>
       </div>
@@ -239,7 +315,7 @@ export default function CalendarPage() {
   if (!isLoaded) {
     return (
       <>
-        <TopBar title="Calendar" />
+        <TopBar title="Fittings & Schedule" />
         <div className={styles.container}>
           <div className={styles.skeletonHero} />
           <div className={styles.skeletonGrid} />
@@ -248,9 +324,17 @@ export default function CalendarPage() {
     );
   }
 
+  // Related order and customer for verdict modal
+  const verdictCustomer = verdictEvent
+    ? customers.find((c) => c.id === verdictEvent.relatedCustomerId) || null
+    : null;
+  const verdictOrder = verdictEvent
+    ? orders.find((o) => o.id === verdictEvent.relatedOrderId) || null
+    : null;
+
   return (
     <>
-      <TopBar title="Calendar" />
+      <TopBar title="Fittings & Schedule" />
       <div className={styles.container}>
         {/* Navigation & View Toggle Header */}
         <header className={styles.topControlCard}>
@@ -307,7 +391,73 @@ export default function CalendarPage() {
               </div>
             </div>
           </div>
+
+          {/* Craft Filter Pills */}
+          <div className={styles.craftFilterRow}>
+            <button
+              type="button"
+              className={`${styles.craftFilterBtn} ${craftFilter === 'all' ? styles.craftFilterBtnActive : ''}`}
+              onClick={() => setCraftFilter('all')}
+            >
+              <Symbol name="calendar_month" size={15} />
+              <span>All Agenda</span>
+              <span className={styles.filterBadge}>{monthCounts.all}</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.craftFilterBtn} ${craftFilter === 'fitting' ? styles.craftFilterBtnActive : ''}`}
+              onClick={() => setCraftFilter('fitting')}
+            >
+              <Symbol name="checkroom" size={15} />
+              <span>Fittings Lounge</span>
+              <span className={`${styles.filterBadge} ${styles.filterBadgeFitting}`}>{monthCounts.fittings}</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.craftFilterBtn} ${craftFilter === 'dispatch' ? styles.craftFilterBtnActive : ''}`}
+              onClick={() => setCraftFilter('dispatch')}
+            >
+              <Symbol name="local_shipping" size={15} />
+              <span>Dispatches</span>
+              <span className={styles.filterBadge}>{monthCounts.dispatches}</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.craftFilterBtn} ${craftFilter === 'tasks' ? styles.craftFilterBtnActive : ''}`}
+              onClick={() => setCraftFilter('tasks')}
+            >
+              <Symbol name="dry_cleaning" size={15} />
+              <span>Workshop Tasks</span>
+              <span className={styles.filterBadge}>{monthCounts.tasks}</span>
+            </button>
+          </div>
         </header>
+
+        {/* Focused Fittings Lounge Banner when fitting filter active */}
+        {craftFilter === 'fitting' && (
+          <div className={styles.fittingsLoungeBanner}>
+            <div>
+              <h3 className={styles.bannerTitle}>
+                <Symbol name="checkroom" size={18} />
+                Bespoke Fitting Lounge
+              </h3>
+              <p className={styles.bannerSub}>
+                Client in-person try-on trials, drape inspection, and alteration recording
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsAddEventOpen(true)}
+              icon={<Symbol name="add" size={14} />}
+            >
+              Book Fitting
+            </Button>
+          </div>
+        )}
 
         {viewMode === 'grid' ? (
           <>
@@ -350,12 +500,19 @@ export default function CalendarPage() {
 
               {selectedDayEvents.length === 0 ? (
                 <div className={styles.emptyDayBox}>
-                  <p className={styles.emptyDayText}>No fittings or deadlines scheduled for this date.</p>
+                  <p className={styles.emptyDayText}>
+                    {craftFilter === 'fitting'
+                      ? 'No client fittings scheduled for this date.'
+                      : craftFilter === 'dispatch'
+                      ? 'No garment deliveries scheduled for this date.'
+                      : 'No scheduled appointments or tasks on this date.'}
+                  </p>
                 </div>
               ) : (
                 <div className={styles.eventsList}>
                   {selectedDayEvents.map((evt) => {
-                    const isDeadline = evt.id.startsWith('order-deadline-');
+                    const isDeadline = evt.id.startsWith('order-deadline-') || evt.type === 'dispatch';
+                    const isFitting = evt.type === 'fitting';
                     const isCompleted = evt.status === 'completed';
                     const customer = customers.find((c) => c.id === evt.relatedCustomerId);
 
@@ -368,7 +525,7 @@ export default function CalendarPage() {
                           className={`${styles.agendaLeftBorder} ${
                             isDeadline
                               ? styles.borderDeadline
-                              : evt.type === 'fitting'
+                              : isFitting
                               ? styles.borderFitting
                               : styles.borderTask
                           }`}
@@ -393,6 +550,17 @@ export default function CalendarPage() {
                                   ? `${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ''}`
                                   : 'All day'}
                               </span>
+
+                              {isFitting && (
+                                <span
+                                  className={`${styles.fittingBadge} ${
+                                    isCompleted ? styles.fittingBadgeDone : styles.fittingBadgePending
+                                  }`}
+                                >
+                                  {isCompleted ? 'Fitted' : 'Pending'}
+                                </span>
+                              )}
+
                               {!isDeadline && (
                                 <button
                                   type="button"
@@ -409,6 +577,19 @@ export default function CalendarPage() {
 
                           {/* Action Strip */}
                           <div className={styles.agendaActionStrip}>
+                            {/* Record Fitting Verdict */}
+                            {isFitting && (
+                              <button
+                                type="button"
+                                className={styles.verdictBtn}
+                                onClick={() => setVerdictEvent(evt)}
+                                title="Record fitting session outcome"
+                              >
+                                <Symbol name="straighten" size={13} />
+                                <span>{isCompleted ? 'Update Verdict' : 'Record Verdict'}</span>
+                              </button>
+                            )}
+
                             {isDeadline && evt.relatedOrderId ? (
                               <Link
                                 href={ROUTES.productionOrder(evt.relatedOrderId)}
@@ -419,7 +600,7 @@ export default function CalendarPage() {
                               </Link>
                             ) : null}
 
-                            {evt.type === 'fitting' && customer?.whatsappNumber ? (
+                            {isFitting && customer?.whatsappNumber ? (
                               <button
                                 type="button"
                                 className={styles.whatsAppReminderBtn}
@@ -468,12 +649,13 @@ export default function CalendarPage() {
 
                 {dayGroup.events.length === 0 ? (
                   <div className={styles.emptyDayBox}>
-                    <p className={styles.emptyDayText}>No events or delivery deadlines</p>
+                    <p className={styles.emptyDayText}>No scheduled items for this day</p>
                   </div>
                 ) : (
                   <div className={styles.eventsList}>
                     {dayGroup.events.map((evt) => {
-                      const isDeadline = evt.id.startsWith('order-deadline-');
+                      const isDeadline = evt.id.startsWith('order-deadline-') || evt.type === 'dispatch';
+                      const isFitting = evt.type === 'fitting';
                       const isCompleted = evt.status === 'completed';
                       const customer = customers.find((c) => c.id === evt.relatedCustomerId);
 
@@ -486,7 +668,7 @@ export default function CalendarPage() {
                             className={`${styles.agendaLeftBorder} ${
                               isDeadline
                                 ? styles.borderDeadline
-                                : evt.type === 'fitting'
+                                : isFitting
                                 ? styles.borderFitting
                                 : styles.borderTask
                             }`}
@@ -512,6 +694,18 @@ export default function CalendarPage() {
                             </div>
 
                             <div className={styles.agendaActionStrip}>
+                              {isFitting && (
+                                <button
+                                  type="button"
+                                  className={styles.verdictBtn}
+                                  onClick={() => setVerdictEvent(evt)}
+                                  title="Record fitting session outcome"
+                                >
+                                  <Symbol name="straighten" size={13} />
+                                  <span>{isCompleted ? 'Update Verdict' : 'Record Verdict'}</span>
+                                </button>
+                              )}
+
                               {isDeadline && evt.relatedOrderId ? (
                                 <Link
                                   href={ROUTES.productionOrder(evt.relatedOrderId)}
@@ -522,7 +716,7 @@ export default function CalendarPage() {
                                 </Link>
                               ) : null}
 
-                              {evt.type === 'fitting' && customer?.whatsappNumber ? (
+                              {isFitting && customer?.whatsappNumber ? (
                                 <button
                                   type="button"
                                   className={styles.whatsAppReminderBtn}
@@ -558,6 +752,19 @@ export default function CalendarPage() {
           }}
         />
 
+        {/* Fitting Verdict Modal */}
+        {verdictEvent && (
+          <FittingVerdictModal
+            isOpen={!!verdictEvent}
+            onClose={() => setVerdictEvent(null)}
+            event={verdictEvent}
+            customer={verdictCustomer}
+            order={verdictOrder}
+            onVerdictApproved={handleVerdictApproved}
+            onVerdictAlterations={handleVerdictAlterations}
+          />
+        )}
+
         {/* Floating Action Button */}
         <FAB
           icon={<Symbol name="add" size={24} />}
@@ -566,5 +773,13 @@ export default function CalendarPage() {
         />
       </div>
     </>
+  );
+}
+
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={null}>
+      <CalendarContent />
+    </Suspense>
   );
 }

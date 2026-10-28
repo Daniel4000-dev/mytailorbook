@@ -41,6 +41,8 @@ import HandoverPaymentSheet from './_components/HandoverPaymentSheet';
 import OrderExpenses from './_components/OrderExpenses';
 import OrderPayments from './_components/OrderPayments';
 import OrderMaterials from './_components/OrderMaterials';
+import ScheduleFittingPromptModal from '../_components/ScheduleFittingPromptModal';
+import { createCalendarEvent } from '@/app/actions/calendar';
 import styles from './page.module.css';
 
 type DetailTab = 'spec' | 'feed' | 'ledger';
@@ -76,6 +78,7 @@ export default function OrderDetailPage() {
   const [deletingOrder, setDeletingOrder] = useState(false);
   const [editingMeasurements, setEditingMeasurements] = useState(false);
   const [stagePickerOpen, setStagePickerOpen] = useState(false);
+  const [isFittingPromptOpen, setIsFittingPromptOpen] = useState(false);
   const [alterationModalOpen, setAlterationModalOpen] = useState(false);
   const [alterationNotes, setAlterationNotes] = useState('');
   const [targetAlterationStage, setTargetAlterationStage] = useState<OrderStatus>('Sewing');
@@ -222,6 +225,12 @@ export default function OrderDetailPage() {
       }
       return;
     }
+
+    if (next === 'Ready' && !order.isInternalBatch) {
+      setIsFittingPromptOpen(true);
+      return;
+    }
+
     await performAdvance(next);
   };
 
@@ -252,7 +261,60 @@ export default function OrderDetailPage() {
       return;
     }
 
+    if (targetStage === 'Ready' && !order.isInternalBatch) {
+      setIsFittingPromptOpen(true);
+      return;
+    }
+
     await performAdvance(targetStage);
+  };
+
+  const handleConfirmFittingSchedule = async (date: string, time: string, sendWhatsApp: boolean) => {
+    if (!order) return;
+    const clientName = customer?.fullName || order.customerName || 'Bespoke Client';
+    const shopName = currentShop?.name || 'our atelier';
+    const address = currentShop?.address || '';
+    const targetShopId = user?.shopId || currentShop?.id || order.shopId;
+
+    if (targetShopId) {
+      try {
+        await createCalendarEvent({
+          shopId: targetShopId,
+          title: `Fitting: ${clientName} (${order.orderDetails || order.styleName || 'Outfit'})`,
+          type: 'fitting',
+          date,
+          startTime: time,
+          relatedOrderId: order.id,
+          relatedCustomerId: order.customerId,
+          description: `Bespoke try-on session for ${order.orderDetails || order.styleName || 'outfit'}.`,
+          status: 'pending',
+        });
+      } catch (err) {
+        console.error('Failed to create calendar event:', err);
+      }
+    }
+
+    setIsFittingPromptOpen(false);
+    await performAdvance('Ready');
+
+    if (sendWhatsApp && customer?.whatsappNumber) {
+      const formattedDate = new Date(date).toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+      });
+      const addrText = address ? `\n\nAtelier Address: ${address}` : '';
+      const msg = `Hello ${clientName},\n\nWarm greetings from ${shopName}. Your ${order.orderDetails || order.styleName || 'garment'} is ready for your fitting session!\n\nWe have reserved your appointment for ${formattedDate} at ${time}.${addrText}\n\nPlease let us know if this time works for you. Looking forward to seeing you!`;
+      window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+    }
+
+    showToast('Moved to Ready and scheduled fitting appointment', 'success');
+  };
+
+  const handleSkipFittingSchedule = async () => {
+    setIsFittingPromptOpen(false);
+    await performAdvance('Ready');
+    showToast('Moved to Ready (direct pickup)', 'success');
   };
 
   const handleConfirmAlteration = async () => {
@@ -1394,6 +1456,15 @@ export default function OrderDetailPage() {
         </div>
       </BottomSheet>
 
+
+      <ScheduleFittingPromptModal
+        isOpen={isFittingPromptOpen}
+        onClose={() => setIsFittingPromptOpen(false)}
+        order={order}
+        customer={customer}
+        onConfirmSchedule={handleConfirmFittingSchedule}
+        onSkipFitting={handleSkipFittingSchedule}
+      />
 
       <ConfirmDialog
         isOpen={confirmingDelete}

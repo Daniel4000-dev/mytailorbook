@@ -21,6 +21,8 @@ import StageList, { ALL_FILTER, type StageFilter } from './mobile/StageList';
 import ProductionBoardSkeleton from './ProductionBoardSkeleton';
 import CuttingSlipModal from './CuttingSlipModal';
 import ProductionFilterSheet from './ProductionFilterSheet';
+import ScheduleFittingPromptModal from './ScheduleFittingPromptModal';
+import { createCalendarEvent } from '@/app/actions/calendar';
 import styles from './ProductionBoard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
@@ -48,6 +50,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
   const [handoverOrder, setHandoverOrder] = useState<Order | null>(null);
   const [amendmentOrder, setAmendmentOrder] = useState<Order | null>(null);
+  const [fittingPromptOrder, setFittingPromptOrder] = useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [stageVisibleCounts, setStageVisibleCounts] = useState<Partial<Record<OrderStatus, number>>>({});
   const isDesktop = useIsDesktop();
@@ -178,6 +181,11 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       return;
     }
 
+    if (next === 'Ready' && !order.isInternalBatch) {
+      setFittingPromptOrder(order);
+      return;
+    }
+
     updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
@@ -239,6 +247,11 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       return;
     }
 
+    if (targetStatus === 'Ready' && !order.isInternalBatch) {
+      setFittingPromptOrder(order);
+      return;
+    }
+
     const fromStatus = order.status;
     updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
@@ -268,6 +281,61 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       });
     }
   }, [draggedOrderId, orders, customers, currentShop, updateOrderStatus, user, showToast, performDelivery]);
+
+  const handleConfirmFittingSchedule = useCallback(
+    async (date: string, time: string, sendWhatsApp: boolean) => {
+      if (!fittingPromptOrder) return;
+      const order = fittingPromptOrder;
+      const customer = customers.find((c) => c.id === order.customerId);
+      const customerName = customer?.fullName || order.customerName || 'Bespoke Client';
+      const shopName = currentShop?.name || 'our atelier';
+      const address = currentShop?.address || '';
+      const targetShopId = user?.shopId || currentShop?.id || order.shopId;
+
+      if (targetShopId) {
+        try {
+          await createCalendarEvent({
+            shopId: targetShopId,
+            title: `Fitting: ${customerName} (${order.orderDetails || order.styleName || 'Outfit'})`,
+            type: 'fitting',
+            date,
+            startTime: time,
+            relatedOrderId: order.id,
+            relatedCustomerId: order.customerId,
+            description: `Bespoke try-on session for ${order.orderDetails || order.styleName || 'outfit'}.`,
+            status: 'pending',
+          });
+        } catch (err) {
+          console.error('Failed to create calendar event:', err);
+        }
+      }
+
+      updateOrderStatus(order.id, 'Ready', user?.uid || '', user?.name || '');
+      setFittingPromptOrder(null);
+
+      if (sendWhatsApp && customer?.whatsappNumber) {
+        const formattedDate = new Date(date).toLocaleDateString('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'short',
+        });
+        const addrText = address ? `\n\nAtelier Address: ${address}` : '';
+        const msg = `Hello ${customerName},\n\nWarm greetings from ${shopName}. Your ${order.orderDetails || order.styleName || 'garment'} is ready for your fitting session!\n\nWe have reserved your appointment for ${formattedDate} at ${time}.${addrText}\n\nPlease let us know if this time works for you. Looking forward to seeing you!`;
+        window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
+      }
+
+      showToast('Moved to Ready and scheduled fitting appointment', 'success');
+    },
+    [fittingPromptOrder, customers, currentShop, user, updateOrderStatus, showToast]
+  );
+
+  const handleSkipFittingSchedule = useCallback(() => {
+    if (!fittingPromptOrder) return;
+    const order = fittingPromptOrder;
+    setFittingPromptOrder(null);
+    updateOrderStatus(order.id, 'Ready', user?.uid || '', user?.name || '');
+    showToast('Moved to Ready (direct pickup)', 'success');
+  }, [fittingPromptOrder, updateOrderStatus, user, showToast]);
 
   const handleWhatsApp = useCallback((order: Order) => {
     const customer = customers.find(c => c.id === order.customerId);
@@ -789,6 +857,17 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           }}
           isFiltered={Boolean(searchQuery || opFilter !== 'all' || stageFilter !== ALL_FILTER || staffFilterId || batchFilterId)}
           onPreviewSample={() => toggleDemoMode?.(true)}
+        />
+      )}
+
+      {fittingPromptOrder && (
+        <ScheduleFittingPromptModal
+          isOpen={!!fittingPromptOrder}
+          onClose={() => setFittingPromptOrder(null)}
+          order={fittingPromptOrder}
+          customer={customers.find((c) => c.id === fittingPromptOrder.customerId) || null}
+          onConfirmSchedule={handleConfirmFittingSchedule}
+          onSkipFitting={handleSkipFittingSchedule}
         />
       )}
 

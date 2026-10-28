@@ -181,3 +181,74 @@ export async function updateEventStatus(eventId: string, status: 'pending' | 'co
   revalidatePath('/'); // For the dashboard
   return { success: true };
 }
+
+export async function recordFittingVerdict(
+  eventId: string,
+  outcome: 'approved' | 'alterations',
+  alterationNotes?: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { data: eventData, error: fetchErr } = await supabase
+    .from('calendar_events')
+    .select('*')
+    .eq('id', eventId)
+    .single();
+
+  if (fetchErr) return { success: false, error: fetchErr.message };
+
+  let updatedDesc = eventData.description || '';
+  if (outcome === 'alterations' && alterationNotes) {
+    updatedDesc = updatedDesc
+      ? `${updatedDesc}\n[Fitting Alteration]: ${alterationNotes}`
+      : `[Fitting Alteration]: ${alterationNotes}`;
+  } else if (outcome === 'approved') {
+    updatedDesc = updatedDesc
+      ? `${updatedDesc}\n[Fitting Approved]: Perfect Fit`
+      : `[Fitting Approved]: Perfect Fit`;
+  }
+
+  const { error: updateErr } = await supabase
+    .from('calendar_events')
+    .update({
+      status: 'completed',
+      description: updatedDesc,
+    })
+    .eq('id', eventId);
+
+  if (updateErr) return { success: false, error: updateErr.message };
+
+  // If there is an associated order and it needs alteration, move back to Sewing
+  if (outcome === 'alterations' && eventData.related_order_id) {
+    const { data: orderData } = await supabase
+      .from('orders')
+      .select('status, status_history, order_details')
+      .eq('id', eventData.related_order_id)
+      .single();
+
+    if (orderData) {
+      const newHistory = [
+        ...(orderData.status_history || []),
+        {
+          from: orderData.status,
+          to: 'Sewing',
+          timestamp: new Date().toISOString(),
+          note: `Fitting Alteration: ${alterationNotes || ''}`,
+        },
+      ];
+      await supabase
+        .from('orders')
+        .update({
+          status: 'Sewing',
+          status_history: newHistory,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', eventData.related_order_id);
+    }
+  }
+
+  revalidatePath('/calendar');
+  revalidatePath('/production');
+  revalidatePath('/');
+  return { success: true };
+}

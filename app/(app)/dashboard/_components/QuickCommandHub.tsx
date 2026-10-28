@@ -96,7 +96,7 @@ export default function QuickCommandHub({
           <button
             type="button"
             className={styles.tile}
-            onClick={() => onNavigate(ROUTES.calendar)}
+            onClick={() => onNavigate(ROUTES.calendarWithFilter('fitting'))}
             aria-label="Fittings & Workshop Agenda"
           >
             <div className={`${styles.iconWrap} ${styles.iconFittings}`}>

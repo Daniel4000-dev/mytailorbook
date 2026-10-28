@@ -114,6 +114,7 @@ export const ROUTES = {
   stock: '/stock', // New RTW Stock / POS route
   reconciliation: '/reconciliation',
   calendar: '/calendar',
+  calendarWithFilter: (filter: string) => `/calendar?filter=${filter}`,
   onboarding: '/onboarding',
   notifications: '/notifications',
   styles: '/styles',
