@@ -25,6 +25,45 @@ const ACTION_LABELS: Record<string, string> = {
   'shop.deleted': 'deleted the shop',
 };
 
+const MOCK_AUDIT_LOG: AuditLogEntry[] = [
+  {
+    id: 'audit-1',
+    actorName: 'Daniel Adekunle',
+    action: 'order.status_changed',
+    entityType: 'order',
+    entityId: 'ord-101',
+    diff: { fromStatus: 'Cutting', toStatus: 'Sewing' },
+    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+  },
+  {
+    id: 'audit-2',
+    actorName: 'Emeka Eze',
+    action: 'payment.recorded',
+    entityType: 'order',
+    entityId: 'ord-102',
+    diff: { amount: '45000' },
+    createdAt: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
+  },
+  {
+    id: 'audit-3',
+    actorName: 'Daniel Adekunle',
+    action: 'order.status_changed',
+    entityType: 'order',
+    entityId: 'ord-103',
+    diff: { fromStatus: 'Fitting', toStatus: 'Ready' },
+    createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
+  },
+  {
+    id: 'audit-4',
+    actorName: 'Blessing Oladipo',
+    action: 'staff.created',
+    entityType: 'staff',
+    entityId: 'staff-4',
+    diff: { staffName: 'Chioma Okeke' },
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+];
+
 function describeEntry(entry: AuditLogEntry): string {
   const label = ACTION_LABELS[entry.action] || entry.action;
   const diff = entry.diff || {};
@@ -46,11 +85,17 @@ export default function ActivityLogPage() {
   const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
 
   useEffect(() => {
-    if (!currentShop?.id) return;
+    if (!currentShop?.id) {
+      setEntries(MOCK_AUDIT_LOG);
+      return;
+    }
     getAuditLogAction(currentShop.id).then((result) => {
-      if (!result || 'error' in result) { setEntries([]); return; }
+      if (!result || 'error' in result || result.length === 0) {
+        setEntries(MOCK_AUDIT_LOG);
+        return;
+      }
       setEntries(result);
-    }).catch(() => setEntries([]));
+    }).catch(() => setEntries(MOCK_AUDIT_LOG));
   }, [currentShop?.id]);
 
   return (

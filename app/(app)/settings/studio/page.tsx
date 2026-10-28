@@ -330,7 +330,6 @@ export default function StudioSettingsPage() {
         </div>
 
         {/* Group 2: Business Model Specification */}
-        <h3 className={styles.sectionHeader}>Atelier Specification</h3>
         <div className={styles.groupCard}>
           <div className={styles.modeGrid}>
             <button
@@ -390,7 +389,6 @@ export default function StudioSettingsPage() {
         </div>
 
         {/* Group 3: Capacity & Benchmarks */}
-        <h3 className={styles.sectionHeader}>Production Benchmark & Capacity</h3>
         <div className={`${styles.groupCard} ${styles.benchmarkCard}`}>
           <div>
             <label className={styles.capacityLabel}>
@@ -490,7 +488,6 @@ export default function StudioSettingsPage() {
         </div>
 
         {/* Group 4: Heartbeat & Streaks */}
-        <h3 className={styles.sectionHeader}>Atelier Heartbeat & Streaks</h3>
         <div className={styles.groupCard}>
           <div className={styles.toggleRow}>
             <div className={styles.toggleText}>

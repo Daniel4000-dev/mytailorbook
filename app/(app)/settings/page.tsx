@@ -227,37 +227,21 @@ export default function SettingsPage() {
       <div className={styles.groups}>
         {/* ── Group 1: Atelier Commerce & Styling ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Atelier Commerce &amp; Styling</span>
           <div className={styles.groupCard}>
             <SettingsRow
-              icon="storefront"
-              iconColor="indigo"
-              label="Studio Profile &amp; Branding"
-              subtitle={currentShop?.name ? `${currentShop.name} · ${currentShop.address || 'Address'}` : 'Configure studio identity'}
-              meta={
-                currentShop?.logoUrl ? (
-                  <Image src={currentShop.logoUrl} alt="" width={24} height={24} className={styles.logoThumb} />
-                ) : undefined
-              }
-              onClick={() => router.push(ROUTES.settingsStudio)}
-            />
-            <SettingsRow
               icon="checkroom"
-              iconColor="rose"
               label="Garment Styles &amp; Base Prices"
               subtitle={customStylesCount > 0 ? `${customStylesCount} signature cuts configured` : 'Standard silhouettes & base prices'}
               onClick={() => router.push(ROUTES.settingsStyles)}
             />
             <SettingsRow
               icon="forum"
-              iconColor="emerald"
               label="WhatsApp Client Messages"
               subtitle="Per-stage update wording &amp; tracking links"
               onClick={() => router.push(ROUTES.settingsMessages)}
             />
             <SettingsRow
               icon="photo_library"
-              iconColor="purple"
               label="Public Portfolio &amp; Lookbook"
               subtitle={`mytailorbook.com/studio/${currentShop?.slug || ''}`}
               meta={<Symbol name="open_in_new" size={15} />}
@@ -266,7 +250,6 @@ export default function SettingsPage() {
             {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
               <SettingsRow
                 icon="straighten"
-                iconColor="slate"
                 label="Size Charts"
                 subtitle="Standard measurements for production batches"
                 onClick={() => router.push('/settings/size-charts')}
@@ -277,11 +260,9 @@ export default function SettingsPage() {
 
         {/* ── Group 2: Workshop & Team Operations ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Workshop &amp; Team Operations</span>
           <div className={styles.groupCard}>
             <SettingsRow
               icon="group"
-              iconColor="indigo"
               label="Staff &amp; Master Cutters"
               subtitle={`${activeStaffCount} active staff members`}
               meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
@@ -289,7 +270,6 @@ export default function SettingsPage() {
             />
             <SettingsRow
               icon="verified_user"
-              iconColor="amber"
               label="Daily Streak &amp; Vacation Shield"
               subtitle={currentShop?.vacationMode ? 'Vacation Mode Paused' : `${currentShop?.streakFreezes || 0} Streak Freezes · Active`}
               onClick={() => router.push(ROUTES.settingsStudio)}
@@ -300,7 +280,6 @@ export default function SettingsPage() {
                   <SettingsRow
                     key={branch.id}
                     icon="storefront"
-                    iconColor="blue"
                     label={branch.name}
                     subtitle={
                       branch.isPrimary
@@ -313,7 +292,6 @@ export default function SettingsPage() {
                 ))}
                 <SettingsRow
                   icon="add"
-                  iconColor="blue"
                   label="Add Branch"
                   subtitle="Add another physical location"
                   onClick={() => setAddBranchOpen(true)}
@@ -325,14 +303,13 @@ export default function SettingsPage() {
 
         {/* ── Group 3: Atelier Plan & Subscription ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Atelier Plan &amp; Subscription</span>
           <div className={styles.groupCard}>
             <div className={billingRowStyles.row}>
-              <div className={`${billingRowStyles.iconTile} ${billingRowStyles.tile_amber}`}>
-                <Symbol name="workspace_premium" size={18} className={billingRowStyles.iconGlyph} />
+              <div className={billingRowStyles.iconWrap}>
+                <Symbol name="workspace_premium" size={21} className={billingRowStyles.iconGlyph} />
               </div>
               <span className={billingRowStyles.textCol}>
-                <span className={billingRowStyles.label}>MyStitchBook Pro</span>
+                <span className={billingRowStyles.label}>MyTailorBook Pro</span>
                 <span className={billingRowStyles.subtitle}>
                   {currentShop?.subscriptionStatus === 'active' && 'Active Subscription'}
                   {currentShop?.subscriptionStatus === 'trialing' && 'Free Trial'}
@@ -355,12 +332,10 @@ export default function SettingsPage() {
 
         {/* ── Group 4: Preferences & Security ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Preferences &amp; Security</span>
           <div className={styles.groupCard}>
             <AppearanceToggle />
             <SettingsRow
               icon="person"
-              iconColor="slate"
               label="Account &amp; Login Credentials"
               subtitle={`${user?.name || 'Owner'} · ${user?.email || 'Manage login'}`}
               onClick={() => router.push(ROUTES.settingsAccount)}
@@ -368,7 +343,6 @@ export default function SettingsPage() {
             {FEATURE_FLAGS.financialReporting && (
               <SettingsRow
                 icon="bar_chart"
-                iconColor="emerald"
                 label="Financial Reports &amp; Margin"
                 subtitle="Revenue, outstanding balance, and margin"
                 onClick={() => router.push(ROUTES.settingsReports)}
@@ -377,7 +351,6 @@ export default function SettingsPage() {
             {FEATURE_FLAGS.auditLog && (
               <SettingsRow
                 icon="history"
-                iconColor="slate"
                 label="Security &amp; Activity Log"
                 subtitle="See who did what, and when"
                 onClick={() => router.push(ROUTES.settingsActivity)}

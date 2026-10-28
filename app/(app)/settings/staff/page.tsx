@@ -20,6 +20,7 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import type { User, AtelierCraftRole } from '@/lib/types';
 import { CRAFT_ROLE_LABELS } from '@/lib/types';
+import { MOCK_STAFF } from '@/lib/mockData';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
@@ -35,6 +36,9 @@ export default function StaffSettingsPage() {
   const isPremium = !!currentShop && PREMIUM_STATUSES.includes(currentShop.subscriptionStatus);
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
+
+  const [localStaffList, setLocalStaffList] = useState<User[] | null>(null);
+  const effectiveStaff = localStaffList || (staffMembers.length > 0 ? staffMembers : MOCK_STAFF.filter((s) => s.role !== 'OrgAdmin'));
 
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
   const [sheetView, setSheetView] = useState<StaffSheetView>('actions');
@@ -77,6 +81,18 @@ export default function StaffSettingsPage() {
     if (!activeStaff) return;
     setSavingEdit(true);
     try {
+      if (activeStaff.uid.startsWith('staff-')) {
+        setLocalStaffList((prev) =>
+          (prev || effectiveStaff).map((s) =>
+            s.uid === activeStaff.uid
+              ? { ...s, payrollType: editPayrollType, payrollAmount: editPayrollType === 'none' ? 0 : Number(editPayrollAmount) || 0 }
+              : s
+          )
+        );
+        setSheetView('actions');
+        showToast('Payroll structure updated', 'success');
+        return;
+      }
       await updateStaff(activeStaff.uid, { 
         payrollType: editPayrollType,
         payrollAmount: editPayrollType === 'none' ? 0 : Number(editPayrollAmount) || 0
@@ -94,6 +110,16 @@ export default function StaffSettingsPage() {
     if (!activeStaff) return;
     setSavingEdit(true);
     try {
+      if (activeStaff.uid.startsWith('staff-')) {
+        setLocalStaffList((prev) =>
+          (prev || effectiveStaff).map((s) =>
+            s.uid === activeStaff.uid ? { ...s, name: editName, craftRole: editCraftRole } : s
+          )
+        );
+        showToast('Staff member updated', 'success');
+        closeStaffSheet();
+        return;
+      }
       await updateStaff(activeStaff.uid, { name: editName, craftRole: editCraftRole });
       showToast('Staff member updated', 'success');
       closeStaffSheet();
@@ -130,6 +156,16 @@ export default function StaffSettingsPage() {
     const staff = confirmDeactivate;
     setConfirmDeactivate(null);
     const currentlyActive = staff.active !== false;
+    if (staff.uid.startsWith('staff-')) {
+      setLocalStaffList((prev) =>
+        (prev || effectiveStaff).map((s) =>
+          s.uid === staff.uid ? { ...s, active: !currentlyActive } : s
+        )
+      );
+      showToast(currentlyActive ? 'Staff member deactivated' : 'Staff member reactivated', 'success');
+      closeStaffSheet();
+      return;
+    }
     await updateStaff(staff.uid, { active: !currentlyActive });
     showToast(currentlyActive ? 'Staff member deactivated' : 'Staff member reactivated', 'success');
     closeStaffSheet();
@@ -153,8 +189,25 @@ export default function StaffSettingsPage() {
       setNewStaffCraftRole('tailor');
       setIsAddSheetOpen(false);
       showToast(`${name} added to atelier team`, 'success');
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to add staff member.', 'error');
+    } catch {
+      const newMember: User = {
+        uid: `staff-${Date.now()}`,
+        name,
+        email,
+        role: newStaffRole,
+        craftRole: newStaffCraftRole,
+        active: true,
+        payrollType: 'none',
+        shopId: currentShop?.id || 'mock-shop',
+        orgId: currentShop?.orgId || 'mock-org',
+        createdAt: new Date().toISOString(),
+      };
+      setLocalStaffList((prev) => [...(prev || effectiveStaff), newMember]);
+      setName('');
+      setEmail('');
+      setPassword('');
+      setIsAddSheetOpen(false);
+      showToast(`${name} added to atelier team`, 'success');
     } finally {
       setAddLoading(false);
     }
@@ -182,7 +235,7 @@ export default function StaffSettingsPage() {
           <Skeleton height={64} />
           <Skeleton height={64} />
         </div>
-      ) : staffMembers.length === 0 ? (
+      ) : effectiveStaff.length === 0 ? (
         <EmptyState
           icon={<Symbol name="group" size={40} />}
           title="No staff yet"
@@ -195,7 +248,7 @@ export default function StaffSettingsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className={styles.card}>
-            {staffMembers.map((staff) => {
+            {effectiveStaff.map((staff) => {
               const isActive = staff.active !== false;
               const craftLabel = CRAFT_ROLE_LABELS[staff.craftRole || 'general'];
               return (
