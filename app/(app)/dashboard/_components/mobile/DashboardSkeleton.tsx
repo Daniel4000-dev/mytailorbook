@@ -41,7 +41,28 @@ export default function DashboardSkeleton() {
         ))}
       </div>
 
-      {/* 3. Today's Workshop Priorities Skeleton */}
+      {/* Sourcing Fabrics / Market Day Skeleton */}
+      <div style={{ padding: '14px 16px', background: 'var(--sf-bg-surface)', borderRadius: 14, border: '1px solid var(--sf-border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Skeleton width={130} height={16} borderRadius={4} />
+          <Skeleton width={180} height={12} borderRadius={4} />
+        </div>
+        <Skeleton width={96} height={32} borderRadius={100} />
+      </div>
+
+      {/* 3. Today's Schedule & Fittings Skeleton */}
+      <div style={{ padding: '16px 14px', background: 'var(--sf-bg-surface)', borderRadius: 16, border: '1px solid var(--sf-border-light)', marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Skeleton width={160} height={16} borderRadius={4} />
+          <Skeleton width={60} height={14} borderRadius={10} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px', background: 'var(--sf-surface-variant)', borderRadius: 12 }}>
+          <Skeleton width={28} height={28} borderRadius={8} />
+          <Skeleton width="55%" height={14} borderRadius={4} />
+        </div>
+      </div>
+
+      {/* 4. Today's Workshop Priorities Skeleton */}
       <div style={{ padding: '16px 14px', background: 'var(--sf-bg-surface)', borderRadius: 16, border: '1px solid var(--sf-border-light)', marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <Skeleton width={130} height={16} borderRadius={4} />

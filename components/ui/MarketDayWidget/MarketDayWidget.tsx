@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './MarketDayWidget.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { logStreakAction } from '@/lib/streakClient';
@@ -11,14 +11,25 @@ export default function MarketDayWidget() {
   const [saved, setSaved] = useState(false);
   const { currentShop } = useData();
 
-  // If streak was already logged today, maybe hide this widget or show it as saved?
-  // Let's just keep it simple: they can click it once per day.
-  
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const key = `mtb_market_day_${todayStr}_${currentShop?.id || 'shop'}`;
+    if (localStorage.getItem(key) === 'true') {
+      setSaved(true);
+    }
+  }, [currentShop?.id]);
+
   const handleMarketDay = async () => {
     setLoading(true);
     const res = await logStreakAction('market_day', 10, true);
     if (res?.success) {
       setSaved(true);
+      if (typeof window !== 'undefined') {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const key = `mtb_market_day_${todayStr}_${currentShop?.id || 'shop'}`;
+        localStorage.setItem(key, 'true');
+      }
     }
     setLoading(false);
   };

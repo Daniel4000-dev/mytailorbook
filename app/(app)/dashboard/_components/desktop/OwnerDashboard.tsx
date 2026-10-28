@@ -49,8 +49,6 @@ export default function OwnerDashboard({
 
   return (
     <div className={styles.content}>
-      {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
-
       {/* Hero: Dominant Atelier Financial & Operational Command */}
       <div className={styles.hero}>
         {/* Tailor's Hand-Basting Pick-Stitch Border */}
@@ -256,6 +254,9 @@ export default function OwnerDashboard({
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
+          {/* Sourcing Fabrics / Market Day Streak Shield (Available for Bespoke, RTW & Hybrid) */}
+          <MarketDayWidget />
+
           {/* Today's Schedule & Fittings (Calendar) */}
           <TodaysAgendaWidget />
 

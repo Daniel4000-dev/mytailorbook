@@ -215,7 +215,8 @@ export default function OwnerDashboard({
         debtTotal={debtTotal}
       />
 
-      {currentShop?.businessMode !== 'bespoke' && <MarketDayWidget />}
+      {/* Sourcing Fabrics / Market Day Streak Shield (Available for Bespoke, RTW & Hybrid) */}
+      <MarketDayWidget />
 
       {/* 3. Today's Schedule & Fittings (Calendar) */}
       <TodaysAgendaWidget />

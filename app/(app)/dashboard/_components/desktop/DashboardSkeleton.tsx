@@ -51,6 +51,24 @@ export default function DashboardSkeleton() {
       {/* 2-Column Content Skeleton */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
+          {/* Sourcing Fabrics / Market Day Skeleton */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid rgba(0, 0, 0, 0.06)',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '14px',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <Skeleton width={140} height={16} borderRadius={4} />
+              <Skeleton width={200} height={12} borderRadius={4} />
+            </div>
+            <Skeleton width={110} height={32} borderRadius={100} />
+          </div>
+
           {/* Agenda Card Skeleton */}
           <div style={{
             background: '#FFFFFF',

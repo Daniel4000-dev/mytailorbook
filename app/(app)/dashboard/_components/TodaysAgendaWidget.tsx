@@ -13,16 +13,22 @@ export default function TodaysAgendaWidget() {
   const { calendarEvents, orders, isLoaded } = useData();
   const [localStatuses, setLocalStatuses] = useState<Record<string, 'pending' | 'completed'>>({});
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
 
   // Merge today's calendar events with orders due today — fully synchronous, 0ms lag
   const events = useMemo(() => {
     const list: CalendarEvent[] = (calendarEvents || [])
-      .filter((e) => e.date === todayStr)
+      .filter((e) => (e.date || '').split('T')[0] === todayStr)
       .map((e) => (localStatuses[e.id] ? { ...e, status: localStatuses[e.id] } : e));
 
     // Merge in any orders due today that aren't already represented as deadlines
-    orders.forEach((order) => {
+    (orders || []).forEach((order) => {
       if (order.dueDate && order.dueDate.split('T')[0] === todayStr) {
         const alreadyHasDeadline = list.some(
           (e) => e.relatedOrderId === order.id || e.id === `order-deadline-${order.id}`
