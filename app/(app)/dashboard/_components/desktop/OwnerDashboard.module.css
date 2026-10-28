@@ -84,69 +84,6 @@
   flex: 1;
 }
 
-/* Branded Atelier Hallmark Seal */
-.heroHallmark {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: var(--sf-radius-full);
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.32);
-  color: #FDE68A;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  width: fit-content;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Engraved Sartorial Selvedge Strip with Tailor's Rule Ticks */
-.engravedSelvedgeStrip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 14px;
-  background: rgba(10, 8, 30, 0.45);
-  border-radius: var(--sf-radius-full);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.08);
-  position: relative;
-  z-index: 2;
-  overflow: hidden;
-}
-
-.selvedgeRulerTicks {
-  flex: 1;
-  height: 6px;
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(245, 158, 11, 0.35) 0px,
-    rgba(245, 158, 11, 0.35) 1px,
-    transparent 1px,
-    transparent 6px,
-    rgba(253, 230, 138, 0.7) 6px,
-    rgba(253, 230, 138, 0.7) 7px,
-    transparent 7px,
-    transparent 12px
-  );
-  opacity: 0.65;
-}
-
-.selvedgeLabel {
-  font-family: var(--sf-font-mono, monospace);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #FDE68A;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 0 10px rgba(245, 158, 11, 0.25);
-}
-
 .heroEyebrow {
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);

@@ -119,9 +119,8 @@ export default function TodaysAgendaWidget() {
                     </button>
                   )}
                   <span
-                    className={`${styles.eventTitle} ${
-                      isCompleted ? styles.eventTitleCompleted : ''
-                    }`}
+                    className={`${styles.eventTitle} ${isCompleted ? styles.eventTitleCompleted : ''
+                      }`}
                   >
                     {evt.title}
                   </span>

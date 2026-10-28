@@ -73,10 +73,6 @@ export default function OwnerDashboard({
 
         <div className={styles.heroTop}>
           <div className={styles.heroIdentity}>
-            <div className={styles.heroHallmark}>
-              <Symbol name="needle" size={9} />
-              <span>BESPOKE ATELIER</span>
-            </div>
             <span className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</span>
           </div>
           <div className={styles.heroPrimaryStat}>
@@ -99,15 +95,6 @@ export default function OwnerDashboard({
               {hideCollected ? '******' : formatCurrency(collected, currentShop?.currency)}
             </span>
           </div>
-        </div>
-
-        {/* Engraved Sartorial Selvedge Strip */}
-        <div className={styles.engravedSelvedgeStrip} aria-hidden="true">
-          <span className={styles.selvedgeRulerTicks} />
-          <span className={styles.selvedgeLabel}>
-            ATELIER COMMAND CENTER · SPECIFICATION NO. {currentShop?.id?.slice(0, 6)?.toUpperCase() || 'SUITE'}
-          </span>
-          <span className={styles.selvedgeRulerTicks} />
         </div>
 
         <div className={styles.heroMain}>

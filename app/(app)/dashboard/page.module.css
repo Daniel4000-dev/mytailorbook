@@ -21,8 +21,15 @@
 
 /* ── Animations ── */
 @keyframes fluidReveal {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* pulseMesh animation retired: surfaces stay still so the sidebar
@@ -77,7 +84,10 @@
 .heroBento::before {
   content: '';
   position: absolute;
-  top: -50%; left: -50%; width: 200%; height: 200%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: radial-gradient(circle at 85% 10%, var(--sf-accent-emerald-glow) 0%, transparent 45%);
   pointer-events: none;
 }
@@ -190,21 +200,24 @@
   margin-bottom: var(--sf-space-md);
 }
 
-.iconBlue { 
-  background: var(--sf-accent-emerald-glow); 
-  color: var(--sf-accent-emerald); 
+.iconBlue {
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
 }
-.iconGreen { 
-  background: var(--sf-accent-gold-soft); 
-  color: var(--sf-text-gold); 
+
+.iconGreen {
+  background: var(--sf-accent-gold-soft);
+  color: var(--sf-text-gold);
 }
-.iconPurple { 
-  background: var(--sf-accent-emerald-glow); 
-  color: var(--sf-accent-emerald); 
+
+.iconPurple {
+  background: var(--sf-accent-emerald-glow);
+  color: var(--sf-accent-emerald);
 }
-.iconOrange { 
-  background: var(--sf-accent-gold-soft); 
-  color: var(--sf-text-gold); 
+
+.iconOrange {
+  background: var(--sf-accent-gold-soft);
+  color: var(--sf-text-gold);
 }
 
 .bentoValue {
@@ -252,9 +265,17 @@
   margin-bottom: var(--sf-space-sm);
 }
 
-.pipeCut { background: var(--sf-text-tertiary); }
-.pipeSew { background: var(--sf-accent-emerald); }
-.pipeReady { background: var(--sf-accent-gold); }
+.pipeCut {
+  background: var(--sf-text-tertiary);
+}
+
+.pipeSew {
+  background: var(--sf-accent-emerald);
+}
+
+.pipeReady {
+  background: var(--sf-accent-gold);
+}
 
 .pipelineLegend {
   display: flex;
@@ -276,9 +297,17 @@
   border-radius: 50%;
 }
 
-.dotCut { background: var(--sf-text-tertiary); }
-.dotSew { background: var(--sf-accent-emerald); }
-.dotReady { background: var(--sf-accent-gold); }
+.dotCut {
+  background: var(--sf-text-tertiary);
+}
+
+.dotSew {
+  background: var(--sf-accent-emerald);
+}
+
+.dotReady {
+  background: var(--sf-accent-gold);
+}
 
 /* ── Discover Carousel ── */
 .discoverSection {
@@ -353,10 +382,10 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.discoverCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--sf-shadow-md);
-}
+  .discoverCard:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sf-shadow-md);
+  }
 }
 
 .discoverCard:active {
@@ -536,9 +565,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.cardPrivacyBtn:hover {
-  color: var(--sf-text-secondary);
-}
+  .cardPrivacyBtn:hover {
+    color: var(--sf-text-secondary);
+  }
 }
 
 .cardPrivacyBtn:active {
@@ -742,6 +771,7 @@
     color: #818CF8;
     border-color: rgba(99, 102, 241, 0.3);
   }
+
   :global(:root:not([data-theme="light"])) .teamOverdueBadge {
     background: rgba(220, 38, 38, 0.2);
     color: #F87171;
@@ -854,10 +884,10 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.attentionRow:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
+  .attentionRow:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
 }
 
 .attentionRow:active {
@@ -915,9 +945,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.attentionSeeAll:hover {
-  text-decoration: underline;
-}
+  .attentionSeeAll:hover {
+    text-decoration: underline;
+  }
 }
 
 .attentionSeeAll:active {
@@ -964,6 +994,7 @@
     background: rgba(239, 68, 68, 0.16);
     color: #F87171;
   }
+
   :global(:root:not([data-theme="light"])) .attentionAvatar_warning {
     background: rgba(245, 158, 11, 0.16);
     color: #FBBF24;
@@ -983,6 +1014,7 @@
 /* Flat/plain on desktop only — mobile keeps its card shadow. Placed last
    so source order wins against the earlier unconditional base rules. */
 @media (min-width: 1024px) {
+
   .financeCard,
   .teamCard,
   .attentionRow {
@@ -1165,69 +1197,6 @@
   gap: 3px;
   min-width: 0;
   flex: 1;
-}
-
-/* Branded Atelier Hallmark Seal */
-.heroHallmark {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: var(--sf-radius-full);
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.32);
-  color: #FDE68A;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  width: fit-content;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Engraved Sartorial Selvedge Strip with Tailor's Rule Ticks */
-.engravedSelvedgeStrip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 3px 10px;
-  background: rgba(10, 8, 30, 0.45);
-  border-radius: var(--sf-radius-full);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.55), 0 1px 0 rgba(255, 255, 255, 0.08);
-  position: relative;
-  z-index: 2;
-  overflow: hidden;
-}
-
-.selvedgeRulerTicks {
-  flex: 1;
-  height: 6px;
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(245, 158, 11, 0.35) 0px,
-    rgba(245, 158, 11, 0.35) 1px,
-    transparent 1px,
-    transparent 5px,
-    rgba(253, 230, 138, 0.7) 5px,
-    rgba(253, 230, 138, 0.7) 6px,
-    transparent 6px,
-    transparent 10px
-  );
-  opacity: 0.65;
-}
-
-.selvedgeLabel {
-  font-family: var(--sf-font-mono, monospace);
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #FDE68A;
-  white-space: nowrap;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 0 10px rgba(245, 158, 11, 0.25);
 }
 
 .heroGreeting {
@@ -1620,9 +1589,8 @@
   :global(:root:not([data-theme="light"])) .teamBenchLink {
     color: var(--sf-text-secondary, #A5A3BC);
   }
+
   :global(:root:not([data-theme="light"])) .teamBenchLink:hover {
     color: #818CF8;
   }
 }
-
-
