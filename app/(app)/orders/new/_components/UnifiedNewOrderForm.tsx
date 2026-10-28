@@ -138,31 +138,41 @@ export default function UnifiedNewOrderForm() {
     }
   }, [searchParams, customers, selectedCustomer]);
 
-  // Pre-populate style, price, and style reference image if passed from Inspiration Catalogues or Quotes
+  // Pre-populate style, price, style reference image, and quote specifications if passed from Quotes or Inspiration
   useEffect(() => {
     const styleParam = searchParams.get('style');
     const styleRefParam = searchParams.get('styleRef');
     const priceParam = searchParams.get('price');
-    if (styleParam || styleRefParam || priceParam) {
+    const notesParam = searchParams.get('notes');
+    const materialParam = searchParams.get('material');
+    if (styleParam || styleRefParam || priceParam || notesParam || materialParam) {
       setGarments((prev) => {
         if (prev.length === 0) return prev;
         const first = prev[0];
         if (
           first.styleReferenceImage === styleRefParam &&
           first.styleName === (styleParam || first.styleName) &&
-          first.price === (priceParam || first.price)
+          first.price === (priceParam || first.price) &&
+          first.fabricNotes === (notesParam || first.fabricNotes) &&
+          first.materialSuppliedBy === (materialParam || first.materialSuppliedBy)
         ) {
           return prev;
         }
         const updatedStyleName = styleParam || first.styleName;
         const isCustom = !GARMENT_STYLES.some((s) => s.name.toLowerCase() === updatedStyleName.toLowerCase());
         const updatedPrice = priceParam || first.price;
+        const updatedNotes = notesParam || first.fabricNotes;
+        const updatedMaterial = (materialParam === 'shop' || materialParam === 'customer')
+          ? materialParam
+          : first.materialSuppliedBy;
         const updated: GarmentDraft = {
           ...first,
           styleName: updatedStyleName,
           isCustomStyle: isCustom,
           price: updatedPrice,
           styleReferenceImage: styleRefParam || first.styleReferenceImage,
+          fabricNotes: updatedNotes,
+          materialSuppliedBy: updatedMaterial,
         };
         return [updated, ...prev.slice(1)];
       });
