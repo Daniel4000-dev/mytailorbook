@@ -11,6 +11,7 @@
   border-radius: var(--sf-radius-md);
   overflow: hidden;
   box-shadow: var(--sf-shadow-xs);
+  margin-bottom: var(--sf-space-md);
 }
 
 .toggleRow {
@@ -96,11 +97,106 @@
   margin: 0;
 }
 
+/* Variable Chips */
+.variableChipsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variableChipsLabel {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+}
+
+.variableChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.variableChip {
+  background: rgba(4, 120, 87, 0.08);
+  border: 1px solid rgba(4, 120, 87, 0.2);
+  color: var(--sf-color-primary, #047857);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.variableChip:hover,
+.variableChip:active {
+  background: rgba(4, 120, 87, 0.16);
+  border-color: var(--sf-color-primary, #047857);
+}
+
+/* Live WhatsApp Chat Bubble Preview */
+.chatPreviewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.chatPreviewLabel {
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chatPreviewWrap {
+  background: #efeae2;
+  border-radius: 12px;
+  padding: 16px 14px;
+  border: 1px solid #e0d9d0;
+  background-image: radial-gradient(#d4cbbe 0.75px, transparent 0.75px);
+  background-size: 16px 16px;
+}
+
+.chatBubble {
+  background: #e7ffdb;
+  border-radius: 8px;
+  padding: 8px 12px 6px;
+  max-width: 92%;
+  margin-left: auto;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #111b21;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.chatMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  color: #667781;
+  margin-top: 4px;
+}
+
+.chatTicks {
+  color: #53bdeb;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
 .resetLink {
   align-self: flex-start;
   background: none;
   border: none;
-  color: var(--sf-accent-emerald);
+  color: var(--sf-color-primary, #047857);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;

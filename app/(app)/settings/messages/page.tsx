@@ -79,10 +79,36 @@ export default function MessageTemplatesSettingsPage() {
     }
   };
 
+  const insertVariable = (token: string, isNote: boolean = false) => {
+    if (isNote) {
+      setNoteDraft((prev) => `${prev} ${token}`);
+    } else {
+      setDraft((prev) => `${prev} ${token}`);
+    }
+  };
+
+  const getRenderedPreview = (text: string) => {
+    const studioName = currentShop?.name || 'House of Savile';
+    return text
+      .replace(/\{name\}/g, 'Chief Emeka')
+      .replace(/\{shop\}/g, studioName)
+      .replace(/\{link\}/g, `mytailorbook.com/t/ord_204`)
+      .replace(/\{orderId\}/g, 'ORD-204');
+  };
+
   return (
-    <PageLayout width="narrow" header={<TopBar title="Order Update Messages" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
+    <PageLayout
+      width="narrow"
+      header={
+        <TopBar
+          title="Order Update Messages"
+          showBack={!isDesktop}
+          onBack={() => router.push(ROUTES.settings)}
+        />
+      }
+    >
       <p className={styles.intro}>
-        Customize the WhatsApp update sent at each stage. Untouched stages keep the app&apos;s default wording.
+        Customize the automated WhatsApp messages sent to clients across each bespoke stage. Untouched stages keep the atelier default wording.
       </p>
 
       <div className={styles.card}>
@@ -118,13 +144,14 @@ export default function MessageTemplatesSettingsPage() {
           <button key={stage} type="button" className={styles.row} onClick={() => openStageSheet(stage)}>
             <Badge variant={stage.toLowerCase() as Lowercase<OrderStatus>}>{STATUS_CONFIG[stage].label}</Badge>
             <span className={styles.subtitle}>
-              {(templates[stage] || DEFAULT_STAGE_MESSAGES[stage]).slice(0, 40)}…
+              {(templates[stage] || DEFAULT_STAGE_MESSAGES[stage]).slice(0, 40)}...
             </span>
             <Symbol name="chevron_right" size={18} className={styles.chevron} />
           </button>
         ))}
       </div>
 
+      {/* Stage Message Editor Sheet */}
       <BottomSheet
         isOpen={!!activeStage}
         onClose={() => setActiveStage(null)}
@@ -132,27 +159,132 @@ export default function MessageTemplatesSettingsPage() {
         variant="modal"
       >
         <div className={styles.sheetBody}>
-          <textarea className={styles.textarea} value={draft} onChange={(e) => setDraft(e.target.value)} rows={5} />
-          <p className={styles.hintText}>
-            {'{name}'}, {'{shop}'}, and {'{link}'} will be filled in automatically.
-          </p>
+          {/* Quick variable chips */}
+          <div className={styles.variableChipsSection}>
+            <span className={styles.variableChipsLabel}>Quick Insert Variable</span>
+            <div className={styles.variableChipsRow}>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{name}')}
+              >
+                + Client Name
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{shop}')}
+              >
+                + Studio Name
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{link}')}
+              >
+                + Tracking Link
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{orderId}')}
+              >
+                + Order Number
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            className={styles.textarea}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={4}
+          />
+
+          {/* Live WhatsApp chat bubble simulation */}
+          <div className={styles.chatPreviewSection}>
+            <span className={styles.chatPreviewLabel}>Live Client WhatsApp Preview</span>
+            <div className={styles.chatPreviewWrap}>
+              <div className={styles.chatBubble}>
+                <div>{getRenderedPreview(draft) || 'Message preview will appear here...'}</div>
+                <div className={styles.chatMeta}>
+                  <span>14:32</span>
+                  <span className={styles.chatTicks}>vv</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button type="button" className={styles.resetLink} onClick={handleResetDefault}>
-            Reset to Default
+            Reset to Atelier Default
           </button>
+
           <div className={styles.sheetActions}>
-            <Button variant="ghost" onClick={() => setActiveStage(null)}>Cancel</Button>
-            <Button variant="primary" loading={saving} onClick={handleSave}>Save Message</Button>
+            <Button variant="ghost" onClick={() => setActiveStage(null)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={saving} onClick={handleSave}>
+              Save Message
+            </Button>
           </div>
         </div>
       </BottomSheet>
 
-      <BottomSheet isOpen={editingNote} onClose={() => setEditingNote(false)} title="Reach-Out Message" variant="modal">
+      {/* Reach-Out Note Editor Sheet */}
+      <BottomSheet
+        isOpen={editingNote}
+        onClose={() => setEditingNote(false)}
+        title="Reach-Out Message"
+        variant="modal"
+      >
         <div className={styles.sheetBody}>
-          <textarea className={styles.textarea} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} rows={3} />
-          <p className={styles.hintText}>Use {'{name}'} and it&apos;ll be replaced with the customer&apos;s name.</p>
+          <div className={styles.variableChipsSection}>
+            <span className={styles.variableChipsLabel}>Quick Insert Variable</span>
+            <div className={styles.variableChipsRow}>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{name}', true)}
+              >
+                + Client Name
+              </button>
+              <button
+                type="button"
+                className={styles.variableChip}
+                onClick={() => insertVariable('{shop}', true)}
+              >
+                + Studio Name
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            className={styles.textarea}
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            rows={3}
+          />
+
+          <div className={styles.chatPreviewSection}>
+            <span className={styles.chatPreviewLabel}>Live Client WhatsApp Preview</span>
+            <div className={styles.chatPreviewWrap}>
+              <div className={styles.chatBubble}>
+                <div>{getRenderedPreview(noteDraft) || 'Message preview will appear here...'}</div>
+                <div className={styles.chatMeta}>
+                  <span>14:32</span>
+                  <span className={styles.chatTicks}>vv</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className={styles.sheetActions}>
-            <Button variant="ghost" onClick={() => setEditingNote(false)}>Cancel</Button>
-            <Button variant="primary" loading={savingNote} onClick={handleSaveNote}>Save Template</Button>
+            <Button variant="ghost" onClick={() => setEditingNote(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingNote} onClick={handleSaveNote}>
+              Save Template
+            </Button>
           </div>
         </div>
       </BottomSheet>

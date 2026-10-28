@@ -7,85 +7,224 @@
   margin: 0 auto;
 }
 
-/* ── Identity strip (Apple ID / Studio Director Card) ── */
-.identityStrip {
+.headerActions {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-md);
-  width: 100%;
-  background: var(--sf-bg-surface-elevated);
+  gap: 8px;
+}
+
+.headerActionBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg, 16px);
-  padding: 16px 18px;
-  margin-top: var(--sf-space-sm);
-  text-align: left;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: var(--sf-shadow-xs);
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+  transition: all var(--sf-transition-fast);
 }
 
-.identityStrip:active {
-  transform: scale(0.99);
+.headerActionBtn:hover {
   background: var(--sf-bg-surface-hover);
+  color: var(--sf-text-primary);
+  border-color: var(--sf-border-default);
 }
 
-:global([data-theme='dark']) .identityStrip {
-  background: var(--sf-bg-surface);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-}
-
-.identityText {
+/* ── WhatsApp 'You' Tab Inspired Atelier Executive Hero ── */
+.heroProfileCard {
+  position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-width: 0;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  background: linear-gradient(180deg, var(--sf-bg-surface-elevated, #FFFFFF) 0%, var(--sf-bg-surface, #F8FAFC) 100%);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-xl, 24px);
+  padding: 24px 20px 22px;
+  margin-top: var(--sf-space-xs);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
-.identityName {
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-lg);
+.heroProfileCard:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+}
+
+.heroProfileCard:active {
+  transform: scale(0.99);
+}
+
+/* Thought Bubble - Live Atelier Heartbeat */
+.heroBubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+}
+
+.heroBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 6px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-left: 1px solid var(--sf-border-light);
+  border-right: 1px solid var(--sf-border-light);
+}
+
+.heroBubbleDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--sf-accent-emerald, #10B981);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  flex-shrink: 0;
+}
+
+.heroBubbleText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Studio Avatar & Logo */
+.heroAvatarWrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.heroLogoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroLogoPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(92, 61, 46, 0.12) 0%, rgba(92, 61, 46, 0.05) 100%);
+  color: var(--sf-color-brand-brown, #5C3D2E);
+}
+
+/* Studio Name & Subtitles */
+.heroNameGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.heroTitleRow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.heroStudioName {
+  font-family: var(--sf-font-heading, Georgia, serif);
+  font-size: 20px;
   font-weight: 700;
   color: var(--sf-text-primary);
+  margin: 0;
   line-height: 1.25;
 }
 
-.identityBadgeRow {
+.verifiedIcon {
+  color: var(--sf-accent-emerald, #10B981);
+  flex-shrink: 0;
+}
+
+.heroBadgeRow {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
-.onlineDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--sf-accent-emerald, #10B981);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
-}
-
-.identityRole {
+.heroModeBadge {
   font-size: 11px;
   font-weight: 700;
-  color: var(--sf-brand-indigo);
-  text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(92, 61, 46, 0.1);
+  color: var(--sf-color-brand-brown, #5C3D2E);
+  border: 1px solid rgba(92, 61, 46, 0.2);
 }
 
-.identitySubtitle {
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
-  margin-top: 3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.heroCurrencyBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border-light);
 }
 
-.identityChevron {
+.heroMetaLine {
+  font-size: 12px;
   color: var(--sf-text-tertiary);
-  flex-shrink: 0;
+  margin: 4px 0 0 0;
+}
+
+:global([data-theme='dark']) .heroProfileCard {
+  background: linear-gradient(180deg, var(--sf-bg-surface-elevated, #1E1D2D) 0%, var(--sf-bg-surface, #161526) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+:global([data-theme='dark']) .heroBubble {
+  background: var(--sf-bg-surface-elevated, #242236);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .heroBubble::after {
+  background: var(--sf-bg-surface-elevated, #242236);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .heroAvatarWrap {
+  border-color: var(--sf-bg-surface-elevated, #242236);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme='dark']) .heroModeBadge {
+  background: rgba(217, 119, 6, 0.15);
+  color: #FBBF24;
+  border-color: rgba(217, 119, 6, 0.3);
 }
 
 /* ── Grouped settings list ── */
@@ -388,11 +527,15 @@
 }
 
 .planFeatures li::before {
-  content: '✓';
+  content: '';
   position: absolute;
-  left: 0;
-  color: var(--sf-success);
-  font-weight: 700;
+  left: 2px;
+  top: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--sf-color-primary, #047857);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .planFeatureMuted {
@@ -400,8 +543,12 @@
 }
 
 .planFeatureMuted::before {
-  content: '–' !important;
-  color: var(--sf-text-tertiary) !important;
+  border-color: var(--sf-text-tertiary) !important;
+  transform: rotate(0deg) !important;
+  width: 8px !important;
+  height: 0 !important;
+  border-width: 0 0 2px 0 !important;
+  top: 9px !important;
 }
 
 .headerActions {

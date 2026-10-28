@@ -43,6 +43,34 @@ export default function CustomStylesSettingsPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  // Direct style creation
+  const [isCreatingStyle, setIsCreatingStyle] = useState(false);
+  const [newStyleName, setNewStyleName] = useState('');
+  const [newStyleGender, setNewStyleGender] = useState<'male' | 'female' | undefined>(undefined);
+  const [creatingStyle, setCreatingStyle] = useState(false);
+
+  const handleCreateStyle = async () => {
+    if (!newStyleName.trim()) return;
+    setCreatingStyle(true);
+    try {
+      await upsertCustomStyle(newStyleName.trim(), undefined, undefined, newStyleGender);
+      showToast('Signature style added to catalog', 'success');
+      const createdStyle: CustomStyle = {
+        name: newStyleName.trim(),
+        gender: newStyleGender,
+        measurementFields: [],
+      };
+      setIsCreatingStyle(false);
+      setNewStyleName('');
+      setNewStyleGender(undefined);
+      openStyleSheet(createdStyle);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not create style', 'error');
+    } finally {
+      setCreatingStyle(false);
+    }
+  };
+
   const openStyleSheet = (style: CustomStyle) => {
     setActiveStyle(style);
     setEditName(style.name);
@@ -126,7 +154,21 @@ export default function CustomStylesSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Custom Styles" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
+    <PageLayout
+      width="narrow"
+      header={
+        <TopBar
+          title="Custom Styles"
+          showBack={!isDesktop}
+          onBack={() => router.push(ROUTES.settings)}
+          rightAction={
+            <Button variant="primary" size="sm" onClick={() => setIsCreatingStyle(true)}>
+              + New Style
+            </Button>
+          }
+        />
+      }
+    >
       {!isLoaded ? (
         <div className={styles.grid}>
           <Skeleton height={120} />
@@ -136,7 +178,11 @@ export default function CustomStylesSettingsPage() {
         <EmptyState
           icon={<Symbol name="checkroom" size={40} />}
           title="No custom styles yet"
-          description="They'll appear here as your team adds them while creating new orders."
+          description="Add signature styles (e.g. 3-Piece Agbada, Kaftan, Corset Gown) to standardize measurements and pricing."
+          action={{
+            label: '+ Add First Style',
+            onClick: () => setIsCreatingStyle(true),
+          }}
         />
       ) : (
         <div className={styles.grid}>
@@ -153,6 +199,57 @@ export default function CustomStylesSettingsPage() {
           ))}
         </div>
       )}
+
+      {/* Direct Add New Style Sheet */}
+      <BottomSheet
+        isOpen={isCreatingStyle}
+        onClose={() => setIsCreatingStyle(false)}
+        title="Add Signature Style"
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          <Input
+            label="Style Name"
+            value={newStyleName}
+            onChange={(e) => setNewStyleName(e.target.value)}
+            placeholder="e.g. 3-Piece Agbada, Kaftan Suit, Corset Dress"
+            autoFocus
+          />
+          <p className={styles.hintText}>
+            This style will immediately be available for selection on new orders and client measurements.
+          </p>
+          <div className={styles.genderRow} role="radiogroup" aria-label="Gender">
+            {(['male', 'female'] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                role="radio"
+                aria-checked={newStyleGender === g}
+                className={newStyleGender === g ? styles.genderRowActive : ''}
+                onClick={() => setNewStyleGender(newStyleGender === g ? undefined : g)}
+              >
+                {g === 'male' ? 'Male' : 'Female'}
+              </button>
+            ))}
+          </div>
+          <p className={styles.hintText}>
+            Select gender, or leave unselected to show for both gentlemen and ladies.
+          </p>
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setIsCreatingStyle(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              loading={creatingStyle}
+              disabled={!newStyleName.trim()}
+              onClick={handleCreateStyle}
+            >
+              Create Style
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
 
       <BottomSheet isOpen={!!activeStyle} onClose={() => setActiveStyle(null)} title={activeStyle?.name}>
         <div className={styles.sheetBody}>

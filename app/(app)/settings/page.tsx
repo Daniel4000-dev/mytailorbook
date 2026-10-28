@@ -45,7 +45,7 @@ export default function SettingsPage() {
   // render entirely on desktop, not just redirecting afterward, is what
   // actually prevents that flash.
   useEffect(() => {
-    if (isDesktop) router.replace(ROUTES.settingsAccount);
+    if (isDesktop) router.replace(ROUTES.settingsStudio);
   }, [isDesktop, router]);
 
   const [addBranchOpen, setAddBranchOpen] = useState(false);
@@ -89,11 +89,37 @@ export default function SettingsPage() {
   {/* Plain title, not profileMode — the identity strip just below the
       header already shows name/role/avatar; profileMode here would just
       repeat the same thing twice on one screen. */}
+  const handleShareStorefront = () => {
+    const slug = currentShop?.slug || 'savile-row';
+    const shopName = currentShop?.name || 'our atelier';
+    const url = `${window.location.origin}/studio/${slug}`;
+    const text = `Greetings from ${shopName}! Explore our signature bespoke collections and storefront:\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const topBar = (
     <TopBar
       title="Settings"
       rightAction={
         <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={styles.headerActionBtn}
+            onClick={handleShareStorefront}
+            title="Share Studio Storefront"
+            aria-label="Share Studio Storefront"
+          >
+            <Symbol name="share" size={18} />
+          </button>
+          <button
+            type="button"
+            className={styles.headerActionBtn}
+            onClick={() => router.push(ROUTES.settingsStudio)}
+            title="Edit Studio Profile"
+            aria-label="Edit Studio Profile"
+          >
+            <Symbol name="edit" size={18} />
+          </button>
           <NotificationBell />
         </div>
       }
@@ -133,55 +159,174 @@ export default function SettingsPage() {
 
   return (
     <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
-      <button type="button" className={styles.identityStrip} onClick={() => router.push(ROUTES.settingsAccount)}>
-        <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" shape="circle" />
-        <div className={styles.identityText}>
-          <span className={styles.identityName}>{user?.name}</span>
-          <div className={styles.identityBadgeRow}>
-            <span className={styles.onlineDot} />
-            <span className={styles.identityRole}>{user?.role || 'Owner'} Account</span>
-          </div>
-          <span className={styles.identitySubtitle}>{currentShop?.name || user?.email}</span>
+      {/* ── WhatsApp 'You' Tab Style Atelier Executive Hero ── */}
+      <button
+        type="button"
+        className={styles.heroProfileCard}
+        onClick={() => router.push(ROUTES.settingsStudio)}
+        aria-label="Manage Studio Profile and Identity"
+      >
+        {/* Thought Bubble - Live Atelier Heartbeat */}
+        <div className={styles.heroBubble}>
+          <span className={styles.heroBubbleDot} />
+          <span className={styles.heroBubbleText}>
+            {currentShop?.vacationMode
+              ? 'Vacation Mode Paused'
+              : currentShop?.businessMode === 'rtw'
+              ? 'Ready-to-Wear Rack Active'
+              : currentShop?.businessMode === 'hybrid'
+              ? 'Hybrid Atelier Operating'
+              : 'Bespoke Cutting Table Active'}
+          </span>
         </div>
-        <Symbol name="chevron_right" size={20} className={styles.identityChevron} />
+
+        {/* Studio Logo / Crest */}
+        <div className={styles.heroAvatarWrap}>
+          {currentShop?.logoUrl ? (
+            <Image
+              src={currentShop.logoUrl}
+              alt={currentShop.name}
+              width={86}
+              height={86}
+              className={styles.heroLogoImg}
+            />
+          ) : (
+            <div className={styles.heroLogoPlaceholder}>
+              <Symbol name="storefront" size={40} />
+            </div>
+          )}
+        </div>
+
+        {/* Studio Name & Identity Info */}
+        <div className={styles.heroNameGroup}>
+          <div className={styles.heroTitleRow}>
+            <h2 className={styles.heroStudioName}>{currentShop?.name || 'Your Studio'}</h2>
+            <Symbol name="verified" size={17} className={styles.verifiedIcon} />
+          </div>
+
+          <div className={styles.heroBadgeRow}>
+            <span className={styles.heroModeBadge}>
+              {currentShop?.businessMode === 'rtw'
+                ? 'Ready-to-Wear Studio'
+                : currentShop?.businessMode === 'hybrid'
+                ? 'Hybrid Fashion House'
+                : 'Bespoke Atelier'}
+            </span>
+            {currentShop?.currency && (
+              <span className={styles.heroCurrencyBadge}>{currentShop.currency}</span>
+            )}
+          </div>
+
+          <p className={styles.heroMetaLine}>
+            {currentShop?.address || 'Lagos, Nigeria'}
+            {currentShop?.phone ? ` · ${currentShop.phone}` : ''}
+          </p>
+        </div>
       </button>
 
       <div className={styles.groups}>
-
+        {/* ── Group 1: Atelier Commerce & Styling ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Your Studio</span>
+          <span className={styles.groupLabel}>Atelier Commerce &amp; Styling</span>
           <div className={styles.groupCard}>
             <SettingsRow
               icon="storefront"
               iconColor="indigo"
-              label="Studio Profile"
-              subtitle={currentShop?.name || 'Unnamed Studio'}
-              onClick={() => router.push(ROUTES.settingsStudio)}
-            />
-            <SettingsRow
-              icon="image"
-              iconColor="purple"
-              label="Shop Logo"
-              subtitle={currentShop?.logoUrl ? 'Set' : 'Not set'}
+              label="Studio Profile &amp; Branding"
+              subtitle={currentShop?.name ? `${currentShop.name} · ${currentShop.address || 'Address'}` : 'Configure studio identity'}
               meta={
                 currentShop?.logoUrl ? (
-                  <Image src={currentShop.logoUrl} alt="" width={200} height={200} className={styles.logoThumb} />
+                  <Image src={currentShop.logoUrl} alt="" width={24} height={24} className={styles.logoThumb} />
                 ) : undefined
               }
               onClick={() => router.push(ROUTES.settingsStudio)}
             />
+            <SettingsRow
+              icon="checkroom"
+              iconColor="rose"
+              label="Garment Styles &amp; Base Prices"
+              subtitle={customStylesCount > 0 ? `${customStylesCount} signature cuts configured` : 'Standard silhouettes & base prices'}
+              onClick={() => router.push(ROUTES.settingsStyles)}
+            />
+            <SettingsRow
+              icon="forum"
+              iconColor="emerald"
+              label="WhatsApp Client Messages"
+              subtitle="Per-stage update wording &amp; tracking links"
+              onClick={() => router.push(ROUTES.settingsMessages)}
+            />
+            <SettingsRow
+              icon="photo_library"
+              iconColor="purple"
+              label="Public Portfolio &amp; Lookbook"
+              subtitle={`mytailorbook.com/studio/${currentShop?.slug || ''}`}
+              meta={<Symbol name="open_in_new" size={15} />}
+              onClick={() => router.push(ROUTES.settingsPortfolio)}
+            />
+            {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
+              <SettingsRow
+                icon="straighten"
+                iconColor="slate"
+                label="Size Charts"
+                subtitle="Standard measurements for production batches"
+                onClick={() => router.push('/settings/size-charts')}
+              />
+            )}
           </div>
         </div>
 
+        {/* ── Group 2: Workshop & Team Operations ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Billing & Subscription</span>
+          <span className={styles.groupLabel}>Workshop &amp; Team Operations</span>
           <div className={styles.groupCard}>
-            {/* Not a SettingsRow here on purpose — SettingsRow's root is
-                itself a <button>, and this row needs its own independently
-                clickable "Upgrade" button nested inside it. Nesting a
-                <button> inside another <button> is invalid HTML (breaks
-                hydration and click targeting), so this is built as a plain,
-                non-interactive row instead. */}
+            <SettingsRow
+              icon="group"
+              iconColor="indigo"
+              label="Staff &amp; Master Cutters"
+              subtitle={`${activeStaffCount} active staff members`}
+              meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
+              onClick={() => router.push(ROUTES.settingsStaff)}
+            />
+            <SettingsRow
+              icon="verified_user"
+              iconColor="amber"
+              label="Daily Streak &amp; Vacation Shield"
+              subtitle={currentShop?.vacationMode ? 'Vacation Mode Paused' : `${currentShop?.streakFreezes || 0} Streak Freezes · Active`}
+              onClick={() => router.push(ROUTES.settingsStudio)}
+            />
+            {FEATURE_FLAGS.orgBranchMultiTenancy && (
+              <>
+                {shops.map((branch) => (
+                  <SettingsRow
+                    key={branch.id}
+                    icon="storefront"
+                    iconColor="blue"
+                    label={branch.name}
+                    subtitle={
+                      branch.isPrimary
+                        ? (branch.address || 'Primary branch')
+                        : (branch.address || 'Branch')
+                    }
+                    meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
+                    onClick={() => {}}
+                  />
+                ))}
+                <SettingsRow
+                  icon="add"
+                  iconColor="blue"
+                  label="Add Branch"
+                  subtitle="Add another physical location"
+                  onClick={() => setAddBranchOpen(true)}
+                />
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ── Group 3: Atelier Plan & Subscription ── */}
+        <div className={styles.group}>
+          <span className={styles.groupLabel}>Atelier Plan &amp; Subscription</span>
+          <div className={styles.groupCard}>
             <div className={billingRowStyles.row}>
               <div className={`${billingRowStyles.iconTile} ${billingRowStyles.tile_amber}`}>
                 <Symbol name="workspace_premium" size={18} className={billingRowStyles.iconGlyph} />
@@ -208,137 +353,38 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* ── Group 4: Preferences & Security ── */}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>App Experience</span>
+          <span className={styles.groupLabel}>Preferences &amp; Security</span>
           <div className={styles.groupCard}>
             <AppearanceToggle />
-          </div>
-        </div>
-
-        {FEATURE_FLAGS.orgBranchMultiTenancy && (
-          <div className={styles.group}>
-            <span className={styles.groupLabel}>Your Organization</span>
-            <div className={styles.groupCard}>
-              {shops.map((branch) => (
-                <SettingsRow
-                  key={branch.id}
-                  icon="storefront"
-                  iconColor="blue"
-                  label={branch.name}
-                  subtitle={
-                    branch.isPrimary
-                      ? (branch.address || 'Primary branch')
-                      : (branch.address || 'Branch')
-                  }
-                  meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
-                  onClick={() => {}}
-                />
-              ))}
+            <SettingsRow
+              icon="person"
+              iconColor="slate"
+              label="Account &amp; Login Credentials"
+              subtitle={`${user?.name || 'Owner'} · ${user?.email || 'Manage login'}`}
+              onClick={() => router.push(ROUTES.settingsAccount)}
+            />
+            {FEATURE_FLAGS.financialReporting && (
               <SettingsRow
-                icon="add"
-                iconColor="blue"
-                label="Add Branch"
-                subtitle="Add another physical location"
-                onClick={() => setAddBranchOpen(true)}
+                icon="bar_chart"
+                iconColor="emerald"
+                label="Financial Reports &amp; Margin"
+                subtitle="Revenue, outstanding balance, and margin"
+                onClick={() => router.push(ROUTES.settingsReports)}
               />
-            </div>
-          </div>
-        )}
-
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Your Team</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="group"
-              iconColor="emerald"
-              label="Staff"
-              subtitle={`${activeStaffCount} active`}
-              meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
-              onClick={() => router.push(ROUTES.settingsStaff)}
-            />
-          </div>
-        </div>
-
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Garment Styles</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="checkroom"
-              iconColor="rose"
-              label="Custom Styles"
-              subtitle={customStylesCount > 0 ? `${customStylesCount} added` : 'None yet'}
-              onClick={() => router.push(ROUTES.settingsStyles)}
-            />
-            {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
+            )}
+            {FEATURE_FLAGS.auditLog && (
               <SettingsRow
-                icon="straighten"
+                icon="history"
                 iconColor="slate"
-                label="Size Charts"
-                subtitle="Standard measurements for production batches"
-                onClick={() => router.push('/settings/size-charts')}
+                label="Security &amp; Activity Log"
+                subtitle="See who did what, and when"
+                onClick={() => router.push(ROUTES.settingsActivity)}
               />
             )}
           </div>
         </div>
-
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Messages &amp; Templates</span>
-          <div className={styles.groupCard}>
-            {/* Reach-Out Note Template and Order Update Messages both live
-               on the same /settings/messages page now — one row here,
-               not two that land in the same place. */}
-            <SettingsRow
-              icon="forum"
-              iconColor="blue"
-              label="Messages &amp; Templates"
-              subtitle="Reach-out note and per-stage WhatsApp wording"
-              onClick={() => router.push(ROUTES.settingsMessages)}
-            />
-          </div>
-        </div>
-
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Public Portfolio</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="photo_library"
-              iconColor="purple"
-              label="Manage Portfolio Photos"
-              subtitle="Choose what customers see"
-              onClick={() => router.push(ROUTES.settingsPortfolio)}
-            />
-          </div>
-        </div>
-
-        {FEATURE_FLAGS.financialReporting && (
-          <div className={styles.group}>
-            <span className={styles.groupLabel}>Financials</span>
-            <div className={styles.groupCard}>
-              <SettingsRow
-                icon="bar_chart"
-                iconColor="emerald"
-                label="Reports"
-                subtitle="Revenue, outstanding balance, and margin"
-                onClick={() => router.push(ROUTES.settingsReports)}
-              />
-            </div>
-          </div>
-        )}
-
-        {FEATURE_FLAGS.auditLog && (
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Security</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="history"
-              iconColor="slate"
-              label="Activity Log"
-              subtitle="See who did what, and when"
-              onClick={() => router.push(ROUTES.settingsActivity)}
-            />
-          </div>
-        </div>
-        )}
       </div>
 
       <BottomSheet isOpen={addBranchOpen} onClose={() => setAddBranchOpen(false)} title="Add Branch">

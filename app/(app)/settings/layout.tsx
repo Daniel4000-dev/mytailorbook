@@ -10,14 +10,14 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
 
 const NAV_ITEMS: { href: string; icon: string; label: string; rtwOnly?: boolean }[] = [
-  { href: '/settings/account', icon: 'person', label: 'Account' },
   { href: '/settings/studio', icon: 'storefront', label: 'Your Studio' },
-  { href: '/settings/billing', icon: 'workspace_premium', label: 'Billing & Subscription' },
-  { href: '/settings/staff', icon: 'group', label: 'Your Team' },
   { href: '/settings/styles', icon: 'checkroom', label: 'Garment Styles' },
-  { href: '/settings/size-charts', icon: 'straighten', label: 'Size Charts', rtwOnly: true },
   { href: '/settings/messages', icon: 'forum', label: 'Messages & Templates' },
   { href: '/settings/portfolio', icon: 'photo_library', label: 'Public Portfolio' },
+  { href: '/settings/size-charts', icon: 'straighten', label: 'Size Charts', rtwOnly: true },
+  { href: '/settings/staff', icon: 'group', label: 'Your Team' },
+  { href: '/settings/billing', icon: 'workspace_premium', label: 'Billing & Subscription' },
+  { href: '/settings/account', icon: 'person', label: 'Account & Login' },
   ...(FEATURE_FLAGS.financialReporting ? [{ href: '/settings/reports', icon: 'bar_chart', label: 'Financials' }] : []),
   ...(FEATURE_FLAGS.auditLog ? [{ href: '/settings/activity', icon: 'history', label: 'Security' }] : []),
 ];
