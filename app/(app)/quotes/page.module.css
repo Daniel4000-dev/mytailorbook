@@ -145,6 +145,13 @@
   gap: 20px;
 }
 
+/* On mobile: live price summary is placed at the VERY TOP so there is 0 scroll friction */
+@media (max-width: 1023px) {
+  .summaryCol {
+    order: -1;
+  }
+}
+
 @media (min-width: 1024px) {
   .twoColQuote {
     display: grid;
@@ -217,6 +224,15 @@
   color: var(--sf-accent-emerald);
   background: rgba(16, 185, 129, 0.08);
   padding: 3px 10px;
+  border-radius: var(--sf-radius-pill, 9999px);
+}
+
+.optionalBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  background: var(--sf-surface-variant);
+  padding: 2px 8px;
   border-radius: var(--sf-radius-pill, 9999px);
 }
 
@@ -548,6 +564,90 @@
   color: #fff;
 }
 
+/* ── Cost Mode Switcher & Quick Lump-Sum ── */
+.modeSwitcherRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--sf-surface-variant);
+  padding: 4px;
+  border-radius: var(--sf-radius-md, 12px);
+  border: 1px solid var(--sf-border-light);
+}
+
+.modeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: var(--sf-radius-sm, 8px);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modeBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.quickCostBox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--sf-surface-variant);
+  padding: 16px;
+  border-radius: var(--sf-radius-md, 12px);
+  border: 1px solid var(--sf-border-light);
+}
+
+.quickBenchmarkRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quickBenchmarkChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.benchmarkChip {
+  padding: 4px 10px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-pill, 9999px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.benchmarkChip:hover {
+  border-color: var(--sf-accent-indigo, #4F46E5);
+  color: var(--sf-accent-indigo, #4F46E5);
+}
+
+.benchmarkChipActive {
+  background: var(--sf-accent-indigo, #4F46E5);
+  border-color: var(--sf-accent-indigo, #4F46E5);
+  color: #fff;
+}
+
+.itemizedCostBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* ── Cost Breakdown & Presets ── */
 .costPresetsSection {
   display: flex;
@@ -829,7 +929,7 @@
   border-color: var(--sf-accent-indigo, #4F46E5);
 }
 
-/* ── Sticky Live Summary Card (Right Column) ── */
+/* ── Sticky Live Summary Card ── */
 .heroPriceCard {
   background-color: #1E1B4B;
   background-image:

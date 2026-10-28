@@ -32,37 +32,51 @@ interface SavedQuote {
   createdAt: string;
 }
 
+const STYLE_BENCHMARKS: Record<string, { cost: number; fabricYards: number; male: boolean }> = {
+  'Senator Suite': { cost: 22000, fabricYards: 4, male: true },
+  'Royal 3-Piece Agbada': { cost: 55000, fabricYards: 7, male: true },
+  'Luxury Kaftan': { cost: 18000, fabricYards: 4, male: true },
+  'Two-Piece Bespoke Suit': { cost: 65000, fabricYards: 3.5, male: true },
+  'Safari Suit': { cost: 24000, fabricYards: 4, male: true },
+  'Casual Danshiki': { cost: 14000, fabricYards: 3, male: true },
+  'Royal Silk Boubou': { cost: 28000, fabricYards: 4, male: false },
+  'Corset Lace Gown': { cost: 48000, fabricYards: 5, male: false },
+  'Ankara Mermaid Gown': { cost: 32000, fabricYards: 6, male: false },
+  'Two-Piece Silk Set': { cost: 26000, fabricYards: 3.5, male: false },
+  'Chic Jumpsuit': { cost: 22000, fabricYards: 3.5, male: false },
+};
+
 const CRAFT_PRESET_CATEGORIES = [
   {
     category: 'Fabric & Foundation',
     items: [
-      { name: 'Fabric Material / Cloth', defaultAmount: 0 },
-      { name: 'German Woven Stay & Canvas', defaultAmount: 0 },
-      { name: 'Silk / Jacquard Lining', defaultAmount: 0 },
-      { name: 'Buttons, Zippers & Notions', defaultAmount: 0 },
+      { name: 'Fabric Material / Cloth', defaultAmount: 12000 },
+      { name: 'German Woven Stay & Canvas', defaultAmount: 3500 },
+      { name: 'Silk / Jacquard Lining', defaultAmount: 3000 },
+      { name: 'Buttons, Zippers & Notions', defaultAmount: 1500 },
     ],
   },
   {
     category: 'Workmanship & Construction',
     items: [
-      { name: 'Cutting, Tailoring & Construction', defaultAmount: 0 },
-      { name: 'Custom Monogram / Initials', defaultAmount: 0 },
+      { name: 'Cutting, Tailoring & Construction', defaultAmount: 12000 },
+      { name: 'Custom Monogram / Initials', defaultAmount: 2500 },
     ],
   },
   {
     category: 'Luxury Embellishments',
     items: [
-      { name: 'Filigree Chest Embroidery', defaultAmount: 0 },
-      { name: 'Hand Beading & Crystals', defaultAmount: 0 },
-      { name: 'Machine Crystal Stoning', defaultAmount: 0 },
-      { name: 'Aso-Oke Accents & Trims', defaultAmount: 0 },
+      { name: 'Filigree Chest Embroidery', defaultAmount: 8500 },
+      { name: 'Hand Beading & Crystals', defaultAmount: 15000 },
+      { name: 'Machine Crystal Stoning', defaultAmount: 6000 },
+      { name: 'Aso-Oke Accents & Trims', defaultAmount: 5000 },
     ],
   },
   {
-    category: 'Atelier Packaging & Delivery',
+    category: 'Packaging & Delivery',
     items: [
-      { name: 'Garment Suit Bag & Hanger', defaultAmount: 0 },
-      { name: 'Courier Dispatch / Delivery', defaultAmount: 0 },
+      { name: 'Garment Suit Bag & Hanger', defaultAmount: 2000 },
+      { name: 'Courier Dispatch / Delivery', defaultAmount: 3500 },
     ],
   },
 ];
@@ -105,6 +119,8 @@ const TURNAROUND_PRESETS = [
   { label: 'Emergency 48h (2–3 days)', days: 3, rushFeePercent: 30 },
 ];
 
+const QUICK_COST_BENCHMARKS = [15000, 22000, 30000, 45000, 60000, 85000];
+
 export default function QuoteEstimatorPage() {
   const router = useRouter();
   const { currentShop, customers } = useData();
@@ -113,7 +129,7 @@ export default function QuoteEstimatorPage() {
   const currency = currentShop?.currency || 'NGN';
   const shopName = currentShop?.name || 'Bespoke Atelier';
 
-  // Client Selection State
+  // Client Selection State (Completely optional for 0 friction)
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -124,15 +140,19 @@ export default function QuoteEstimatorPage() {
   const [genderTab, setGenderTab] = useState<'male' | 'female'>('male');
   const [garmentTitle, setGarmentTitle] = useState('Senator Suite');
   const [fabricSourcing, setFabricSourcing] = useState<'customer' | 'shop'>('shop');
-  
+
+  // Costing Mode: 'quick' (1 single lump sum) vs 'itemized' (line items)
+  const [costingMode, setCostingMode] = useState<'quick' | 'itemized'>('quick');
+  const [quickLumpSumCost, setQuickLumpSumCost] = useState('22000');
+
   // Fabric Quick Yardage Helper
   const [fabricYards, setFabricYards] = useState('4');
   const [fabricRatePerYard, setFabricRatePerYard] = useState('0');
 
-  // Costs Breakdown
+  // Detailed Costs Breakdown
   const [costs, setCosts] = useState<CostItem[]>([
-    { id: '1', name: 'Fabric Material / Cloth', amount: 0 },
-    { id: '2', name: 'Cutting, Tailoring & Construction', amount: 0 },
+    { id: '1', name: 'Fabric Material / Cloth', amount: 10000 },
+    { id: '2', name: 'Cutting, Tailoring & Construction', amount: 12000 },
   ]);
 
   // Turnaround & Timeline
@@ -212,12 +232,30 @@ export default function QuoteEstimatorPage() {
     setCosts((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
   };
 
+  // Style Selection with Instant Benchmark (Zero-effort start)
+  const handleSelectStyle = (style: string) => {
+    setGarmentTitle(style);
+    const benchmark = STYLE_BENCHMARKS[style];
+    if (benchmark) {
+      setFabricYards(benchmark.fabricYards.toString());
+      if (costingMode === 'quick') {
+        setQuickLumpSumCost(benchmark.cost.toString());
+      }
+    }
+  };
+
   // Handle Fabric Sourcing toggle
   const handleToggleFabricSourcing = (source: 'customer' | 'shop') => {
     setFabricSourcing(source);
     if (source === 'customer') {
-      // Zero out fabric item or remove it
-      setCosts((prev) => prev.map((c) => (c.name.toLowerCase().includes('fabric') ? { ...c, amount: 0 } : c)));
+      if (costingMode === 'quick') {
+        // Automatically deduct typical fabric allowance (approx 40% of benchmark)
+        const current = parseInt(quickLumpSumCost, 10) || 20000;
+        const adjusted = Math.max(8000, Math.round(current * 0.6));
+        setQuickLumpSumCost(adjusted.toString());
+      } else {
+        setCosts((prev) => prev.map((c) => (c.name.toLowerCase().includes('fabric') ? { ...c, amount: 0 } : c)));
+      }
     }
   };
 
@@ -227,25 +265,37 @@ export default function QuoteEstimatorPage() {
     const r = parseFloat(fabricRatePerYard) || 0;
     const total = Math.round(y * r);
     if (total > 0) {
-      setCosts((prev) => {
-        const idx = prev.findIndex((c) => c.name.toLowerCase().includes('fabric'));
-        const desc = `${fabricYards} yards fabric (@ ${formatCurrency(r, currency)}/yd)`;
-        if (idx >= 0) {
-          const next = [...prev];
-          next[idx] = { ...next[idx], name: desc, amount: total };
-          return next;
-        }
-        return [{ id: `${Date.now()}`, name: desc, amount: total }, ...prev];
-      });
-      showToast(`Added ${fabricYards} yards (${formatCurrency(total, currency)}) to costs`, 'info');
+      if (costingMode === 'quick') {
+        const current = parseInt(quickLumpSumCost, 10) || 0;
+        setQuickLumpSumCost((current + total).toString());
+        showToast(`Added ${fabricYards} yds fabric (${formatCurrency(total, currency)}) to cost`, 'info');
+      } else {
+        setCosts((prev) => {
+          const idx = prev.findIndex((c) => c.name.toLowerCase().includes('fabric'));
+          const desc = `${fabricYards} yds fabric (@ ${formatCurrency(r, currency)}/yd)`;
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], name: desc, amount: total };
+            return next;
+          }
+          return [{ id: `${Date.now()}`, name: desc, amount: total }, ...prev];
+        });
+        showToast(`Added ${fabricYards} yds fabric to cost breakdown`, 'info');
+      }
     }
   };
 
-  // Financial Calculations
-  const baseCost = useMemo(() => costs.reduce((sum, item) => sum + (item.amount || 0), 0), [costs]);
+  // Compute Active Base Cost based on Mode
+  const baseCost = useMemo(() => {
+    if (costingMode === 'quick') {
+      return parseInt(quickLumpSumCost, 10) || 0;
+    }
+    return costs.reduce((sum, item) => sum + (item.amount || 0), 0);
+  }, [costingMode, quickLumpSumCost, costs]);
+
   const activeTurnaround = TURNAROUND_PRESETS[turnaroundIndex] || TURNAROUND_PRESETS[0];
   const rushFeeMultiplier = 1 + activeTurnaround.rushFeePercent / 100;
-  
+
   const margin = parseFloat(marginPercent) || 0;
   const markupMultiplier = 1 + margin / 100;
 
@@ -273,19 +323,29 @@ export default function QuoteEstimatorPage() {
   // Convert Quote into Bespoke Order
   const handleConvertToOrder = () => {
     const custId = selectedCustomer?.id || '';
-    const styleQuery = encodeURIComponent(garmentTitle.trim() || 'Senator');
+    const styleQuery = encodeURIComponent(garmentTitle.trim() || 'Senator Suite');
     const priceQuery = encodeURIComponent(recommendedPrice.toString());
     const materialQuery = encodeURIComponent(fabricSourcing);
 
     // Build comprehensive breakdown note for the cutter/tailor
-    const filteredCosts = costs.filter((c) => c.name.trim() && c.amount > 0);
-    const costNoteLines = filteredCosts.map((c) => `${c.name}: ${formatCurrency(c.amount, currency)}`).join(', ');
-    const noteSummary = `[QUOTATION SPEC] ${garmentTitle}. Fabric: ${
-      fabricSourcing === 'customer' ? 'Client Provided' : 'Atelier Sourced'
-    }. Items: ${costNoteLines || 'Standard Tailoring'}. Target: ${estimatedCompletionDate}. Initial Deposit: ${formatCurrency(
-      depositAmount,
-      currency
-    )} (${depositPercent}%).`;
+    let noteSummary = '';
+    if (costingMode === 'quick') {
+      noteSummary = `[QUOTATION SPEC] ${garmentTitle}. Fabric: ${
+        fabricSourcing === 'customer' ? 'Client Provided' : 'Atelier Sourced'
+      }. Est. Production Cost: ${formatCurrency(baseCost, currency)}. Target: ${estimatedCompletionDate}. Deposit: ${formatCurrency(
+        depositAmount,
+        currency
+      )} (${depositPercent}%).`;
+    } else {
+      const filteredCosts = costs.filter((c) => c.name.trim() && c.amount > 0);
+      const costNoteLines = filteredCosts.map((c) => `${c.name}: ${formatCurrency(c.amount, currency)}`).join(', ');
+      noteSummary = `[QUOTATION SPEC] ${garmentTitle}. Fabric: ${
+        fabricSourcing === 'customer' ? 'Client Provided' : 'Atelier Sourced'
+      }. Items: ${costNoteLines || 'Standard Tailoring'}. Target: ${estimatedCompletionDate}. Deposit: ${formatCurrency(
+        depositAmount,
+        currency
+      )} (${depositPercent}%).`;
+    }
     const notesQuery = encodeURIComponent(noteSummary);
 
     // Save to recent quotes history
@@ -314,7 +374,6 @@ export default function QuoteEstimatorPage() {
   // Generate Courteous Nigerian Atelier WhatsApp Quotation Message
   const generateQuoteMessage = () => {
     const greeting = activeCustomerName ? `Good day Chief ${activeCustomerName}` : `Good day`;
-    const filteredCosts = costs.filter((c) => c.name.trim() && c.amount > 0);
 
     const fabricNote =
       fabricSourcing === 'customer'
@@ -322,12 +381,13 @@ export default function QuoteEstimatorPage() {
         : '• Fabric: Sourced & Supplied by Atelier';
 
     let contentBody = '';
-    if (whatsAppFormat === 'inclusive') {
+    if (whatsAppFormat === 'inclusive' || costingMode === 'quick') {
       contentBody = `Outfit: ${garmentTitle || 'Bespoke Garment'}
 ${fabricNote}
 • Construction: Handcrafted Bespoke Tailoring & Finishing
 • Turnaround: ${activeTurnaround.label} (Est. Delivery: ${estimatedCompletionDate})`;
     } else {
+      const filteredCosts = costs.filter((c) => c.name.trim() && c.amount > 0);
       const costLines =
         filteredCosts.length > 0
           ? filteredCosts.map((c) => `• ${c.name}: ${formatCurrency(c.amount, currency)}`).join('\n')
@@ -360,7 +420,6 @@ ${shopName}`;
 
   // Send via WhatsApp
   const handleSendWhatsApp = () => {
-    // Record quote before sending
     recordRecentQuote({
       id: `quote-${Date.now()}`,
       clientName: activeCustomerName || 'Walk-in Client',
@@ -400,6 +459,8 @@ ${shopName}`;
     setFabricSourcing(saved.fabricSourcing);
     setManualCustomerName(saved.clientName);
     setManualCustomerPhone(saved.clientPhone);
+    setCostingMode('quick');
+    setQuickLumpSumCost(saved.totalCost.toString());
     showToast(`Loaded quote for ${saved.clientName}`, 'info');
     setShowRecentTray(false);
   };
@@ -450,14 +511,21 @@ ${shopName}`;
               </tr>
             </thead>
             <tbody>
-              {costs
-                .filter((c) => c.name && c.amount > 0)
-                .map((cost, idx) => (
-                  <tr key={idx}>
-                    <td>{cost.name}</td>
-                    <td style={{ textAlign: 'right' }}>{formatCurrency(cost.amount, currency)}</td>
-                  </tr>
-                ))}
+              {costingMode === 'quick' ? (
+                <tr>
+                  <td>Materials, Tailoring &amp; Craftsmanship</td>
+                  <td style={{ textAlign: 'right' }}>{formatCurrency(baseCost, currency)}</td>
+                </tr>
+              ) : (
+                costs
+                  .filter((c) => c.name && c.amount > 0)
+                  .map((cost, idx) => (
+                    <tr key={idx}>
+                      <td>{cost.name}</td>
+                      <td style={{ textAlign: 'right' }}>{formatCurrency(cost.amount, currency)}</td>
+                    </tr>
+                  ))
+              )}
             </tbody>
           </table>
 
@@ -547,401 +615,9 @@ ${shopName}`;
 
           {/* 2-Column Responsive Workspace on Desktop */}
           <div className={styles.twoColQuote}>
-            {/* Left Column: Form & Cost Configuration */}
-            <div className={styles.configCol}>
-              {/* Section 1: Client Information */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="person" size={20} className={styles.cardIcon} />
-                  <h2 className={styles.cardTitle}>Client Information</h2>
-                </div>
-
-                {selectedCustomer ? (
-                  <div className={styles.selectedCustomerCard}>
-                    <div className={styles.selectedCustomerLeft}>
-                      <Avatar name={selectedCustomer.fullName} size="md" />
-                      <div>
-                        <h4 className={styles.selectedCustomerName}>{selectedCustomer.fullName}</h4>
-                        <span className={styles.selectedCustomerPhone}>{selectedCustomer.whatsappNumber}</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.changeCustomerBtn}
-                      onClick={() => {
-                        setSelectedCustomer(null);
-                        setCustomerSearch('');
-                      }}
-                    >
-                      Change Client
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.clientInputGroup}>
-                    <div className={styles.searchWrap}>
-                      <Symbol name="search" size={18} className={styles.searchIcon} />
-                      <input
-                        type="text"
-                        className={styles.inputWithIcon}
-                        placeholder="Search existing client by name or phone..."
-                        value={customerSearch}
-                        onChange={(e) => {
-                          setCustomerSearch(e.target.value);
-                          setShowSearchDropdown(true);
-                        }}
-                        onFocus={() => setShowSearchDropdown(true)}
-                      />
-                      {customerSearch && (
-                        <button
-                          type="button"
-                          className={styles.clearSearchBtn}
-                          onClick={() => setCustomerSearch('')}
-                        >
-                          <Symbol name="close" size={16} />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Autocomplete Dropdown */}
-                    {showSearchDropdown && searchResults.length > 0 && (
-                      <div className={styles.searchDropdown}>
-                        {searchResults.map((cust) => (
-                          <div
-                            key={cust.id}
-                            className={styles.searchItem}
-                            onClick={() => {
-                              setSelectedCustomer(cust);
-                              setShowSearchDropdown(false);
-                              setCustomerSearch('');
-                            }}
-                          >
-                            <Avatar name={cust.fullName} size="sm" />
-                            <div>
-                              <div className={styles.searchItemName}>{cust.fullName}</div>
-                              <div className={styles.searchItemPhone}>{cust.whatsappNumber}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className={styles.orDivider}>
-                      <span>or enter walk-in contact details</span>
-                    </div>
-
-                    <div className={styles.walkInRow}>
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>Client Name</label>
-                        <input
-                          type="text"
-                          className={styles.input}
-                          placeholder="e.g. Chief Adeleke"
-                          value={manualCustomerName}
-                          onChange={(e) => setManualCustomerName(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>WhatsApp Phone</label>
-                        <input
-                          type="tel"
-                          className={styles.input}
-                          placeholder="e.g. 08012345678"
-                          value={manualCustomerPhone}
-                          onChange={(e) => setManualCustomerPhone(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Section 2: Garment Style & Fabric Sourcing */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="dry_cleaning" size={20} className={styles.cardIcon} />
-                  <h2 className={styles.cardTitle}>Garment &amp; Fabric Sourcing</h2>
-                </div>
-
-                {/* Fabric Sourcing Selector: Core Tailoring Decision */}
-                <div className={styles.sourcingSegment}>
-                  <button
-                    type="button"
-                    className={`${styles.segmentBtn} ${fabricSourcing === 'shop' ? styles.segmentBtnActive : ''}`}
-                    onClick={() => handleToggleFabricSourcing('shop')}
-                  >
-                    <Symbol name="storefront" size={16} />
-                    <span>Atelier Supplies Fabric</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.segmentBtn} ${fabricSourcing === 'customer' ? styles.segmentBtnActive : ''}`}
-                    onClick={() => handleToggleFabricSourcing('customer')}
-                  >
-                    <Symbol name="person" size={16} />
-                    <span>Client Brings Fabric</span>
-                  </button>
-                </div>
-
-                {fabricSourcing === 'customer' ? (
-                  <div className={styles.clientFabricBanner}>
-                    <Symbol name="info" size={16} />
-                    <span>Client will provide their own fabric. Fabric material cost set to 0. Cost only tailoring craftsmanship, stay, lining, and embellishments below.</span>
-                  </div>
-                ) : (
-                  <div className={styles.yardageHelper}>
-                    <div className={styles.yardageHeader}>
-                      <span className={styles.yardageLabel}>Quick Fabric Cost Helper</span>
-                    </div>
-                    <div className={styles.yardageInputRow}>
-                      <div className={styles.yardageCol}>
-                        <label className={styles.subLabel}>Yards Required</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          className={styles.input}
-                          placeholder="4"
-                          value={fabricYards}
-                          onChange={(e) => setFabricYards(e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.yardageCol}>
-                        <label className={styles.subLabel}>Price per Yard ({currency})</label>
-                        <MoneyInput
-                          value={fabricRatePerYard}
-                          onChange={(val) => setFabricRatePerYard(val)}
-                          placeholder="0"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.applyYardageBtn}
-                        onClick={applyYardageCalculation}
-                      >
-                        Apply Cost
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Gender Tabs */}
-                <div className={styles.genderTabs}>
-                  <button
-                    type="button"
-                    className={`${styles.genderTab} ${genderTab === 'male' ? styles.genderTabActive : ''}`}
-                    onClick={() => setGenderTab('male')}
-                  >
-                    Gentlemen
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.genderTab} ${genderTab === 'female' ? styles.genderTabActive : ''}`}
-                    onClick={() => setGenderTab('female')}
-                  >
-                    Ladies
-                  </button>
-                </div>
-
-                {/* Style Chips */}
-                <div className={styles.stylePresetsRow}>
-                  {(genderTab === 'male' ? STYLE_PRESETS_MALE : STYLE_PRESETS_FEMALE).map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      className={`${styles.styleChip} ${garmentTitle === preset ? styles.styleChipActive : ''}`}
-                      onClick={() => setGarmentTitle(preset)}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-
-                <div className={styles.formGroup} style={{ marginTop: '12px' }}>
-                  <label className={styles.label}>Garment Description / Title</label>
-                  <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="e.g. 3-Piece Royal Agbada with Hand Embroidery"
-                    value={garmentTitle}
-                    onChange={(e) => setGarmentTitle(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Section 3: Cost Breakdown (Craftsmanship, Stay, Embroidery, Beading) */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="receipt_long" size={20} className={styles.cardIcon} />
-                  <div className={styles.cardTitleRow}>
-                    <h2 className={styles.cardTitle}>Production Cost Breakdown</h2>
-                    <span className={styles.costTotalPill}>Total Cost: {formatCurrency(baseCost, currency)}</span>
-                  </div>
-                </div>
-
-                {/* Quick Add Presets Grouped by Craft */}
-                <div className={styles.costPresetsSection}>
-                  <span className={styles.costPresetLabel}>Quick Add Atelier Craft Items:</span>
-                  <div className={styles.presetGroupStack}>
-                    {CRAFT_PRESET_CATEGORIES.map((cat) => (
-                      <div key={cat.category} className={styles.presetGroup}>
-                        <span className={styles.presetGroupTitle}>{cat.category}</span>
-                        <div className={styles.costPresetsList}>
-                          {cat.items.map((item) => (
-                            <button
-                              key={item.name}
-                              type="button"
-                              className={styles.costPresetChip}
-                              onClick={() => addCostItem(item.name, item.defaultAmount)}
-                            >
-                              <Symbol name="add" size={12} />
-                              <span>{item.name}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Dynamic Cost Rows */}
-                <div className={styles.costsList}>
-                  {costs.map((cost, idx) => (
-                    <div key={cost.id} className={styles.costRow}>
-                      <div className={styles.costNameCol}>
-                        {idx === 0 && <label className={styles.label}>Item Description</label>}
-                        <input
-                          type="text"
-                          className={styles.input}
-                          placeholder="e.g. Hand Beading & Swarovski Crystals"
-                          value={cost.name}
-                          onChange={(e) => updateCostItem(cost.id, 'name', e.target.value)}
-                        />
-                      </div>
-
-                      <div className={styles.costAmountCol}>
-                        {idx === 0 && <label className={styles.label}>Amount ({currency})</label>}
-                        <MoneyInput
-                          value={cost.amount ? cost.amount.toString() : ''}
-                          onChange={(val) => updateCostItem(cost.id, 'amount', parseInt(val, 10) || 0)}
-                          placeholder="0"
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        className={styles.deleteCostBtn}
-                        onClick={() => removeCostItem(cost.id)}
-                        title="Remove item"
-                        style={{ marginTop: idx === 0 ? '24px' : '0' }}
-                        aria-label="Remove item"
-                      >
-                        <Symbol name="close" size={18} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.addCustomCostBtn}
-                  onClick={() => addCostItem('')}
-                >
-                  <Symbol name="add" size={16} />
-                  <span>Add Custom Cost Item</span>
-                </button>
-              </div>
-
-              {/* Section 4: Turnaround & Delivery Timeline */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="schedule" size={20} className={styles.cardIcon} />
-                  <div className={styles.cardTitleRow}>
-                    <h2 className={styles.cardTitle}>Turnaround Time &amp; Urgency</h2>
-                    <span className={styles.deliveryBadge}>Est. Delivery: {estimatedCompletionDate}</span>
-                  </div>
-                </div>
-
-                <div className={styles.turnaroundRow}>
-                  {TURNAROUND_PRESETS.map((preset, idx) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      className={`${styles.turnaroundBtn} ${turnaroundIndex === idx ? styles.turnaroundBtnActive : ''}`}
-                      onClick={() => setTurnaroundIndex(idx)}
-                    >
-                      <span className={styles.turnaroundLabel}>{preset.label}</span>
-                      {preset.rushFeePercent > 0 && (
-                        <span className={styles.rushFeeBadge}>+{preset.rushFeePercent}% Rush</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section 5: Pricing Markup Strategy & Deposit Schedule */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="trending_up" size={20} className={styles.cardIcon} />
-                  <h2 className={styles.cardTitle}>Markup Strategy &amp; Deposit Terms</h2>
-                </div>
-
-                {/* Markup Presets */}
-                <label className={styles.label}>Desired Markup on Production Cost</label>
-                <div className={styles.markupPresetsRow}>
-                  {MARKUP_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      className={`${styles.markupChip} ${marginPercent === preset.value ? styles.markupChipActive : ''}`}
-                      onClick={() => setMarginPercent(preset.value)}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className={styles.customMarkupWrap}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.subLabel}>Custom Markup (% on cost)</label>
-                    <div className={styles.percentInputWrap}>
-                      <input
-                        type="number"
-                        className={styles.percentInput}
-                        placeholder="50"
-                        value={marginPercent}
-                        onChange={(e) => setMarginPercent(e.target.value)}
-                      />
-                      <span className={styles.percentBadge}>%</span>
-                    </div>
-                  </div>
-                  <p className={styles.markupExplanation}>
-                    A {marginPercent}% markup on {formatCurrency(baseCost, currency)} cost yields{' '}
-                    <strong>{formatCurrency(projectedProfit, currency)} profit</strong> ({profitMarginPercent.toFixed(0)}% margin).
-                  </p>
-                </div>
-
-                {/* Commitment Deposit Ratio */}
-                <div style={{ marginTop: '16px' }}>
-                  <label className={styles.label}>Upfront Commitment Deposit</label>
-                  <div className={styles.depositRow}>
-                    {DEPOSIT_PRESETS.map((dep) => (
-                      <button
-                        key={dep.value}
-                        type="button"
-                        className={`${styles.depositChip} ${depositPercent === dep.value ? styles.depositChipActive : ''}`}
-                        onClick={() => setDepositPercent(dep.value)}
-                      >
-                        {dep.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Sticky Live Atelier Quotation Summary */}
+            {/* Live Quotation Summary Column (Top on mobile via CSS order: -1, Right on desktop) */}
             <div className={styles.summaryCol}>
               <div className={styles.heroPriceCard}>
-                {/* Sartorial Twill Weave Background & Stitch Border */}
                 <div className={styles.heroStitchBorder} aria-hidden="true" />
 
                 <div className={styles.heroPriceHeader}>
@@ -1057,9 +733,10 @@ ${shopName}`;
                     type="button"
                     className={styles.secondaryActionBtn}
                     onClick={() => {
+                      setQuickLumpSumCost('22000');
                       setCosts([
-                        { id: '1', name: 'Fabric Material / Cloth', amount: 0 },
-                        { id: '2', name: 'Cutting, Tailoring & Construction', amount: 0 },
+                        { id: '1', name: 'Fabric Material / Cloth', amount: 10000 },
+                        { id: '2', name: 'Cutting, Tailoring & Construction', amount: 12000 },
                       ]);
                       setSelectedCustomer(null);
                       setCustomerSearch('');
@@ -1077,9 +754,463 @@ ${shopName}`;
                 </div>
               </div>
             </div>
+
+            {/* Left Column: Form & Cost Configuration */}
+            <div className={styles.configCol}>
+              {/* Section 1: Garment Style & Fabric Sourcing (Fastest entry point) */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <Symbol name="dry_cleaning" size={20} className={styles.cardIcon} />
+                  <h2 className={styles.cardTitle}>Garment Style &amp; Fabric Source</h2>
+                </div>
+
+                {/* Fabric Sourcing Selector: 1-Tap Core Decision */}
+                <div className={styles.sourcingSegment}>
+                  <button
+                    type="button"
+                    className={`${styles.segmentBtn} ${fabricSourcing === 'shop' ? styles.segmentBtnActive : ''}`}
+                    onClick={() => handleToggleFabricSourcing('shop')}
+                  >
+                    <Symbol name="storefront" size={16} />
+                    <span>Atelier Supplies Fabric</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.segmentBtn} ${fabricSourcing === 'customer' ? styles.segmentBtnActive : ''}`}
+                    onClick={() => handleToggleFabricSourcing('customer')}
+                  >
+                    <Symbol name="person" size={16} />
+                    <span>Client Brings Fabric</span>
+                  </button>
+                </div>
+
+                {fabricSourcing === 'customer' ? (
+                  <div className={styles.clientFabricBanner}>
+                    <Symbol name="info" size={16} />
+                    <span>Client brings cloth. Fabric material cost is omitted. Costing focuses purely on tailoring, canvas, lining &amp; embellishments.</span>
+                  </div>
+                ) : (
+                  <div className={styles.yardageHelper}>
+                    <div className={styles.yardageHeader}>
+                      <span className={styles.yardageLabel}>Optional Fabric Calculator</span>
+                    </div>
+                    <div className={styles.yardageInputRow}>
+                      <div className={styles.yardageCol}>
+                        <label className={styles.subLabel}>Yards Required</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          className={styles.input}
+                          placeholder="4"
+                          value={fabricYards}
+                          onChange={(e) => setFabricYards(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.yardageCol}>
+                        <label className={styles.subLabel}>Price per Yard ({currency})</label>
+                        <MoneyInput
+                          value={fabricRatePerYard}
+                          onChange={(val) => setFabricRatePerYard(val)}
+                          placeholder="0"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.applyYardageBtn}
+                        onClick={applyYardageCalculation}
+                      >
+                        Apply Fabric
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Gender Tabs */}
+                <div className={styles.genderTabs}>
+                  <button
+                    type="button"
+                    className={`${styles.genderTab} ${genderTab === 'male' ? styles.genderTabActive : ''}`}
+                    onClick={() => {
+                      setGenderTab('male');
+                      handleSelectStyle('Senator Suite');
+                    }}
+                  >
+                    Gentlemen
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.genderTab} ${genderTab === 'female' ? styles.genderTabActive : ''}`}
+                    onClick={() => {
+                      setGenderTab('female');
+                      handleSelectStyle('Royal Silk Boubou');
+                    }}
+                  >
+                    Ladies
+                  </button>
+                </div>
+
+                {/* Style Chips with Instant Intelligent Benchmarks */}
+                <div className={styles.stylePresetsRow}>
+                  {(genderTab === 'male' ? STYLE_PRESETS_MALE : STYLE_PRESETS_FEMALE).map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      className={`${styles.styleChip} ${garmentTitle === preset ? styles.styleChipActive : ''}`}
+                      onClick={() => handleSelectStyle(preset)}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={styles.formGroup} style={{ marginTop: '12px' }}>
+                  <label className={styles.label}>Garment Description / Custom Title</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="e.g. 3-Piece Royal Agbada with Hand Embroidery"
+                    value={garmentTitle}
+                    onChange={(e) => setGarmentTitle(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Section 2: Production Cost (Lump-Sum vs Itemized Mode) */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <Symbol name="receipt_long" size={20} className={styles.cardIcon} />
+                  <div className={styles.cardTitleRow}>
+                    <h2 className={styles.cardTitle}>Production Cost Calculation</h2>
+                    <span className={styles.costTotalPill}>Total Cost: {formatCurrency(baseCost, currency)}</span>
+                  </div>
+                </div>
+
+                {/* Costing Mode Switcher: 3-Second Quick Mode vs Line-Item Mode */}
+                <div className={styles.modeSwitcherRow}>
+                  <button
+                    type="button"
+                    className={`${styles.modeBtn} ${costingMode === 'quick' ? styles.modeBtnActive : ''}`}
+                    onClick={() => setCostingMode('quick')}
+                  >
+                    <Symbol name="bolt" size={15} />
+                    <span>Quick Estimate (1 Field)</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.modeBtn} ${costingMode === 'itemized' ? styles.modeBtnActive : ''}`}
+                    onClick={() => setCostingMode('itemized')}
+                  >
+                    <Symbol name="checklist" size={15} />
+                    <span>Itemized Breakdown</span>
+                  </button>
+                </div>
+
+                {costingMode === 'quick' ? (
+                  /* ── Quick Lump-Sum Flow (Zero Friction) ── */
+                  <div className={styles.quickCostBox}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Estimated Total Production Cost ({currency})</label>
+                      <MoneyInput
+                        value={quickLumpSumCost}
+                        onChange={(val) => setQuickLumpSumCost(val)}
+                        placeholder="22,000"
+                      />
+                    </div>
+
+                    <div className={styles.quickBenchmarkRow}>
+                      <span className={styles.subLabel}>Tap to adjust:</span>
+                      <div className={styles.quickBenchmarkChips}>
+                        {QUICK_COST_BENCHMARKS.map((amt) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            className={`${styles.benchmarkChip} ${
+                              quickLumpSumCost === amt.toString() ? styles.benchmarkChipActive : ''
+                            }`}
+                            onClick={() => setQuickLumpSumCost(amt.toString())}
+                          >
+                            {formatCurrency(amt, currency)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── Detailed Itemized Breakdown Flow ── */
+                  <div className={styles.itemizedCostBox}>
+                    <div className={styles.costPresetsSection}>
+                      <span className={styles.costPresetLabel}>Quick Add Atelier Craft Items:</span>
+                      <div className={styles.presetGroupStack}>
+                        {CRAFT_PRESET_CATEGORIES.map((cat) => (
+                          <div key={cat.category} className={styles.presetGroup}>
+                            <span className={styles.presetGroupTitle}>{cat.category}</span>
+                            <div className={styles.costPresetsList}>
+                              {cat.items.map((item) => (
+                                <button
+                                  key={item.name}
+                                  type="button"
+                                  className={styles.costPresetChip}
+                                  onClick={() => addCostItem(item.name, item.defaultAmount)}
+                                >
+                                  <Symbol name="add" size={12} />
+                                  <span>{item.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Dynamic Cost Rows */}
+                    <div className={styles.costsList}>
+                      {costs.map((cost, idx) => (
+                        <div key={cost.id} className={styles.costRow}>
+                          <div className={styles.costNameCol}>
+                            {idx === 0 && <label className={styles.label}>Item Description</label>}
+                            <input
+                              type="text"
+                              className={styles.input}
+                              placeholder="e.g. Hand Beading & Swarovski Crystals"
+                              value={cost.name}
+                              onChange={(e) => updateCostItem(cost.id, 'name', e.target.value)}
+                            />
+                          </div>
+
+                          <div className={styles.costAmountCol}>
+                            {idx === 0 && <label className={styles.label}>Amount ({currency})</label>}
+                            <MoneyInput
+                              value={cost.amount ? cost.amount.toString() : ''}
+                              onChange={(val) => updateCostItem(cost.id, 'amount', parseInt(val, 10) || 0)}
+                              placeholder="0"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            className={styles.deleteCostBtn}
+                            onClick={() => removeCostItem(cost.id)}
+                            title="Remove item"
+                            style={{ marginTop: idx === 0 ? '24px' : '0' }}
+                            aria-label="Remove item"
+                          >
+                            <Symbol name="close" size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      className={styles.addCustomCostBtn}
+                      onClick={() => addCostItem('')}
+                    >
+                      <Symbol name="add" size={16} />
+                      <span>Add Custom Cost Item</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 3: Markup & Deposit Strategy */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <Symbol name="trending_up" size={20} className={styles.cardIcon} />
+                  <h2 className={styles.cardTitle}>Markup Strategy &amp; Deposit Schedule</h2>
+                </div>
+
+                <label className={styles.label}>Desired Markup on Production Cost</label>
+                <div className={styles.markupPresetsRow}>
+                  {MARKUP_PRESETS.map((preset) => (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      className={`${styles.markupChip} ${marginPercent === preset.value ? styles.markupChipActive : ''}`}
+                      onClick={() => setMarginPercent(preset.value)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={styles.customMarkupWrap}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.subLabel}>Custom Markup (% on cost)</label>
+                    <div className={styles.percentInputWrap}>
+                      <input
+                        type="number"
+                        className={styles.percentInput}
+                        placeholder="50"
+                        value={marginPercent}
+                        onChange={(e) => setMarginPercent(e.target.value)}
+                      />
+                      <span className={styles.percentBadge}>%</span>
+                    </div>
+                  </div>
+                  <p className={styles.markupExplanation}>
+                    A {marginPercent}% markup on {formatCurrency(baseCost, currency)} cost yields{' '}
+                    <strong>{formatCurrency(projectedProfit, currency)} profit</strong> ({profitMarginPercent.toFixed(0)}% gross margin).
+                  </p>
+                </div>
+
+                {/* Commitment Deposit Ratio */}
+                <div style={{ marginTop: '16px' }}>
+                  <label className={styles.label}>Upfront Commitment Deposit</label>
+                  <div className={styles.depositRow}>
+                    {DEPOSIT_PRESETS.map((dep) => (
+                      <button
+                        key={dep.value}
+                        type="button"
+                        className={`${styles.depositChip} ${depositPercent === dep.value ? styles.depositChipActive : ''}`}
+                        onClick={() => setDepositPercent(dep.value)}
+                      >
+                        {dep.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Turnaround & Urgency */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <Symbol name="schedule" size={20} className={styles.cardIcon} />
+                  <div className={styles.cardTitleRow}>
+                    <h2 className={styles.cardTitle}>Turnaround Time &amp; Urgency</h2>
+                    <span className={styles.deliveryBadge}>Est. Delivery: {estimatedCompletionDate}</span>
+                  </div>
+                </div>
+
+                <div className={styles.turnaroundRow}>
+                  {TURNAROUND_PRESETS.map((preset, idx) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className={`${styles.turnaroundBtn} ${turnaroundIndex === idx ? styles.turnaroundBtnActive : ''}`}
+                      onClick={() => setTurnaroundIndex(idx)}
+                    >
+                      <span className={styles.turnaroundLabel}>{preset.label}</span>
+                      {preset.rushFeePercent > 0 && (
+                        <span className={styles.rushFeeBadge}>+{preset.rushFeePercent}% Rush</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section 5: Client Information (Optional - Fill Only If Sending Personalized Message) */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <Symbol name="person" size={20} className={styles.cardIcon} />
+                  <div className={styles.cardTitleRow}>
+                    <h2 className={styles.cardTitle}>Client Information</h2>
+                    <span className={styles.optionalBadge}>Optional</span>
+                  </div>
+                </div>
+
+                {selectedCustomer ? (
+                  <div className={styles.selectedCustomerCard}>
+                    <div className={styles.selectedCustomerLeft}>
+                      <Avatar name={selectedCustomer.fullName} size="md" />
+                      <div>
+                        <h4 className={styles.selectedCustomerName}>{selectedCustomer.fullName}</h4>
+                        <span className={styles.selectedCustomerPhone}>{selectedCustomer.whatsappNumber}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.changeCustomerBtn}
+                      onClick={() => {
+                        setSelectedCustomer(null);
+                        setCustomerSearch('');
+                      }}
+                    >
+                      Change Client
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.clientInputGroup}>
+                    <div className={styles.searchWrap}>
+                      <Symbol name="search" size={18} className={styles.searchIcon} />
+                      <input
+                        type="text"
+                        className={styles.inputWithIcon}
+                        placeholder="Search existing client by name or phone..."
+                        value={customerSearch}
+                        onChange={(e) => {
+                          setCustomerSearch(e.target.value);
+                          setShowSearchDropdown(true);
+                        }}
+                        onFocus={() => setShowSearchDropdown(true)}
+                      />
+                      {customerSearch && (
+                        <button
+                          type="button"
+                          className={styles.clearSearchBtn}
+                          onClick={() => setCustomerSearch('')}
+                        >
+                          <Symbol name="close" size={16} />
+                        </button>
+                      )}
+                    </div>
+
+                    {showSearchDropdown && searchResults.length > 0 && (
+                      <div className={styles.searchDropdown}>
+                        {searchResults.map((cust) => (
+                          <div
+                            key={cust.id}
+                            className={styles.searchItem}
+                            onClick={() => {
+                              setSelectedCustomer(cust);
+                              setShowSearchDropdown(false);
+                              setCustomerSearch('');
+                            }}
+                          >
+                            <Avatar name={cust.fullName} size="sm" />
+                            <div>
+                              <div className={styles.searchItemName}>{cust.fullName}</div>
+                              <div className={styles.searchItemPhone}>{cust.whatsappNumber}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className={styles.orDivider}>
+                      <span>or enter walk-in contact details</span>
+                    </div>
+
+                    <div className={styles.walkInRow}>
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>Client Name</label>
+                        <input
+                          type="text"
+                          className={styles.input}
+                          placeholder="e.g. Chief Adeleke"
+                          value={manualCustomerName}
+                          onChange={(e) => setManualCustomerName(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label className={styles.label}>WhatsApp Phone</label>
+                        <input
+                          type="tel"
+                          className={styles.input}
+                          placeholder="e.g. 08012345678"
+                          value={manualCustomerPhone}
+                          onChange={(e) => setManualCustomerPhone(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </>
   );
+}
+
 }
