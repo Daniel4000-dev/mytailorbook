@@ -3,7 +3,7 @@
 import { useRef, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import type { Order, OrderPhoto } from '@/lib/types';
+import type { Order, OrderPhoto, OrderStatus } from '@/lib/types';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -42,6 +42,8 @@ interface FabricDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenCuttingSlip?: (order: Order) => void;
+  onUpdateOrderStatus?: (orderId: string, newStatus: OrderStatus) => Promise<void>;
+  onAssignArtisan?: (orderId: string, artisanName: string) => Promise<void>;
 }
 
 export default function FabricDetailSheet({
@@ -49,15 +51,19 @@ export default function FabricDetailSheet({
   isOpen,
   onClose,
   onOpenCuttingSlip,
+  onUpdateOrderStatus,
+  onAssignArtisan,
 }: FabricDetailSheetProps) {
   const router = useRouter();
-  const { customers, currentShop, updateOrder, updateOrderStatus } = useData();
+  const { customers, currentShop, staffMembers, updateOrder, updateOrderStatus } = useData();
   const { user } = useAuth();
   const { showToast } = useToast();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const [isEditingArtisan, setIsEditingArtisan] = useState(false);
+  const [customArtisanName, setCustomArtisanName] = useState('');
 
   const customer = useMemo(() => {
     if (!order) return null;
@@ -79,7 +85,10 @@ export default function FabricDetailSheet({
   const hasPriority = isRush || isUrgent;
   const isClientFabric = order.materialSuppliedBy === 'customer';
   const isShopFabric = order.materialSuppliedBy === 'shop';
-  const isAwaitingCut = order.status === 'Documented';
+
+  // Yardage extraction
+  const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
+  const yardage = yardageMatch ? `${yardageMatch[1]} yds` : null;
 
   const shopName = currentShop?.name || 'the atelier';
   const clientPhone = customer?.whatsappNumber;
@@ -97,23 +106,43 @@ export default function FabricDetailSheet({
     router.push(ROUTES.productionOrder(order.id));
   };
 
-  const handleAdvanceToCutting = async () => {
+  const handleTransition = async (targetStatus: OrderStatus, successMessage: string) => {
     setIsAdvancing(true);
     try {
-      await updateOrderStatus(
-        order.id,
-        'Cutting',
-        user?.uid || 'tailor',
-        user?.name || 'Master Cutter'
-      );
-      showToast('Order moved to Cutting stage!', 'success');
-      if (onOpenCuttingSlip) {
+      if (onUpdateOrderStatus) {
+        await onUpdateOrderStatus(order.id, targetStatus);
+      } else {
+        await updateOrderStatus(
+          order.id,
+          targetStatus,
+          user?.uid || 'tailor',
+          user?.name || 'Master Cutter'
+        );
+      }
+      showToast(successMessage, 'success');
+      if (targetStatus === 'Cutting' && onOpenCuttingSlip) {
         onOpenCuttingSlip(order);
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to update order stage', 'error');
     } finally {
       setIsAdvancing(false);
+    }
+  };
+
+  const handleAssign = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    try {
+      if (onAssignArtisan) {
+        await onAssignArtisan(order.id, trimmed);
+      } else {
+        await updateOrder(order.id, { assignedToName: trimmed });
+      }
+      showToast(`Artisan assigned to ${trimmed}!`, 'success');
+      setIsEditingArtisan(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to assign artisan', 'error');
     }
   };
 
@@ -215,19 +244,33 @@ export default function FabricDetailSheet({
 
       {/* Body */}
       <div className={styles.body}>
-        {/* Material Provenance Banner */}
-        {isClientFabric && (
-          <div className={`${styles.provenanceBanner} ${styles.clientBanner}`}>
-            <Symbol name="person" size={16} />
-            <span>Client Sourced Material — Fabric provided by customer. Handle with precision.</span>
-          </div>
-        )}
-        {isShopFabric && (
-          <div className={`${styles.provenanceBanner} ${styles.shopBanner}`}>
-            <Symbol name="storefront" size={16} />
-            <span>Atelier Sourced Material — Sourced from shop fabric inventory.</span>
-          </div>
-        )}
+        {/* Apple Liquid Glass Swatch Specification Pills */}
+        <div className={styles.specBadgesRow}>
+          {yardage && (
+            <span className={styles.specBadgeYardage}>
+              <Symbol name="straighten" size={13} />
+              <span>{yardage}</span>
+            </span>
+          )}
+          {isClientFabric && (
+            <span className={styles.specBadgeClient}>
+              <Symbol name="person" size={13} />
+              <span>Client Sourced Material</span>
+            </span>
+          )}
+          {isShopFabric && (
+            <span className={styles.specBadgeShop}>
+              <Symbol name="storefront" size={13} />
+              <span>Atelier Stock</span>
+            </span>
+          )}
+          {hasPriority && (
+            <span className={`${styles.specBadgePriority} ${isRush ? styles.priorityRush : styles.priorityUrgent}`}>
+              <Symbol name={isRush ? 'local_fire_department' : 'bolt'} size={13} />
+              <span>{isRush ? 'Rush Delivery' : 'Urgent Workshop Order'}</span>
+            </span>
+          )}
+        </div>
 
         {/* Customer & Direct Contact Card */}
         <div className={styles.customerCard}>
@@ -291,15 +334,63 @@ export default function FabricDetailSheet({
             </div>
           )}
 
-          {order.assignedToName && (
-            <div className={styles.row}>
-              <Symbol name="engineering" size={16} className={styles.rowIcon} />
-              <div className={styles.rowContent}>
+          {/* Assigned Artisan Section with Interactive Reassignment */}
+          <div className={styles.row}>
+            <Symbol name="engineering" size={16} className={styles.rowIcon} />
+            <div className={styles.rowContent}>
+              <div className={styles.artisanHeaderRow}>
                 <span className={styles.rowLabel}>Assigned Artisan</span>
-                <span className={styles.rowValue}>{order.assignedToName}</span>
+                <button
+                  type="button"
+                  className={styles.artisanChangeBtn}
+                  onClick={() => setIsEditingArtisan(!isEditingArtisan)}
+                >
+                  <Symbol name={isEditingArtisan ? 'close' : 'edit'} size={12} />
+                  <span>{isEditingArtisan ? 'Cancel' : 'Change'}</span>
+                </button>
               </div>
+
+              {!isEditingArtisan ? (
+                <span className={styles.rowValue}>
+                  {order.assignedToName || 'Unassigned (Waiting on Cutter)'}
+                </span>
+              ) : (
+                <div className={styles.artisanSelectorWrap}>
+                  {staffMembers && staffMembers.length > 0 && (
+                    <div className={styles.artisanStaffChips}>
+                      {staffMembers.map((staff) => (
+                        <button
+                          key={staff.uid}
+                          type="button"
+                          className={`${styles.staffChip} ${order.assignedToName === staff.name ? styles.staffChipActive : ''}`}
+                          onClick={() => handleAssign(staff.name)}
+                        >
+                          {staff.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className={styles.customArtisanInputRow}>
+                    <input
+                      type="text"
+                      className={styles.artisanInput}
+                      placeholder="Or enter cutter/machinist name…"
+                      value={customArtisanName}
+                      onChange={(e) => setCustomArtisanName(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.saveArtisanBtn}
+                      onClick={() => handleAssign(customArtisanName)}
+                      disabled={!customArtisanName.trim()}
+                    >
+                      Assign
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {order.dueDate && (
             <div className={styles.row}>
@@ -317,41 +408,66 @@ export default function FabricDetailSheet({
               </div>
             </div>
           )}
-
-          {hasPriority && (
-            <div className={styles.row}>
-              <Symbol
-                name={isRush ? 'local_fire_department' : 'bolt'}
-                size={16}
-                className={styles.rowIcon}
-              />
-              <div className={styles.rowContent}>
-                <span className={styles.rowLabel}>Workshop Priority</span>
-                <span
-                  className={`${styles.rowValue} ${styles.priorityValue} ${
-                    isRush ? styles.priorityRush : styles.priorityUrgent
-                  }`}
-                >
-                  <Symbol name={isRush ? 'local_fire_department' : 'bolt'} size={12} />
-                  <span>{isRush ? 'Rush Delivery' : 'Urgent Workshop Order'}</span>
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Workshop CTAs */}
+        {/* Workshop CTAs & Stage Transitions */}
         <div className={styles.actionsGroup}>
-          {isAwaitingCut && (
+          {order.status === 'Documented' && (
             <button
               type="button"
               className={styles.advanceBtn}
-              onClick={handleAdvanceToCutting}
+              onClick={() => handleTransition('Cutting', 'Order moved to Cutting (On the Shears)!')}
               disabled={isAdvancing}
             >
               <Symbol name="content_cut" size={18} />
-              <span>{isAdvancing ? 'Advancing Stage…' : 'Advance to Cutting'}</span>
+              <span>{isAdvancing ? 'Advancing Stage…' : 'Advance to Cutting (On the Shears)'}</span>
             </button>
+          )}
+
+          {order.status === 'Cutting' && (
+            <>
+              <button
+                type="button"
+                className={styles.passToSewingBtn}
+                onClick={() => handleTransition('Sewing', 'Cloth cut! Garment passed to Sewing Bench.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="precision_manufacturing" size={18} />
+                <span>{isAdvancing ? 'Updating Stage…' : 'Pass to Sewing Bench (Machinist)'}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.revertBtn}
+                onClick={() => handleTransition('Documented', 'Returned to Waiting Table.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="arrow_back" size={14} />
+                <span>Return to Table (Documented)</span>
+              </button>
+            </>
+          )}
+
+          {order.status === 'Sewing' && (
+            <>
+              <button
+                type="button"
+                className={styles.markReadyBtn}
+                onClick={() => handleTransition('Ready', 'Garment assembly finished! Ready for client.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="checkroom" size={18} />
+                <span>{isAdvancing ? 'Updating Stage…' : 'Mark Garment Ready'}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.revertBtn}
+                onClick={() => handleTransition('Cutting', 'Returned to Cutting Table.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="arrow_back" size={14} />
+                <span>Return to Shears (Cutting)</span>
+              </button>
+            </>
           )}
 
           <div className={styles.secondaryActionsRow}>

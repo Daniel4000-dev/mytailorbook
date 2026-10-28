@@ -29,11 +29,35 @@
   padding: 8px 10px;
   border-radius: 12px;
   background: var(--sf-bg-surface-elevated, #F8FAFC);
-  transition: background var(--sf-transition-fast);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--sf-transition-fast);
+  color: inherit;
+  font: inherit;
+}
+
+.workshopMetric:hover {
+  background: #EEF2F6;
+}
+
+.workshopMetricActive {
+  background: #FFFFFF;
+  border-color: rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.1);
 }
 
 :global([data-theme='dark']) .workshopMetric {
   background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-theme='dark']) .workshopMetric:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .workshopMetricActive {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(129, 140, 248, 0.4);
 }
 
 .workshopMetricIcon {
@@ -277,6 +301,24 @@
     background: #C2410C;
     border-color: #C2410C;
   }
+}
+
+.pillActiveCutting {
+  background: #EA580C;
+  border-color: #EA580C;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25);
+}
+
+.pillActiveSewing {
+  background: var(--sf-brand-indigo, #4338CA);
+  border-color: var(--sf-brand-indigo, #4338CA);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
+}
+
+.pillActiveUrgent {
+  background: #DC2626;
+  border-color: #DC2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 }
 
 .pillActiveProduction {

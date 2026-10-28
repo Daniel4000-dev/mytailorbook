@@ -352,6 +352,167 @@
   border: 1px solid rgba(67, 56, 202, 0.16);
 }
 
+/* ── Apple Liquid Glass Swatch Specification Pills ── */
+
+.specBadgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sf-space-sm);
+}
+
+.specBadgeYardage {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--sf-font-mono, monospace);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.16);
+}
+
+.specBadgeClient {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.18);
+}
+
+.specBadgeShop {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(245, 158, 11, 0.08);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.specBadgePriority {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ── Artisan Selector ────────────────────────── */
+
+.artisanHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.artisanChangeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background var(--sf-transition-fast);
+}
+
+.artisanChangeBtn:hover {
+  background: rgba(67, 56, 202, 0.06);
+}
+
+.artisanSelectorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.artisanStaffChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.staffChip {
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--sf-bg-surface-elevated, #F1F5F9);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.staffChip:hover {
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.staffChipActive {
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.customArtisanInputRow {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.artisanInput {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 12px;
+  outline: none;
+}
+
+.artisanInput:focus {
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.saveArtisanBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.saveArtisanBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Workshop Action Buttons ─────────────────── */
 
 .actionsGroup {
@@ -368,7 +529,7 @@
   gap: var(--sf-space-sm);
   width: 100%;
   padding: 13px var(--sf-space-md);
-  background: var(--sf-stage-cutting);
+  background: var(--sf-stage-cutting, #EA580C);
   color: #FFFFFF;
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
@@ -386,6 +547,82 @@
 
 .advanceBtn:active {
   transform: scale(0.98);
+}
+
+.passToSewingBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  padding: 13px var(--sf-space-md);
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.28);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  touch-action: manipulation;
+}
+
+.passToSewingBtn:hover {
+  background: #3730A3;
+}
+
+.passToSewingBtn:active {
+  transform: scale(0.98);
+}
+
+.markReadyBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  padding: 13px var(--sf-space-md);
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.28);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  touch-action: manipulation;
+}
+
+.markReadyBtn:hover {
+  background: #15803D;
+}
+
+.markReadyBtn:active {
+  transform: scale(0.98);
+}
+
+.revertBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px var(--sf-space-md);
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--sf-radius-md);
+  border: 1px dashed var(--sf-border-light);
+  cursor: pointer;
+  transition: background var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.revertBtn:hover {
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  color: var(--sf-text-primary);
 }
 
 .secondaryActionsRow {
@@ -445,4 +682,33 @@
 
 .openOrderBtn:active {
   transform: scale(0.98);
+}
+
+:global([data-theme='dark']) .staffChip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .artisanInput {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .cuttingSlipBtn,
+:global([data-theme='dark']) .openOrderBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .revertBtn {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:global([data-theme='dark']) .revertBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
 }

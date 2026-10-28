@@ -128,6 +128,42 @@ describe('filterFabricOrders', () => {
     expect(result.map((o) => o.id)).not.toContain('4');
   });
 
+  it('filters specifically for orders in cutting stage', () => {
+    const result = filterFabricOrders(mockOrders as Order[], {
+      search: '',
+      stageFilter: 'cutting',
+      showNoPhoto: true,
+    });
+    expect(result.length).toBe(1);
+    expect(result[0].id).toBe('1');
+  });
+
+  it('filters specifically for orders in sewing stage', () => {
+    const result = filterFabricOrders(mockOrders as Order[], {
+      search: '',
+      stageFilter: 'sewing',
+      showNoPhoto: true,
+    });
+    expect(result.length).toBe(1);
+    expect(result[0].id).toBe('2b');
+  });
+
+  it('filters specifically for rush/urgent orders', () => {
+    const ordersWithPriority: Partial<Order>[] = [
+      ...mockOrders,
+      { id: 'urgent-1', status: 'Documented', priority: 'rush', images: [{ url: 'test.jpg', stage: 'Documented', uploadedAt: '2023-01-01' }] },
+      { id: 'urgent-2', status: 'Cutting', priority: 'urgent', images: [{ url: 'test2.jpg', stage: 'Cutting', uploadedAt: '2023-01-01' }] },
+      { id: 'delivered-urgent', status: 'Delivered', priority: 'urgent', images: [] },
+    ];
+    const result = filterFabricOrders(ordersWithPriority as Order[], {
+      search: '',
+      stageFilter: 'urgent',
+      showNoPhoto: true,
+    });
+    expect(result.length).toBe(2);
+    expect(result.map((o) => o.id)).toEqual(expect.arrayContaining(['urgent-1', 'urgent-2']));
+  });
+
   it('searches by order reference id with or without hash', () => {
     const result = filterFabricOrders(mockOrders as Order[], {
       search: '#2b',

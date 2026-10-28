@@ -21,6 +21,12 @@
   gap: 4px;
 }
 
+.slipEyebrowRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .slipEyebrow {
   font-size: 11px;
   font-weight: 700;
@@ -29,101 +35,102 @@
   color: var(--sf-brand-indigo);
 }
 
-.title {
-  margin: 0;
-  font-family: var(--sf-font-heading);
-  font-size: 18px;
+.priorityPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 10px;
   font-weight: 700;
-  color: var(--sf-text-primary);
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
 }
 
-.refTag {
-  font-family: var(--sf-font-mono, monospace);
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
-  font-weight: 600;
+.rushPill {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.urgentPill {
+  background: rgba(234, 88, 12, 0.1);
+  color: #EA580C;
+  border: 1px solid rgba(234, 88, 12, 0.2);
 }
 
 .headerRight {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-xs);
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.printBtn {
+.dispatchBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.dispatchBtn:hover {
+  background: #15803D;
+}
+
+.dispatchBtn:active {
+  transform: scale(0.96);
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
   border-radius: var(--sf-radius-full);
   border: 1px solid var(--sf-border-light);
   background: var(--sf-bg-surface);
-  color: var(--sf-text-primary);
+  color: var(--sf-text-secondary);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.printBtn:hover {
+.copyBtn:hover {
   background: var(--sf-surface-container-high);
+  color: var(--sf-text-primary);
 }
 
-.printBtn:active {
+.copyBtn:active {
   transform: scale(0.96);
 }
 
-.customerCard {
-  display: flex;
-  justify-content: space-between;
+.assignedCutterTag {
+  display: inline-flex;
   align-items: center;
-  background: var(--sf-sand);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
-}
-
-.customerInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.customerName {
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-bold);
-  color: var(--sf-text-primary);
-}
-
-.customerPhone {
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-secondary);
-}
-
-.customerActions {
-  display: flex;
-  gap: var(--sf-space-xs);
-}
-
-.actionIconBtn {
-  width: 36px;
-  height: 36px;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: rgba(67, 56, 202, 0.08);
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--sf-border-light);
-  background: var(--sf-bg-surface);
-  color: var(--sf-text-primary);
-  text-decoration: none;
-  transition: transform var(--sf-transition-fast);
+  width: fit-content;
 }
 
-.actionIconBtn:active {
-  transform: scale(0.92);
-}
+/* Fabric Card with Thumbnail and badges */
 
 .fabricCard {
   background: #FFFBEB;
@@ -132,7 +139,83 @@
   padding: var(--sf-space-md);
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.fabricHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fabricBadgesRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.yardageBadge {
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--sf-font-mono, monospace);
+  background: rgba(180, 83, 9, 0.12);
+  color: #B45309;
+  border: 1px solid rgba(180, 83, 9, 0.25);
+}
+
+.provenancePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--sf-text-secondary);
+}
+
+.fabricBodyRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fabricThumbWrap {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(180, 83, 9, 0.25);
+}
+
+.fabricThumb {
+  object-fit: cover;
+}
+
+.fabricDetailsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dueDateNotice {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #B45309;
+  font-weight: 500;
 }
 
 .fabricLabel {
@@ -245,7 +328,7 @@
 }
 
 @media print {
-  .printBtn, .actionIconBtn {
+  .printBtn, .actionIconBtn, .dispatchBtn, .copyBtn {
     display: none !important;
   }
   .container {
@@ -253,6 +336,7 @@
     max-height: none;
     overflow: visible;
     background: #FFFFFF;
+    color: #000000;
   }
 }
 
