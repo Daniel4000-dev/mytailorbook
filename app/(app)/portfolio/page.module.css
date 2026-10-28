@@ -5,31 +5,46 @@
 
 .topFloatingBar {
   position: fixed;
-  top: calc(12px + env(safe-area-inset-top, 0px));
+  top: calc(16px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 70;
   width: calc(100% - 32px);
   max-width: 900px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.12));
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   border-radius: var(--sf-radius-full, 9999px);
   padding: 8px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 8px 24px -4px rgba(27, 27, 34, 0.12);
+  box-shadow: var(--sf-glass-shadow-floating);
   transition: all 0.2s ease;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .topFloatingBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 :root[data-theme="dark"] .topFloatingBar,
 :root:not([data-theme="light"]) .topFloatingBar {
-  background: rgba(22, 21, 38, 0.85);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :root[data-theme="dark"] .topFloatingBar,
+  :root:not([data-theme="light"]) .topFloatingBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .barLeftGroup {

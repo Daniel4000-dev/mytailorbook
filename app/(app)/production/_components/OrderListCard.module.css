@@ -277,14 +277,14 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--sf-glass-bg-dark-pill, rgba(15, 23, 42, 0.45));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: var(--sf-radius-full);
   padding: 3px;
   z-index: 2;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .cardActionBtn {

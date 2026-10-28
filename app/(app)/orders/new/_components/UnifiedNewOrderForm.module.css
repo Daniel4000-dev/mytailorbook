@@ -1135,44 +1135,62 @@
   pointer-events: none;
 }
 
-/* ── Floating Action Card (Apple Inset Squircle aesthetic) ── */
+/* ── Floating Action Card (Apple Liquid Glass Dock) ── */
 .floatingDock {
   position: sticky;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   margin: 16px auto 0 auto;
-  width: calc(100% - 24px);
+  width: calc(100% - 32px);
   max-width: 480px;
   padding: 10px 14px 10px 18px;
-  background: rgba(255, 255, 255, 0.38);
-  backdrop-filter: blur(18px) saturate(190%);
-  -webkit-backdrop-filter: blur(18px) saturate(190%);
-  border: 0.5px solid rgba(255, 255, 255, 0.55);
-  border-radius: var(--sf-radius-lg);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
+  border-radius: var(--sf-radius-xl, 22px);
   z-index: 50;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sf-glass-shadow-floating);
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
+  will-change: transform;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .floatingDock {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 :global([data-theme='dark']) .floatingDock {
-  background: rgba(18, 17, 34, 0.45);
-  backdrop-filter: blur(18px) saturate(190%);
-  -webkit-backdrop-filter: blur(18px) saturate(190%);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
+  will-change: transform;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :global([data-theme='dark']) .floatingDock {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .floatingDock {
-    background: rgba(18, 17, 34, 0.45);
-    backdrop-filter: blur(18px) saturate(190%);
-    -webkit-backdrop-filter: blur(18px) saturate(190%);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    background: var(--sf-glass-fallback-bg);
+    border: var(--sf-glass-border);
+    box-shadow: var(--sf-glass-shadow-floating);
     transform: translateZ(0);
-    will-change: transform, backdrop-filter;
+    will-change: transform;
+  }
+
+  @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    :global(:root:not([data-theme="light"])) .floatingDock {
+      background: var(--sf-glass-bg);
+      backdrop-filter: var(--sf-glass-backdrop);
+      -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    }
   }
 }
 

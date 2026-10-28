@@ -50,15 +50,10 @@
   z-index: 1;
   width: 100%;
   max-width: 580px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--sf-border);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   border-radius: var(--sf-radius-xl, 24px);
-  box-shadow: 
-    0 24px 60px -12px rgba(67, 56, 202, 0.08),
-    0 4px 16px -2px rgba(27, 27, 34, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  box-shadow: var(--sf-glass-shadow-sheet);
   padding: var(--sf-space-2xl) var(--sf-space-xl);
   box-sizing: border-box;
   display: flex;
@@ -66,14 +61,28 @@
   transition: transform var(--sf-transition-normal), box-shadow var(--sf-transition-normal);
 }
 
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .glassCard {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
+}
+
 :root[data-theme="dark"] .glassCard,
 :root:not([data-theme="light"]) .glassCard {
-  background: rgba(22, 21, 38, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
-    0 24px 60px -12px rgba(0, 0, 0, 0.45),
-    0 4px 16px -2px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-sheet);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :root[data-theme="dark"] .glassCard,
+  :root:not([data-theme="light"]) .glassCard {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 @media (max-width: 640px) {

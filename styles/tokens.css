@@ -9,201 +9,245 @@
    ============================================================ */
 
 :root {
-  color-scheme: light;
-  /* ── Two-color system ────────────────────────────────── */
-  /* Rule: ONE accent — Adire indigo #4338CA (the dye of Nigerian
+   color-scheme: light;
+   /* ── Two-color system ────────────────────────────────── */
+   /* Rule: ONE accent — Adire indigo #4338CA (the dye of Nigerian
      cloth). The canvas is a tint of it so light it can be mistaken for
      white (#F8F8FE); cards are pure white on top. Every "lighter" need
      is an opacity/lightness variant of the same indigo. Text/borders
      are true neutral grays — never a third hue. */
 
-  /* ── Colors: Backgrounds (Pure White Luxury Canvas) ── */
-  --sf-bg-primary: #FFFFFF;                   /* Pristine White Canvas */
-  --sf-bg-surface: #FFFFFF;                   /* Card Surface */
-  --sf-bg-surface-elevated: #FFFFFF;
-  --sf-bg-surface-hover: rgba(67, 56, 202, 0.05);
-  --sf-bg-input: #FFFFFF;
-  --sf-bg-overlay: rgba(27, 27, 34, 0.35);
-  --sf-surface-container-high: rgba(67, 56, 202, 0.08);
-  --sf-surface-container-highest: rgba(67, 56, 202, 0.10);
-  --sf-surface-variant: rgba(67, 56, 202, 0.08);
-  --sf-sand: rgba(67, 56, 202, 0.045);        /* order-card ground */
+   /* ── Colors: Backgrounds (Pure White Luxury Canvas) ── */
+   --sf-bg-primary: #FFFFFF;
+   /* Pristine White Canvas */
+   --sf-bg-surface: #FFFFFF;
+   /* Card Surface */
+   --sf-bg-surface-elevated: #FFFFFF;
+   --sf-bg-surface-hover: rgba(67, 56, 202, 0.05);
+   --sf-bg-input: #FFFFFF;
+   --sf-bg-overlay: rgba(27, 27, 34, 0.35);
+   --sf-surface-container-high: rgba(67, 56, 202, 0.08);
+   --sf-surface-container-highest: rgba(67, 56, 202, 0.10);
+   --sf-surface-variant: rgba(67, 56, 202, 0.08);
+   --sf-sand: rgba(67, 56, 202, 0.045);
+   /* order-card ground */
 
-  /* ── Colors: Ink surfaces (legacy aliases) ───────────── */
-  --sf-ink: #FFFFFF;
-  --sf-ink-soft: rgba(67, 56, 202, 0.05);
-  --sf-ink-text: #1B1B22;
-  --sf-ink-text-muted: rgba(27, 27, 34, 0.55);
-  --sf-nav: #23232B;                           /* dark chrome (toasts) */
-  --sf-nav-icon: rgba(255, 255, 255, 0.7);
+   /* ── Colors: Ink surfaces (legacy aliases) ───────────── */
+   --sf-ink: #FFFFFF;
+   --sf-ink-soft: rgba(67, 56, 202, 0.05);
+   --sf-ink-text: #1B1B22;
+   --sf-ink-text-muted: rgba(27, 27, 34, 0.55);
+   --sf-nav: #23232B;
+   /* dark chrome (toasts) */
+   --sf-nav-icon: rgba(255, 255, 255, 0.7);
 
-  /* ── Colors: Brand (Adire Indigo #4338CA) ───────────── */
-  --sf-brand-indigo: #4338CA;
-  --sf-brand-indigo-light: #6366F1;
-  --sf-brand-indigo-dark: #312E81;
-  --sf-brand-indigo-glow: rgba(67, 56, 202, 0.12);
-  --sf-brand-primary: #4338CA;
-  --sf-brand-primary-hover: #3730A3;
+   /* ── Colors: Brand (Adire Indigo #4338CA) ───────────── */
+   --sf-brand-indigo: #4338CA;
+   --sf-brand-indigo-light: #6366F1;
+   --sf-brand-indigo-dark: #312E81;
+   --sf-brand-indigo-glow: rgba(67, 56, 202, 0.12);
+   --sf-brand-primary: #4338CA;
+   --sf-brand-primary-hover: #3730A3;
 
-  --sf-accent-emerald: #4338CA;
-  --sf-accent-emerald-dark: #312E81;
-  --sf-accent-emerald-light: #6366F1;
-  --sf-accent-emerald-glow: rgba(67, 56, 202, 0.10);
-  --sf-accent-gold: #4338CA;
-  --sf-accent-gold-soft: rgba(67, 56, 202, 0.10);
-  --sf-accent-gold-glow: rgba(67, 56, 202, 0.20);
+   --sf-accent-emerald: #4338CA;
+   --sf-accent-emerald-dark: #312E81;
+   --sf-accent-emerald-light: #6366F1;
+   --sf-accent-emerald-glow: rgba(67, 56, 202, 0.10);
+   --sf-accent-gold: #4338CA;
+   --sf-accent-gold-soft: rgba(67, 56, 202, 0.10);
+   --sf-accent-gold-glow: rgba(67, 56, 202, 0.20);
 
-  /* Legacy supporting-hue names — all collapse into the accent family */
-  --sf-secondary: #4338CA;
-  --sf-secondary-container: rgba(67, 56, 202, 0.12);
-  --sf-on-secondary-container: #4338CA;
-  --sf-amber: #6366F1;
-  --sf-ochre: #4338CA;
+   /* Legacy supporting-hue names — all collapse into the accent family */
+   --sf-secondary: #4338CA;
+   --sf-secondary-container: rgba(67, 56, 202, 0.12);
+   --sf-on-secondary-container: #4338CA;
+   --sf-amber: #6366F1;
+   --sf-ochre: #4338CA;
 
-  /* ── Colors: Text (near-black blended with the accent, not flat
+   /* ── Colors: Text (near-black blended with the accent, not flat
      gray — R/G/B were previously ~equal, which reads as generic
      near-black rather than deliberately toned to the brand; these lean
      the same direction as the indigo accent (R slightly > G, B raised)
      so text never feels like a mismatched, off-the-shelf dark gray) ── */
-  --sf-text-primary: #1C1A28;
-  --sf-text-secondary: #55536A;
-  --sf-text-tertiary: #615E77;
-  --sf-text-on-accent: #FFFFFF;
-  --sf-text-gold: #4338CA;
+   --sf-text-primary: #1C1A28;
+   --sf-text-secondary: #55536A;
+   --sf-text-tertiary: #615E77;
+   --sf-text-on-accent: #FFFFFF;
+   --sf-text-gold: #4338CA;
 
-  /* ── Colors: Borders (accent tints) ──────────────────── */
-  --sf-border: rgba(67, 56, 202, 0.16);
-  --sf-border-light: rgba(67, 56, 202, 0.09);
-  --sf-border-focus: #4338CA;
+   /* ── Colors: Borders (accent tints) ──────────────────── */
+   --sf-border: rgba(67, 56, 202, 0.16);
+   --sf-border-light: rgba(67, 56, 202, 0.09);
+   --sf-border-focus: #4338CA;
 
-  /* ── Colors: Semantic (accent-only signaling) ────────── */
-  /* Urgency/success read through weight and fill, not extra hues. */
-  --sf-error: #4338CA;
-  --sf-error-bg: rgba(67, 56, 202, 0.12);
-  --sf-success: #4338CA;
-  --sf-success-bg: rgba(67, 56, 202, 0.10);
-  --sf-warning: #4338CA;
-  --sf-warning-bg: rgba(67, 56, 202, 0.10);
-  --sf-info: #4338CA;
-  --sf-info-bg: rgba(67, 56, 202, 0.10);
+   /* ── Colors: Semantic (accent-only signaling) ────────── */
+   /* Urgency/success read through weight and fill, not extra hues. */
+   --sf-error: #4338CA;
+   --sf-error-bg: rgba(67, 56, 202, 0.12);
+   --sf-success: #4338CA;
+   --sf-success-bg: rgba(67, 56, 202, 0.10);
+   --sf-warning: #4338CA;
+   --sf-warning-bg: rgba(67, 56, 202, 0.10);
+   --sf-info: #4338CA;
+   --sf-info-bg: rgba(67, 56, 202, 0.10);
 
-  /* ── Colors: Order Stages (Artisanal Workshop Stage Identity) ── */
-  /* Disciplined semantic tones: calm 8-10% tint backgrounds, never neon */
-  --sf-stage-documented: #475569;             /* Slate Denim */
-  --sf-stage-documented-bg: rgba(71, 85, 105, 0.08);
-  --sf-stage-cutting: #EA580C;                /* Terracotta Cutting Shears */
-  --sf-stage-cutting-bg: rgba(234, 88, 12, 0.08);
-  --sf-stage-sewing: #4338CA;                 /* Atelier Indigo Machine */
-  --sf-stage-sewing-bg: rgba(67, 56, 202, 0.08);
-  --sf-stage-ready: #059669;                  /* Deep Emerald Pick-Up */
-  --sf-stage-ready-bg: rgba(5, 150, 105, 0.08);
-  --sf-stage-completed: #334155;              /* Calm Charcoal Delivery */
-  --sf-stage-completed-bg: rgba(51, 65, 85, 0.06);
+   /* ── Colors: Order Stages (Artisanal Workshop Stage Identity) ── */
+   /* Disciplined semantic tones: calm 8-10% tint backgrounds, never neon */
+   --sf-stage-documented: #475569;
+   /* Slate Denim */
+   --sf-stage-documented-bg: rgba(71, 85, 105, 0.08);
+   --sf-stage-cutting: #EA580C;
+   /* Terracotta Cutting Shears */
+   --sf-stage-cutting-bg: rgba(234, 88, 12, 0.08);
+   --sf-stage-sewing: #4338CA;
+   /* Atelier Indigo Machine */
+   --sf-stage-sewing-bg: rgba(67, 56, 202, 0.08);
+   --sf-stage-ready: #059669;
+   /* Deep Emerald Pick-Up */
+   --sf-stage-ready-bg: rgba(5, 150, 105, 0.08);
+   --sf-stage-completed: #334155;
+   /* Calm Charcoal Delivery */
+   --sf-stage-completed-bg: rgba(51, 65, 85, 0.06);
 
-  /* ── Spacing (4px base unit) ─────────────────────────── */
-  --sf-space-2xs: 2px;
-  --sf-space-xs: 4px;
-  --sf-space-sm: 8px;
-  --sf-space-md: 16px;
-  --sf-space-lg: 24px;
-  --sf-space-xl: 32px;
-  --sf-space-2xl: 48px;
-  --sf-space-3xl: 64px;
-  --sf-margin-mobile: 20px;
-  --sf-margin-desktop: 48px;
-  --sf-touch-target: 48px;
+   /* ── Spacing (4px base unit) ─────────────────────────── */
+   --sf-space-2xs: 2px;
+   --sf-space-xs: 4px;
+   --sf-space-sm: 8px;
+   --sf-space-md: 16px;
+   --sf-space-lg: 24px;
+   --sf-space-xl: 32px;
+   --sf-space-2xl: 48px;
+   --sf-space-3xl: 64px;
+   --sf-margin-mobile: 20px;
+   --sf-margin-desktop: 48px;
+   --sf-touch-target: 48px;
 
-  /* ── Typography ──────────────────────────────────────── */
-  /* Inter everywhere, headings included — the mobile-app references this
+   /* ── Typography ──────────────────────────────────────── */
+   /* Inter everywhere, headings included — the mobile-app references this
      was benchmarked against (a measurement-template app, a tailor
      marketplace app) use one sans throughout and read as genuinely
      premium purely on weight/spacing contrast, no serif needed. Dropped
      Libre Caslon Text (heading) and Hanken Grotesk (body) in favor of
      this single, native-app-standard family (Linear/GitHub/Figma all
      use it) for a more "real app," less "web brochure" feel. */
-  --sf-font-heading: var(--font-inter), -apple-system, sans-serif;
-  --sf-font-body: var(--font-inter), -apple-system, sans-serif;
-  /* Rounder, softer terminals than Inter's numerals — used specifically
+   --sf-font-heading: var(--font-inter), -apple-system, sans-serif;
+   --sf-font-body: var(--font-inter), -apple-system, sans-serif;
+   /* Rounder, softer terminals than Inter's numerals — used specifically
      for money/stat figures (Overview Analytics, Team Snapshot, etc.),
      the OPay-style "glanceable balance" numeral look. Kept as its own
      separately-validated choice, independent of the heading/body switch
      above. */
-  --sf-font-numeric: var(--font-manrope), var(--font-inter), -apple-system, sans-serif;
+   --sf-font-numeric: var(--font-manrope), var(--font-inter), -apple-system, sans-serif;
 
-  --sf-text-2xs: 0.625rem;   /* 10px */
-  --sf-text-xs: 0.75rem;     /* 12px */
-  --sf-text-sm: 0.875rem;    /* 14px */
-  --sf-text-base: 1rem;      /* 16px */
-  --sf-text-lg: 1.125rem;    /* 18px */
-  --sf-text-xl: 1.25rem;     /* 20px */
-  --sf-text-2xl: 1.5rem;     /* 24px — headline-lg-mobile */
-  --sf-text-3xl: 2rem;       /* 32px — headline-lg */
-  --sf-text-4xl: 3rem;       /* 48px — display-lg */
+   --sf-text-2xs: 0.625rem;
+   /* 10px */
+   --sf-text-xs: 0.75rem;
+   /* 12px */
+   --sf-text-sm: 0.875rem;
+   /* 14px */
+   --sf-text-base: 1rem;
+   /* 16px */
+   --sf-text-lg: 1.125rem;
+   /* 18px */
+   --sf-text-xl: 1.25rem;
+   /* 20px */
+   --sf-text-2xl: 1.5rem;
+   /* 24px — headline-lg-mobile */
+   --sf-text-3xl: 2rem;
+   /* 32px — headline-lg */
+   --sf-text-4xl: 3rem;
+   /* 48px — display-lg */
 
-  --sf-leading-tight: 1.25;
-  --sf-leading-normal: 1.5;
-  --sf-leading-relaxed: 1.65;
+   --sf-leading-tight: 1.25;
+   --sf-leading-normal: 1.5;
+   --sf-leading-relaxed: 1.65;
 
-  --sf-weight-regular: 400;
-  --sf-weight-medium: 500;
-  --sf-weight-semibold: 600;
-  --sf-weight-bold: 700;
+   --sf-weight-regular: 400;
+   --sf-weight-medium: 500;
+   --sf-weight-semibold: 600;
+   --sf-weight-bold: 700;
 
-  /* label-caps utility: 12/16, +5% tracking, bold, uppercase */
-  --sf-tracking-caps: 0.05em;
-  /* Large display/heading text reads loose at fixed 0 tracking as it
+   /* label-caps utility: 12/16, +5% tracking, bold, uppercase */
+   --sf-tracking-caps: 0.05em;
+   /* Large display/heading text reads loose at fixed 0 tracking as it
      scales up — apply to headings sf-text-2xl and above. */
-  --sf-tracking-display: -0.015em;
+   --sf-tracking-display: -0.015em;
 
-  /* ── Border Radius (iOS continuous squircle curves) ──────── */
-  --sf-radius-xs: 6px;
-  --sf-radius-sm: 10px;
-  --sf-radius-md: 14px;
-  --sf-radius-lg: 18px;
-  --sf-radius-xl: 22px;
-  --sf-radius-2xl: 26px;
-  --sf-radius-full: 9999px;
+   /* ── Border Radius (iOS continuous squircle curves) ──────── */
+   --sf-radius-xs: 6px;
+   --sf-radius-sm: 10px;
+   --sf-radius-md: 14px;
+   --sf-radius-lg: 18px;
+   --sf-radius-xl: 22px;
+   --sf-radius-2xl: 26px;
+   --sf-radius-full: 9999px;
 
-  /* ── Shadows ─────────────────────────────────────────── */
-  /* Wide blur, low opacity, no hard edge — measured directly off the
+   /* ── Shadows ─────────────────────────────────────────── */
+   /* Wide blur, low opacity, no hard edge — measured directly off the
      reference mockup (its shadows sample only ~4-6% darker than the page
      at their darkest, spread over a wide soft falloff, never a tight
      halo). A small blur radius at low opacity reads as a thin outline,
      not elevation — the blur has to be generous for the "floating above
      the page" feel to read at all. */
-  --sf-shadow-xs: 0 2px 8px rgba(27, 27, 34, 0.04);
-  --sf-shadow-sm: 0 4px 12px rgba(27, 27, 34, 0.06);
-  --sf-shadow-md: 0 6px 18px rgba(27, 27, 34, 0.08);
-  --sf-shadow-lg: 0 12px 28px rgba(27, 27, 34, 0.10);
-  --sf-shadow-xl: 0 24px 48px rgba(27, 27, 34, 0.12);
-  --sf-shadow-emerald: 0 8px 24px rgba(67, 56, 202, 0.20);
-  --sf-shadow-gold: 0 8px 24px rgba(67, 56, 202, 0.18);
+   --sf-shadow-xs: 0 2px 8px rgba(27, 27, 34, 0.04);
+   --sf-shadow-sm: 0 4px 12px rgba(27, 27, 34, 0.06);
+   --sf-shadow-md: 0 6px 18px rgba(27, 27, 34, 0.08);
+   --sf-shadow-lg: 0 12px 28px rgba(27, 27, 34, 0.10);
+   --sf-shadow-xl: 0 24px 48px rgba(27, 27, 34, 0.12);
+   --sf-shadow-emerald: 0 8px 24px rgba(67, 56, 202, 0.20);
+   --sf-shadow-gold: 0 8px 24px rgba(67, 56, 202, 0.18);
 
-  /* ── Transitions ─────────────────────────────────────── */
-  --sf-transition-fast: 150ms ease;
-  --sf-transition-normal: 250ms ease;
-  --sf-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
-  --sf-transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  --sf-transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+   /* ── Transitions ─────────────────────────────────────── */
+   --sf-transition-fast: 150ms ease;
+   --sf-transition-normal: 250ms ease;
+   --sf-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+   --sf-transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+   --sf-transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-  /* ── Z-Index Scale ───────────────────────────────────── */
-  --sf-z-base: 1;
-  --sf-z-dropdown: 100;
-  --sf-z-sticky: 200;
-  --sf-z-modal: 300;
-  --sf-z-sheet: 400;
-  --sf-z-fab: 500;
-  --sf-z-toast: 600;
-  --sf-z-overlay: 700;
+   /* ── Z-Index Scale ───────────────────────────────────── */
+   --sf-z-base: 1;
+   --sf-z-dropdown: 100;
+   --sf-z-sticky: 200;
+   --sf-z-modal: 300;
+   --sf-z-sheet: 400;
+   --sf-z-fab: 500;
+   --sf-z-toast: 600;
+   --sf-z-overlay: 700;
 
-  /* ── Layout ──────────────────────────────────────────── */
-  --sf-max-width: 480px;
-  --sf-max-width-tablet: 768px;
-  --sf-max-width-desktop: 1280px;   /* mockup max-w-7xl */
-  --sf-bottom-nav-height: 84px;
-  --sf-top-bar-height: 56px;
-  --sf-fab-size: 56px;
-  --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+   /* ── Layout ──────────────────────────────────────────── */
+   --sf-max-width: 480px;
+   --sf-max-width-tablet: 768px;
+   --sf-max-width-desktop: 1280px;
+   /* mockup max-w-7xl */
+   --sf-bottom-nav-height: 84px;
+   --sf-top-bar-height: 56px;
+   --sf-fab-size: 56px;
+   --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+   /* ── Apple Liquid Glass Tokens (Crystalline Translucent Optics) ── */
+   /* Spec-calibrated to match iOS liquid glass / Bible app reference:
+     - Sheer crystalline transmission: ~25-28% fill so text/cards underneath shine through with vivid legibility
+     - Liquid convex sheen gradient (brighter top catchlight, crystalline center)
+     - 20px blur + 190% saturation + 106% contrast + 102% brightness (Apple optical magnification/blooming physics)
+     - Meniscus specular highlight rim (top bevel + inner edge reflection + bottom shadow)
+     - Soft diffuse floating drop shadow
+     - Active tab inner pill: subtle translucent dark pill (rgba(0, 0, 0, 0.07)) */
+   --sf-glass-blur: 20px;
+   --sf-glass-saturate: 190%;
+   --sf-glass-contrast: 106%;
+   --sf-glass-brightness: 102%;
+   --sf-glass-backdrop: blur(var(--sf-glass-blur)) saturate(var(--sf-glass-saturate)) contrast(var(--sf-glass-contrast)) brightness(var(--sf-glass-brightness));
+
+   --sf-glass-bg: rgba(255, 255, 255, 0.28);
+   --sf-glass-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.18) 100%);
+   --sf-glass-bg-sheet: rgba(255, 255, 255, 0.72);
+   --sf-glass-bg-dark-pill: rgba(20, 20, 25, 0.72);
+   --sf-glass-border: 1px solid rgba(255, 255, 255, 0.65);
+   --sf-glass-border-subtle: 1px solid rgba(255, 255, 255, 0.35);
+   --sf-glass-shadow-floating: 0 14px 40px -4px rgba(0, 0, 0, 0.12), 0 4px 14px -2px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.90), inset 0 0 0 1px rgba(255, 255, 255, 0.40), inset 0 -1.5px 1.5px 0 rgba(0, 0, 0, 0.04);
+   --sf-glass-shadow-sheet: 0 24px 64px -12px rgba(0, 0, 0, 0.22), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.9);
+   --sf-glass-active-pill: rgba(0, 0, 0, 0.07);
+   --sf-glass-fallback-bg: rgba(255, 255, 255, 0.88);
 }
 
 /* ============================================================
@@ -221,163 +265,187 @@
    contexts/ThemeContext.tsx) sets data-theme on <html>. ────────────── */
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --sf-bg-primary: #0A0910;
-    --sf-bg-surface: #161526;
-    --sf-bg-surface-elevated: #1F1E33;
-    --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
-    --sf-bg-input: #1F1E33;
-    --sf-bg-overlay: rgba(0, 0, 0, 0.55);
-    --sf-surface-container-high: rgba(99, 102, 241, 0.14);
-    --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
-    --sf-surface-variant: rgba(99, 102, 241, 0.14);
-    --sf-sand: rgba(99, 102, 241, 0.08);
+   :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --sf-bg-primary: #0A0910;
+      --sf-bg-surface: #161526;
+      --sf-bg-surface-elevated: #1F1E33;
+      --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
+      --sf-bg-input: #1F1E33;
+      --sf-bg-overlay: rgba(0, 0, 0, 0.55);
+      --sf-surface-container-high: rgba(99, 102, 241, 0.14);
+      --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
+      --sf-surface-variant: rgba(99, 102, 241, 0.14);
+      --sf-sand: rgba(99, 102, 241, 0.08);
 
-    --sf-ink: #1B1A2B;
-    --sf-ink-soft: rgba(99, 102, 241, 0.10);
-    --sf-ink-text: #EDEDF5;
-    --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
-    --sf-nav: #2E2D45;
-    --sf-nav-icon: rgba(255, 255, 255, 0.75);
+      --sf-ink: #1B1A2B;
+      --sf-ink-soft: rgba(99, 102, 241, 0.10);
+      --sf-ink-text: #EDEDF5;
+      --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
+      --sf-nav: #2E2D45;
+      --sf-nav-icon: rgba(255, 255, 255, 0.75);
 
-    --sf-brand-indigo: #6366F1;
-    --sf-brand-indigo-light: #818CF8;
-    --sf-brand-indigo-dark: #4338CA;
-    --sf-brand-indigo-glow: rgba(99, 102, 241, 0.18);
-    --sf-brand-primary: #6366F1;
-    --sf-brand-primary-hover: #4F46E5;
+      --sf-brand-indigo: #6366F1;
+      --sf-brand-indigo-light: #818CF8;
+      --sf-brand-indigo-dark: #4338CA;
+      --sf-brand-indigo-glow: rgba(99, 102, 241, 0.18);
+      --sf-brand-primary: #6366F1;
+      --sf-brand-primary-hover: #4F46E5;
 
-    --sf-accent-emerald: #6366F1;
-    --sf-accent-emerald-dark: #4338CA;
-    --sf-accent-emerald-light: #818CF8;
-    --sf-accent-emerald-glow: rgba(99, 102, 241, 0.18);
-    --sf-accent-gold: #6366F1;
-    --sf-accent-gold-soft: rgba(99, 102, 241, 0.16);
-    --sf-accent-gold-glow: rgba(99, 102, 241, 0.26);
+      --sf-accent-emerald: #6366F1;
+      --sf-accent-emerald-dark: #4338CA;
+      --sf-accent-emerald-light: #818CF8;
+      --sf-accent-emerald-glow: rgba(99, 102, 241, 0.18);
+      --sf-accent-gold: #6366F1;
+      --sf-accent-gold-soft: rgba(99, 102, 241, 0.16);
+      --sf-accent-gold-glow: rgba(99, 102, 241, 0.26);
 
-    --sf-secondary: #6366F1;
-    --sf-secondary-container: rgba(99, 102, 241, 0.18);
-    --sf-on-secondary-container: #C7D2FE;
-    --sf-amber: #818CF8;
-    --sf-ochre: #6366F1;
+      --sf-secondary: #6366F1;
+      --sf-secondary-container: rgba(99, 102, 241, 0.18);
+      --sf-on-secondary-container: #C7D2FE;
+      --sf-amber: #818CF8;
+      --sf-ochre: #6366F1;
 
-    --sf-text-primary: #EDEDF5;
-    --sf-text-secondary: #A5A3BC;
-    --sf-text-tertiary: #9592B8;
-    --sf-text-on-accent: #0D0C17;
-    --sf-text-gold: #A5B4FC;
+      --sf-text-primary: #EDEDF5;
+      --sf-text-secondary: #A5A3BC;
+      --sf-text-tertiary: #9592B8;
+      --sf-text-on-accent: #0D0C17;
+      --sf-text-gold: #A5B4FC;
 
-    --sf-border: rgba(99, 102, 241, 0.24);
-    --sf-border-light: rgba(99, 102, 241, 0.14);
-    --sf-border-focus: #818CF8;
+      --sf-border: rgba(99, 102, 241, 0.24);
+      --sf-border-light: rgba(99, 102, 241, 0.14);
+      --sf-border-focus: #818CF8;
 
-    --sf-error: #6366F1;
-    --sf-error-bg: rgba(99, 102, 241, 0.16);
-    --sf-success: #6366F1;
-    --sf-success-bg: rgba(99, 102, 241, 0.14);
-    --sf-warning: #6366F1;
-    --sf-warning-bg: rgba(99, 102, 241, 0.14);
-    --sf-info: #6366F1;
-    --sf-info-bg: rgba(99, 102, 241, 0.14);
+      --sf-error: #6366F1;
+      --sf-error-bg: rgba(99, 102, 241, 0.16);
+      --sf-success: #6366F1;
+      --sf-success-bg: rgba(99, 102, 241, 0.14);
+      --sf-warning: #6366F1;
+      --sf-warning-bg: rgba(99, 102, 241, 0.14);
+      --sf-info: #6366F1;
+      --sf-info-bg: rgba(99, 102, 241, 0.14);
 
-    --sf-stage-documented: #94A3B8;
-    --sf-stage-documented-bg: rgba(148, 163, 184, 0.12);
-    --sf-stage-cutting: #FB923C;
-    --sf-stage-cutting-bg: rgba(251, 146, 60, 0.14);
-    --sf-stage-sewing: #818CF8;
-    --sf-stage-sewing-bg: rgba(129, 140, 248, 0.14);
-    --sf-stage-ready: #34D399;
-    --sf-stage-ready-bg: rgba(52, 211, 153, 0.14);
-    --sf-stage-completed: #CBD5E1;
-    --sf-stage-completed-bg: rgba(203, 213, 225, 0.10);
+      --sf-stage-documented: #94A3B8;
+      --sf-stage-documented-bg: rgba(148, 163, 184, 0.12);
+      --sf-stage-cutting: #FB923C;
+      --sf-stage-cutting-bg: rgba(251, 146, 60, 0.14);
+      --sf-stage-sewing: #818CF8;
+      --sf-stage-sewing-bg: rgba(129, 140, 248, 0.14);
+      --sf-stage-ready: #34D399;
+      --sf-stage-ready-bg: rgba(52, 211, 153, 0.14);
+      --sf-stage-completed: #CBD5E1;
+      --sf-stage-completed-bg: rgba(203, 213, 225, 0.10);
 
-    --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
-    --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
-    --sf-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
-    --sf-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.36);
-    --sf-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.42);
-    --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
-    --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
-  }
+      --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
+      --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+      --sf-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
+      --sf-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.36);
+      --sf-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.42);
+      --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
+      --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
+
+      /* ── Apple Liquid Glass Tokens (Dark Mode) ────────── */
+      --sf-glass-bg: rgba(22, 22, 30, 0.42);
+      --sf-glass-gradient: linear-gradient(180deg, rgba(36, 35, 48, 0.55) 0%, rgba(18, 17, 26, 0.35) 100%);
+      --sf-glass-bg-sheet: rgba(26, 25, 34, 0.80);
+      --sf-glass-bg-dark-pill: rgba(15, 14, 20, 0.78);
+      --sf-glass-border: 1px solid rgba(255, 255, 255, 0.16);
+      --sf-glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+      --sf-glass-shadow-floating: 0 18px 48px -4px rgba(0, 0, 0, 0.60), 0 6px 18px -2px rgba(0, 0, 0, 0.40), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.10), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.30);
+      --sf-glass-shadow-sheet: 0 28px 72px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
+      --sf-glass-active-pill: rgba(255, 255, 255, 0.14);
+      --sf-glass-fallback-bg: rgba(22, 21, 30, 0.92);
+   }
 }
 
 :root[data-theme="dark"] {
-  color-scheme: dark;
-  --sf-bg-primary: #0A0910;
-  --sf-bg-surface: #161526;
-  --sf-bg-surface-elevated: #1F1E33;
-  --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
-  --sf-bg-input: #1F1E33;
-  --sf-bg-overlay: rgba(0, 0, 0, 0.55);
-  --sf-surface-container-high: rgba(99, 102, 241, 0.14);
-  --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
-  --sf-surface-variant: rgba(99, 102, 241, 0.14);
-  --sf-sand: rgba(99, 102, 241, 0.08);
+   color-scheme: dark;
+   --sf-bg-primary: #0A0910;
+   --sf-bg-surface: #161526;
+   --sf-bg-surface-elevated: #1F1E33;
+   --sf-bg-surface-hover: rgba(99, 102, 241, 0.10);
+   --sf-bg-input: #1F1E33;
+   --sf-bg-overlay: rgba(0, 0, 0, 0.55);
+   --sf-surface-container-high: rgba(99, 102, 241, 0.14);
+   --sf-surface-container-highest: rgba(99, 102, 241, 0.18);
+   --sf-surface-variant: rgba(99, 102, 241, 0.14);
+   --sf-sand: rgba(99, 102, 241, 0.08);
 
-  --sf-ink: #1B1A2B;
-  --sf-ink-soft: rgba(99, 102, 241, 0.10);
-  --sf-ink-text: #EDEDF5;
-  --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
-  --sf-nav: #2E2D45;
-  --sf-nav-icon: rgba(255, 255, 255, 0.75);
+   --sf-ink: #1B1A2B;
+   --sf-ink-soft: rgba(99, 102, 241, 0.10);
+   --sf-ink-text: #EDEDF5;
+   --sf-ink-text-muted: rgba(237, 237, 245, 0.6);
+   --sf-nav: #2E2D45;
+   --sf-nav-icon: rgba(255, 255, 255, 0.75);
 
-  --sf-brand-indigo: #6366F1;
-  --sf-brand-indigo-light: #818CF8;
-  --sf-brand-indigo-dark: #4338CA;
-  --sf-brand-indigo-glow: rgba(99, 102, 241, 0.18);
-  --sf-brand-primary: #6366F1;
-  --sf-brand-primary-hover: #4F46E5;
+   --sf-brand-indigo: #6366F1;
+   --sf-brand-indigo-light: #818CF8;
+   --sf-brand-indigo-dark: #4338CA;
+   --sf-brand-indigo-glow: rgba(99, 102, 241, 0.18);
+   --sf-brand-primary: #6366F1;
+   --sf-brand-primary-hover: #4F46E5;
 
-  --sf-accent-emerald: #6366F1;
-  --sf-accent-emerald-dark: #4338CA;
-  --sf-accent-emerald-light: #818CF8;
-  --sf-accent-emerald-glow: rgba(99, 102, 241, 0.18);
-  --sf-accent-gold: #6366F1;
-  --sf-accent-gold-soft: rgba(99, 102, 241, 0.16);
-  --sf-accent-gold-glow: rgba(99, 102, 241, 0.26);
+   --sf-accent-emerald: #6366F1;
+   --sf-accent-emerald-dark: #4338CA;
+   --sf-accent-emerald-light: #818CF8;
+   --sf-accent-emerald-glow: rgba(99, 102, 241, 0.18);
+   --sf-accent-gold: #6366F1;
+   --sf-accent-gold-soft: rgba(99, 102, 241, 0.16);
+   --sf-accent-gold-glow: rgba(99, 102, 241, 0.26);
 
-  --sf-secondary: #6366F1;
-  --sf-secondary-container: rgba(99, 102, 241, 0.18);
-  --sf-on-secondary-container: #C7D2FE;
-  --sf-amber: #818CF8;
-  --sf-ochre: #6366F1;
+   --sf-secondary: #6366F1;
+   --sf-secondary-container: rgba(99, 102, 241, 0.18);
+   --sf-on-secondary-container: #C7D2FE;
+   --sf-amber: #818CF8;
+   --sf-ochre: #6366F1;
 
-  --sf-text-primary: #EDEDF5;
-  --sf-text-secondary: #A5A3BC;
-  --sf-text-tertiary: #9592B8;
-  --sf-text-on-accent: #0D0C17;
-  --sf-text-gold: #A5B4FC;
+   --sf-text-primary: #EDEDF5;
+   --sf-text-secondary: #A5A3BC;
+   --sf-text-tertiary: #9592B8;
+   --sf-text-on-accent: #0D0C17;
+   --sf-text-gold: #A5B4FC;
 
-  --sf-border: rgba(99, 102, 241, 0.24);
-  --sf-border-light: rgba(99, 102, 241, 0.14);
-  --sf-border-focus: #818CF8;
+   --sf-border: rgba(99, 102, 241, 0.24);
+   --sf-border-light: rgba(99, 102, 241, 0.14);
+   --sf-border-focus: #818CF8;
 
-  --sf-error: #6366F1;
-  --sf-error-bg: rgba(99, 102, 241, 0.16);
-  --sf-success: #6366F1;
-  --sf-success-bg: rgba(99, 102, 241, 0.14);
-  --sf-warning: #6366F1;
-  --sf-warning-bg: rgba(99, 102, 241, 0.14);
-  --sf-info: #6366F1;
-  --sf-info-bg: rgba(99, 102, 241, 0.14);
+   --sf-error: #6366F1;
+   --sf-error-bg: rgba(99, 102, 241, 0.16);
+   --sf-success: #6366F1;
+   --sf-success-bg: rgba(99, 102, 241, 0.14);
+   --sf-warning: #6366F1;
+   --sf-warning-bg: rgba(99, 102, 241, 0.14);
+   --sf-info: #6366F1;
+   --sf-info-bg: rgba(99, 102, 241, 0.14);
 
-  --sf-stage-documented: #94A3B8;
-  --sf-stage-documented-bg: rgba(148, 163, 184, 0.12);
-  --sf-stage-cutting: #FB923C;
-  --sf-stage-cutting-bg: rgba(251, 146, 60, 0.14);
-  --sf-stage-sewing: #818CF8;
-  --sf-stage-sewing-bg: rgba(129, 140, 248, 0.14);
-  --sf-stage-ready: #34D399;
-  --sf-stage-ready-bg: rgba(52, 211, 153, 0.14);
-  --sf-stage-completed: #CBD5E1;
-  --sf-stage-completed-bg: rgba(203, 213, 225, 0.10);
+   --sf-stage-documented: #94A3B8;
+   --sf-stage-documented-bg: rgba(148, 163, 184, 0.12);
+   --sf-stage-cutting: #FB923C;
+   --sf-stage-cutting-bg: rgba(251, 146, 60, 0.14);
+   --sf-stage-sewing: #818CF8;
+   --sf-stage-sewing-bg: rgba(129, 140, 248, 0.14);
+   --sf-stage-ready: #34D399;
+   --sf-stage-ready-bg: rgba(52, 211, 153, 0.14);
+   --sf-stage-completed: #CBD5E1;
+   --sf-stage-completed-bg: rgba(203, 213, 225, 0.10);
 
-  --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
-  --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
-  --sf-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
-  --sf-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.36);
-  --sf-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.42);
-  --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
-  --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
+   --sf-shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.24);
+   --sf-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+   --sf-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.32);
+   --sf-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.36);
+   --sf-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.42);
+   --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
+   --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
+
+   /* ── Apple Liquid Glass Tokens (Dark Mode) ────────── */
+   --sf-glass-bg: rgba(22, 22, 30, 0.42);
+   --sf-glass-gradient: linear-gradient(180deg, rgba(36, 35, 48, 0.55) 0%, rgba(18, 17, 26, 0.35) 100%);
+   --sf-glass-bg-sheet: rgba(26, 25, 34, 0.80);
+   --sf-glass-bg-dark-pill: rgba(15, 14, 20, 0.78);
+   --sf-glass-border: 1px solid rgba(255, 255, 255, 0.16);
+   --sf-glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+   --sf-glass-shadow-floating: 0 18px 48px -4px rgba(0, 0, 0, 0.60), 0 6px 18px -2px rgba(0, 0, 0, 0.40), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.10), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.30);
+   --sf-glass-shadow-sheet: 0 28px 72px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
+   --sf-glass-active-pill: rgba(255, 255, 255, 0.14);
+   --sf-glass-fallback-bg: rgba(22, 21, 30, 0.92);
 }

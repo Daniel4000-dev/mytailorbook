@@ -29,9 +29,16 @@
   top: 0;
   z-index: var(--sf-z-sticky);
   height: 68px;
-  background: color-mix(in srgb, var(--sf-bg-primary) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--sf-glass-fallback-bg);
+  border-bottom: var(--sf-glass-border-subtle);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .header {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 /* Below 640px this is identical to the old flat .header rule (max-width
@@ -743,13 +750,19 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--sf-space-md);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl);
-  box-shadow: 0 -4px 24px var(--sf-accent-gold-glow);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
+  border-radius: var(--sf-radius-xl, 22px);
+  box-shadow: var(--sf-glass-shadow-floating);
   padding: var(--sf-space-md);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .summaryBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .summaryLeft {

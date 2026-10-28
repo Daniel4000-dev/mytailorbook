@@ -1,109 +1,89 @@
-/* Floating glassmorphic pill bottom nav — Apple iOS & Instagram Aesthetics */
+/* Floating glassmorphic pill bottom nav — Apple iOS Optics */
 .nav {
   position: fixed;
-  bottom: max(14px, calc(10px + env(safe-area-inset-bottom, 0px)));
-  left: 12px;
-  right: 12px;
-  width: calc(100% - 24px);
+  bottom: max(16px, calc(16px + env(safe-area-inset-bottom, 0px)));
+  left: 16px;
+  right: 16px;
+  width: calc(100% - 32px);
   max-width: 440px;
   height: 64px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0 8px;
-  background: rgba(255, 255, 255, 0.30);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border-radius: var(--sf-radius-pill, 9999px);
-  border: 0.5px solid rgba(255, 255, 255, 0.50);
-  box-shadow:
-    0 10px 36px rgba(0, 0, 0, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 0 10px;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-radius: var(--sf-radius-full, 9999px);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
   z-index: var(--sf-z-sticky);
-  opacity: 0.86;
+  opacity: 1;
   transform: translate3d(0, 0, 0);
   transform-origin: center bottom;
-  will-change: transform, opacity;
-  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.15s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .nav.navCompact {
-  transform: translate3d(0, 6px, 0) scale(0.86);
-  opacity: 0.86;
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.06),
-    0 1px 4px rgba(0, 0, 0, 0.03);
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .nav.navCompact:hover {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.86;
-    box-shadow:
-      0 10px 36px rgba(0, 0, 0, 0.08),
-      0 2px 8px rgba(0, 0, 0, 0.04);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 }
 
 .nav.navCompact:active {
-  transform: translate3d(0, 0, 0) scale(1);
-  opacity: 0.86;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
 }
 
 :global([data-theme='dark']) .nav {
-  background: rgba(18, 17, 32, 0.32);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 12px 38px rgba(0, 0, 0, 0.50),
-    0 2px 8px rgba(0, 0, 0, 0.30);
-  opacity: 0.86;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
+  opacity: 1;
   transform: translate3d(0, 0, 0);
-  will-change: transform, opacity;
 }
 
 :global([data-theme='dark']) .nav.navCompact {
-  transform: translate3d(0, 6px, 0) scale(0.86);
-  opacity: 0.86;
-  box-shadow:
-    0 6px 22px rgba(0, 0, 0, 0.38),
-    0 1px 4px rgba(0, 0, 0, 0.2);
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
 }
 
 :global([data-theme='dark']) .nav.navCompact:hover,
 :global([data-theme='dark']) .nav.navCompact:active {
-  transform: translate3d(0, 0, 0) scale(1);
-  opacity: 0.86;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .nav {
-    background: rgba(18, 17, 32, 0.32);
-    backdrop-filter: blur(20px) saturate(190%);
-    -webkit-backdrop-filter: blur(20px) saturate(190%);
-    border: 0.5px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      0 12px 38px rgba(0, 0, 0, 0.50),
-      0 2px 8px rgba(0, 0, 0, 0.30);
-    opacity: 0.86;
+    background: var(--sf-glass-gradient, var(--sf-glass-bg));
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    border: var(--sf-glass-border);
+    box-shadow: var(--sf-glass-shadow-floating);
+    opacity: 1;
     transform: translate3d(0, 0, 0);
-    will-change: transform, opacity;
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact {
-    transform: translate3d(0, 6px, 0) scale(0.86);
-    opacity: 0.86;
-    box-shadow:
-      0 6px 22px rgba(0, 0, 0, 0.38),
-      0 1px 4px rgba(0, 0, 0, 0.2);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact:hover,
   :global(:root:not([data-theme="light"])) .nav.navCompact:active {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.86;
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 }
 
@@ -114,7 +94,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Nav Item (Icon-only Instagram style) */
+/* Nav Item (Apple iOS floating pill with inner active capsule) */
 .item {
   position: relative;
   display: flex;
@@ -123,10 +103,10 @@
   color: var(--sf-text-secondary);
   opacity: 0.75;
   text-decoration: none;
-  height: 48px;
+  height: 44px;
   flex: 1;
-  max-width: 72px;
-  min-width: 48px;
+  max-width: 68px;
+  min-width: 44px;
   border-radius: var(--sf-radius-pill, 9999px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
@@ -136,7 +116,7 @@
 @media (hover: hover) and (pointer: fine) {
   .item:hover {
     opacity: 1;
-    background-color: color-mix(in srgb, var(--sf-text-primary) 6%, transparent);
+    background-color: var(--sf-glass-active-pill);
   }
 }
 
@@ -145,15 +125,15 @@
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Active state: Subtle frosted highlight matching Instagram */
+/* Active state: Subtle frosted highlight pill matching Apple / Bible app reference */
 .active {
-  background-color: color-mix(in srgb, var(--sf-text-primary) 8%, transparent);
+  background-color: var(--sf-glass-active-pill) !important;
   color: var(--sf-text-primary);
   opacity: 1;
 }
 
 :global([data-theme='dark']) .active {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--sf-glass-active-pill) !important;
   color: var(--sf-text-primary);
 }
 

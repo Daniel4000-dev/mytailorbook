@@ -1247,11 +1247,13 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-radius: var(--sf-radius-xl);
   padding: 8px 2px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.15), 0 4px 16px rgba(0, 0, 0, 0.12);
   position: relative;
   z-index: 1;
 }

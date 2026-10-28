@@ -45,8 +45,8 @@
 
 /* ── Apple Liquid Glass Album Info Card ── */
 .albumHeaderCard {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   border-radius: var(--sf-radius-xl, 20px);
   padding: 20px 24px;
   display: flex;
@@ -54,9 +54,15 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  box-shadow: 0 4px 20px -4px rgba(67, 56, 202, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .albumHeaderCard {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .albumMeta {
@@ -281,9 +287,10 @@
 
 .quickDeleteBtn {
   background: rgba(220, 38, 38, 0.85);
-  backdrop-filter: blur(4px);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   color: #FFFFFF;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -292,6 +299,7 @@
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .quickDeleteBtn:hover {

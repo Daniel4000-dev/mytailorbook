@@ -26,8 +26,8 @@
 
 /* ── Atelier Hero Liquid Glass Banner ── */
 .heroBanner {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   border-radius: var(--sf-radius-xl, 22px);
   padding: 24px;
   display: flex;
@@ -35,9 +35,15 @@
   gap: 18px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 24px -4px rgba(67, 56, 202, 0.06);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .heroBanner {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .heroText {
@@ -303,9 +309,10 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(20, 20, 25, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--sf-glass-bg-dark-pill);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   padding: 3px 8px;
   border-radius: var(--sf-radius-full);
@@ -403,8 +410,10 @@
   left: 8px;
   padding: 3px 8px;
   border-radius: var(--sf-radius-full);
-  background: rgba(20, 20, 25, 0.72);
-  backdrop-filter: blur(8px);
+  background: var(--sf-glass-bg-dark-pill);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: 10px;
   font-weight: 600;

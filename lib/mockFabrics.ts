@@ -363,56 +363,6 @@ export function getStoredMockFabricOrders(): Order[] {
 }
 
 /**
- * Updates a mock fabric order status and statusHistory, saving to localStorage
- */
-export function updateMockFabricOrderStatus(
-  orderId: string,
-  newStatus: Order['status'],
-  changedBy: string = 'user-cutter',
-  changedByName: string = 'Master Cutter'
-): Order[] {
-  const current = getStoredMockFabricOrders();
-  const updated = current.map((order) => {
-    if (order.id !== orderId) return order;
-    const historyEntry = {
-      from: order.status,
-      to: newStatus,
-      timestamp: new Date().toISOString(),
-      changedBy,
-      changedByName,
-    };
-    return {
-      ...order,
-      status: newStatus,
-      statusHistory: [...(order.statusHistory || []), historyEntry],
-      updatedAt: new Date().toISOString(),
-    };
-  });
-  saveMockFabricOrders(updated);
-  return updated;
-}
-
-/**
- * Updates partial fields on a mock fabric order (e.g. assignedToName, details)
- */
-export function updateMockFabricOrder(
-  orderId: string,
-  updates: Partial<Order>
-): Order[] {
-  const current = getStoredMockFabricOrders();
-  const updated = current.map((order) => {
-    if (order.id !== orderId) return order;
-    return {
-      ...order,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-  });
-  saveMockFabricOrders(updated);
-  return updated;
-}
-
-/**
  * Saves mock fabric orders to localStorage
  */
 export function saveMockFabricOrders(orders: Order[]): void {

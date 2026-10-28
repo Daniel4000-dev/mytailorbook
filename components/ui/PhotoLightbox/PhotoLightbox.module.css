@@ -38,10 +38,12 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--sf-radius-full);
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--sf-glass-bg-dark-pill, rgba(20, 20, 25, 0.72));
   color: #fff;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   transition: opacity 250ms ease, background-color var(--sf-transition-fast);
 }
 

@@ -59,13 +59,15 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   padding: 6px 16px;
   border-radius: var(--sf-radius-full);
   margin-bottom: var(--sf-space-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .heroHeadline {

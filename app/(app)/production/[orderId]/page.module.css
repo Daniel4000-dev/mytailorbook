@@ -850,10 +850,8 @@
   left: 0;
   right: 0;
   padding: var(--sf-space-sm);
-  background: color-mix(in srgb, var(--sf-bg-primary) 72%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-fallback-bg);
+  border-top: var(--sf-glass-border-subtle);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
@@ -862,6 +860,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .glassCaption {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 /* ── Comments & batch ───────────────────────────────────────── */
@@ -1845,24 +1851,30 @@
   }
 }
 
-/* ── Mobile Sticky Bottom Action Bar ──────────────────────────────────── */
+/* ── Mobile Sticky Bottom Action Bar (Apple Liquid Glass) ─────────────── */
 .mobileStickyBottomBar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(18px) saturate(190%);
-  -webkit-backdrop-filter: blur(18px) saturate(190%);
-  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+  background: var(--sf-glass-fallback-bg);
+  border-top: var(--sf-glass-border);
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
   z-index: 50;
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
+  will-change: transform;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .mobileStickyBottomBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .stickyAdvanceBtn {
@@ -2161,13 +2173,19 @@
 }
 
 :global([data-theme='dark']) .mobileStickyBottomBar {
-  background: rgba(18, 17, 34, 0.45);
-  backdrop-filter: blur(18px) saturate(190%);
-  -webkit-backdrop-filter: blur(18px) saturate(190%);
-  border-top-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  background: var(--sf-glass-fallback-bg);
+  border-top: var(--sf-glass-border);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
+  will-change: transform;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :global([data-theme='dark']) .mobileStickyBottomBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 :global([data-theme='dark']) .stickyAlterationSquareBtn,
@@ -2283,13 +2301,19 @@
   }
 
   :global(:root:not([data-theme="light"])) .mobileStickyBottomBar {
-    background: rgba(18, 17, 34, 0.45);
-    backdrop-filter: blur(18px) saturate(190%);
-    -webkit-backdrop-filter: blur(18px) saturate(190%);
-    border-top-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+    background: var(--sf-glass-fallback-bg);
+    border-top: var(--sf-glass-border);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
     transform: translateZ(0);
-    will-change: transform, backdrop-filter;
+    will-change: transform;
+  }
+
+  @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    :global(:root:not([data-theme="light"])) .mobileStickyBottomBar {
+      background: var(--sf-glass-bg);
+      backdrop-filter: var(--sf-glass-backdrop);
+      -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    }
   }
 
   :global(:root:not([data-theme="light"])) .stickyAlterationSquareBtn,

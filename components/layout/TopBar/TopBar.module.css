@@ -6,37 +6,33 @@
   justify-content: space-between;
   height: var(--sf-top-bar-height);
   padding: 0 var(--sf-space-md);
-  background: rgba(255, 255, 255, 0.30);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  background: var(--sf-glass-bg);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-bottom: var(--sf-glass-border-subtle);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   z-index: var(--sf-z-sticky);
   width: 100%;
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
-  transition: background-color 0.2s ease;
+  will-change: transform;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 :global([data-theme='dark']) .topBar {
-  background: rgba(10, 9, 16, 0.32);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  background: var(--sf-glass-bg);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-bottom: var(--sf-glass-border-subtle);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  transform: translateZ(0);
-  will-change: transform, backdrop-filter;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .topBar {
-    background: rgba(10, 9, 16, 0.32);
-    backdrop-filter: blur(20px) saturate(190%);
-    -webkit-backdrop-filter: blur(20px) saturate(190%);
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    border-bottom: var(--sf-glass-border-subtle);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-    transform: translateZ(0);
-    will-change: transform, backdrop-filter;
   }
 }
 
@@ -46,7 +42,8 @@
   padding: var(--sf-space-sm) var(--sf-space-sm);
 }
 
-.left, .right {
+.left,
+.right {
   display: flex;
   align-items: center;
   gap: var(--sf-space-sm);
@@ -67,7 +64,8 @@
   padding: 0 var(--sf-space-sm);
 }
 
-.backBtn, .notificationBtn {
+.backBtn,
+.notificationBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,16 +98,25 @@
 }
 
 @keyframes pulseOffline {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
 
-.backBtn:hover, .notificationBtn:hover {
-  background: var(--sf-bg-surface-elevated);
-}
+  .backBtn:hover,
+  .notificationBtn:hover {
+    background: var(--sf-bg-surface-elevated);
+  }
 }
 
 .backBtn:active {
@@ -195,6 +202,7 @@
 
 /* Desktop Styles */
 @media (min-width: 1024px) {
+
   /* Also targets the same :has() compound selector above — a bare
      `.topBar` here loses to it on specificity (a :has() pseudo-class
      counts like an extra class) regardless of source order, which was
@@ -202,7 +210,8 @@
      even on desktop. */
   .topBar,
   .topBar:has(.profileHeaderContent) {
-    height: 72px; /* standard dashboard topbar height */
+    height: 72px;
+    /* standard dashboard topbar height */
     padding: 0 var(--sf-space-lg);
     background-color: var(--sf-bg-primary) !important;
   }
@@ -268,15 +277,37 @@
 
 /* Animated Streak Badge replacing the brand logo */
 @keyframes flameFlicker {
-  0% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
-  50% { transform: scale(1.15) rotate(4deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(255,87,34,0.8)); }
-  100% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
+  0% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
+
+  50% {
+    transform: scale(1.15) rotate(4deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 87, 34, 0.8));
+  }
+
+  100% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
 }
 
 @keyframes streakPop {
-  0% { transform: scale(0.95); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.95);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 
@@ -291,9 +322,11 @@
   animation: flameFlicker 2s ease-in-out infinite alternate;
   transform-origin: bottom center;
 }
+
 .streakBadge:hover {
   transform: scale(1.05);
 }
+
 .streakBadge span {
   color: #FF5722;
 }
@@ -307,15 +340,39 @@
 }
 
 @keyframes flameFlicker {
-  0% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
-  50% { transform: scale(1.15) rotate(4deg); opacity: 1; filter: drop-shadow(0 0 8px rgba(255,87,34,0.8)); }
-  100% { transform: scale(1) rotate(-2deg); opacity: 0.9; filter: drop-shadow(0 0 2px rgba(255,152,0,0.5)); }
+  0% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
+
+  50% {
+    transform: scale(1.15) rotate(4deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 87, 34, 0.8));
+  }
+
+  100% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
 }
 
 @keyframes streakPop {
-  0% { transform: scale(0.85); opacity: 0; }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .streakBadge {

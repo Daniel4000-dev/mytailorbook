@@ -20,10 +20,16 @@
   align-items: center;
   padding: 8px var(--sf-margin-mobile);
   min-height: var(--sf-touch-target);
-  background: color-mix(in srgb, var(--sf-bg-primary) 90%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-fallback-bg);
+  border-bottom: var(--sf-glass-border-subtle);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .header {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .brandBlock {
@@ -450,16 +456,22 @@
   gap: 6px;
   padding: 4px 12px;
   border-radius: var(--sf-radius-full);
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   font-size: var(--sf-text-2xs);
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
   text-transform: uppercase;
   color: var(--sf-text-primary);
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .liveTag {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .liveTagDot {
@@ -472,10 +484,16 @@
 
 .photoCaption {
   padding: var(--sf-space-md);
-  background: color-mix(in srgb, var(--sf-bg-primary) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-fallback-bg);
+  border-top: var(--sf-glass-border-subtle);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .photoCaption {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .captionTitle {

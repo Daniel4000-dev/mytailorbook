@@ -49,17 +49,33 @@ body {
 }
 
 /* ── Typography ────────────────────────────────────────────── */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--sf-font-heading);
   font-weight: var(--sf-weight-semibold);
   line-height: var(--sf-leading-tight);
   color: var(--sf-text-primary);
 }
 
-h1 { font-size: var(--sf-text-3xl); }
-h2 { font-size: var(--sf-text-2xl); }
-h3 { font-size: var(--sf-text-xl); }
-h4 { font-size: var(--sf-text-lg); }
+h1 {
+  font-size: var(--sf-text-3xl);
+}
+
+h2 {
+  font-size: var(--sf-text-2xl);
+}
+
+h3 {
+  font-size: var(--sf-text-xl);
+}
+
+h4 {
+  font-size: var(--sf-text-lg);
+}
 
 p {
   color: var(--sf-text-secondary);
@@ -77,11 +93,11 @@ a {
   touch-action: manipulation;
 }
 
-@media (hover: hover) and (pointer: fine){
+@media (hover: hover) and (pointer: fine) {
 
-a:hover {
-  color: var(--sf-accent-emerald);
-}
+  a:hover {
+    color: var(--sf-accent-emerald);
+  }
 }
 
 /* ── Form Elements ─────────────────────────────────────────── */
@@ -122,9 +138,12 @@ select {
 }
 
 @supports (-webkit-touch-callout: none) {
+
   /* Prevent iOS Safari from auto-zooming on focus by enforcing >=16px text. 
      This is the accessible alternative to user-scalable=no. */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
   }
 }
@@ -135,12 +154,14 @@ textarea::placeholder {
 }
 
 /* ── Lists ─────────────────────────────────────────────────── */
-ul, ol {
+ul,
+ol {
   list-style: none;
 }
 
 /* ── Images ────────────────────────────────────────────────── */
-img, svg {
+img,
+svg {
   display: block;
   max-width: 100%;
 }
@@ -160,11 +181,11 @@ img, svg {
   border-radius: var(--sf-radius-full);
 }
 
-@media (hover: hover) and (pointer: fine){
+@media (hover: hover) and (pointer: fine) {
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--sf-text-tertiary);
-}
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--sf-text-tertiary);
+  }
 }
 
 /* ── Selection ─────────────────────────────────────────────── */
@@ -192,8 +213,13 @@ body.no-scroll {
 
 /* ── Animations ────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -201,6 +227,7 @@ body.no-scroll {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -212,6 +239,7 @@ body.no-scroll {
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -222,19 +250,32 @@ body.no-scroll {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes scaleIn {
@@ -242,6 +283,7 @@ body.no-scroll {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -279,15 +321,56 @@ body.no-scroll {
   display: block;
 }
 
+/* ── Apple Liquid Glass Shared Surfaces ────────────────────── */
+.glass-surface {
+  background: var(--sf-glass-bg);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+.glass-pill {
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+.glass-sheet {
+  background: var(--sf-glass-bg-sheet);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-sheet);
+}
+
+.glass-card {
+  border-radius: var(--sf-radius-xl, 22px);
+  background: var(--sf-glass-bg);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-shadow-lg);
+}
+
 
 .global-spinner {
   animation: global-spin 0.8s linear infinite;
   display: inline-flex;
   align-items: center;
 }
+
 @keyframes global-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media print {

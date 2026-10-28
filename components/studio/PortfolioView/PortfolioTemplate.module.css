@@ -439,14 +439,20 @@
   gap: var(--sf-space-md);
   padding: var(--sf-space-lg);
   margin: calc(-1 * var(--sf-space-2xl)) var(--sf-margin-mobile) var(--sf-space-2xl);
-  background: color-mix(in srgb, var(--sf-bg-surface-elevated) 85%, transparent);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   border-radius: var(--sf-radius-xl, 24px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sf-glass-shadow-floating);
   position: relative;
   z-index: 2;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .trustBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 @media (min-width: 768px) {
@@ -763,16 +769,22 @@
   gap: 6px;
   padding: 5px 12px;
   border-radius: var(--sf-radius-full);
-  background: color-mix(in srgb, var(--sf-bg-surface-elevated) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--sf-glass-fallback-bg);
+  border: var(--sf-glass-border);
   color: var(--sf-text-primary);
   font-size: 11px;
   font-weight: var(--sf-weight-semibold);
   letter-spacing: 0.04em;
   z-index: 2;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .storyBadge {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .outfitTileMeta {
@@ -1083,15 +1095,15 @@
   width: 44px;
   height: 44px;
   border-radius: var(--sf-radius-full);
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--sf-glass-bg-dark-pill, rgba(20, 20, 25, 0.72));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 20;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
   touch-action: manipulation;
@@ -1132,9 +1144,10 @@
   width: 48px;
   height: 48px;
   border-radius: var(--sf-radius-full);
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--sf-glass-bg-dark-pill, rgba(20, 20, 25, 0.72));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
   display: flex;
   align-items: center;

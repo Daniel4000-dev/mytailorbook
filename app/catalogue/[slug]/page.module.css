@@ -20,18 +20,33 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.08));
+  background: var(--sf-glass-fallback-bg);
+  border-bottom: var(--sf-glass-border-subtle);
   padding: 16px 20px;
   transition: background 0.2s ease;
 }
 
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .header {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
+}
+
 :root[data-theme="dark"] .header,
 :root:not([data-theme="light"]) .header {
-  background: rgba(10, 9, 16, 0.82);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--sf-glass-fallback-bg);
+  border-bottom: var(--sf-glass-border-subtle);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :root[data-theme="dark"] .header,
+  :root:not([data-theme="light"]) .header {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .headerInner {
@@ -149,17 +164,32 @@
   position: sticky;
   top: 80px;
   z-index: 35;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.06));
+  background: var(--sf-glass-fallback-bg);
+  border-bottom: var(--sf-glass-border-subtle);
   padding: 10px 0;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .pillBarWrapper {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 :root[data-theme="dark"] .pillBarWrapper,
 :root:not([data-theme="light"]) .pillBarWrapper {
-  background: rgba(10, 9, 16, 0.75);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--sf-glass-fallback-bg);
+  border-bottom: var(--sf-glass-border-subtle);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :root[data-theme="dark"] .pillBarWrapper,
+  :root:not([data-theme="light"]) .pillBarWrapper {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .pillBar {
@@ -333,14 +363,15 @@
   left: 10px;
   padding: 4px 9px;
   border-radius: var(--sf-radius-full, 9999px);
-  background: rgba(20, 20, 25, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--sf-glass-bg-dark-pill);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 /* Floating Action on Hover (Pinterest Style) */
@@ -423,9 +454,9 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(15, 14, 23, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--sf-bg-overlay, rgba(15, 14, 23, 0.82));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,17 +470,25 @@
 }
 
 .modalContent {
-  background: var(--sf-bg-surface, #FFFFFF);
+  background: var(--sf-glass-fallback-bg);
   border-radius: var(--sf-radius-xl, 24px);
   width: 100%;
   max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  border: 1px solid var(--sf-border-light);
+  box-shadow: var(--sf-glass-shadow-sheet);
+  border: var(--sf-glass-border);
   display: flex;
   flex-direction: column;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .modalContent {
+    background: var(--sf-glass-bg-sheet);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .modalCloseBtn {
@@ -460,15 +499,17 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(20, 20, 25, 0.6);
-  backdrop-filter: blur(8px);
-  border: none;
+  background: var(--sf-glass-bg-dark-pill);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .modalCloseBtn:hover {

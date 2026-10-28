@@ -399,20 +399,26 @@
   font-size: 14px;
 }
 
-/* ── Fixed action bar (glass) ───────────────────────────────── */
+/* ── Fixed action bar (Apple Liquid Glass) ──────────────────── */
 .actionBar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(18px) saturate(190%);
-  -webkit-backdrop-filter: blur(18px) saturate(190%);
-  border-top: 0.5px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+  background: var(--sf-glass-fallback-bg);
+  border-top: var(--sf-glass-border);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
   z-index: var(--sf-z-sticky);
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
+  will-change: transform;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .actionBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 .actionBarInner {
@@ -735,13 +741,19 @@
 }
 
 :global([data-theme='dark']) .actionBar {
-  background: rgba(18, 17, 34, 0.45);
-  backdrop-filter: blur(18px) saturate(190%);
-  -webkit-backdrop-filter: blur(18px) saturate(190%);
-  border-top-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  background: var(--sf-glass-fallback-bg);
+  border-top: var(--sf-glass-border);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
   transform: translateZ(0);
-  will-change: transform, backdrop-filter;
+  will-change: transform;
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  :global([data-theme='dark']) .actionBar {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
 }
 
 :global([data-theme='dark']) .screenRailItem {
@@ -831,13 +843,19 @@
   }
 
   :global(:root:not([data-theme="light"])) .actionBar {
-    background: rgba(18, 17, 34, 0.45);
-    backdrop-filter: blur(18px) saturate(190%);
-    -webkit-backdrop-filter: blur(18px) saturate(190%);
-    border-top-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+    background: var(--sf-glass-fallback-bg);
+    border-top: var(--sf-glass-border);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
     transform: translateZ(0);
-    will-change: transform, backdrop-filter;
+    will-change: transform;
+  }
+
+  @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    :global(:root:not([data-theme="light"])) .actionBar {
+      background: var(--sf-glass-bg);
+      backdrop-filter: var(--sf-glass-backdrop);
+      -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    }
   }
 
   :global(:root:not([data-theme="light"])) .screenRailItem {
