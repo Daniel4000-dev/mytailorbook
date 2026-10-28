@@ -159,6 +159,35 @@
   padding: 12px 14px 14px;
 }
 
+.infoHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quickSlipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  padding: 3px 7px;
+  border-radius: var(--sf-radius-sm, 6px);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.quickSlipBtn:hover {
+  background: var(--sf-bg-sunken);
+  border-color: var(--sf-border-subtle);
+  color: var(--sf-color-brand-brown);
+}
+
 .customerName {
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);

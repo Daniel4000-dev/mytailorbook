@@ -13,6 +13,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { compressImage } from '@/lib/compressImage';
 import { createClient } from '@/lib/supabase/client';
 import { getWhatsAppLink } from '@/lib/formatters';
+import { MEASUREMENT_LABELS } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './FabricDetailSheet.module.css';
 
@@ -75,6 +76,22 @@ export default function FabricDetailSheet({
       ) || null
     );
   }, [customers, order]);
+
+  const orderMeasurementEntries = useMemo(() => {
+    if (!order?.measurements) return [];
+    return Object.entries(order.measurements).filter(
+      ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+    );
+  }, [order?.measurements]);
+
+  const usingOrderMeasurements = orderMeasurementEntries.length > 0;
+  const measurementEntries = useMemo(() => {
+    if (usingOrderMeasurements) return orderMeasurementEntries;
+    if (!customer?.measurements) return [];
+    return Object.entries(customer.measurements).filter(
+      ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+    );
+  }, [usingOrderMeasurements, orderMeasurementEntries, customer?.measurements]);
 
   if (!order) return null;
 
@@ -410,6 +427,36 @@ export default function FabricDetailSheet({
           )}
         </div>
 
+        {/* ── Cutting Table Key Measurements Grid ── */}
+        <div className={styles.measurementsSection}>
+          <div className={styles.measurementsHeader}>
+            <div className={styles.measurementsTitleWrap}>
+              <Symbol name="straighten" size={15} />
+              <span className={styles.measurementsTitle}>Cutting Measurements</span>
+            </div>
+            {usingOrderMeasurements ? (
+              <span className={styles.customizedBadge}>Custom to this garment</span>
+            ) : measurementEntries.length > 0 ? (
+              <span className={styles.standardBadge}>Client Profile</span>
+            ) : null}
+          </div>
+
+          {measurementEntries.length > 0 ? (
+            <div className={styles.measurementsGrid}>
+              {measurementEntries.map(([key, val]) => (
+                <div key={key} className={styles.measurementCell}>
+                  <span className={styles.measurementLabel}>{MEASUREMENT_LABELS[key] || key}</span>
+                  <span className={styles.measurementVal}>{String(val)}&quot;</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.noMeasurementsNotice}>
+              No body measurements recorded yet on customer profile.
+            </p>
+          )}
+        </div>
+
         {/* Workshop CTAs & Stage Transitions */}
         <div className={styles.actionsGroup}>
           {order.status === 'Documented' && (
@@ -426,6 +473,29 @@ export default function FabricDetailSheet({
 
           {order.status === 'Cutting' && (
             <>
+              {staffMembers && staffMembers.length > 0 && (
+                <div className={styles.quickMachinistHandoff}>
+                  <span className={styles.handoffLabel}>Assign Machinist &amp; Pass to Sewing:</span>
+                  <div className={styles.machinistChipsRow}>
+                    {staffMembers.map((staff) => (
+                      <button
+                        key={staff.uid}
+                        type="button"
+                        className={`${styles.machinistChip} ${order.assignedToName === staff.name ? styles.machinistChipActive : ''}`}
+                        onClick={async () => {
+                          await handleAssign(staff.name);
+                          await handleTransition('Sewing', `Cloth cut! Handed to ${staff.name} at sewing bench.`);
+                        }}
+                        disabled={isAdvancing}
+                      >
+                        <Symbol name="person" size={12} />
+                        <span>{staff.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
                 className={styles.passToSewingBtn}

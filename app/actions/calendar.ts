@@ -245,6 +245,32 @@ export async function recordFittingVerdict(
         })
         .eq('id', eventData.related_order_id);
     }
+  } else if (outcome === 'approved' && eventData.related_order_id) {
+    const { data: orderData } = await supabase
+      .from('orders')
+      .select('status, status_history')
+      .eq('id', eventData.related_order_id)
+      .single();
+
+    if (orderData && orderData.status !== 'Delivered') {
+      const newHistory = [
+        ...(orderData.status_history || []),
+        {
+          from: orderData.status,
+          to: 'Ready',
+          timestamp: new Date().toISOString(),
+          note: 'Fitting session approved: Perfect fit confirmed with client',
+        },
+      ];
+      await supabase
+        .from('orders')
+        .update({
+          status: 'Ready',
+          status_history: newHistory,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', eventData.related_order_id);
+    }
   }
 
   revalidatePath('/calendar');

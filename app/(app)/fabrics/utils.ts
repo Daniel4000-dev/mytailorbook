@@ -49,5 +49,27 @@ export function filterFabricOrders(orders: Order[], options: FilterOptions): Ord
     }
 
     return true;
+  }).sort((a, b) => {
+    // 1. Rush/Urgent priority first on the cutting table
+    const getPriorityWeight = (p?: string) => {
+      if (p === 'rush') return 2;
+      if (p === 'urgent') return 1;
+      return 0;
+    };
+    const weightA = getPriorityWeight(a.priority);
+    const weightB = getPriorityWeight(b.priority);
+    if (weightA !== weightB) {
+      return weightB - weightA;
+    }
+
+    // 2. Earliest workshop due date first
+    if (a.dueDate && b.dueDate) {
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    }
+    if (a.dueDate) return -1;
+    if (b.dueDate) return 1;
+
+    // 3. Fallback to newest created first
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }

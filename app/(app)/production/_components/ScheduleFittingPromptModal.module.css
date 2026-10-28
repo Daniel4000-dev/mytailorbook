@@ -92,6 +92,38 @@
   margin: 0;
 }
 
+.datePresetsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.dateChip {
+  background: var(--sf-bg-surface-variant);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dateChip:hover {
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-border-default);
+  color: var(--sf-text-primary);
+}
+
+.dateChipActive {
+  background: var(--sf-color-brand-brown, #5C3D2E);
+  color: #FFFFFF !important;
+  border-color: var(--sf-color-brand-brown, #5C3D2E);
+}
+
 .timePresetsRow {
   display: flex;
   align-items: center;

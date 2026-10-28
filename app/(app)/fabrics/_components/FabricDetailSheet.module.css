@@ -714,3 +714,148 @@
   background: rgba(255, 255, 255, 0.06);
   color: #FFFFFF;
 }
+
+/* ── Cutting Measurements Section ── */
+.measurementsSection {
+  margin: 16px 0 6px;
+  padding: 12px 14px;
+  border-radius: var(--sf-radius-md, 10px);
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
+}
+
+.measurementsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.measurementsTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sf-text-primary);
+}
+
+.measurementsTitle {
+  font-size: 13px;
+  font-weight: var(--sf-weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.customizedBadge {
+  font-size: 10px;
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(79, 70, 229, 0.1);
+  color: #4F46E5;
+}
+
+.standardBadge {
+  font-size: 10px;
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748B;
+}
+
+.measurementsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 8px;
+}
+
+.measurementCell {
+  padding: 6px 8px;
+  border-radius: var(--sf-radius-sm, 6px);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.measurementLabel {
+  font-size: 10px;
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+  text-transform: capitalize;
+}
+
+.measurementVal {
+  font-size: 14px;
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.noMeasurementsNotice {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+/* ── Quick Machinist Handoff in Cutting stage ── */
+.quickMachinistHandoff {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.handoffLabel {
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.machinistChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.machinistChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: var(--sf-weight-medium);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.machinistChip:hover {
+  background: var(--sf-bg-sunken);
+  border-color: var(--sf-color-brand-brown);
+}
+
+.machinistChipActive {
+  background: var(--sf-color-brand-brown, #5C3D2E);
+  color: #FFFFFF;
+  border-color: var(--sf-color-brand-brown, #5C3D2E);
+}
+
+:global([data-theme='dark']) .measurementsSection {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .measurementCell {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}

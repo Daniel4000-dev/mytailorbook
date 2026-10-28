@@ -326,6 +326,7 @@ export default function FabricsPage() {
                   key={order.id}
                   order={order}
                   onClick={() => setSelectedOrder(order)}
+                  onOpenSlip={(o) => setCuttingSlipOrder(o)}
                 />
               ))}
             </div>

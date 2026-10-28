@@ -439,6 +439,46 @@
   .pinOverlay { opacity: 1; }
 }
 
+.pinYardageBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(15, 14, 23, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: var(--sf-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.pinQuoteBtn {
+  background: rgba(15, 14, 23, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pinQuoteBtn:hover {
+  background: var(--sf-color-brand-brown, #5C3D2E);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 .pinOrderBtn {
   background: var(--sf-accent-emerald);
   color: #FFFFFF;

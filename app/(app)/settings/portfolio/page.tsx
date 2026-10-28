@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,8 +34,10 @@ import styles from './page.module.css';
 
 const MIN_FOUNDED_YEAR = 1950;
 
-export default function PortfolioCurationSettingsPage() {
+function PortfolioCurationSettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldOpenNew = searchParams.get('new') === '1';
   const { currentShop, updateShop } = useData();
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -46,7 +48,7 @@ export default function PortfolioCurationSettingsPage() {
   const [outfits, setOutfits] = useState<PortfolioOutfit[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [builderOpen, setBuilderOpen] = useState(false);
+  const [builderOpen, setBuilderOpen] = useState(shouldOpenNew);
   const [editingOutfit, setEditingOutfit] = useState<PortfolioOutfit | undefined>(undefined);
 
   const [tagline, setTagline] = useState('');
@@ -335,5 +337,13 @@ export default function PortfolioCurationSettingsPage() {
         />
       )}
     </PageLayout>
+  );
+}
+
+export default function PortfolioCurationSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <PortfolioCurationSettingsContent />
+    </Suspense>
   );
 }

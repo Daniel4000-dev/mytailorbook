@@ -38,6 +38,22 @@ export default function ScheduleFittingPromptModal({
   tomorrow.setDate(tomorrow.getDate() + 1);
   const defaultDateStr = tomorrow.toISOString().split('T')[0];
 
+  const in2Days = new Date();
+  in2Days.setDate(in2Days.getDate() + 2);
+  const in2DaysStr = in2Days.toISOString().split('T')[0];
+
+  const saturday = new Date();
+  const dayOfWeek = saturday.getDay();
+  const daysUntilSat = (6 - dayOfWeek + 7) % 7 || 7;
+  saturday.setDate(saturday.getDate() + daysUntilSat);
+  const saturdayStr = saturday.toISOString().split('T')[0];
+
+  const DATE_PRESETS = [
+    { label: 'Tomorrow', value: defaultDateStr },
+    { label: 'In 2 Days', value: in2DaysStr },
+    { label: 'This Saturday', value: saturdayStr },
+  ];
+
   const [date, setDate] = useState(defaultDateStr);
   const [selectedTime, setSelectedTime] = useState('14:00');
   const [sendWhatsApp, setSendWhatsApp] = useState(!!customer?.whatsappNumber);
@@ -89,6 +105,18 @@ export default function ScheduleFittingPromptModal({
           <label className={styles.fieldLabel} htmlFor="fittingDate">
             Fitting Date
           </label>
+          <div className={styles.datePresetsRow}>
+            {DATE_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                className={`${styles.dateChip} ${date === preset.value ? styles.dateChipActive : ''}`}
+                onClick={() => setDate(preset.value)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
           <input
             id="fittingDate"
             type="date"

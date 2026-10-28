@@ -26,9 +26,10 @@ function formatDueDate(dateStr: string): string {
 interface FabricCardProps {
   order: Order;
   onClick: () => void;
+  onOpenSlip?: (order: Order) => void;
 }
 
-export default function FabricCard({ order, onClick }: FabricCardProps) {
+export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardProps) {
   // First image from order (intake / earliest stage photo)
   const photo = order.images?.[0]?.url ?? null;
   const overdue = isOverdue(order);
@@ -100,7 +101,24 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
 
       {/* Info footer */}
       <div className={styles.info}>
-        <span className={styles.customerName}>{order.customerName || 'Walk-in Client'}</span>
+        <div className={styles.infoHeaderRow}>
+          <span className={styles.customerName}>{order.customerName || 'Walk-in Client'}</span>
+          {onOpenSlip && (
+            <button
+              type="button"
+              className={styles.quickSlipBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenSlip(order);
+              }}
+              title="Open workshop cutting slip"
+              aria-label="Open workshop cutting slip"
+            >
+              <Symbol name="straighten" size={12} />
+              <span>Slip</span>
+            </button>
+          )}
+        </div>
 
         <div className={styles.meta}>
           <span className={`${styles.statusPill} ${styles[`status_${order.status}`]}`}>

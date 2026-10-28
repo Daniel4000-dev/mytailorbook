@@ -2571,6 +2571,37 @@
   transform: scale(0.96);
 }
 
+.featurePortfolioBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.featurePortfolioBtn:hover {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10B981;
+}
+
+.featurePortfolioBtn:active {
+  transform: scale(0.96);
+}
+
+:global([data-theme='dark']) .featurePortfolioBtn {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
 .notesActionRow {
   display: flex;
   justify-content: flex-end;

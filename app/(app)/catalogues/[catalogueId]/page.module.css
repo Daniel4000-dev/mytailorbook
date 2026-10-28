@@ -264,6 +264,30 @@
   }
 }
 
+.quickQuoteBtn {
+  background: rgba(15, 14, 23, 0.85);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 7px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.quickQuoteBtn:hover {
+  background: var(--sf-color-brand-brown, #5C3D2E);
+  filter: brightness(1.1);
+  transform: scale(1.04);
+}
+
 .quickOrderBtn {
   background: var(--sf-accent-emerald);
   color: #FFFFFF;
@@ -397,6 +421,36 @@
 
 .inspectPrimaryOrderBtn:active {
   transform: scale(0.98);
+}
+
+.inspectQuoteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  color: var(--sf-text-primary);
+  border: 1.5px solid var(--sf-border-light);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.inspectQuoteBtn:hover {
+  background: var(--sf-bg-sunken);
+  border-color: var(--sf-color-brand-brown, #5C3D2E);
+  color: var(--sf-color-brand-brown, #5C3D2E);
+}
+
+:global([data-theme='dark']) .inspectQuoteBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
 }
 
 .inspectSecondaryRow {

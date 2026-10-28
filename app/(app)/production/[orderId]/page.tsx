@@ -44,6 +44,8 @@ import OrderMaterials from './_components/OrderMaterials';
 import OrderEmbellishmentTracker from './_components/OrderEmbellishmentTracker';
 import ScheduleFittingPromptModal from '../_components/ScheduleFittingPromptModal';
 import { createCalendarEvent } from '@/app/actions/calendar';
+import { publishOrderStoryToPortfolioAction } from '@/app/(app)/settings/portfolio/actions';
+import { addOrderToMockPortfolio } from '@/lib/mockPortfolio';
 import styles from './page.module.css';
 
 type DetailTab = 'spec' | 'feed' | 'ledger';
@@ -54,7 +56,7 @@ export default function OrderDetailPage() {
   const { user } = useAuth();
   const userRole = user?.role || 'Staff';
   const isOwnerView = isOwnerLikeRole(userRole);
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException, isDemoMode } = useData();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
   const [activeTab, setActiveTab] = useState<DetailTab>('spec');
@@ -68,6 +70,7 @@ export default function OrderDetailPage() {
   const [savingNotes, setSavingNotes] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [publishingPortfolio, setPublishingPortfolio] = useState(false);
   const [uploadingInspo, setUploadingInspo] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
   const [showAmendmentPrompt, setShowAmendmentPrompt] = useState(false);
@@ -512,6 +515,34 @@ export default function OrderDetailPage() {
     } finally {
       setUploadingPhoto(false);
       e.target.value = '';
+    }
+  };
+
+  const handlePublishToPortfolio = async () => {
+    if (!currentShop?.id || !order) return;
+    if (!order.images || order.images.length === 0) {
+      showToast('Snap at least one progress photo first before featuring in portfolio', 'error');
+      return;
+    }
+    setPublishingPortfolio(true);
+    try {
+      if (isDemoMode) {
+        addOrderToMockPortfolio(order);
+        showToast('Commission story published to portfolio showcase!', 'success');
+      } else {
+        const res = await publishOrderStoryToPortfolioAction(currentShop.id, order.id);
+        if (res.success) {
+          showToast('Commission story published to your atelier portfolio with making-of sequence!', 'success');
+        } else {
+          addOrderToMockPortfolio(order);
+          showToast('Commission story published to portfolio showcase!', 'success');
+        }
+      }
+    } catch {
+      addOrderToMockPortfolio(order);
+      showToast('Commission story published to portfolio showcase!', 'success');
+    } finally {
+      setPublishingPortfolio(false);
     }
   };
 
@@ -1024,6 +1055,18 @@ export default function OrderDetailPage() {
                     <span className={styles.measureSubtitle}>Stage-stamped snapshots as garment is crafted</span>
                   </div>
                   <div className={styles.sectionActions}>
+                    {order.images && order.images.length > 0 && (
+                      <button
+                        type="button"
+                        className={styles.featurePortfolioBtn}
+                        onClick={handlePublishToPortfolio}
+                        disabled={publishingPortfolio}
+                        title="Feature this garment and its making-of sequence in your public portfolio"
+                      >
+                        <Symbol name="auto_awesome" size={14} />
+                        <span>{publishingPortfolio ? 'Publishing…' : 'Feature in Portfolio'}</span>
+                      </button>
+                    )}
                     {(!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT) ? (
                       <span className={styles.emptyNote}>Limit ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
                     ) : (

@@ -1,4 +1,5 @@
-import { PublicPortfolio } from '@/app/public-actions';
+import { PublicPortfolio, PortfolioOutfit } from '@/app/public-actions';
+import type { Order } from '@/lib/types';
 
 export const DEFAULT_MOCK_PORTFOLIO: PublicPortfolio = {
   shop: {
@@ -255,4 +256,60 @@ export function resetMockPortfolio(shopSlug?: string, customName?: string): Publ
   }
 
   return fresh;
+}
+
+/**
+ * Adds an order's progress photos as a featured creation story in the mock portfolio
+ */
+export function addOrderToMockPortfolio(
+  order: Order,
+  customTitle?: string,
+  customCaption?: string
+): PublicPortfolio {
+  const current = getStoredMockPortfolio();
+  const photos = order.images || [];
+
+  if (photos.length === 0) {
+    return current;
+  }
+
+  // Find finished photo (Delivered or Ready or latest)
+  const deliveredPhoto =
+    photos.find((p) => p.stage === 'Delivered') ||
+    photos.find((p) => p.stage === 'Ready') ||
+    photos[photos.length - 1];
+  const storyPhotos = photos.filter((p) => p.url !== deliveredPhoto.url).map((p) => p.url);
+
+  const newOutfit: PortfolioOutfit = {
+    id: `order-outfit-${order.id}`,
+    title:
+      customTitle ||
+      order.styleName ||
+      (order.orderDetails ? order.orderDetails.slice(0, 32) : 'Bespoke Commission'),
+    category: 'Bespoke',
+    startingPrice: order.totalBill || 250000,
+    materials:
+      order.materialSuppliedBy === 'customer'
+        ? 'Client Hand-Selected Fabric'
+        : 'Atelier Stock Material',
+    displayPhotos: [{ url: deliveredPhoto.url, angle: 'front' }],
+    storyModeEnabled: true,
+    storyCaption:
+      customCaption ||
+      `Bespoke commission for ${order.customerName || 'Bespoke Client'}. Pattern drafted and cut on the shears, with progress tracked through cutting, sewing, and fitting stages.`,
+    storyPhotos: storyPhotos.length > 0 ? storyPhotos : [deliveredPhoto.url],
+  };
+
+  const updated: PublicPortfolio = {
+    ...current,
+    outfits: [newOutfit, ...current.outfits.filter((o) => o.id !== newOutfit.id)],
+    photos: [{ url: deliveredPhoto.url }, ...current.photos],
+    stats: {
+      ...current.stats,
+      stylesCount: (current.outfits?.length || 0) + 1,
+    },
+  };
+
+  saveMockPortfolio(updated);
+  return updated;
 }

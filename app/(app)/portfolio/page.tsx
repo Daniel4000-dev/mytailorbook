@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import PortfolioView from '@/components/studio/PortfolioView/PortfolioView';
 import { getPublicShopPortfolio } from '@/app/public-actions';
@@ -84,6 +85,14 @@ export default function OwnPortfolioPage() {
     }
   };
 
+  const handleShareWhatsApp = () => {
+    const slug = currentShop?.slug || 'savile-row';
+    const shopName = currentShop?.name || 'our atelier';
+    const url = `${window.location.origin}/studio/${slug}`;
+    const text = `Greetings from ${shopName}! Explore our signature bespoke collections, handcrafted commissions, and creation stories:\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   if (authLoading) {
     return (
       <div className={styles.status}>
@@ -151,6 +160,16 @@ export default function OwnPortfolioPage() {
             <button
               type="button"
               className={styles.barActionBtn}
+              onClick={() => router.push('/settings/portfolio?new=1')}
+              title="Add and publish new outfit"
+            >
+              <Symbol name="add" size={13} />
+              <span>+ Outfit</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.barActionBtn}
               onClick={() => router.push('/settings/portfolio')}
               title="Curate outfits in settings"
             >
@@ -160,12 +179,22 @@ export default function OwnPortfolioPage() {
 
             <button
               type="button"
+              className={styles.barActionBtn}
+              onClick={handleShareWhatsApp}
+              title="Share showcase on WhatsApp"
+            >
+              <WhatsappIcon size={14} />
+              <span>WhatsApp</span>
+            </button>
+
+            <button
+              type="button"
               className={`${styles.barActionBtn} ${styles.barActionPrimary}`}
               onClick={handleShare}
               title="Share public storefront link"
             >
               <Symbol name="share" size={13} />
-              <span>Share Link</span>
+              <span>Copy Link</span>
             </button>
           </div>
         </div>

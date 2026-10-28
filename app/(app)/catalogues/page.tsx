@@ -35,6 +35,18 @@ interface EnrichedPhoto extends StyleCataloguePhoto {
   albumTitle: string;
 }
 
+function getEstimatedYardage(title?: string): string {
+  if (!title) return '4.0 yds';
+  const lower = title.toLowerCase();
+  if (lower.includes('agbada') || lower.includes('babban riga') || lower.includes('grand')) return '7.0 yds';
+  if (lower.includes('suit') || lower.includes('tuxedo') || lower.includes('blazer')) return '3.5 yds';
+  if (lower.includes('kaftan') || lower.includes('senator')) return '4.0 yds';
+  if (lower.includes('trouser') || lower.includes('pant')) return '2.5 yds';
+  if (lower.includes('shirt') || lower.includes('top')) return '2.0 yds';
+  if (lower.includes('gown') || lower.includes('dress') || lower.includes('bridal')) return '5.0 yds';
+  return '4.0 yds';
+}
+
 export default function CataloguesPage() {
   const { currentShop } = useData();
   const router = useRouter();
@@ -433,8 +445,29 @@ export default function CataloguesPage() {
                   className={styles.pinImg}
                 />
                 <span className={styles.pinAlbumBadge}>{photo.albumTitle}</span>
+                <span className={styles.pinYardageBadge}>
+                  <Symbol name="straighten" size={11} />
+                  <span>{getEstimatedYardage(photo.albumTitle)}</span>
+                </span>
 
                 <div className={styles.pinOverlay}>
+                  <button
+                    type="button"
+                    className={styles.pinQuoteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(
+                        `/quotes?style=${encodeURIComponent(photo.albumTitle)}&styleRef=${encodeURIComponent(
+                          photo.imageUrl
+                        )}`
+                      );
+                    }}
+                    title="Calculate bespoke quote for this style"
+                  >
+                    <Symbol name="calculate" size={13} />
+                    <span>Quote</span>
+                  </button>
+
                   <button
                     type="button"
                     className={styles.pinOrderBtn}

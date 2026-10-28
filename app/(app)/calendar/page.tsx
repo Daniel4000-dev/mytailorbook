@@ -27,7 +27,7 @@ type CraftFilter = 'all' | 'fitting' | 'dispatch' | 'tasks';
 
 function CalendarContent() {
   const { user } = useAuth();
-  const { orders, customers, currentShop, isLoaded, isDemoMode } = useData();
+  const { orders, customers, currentShop, isLoaded, isDemoMode, updateOrder } = useData();
   const { showToast } = useToast();
   const searchParams = useSearchParams();
 
@@ -224,7 +224,10 @@ function CalendarContent() {
       setEvents((prev) =>
         prev.map((p) => (p.id === verdictEvent.id ? { ...p, status: 'completed' } : p))
       );
-      showToast('Fitting confirmed and marked Approved!', 'success');
+      if (verdictEvent.relatedOrderId) {
+        await updateOrder(verdictEvent.relatedOrderId, { status: 'Ready' });
+      }
+      showToast('Fitting confirmed and marked Approved! Garment marked Ready for pickup.', 'success');
     } else {
       showToast('Failed to record verdict', 'error');
     }
@@ -246,6 +249,9 @@ function CalendarContent() {
             : p
         )
       );
+      if (verdictEvent.relatedOrderId) {
+        await updateOrder(verdictEvent.relatedOrderId, { status: 'Sewing' });
+      }
       showToast('Alterations recorded and order returned to Sewing bench', 'success');
     } else {
       showToast('Failed to record alterations', 'error');

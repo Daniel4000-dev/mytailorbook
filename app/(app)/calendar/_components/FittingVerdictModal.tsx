@@ -18,6 +18,20 @@ interface FittingVerdictModalProps {
   onVerdictAlterations: (notes: string) => Promise<void>;
 }
 
+const ALTERATION_CHIPS = [
+  'Take in Waist',
+  'Let out Waist',
+  'Shorten Length',
+  'Lengthen Hem',
+  'Taper Sleeves',
+  'Ease Chest',
+  'Adjust Neck/Collar',
+  'Seat/Crotch',
+  'Shoulder Slope',
+];
+
+const MAGNITUDE_CHIPS = ['-0.5"', '-1.0"', '-1.5"', '+0.5"', '+1.0"', '+1.5"'];
+
 export default function FittingVerdictModal({
   isOpen,
   onClose,
@@ -34,6 +48,22 @@ export default function FittingVerdictModal({
   if (!event) return null;
 
   const clientName = customer?.fullName || 'Bespoke Client';
+
+  const handleAddChip = (chip: string) => {
+    setAlterationNotes((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return chip;
+      return `${trimmed}, ${chip}`;
+    });
+  };
+
+  const handleAddMagnitude = (mag: string) => {
+    setAlterationNotes((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return mag;
+      return `${trimmed} (${mag})`;
+    });
+  };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -99,13 +129,55 @@ export default function FittingVerdictModal({
         {/* Alterations Note Input if Alteration Selected */}
         {selectedOutcome === 'alterations' && (
           <div className={styles.notesSection}>
-            <label className={styles.notesLabel} htmlFor="alterationNotesInput">
-              Pin &amp; Chalk Alteration Notes
-            </label>
+            <div className={styles.notesLabelRow}>
+              <label className={styles.notesLabel} htmlFor="alterationNotesInput">
+                Pin &amp; Chalk Alteration Notes
+              </label>
+              {alterationNotes && (
+                <button
+                  type="button"
+                  className={styles.clearNotesBtn}
+                  onClick={() => setAlterationNotes('')}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {/* Quick Alteration Touch Chips */}
+            <div className={styles.quickChipsWrapper}>
+              <span className={styles.quickChipsHint}>Tap adjustments:</span>
+              <div className={styles.chipsRow}>
+                {ALTERATION_CHIPS.map((chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    className={styles.touchChip}
+                    onClick={() => handleAddChip(chip)}
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.magnitudeRow}>
+                <span className={styles.magLabel}>Measurement:</span>
+                {MAGNITUDE_CHIPS.map((mag) => (
+                  <button
+                    key={mag}
+                    type="button"
+                    className={styles.magChip}
+                    onClick={() => handleAddMagnitude(mag)}
+                  >
+                    {mag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <textarea
               id="alterationNotesInput"
               className={styles.notesTextarea}
-              placeholder="e.g. Shorten trousers by 1 inch, taper sleeves at wrist, ease waist..."
+              placeholder="Tap quick chips above or type custom instructions with chalk on hands..."
               value={alterationNotes}
               onChange={(e) => setAlterationNotes(e.target.value)}
               autoFocus

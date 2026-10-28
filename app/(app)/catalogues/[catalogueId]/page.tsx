@@ -30,6 +30,18 @@ import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 
+function getEstimatedYardage(title?: string): string {
+  if (!title) return '4.0 yds';
+  const lower = title.toLowerCase();
+  if (lower.includes('agbada') || lower.includes('babban riga') || lower.includes('grand')) return '7.0 yds';
+  if (lower.includes('suit') || lower.includes('tuxedo') || lower.includes('blazer')) return '3.5 yds';
+  if (lower.includes('kaftan') || lower.includes('senator')) return '4.0 yds';
+  if (lower.includes('trouser') || lower.includes('pant')) return '2.5 yds';
+  if (lower.includes('shirt') || lower.includes('top')) return '2.0 yds';
+  if (lower.includes('gown') || lower.includes('dress') || lower.includes('bridal')) return '5.0 yds';
+  return '4.0 yds';
+}
+
 export default function CatalogueDetailPage() {
   const { catalogueId } = useParams() as { catalogueId: string };
   const { currentShop, customers } = useData();
@@ -442,6 +454,20 @@ export default function CatalogueDetailPage() {
                 <div className={styles.photoOverlay}>
                   <button
                     type="button"
+                    className={styles.quickQuoteBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(
+                        `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(photo.imageUrl)}`
+                      );
+                    }}
+                    title="Calculate bespoke quote for this style"
+                  >
+                    <Symbol name="calculate" size={14} />
+                    <span>Quote</span>
+                  </button>
+                  <button
+                    type="button"
                     className={styles.quickOrderBtn}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -508,12 +534,27 @@ export default function CatalogueDetailPage() {
                 <span>Start Bespoke Order With This Style</span>
               </button>
 
+              <button
+                type="button"
+                className={styles.inspectQuoteBtn}
+                onClick={() => {
+                  router.push(
+                    `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(inspectedPhoto.imageUrl)}`
+                  );
+                }}
+              >
+                <Symbol name="calculate" size={17} />
+                <span>Calculate Quick Quote for This Look</span>
+              </button>
+
               <div className={styles.inspectSecondaryRow}>
                 <button
                   type="button"
                   className={styles.inspectShareBtn}
                   onClick={() => {
-                    const text = `Look at this ${catalogue.title} design from our studio: ${inspectedPhoto.imageUrl}`;
+                    const yardage = getEstimatedYardage(catalogue.title);
+                    const shopName = currentShop?.name || 'our atelier';
+                    const text = `Greetings from ${shopName}! Look at this ${catalogue.title} bespoke style from our catalogue: ${inspectedPhoto.imageUrl}\n\nRecommended fabric needed: ${yardage}. Contact us to tailor yours to your exact measurements!`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                 >
