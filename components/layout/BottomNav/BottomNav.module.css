@@ -164,11 +164,7 @@
   color: inherit;
 }
 
-/* Profile circular avatar item — strictly no white border */
-.profileItem.active {
-  background-color: transparent !important;
-}
-
+/* Profile circular avatar item — unified with standard active pill highlight */
 .avatarWrapper {
   display: flex;
   align-items: center;
@@ -179,15 +175,6 @@
   outline: none !important;
   box-shadow: none !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.activeAvatar {
-  outline: 2px solid var(--sf-brand-indigo) !important;
-  outline-offset: 2px;
-}
-
-:global([data-theme='dark']) .activeAvatar {
-  outline-color: var(--sf-brand-indigo) !important;
 }
 
 .navAvatar {
