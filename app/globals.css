@@ -321,9 +321,9 @@ body.no-scroll {
   display: block;
 }
 
-/* ── Apple Liquid Glass Shared Surfaces ────────────────────── */
+/* ── Apple & Instagram Liquid Glass Shared Surfaces ─────────── */
 .glass-surface {
-  background: var(--sf-glass-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border);
@@ -349,11 +349,11 @@ body.no-scroll {
 
 .glass-card {
   border-radius: var(--sf-radius-xl, 22px);
-  background: var(--sf-glass-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border);
-  box-shadow: var(--sf-shadow-lg);
+  box-shadow: var(--sf-glass-shadow-card, var(--sf-shadow-lg));
 }
 
 

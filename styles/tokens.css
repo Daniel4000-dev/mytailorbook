@@ -224,29 +224,39 @@
    --sf-fab-size: 56px;
    --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
-   /* ── Apple Liquid Glass Tokens (Crystalline Translucent Optics) ── */
-   /* Spec-calibrated to match iOS liquid glass / Bible app reference:
-     - Sheer crystalline transmission: ~25-28% fill so text/cards underneath shine through with vivid legibility
-     - Liquid convex sheen gradient (brighter top catchlight, crystalline center)
-     - 20px blur + 190% saturation + 106% contrast + 102% brightness (Apple optical magnification/blooming physics)
-     - Meniscus specular highlight rim (top bevel + inner edge reflection + bottom shadow)
-     - Soft diffuse floating drop shadow
-     - Active tab inner pill: subtle translucent dark pill (rgba(0, 0, 0, 0.07)) */
-   --sf-glass-blur: 20px;
-   --sf-glass-saturate: 190%;
-   --sf-glass-contrast: 106%;
-   --sf-glass-brightness: 102%;
+   /* ── Apple & Instagram Liquid Glass Tokens ────────────────── */
+   /* Spec-calibrated to match iOS Instagram & Apple floating liquid glass:
+      - Optical body & substance (~48% to 22% vertical sheen) so center feels tangible, not a clear hole
+      - 24px blur + 185% saturation + 104% contrast for vivid optical refraction
+      - Fresnel internal reflection caustics: top catchlight + bottom refraction rim
+      - Outer perimeter stroke: 0.5px subtle glass edge
+      - Floating drop shadow with diffuse elevation */
+   --sf-glass-blur: 24px;
+   --sf-glass-saturate: 185%;
+   --sf-glass-contrast: 104%;
+   --sf-glass-brightness: 101%;
    --sf-glass-backdrop: blur(var(--sf-glass-blur)) saturate(var(--sf-glass-saturate)) contrast(var(--sf-glass-contrast)) brightness(var(--sf-glass-brightness));
 
-   --sf-glass-bg: rgba(255, 255, 255, 0.28);
-   --sf-glass-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.18) 100%);
-   --sf-glass-bg-sheet: rgba(255, 255, 255, 0.72);
+   --sf-glass-bg: rgba(255, 255, 255, 0.32);
+   --sf-glass-gradient: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.48) 0%,
+      rgba(255, 255, 255, 0.26) 45%,
+      rgba(255, 255, 255, 0.22) 85%,
+      rgba(255, 255, 255, 0.35) 100%
+   );
+   --sf-glass-bg-sheet: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.70) 0%,
+      rgba(255, 255, 255, 0.55) 100%
+   );
    --sf-glass-bg-dark-pill: rgba(20, 20, 25, 0.72);
-   --sf-glass-border: 1px solid rgba(255, 255, 255, 0.65);
-   --sf-glass-border-subtle: 1px solid rgba(255, 255, 255, 0.35);
-   --sf-glass-shadow-floating: 0 14px 40px -4px rgba(0, 0, 0, 0.12), 0 4px 14px -2px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.90), inset 0 0 0 1px rgba(255, 255, 255, 0.40), inset 0 -1.5px 1.5px 0 rgba(0, 0, 0, 0.04);
-   --sf-glass-shadow-sheet: 0 24px 64px -12px rgba(0, 0, 0, 0.22), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.9);
-   --sf-glass-active-pill: rgba(0, 0, 0, 0.07);
+   --sf-glass-border: 0.5px solid rgba(255, 255, 255, 0.60);
+   --sf-glass-border-subtle: 0.5px solid rgba(255, 255, 255, 0.35);
+   --sf-glass-shadow-floating: 0 12px 36px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.85), inset 0 0 0 0.5px rgba(255, 255, 255, 0.35), inset 0 -1.5px 1.5px 0 rgba(255, 255, 255, 0.40), inset 0 -2.5px 2px 0 rgba(0, 0, 0, 0.04);
+   --sf-glass-shadow-sheet: 0 24px 64px -12px rgba(0, 0, 0, 0.22), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.85), inset 0 0 0 0.5px rgba(255, 255, 255, 0.35), inset 0 -1.5px 1.5px 0 rgba(255, 255, 255, 0.30);
+   --sf-glass-shadow-card: 0 8px 24px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.80), inset 0 0 0 0.5px rgba(255, 255, 255, 0.30), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.30);
+   --sf-glass-active-pill: rgba(0, 0, 0, 0.065);
    --sf-glass-fallback-bg: rgba(255, 255, 255, 0.88);
 }
 
@@ -344,15 +354,26 @@
       --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
       --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
 
-      /* ── Apple Liquid Glass Tokens (Dark Mode) ────────── */
-      --sf-glass-bg: rgba(22, 22, 30, 0.42);
-      --sf-glass-gradient: linear-gradient(180deg, rgba(36, 35, 48, 0.55) 0%, rgba(18, 17, 26, 0.35) 100%);
-      --sf-glass-bg-sheet: rgba(26, 25, 34, 0.80);
+      /* ── Apple & Instagram Liquid Glass Tokens (Dark Mode) ── */
+      --sf-glass-bg: rgba(22, 22, 30, 0.45);
+      --sf-glass-gradient: linear-gradient(
+         180deg,
+         rgba(42, 40, 56, 0.58) 0%,
+         rgba(24, 23, 34, 0.40) 45%,
+         rgba(20, 19, 28, 0.34) 85%,
+         rgba(34, 33, 46, 0.50) 100%
+      );
+      --sf-glass-bg-sheet: linear-gradient(
+         180deg,
+         rgba(34, 33, 46, 0.75) 0%,
+         rgba(20, 19, 28, 0.60) 100%
+      );
       --sf-glass-bg-dark-pill: rgba(15, 14, 20, 0.78);
-      --sf-glass-border: 1px solid rgba(255, 255, 255, 0.16);
-      --sf-glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
-      --sf-glass-shadow-floating: 0 18px 48px -4px rgba(0, 0, 0, 0.60), 0 6px 18px -2px rgba(0, 0, 0, 0.40), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.10), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.30);
-      --sf-glass-shadow-sheet: 0 28px 72px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
+      --sf-glass-border: 0.5px solid rgba(255, 255, 255, 0.18);
+      --sf-glass-border-subtle: 0.5px solid rgba(255, 255, 255, 0.10);
+      --sf-glass-shadow-floating: 0 16px 44px -4px rgba(0, 0, 0, 0.60), 0 6px 16px -2px rgba(0, 0, 0, 0.38), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.25), inset 0 0 0 0.5px rgba(255, 255, 255, 0.12), inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 2px 0 rgba(0, 0, 0, 0.30);
+      --sf-glass-shadow-sheet: 0 28px 72px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 0.5px rgba(255, 255, 255, 0.10);
+      --sf-glass-shadow-card: 0 10px 28px -2px rgba(0, 0, 0, 0.40), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
       --sf-glass-active-pill: rgba(255, 255, 255, 0.14);
       --sf-glass-fallback-bg: rgba(22, 21, 30, 0.92);
    }
@@ -437,15 +458,26 @@
    --sf-shadow-emerald: 0 8px 24px rgba(99, 102, 241, 0.28);
    --sf-shadow-gold: 0 8px 24px rgba(99, 102, 241, 0.24);
 
-   /* ── Apple Liquid Glass Tokens (Dark Mode) ────────── */
-   --sf-glass-bg: rgba(22, 22, 30, 0.42);
-   --sf-glass-gradient: linear-gradient(180deg, rgba(36, 35, 48, 0.55) 0%, rgba(18, 17, 26, 0.35) 100%);
-   --sf-glass-bg-sheet: rgba(26, 25, 34, 0.80);
+   /* ── Apple & Instagram Liquid Glass Tokens (Dark Mode) ── */
+   --sf-glass-bg: rgba(22, 22, 30, 0.45);
+   --sf-glass-gradient: linear-gradient(
+      180deg,
+      rgba(42, 40, 56, 0.58) 0%,
+      rgba(24, 23, 34, 0.40) 45%,
+      rgba(20, 19, 28, 0.34) 85%,
+      rgba(34, 33, 46, 0.50) 100%
+   );
+   --sf-glass-bg-sheet: linear-gradient(
+      180deg,
+      rgba(34, 33, 46, 0.75) 0%,
+      rgba(20, 19, 28, 0.60) 100%
+   );
    --sf-glass-bg-dark-pill: rgba(15, 14, 20, 0.78);
-   --sf-glass-border: 1px solid rgba(255, 255, 255, 0.16);
-   --sf-glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
-   --sf-glass-shadow-floating: 0 18px 48px -4px rgba(0, 0, 0, 0.60), 0 6px 18px -2px rgba(0, 0, 0, 0.40), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.10), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.30);
-   --sf-glass-shadow-sheet: 0 28px 72px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
+   --sf-glass-border: 0.5px solid rgba(255, 255, 255, 0.18);
+   --sf-glass-border-subtle: 0.5px solid rgba(255, 255, 255, 0.10);
+   --sf-glass-shadow-floating: 0 16px 44px -4px rgba(0, 0, 0, 0.60), 0 6px 16px -2px rgba(0, 0, 0, 0.38), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.25), inset 0 0 0 0.5px rgba(255, 255, 255, 0.12), inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 2px 0 rgba(0, 0, 0, 0.30);
+   --sf-glass-shadow-sheet: 0 28px 72px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), inset 0 0 0 0.5px rgba(255, 255, 255, 0.10);
+   --sf-glass-shadow-card: 0 10px 28px -2px rgba(0, 0, 0, 0.40), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
    --sf-glass-active-pill: rgba(255, 255, 255, 0.14);
    --sf-glass-fallback-bg: rgba(22, 21, 30, 0.92);
 }

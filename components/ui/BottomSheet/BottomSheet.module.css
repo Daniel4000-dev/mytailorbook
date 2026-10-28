@@ -13,7 +13,9 @@
   left: 0;
   right: 0;
   z-index: calc(var(--sf-z-sheet) + 1);
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-bg-sheet);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-top: var(--sf-glass-border);
   box-shadow: var(--sf-glass-shadow-sheet);
   border-top-left-radius: var(--sf-radius-xl);
@@ -22,14 +24,6 @@
   display: flex;
   flex-direction: column;
   outline: none;
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .content {
-    background: var(--sf-glass-bg-sheet);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
 }
 
 .handle {
@@ -133,15 +127,9 @@
     border-radius: var(--sf-radius-xl, 22px);
     border: var(--sf-glass-border);
     box-shadow: var(--sf-glass-shadow-sheet);
-    background: var(--sf-glass-fallback-bg);
-  }
-
-  @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-    .contentModal {
-      background: var(--sf-glass-bg-sheet);
-      backdrop-filter: var(--sf-glass-backdrop);
-      -webkit-backdrop-filter: var(--sf-glass-backdrop);
-    }
+    background: var(--sf-glass-bg-sheet);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
   }
 
   /* vaul adds a same-background ::after stretching 200% past the panel's

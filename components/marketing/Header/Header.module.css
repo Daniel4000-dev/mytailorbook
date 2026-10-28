@@ -13,16 +13,11 @@
   position: sticky;
   top: 0;
   z-index: var(--sf-z-sticky);
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-bottom: var(--sf-glass-border-subtle);
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .header {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .inner {

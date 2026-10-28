@@ -439,20 +439,14 @@
   gap: var(--sf-space-md);
   padding: var(--sf-space-lg);
   margin: calc(-1 * var(--sf-space-2xl)) var(--sf-margin-mobile) var(--sf-space-2xl);
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border);
   border-radius: var(--sf-radius-xl, 24px);
   box-shadow: var(--sf-glass-shadow-floating);
   position: relative;
   z-index: 2;
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .trustBar {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
 }
 
 @media (min-width: 768px) {
@@ -769,7 +763,9 @@
   gap: 6px;
   padding: 5px 12px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border);
   color: var(--sf-text-primary);
   font-size: 11px;
@@ -777,14 +773,6 @@
   letter-spacing: 0.04em;
   z-index: 2;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .storyBadge {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
 }
 
 .outfitTileMeta {

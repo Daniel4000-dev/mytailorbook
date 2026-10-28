@@ -20,33 +20,20 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-bottom: var(--sf-glass-border-subtle);
   padding: 16px 20px;
   transition: background 0.2s ease;
 }
 
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .header {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
-}
-
 :root[data-theme="dark"] .header,
 :root:not([data-theme="light"]) .header {
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-bottom: var(--sf-glass-border-subtle);
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  :root[data-theme="dark"] .header,
-  :root:not([data-theme="light"]) .header {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
 }
 
 .headerInner {
@@ -164,32 +151,19 @@
   position: sticky;
   top: 80px;
   z-index: 35;
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-bottom: var(--sf-glass-border-subtle);
   padding: 10px 0;
 }
 
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .pillBarWrapper {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
-}
-
 :root[data-theme="dark"] .pillBarWrapper,
 :root:not([data-theme="light"]) .pillBarWrapper {
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-bottom: var(--sf-glass-border-subtle);
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  :root[data-theme="dark"] .pillBarWrapper,
-  :root:not([data-theme="light"]) .pillBarWrapper {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
 }
 
 .pillBar {
@@ -470,7 +444,9 @@
 }
 
 .modalContent {
-  background: var(--sf-glass-fallback-bg);
+  background: var(--sf-glass-bg-sheet);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-radius: var(--sf-radius-xl, 24px);
   width: 100%;
   max-width: 620px;
@@ -481,14 +457,6 @@
   border: var(--sf-glass-border);
   display: flex;
   flex-direction: column;
-}
-
-@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-  .modalContent {
-    background: var(--sf-glass-bg-sheet);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  }
 }
 
 .modalCloseBtn {
