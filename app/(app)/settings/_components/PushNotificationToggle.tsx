@@ -33,7 +33,13 @@ export default function PushNotificationToggle() {
 
     navigator.serviceWorker.register('/sw.js').then(async (registration) => {
       const existing = await registration.pushManager.getSubscription();
-      setSubscribed(!!existing);
+      if (existing) {
+        setSubscribed(true);
+        // Automatically ensure this device's token is registered in the database for the active profile
+        savePushSubscriptionAction(existing.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }).catch(() => {});
+      } else {
+        setSubscribed(false);
+      }
     });
   }, []);
 
@@ -98,6 +104,8 @@ export default function PushNotificationToggle() {
       const result = await sendTestPushAction(3);
       if (result.error) {
         showToast(result.error, 'error');
+      } else {
+        showToast(`Test alert dispatched to ${result.sentCount || 1} registered device(s)`, 'success');
       }
     } catch {
       showToast('Failed to trigger test push', 'error');

@@ -32,26 +32,43 @@ interface PushPayload {
   url?: string;
 }
 
-async function sendToSubscription(admin: ReturnType<typeof createAdminClient>, sub: { id: string; endpoint: string; keys: unknown }, payload: PushPayload) {
+async function sendToSubscription(admin: ReturnType<typeof createAdminClient>, sub: { id: string; endpoint: string; keys: unknown }, payload: PushPayload): Promise<{ success: boolean; error?: string }> {
   ensureVapidConfigured();
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: sub.keys as { p256dh: string; auth: string } },
       JSON.stringify(payload)
     );
+    return { success: true };
   } catch (err) {
     const statusCode = (err as { statusCode?: number })?.statusCode;
     if (statusCode === 404 || statusCode === 410) {
       await admin.from('push_subscriptions').delete().eq('id', sub.id);
     }
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[WebPush] Error sending notification:', message);
+    return { success: false, error: message };
   }
 }
 
-export async function sendPushToProfile(profileId: string, payload: PushPayload) {
+export async function sendPushToProfile(profileId: string, payload: PushPayload): Promise<{ success: boolean; sentCount: number; error?: string }> {
   const admin = createAdminClient();
-  const { data: subs } = await admin.from('push_subscriptions').select('id, endpoint, keys').eq('profile_id', profileId);
-  if (!subs?.length) return;
-  await Promise.all(subs.map((sub) => sendToSubscription(admin, sub, payload)));
+  const { data: subs, error: fetchErr } = await admin.from('push_subscriptions').select('id, endpoint, keys').eq('profile_id', profileId);
+  if (fetchErr) {
+    console.error('[WebPush] Failed to fetch subscriptions:', fetchErr.message);
+    return { success: false, sentCount: 0, error: fetchErr.message };
+  }
+  if (!subs?.length) {
+    return { success: false, sentCount: 0, error: 'No active push subscriptions registered in database' };
+  }
+  const results = await Promise.all(subs.map((sub) => sendToSubscription(admin, sub, payload)));
+  const sentCount = results.filter((r) => r.success).length;
+  const firstError = results.find((r) => !r.success)?.error;
+  return {
+    success: sentCount > 0,
+    sentCount,
+    error: sentCount === 0 ? (firstError || 'Failed to deliver push notification') : undefined,
+  };
 }
 
 export async function sendPushToShop(shopId: string, excludeProfileId: string | null, payload: PushPayload) {

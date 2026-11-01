@@ -2001,7 +2001,8 @@ export async function savePushSubscriptionAction(subscription: { endpoint: strin
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return { error: 'Not signed in' };
 
-  const { error } = await supabase.from('push_subscriptions').upsert(
+  const admin = createAdminClient();
+  const { error } = await admin.from('push_subscriptions').upsert(
     {
       profile_id: authData.user.id,
       endpoint: subscription.endpoint,
@@ -2018,7 +2019,8 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<{ 
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return { error: 'Not signed in' };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from('push_subscriptions')
     .delete()
     .eq('endpoint', endpoint)
@@ -2027,7 +2029,7 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<{ 
   return {};
 }
 
-export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: string; success?: boolean }> {
+export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: string; success?: boolean; sentCount?: number }> {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return { error: 'Not signed in' };
@@ -2037,13 +2039,21 @@ export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: st
   }
 
   const { sendPushToProfile } = await import('@/lib/push');
-  await sendPushToProfile(authData.user.id, {
+  const result = await sendPushToProfile(authData.user.id, {
     title: 'Atelier Test Alert',
     body: 'Lock screen push notification and icon badge verified successfully.',
     url: '/notifications',
   });
 
-  return { success: true };
+  if (!result.success) {
+    return {
+      error:
+        result.error ||
+        'No active device subscription found in database. Tap Disable and Re-enable Notifications to register this device.',
+    };
+  }
+
+  return { success: true, sentCount: result.sentCount };
 }
 
 // --- Inventory ---

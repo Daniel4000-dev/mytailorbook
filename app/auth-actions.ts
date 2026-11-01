@@ -39,7 +39,8 @@ export async function completeOnboarding(
   nameOverride?: string,
   businessMode?: string,
   weeklyCapacity?: string,
-  rtwSourcingMethod?: string
+  rtwSourcingMethod?: string,
+  monthlyRevenueTarget?: number
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -82,6 +83,7 @@ export async function completeOnboarding(
     business_mode: businessMode || 'bespoke',
     weekly_capacity: weeklyCapacity ? parseInt(weeklyCapacity, 10) : null,
     rtw_sourcing_method: rtwSourcingMethod || null,
+    monthly_revenue_target: monthlyRevenueTarget && monthlyRevenueTarget > 0 ? monthlyRevenueTarget : null,
     xp: 50, // Welcome bonus: profile completed!
   };
 

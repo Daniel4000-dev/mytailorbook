@@ -54,6 +54,9 @@ export const onboardingSchema = z.object({
   businessMode: z.enum(['bespoke', 'rtw', 'hybrid']),
   weeklyCapacity: z.string().optional(),
   rtwSourcingMethod: z.enum(['in-house', 'wholesale', 'both']).optional(),
+  monthlyRevenueTarget: z.number().optional(),
+  teamSize: z.string().optional(),
+  apprenticeNames: z.string().optional(),
 });
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;

@@ -14,7 +14,7 @@ import MilestonesCard from '../MilestonesCard';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
+import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
 import { ROUTES } from '@/lib/routes';
 
 // ============================================================
@@ -247,8 +247,8 @@ export default function OwnerDashboard({
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
-          {/* Sourcing Fabrics / Market Day Streak Shield (Available for Bespoke, RTW & Hybrid) */}
-          <MarketDayWidget />
+          {/* Daily Craft Activity & Streak Progression (including Fabric Market Sourcing) */}
+          <DailyActivityDropdown />
 
           {/* Today's Schedule & Fittings (Calendar) */}
           <TodaysAgendaWidget />

@@ -209,25 +209,15 @@ export async function POST(req: Request) {
         const todayDate = new Date(todayStr);
         todayDate.setHours(12,0,0,0);
         
-        let currentDate = new Date(lastDate);
-        currentDate.setDate(currentDate.getDate() + 1);
-        let streakBroken = false;
-
-        while (currentDate < todayDate) {
-          const dayOfWeek = currentDate.getDay();
-          if (workDays.includes(dayOfWeek) && !shop.vacation_mode) {
-            if (streakFreezes > 0 && currentStreak > 0) {
-              streakFreezes -= 1;
-            } else {
-              streakBroken = true;
-              break;
-            }
+        const diffDays = Math.round((todayDate.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
+        // Streak is paused for up to 3 days without resetting.
+        // On day 4 or later of inactivity, it resets to zero unless a freeze protects it.
+        if (diffDays > 3 && !shop.vacation_mode) {
+          if (streakFreezes > 0 && currentStreak > 0) {
+            streakFreezes -= 1;
+          } else {
+            currentStreak = 0;
           }
-          currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        if (streakBroken) {
-          currentStreak = 0;
         }
       }
 

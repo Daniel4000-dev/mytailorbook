@@ -1312,15 +1312,17 @@
 }
 
 /* 5-Pillar Workshop Metric Strip — Debossed Inset Atelier Tray */
-.workshopMetricStrip {
+.workshopMetricStrip,
+.operationsGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  background: rgba(10, 8, 30, 0.42);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 6px;
+  align-items: stretch;
+  background: rgba(10, 8, 30, 0.45);
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-radius: var(--sf-radius-xl);
-  padding: 8px 2px;
+  border-radius: var(--sf-radius-lg);
+  padding: 10px 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
   border-bottom: 1px solid rgba(0, 0, 0, 0.55);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
@@ -1333,22 +1335,34 @@
   z-index: 2;
 }
 
+.operationsCard,
 .metricItem {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   gap: 2px;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--sf-radius-md);
   color: #ffffff;
   cursor: pointer;
-  padding: 4px 2px;
-  transition: transform 0.15s ease;
+  padding: 8px 4px;
+  min-height: 52px;
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
+.operationsCard:active,
 .metricItem:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.operationsEmpty {
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+  border-radius: var(--sf-radius-md);
+  min-height: 52px;
 }
 
 .metricTop {

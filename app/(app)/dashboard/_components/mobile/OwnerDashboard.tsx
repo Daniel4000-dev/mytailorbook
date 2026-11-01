@@ -8,10 +8,10 @@ import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
-import TodaysAgendaWidget from '../TodaysAgendaWidget';
+import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
+import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import MilestonesCard from '../MilestonesCard';
-import MarketDayWidget from '@/components/ui/MarketDayWidget/MarketDayWidget';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
 import styles from '../../page.module.css';
@@ -126,11 +126,25 @@ export default function OwnerDashboard({
           </div>
         ) : null}
 
-        {/* 5-Pillar Workshop Metric Strip */}
-        <div className={styles.workshopMetricStrip}>
+        {/* Operations Dashboard Grid (Sewing, Cutting, Overdue Payment / Overdue, Ready) */}
+        <div className={styles.operationsGrid}>
+          {/* Row 1, Col 1: Sewing */}
           <button
             type="button"
-            className={styles.metricItem}
+            className={styles.operationsCard}
+            onClick={() => onNavigate('/production')}
+            aria-label="View active sewing production queue"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{inProductionCount}</span>
+            </div>
+            <span className={styles.metricLabel}>Sewing</span>
+          </button>
+
+          {/* Row 1, Col 2: Cutting */}
+          <button
+            type="button"
+            className={styles.operationsCard}
             onClick={() => onNavigate('/fabrics')}
             aria-label="View uncut fabrics on cutting table"
           >
@@ -138,42 +152,28 @@ export default function OwnerDashboard({
               <span className={styles.metricNum}>{uncutFabricsCount}</span>
               {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
             </div>
-            <span className={styles.metricLabel}>Uncut</span>
+            <span className={styles.metricLabel}>Cutting</span>
           </button>
 
-          <div className={styles.metricDivider} />
-
+          {/* Row 1, Col 3: Overdue payment */}
           <button
             type="button"
-            className={styles.metricItem}
-            onClick={() => onNavigate('/production')}
-            aria-label="View active sewing production queue"
+            className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+            onClick={() => onNavigate('/collections')}
+            aria-label="View uncollected debtor balances"
           >
             <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{inProductionCount}</span>
+              <span className={styles.metricNum}>
+                {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+              </span>
             </div>
-            <span className={styles.metricLabel}>In Sewing</span>
+            <span className={styles.metricLabel}>Overdue payment</span>
           </button>
 
-          <div className={styles.metricDivider} />
-
+          {/* Row 2, Col 1: Overdue */}
           <button
             type="button"
-            className={styles.metricItem}
-            onClick={() => onNavigate('/production?status=Ready')}
-            aria-label="View ready garments for pickup"
-          >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{readyCount}</span>
-            </div>
-            <span className={styles.metricLabel}>Ready</span>
-          </button>
-
-          <div className={styles.metricDivider} />
-
-          <button
-            type="button"
-            className={`${styles.metricItem} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
+            className={`${styles.operationsCard} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
             onClick={() => onNavigate('/production')}
             aria-label="View overdue and urgent orders"
           >
@@ -184,25 +184,25 @@ export default function OwnerDashboard({
             <span className={styles.metricLabel}>Overdue</span>
           </button>
 
-          <div className={styles.metricDivider} />
-
+          {/* Row 2, Col 2: Ready */}
           <button
             type="button"
-            className={`${styles.metricItem} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
-            onClick={() => onNavigate('/collections')}
-            aria-label="View uncollected debtor balances"
+            className={styles.operationsCard}
+            onClick={() => onNavigate('/production?status=Ready')}
+            aria-label="View ready garments for pickup"
           >
             <div className={styles.metricTop}>
-              <span className={styles.metricNum}>
-                {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
-              </span>
+              <span className={styles.metricNum}>{readyCount}</span>
             </div>
-            <span className={styles.metricLabel}>Debt Due</span>
+            <span className={styles.metricLabel}>Ready</span>
           </button>
+
+          {/* Row 2, Col 3: Balanced Slot */}
+          <div className={styles.operationsEmpty} aria-hidden="true" />
         </div>
       </section>
 
-      {/* 2. OPay-Inspired Master Actions & Atelier Switchboard */}
+      {/* 2. Quick Nav (Master Actions & Atelier Switchboard) */}
       <QuickCommandHub
         onNavigate={onNavigate}
         uncutFabricsCount={uncutFabricsCount}
@@ -213,17 +213,17 @@ export default function OwnerDashboard({
         debtTotal={debtTotal}
       />
 
-      {/* Sourcing Fabrics / Market Day Streak Shield (Available for Bespoke, RTW & Hybrid) */}
-      <MarketDayWidget />
+      {/* Daily Craft Activity & Streak Progression (including Fabric Market Sourcing) */}
+      <DailyActivityDropdown />
 
-      {/* 3. Today's Schedule & Fittings (Calendar) */}
-      <TodaysAgendaWidget />
-
-      {/* 4. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
+      {/* 3. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
       <TodayPrioritiesWidget
         loops={openLoops}
         onNavigate={onNavigate}
       />
+
+      {/* 4. Today's Schedule & Fittings (Calendar) */}
+      <TodaysAgendaWidget />
 
       {/* 5. Studio Milestones & Atelier Growth */}
       <MilestonesCard />

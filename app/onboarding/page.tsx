@@ -90,6 +90,9 @@ export default function OnboardingPage() {
       weeklyCapacity: '20',
       rtwSourcingMethod: 'in-house',
       goal: 'Always knowing what is happening with their order',
+      monthlyRevenueTarget: 1500000,
+      teamSize: '1-2',
+      apprenticeNames: '',
     },
   });
 
@@ -98,6 +101,8 @@ export default function OnboardingPage() {
   const watchedWeeklyCapacity = watch('weeklyCapacity') || '20';
   const watchedRtwSourcing = watch('rtwSourcingMethod') || 'in-house';
   const watchedGoal = watch('goal') || 'Always knowing what is happening with their order';
+  const watchedMonthlyRevenueTarget = watch('monthlyRevenueTarget') || 1500000;
+  const watchedTeamSize = watch('teamSize') || '1-2';
 
   // Google gives us no signup form, so pre-fill from Google profile
   const [prefilledGoogleName, setPrefilledGoogleName] = useState<string | null>(null);
@@ -160,7 +165,8 @@ export default function OnboardingPage() {
         isGoogleAccount ? data.name : undefined,
         data.businessMode,
         data.weeklyCapacity,
-        data.rtwSourcingMethod
+        data.rtwSourcingMethod,
+        data.monthlyRevenueTarget
       );
 
       if (result?.error) {
@@ -685,6 +691,104 @@ export default function OnboardingPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Section D: Monthly Revenue Milestone Target */}
+                <div className={styles.sectionBlock}>
+                  <div className={styles.sectionHeader}>
+                    <Symbol name="payments" size={18} />
+                    <span>Monthly Revenue Milestone Target</span>
+                  </div>
+                  <p className={styles.sectionSubtext}>
+                    Sets your personalized financial milestone bar on your atelier dashboard.
+                  </p>
+
+                  <div className={styles.capacityGrid}>
+                    {[
+                      { val: 500000, label: '₦500k', desc: 'Emerging Studio' },
+                      { val: 1500000, label: '₦1.5M', desc: 'Active Atelier' },
+                      { val: 3000000, label: '₦3.0M', desc: 'Growing House' },
+                      { val: 5000000, label: '₦5.0M', desc: 'Haute Couture' },
+                    ].map((item) => (
+                      <div
+                        key={item.val}
+                        role="button"
+                        tabIndex={0}
+                        className={`${styles.capacityChip} ${
+                          watchedMonthlyRevenueTarget === item.val ? styles.capacityChipActive : ''
+                        }`}
+                        onClick={() => setValue('monthlyRevenueTarget', item.val, { shouldValidate: true })}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' || e.key === 'Enter') {
+                            e.preventDefault();
+                            setValue('monthlyRevenueTarget', item.val, { shouldValidate: true });
+                          }
+                        }}
+                      >
+                        <span className={styles.capacityNum}>{item.label}</span>
+                        <span className={styles.capacityDesc}>{item.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section E: Workshop Apprentices & Team */}
+                <div className={styles.sectionBlock}>
+                  <div className={styles.sectionHeader}>
+                    <Symbol name="group" size={18} />
+                    <span>Workshop Apprentices &amp; Tailors</span>
+                  </div>
+                  <p className={styles.sectionSubtext}>
+                    Configure your atelier workforce to track cutting and sewing workloads.
+                  </p>
+
+                  <div className={styles.capacityGrid}>
+                    {[
+                      { val: 'solo', label: 'Solo', desc: 'Master Only' },
+                      { val: '1-2', label: '1 – 2', desc: 'Apprentices' },
+                      { val: '3-5', label: '3 – 5', desc: 'Artisans' },
+                      { val: '6+', label: '6+', desc: 'Full Workshop' },
+                    ].map((item) => (
+                      <div
+                        key={item.val}
+                        role="button"
+                        tabIndex={0}
+                        className={`${styles.capacityChip} ${
+                          watchedTeamSize === item.val ? styles.capacityChipActive : ''
+                        }`}
+                        onClick={() => setValue('teamSize', item.val, { shouldValidate: true })}
+                        onKeyDown={(e) => {
+                          if (e.key === ' ' || e.key === 'Enter') {
+                            e.preventDefault();
+                            setValue('teamSize', item.val, { shouldValidate: true });
+                          }
+                        }}
+                      >
+                        <span className={styles.capacityNum}>{item.label}</span>
+                        <span className={styles.capacityDesc}>{item.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {watchedTeamSize !== 'solo' && (
+                    <div style={{ marginTop: '12px' }}>
+                      <input
+                        type="text"
+                        placeholder="Apprentice / Tailor names (optional, e.g. Tunde, Chidi, Fatima)"
+                        {...register('apprenticeNames')}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          borderRadius: 'var(--sf-radius-sm)',
+                          border: '1px solid var(--sf-border-light)',
+                          background: 'var(--sf-bg-surface)',
+                          fontSize: 'var(--sf-text-sm)',
+                          color: 'var(--sf-text-primary)',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.actionsRow}>

@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useNetwork } from '@/lib/hooks/useNetwork';
@@ -74,15 +75,20 @@ export default function TopBar({
         {brandMode ? (
           <div className={styles.profileHeaderContent}>
             <div className={styles.left}>
-              <div className={styles.brandLogoWrap}>
+              <Link
+                href="/settings"
+                className={styles.brandLogoLink}
+                title="Atelier Profile & Settings"
+                aria-label="Atelier Profile & Settings"
+              >
                 <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
-              </div>
+              </Link>
               {leftAction}
             </div>
             <div className={styles.right}>
               <NotificationBell />
 
-              <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px' }}>
+              <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   type="button"
                   className={styles.tierBadge}
@@ -91,21 +97,19 @@ export default function TopBar({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '4px',
                     background: 'var(--sf-bg-surface)',
-                    padding: '4px 9px',
+                    padding: '2px 8px',
                     borderRadius: '100px',
                     border: `1px solid ${currentTier.color}`,
-                    fontSize: '13px',
-                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    fontWeight: 600,
                     cursor: 'pointer',
+                    opacity: 0.9,
                   }}
                 >
-                  <Symbol name={currentTier.icon} size={16} style={{ color: currentTier.color, fontVariationSettings: "'FILL' 1" }} />
+                  <Symbol name={currentTier.icon} size={13} style={{ color: currentTier.color, fontVariationSettings: "'FILL' 1" }} />
                   <span style={{ color: currentTier.color }}>{currentTier.name}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(234, 179, 8, 0.15)', padding: '2px 5px', borderRadius: '100px' }}>
-                    <Symbol name="workspace_premium" size={12} style={{ color: '#eab308' }} />
-                  </span>
                 </button>
                 {streakIndicator}
               </div>
