@@ -3,16 +3,24 @@ import webpush from 'web-push';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { APP_CONFIG } from '@/lib/config';
 
+const DEFAULT_VAPID_PUBLIC_KEY =
+  'BN9WicPA4RvCFc77qA6zMf3iNSy8xcnzJ6aUohFL_D94leTxEy4lf5A6TAHb2xGW_RMrgh4T87zkRL-eJ1OR9aY';
+const DEFAULT_VAPID_PRIVATE_KEY =
+  'nTaiBsfmO8SObuS-Ybp0jGigbNH_w6fIdHOWcSzrf7E';
+
 let vapidConfigured = false;
 
 function ensureVapidConfigured() {
   if (vapidConfigured) return;
-  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return;
-  
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY || DEFAULT_VAPID_PRIVATE_KEY;
+
+  if (!publicKey || !privateKey) return;
+
   webpush.setVapidDetails(
     `mailto:${APP_CONFIG.supportEmail}`,
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
+    publicKey,
+    privateKey
   );
   vapidConfigured = true;
 }

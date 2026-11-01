@@ -2027,6 +2027,25 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<{ 
   return {};
 }
 
+export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData?.user) return { error: 'Not signed in' };
+
+  if (delaySeconds > 0) {
+    await new Promise((r) => setTimeout(r, delaySeconds * 1000));
+  }
+
+  const { sendPushToProfile } = await import('@/lib/push');
+  await sendPushToProfile(authData.user.id, {
+    title: 'Atelier Test Alert',
+    body: 'Lock screen push notification and icon badge verified successfully.',
+    url: '/notifications',
+  });
+
+  return { success: true };
+}
+
 // --- Inventory ---
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

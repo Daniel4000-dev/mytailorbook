@@ -90,12 +90,9 @@ export default function NotificationPrompt() {
 
       if (permission === 'granted') {
         const registration = await navigator.serviceWorker.ready;
-        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidKey) {
-          showToast('Push configuration missing on server', 'error');
-          setVisible(false);
-          return;
-        }
+        const vapidKey =
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+          'BN9WicPA4RvCFc77qA6zMf3iNSy8xcnzJ6aUohFL_D94leTxEy4lf5A6TAHb2xGW_RMrgh4T87zkRL-eJ1OR9aY';
 
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
