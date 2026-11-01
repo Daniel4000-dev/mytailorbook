@@ -15,18 +15,8 @@ export default function StudioClient({ initialPortfolio, slug }: StudioClientPro
   const [portfolio, setPortfolio] = useState<PublicPortfolio | null>(initialPortfolio);
 
   useEffect(() => {
-    if (initialPortfolio && initialPortfolio.outfits && initialPortfolio.outfits.length > 0) {
-      setPortfolio(initialPortfolio);
-    } else {
-      // Fallback to client stored mock portfolio for preview/demo inspection
-      const formattedSlug = slug
-        .split('-')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-      const mock = getStoredMockPortfolio(slug, `${formattedSlug} Atelier`);
-      setPortfolio(mock);
-    }
-  }, [initialPortfolio, slug]);
+    setPortfolio(initialPortfolio);
+  }, [initialPortfolio]);
 
   if (!portfolio) {
     return (

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { getAuditLogAction } from '@/app/actions';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -81,22 +83,24 @@ function describeEntry(entry: AuditLogEntry): string {
 export default function ActivityLogPage() {
   const router = useRouter();
   const { currentShop } = useData();
+  const { user } = useAuth();
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const isDesktop = useIsDesktop();
   const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
 
   useEffect(() => {
     if (!currentShop?.id) {
-      setEntries(MOCK_AUDIT_LOG);
+      setEntries(isMockAllowed ? MOCK_AUDIT_LOG : []);
       return;
     }
     getAuditLogAction(currentShop.id).then((result) => {
       if (!result || 'error' in result || result.length === 0) {
-        setEntries(MOCK_AUDIT_LOG);
+        setEntries(isMockAllowed ? MOCK_AUDIT_LOG : []);
         return;
       }
       setEntries(result);
-    }).catch(() => setEntries(MOCK_AUDIT_LOG));
-  }, [currentShop?.id]);
+    }).catch(() => setEntries(isMockAllowed ? MOCK_AUDIT_LOG : []));
+  }, [currentShop?.id, isMockAllowed]);
 
   return (
     <PageLayout width="narrow" header={<TopBar title="Activity Log" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>

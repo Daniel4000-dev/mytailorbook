@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -49,9 +51,11 @@ function getEstimatedYardage(title?: string): string {
 
 export default function CataloguesPage() {
   const { currentShop } = useData();
+  const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
 
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const [catalogues, setCatalogues] = useState<StyleCatalogue[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -64,10 +68,14 @@ export default function CataloguesPage() {
 
   useEffect(() => {
     if (!currentShop) {
-      // If no current shop yet, load mock catalogues immediately so user can inspect
-      const mocks = getStoredMockCatalogues();
-      setCatalogues(mocks);
-      setIsUsingMock(true);
+      if (isMockAllowed) {
+        const mocks = getStoredMockCatalogues();
+        setCatalogues(mocks);
+        setIsUsingMock(true);
+      } else {
+        setCatalogues([]);
+        setIsUsingMock(false);
+      }
       setLoading(false);
       return;
     }
@@ -77,22 +85,30 @@ export default function CataloguesPage() {
         if (res && res.length > 0) {
           setCatalogues(res);
           setIsUsingMock(false);
-        } else {
-          // If shop has no catalogues in DB, fallback to stored frontend mock data if enabled
+        } else if (isMockAllowed) {
+          // If shop has no catalogues in DB, fallback to stored frontend mock data if enabled for master account
           const mocks = getStoredMockCatalogues();
           setCatalogues(mocks);
           setIsUsingMock(mocks.length > 0);
+        } else {
+          setCatalogues([]);
+          setIsUsingMock(false);
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.warn('DB catalogue query error, falling back to mock:', err.message);
-        const mocks = getStoredMockCatalogues();
-        setCatalogues(mocks);
-        setIsUsingMock(mocks.length > 0);
+        console.warn('DB catalogue query error:', err.message);
+        if (isMockAllowed) {
+          const mocks = getStoredMockCatalogues();
+          setCatalogues(mocks);
+          setIsUsingMock(mocks.length > 0);
+        } else {
+          setCatalogues([]);
+          setIsUsingMock(false);
+        }
         setLoading(false);
       });
-  }, [currentShop]);
+  }, [currentShop, isMockAllowed]);
 
   const handleCreate = async (titleToCreate?: string) => {
     const title = (titleToCreate || newTitle).trim();

@@ -570,3 +570,14 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Reconciliation', href: '/reconciliation', icon: 'point_of_sale', ownerOnly: true, hideFromBottomNav: true },
   { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true, tourId: 'settings', hideFromBottomNav: true },
 ];
+
+/**
+ * Single master account permitted to view frontend demo/mock datasets.
+ * All other accounts see only their authentic shop records and clean empty states.
+ */
+export const MOCK_DATA_ALLOWED_EMAIL = 'dadekunle31@gmail.com';
+
+export function isMockDataAllowed(email?: string | null): boolean {
+  if (!email) return false;
+  return email.trim().toLowerCase() === MOCK_DATA_ALLOWED_EMAIL;
+}

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import { updateAppBadge } from '@/lib/badging';
 
 export type NotificationCategory = 'production' | 'clients' | 'payments' | 'system';
@@ -173,6 +175,8 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
 // ---------------------------------------------------------------------------
 export function useNotifications() {
   const { currentShop } = useData();
+  const { user } = useAuth();
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -197,18 +201,18 @@ export function useNotifications() {
         .then(({ data, error }) => {
           if (cancelled) return;
           if (error) {
-            // Table doesn't exist yet in Supabase or query failed - fallback cleanly to mock feed
-            setNotifications(MOCK_NOTIFICATIONS);
+            // Table doesn't exist yet in Supabase or query failed - fallback cleanly to mock feed if allowed
+            setNotifications(isMockAllowed ? MOCK_NOTIFICATIONS : []);
             setIsLoaded(true);
             return;
           }
           const rows = (data || []).filter(Boolean).map(mapRowToItem);
-          setNotifications(rows.length > 0 ? rows : MOCK_NOTIFICATIONS);
+          setNotifications(rows.length > 0 ? rows : (isMockAllowed ? MOCK_NOTIFICATIONS : []));
           setIsLoaded(true);
         })
         .catch(() => {
           if (!cancelled) {
-            setNotifications(MOCK_NOTIFICATIONS);
+            setNotifications(isMockAllowed ? MOCK_NOTIFICATIONS : []);
             setIsLoaded(true);
           }
         });
@@ -255,7 +259,7 @@ export function useNotifications() {
         .subscribe();
     } catch {
       if (!cancelled) {
-        setNotifications(MOCK_NOTIFICATIONS);
+        setNotifications(isMockAllowed ? MOCK_NOTIFICATIONS : []);
         setIsLoaded(true);
       }
     }

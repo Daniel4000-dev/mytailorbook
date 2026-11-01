@@ -30,6 +30,7 @@ import {
   type PortfolioOutfit,
 } from './actions';
 import { DEFAULT_MOCK_PORTFOLIO } from '@/lib/mockPortfolio';
+import { isMockDataAllowed } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -102,10 +103,12 @@ function PortfolioCurationSettingsContent() {
     setFoundedYear(currentShop.portfolioSettings?.foundedYear ? String(currentShop.portfolioSettings.foundedYear) : '');
   }
 
+  const isMockAllowed = isMockDataAllowed(user?.email);
+
   const load = useCallback(async () => {
     if (!currentShop?.id) {
-      setPool(MOCK_SETTING_POOL);
-      setOutfits(MOCK_SETTING_OUTFITS);
+      setPool(isMockAllowed ? MOCK_SETTING_POOL : []);
+      setOutfits(isMockAllowed ? MOCK_SETTING_OUTFITS : []);
       setIsLoaded(true);
       return;
     }
@@ -115,15 +118,15 @@ function PortfolioCurationSettingsContent() {
         getPortfolioPoolAction(currentShop.id),
         getPortfolioOutfitsAction(currentShop.id),
       ]);
-      setPool(poolPhotos.length > 0 ? poolPhotos : MOCK_SETTING_POOL);
-      setOutfits(outfitList.length > 0 ? outfitList : MOCK_SETTING_OUTFITS);
+      setPool(poolPhotos.length > 0 ? poolPhotos : (isMockAllowed ? MOCK_SETTING_POOL : []));
+      setOutfits(outfitList.length > 0 ? outfitList : (isMockAllowed ? MOCK_SETTING_OUTFITS : []));
     } catch {
-      setPool(MOCK_SETTING_POOL);
-      setOutfits(MOCK_SETTING_OUTFITS);
+      setPool(isMockAllowed ? MOCK_SETTING_POOL : []);
+      setOutfits(isMockAllowed ? MOCK_SETTING_OUTFITS : []);
     } finally {
       setIsLoaded(true);
     }
-  }, [currentShop]);
+  }, [currentShop, isMockAllowed]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

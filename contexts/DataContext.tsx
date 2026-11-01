@@ -17,6 +17,7 @@ import { logStreakAction } from '@/lib/streakClient';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
+import { isMockDataAllowed } from '@/lib/constants';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_STAFF, MOCK_EXCEPTIONS } from '@/lib/mockData';
 import {
   getShopBundle,
@@ -215,11 +216,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
   }, [activeBranchId, orgId, mutate]);
 
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+  const isMockAllowed = isMockDataAllowed(user?.email);
+
+  const [rawDemoMode, setRawDemoMode] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('demo') === 'true' || localStorage.getItem('mtb_demo_mode') === 'true';
   });
+
+  const isDemoMode = isMockAllowed && rawDemoMode;
 
   const [demoOrders, setDemoOrders] = useState<Order[]>(MOCK_ORDERS);
   const [demoCustomers, setDemoCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
@@ -227,7 +232,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [demoExceptions, setDemoExceptions] = useState<ShopException[]>(MOCK_EXCEPTIONS);
 
   const toggleDemoMode = useCallback((enabled?: boolean) => {
-    setIsDemoMode((prev) => {
+    if (!isMockAllowed) return;
+    setRawDemoMode((prev) => {
       const next = enabled !== undefined ? enabled : !prev;
       if (typeof window !== 'undefined') {
         if (next) {
@@ -238,7 +244,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       return next;
     });
-  }, []);
+  }, [isMockAllowed]);
 
   const bundle = data ?? EMPTY_BUNDLE;
   const orders = isDemoMode ? demoOrders : bundle.orders;

@@ -33,3 +33,4 @@ export function clearAppBadge(): void {
     // Gracefully ignore on unsupported devices or permission boundaries
   }
 }
+

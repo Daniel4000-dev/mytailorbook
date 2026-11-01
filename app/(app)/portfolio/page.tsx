@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
@@ -24,19 +25,25 @@ import styles from './page.module.css';
  */
 export default function OwnPortfolioPage() {
   const router = useRouter();
-  const { isOwner, loading: authLoading } = useAuth();
+  const { user, isOwner, loading: authLoading } = useAuth();
   const { currentShop, isLoaded } = useData();
   const { showToast } = useToast();
 
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const [portfolio, setPortfolio] = useState<PublicPortfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUsingMock, setIsUsingMock] = useState(false);
 
   useEffect(() => {
     if (!currentShop) {
-      const mock = getStoredMockPortfolio();
-      setPortfolio(mock);
-      setIsUsingMock(true);
+      if (isMockAllowed) {
+        const mock = getStoredMockPortfolio();
+        setPortfolio(mock);
+        setIsUsingMock(true);
+      } else {
+        setPortfolio(null);
+        setIsUsingMock(false);
+      }
       setLoading(false);
       return;
     }
@@ -46,20 +53,28 @@ export default function OwnPortfolioPage() {
         if (res && res.outfits && res.outfits.length > 0) {
           setPortfolio(res);
           setIsUsingMock(false);
-        } else {
-          // Fallback to stored frontend mock portfolio
+        } else if (isMockAllowed) {
+          // Fallback to stored frontend mock portfolio only for master account
           const mock = getStoredMockPortfolio(currentShop.slug, currentShop.name);
           setPortfolio(mock);
           setIsUsingMock(true);
+        } else {
+          setPortfolio(res || null);
+          setIsUsingMock(false);
         }
       })
       .catch(() => {
-        const mock = getStoredMockPortfolio(currentShop.slug, currentShop.name);
-        setPortfolio(mock);
-        setIsUsingMock(true);
+        if (isMockAllowed) {
+          const mock = getStoredMockPortfolio(currentShop.slug, currentShop.name);
+          setPortfolio(mock);
+          setIsUsingMock(true);
+        } else {
+          setPortfolio(null);
+          setIsUsingMock(false);
+        }
       })
       .finally(() => setLoading(false));
-  }, [currentShop]);
+  }, [currentShop, isMockAllowed]);
 
   const handleWipeMock = () => {
     const empty = wipeMockPortfolio();

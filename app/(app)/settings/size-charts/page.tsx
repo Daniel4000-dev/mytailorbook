@@ -16,6 +16,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { getSizeChartsAction, createSizeChartAction, updateSizeChartAction, deleteSizeChartAction } from '@/app/actions/sizeCharts';
 import { SizeChart } from '@/lib/types';
+import { isMockDataAllowed } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -65,6 +66,8 @@ export default function SizeChartsPage() {
   const [measurementsText, setMeasurementsText] = useState(''); // Simple format: S: Chest 40, L 30\nM: Chest 42, L 32
   const [saving, setSaving] = useState(false);
 
+  const { user } = useAuth();
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,7 +78,7 @@ export default function SizeChartsPage() {
 
   const loadCharts = async () => {
     if (!currentShop) {
-      setCharts(MOCK_SIZE_CHARTS);
+      setCharts(isMockAllowed ? MOCK_SIZE_CHARTS : []);
       setLoading(false);
       return;
     }
@@ -83,12 +86,12 @@ export default function SizeChartsPage() {
     try {
       const res = await getSizeChartsAction(currentShop.id);
       if ('error' in res || res.length === 0) {
-        setCharts(MOCK_SIZE_CHARTS);
+        setCharts(isMockAllowed ? MOCK_SIZE_CHARTS : []);
       } else {
         setCharts(res);
       }
     } catch {
-      setCharts(MOCK_SIZE_CHARTS);
+      setCharts(isMockAllowed ? MOCK_SIZE_CHARTS : []);
     } finally {
       setLoading(false);
     }

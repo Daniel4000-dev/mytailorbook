@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
@@ -24,8 +26,10 @@ import styles from './page.module.css';
 
 export default function FabricsPage() {
   const { orders: liveOrders, customers, isLoaded } = useData();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<FabricStageFilter>('uncut');
   const [showNoPhoto, setShowNoPhoto] = useState(false);
@@ -44,13 +48,16 @@ export default function FabricsPage() {
     if (realFabricOrders.length > 0) {
       setMockOrders(liveOrders);
       setIsUsingMock(false);
-    } else {
-      // Fallback to client-side mock fabric queue for demo exploration
+    } else if (isMockAllowed) {
+      // Fallback to client-side mock fabric queue for demo exploration only if allowed
       const stored = getStoredMockFabricOrders();
       setMockOrders(stored);
       setIsUsingMock(isMockFabricsActive() && stored.length > 0);
+    } else {
+      setMockOrders(liveOrders);
+      setIsUsingMock(false);
     }
-  }, [liveOrders]);
+  }, [liveOrders, isMockAllowed]);
 
   const activeOrders = isUsingMock ? mockOrders : liveOrders;
 

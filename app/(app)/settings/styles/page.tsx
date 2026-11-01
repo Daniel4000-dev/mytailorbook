@@ -4,6 +4,8 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import { useToast } from '@/contexts/ToastContext';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { createClient } from '@/lib/supabase/client';
@@ -32,12 +34,14 @@ interface CustomStyle {
 export default function CustomStylesSettingsPage() {
   const router = useRouter();
   const { currentShop, updateShop, renameCustomStyle, upsertCustomStyle, isLoaded } = useData();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
 
-  // If shop has custom styles, use them. If not yet added, use rich atelier mock styles for assessment.
+  const isMockAllowed = isMockDataAllowed(user?.email);
+  // If shop has custom styles, use them. If not yet added, use rich atelier mock styles only for master account.
   const shopStyles = currentShop?.customStyles || [];
-  const displayStyles: CustomStyle[] = shopStyles.length > 0 ? shopStyles : MOCK_ATELIER_STYLES;
+  const displayStyles: CustomStyle[] = shopStyles.length > 0 ? shopStyles : (isMockAllowed ? MOCK_ATELIER_STYLES : []);
 
   const [activeStyle, setActiveStyle] = useState<CustomStyle | null>(null);
   const [editName, setEditName] = useState('');

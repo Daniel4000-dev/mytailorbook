@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -45,9 +47,11 @@ function getEstimatedYardage(title?: string): string {
 export default function CatalogueDetailPage() {
   const { catalogueId } = useParams() as { catalogueId: string };
   const { currentShop, customers } = useData();
+  const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
 
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const [catalogue, setCatalogue] = useState<StyleCatalogue | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -85,21 +89,25 @@ export default function CatalogueDetailPage() {
         }
       }
 
-      // Check stored frontend mock catalogues
-      const mocks = getStoredMockCatalogues();
-      const mockFound = mocks.find((c) => c.id === catalogueId);
-      if (mockFound) {
-        setCatalogue(mockFound);
-        setEditedTitle(mockFound.title);
-        setIsMockMode(true);
-      } else {
-        setCatalogue(null);
+      // Check stored frontend mock catalogues if allowed
+      if (isMockAllowed) {
+        const mocks = getStoredMockCatalogues();
+        const mockFound = mocks.find((c) => c.id === catalogueId);
+        if (mockFound) {
+          setCatalogue(mockFound);
+          setEditedTitle(mockFound.title);
+          setIsMockMode(true);
+          setLoading(false);
+          return;
+        }
       }
+
+      setCatalogue(null);
       setLoading(false);
     };
 
     loadData();
-  }, [currentShop, catalogueId]);
+  }, [currentShop, catalogueId, isMockAllowed]);
 
   // Smart case-insensitive matching between album title and customer preferredStyles
   const matchingCustomers = useMemo(() => {

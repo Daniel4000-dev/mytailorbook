@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { getFinancialReport, type FinancialReport } from '@/app/actions';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isMockDataAllowed } from '@/lib/constants';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -68,8 +70,23 @@ const MOCK_FINANCIAL_TOTALS: FinancialReport['totals'] = {
   ],
 };
 
+const EMPTY_FINANCIAL_TOTALS: FinancialReport['totals'] = {
+  collected: 0,
+  outstanding: 0,
+  revenueWithCostData: 0,
+  costTotal: 0,
+  marginTotal: 0,
+  ordersWithCostCount: 0,
+  totalExpenses: 0,
+  netProfit: 0,
+  expenseBreakdown: [],
+  trendData: [],
+};
+
 export default function ReportsPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const isDesktop = useIsDesktop();
   const { currentShop } = useData();
 
@@ -96,7 +113,7 @@ export default function ReportsPage() {
   }, [range]);
 
   const currency = currentShop?.currency || 'NGN';
-  const totals = report?.totals || MOCK_FINANCIAL_TOTALS;
+  const totals = report?.totals || (isMockAllowed ? MOCK_FINANCIAL_TOTALS : EMPTY_FINANCIAL_TOTALS);
 
   const marginPercent =
     totals.revenueWithCostData > 0

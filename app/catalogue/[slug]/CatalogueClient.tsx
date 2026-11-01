@@ -56,14 +56,10 @@ export default function CatalogueClient({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const [effectiveCatalogues, setEffectiveCatalogues] = useState<StyleCatalogue[]>(catalogues);
+  const [effectiveCatalogues, setEffectiveCatalogues] = useState<StyleCatalogue[]>(catalogues || []);
 
   useEffect(() => {
-    if (catalogues && catalogues.length > 0) {
-      setEffectiveCatalogues(catalogues);
-    } else {
-      setEffectiveCatalogues(getStoredMockCatalogues());
-    }
+    setEffectiveCatalogues(catalogues || []);
   }, [catalogues]);
 
   // Aggregate all photos with album metadata for the unified Pinterest feed
