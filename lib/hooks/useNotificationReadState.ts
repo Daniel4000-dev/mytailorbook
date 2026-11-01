@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { clearAppBadge } from '@/lib/badging';
 
 /**
  * Cross-device read state backed by `atelier_notifications.read_at`.
@@ -43,6 +44,8 @@ export function useNotificationReadState() {
       ids.forEach((id) => next.add(id));
       return next;
     });
+
+    clearAppBadge();
 
     // Bulk update — only touch rows that are still unread.
     try {

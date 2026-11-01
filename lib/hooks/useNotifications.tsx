@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useData } from '@/contexts/DataContext';
+import { updateAppBadge } from '@/lib/badging';
 
 export type NotificationCategory = 'production' | 'clients' | 'payments' | 'system';
 
@@ -274,6 +275,11 @@ export function useNotifications() {
   const alertCount = notifications.filter(
     (n) => n.tone !== 'info' && !n.readAt,
   ).length;
+
+  // Synchronize mobile/desktop app icon badge with pending alert count
+  useEffect(() => {
+    updateAppBadge(alertCount);
+  }, [alertCount]);
 
   return { notifications, alertCount, isLoaded };
 }

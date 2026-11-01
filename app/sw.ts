@@ -37,31 +37,52 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-// ── Web Push Notifications ──────────────────────────────────────────
+// ── Web Push Notifications & App Icon Badging ──────────────────────
 
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  let payload;
+  let payload: {
+    title?: string;
+    body?: string;
+    orderId?: string;
+    url?: string;
+    badgeCount?: number;
+  };
   try {
     payload = event.data.json();
   } catch {
     return;
   }
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title, {
+  const title = payload.title || 'MyTailorBook Atelier';
+  const promises: Promise<unknown>[] = [
+    self.registration.showNotification(title, {
       body: payload.body,
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       data: { orderId: payload.orderId, url: payload.url },
-    })
-  );
+    }),
+  ];
+
+  // Update phone home screen icon badge count
+  const nav = self.navigator as unknown as { setAppBadge?: (count?: number) => Promise<void> };
+  if (nav && typeof nav.setAppBadge === 'function') {
+    promises.push(nav.setAppBadge(payload.badgeCount ?? 1).catch(() => {}));
+  }
+
+  event.waitUntil(Promise.all(promises));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const { orderId, url: dataUrl } = event.notification.data || {};
   const url = orderId ? `/production/${orderId}` : dataUrl || '/dashboard';
+
+  // Clear home screen icon badge on notification tap
+  const nav = self.navigator as unknown as { clearAppBadge?: () => Promise<void> };
+  if (nav && typeof nav.clearAppBadge === 'function') {
+    nav.clearAppBadge().catch(() => {});
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
