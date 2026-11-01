@@ -8,7 +8,6 @@ import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
-import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import MilestonesCard from '../MilestonesCard';
@@ -212,9 +211,6 @@ export default function OwnerDashboard({
         debtorsCount={debtorsCount}
         debtTotal={debtTotal}
       />
-
-      {/* Daily Craft Activity & Streak Progression (including Fabric Market Sourcing) */}
-      <DailyActivityDropdown />
 
       {/* 3. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
       <TodayPrioritiesWidget

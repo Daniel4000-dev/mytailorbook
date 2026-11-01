@@ -6,6 +6,7 @@ import Modal from '@/components/ui/Modal/Modal';
 import FlameIcon from '@/components/ui/FlameIcon/FlameIcon';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
 import { logStudioRestDayAction } from '@/app/actions';
 import { useData } from '@/contexts/DataContext';
 import styles from './StreakModal.module.css';
@@ -74,10 +75,39 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
         <div className={styles.flameContainer}>
           <div className={styles.flame}><FlameIcon size={72} /></div>
         </div>
-        <h2 className={styles.title}>{streakCount} Day Streak!</h2>
+        <h2 className={styles.title}>{streakCount > 0 ? `${streakCount} Day Streak!` : 'Atelier Daily Streak'}</h2>
         <p className={styles.subtitle}>
-          You're on fire! Keep logging your daily cuts, stitches, and orders to climb the Master Tailor Challenge rankings.
+          {streakCount > 0
+            ? "You're on fire! Keep recording your daily cuts, stitches, and studio tasks to keep your momentum alive."
+            : 'Start building your streak today by logging your cutting, sewing, market sourcing, or custom atelier craft.'}
         </p>
+
+        {/* 3-Day Grace Pause Notice */}
+        <div style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(245, 158, 11, 0.08)',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+          borderRadius: '10px',
+          padding: '8px 12px',
+          marginBottom: '16px',
+          textAlign: 'left',
+          fontSize: '12px',
+          color: 'var(--sf-text-secondary)',
+          lineHeight: 1.4,
+        }}>
+          <Symbol name="schedule" size={16} style={{ color: '#d97706', flexShrink: 0 }} />
+          <span>
+            <strong style={{ color: 'var(--sf-text-primary)' }}>3-Day Grace Pause:</strong> Inactivity up to 3 days pauses your streak. On day 4 without activity, it resets to zero.
+          </span>
+        </div>
+
+        {/* Daily Craft Activity Dropdown & Logger */}
+        <div style={{ width: '100%', marginBottom: '16px' }}>
+          <DailyActivityDropdown />
+        </div>
 
         {/* Studio Rest Day Option */}
         <div style={{

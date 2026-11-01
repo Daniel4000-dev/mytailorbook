@@ -14,7 +14,6 @@ import MilestonesCard from '../MilestonesCard';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
 import { ROUTES } from '@/lib/routes';
 
 // ============================================================
@@ -247,9 +246,6 @@ export default function OwnerDashboard({
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
-          {/* Daily Craft Activity & Streak Progression (including Fabric Market Sourcing) */}
-          <DailyActivityDropdown />
-
           {/* Today's Schedule & Fittings (Calendar) */}
           <TodaysAgendaWidget />
 

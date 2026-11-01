@@ -63,8 +63,14 @@ export default function TopBar({
     prevStreakRef.current = currentStreak;
   }, [currentStreak]);
 
-  const streakIndicator = currentStreak > 0 && (
-    <button className={styles.streakBadge} title={`${currentStreak} day streak!`} onClick={() => setIsStreakModalOpen(true)}>
+  const streakIndicator = (
+    <button
+      type="button"
+      className={styles.streakBadge}
+      title={currentStreak > 0 ? `${currentStreak} day streak! Tap to view craft activities` : 'Start daily streak'}
+      onClick={() => setIsStreakModalOpen(true)}
+      aria-label="Atelier streak status and craft activities"
+    >
       <FlameIcon size={18} style={{ marginRight: '4px' }} /> <span>{currentStreak}</span>
     </button>
   );

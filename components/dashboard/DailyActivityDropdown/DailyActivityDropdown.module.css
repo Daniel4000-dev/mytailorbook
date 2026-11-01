@@ -3,9 +3,10 @@
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md);
   padding: var(--sf-space-md);
-  margin-bottom: var(--sf-space-md);
+  margin-bottom: 0;
   box-shadow: var(--sf-shadow-xs);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  text-align: left;
 }
 
 .header {
@@ -186,3 +187,4 @@
   cursor: pointer;
   padding: 4px;
 }
+
