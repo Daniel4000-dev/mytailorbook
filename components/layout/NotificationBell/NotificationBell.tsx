@@ -28,7 +28,7 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length;
+  const unreadCount = notifications.filter((n) => !readIds.has(n.id) && !n.readAt).length;
   const preview = notifications.slice(0, 8);
 
   const handleToggle = () => {
@@ -84,7 +84,7 @@ export default function NotificationBell() {
           ) : (
             <div className={styles.list}>
               {preview.map((n) => {
-                const isUnread = !readIds.has(n.id);
+                const isUnread = !readIds.has(n.id) && !n.readAt;
                 const badgeIcon = n.badgeIcon || (n.tone === 'alert' ? 'warning' : 'check_circle');
                 const badgeColor = n.badgeColor || (n.tone === 'alert' ? '#DC2626' : '#047857');
 

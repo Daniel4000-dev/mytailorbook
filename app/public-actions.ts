@@ -3,7 +3,7 @@
 import { cache } from 'react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
-import { sendPushToShop } from '@/lib/push';
+import { createAtelierNotification } from '@/lib/notifications';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
 import { isOrgPremiumByOrgId } from '@/lib/subscription';
@@ -162,9 +162,18 @@ export async function submitOrderComment(orderId: string, message: string): Prom
   // "new comment" without querying the comments table per order.
   await admin.from('orders').update({ last_comment_at: new Date().toISOString() }).eq('id', orderId);
 
-  sendPushToShop(order.shop_id, null, {
+  createAtelierNotification({
+    shopId: order.shop_id,
+    category: 'clients',
+    tone: 'warning',
+    actorName: order.customer_name,
+    badgeIcon: 'chat',
+    badgeBg: '#E0E7FF',
+    badgeColor: '#4F46E5',
     title: `${order.customer_name} left a comment`,
-    body: trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed,
+    subtitle: trimmed.length > 80 ? trimmed.slice(0, 80) + '...' : trimmed,
+    actionLabel: 'Reply',
+    actionHref: `/production/${orderId}`,
     orderId,
   }).catch(() => {});
 
@@ -195,9 +204,18 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
   const { error: updateError } = await admin.from('orders').update({ last_reminder_at: now }).eq('id', orderId);
   if (updateError) return { success: false, error: updateError.message };
 
-  sendPushToShop(order.shop_id, null, {
+  createAtelierNotification({
+    shopId: order.shop_id,
+    category: 'clients',
+    tone: 'warning',
+    actorName: order.customer_name,
+    badgeIcon: 'notifications',
+    badgeBg: '#FEF3C7',
+    badgeColor: '#D97706',
     title: `${order.customer_name} sent a reminder about their order`,
-    body: `Status: ${order.status}`,
+    subtitle: `Status: ${order.status}`,
+    actionLabel: 'Send WhatsApp',
+    actionHref: `/production/${orderId}`,
     orderId,
   }).catch(() => {});
 
@@ -264,9 +282,20 @@ export async function submitOrderRatingAction(
     return { success: false, error: insertError.message };
   }
 
-  sendPushToShop(order.shop_id, null, {
+  createAtelierNotification({
+    shopId: order.shop_id,
+    category: 'clients',
+    tone: 'info',
+    actorName: order.customer_name,
+    badgeIcon: 'star',
+    badgeBg: '#FEF9C3',
+    badgeColor: '#CA8A04',
     title: `${order.customer_name} left a ${rating}-star review`,
-    body: trimmedComment ? (trimmedComment.length > 80 ? trimmedComment.slice(0, 80) + '…' : trimmedComment) : 'Awaiting your approval to go public.',
+    subtitle: trimmedComment
+      ? (trimmedComment.length > 80 ? trimmedComment.slice(0, 80) + '...' : trimmedComment)
+      : 'Awaiting your approval to go public.',
+    actionLabel: 'Review',
+    actionHref: '/settings/portfolio',
     orderId,
   }).catch(() => {});
 

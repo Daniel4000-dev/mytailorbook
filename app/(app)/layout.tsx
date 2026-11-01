@@ -14,6 +14,7 @@ import FAB from '@/components/ui/FAB/FAB';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
+import NotificationPrompt from '@/components/notifications/NotificationPrompt/NotificationPrompt';
 import AppTour from '@/components/system/AppTour/AppTour';
 import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -161,6 +162,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       )}
       {!isMenuOpen && !isTransactional && <BottomNav />}
       {!isMenuOpen && <InstallPrompt />}
+      {!isMenuOpen && !isTransactional && <NotificationPrompt />}
       {/* Self-gating (see AppTour) — only ever actually renders once, on
           first login, and skipped entirely mid-wizard so it never covers
           the focused customer/order creation flow. */}

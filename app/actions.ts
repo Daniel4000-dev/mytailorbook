@@ -5,7 +5,15 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
-import { sendPushToShop } from '@/lib/push';
+import { createAtelierNotification } from '@/lib/notifications';
+
+const STAGE_BADGE_ICON: Record<OrderStatus, string> = {
+  Documented: 'assignment',
+  Cutting: 'content_cut',
+  Sewing: 'settings',
+  Ready: 'check_circle',
+  Delivered: 'inventory_2',
+};
 import { formatCurrency } from '@/lib/formatters';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem, CalendarEvent, CalendarEventType } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
@@ -650,9 +658,19 @@ export async function updateOrderStatusAction(
     diff: { fromStatus: current.status, toStatus: newStatus },
   });
 
-  sendPushToShop(shopId, changedBy, {
+  createAtelierNotification({
+    shopId,
+    excludeActorId: changedBy,
+    category: 'production',
+    tone: 'info',
+    actorName: changedByName,
+    badgeIcon: STAGE_BADGE_ICON[newStatus],
+    badgeBg: '#D1FAE5',
+    badgeColor: '#059669',
     title: `${current.customer_name}'s order moved to ${newStatus}`,
-    body: `By ${changedByName}`,
+    subtitle: `By ${changedByName}`,
+    actionLabel: 'View Order',
+    actionHref: `/production/${orderId}`,
     orderId,
   }).catch(() => {});
 
@@ -689,9 +707,19 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     if (lastPayment) {
       const { data: orderRow } = await supabase.from('orders').select('customer_name').eq('id', orderId).single();
       const { data: shopRow } = await supabase.from('shops').select('currency').eq('id', shopId).single();
-      sendPushToShop(shopId, actorId, {
+      createAtelierNotification({
+        shopId,
+        excludeActorId: actorId,
+        category: 'payments',
+        tone: 'info',
+        actorName,
+        badgeIcon: 'payments',
+        badgeBg: '#ECFDF5',
+        badgeColor: '#047857',
         title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
-        body: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
+        subtitle: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
+        actionLabel: 'View Receipt',
+        actionHref: `/production/${orderId}`,
         orderId,
       }).catch(() => {});
     }
@@ -1202,10 +1230,20 @@ export async function createStylePhotoSubmissionAction(
     .single();
   if (error) return { error: error.message };
   
-  sendPushToShop(shopId, uploadedBy, {
-    title: 'Style Photo Pending Approval',
-    body: `${uploadedByName} uploaded a new photo for '${styleName}' — tap to review and publish.`,
-    url: '/settings',
+  createAtelierNotification({
+    shopId,
+    excludeActorId: uploadedBy,
+    category: 'clients',
+    tone: 'warning',
+    actorName: uploadedByName,
+    badgeIcon: 'photo_camera',
+    badgeBg: '#FEF3C7',
+    badgeColor: '#D97706',
+    title: `Style photo for "${styleName}" needs approval`,
+    subtitle: `Uploaded by ${uploadedByName}`,
+    thumbnailUrl: photoUrl,
+    actionLabel: 'Review',
+    actionHref: `/styles/${encodeURIComponent(styleName)}`,
   }).catch(() => {});
 
   return stylePhotoSubmissionFromRow(data);

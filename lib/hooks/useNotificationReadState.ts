@@ -1,48 +1,54 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
+import { createClient } from '@/lib/supabase/client';
 
-const COOKIE_KEY = 'mtb_read_notifications';
-// Notification ids are derived, not stored server-side, so this cookie is
-// the only record of "seen" — capped well under the ~4KB cookie limit.
-const MAX_STORED = 300;
-
-function loadReadIds(): Set<string> {
-  const raw = getClientCookie(COOKIE_KEY);
-  if (!raw) return new Set();
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? new Set(parsed) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveReadIds(ids: Set<string>) {
-  setClientCookie(COOKIE_KEY, JSON.stringify(Array.from(ids).slice(-MAX_STORED)));
-}
-
+/**
+ * Cross-device read state backed by `atelier_notifications.read_at`.
+ *
+ * The hook maintains a local `readIds` Set for immediate UI feedback
+ * (zero-latency optimistic update) while the Supabase write propagates
+ * in the background and the Realtime subscription in `useNotifications`
+ * picks up the UPDATE event to keep the canonical list in sync.
+ */
 export function useNotificationReadState() {
-  const [readIds, setReadIds] = useState<Set<string>>(() => loadReadIds());
+  const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
 
   const markRead = useCallback((id: string) => {
     setReadIds((prev) => {
       if (prev.has(id)) return prev;
       const next = new Set(prev);
       next.add(id);
-      saveReadIds(next);
       return next;
     });
+
+    // Persist to DB — fire-and-forget; Realtime UPDATE will confirm.
+    const supabase = createClient();
+    supabase
+      .from('atelier_notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', id)
+      .is('read_at', null)
+      .then(() => {});
   }, []);
 
   const markAllRead = useCallback((ids: string[]) => {
+    if (ids.length === 0) return;
+
     setReadIds((prev) => {
       const next = new Set(prev);
       ids.forEach((id) => next.add(id));
-      saveReadIds(next);
       return next;
     });
+
+    // Bulk update — only touch rows that are still unread.
+    const supabase = createClient();
+    supabase
+      .from('atelier_notifications')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', ids)
+      .is('read_at', null)
+      .then(() => {});
   }, []);
 
   return { readIds, markRead, markAllRead };

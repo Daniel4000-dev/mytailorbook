@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { sendPushToShop } from '@/lib/push';
+import { createAtelierNotification } from '@/lib/notifications';
 import { recordSubscriptionEvent } from '@/lib/subscriptionEvents';
 import { validateCronEnvironment, getBillingEnv } from '@/lib/billing/environment';
 
@@ -94,10 +94,17 @@ export async function GET(request: NextRequest) {
               .update({ subscription_status: 'conversion_failed' })
               .eq('id', shop.id);
             await recordSubscriptionEvent(admin, { shopId: shop.id, eventType: 'trial_conversion_failed', status: 'conversion_failed' });
-            await sendPushToShop(shop.id, null, {
+            await createAtelierNotification({
+              shopId: shop.id,
+              category: 'system',
+              tone: 'alert',
+              badgeIcon: 'credit_card_off',
+              badgeBg: '#FEE2E2',
+              badgeColor: '#DC2626',
               title: 'Free trial ended',
-              body: "Your trial ended and we couldn't charge your card. Please update your payment method to resubscribe.",
-              url: '/settings',
+              subtitle: "Your trial ended and we couldn't charge your card. Please update your payment method to resubscribe.",
+              actionLabel: 'Update Payment',
+              actionHref: '/settings',
             });
             trialsFailed++;
             console.log(JSON.stringify({ event: 'trial_conversion_failure', shopId: shop.id, environment: billingEnv, status: 'conversion_failed', timestamp: new Date().toISOString() }));
@@ -115,10 +122,17 @@ export async function GET(request: NextRequest) {
             })
             .eq('id', shop.id);
           await recordSubscriptionEvent(admin, { shopId: shop.id, eventType: 'trial_converted', status: 'active' });
-          await sendPushToShop(shop.id, null, {
-            title: 'Trial ended — you\'re on Premium',
-            body: 'Your free trial just ended and your card was charged for Premium. Thanks for continuing with MyStitchBook!',
-            url: '/settings',
+          await createAtelierNotification({
+            shopId: shop.id,
+            category: 'system',
+            tone: 'info',
+            badgeIcon: 'verified',
+            badgeBg: '#D1FAE5',
+            badgeColor: '#059669',
+            title: "Trial ended — you're on Premium",
+            subtitle: 'Your free trial just ended and your card was charged for Premium. Thanks for continuing with MyStitchBook!',
+            actionLabel: 'View Plan',
+            actionHref: '/settings',
           });
           trialsConverted++;
           console.log(JSON.stringify({ event: 'trial_conversion_success', shopId: shop.id, environment: billingEnv, status: 'active', timestamp: new Date().toISOString(), reference: subData.data.subscription_code }));
@@ -145,7 +159,18 @@ export async function GET(request: NextRequest) {
 
   for (const shop of renewingSoon || []) {
     if (shop.last_billing_reminder_sent_at && shop.last_billing_reminder_sent_at >= todayStart) continue;
-    await sendPushToShop(shop.id, null, { title: 'Subscription renewing soon', body: 'Your MyStitchBook subscription renews in the next few days. Make sure your card on file is up to date.', url: '/settings' });
+    await createAtelierNotification({
+      shopId: shop.id,
+      category: 'system',
+      tone: 'warning',
+      badgeIcon: 'schedule',
+      badgeBg: '#FEF3C7',
+      badgeColor: '#D97706',
+      title: 'Subscription renewing soon',
+      subtitle: 'Your MyStitchBook subscription renews in the next few days. Make sure your card on file is up to date.',
+      actionLabel: 'View Settings',
+      actionHref: '/settings',
+    });
     await admin.from('shops').update({ last_billing_reminder_sent_at: now.toISOString() }).eq('id', shop.id);
     remindedUpcoming++;
   }
@@ -162,7 +187,18 @@ export async function GET(request: NextRequest) {
   for (const shop of pastDue || []) {
     if (shop.last_billing_reminder_sent_at && shop.last_billing_reminder_sent_at >= todayStart) continue;
     const daysLeft = Math.max(1, Math.ceil((new Date(shop.grace_expires_at).getTime() - now.getTime()) / DAY_MS));
-    await sendPushToShop(shop.id, null, { title: 'Payment failed', body: `We couldn't renew your subscription. You have ${daysLeft} day${daysLeft === 1 ? '' : 's'} left before your plan reverts to Free.`, url: '/settings' });
+    await createAtelierNotification({
+      shopId: shop.id,
+      category: 'system',
+      tone: 'alert',
+      badgeIcon: 'credit_card_off',
+      badgeBg: '#FEE2E2',
+      badgeColor: '#DC2626',
+      title: 'Payment failed',
+      subtitle: `We couldn't renew your subscription. You have ${daysLeft} day${daysLeft === 1 ? '' : 's'} left before your plan reverts to Free.`,
+      actionLabel: 'Update Payment',
+      actionHref: '/settings',
+    });
     await admin.from('shops').update({ last_billing_reminder_sent_at: now.toISOString() }).eq('id', shop.id);
     remindedPastDue++;
   }
@@ -179,7 +215,18 @@ export async function GET(request: NextRequest) {
   if (expired && expired.length > 0) {
     await admin.from('shops').update({ subscription_status: 'free', grace_expires_at: null }).in('id', expired.map((s) => s.id));
     demoted = expired.length;
-    await Promise.all(expired.map((shop) => sendPushToShop(shop.id, null, { title: 'Reverted to Free plan', body: 'Your grace period ended without a successful payment, so your account is now on the Free plan.', url: '/settings' })));
+    await Promise.all(expired.map((shop) => createAtelierNotification({
+      shopId: shop.id,
+      category: 'system',
+      tone: 'alert',
+      badgeIcon: 'lock',
+      badgeBg: '#FEE2E2',
+      badgeColor: '#DC2626',
+      title: 'Reverted to Free plan',
+      subtitle: 'Your grace period ended without a successful payment, so your account is now on the Free plan.',
+      actionLabel: 'Resubscribe',
+      actionHref: '/settings',
+    })));
   }
 
   // 4. Canceled, period ending soon reminder
@@ -195,7 +242,18 @@ export async function GET(request: NextRequest) {
 
   for (const shop of canceledSoon || []) {
     if (shop.last_billing_reminder_sent_at && shop.last_billing_reminder_sent_at >= todayStart) continue;
-    await sendPushToShop(shop.id, null, { title: 'Premium ending soon', body: 'Your canceled subscription keeps Premium until your current billing period ends in the next few days.', url: '/settings' });
+    await createAtelierNotification({
+      shopId: shop.id,
+      category: 'system',
+      tone: 'warning',
+      badgeIcon: 'schedule',
+      badgeBg: '#FEF3C7',
+      badgeColor: '#D97706',
+      title: 'Premium ending soon',
+      subtitle: 'Your canceled subscription keeps Premium until your current billing period ends in the next few days.',
+      actionLabel: 'View Settings',
+      actionHref: '/settings',
+    });
     await admin.from('shops').update({ last_billing_reminder_sent_at: now.toISOString() }).eq('id', shop.id);
     remindedCanceled++;
   }
@@ -213,7 +271,18 @@ export async function GET(request: NextRequest) {
   if (canceledExpired && canceledExpired.length > 0) {
     await admin.from('shops').update({ subscription_status: 'free' }).in('id', canceledExpired.map((s) => s.id));
     demotedCanceled = canceledExpired.length;
-    await Promise.all(canceledExpired.map((shop) => sendPushToShop(shop.id, null, { title: 'Reverted to Free plan', body: 'Your canceled subscription\'s billing period has ended.', url: '/settings' })));
+    await Promise.all(canceledExpired.map((shop) => createAtelierNotification({
+      shopId: shop.id,
+      category: 'system',
+      tone: 'alert',
+      badgeIcon: 'lock',
+      badgeBg: '#FEE2E2',
+      badgeColor: '#DC2626',
+      title: 'Reverted to Free plan',
+      subtitle: "Your canceled subscription's billing period has ended.",
+      actionLabel: 'Resubscribe',
+      actionHref: '/settings',
+    })));
   }
 
   return NextResponse.json({ ok: true, trialsConverted, trialsFailed, remindedUpcoming, remindedPastDue, remindedCanceled, demoted, demotedCanceled });

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { sendPushToShop } from '@/lib/push';
+import { createAtelierNotification } from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
@@ -47,9 +47,17 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching stuck orders:', orderError);
   } else if (stuckOrders) {
     for (const order of stuckOrders) {
-      await sendPushToShop(order.shop_id, null, {
+      await createAtelierNotification({
+        shopId: order.shop_id,
+        category: 'production',
+        tone: 'alert',
+        badgeIcon: 'warning',
+        badgeBg: '#FEE2E2',
+        badgeColor: '#DC2626',
         title: `${order.customer_name}'s order is due tomorrow`,
-        body: `Still stuck in ${order.status}`,
+        subtitle: `Still stuck in ${order.status}`,
+        actionLabel: 'View Order',
+        actionHref: `/production/${order.id}`,
         orderId: order.id,
       });
       ordersNotified++;
@@ -66,10 +74,18 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching birthdays:', customerError);
   } else if (birthdayCustomers) {
     for (const customer of birthdayCustomers) {
-      await sendPushToShop(customer.shop_id, null, {
+      await createAtelierNotification({
+        shopId: customer.shop_id,
+        category: 'clients',
+        tone: 'info',
+        actorName: customer.full_name,
+        badgeIcon: 'cake',
+        badgeBg: '#FCE7F3',
+        badgeColor: '#DB2777',
         title: `${customer.full_name}'s birthday is tomorrow!`,
-        body: 'Reach out and wish them well.',
-        url: `/customers/${customer.id}`,
+        subtitle: 'Reach out and wish them well.',
+        actionLabel: 'View Client',
+        actionHref: `/customers/${customer.id}`,
       });
       birthdaysNotified++;
     }
@@ -97,10 +113,17 @@ export async function GET(request: NextRequest) {
       }
       
       for (const [shopId, count] of Object.entries(shopOverdueCounts)) {
-        await sendPushToShop(shopId, null, {
+        await createAtelierNotification({
+          shopId,
+          category: 'system',
+          tone: 'warning',
+          badgeIcon: 'warning',
+          badgeBg: '#FEF3C7',
+          badgeColor: '#D97706',
           title: 'Weekly Backlog Digest',
-          body: `You have ${count} overdue order${count === 1 ? '' : 's'} to clear this week. Tap to view your backlog.`,
-          url: '/production',
+          subtitle: `You have ${count} overdue order${count === 1 ? '' : 's'} to clear this week. Tap to view your backlog.`,
+          actionLabel: 'View Backlog',
+          actionHref: '/production',
         });
         overdueDigestsSent++;
       }
@@ -125,10 +148,17 @@ export async function GET(request: NextRequest) {
     }
     
     for (const [shopId, count] of Object.entries(shopEventCounts)) {
-      await sendPushToShop(shopId, null, {
+      await createAtelierNotification({
+        shopId,
+        category: 'system',
+        tone: 'info',
+        badgeIcon: 'calendar_today',
+        badgeBg: '#EDE9FE',
+        badgeColor: '#7C3AED',
         title: "Today's Schedule",
-        body: `You have ${count} appointment${count === 1 ? '' : 's'} scheduled for today.`,
-        url: '/calendar',
+        subtitle: `You have ${count} appointment${count === 1 ? '' : 's'} scheduled for today.`,
+        actionLabel: 'View Calendar',
+        actionHref: '/calendar',
       });
       calendarEventsNotified++;
     }

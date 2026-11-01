@@ -61,7 +61,7 @@ export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
 
   const unreadCount = useMemo(
-    () => notifications.filter((n) => !readIds.has(n.id)).length,
+    () => notifications.filter((n) => !readIds.has(n.id) && !n.readAt).length,
     [notifications, readIds]
   );
 
@@ -69,7 +69,7 @@ export default function NotificationsPage() {
     let list = notifications;
 
     if (activeTab === 'unread') {
-      list = list.filter((n) => !readIds.has(n.id));
+      list = list.filter((n) => !readIds.has(n.id) && !n.readAt);
     } else if (activeTab !== 'all') {
       list = list.filter((n) => n.category === activeTab);
     }
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
       list = list.filter(
         (n) =>
           n.title.toLowerCase().includes(q) ||
-          n.subtitle.toLowerCase().includes(q) ||
+          (n.subtitle ?? '').toLowerCase().includes(q) ||
           (n.actorName && n.actorName.toLowerCase().includes(q))
       );
     }
@@ -235,7 +235,7 @@ export default function NotificationsPage() {
               <span className={styles.groupLabel}>{label}</span>
               <div className={styles.rowList}>
                 {items.map((n) => {
-                  const isUnread = !readIds.has(n.id);
+                  const isUnread = !readIds.has(n.id) && !n.readAt;
                   const actor = n.actorName || (n.title.split(' ')[0] + ' ' + (n.title.split(' ')[1] || ''));
                   const badgeIcon = n.badgeIcon || (n.tone === 'alert' ? 'warning' : 'check_circle');
                   const badgeBg = n.badgeBg || (n.tone === 'alert' ? '#FEE2E2' : '#D1FAE5');
