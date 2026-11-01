@@ -23,13 +23,16 @@ export function useNotificationReadState() {
     });
 
     // Persist to DB — fire-and-forget; Realtime UPDATE will confirm.
-    const supabase = createClient();
-    supabase
-      .from('atelier_notifications')
-      .update({ read_at: new Date().toISOString() })
-      .eq('id', id)
-      .is('read_at', null)
-      .then(() => {});
+    try {
+      const supabase = createClient();
+      Promise.resolve(
+        supabase
+          .from('atelier_notifications')
+          .update({ read_at: new Date().toISOString() })
+          .eq('id', id)
+          .is('read_at', null)
+      ).then(() => {}).catch(() => {});
+    } catch {}
   }, []);
 
   const markAllRead = useCallback((ids: string[]) => {
@@ -42,13 +45,16 @@ export function useNotificationReadState() {
     });
 
     // Bulk update — only touch rows that are still unread.
-    const supabase = createClient();
-    supabase
-      .from('atelier_notifications')
-      .update({ read_at: new Date().toISOString() })
-      .in('id', ids)
-      .is('read_at', null)
-      .then(() => {});
+    try {
+      const supabase = createClient();
+      Promise.resolve(
+        supabase
+          .from('atelier_notifications')
+          .update({ read_at: new Date().toISOString() })
+          .in('id', ids)
+          .is('read_at', null)
+      ).then(() => {}).catch(() => {});
+    } catch {}
   }, []);
 
   return { readIds, markRead, markAllRead };

@@ -78,7 +78,7 @@ export default function NotificationsPage() {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter(
         (n) =>
-          n.title.toLowerCase().includes(q) ||
+          (n.title ?? '').toLowerCase().includes(q) ||
           (n.subtitle ?? '').toLowerCase().includes(q) ||
           (n.actorName && n.actorName.toLowerCase().includes(q))
       );
@@ -236,7 +236,8 @@ export default function NotificationsPage() {
               <div className={styles.rowList}>
                 {items.map((n) => {
                   const isUnread = !readIds.has(n.id) && !n.readAt;
-                  const actor = n.actorName || (n.title.split(' ')[0] + ' ' + (n.title.split(' ')[1] || ''));
+                  const itemTitle = n.title || 'Atelier Update';
+                  const actor = n.actorName || (itemTitle.split(' ')[0] + ' ' + (itemTitle.split(' ')[1] || ''));
                   const badgeIcon = n.badgeIcon || (n.tone === 'alert' ? 'warning' : 'check_circle');
                   const badgeBg = n.badgeBg || (n.tone === 'alert' ? '#FEE2E2' : '#D1FAE5');
                   const badgeColor = n.badgeColor || (n.tone === 'alert' ? '#DC2626' : '#059669');
@@ -277,7 +278,7 @@ export default function NotificationsPage() {
                       <div className={styles.contentCol}>
                         <p className={styles.activitySentence}>
                           <span className={styles.actorName}>{actor}</span>{' '}
-                          {n.title.replace(actor, '').trim() || n.title}
+                          {itemTitle.replace(actor, '').trim() || itemTitle}
                           <span className={styles.timeTag}>
                             {formatInstagramRelativeTime(n.timestamp)}
                           </span>

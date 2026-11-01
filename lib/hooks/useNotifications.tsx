@@ -35,8 +35,9 @@ export interface NotificationItem {
 // DB row → app type mapper
 // ---------------------------------------------------------------------------
 function mapRowToItem(row: Record<string, unknown>): NotificationItem {
+  const title = (row.title as string) || 'Atelier Notification';
   return {
-    id: row.id as string,
+    id: (row.id as string) || `notif-${Math.random()}`,
     category: (row.category as NotificationCategory) ?? 'system',
     tone: (row.tone as NotificationItem['tone']) ?? 'info',
     actorName: (row.actor_name as string | null) ?? undefined,
@@ -44,13 +45,13 @@ function mapRowToItem(row: Record<string, unknown>): NotificationItem {
     badgeIcon: (row.badge_icon as string | null) ?? undefined,
     badgeBg: (row.badge_bg as string | null) ?? undefined,
     badgeColor: (row.badge_color as string | null) ?? undefined,
-    title: row.title as string,
+    title,
     subtitle: (row.subtitle as string | null) ?? undefined,
     thumbnailUrl: (row.thumbnail_url as string | null) ?? undefined,
     actionLabel: (row.action_label as string | null) ?? undefined,
     actionHref: (row.action_href as string | null) ?? undefined,
     href: (row.action_href as string | null) ?? undefined,
-    timestamp: row.created_at as string,
+    timestamp: (row.created_at as string) || new Date().toISOString(),
     readAt: (row.read_at as string | null) ?? null,
     orderId: (row.order_id as string | null) ?? undefined,
     isSystem: (row.category as string) === 'system',
@@ -177,66 +178,95 @@ export function useNotifications() {
   useEffect(() => {
     if (!currentShop?.id) return;
 
-    const supabase = createClient();
     let cancelled = false;
+    let channel: ReturnType<ReturnType<typeof createClient>['channel']> | null = null;
 
-    // Initial load — most-recent 100 rows for this shop.
-    supabase
-      .from('atelier_notifications')
-      .select('*')
-      .eq('shop_id', currentShop.id)
-      .order('created_at', { ascending: false })
-      .limit(100)
-      .then(({ data }) => {
-        if (cancelled) return;
-        const rows = (data || []).map(mapRowToItem);
-        // If the shop has no real notifications yet, seed with immersive mock data
-        // so the hub is never blank on first run.
-        setNotifications(rows.length > 0 ? rows : MOCK_NOTIFICATIONS);
+    try {
+      const supabase = createClient();
+
+      // Initial load — most-recent 100 rows for this shop.
+      Promise.resolve(
+        supabase
+          .from('atelier_notifications')
+          .select('*')
+          .eq('shop_id', currentShop.id)
+          .order('created_at', { ascending: false })
+          .limit(100)
+      )
+        .then(({ data, error }) => {
+          if (cancelled) return;
+          if (error) {
+            // Table doesn't exist yet in Supabase or query failed - fallback cleanly to mock feed
+            setNotifications(MOCK_NOTIFICATIONS);
+            setIsLoaded(true);
+            return;
+          }
+          const rows = (data || []).filter(Boolean).map(mapRowToItem);
+          setNotifications(rows.length > 0 ? rows : MOCK_NOTIFICATIONS);
+          setIsLoaded(true);
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setNotifications(MOCK_NOTIFICATIONS);
+            setIsLoaded(true);
+          }
+        });
+
+      // Realtime subscription — instant delivery without polling.
+      channel = supabase
+        .channel(`atelier-notifications-${currentShop.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'atelier_notifications',
+            filter: `shop_id=eq.${currentShop.id}`,
+          },
+          (payload) => {
+            if (cancelled || !payload?.new) return;
+            const newRow = payload.new as Record<string, unknown>;
+            if (!newRow || typeof newRow !== 'object' || !newRow.id) return;
+            setNotifications((prev) => {
+              if (prev.some((n) => n.id === newRow.id)) return prev;
+              return [mapRowToItem(newRow), ...prev];
+            });
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'atelier_notifications',
+            filter: `shop_id=eq.${currentShop.id}`,
+          },
+          (payload) => {
+            if (cancelled || !payload?.new) return;
+            const updatedRow = payload.new as Record<string, unknown>;
+            if (!updatedRow || typeof updatedRow !== 'object' || !updatedRow.id) return;
+            const updated = mapRowToItem(updatedRow);
+            setNotifications((prev) =>
+              prev.map((n) => (n.id === updated.id ? updated : n)),
+            );
+          },
+        )
+        .subscribe();
+    } catch {
+      if (!cancelled) {
+        setNotifications(MOCK_NOTIFICATIONS);
         setIsLoaded(true);
-      });
-
-    // Realtime subscription — instant delivery without polling.
-    const channel = supabase
-      .channel(`atelier-notifications-${currentShop.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'atelier_notifications',
-          filter: `shop_id=eq.${currentShop.id}`,
-        },
-        (payload) => {
-          if (cancelled) return;
-          setNotifications((prev) => {
-            // Guard against duplicate delivery (Supabase Realtime can replay on reconnect).
-            if (prev.some((n) => n.id === (payload.new as Record<string, unknown>).id)) return prev;
-            return [mapRowToItem(payload.new as Record<string, unknown>), ...prev];
-          });
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'atelier_notifications',
-          filter: `shop_id=eq.${currentShop.id}`,
-        },
-        (payload) => {
-          if (cancelled) return;
-          const updated = mapRowToItem(payload.new as Record<string, unknown>);
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === updated.id ? updated : n)),
-          );
-        },
-      )
-      .subscribe();
+      }
+    }
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          const supabase = createClient();
+          supabase.removeChannel(channel);
+        } catch {}
+      }
     };
   }, [currentShop?.id]);
 

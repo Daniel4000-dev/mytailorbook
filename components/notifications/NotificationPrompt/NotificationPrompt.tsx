@@ -50,25 +50,29 @@ export default function NotificationPrompt() {
   const [enabling, setEnabling] = useState(false);
 
   useEffect(() => {
-    // Only prompt authenticated users who haven't dismissed recently
-    if (!user) return;
-    if (typeof window === 'undefined') return;
-    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      // Only prompt authenticated users who haven't dismissed recently
+      if (!user) return;
+      if (typeof window === 'undefined') return;
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-    // If permission has already been determined (granted or denied), never prompt
-    if (Notification.permission !== 'default') return;
+      // If permission has already been determined (granted or denied), never prompt
+      if (!window.Notification || window.Notification.permission !== 'default') return;
 
-    if (isDismissedRecently()) return;
+      if (isDismissedRecently()) return;
 
-    // On iOS, Web Push is only supported once added to Home Screen (standalone mode)
-    if (isIOS() && !isStandalone()) return;
+      // On iOS, Web Push is only supported once added to Home Screen (standalone mode)
+      if (isIOS() && !isStandalone()) return;
 
-    // Delay slightly after page mount so it feels smooth and natural
-    const timer = window.setTimeout(() => {
-      setVisible(true);
-    }, SHOW_DELAY_MS);
+      // Delay slightly after page mount so it feels smooth and natural
+      const timer = window.setTimeout(() => {
+        setVisible(true);
+      }, SHOW_DELAY_MS);
 
-    return () => window.clearTimeout(timer);
+      return () => window.clearTimeout(timer);
+    } catch {
+      // Gracefully ignore notification check failures in restricted webviews
+    }
   }, [user]);
 
   const dismiss = useCallback(() => {
