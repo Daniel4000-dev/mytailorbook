@@ -1311,31 +1311,148 @@
   transition: width 0.5s ease-out;
 }
 
-/* 5-Pillar Workshop Metric Strip — Debossed Inset Atelier Tray */
+/* 5-Pillar Workshop Metric Strip — Elevated Atelier Cockpit Deck */
 .workshopMetricStrip,
 .operationsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px 6px;
   align-items: stretch;
-  background: rgba(10, 8, 30, 0.45);
+  background: rgba(12, 10, 36, 0.52);
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-radius: var(--sf-radius-lg);
+  border-radius: var(--sf-radius-xl);
   padding: 10px 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.6);
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.55),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.1),
-    0 4px 16px rgba(0, 0, 0, 0.25);
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    0 6px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   z-index: 2;
 }
 
-.operationsCard,
+.operationsCard {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 9px 7px;
+  min-height: 56px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--sf-radius-md);
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.operationsCardWide {
+  grid-column: span 3;
+}
+
+.operationsCard:active,
+.metricItem:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.operationsCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+}
+
+.operationsCardLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+}
+
+.operationsCardIcon {
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+}
+
+.operationsCardMetric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.operationsLabelGroup {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.operationsCardSub {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+/* Card Visual Elevation Themes */
+.operationsCardSewing:hover,
+.operationsCardCutting:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.operationsCardDebt {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.1), rgba(255, 255, 255, 0.03));
+  border-color: rgba(245, 158, 11, 0.22);
+}
+
+.operationsCardDebt .operationsCardIcon {
+  color: #FBBF24;
+}
+
+.operationsCardDebt .metricNum {
+  color: #FDE68A;
+  font-size: 13.5px;
+}
+
+.operationsCardOverdue {
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.1), rgba(255, 255, 255, 0.03));
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+.operationsCardOverdue .operationsCardIcon {
+  color: #F87171;
+}
+
+.operationsCardOverdue .metricNum {
+  color: #FECACA;
+}
+
+.operationsCardReady {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.11), rgba(255, 255, 255, 0.03));
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+.operationsCardReady .operationsCardIcon {
+  color: #34D399;
+}
+
+.operationsCardReady .metricNum {
+  color: #A7F3D0;
+}
+
 .metricItem {
   display: flex;
   flex-direction: column;
@@ -1353,18 +1470,6 @@
   transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
-.operationsCard:active,
-.metricItem:active {
-  transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.operationsEmpty {
-  border: 1px dashed rgba(255, 255, 255, 0.06);
-  border-radius: var(--sf-radius-md);
-  min-height: 52px;
-}
-
 .metricTop {
   display: flex;
   align-items: center;
@@ -1374,7 +1479,7 @@
 
 .metricNum {
   font-family: var(--font-fraunces), var(--sf-font-heading), serif;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #ffffff;
   line-height: 1.2;

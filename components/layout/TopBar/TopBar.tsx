@@ -84,10 +84,32 @@ export default function TopBar({
               <Link
                 href="/settings"
                 className={styles.brandLogoLink}
-                title="Atelier Profile & Settings"
-                aria-label="Atelier Profile & Settings"
+                title={`Atelier Profile • Tier: ${currentTier.name} (${xp} XP)`}
+                aria-label={`Atelier Profile • Tier: ${currentTier.name} (${xp} XP)`}
               >
-                <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
+                <div
+                  className={styles.brandLogoWrapper}
+                  style={{
+                    ['--tier-color' as string]: currentTier.color,
+                  }}
+                >
+                  <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
+                  <span
+                    className={styles.tierNeedleBadge}
+                    style={{ backgroundColor: currentTier.color }}
+                    title={`Tier: ${currentTier.name} (${xp} XP) - View Master Tailor Challenge`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsChallengeModalOpen(true);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
+                  >
+                    <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
+                  </span>
+                </div>
               </Link>
               {leftAction}
             </div>
@@ -95,28 +117,6 @@ export default function TopBar({
               <NotificationBell />
 
               <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  className={styles.tierBadge}
-                  title={`${xp} XP - ${currentTier.name} (View Master Tailor Challenge)`}
-                  onClick={() => setIsChallengeModalOpen(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    background: 'var(--sf-bg-surface)',
-                    padding: '2px 8px',
-                    borderRadius: '100px',
-                    border: `1px solid ${currentTier.color}`,
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    opacity: 0.9,
-                  }}
-                >
-                  <Symbol name={currentTier.icon} size={13} style={{ color: currentTier.color, fontVariationSettings: "'FILL' 1" }} />
-                  <span style={{ color: currentTier.color }}>{currentTier.name}</span>
-                </button>
                 {streakIndicator}
               </div>
 

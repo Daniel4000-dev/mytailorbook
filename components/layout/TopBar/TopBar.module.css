@@ -185,8 +185,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   text-decoration: none;
   border-radius: var(--sf-radius-full);
@@ -195,14 +195,49 @@
 }
 
 .brandLogoLink:active {
-  transform: scale(0.92);
-  opacity: 0.85;
+  transform: scale(0.94);
+  opacity: 0.9;
+}
+
+.brandLogoWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1.5px solid var(--tier-color, #CD7F32);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 10px color-mix(in srgb, var(--tier-color, #CD7F32) 30%, transparent);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .brandLogoImg {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
+}
+
+.tierNeedleBadge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--sf-radius-full);
+  border: 1.5px solid var(--sf-bg-surface, #ffffff);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  z-index: 2;
+}
+
+.tierNeedleBadge:hover {
+  transform: scale(1.15);
 }
 
 .hamburgerBtn {

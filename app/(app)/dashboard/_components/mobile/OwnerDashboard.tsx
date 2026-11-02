@@ -125,79 +125,95 @@ export default function OwnerDashboard({
           </div>
         ) : null}
 
-        {/* Operations Dashboard Grid (Sewing, Cutting, Overdue Payment / Overdue, Ready) */}
+        {/* Visually Elevated Operations Cockpit (Sewing, Cutting, Overdue Payment / Overdue Orders, Ready) */}
         <div className={styles.operationsGrid}>
           {/* Row 1, Col 1: Sewing */}
           <button
             type="button"
-            className={styles.operationsCard}
+            className={`${styles.operationsCard} ${styles.operationsCardSewing}`}
             onClick={() => onNavigate('/production')}
             aria-label="View active sewing production queue"
           >
-            <div className={styles.metricTop}>
+            <div className={styles.operationsCardHeader}>
+              <span className={styles.operationsCardLabel}>Sewing</span>
+              <Symbol name="needle" size={13} className={styles.operationsCardIcon} />
+            </div>
+            <div className={styles.operationsCardMetric}>
               <span className={styles.metricNum}>{inProductionCount}</span>
             </div>
-            <span className={styles.metricLabel}>Sewing</span>
           </button>
 
           {/* Row 1, Col 2: Cutting */}
           <button
             type="button"
-            className={styles.operationsCard}
+            className={`${styles.operationsCard} ${styles.operationsCardCutting}`}
             onClick={() => onNavigate('/fabrics')}
             aria-label="View uncut fabrics on cutting table"
           >
-            <div className={styles.metricTop}>
+            <div className={styles.operationsCardHeader}>
+              <span className={styles.operationsCardLabel}>Cutting</span>
+              <Symbol name="content_cut" size={13} className={styles.operationsCardIcon} />
+            </div>
+            <div className={styles.operationsCardMetric}>
               <span className={styles.metricNum}>{uncutFabricsCount}</span>
               {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
             </div>
-            <span className={styles.metricLabel}>Cutting</span>
           </button>
 
           {/* Row 1, Col 3: Overdue payment */}
           <button
             type="button"
-            className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+            className={`${styles.operationsCard} ${styles.operationsCardDebt} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
             onClick={() => onNavigate('/collections')}
             aria-label="View uncollected debtor balances"
           >
-            <div className={styles.metricTop}>
+            <div className={styles.operationsCardHeader}>
+              <span className={styles.operationsCardLabel}>Overdue Pay</span>
+              <Symbol name="payments" size={13} className={styles.operationsCardIcon} />
+            </div>
+            <div className={styles.operationsCardMetric}>
               <span className={styles.metricNum}>
                 {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
               </span>
             </div>
-            <span className={styles.metricLabel}>Overdue payment</span>
           </button>
 
-          {/* Row 2, Col 1: Overdue */}
+          {/* Row 2, Col 1: Overdue Orders (Wide) */}
           <button
             type="button"
-            className={`${styles.operationsCard} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
+            className={`${styles.operationsCard} ${styles.operationsCardWide} ${styles.operationsCardOverdue} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
             onClick={() => onNavigate('/production')}
             aria-label="View overdue and urgent orders"
           >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{urgentCount}</span>
-              {urgentCount > 0 && <span className={styles.metricAlertDot} />}
+            <div className={styles.operationsCardHeader}>
+              <div className={styles.operationsLabelGroup}>
+                <span className={styles.operationsCardLabel}>Overdue</span>
+                {urgentCount > 0 && <span className={styles.metricAlertDot} />}
+              </div>
+              <Symbol name="schedule" size={13} className={styles.operationsCardIcon} />
             </div>
-            <span className={styles.metricLabel}>Overdue</span>
+            <div className={styles.operationsCardMetric}>
+              <span className={styles.metricNum}>{urgentCount}</span>
+              <span className={styles.operationsCardSub}>Action required</span>
+            </div>
           </button>
 
-          {/* Row 2, Col 2: Ready */}
+          {/* Row 2, Col 2: Ready for Pickup (Wide) */}
           <button
             type="button"
-            className={styles.operationsCard}
+            className={`${styles.operationsCard} ${styles.operationsCardWide} ${styles.operationsCardReady}`}
             onClick={() => onNavigate('/production?status=Ready')}
             aria-label="View ready garments for pickup"
           >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{readyCount}</span>
+            <div className={styles.operationsCardHeader}>
+              <span className={styles.operationsCardLabel}>Ready</span>
+              <Symbol name="checkroom" size={13} className={styles.operationsCardIcon} />
             </div>
-            <span className={styles.metricLabel}>Ready</span>
+            <div className={styles.operationsCardMetric}>
+              <span className={styles.metricNum}>{readyCount}</span>
+              <span className={styles.operationsCardSub}>For pickup</span>
+            </div>
           </button>
-
-          {/* Row 2, Col 3: Balanced Slot */}
-          <div className={styles.operationsEmpty} aria-hidden="true" />
         </div>
       </section>
 
