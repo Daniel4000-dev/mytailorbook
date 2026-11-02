@@ -296,7 +296,7 @@ export default function CustomStylesSettingsPage() {
             loading={uploadingPhoto}
             onClick={() => photoInputRef.current?.click()}
           >
-            {activeStyle?.photoUrl ? 'Change Photo' : 'Upload Atelier Photo'}
+            {activeStyle?.photoUrl ? 'Change Photo' : 'Upload Style Photo'}
           </Button>
           <Input label="Style Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
           <p className={styles.hintText}>

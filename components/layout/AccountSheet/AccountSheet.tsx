@@ -22,7 +22,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
   const { preference, setPreference } = useTheme();
 
   const userInitial = user?.name?.charAt(0) || user?.email?.charAt(0) || 'A';
-  const roleLabel = isOwner ? 'Atelier Owner' : (user?.role || 'Staff');
+  const roleLabel = isOwner ? 'Shop Owner' : (user?.role || 'Staff');
 
   const handleNavigate = (href: string) => {
     onClose();
@@ -35,7 +35,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Account & Atelier">
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Account & Shop">
       <div className={styles.sheetContent}>
         {/* 1. User Identity Card */}
         <div className={styles.profileBanner}>
@@ -57,7 +57,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
           <div className={styles.userInfo}>
             <div className={styles.userNameRow}>
               <span className={styles.userName}>
-                {user?.name || user?.email?.split('@')[0] || 'Atelier Master'}
+                {user?.name || user?.email?.split('@')[0] || 'Shop Owner'}
               </span>
               <span className={styles.roleBadge}>{roleLabel}</span>
             </div>
@@ -74,7 +74,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
                 className={styles.branchSelect}
                 value={activeBranchId ?? ''}
                 onChange={(e) => setActiveBranchId(e.target.value)}
-                aria-label="Switch active atelier branch"
+                aria-label="Switch active shop branch"
               >
                 {shops.map((branch) => (
                   <option key={branch.id} value={branch.id}>
@@ -87,7 +87,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
           </div>
         )}
 
-        {/* 3. Atelier Settings Link */}
+        {/* 3. Shop Settings Link */}
         <button
           type="button"
           className={styles.settingsRow}
@@ -99,7 +99,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
             </div>
             <div className={styles.settingsInfo}>
               <span className={styles.settingsTitle}>Settings</span>
-              <span className={styles.settingsSub}>Studio profile, staff, and preferences</span>
+              <span className={styles.settingsSub}>Shop profile, staff, and preferences</span>
             </div>
           </div>
           <Symbol name="chevron_right" size={18} className={styles.menuChevron} />
@@ -143,7 +143,7 @@ export default function AccountSheet({ isOpen, onClose }: AccountSheetProps) {
           onClick={handleSignOut}
         >
           <Symbol name="logout" size={18} />
-          <span>Sign Out of Atelier</span>
+          <span>Sign Out</span>
         </button>
       </div>
     </BottomSheet>

@@ -157,7 +157,7 @@ export default function SidebarMenu() {
         {isOwner && (
           <Link href={ROUTES.reconciliation} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
             <CustomNavIcon name="point_of_sale" className={styles.menuIcon} />
-            <span className={styles.menuText}>Reconciliation</span>
+            <span className={styles.menuText}>Cash Book</span>
           </Link>
         )}
         {isOwner && (

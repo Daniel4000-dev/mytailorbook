@@ -75,11 +75,11 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
         <div className={styles.flameContainer}>
           <div className={styles.flame}><FlameIcon size={72} /></div>
         </div>
-        <h2 className={styles.title}>{streakCount > 0 ? `${streakCount} Day Streak!` : 'Atelier Daily Streak'}</h2>
+        <h2 className={styles.title}>{streakCount > 0 ? `${streakCount} Day Streak!` : 'Daily Work Streak'}</h2>
         <p className={styles.subtitle}>
           {streakCount > 0
-            ? "You're on fire! Keep recording your daily cuts, stitches, and studio tasks to keep your momentum alive."
-            : 'Start building your streak today by logging your cutting, sewing, market sourcing, or custom atelier craft.'}
+            ? "You're on fire! Keep recording your daily cuts, stitches, and shop tasks to keep your momentum alive."
+            : 'Start building your streak today by logging your cutting, sewing, fabric buying, or daily shop work.'}
         </p>
 
         {/* 3-Day Grace Pause Notice */}

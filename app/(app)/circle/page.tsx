@@ -133,15 +133,15 @@ export default function AtelierCirclePage() {
             <Symbol name="arrow_back" size={18} />
           </button>
           <div className={styles.titleArea}>
-            <h1 className={styles.pageTitle}>Atelier Circle</h1>
-            <p className={styles.pageSubtitle}>Peer craft accountability & live workshop pulse</p>
+            <h1 className={styles.pageTitle}>Tailor Circle</h1>
+            <p className={styles.pageSubtitle}>Connect with fellow tailors and celebrate daily wins</p>
           </div>
         </div>
         <div className={styles.headerRight}>
           <button
             className={styles.connectBtn}
             onClick={() => setIsConnectModalOpen(true)}
-            aria-label="Connect colleague"
+            aria-label="Connect with tailor"
           >
             <Symbol name="group_add" size={16} />
             <span>Connect</span>
@@ -153,7 +153,7 @@ export default function AtelierCirclePage() {
         {/* Buddies Deck */}
         <section className={styles.buddiesSection}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Linked Atelier Studios</h2>
+            <h2 className={styles.sectionTitle}>Connected Tailors</h2>
           </div>
 
           <div className={styles.buddiesScroll}>
@@ -182,7 +182,7 @@ export default function AtelierCirclePage() {
                   </div>
 
                   <div className={styles.buddyName} title={buddy.name}>
-                    {buddy.isCurrentUser ? 'Your Studio' : buddy.name}
+                    {buddy.isCurrentUser ? 'Your Shop' : buddy.name}
                   </div>
 
                   <div className={styles.buddyMeta}>
@@ -198,23 +198,23 @@ export default function AtelierCirclePage() {
             <button
               className={styles.addBuddyCard}
               onClick={() => setIsConnectModalOpen(true)}
-              aria-label="Add colleague studio"
+              aria-label="Connect with a tailor"
             >
               <div className={styles.addIconCircle}>
                 <Symbol name="add" size={18} />
               </div>
-              <span className={styles.addBuddyLabel}>Add Peer</span>
+              <span className={styles.addBuddyLabel}>Add Tailor</span>
             </button>
           </div>
         </section>
 
-        {/* Telemetry Filter Tabs */}
+        {/* Update Filter Tabs */}
         <div className={styles.filterTabs}>
           {(['all', 'fulfillment', 'production', 'milestone'] as CategoryFilter[]).map((tab) => {
             const labels: Record<CategoryFilter, string> = {
-              all: 'All Pulses',
-              fulfillment: 'Dispatched',
-              production: 'Production',
+              all: 'All Updates',
+              fulfillment: 'Delivered',
+              production: 'Sewing',
               milestone: 'Milestones',
             };
             const isActive = activeCategory === tab;
@@ -230,18 +230,17 @@ export default function AtelierCirclePage() {
           })}
         </div>
 
-        {/* Live Workshop Telemetry Stream */}
+        {/* Live Workshop Activity Stream */}
         <section className={styles.pulseStream}>
           {loading ? (
             <div className={styles.emptyState}>
-              <p className={styles.emptyText}>Loading atelier craft pulses...</p>
+              <p className={styles.emptyText}>Loading tailor updates...</p>
             </div>
           ) : filteredPulses.length === 0 ? (
             <div className={styles.emptyState}>
-              <p className={styles.emptyTitle}>No craft telemetry in this category</p>
+              <p className={styles.emptyTitle}>No activity in this category yet</p>
               <p className={styles.emptyText}>
-                As linked colleague studios cut fabric, advance garments, and dispatch orders,
-                their telemetry will appear here automatically.
+                When your connected tailors finish orders or hit milestones, their updates will appear here automatically.
               </p>
             </div>
           ) : (
@@ -345,7 +344,7 @@ export default function AtelierCirclePage() {
         >
           <div className={styles.modalSheet} role="dialog" aria-modal="true">
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Connect Atelier Colleague</h3>
+              <h3 className={styles.modalTitle}>Connect with a Tailor</h3>
               <button
                 className={styles.closeBtn}
                 onClick={() => setIsConnectModalOpen(false)}
@@ -357,7 +356,7 @@ export default function AtelierCirclePage() {
 
             {/* Section 1: User's Studio Code */}
             <div className={styles.codeBox}>
-              <span className={styles.codeLabel}>Your Studio Atelier Code</span>
+              <span className={styles.codeLabel}>Your Invite Code</span>
               <span className={styles.codeValue}>
                 {data?.myShop.referralCode || 'GENERATING...'}
               </span>
@@ -384,7 +383,7 @@ export default function AtelierCirclePage() {
             {/* Section 2: Enter Colleague's Code */}
             <form onSubmit={handleConnectColleague} className={styles.inputSection}>
               <label htmlFor="colleagueCode" className={styles.inputLabel}>
-                Link a Colleague&#39;s Atelier Code
+                Enter a Tailor&#39;s Invite Code
               </label>
               <div className={styles.inputRow}>
                 <input

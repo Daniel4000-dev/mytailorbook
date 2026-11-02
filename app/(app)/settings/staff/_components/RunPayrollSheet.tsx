@@ -77,7 +77,7 @@ Thank you for your excellent craftsmanship!`;
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Weekly Atelier Payroll & Piece-Rate">
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Staff Pay & Piece-Rate">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '24px' }}>
         <p style={{ color: 'var(--sf-text-secondary)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
           Automatically computed from garments moved to <strong>Ready</strong> or <strong>Delivered</strong> by assigned cutters, machinists, and apprentices over the last 7 days.

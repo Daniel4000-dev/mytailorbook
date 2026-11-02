@@ -67,9 +67,9 @@ export default function TopBar({
     <button
       type="button"
       className={styles.streakBadge}
-      title={currentStreak > 0 ? `${currentStreak} day streak! Tap to view craft activities` : 'Start daily streak'}
+      title={currentStreak > 0 ? `${currentStreak} day streak! Tap to view shop work` : 'Start daily streak'}
       onClick={() => setIsStreakModalOpen(true)}
-      aria-label="Atelier streak status and craft activities"
+      aria-label="Daily streak status and shop work"
     >
       <FlameIcon size={18} style={{ marginRight: '4px' }} /> <span>{currentStreak}</span>
     </button>
@@ -84,8 +84,8 @@ export default function TopBar({
               <Link
                 href="/settings"
                 className={styles.brandLogoLink}
-                title={`Atelier Profile • Tier: ${currentTier.name} (${xp} XP)`}
-                aria-label={`Atelier Profile • Tier: ${currentTier.name} (${xp} XP)`}
+                title={`Shop Profile • Tier: ${currentTier.name} (${xp} XP)`}
+                aria-label={`Shop Profile • Tier: ${currentTier.name} (${xp} XP)`}
               >
                 <div
                   className={styles.brandLogoWrapper}
@@ -97,7 +97,7 @@ export default function TopBar({
                   <span
                     className={styles.tierNeedleBadge}
                     style={{ backgroundColor: currentTier.color }}
-                    title={`Tier: ${currentTier.name} (${xp} XP) - View Master Tailor Challenge`}
+                    title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -117,8 +117,8 @@ export default function TopBar({
               <Link
                 href="/circle"
                 className={styles.buddyPulseBtn}
-                title="Atelier Circle & Buddy Pulse"
-                aria-label="Atelier Circle & Buddy Pulse"
+                title="Tailor Circle"
+                aria-label="Tailor Circle"
               >
                 <div className={styles.buddyAvatarStack}>
                   <span className={`${styles.buddyAvatar} ${styles.buddyAvatarOne}`} style={{ zIndex: 1 }}>

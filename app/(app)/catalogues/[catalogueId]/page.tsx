@@ -300,7 +300,7 @@ export default function CatalogueDetailPage() {
   // Broadcast General WhatsApp message
   const handleGeneralBroadcast = () => {
     const slug = currentShop?.slug || 'demo';
-    const shopName = currentShop?.name || 'MyTailorBook Atelier';
+    const shopName = currentShop?.name || 'our shop';
     const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
     const text = `Good day! Explore our freshly curated ${catalogue?.title} inspirations from ${shopName}. Let us know which design you love: ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
@@ -311,7 +311,7 @@ export default function CatalogueDetailPage() {
   const handleCustomerOutreach = (customer: Customer) => {
     const slug = currentShop?.slug || 'demo';
     const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
-    const message = `Good day Chief ${customer.fullName}! We just updated our atelier lookbook with new ${catalogue?.title} designs that match your personal style preferences. Take a look here: ${url}`;
+    const message = `Good day ${customer.fullName}! We just updated our catalog with new ${catalogue?.title} designs that match your personal style preferences. Take a look here: ${url}`;
     const link = getWhatsAppLink(customer.whatsappNumber, message);
     window.open(link, '_blank');
   };
@@ -561,8 +561,8 @@ export default function CatalogueDetailPage() {
                   className={styles.inspectShareBtn}
                   onClick={() => {
                     const yardage = getEstimatedYardage(catalogue.title);
-                    const shopName = currentShop?.name || 'our atelier';
-                    const text = `Greetings from ${shopName}! Look at this ${catalogue.title} bespoke style from our catalogue: ${inspectedPhoto.imageUrl}\n\nRecommended fabric needed: ${yardage}. Contact us to tailor yours to your exact measurements!`;
+                    const shopName = currentShop?.name || 'our shop';
+                    const text = `Greetings from ${shopName}! Look at this ${catalogue.title} style from our catalog: ${inspectedPhoto.imageUrl}\n\nRecommended fabric needed: ${yardage}. Contact us to tailor yours to your exact measurements!`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                 >

@@ -33,7 +33,7 @@ export default function QuickCommandHub({
           type="button"
           className={styles.primaryActionBtn}
           onClick={() => onNavigate(ROUTES.orderNew)}
-          aria-label="Create New Bespoke Order"
+          aria-label="Create New Order"
         >
           <Symbol name="add" size={17} className={styles.btnIcon} />
           <span>New Order</span>
@@ -43,7 +43,7 @@ export default function QuickCommandHub({
           type="button"
           className={styles.secondaryActionBtn}
           onClick={() => onNavigate(ROUTES.customerNew)}
-          aria-label="Measure New Client"
+          aria-label="Measure Client"
         >
           <Symbol name="straighten" size={16} className={styles.btnIcon} />
           <span>Measure</span>
@@ -53,10 +53,10 @@ export default function QuickCommandHub({
           type="button"
           className={styles.secondaryActionBtn}
           onClick={() => onNavigate(ROUTES.reconciliation)}
-          aria-label="Record Payment or Till Deposit"
+          aria-label="Record Cash or Payment"
         >
           <Symbol name="point_of_sale" size={16} className={styles.btnIcon} />
-          <span>Record Till</span>
+          <span>Record Cash</span>
         </button>
       </div>
 
@@ -152,17 +152,17 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Collections</span>
           </button>
 
-          {/* 6. Daily Till & Cash Drawer */}
+          {/* 6. Daily Cash Drawer */}
           <button
             type="button"
             className={styles.tile}
             onClick={() => onNavigate(ROUTES.reconciliation)}
-            aria-label="Daily Cash Drawer & Workshop Expenses"
+            aria-label="Daily Cash Drawer & Expenses"
           >
             <div className={`${styles.iconWrap} ${styles.iconTill}`}>
               <Symbol name="point_of_sale" size={22} />
             </div>
-            <span className={styles.tileLabel}>Daily Till</span>
+            <span className={styles.tileLabel}>Cash Drawer</span>
           </button>
 
           {/* 7. Materials & Trims Inventory */}

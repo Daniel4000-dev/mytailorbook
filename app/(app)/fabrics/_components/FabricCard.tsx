@@ -80,13 +80,13 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
         {isClientFabric && (
           <span className={`${styles.provenanceBadge} ${styles.clientMaterial}`}>
             <Symbol name="person" size={11} />
-            <span>Client Sourced</span>
+            <span>Customer Fabric</span>
           </span>
         )}
         {isShopFabric && (
           <span className={`${styles.provenanceBadge} ${styles.shopMaterial}`}>
             <Symbol name="storefront" size={11} />
-            <span>Atelier Stock</span>
+            <span>Shop Fabric</span>
           </span>
         )}
 

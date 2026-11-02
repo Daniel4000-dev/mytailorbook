@@ -144,7 +144,7 @@ export default function MessageTemplatesSettingsPage() {
       }
     >
       <p className={styles.intro}>
-        Customize the automated WhatsApp messages sent to clients across each bespoke stage. Untouched stages keep the atelier default wording.
+        Customize the automated WhatsApp messages sent to clients across each order stage. Untouched stages keep the standard default wording.
       </p>
 
       <div className={styles.card}>
@@ -276,7 +276,7 @@ export default function MessageTemplatesSettingsPage() {
           </div>
 
           <button type="button" className={styles.resetLink} onClick={handleResetDefault}>
-            Reset to Atelier Default
+            Reset to Default
           </button>
 
           <div className={styles.sheetActions}>
@@ -416,7 +416,7 @@ export default function MessageTemplatesSettingsPage() {
             className={styles.resetLink}
             onClick={() => setEventPhotoDraft(DEFAULT_EVENT_PHOTO_MESSAGE)}
           >
-            Reset to Atelier Default
+            Reset to Default
           </button>
 
           <div className={styles.sheetActions}>

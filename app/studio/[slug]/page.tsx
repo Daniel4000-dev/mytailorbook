@@ -21,11 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
-  const shopName = portfolio?.shop.name || `${formattedSlug} Atelier`;
+  const shopName = portfolio?.shop.name || `${formattedSlug} Tailors`;
   const completed = portfolio?.stats.completed ?? 148;
 
-  const title = `${shopName} — Bespoke Tailoring`;
-  const description = `See ${shopName}'s finished work — ${completed} garments completed. Chat on WhatsApp to commission yours.`;
+  const title = `${shopName} — Custom Tailoring`;
+  const description = `See ${shopName}'s finished work — ${completed} garments completed. Chat on WhatsApp to place an order.`;
   const previewImage = portfolio?.photos[0]?.url || '/images/blog/agbada-ceremonial-amurode.jpg';
 
   return {
@@ -56,7 +56,7 @@ export default async function StudioPage({ params }: { params: Promise<{ slug: s
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
-  const shopName = portfolio?.shop.name || `${formattedSlug} Atelier`;
+  const shopName = portfolio?.shop.name || `${formattedSlug} Tailors`;
 
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',

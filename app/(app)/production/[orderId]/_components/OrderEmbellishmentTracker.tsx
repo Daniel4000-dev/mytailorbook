@@ -221,7 +221,7 @@ export default function OrderEmbellishmentTracker({
 
   const orderRef = order.id.slice(0, 4).toUpperCase();
   const whatsappCheckInMessage = data?.artisan
-    ? `Hello ${data.artisan}, checking in from the atelier regarding the ${data.type} for order #${orderRef}. Please let us know when it will be ready for pickup.`
+    ? `Hello ${data.artisan}, checking in from the shop regarding the ${data.type} for order #${orderRef}. Please let us know when it will be ready for pickup.`
     : `Hello, checking in on the ${data?.type || 'embellishment'} for order #${orderRef}.`;
 
   return (

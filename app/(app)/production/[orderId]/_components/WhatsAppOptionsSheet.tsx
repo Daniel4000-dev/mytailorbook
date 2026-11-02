@@ -32,7 +32,7 @@ export default function WhatsAppOptionsSheet({
 }: WhatsAppOptionsSheetProps) {
   const firstName = customerName.split(' ')[0] || 'Client';
   const garment = garmentName ? garmentName.replace(/\[[^\]]+\]/g, '').trim() : 'outfit';
-  const shop = shopName || 'our atelier';
+  const shop = shopName || 'our shop';
 
   const eventPhotosMessage = `Hello ${firstName}! Thank you for choosing ${shop} for your ${garment}${
     orderRef ? ` (Ref #${orderRef})` : ''

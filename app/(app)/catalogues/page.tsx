@@ -324,12 +324,12 @@ export default function CataloguesPage() {
           <div className={styles.emptyWrap}>
             <EmptyState
               icon={<Symbol name="photo_library" size={44} />}
-              title="Your Style Lookbook is Empty"
-              description="Create style albums like 'Royal Agbada' or 'Senator Styles' to showcase what your atelier can sew, impress walk-in clients, and broadcast menus to VIP customers."
+              title="Your Style Catalog is Empty"
+              description="Create style albums like 'Royal Agbada' or 'Senator Styles' to showcase what your shop can sew, impress walk-in clients, and broadcast designs to customers."
             />
             <div className={styles.quickStartCard}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 className={styles.quickStartTitle}>Popular Atelier Albums — Tap to Create:</h4>
+                <h4 className={styles.quickStartTitle}>Popular Style Albums — Tap to Create:</h4>
                 <button
                   type="button"
                   onClick={handleResetMock}

@@ -243,15 +243,15 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             </div>
             <div className={styles.trustMetricContent}>
               <span className={styles.trustMetricValue}>1-on-1</span>
-              <span className={styles.trustMetricLabel}>Bespoke Pattern Drafting</span>
+              <span className={styles.trustMetricLabel}>Custom Pattern Cutting</span>
             </div>
           </div>
         </motion.section>
 
-        {/* 3. Atelier Philosophy / Story */}
+        {/* 3. Our Story */}
         {hasStory && (
           <motion.section className={styles.storySection} {...reveal(0.05)}>
-            <span className={styles.storyEyebrow}>Our Philosophy</span>
+            <span className={styles.storyEyebrow}>About Our Shop</span>
             <p className={styles.storyBody}>{shop.bio}</p>
           </motion.section>
         )}

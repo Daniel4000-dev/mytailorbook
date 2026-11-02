@@ -104,7 +104,7 @@ export default function OwnerDashboard({
             className={styles.monthlyProgressWrap}
             onClick={() => onNavigate(ROUTES.reports)}
             style={{ cursor: 'pointer' }}
-            title="Open Financial Intelligence"
+            title="View Sales Reports"
           >
             <div className={styles.monthlyProgressMeta}>
               <span className={styles.monthlyProgressLabel}>Monthly Goal</span>

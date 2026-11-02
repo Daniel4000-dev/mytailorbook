@@ -98,16 +98,16 @@ export default function StudioSettingsPage() {
           tagline: draftValue.trim() || undefined,
         };
         await updateShop({ portfolioSettings: nextSettings });
-        showToast('Atelier tagline updated', 'success');
+        showToast('Shop tagline updated', 'success');
       } else if (activeField === 'phone') {
         await updateShop({ phone: draftValue.trim() || undefined });
         showToast('WhatsApp business phone updated', 'success');
       } else if (activeField === 'address') {
         await updateShop({ address: draftValue.trim() || undefined });
-        showToast('Atelier address updated', 'success');
+        showToast('Shop address updated', 'success');
       } else if (activeField === 'currency') {
         await updateShop({ currency: draftValue });
-        showToast('Studio currency updated', 'success');
+        showToast('Currency updated', 'success');
       }
       setActiveField(null);
     } catch (err) {
@@ -203,7 +203,7 @@ export default function StudioSettingsPage() {
   const handleSelectBusinessMode = async (mode: 'bespoke' | 'rtw' | 'hybrid') => {
     try {
       await updateShop({ businessMode: mode });
-      showToast('Atelier specification updated', 'success');
+      showToast('Shop business mode updated', 'success');
     } catch {
       showToast('Failed to update business model', 'error');
     }
@@ -353,7 +353,7 @@ export default function StudioSettingsPage() {
                 <span className={styles.rowValue}>{currentShop.portfolioSettings.tagline}</span>
               ) : (
                 <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
-                  Share atelier specialty
+                  Share shop specialty
                 </span>
               )}
               <Symbol name="chevron_right" size={18} className={styles.chevron} />
@@ -444,7 +444,7 @@ export default function StudioSettingsPage() {
                 <span className={styles.rowValue}>{currentShop.address}</span>
               ) : (
                 <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
-                  Add atelier address
+                  Add shop address
                 </span>
               )}
               <Symbol name="chevron_right" size={18} className={styles.chevron} />
@@ -630,7 +630,7 @@ export default function StudioSettingsPage() {
             <div className={styles.toggleText}>
               <span className={styles.toggleTitle}>Vacation Mode</span>
               <p className={styles.toggleHint}>
-                Pause your daily streak indefinitely while your atelier is closed for holidays or recharge.
+                Pause your daily streak while your shop is closed for holidays or rest.
               </p>
             </div>
             <label className="toggleSwitch">
@@ -687,15 +687,15 @@ export default function StudioSettingsPage() {
         onClose={() => setActiveField(null)}
         title={
           activeField === 'name'
-            ? 'Studio Name'
+            ? 'Shop Name'
             : activeField === 'about'
-            ? 'Atelier Specialty (About)'
+            ? 'Shop Specialty (About)'
             : activeField === 'phone'
             ? 'WhatsApp Business Number'
             : activeField === 'address'
-            ? 'Atelier Address'
+            ? 'Shop Address'
             : activeField === 'currency'
-            ? 'Studio Currency'
+            ? 'Currency'
             : undefined
         }
         variant="modal"
@@ -703,7 +703,7 @@ export default function StudioSettingsPage() {
         <div className={styles.sheetBody}>
           {activeField === 'currency' ? (
             <Select
-              label="Select Atelier Currency"
+              label="Select Currency"
               value={draftValue}
               onChange={(e) => setDraftValue(e.target.value)}
               options={SUPPORTED_CURRENCIES.map((c) => ({

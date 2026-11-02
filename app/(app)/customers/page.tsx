@@ -239,7 +239,7 @@ export default function CustomersPage() {
         noteText = `₦${Math.round(s.totalBalance / 1000)}k due`;
         noteIcon = 'payments';
       } else {
-        noteText = c.preferredStyles?.[0] || 'Atelier';
+        noteText = c.preferredStyles?.[0] || 'Client';
         noteIcon = 'star';
       }
 
@@ -398,7 +398,7 @@ export default function CustomersPage() {
       {storyClients.length > 0 && (
         <section className={styles.storiesSection} aria-label="Active fits & clients">
           <div className={styles.storiesTrack}>
-            {/* Atelier Story Bubble */}
+            {/* Shop Story Bubble */}
             <div
               className={styles.storyItem}
               onClick={() => router.push(ROUTES.customerNew)}
@@ -406,7 +406,7 @@ export default function CustomersPage() {
             >
               <div className={styles.storyBubble}>
                 <Symbol name="auto_awesome" size={10} />
-                <span>Atelier</span>
+                <span>Shop</span>
                 <span className={styles.storyBubbleTail} />
               </div>
               <div className={styles.storyAvatarWrap}>

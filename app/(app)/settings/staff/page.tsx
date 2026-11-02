@@ -190,7 +190,7 @@ export default function StaffSettingsPage() {
       setNewStaffRole('Staff');
       setNewStaffCraftRole('tailor');
       setIsAddSheetOpen(false);
-      showToast(`${name} added to atelier team`, 'success');
+      showToast(`${name} added to team`, 'success');
     } catch {
       const newMember: User = {
         uid: `staff-${Date.now()}`,
@@ -209,7 +209,7 @@ export default function StaffSettingsPage() {
       setEmail('');
       setPassword('');
       setIsAddSheetOpen(false);
-      showToast(`${name} added to atelier team`, 'success');
+      showToast(`${name} added to team`, 'success');
     } finally {
       setAddLoading(false);
     }
@@ -342,18 +342,18 @@ export default function StaffSettingsPage() {
           <div className={styles.sheetBody}>
             <Input label="Full Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '14px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--sf-text-secondary)' }}>Atelier Craft Specialization</label>
+              <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--sf-text-secondary)' }}>Role &amp; Specialty</label>
               <select
                 value={editCraftRole}
                 onChange={(e) => setEditCraftRole(e.target.value as AtelierCraftRole)}
                 className={styles.selectInput}
               >
-                <option value="cutter">Master Cutter (Pattern & Cutting Table)</option>
-                <option value="tailor">Tailor / Machinist (Assembly & Sewing)</option>
-                <option value="apprentice">Apprentice / Trainee (Finishing & Prep)</option>
-                <option value="finisher">Finisher / Presser (Hemming & Steam)</option>
-                <option value="embroiderer">Embroiderer (Monograms & Stitches)</option>
-                <option value="general">General Artisan</option>
+                <option value="cutter">Cutter (Pattern &amp; Cutting)</option>
+                <option value="tailor">Tailor (Sewing &amp; Assembly)</option>
+                <option value="apprentice">Apprentice (Learning &amp; Prep)</option>
+                <option value="finisher">Finisher (Ironing, Hemming &amp; Packaging)</option>
+                <option value="embroiderer">Embroiderer (Embroidery &amp; Stoning)</option>
+                <option value="general">General Assistant (All Tasks)</option>
               </select>
             </div>
             <div className={styles.sheetActions} style={{ marginTop: '20px' }}>
@@ -473,18 +473,18 @@ export default function StaffSettingsPage() {
           <Input label="Email/Username" type="email" placeholder="e.g. chioma@mystitchbooks.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input label="Temporary Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label className={styles.label}>Atelier Craft Specialization</label>
+            <label className={styles.label}>Role &amp; Specialty</label>
             <select
               value={newStaffCraftRole}
               onChange={(e) => setNewStaffCraftRole(e.target.value as AtelierCraftRole)}
               className={styles.selectInput}
             >
-              <option value="cutter">Master Cutter (Pattern & Cutting Table)</option>
-              <option value="tailor">Tailor / Machinist (Assembly & Sewing)</option>
-              <option value="apprentice">Apprentice / Trainee (Finishing & Prep)</option>
-              <option value="finisher">Finisher / Presser (Hemming & Steam)</option>
-              <option value="embroiderer">Embroiderer (Monograms & Stitches)</option>
-              <option value="general">General Artisan</option>
+              <option value="cutter">Cutter (Pattern &amp; Cutting)</option>
+              <option value="tailor">Tailor (Sewing &amp; Assembly)</option>
+              <option value="apprentice">Apprentice (Learning &amp; Prep)</option>
+              <option value="finisher">Finisher (Ironing, Hemming &amp; Packaging)</option>
+              <option value="embroiderer">Embroiderer (Embroidery &amp; Stoning)</option>
+              <option value="general">General Assistant (All Tasks)</option>
             </select>
           </div>
           {FEATURE_FLAGS.orgBranchMultiTenancy && (

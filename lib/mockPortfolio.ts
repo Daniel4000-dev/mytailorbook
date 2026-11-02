@@ -4,11 +4,11 @@ import type { Order } from '@/lib/types';
 export const DEFAULT_MOCK_PORTFOLIO: PublicPortfolio = {
   shop: {
     id: 'mock-shop',
-    name: 'Savile Row Atelier',
+    name: 'Savile Row Tailors',
     slug: 'savile-row',
     portfolioAccent: 'indigo',
-    bio: 'Rooted in heritage pattern drafting and refined African artisanal craftsmanship. We have spent over a decade crafting bespoke garments that command presence, drape impeccably, and outlive fast fashion cycles.',
-    tagline: 'Architects of Regal Drape & Bespoke Excellence',
+    bio: 'Rooted in heritage pattern drafting and refined craftsmanship. We craft custom garments that command presence, drape impeccably, and outlive fast fashion cycles.',
+    tagline: 'Expert Custom Tailoring & Impeccable Drape',
     foundedYear: 2014,
     address: '14 Victoria Island Boulevard, Lagos',
     phone: '+2348030000000',
@@ -290,13 +290,13 @@ export function addOrderToMockPortfolio(
     startingPrice: order.totalBill || 250000,
     materials:
       order.materialSuppliedBy === 'customer'
-        ? 'Client Hand-Selected Fabric'
-        : 'Atelier Stock Material',
+        ? 'Customer Fabric'
+        : 'Shop Fabric',
     displayPhotos: [{ url: deliveredPhoto.url, angle: 'front' }],
     storyModeEnabled: true,
     storyCaption:
       customCaption ||
-      `Bespoke commission for ${order.customerName || 'Bespoke Client'}. Pattern drafted and cut on the shears, with progress tracked through cutting, sewing, and fitting stages.`,
+      `Custom outfit for ${order.customerName || 'Client'}. Cut and sewn with care, tracked through cutting, sewing, and fitting stages.`,
     storyPhotos: storyPhotos.length > 0 ? storyPhotos : [deliveredPhoto.url],
   };
 

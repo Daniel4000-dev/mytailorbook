@@ -125,7 +125,7 @@ export default function ReportsPage() {
       width="narrow"
       header={
         <TopBar
-          title="Financial Intelligence"
+          title="Sales & Reports"
           showBack={!isDesktop}
           onBack={() => router.push(ROUTES.dashboard)}
         />
@@ -135,8 +135,8 @@ export default function ReportsPage() {
         {/* Header Bar: Scope and Time Range Filter */}
         <div className={styles.heroBar}>
           <div className={styles.introCol}>
-            <h1 className={styles.title}>Atelier Profit &amp; Telemetry</h1>
-            <p className={styles.subtitle}>Cross-channel cash flow, margins, and debtor receivables</p>
+            <h1 className={styles.title}>Shop Profit &amp; Reports</h1>
+            <p className={styles.subtitle}>Track your sales, expenses, profits, and customer balances</p>
           </div>
 
           <div className={styles.rangeRow} role="group" aria-label="Time horizon">

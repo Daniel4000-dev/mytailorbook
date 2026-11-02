@@ -206,7 +206,7 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
             activityType = 'streak';
             category = 'milestone';
             badgeLabel = 'STREAK';
-            headline = ev.description || 'Extended atelier daily production streak';
+            headline = ev.description || 'Extended daily work streak';
           }
 
           pulses.push({
@@ -284,8 +284,8 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
           tierColor: '#C0C0C0',
           activityType: 'rest_day',
           category: 'milestone',
-          headline: 'Logged atelier recovery day — production streak preserved',
-          subtext: 'Rest days protect health and prevent burnout across the cutting team',
+          headline: 'Logged rest day — daily streak saved',
+          subtext: 'Rest days protect health and prevent burnout for your tailoring team',
           badgeLabel: 'REST DAY',
           timeAgo: '7h ago',
           salutes: { flame: 4, needle: 2, respect: 11 },
@@ -349,11 +349,11 @@ export async function linkStudioBuddyAction(buddyCode: string): Promise<{ succes
       .single();
 
     if (!buddyShop) {
-      return { error: 'Colleague studio code not found. Please verify the code and retry.' };
+      return { error: 'Tailor invite code not found. Please check the code and try again.' };
     }
 
     if (buddyShop.id === profile.shop_id) {
-      return { error: 'You cannot link with your own atelier studio code.' };
+      return { error: 'You cannot connect with your own shop code.' };
     }
 
     // Bidirectional link

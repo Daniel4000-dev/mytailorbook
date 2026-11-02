@@ -275,8 +275,8 @@ export default function OrderDetailPage() {
 
   const handleConfirmFittingSchedule = async (date: string, time: string, sendWhatsApp: boolean) => {
     if (!order) return;
-    const clientName = customer?.fullName || order.customerName || 'Bespoke Client';
-    const shopName = currentShop?.name || 'our atelier';
+    const clientName = customer?.fullName || order.customerName || 'Client';
+    const shopName = currentShop?.name || 'our shop';
     const address = currentShop?.address || '';
     const targetShopId = user?.shopId || currentShop?.id || order.shopId;
 
@@ -307,7 +307,7 @@ export default function OrderDetailPage() {
         day: 'numeric',
         month: 'short',
       });
-      const addrText = address ? `\n\nAtelier Address: ${address}` : '';
+      const addrText = address ? `\n\nShop Address: ${address}` : '';
       const msg = `Hello ${clientName},\n\nWarm greetings from ${shopName}. Your ${order.orderDetails || order.styleName || 'garment'} is ready for your fitting session!\n\nWe have reserved your appointment for ${formattedDate} at ${time}.${addrText}\n\nPlease let us know if this time works for you. Looking forward to seeing you!`;
       window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
     }
@@ -528,14 +528,14 @@ export default function OrderDetailPage() {
     try {
       if (isDemoMode) {
         addOrderToMockPortfolio(order);
-        showToast('Commission story published to portfolio showcase!', 'success');
+        showToast('Order photos published to your catalog showcase!', 'success');
       } else {
         const res = await publishOrderStoryToPortfolioAction(currentShop.id, order.id);
         if (res.success) {
-          showToast('Commission story published to your atelier portfolio with making-of sequence!', 'success');
+          showToast('Order photos published to your shop catalog!', 'success');
         } else {
           addOrderToMockPortfolio(order);
-          showToast('Commission story published to portfolio showcase!', 'success');
+          showToast('Order photos published to your catalog showcase!', 'success');
         }
       }
     } catch {

@@ -203,7 +203,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                   <div className={styles.buddyDetails}>
                     <div className={styles.buddyTitle}>{buddyInfo.name}</div>
                     <div className={styles.buddyStatus}>
-                      Linked Studio Partner. You both earn +15 bonus XP when both active today!
+                      Connected Tailor Friend. You both earn +15 bonus points when both active today!
                     </div>
                   </div>
                   <button type="button" className={styles.nudgeBtn} onClick={handleNudgeBuddy}>
@@ -212,15 +212,15 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                 </div>
               ) : (
                 <div>
-                  <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>Link with a Studio Colleague</h4>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>Connect with a Tailor Friend</h4>
                   <p style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', marginBottom: '14px', lineHeight: 1.4 }}>
-                    Connect with a tailor friend. When you both finish cutting or sewing on the same day, you both earn an extra +15 Co-Op Craft Points!
+                    Connect with a fellow tailor. When you both finish cutting or sewing on the same day, you both earn an extra +15 bonus points!
                   </p>
                   <div className={styles.linkBuddyForm}>
                     <input
                       type="text"
                       className={styles.codeInput}
-                      placeholder="ENTER COLLEAGUE CODE"
+                      placeholder="ENTER TAILOR INVITE CODE"
                       value={buddyCodeInput}
                       onChange={(e) => setBuddyCodeInput(e.target.value)}
                     />

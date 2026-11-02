@@ -18,35 +18,35 @@ export default function ProfileSetupProgress({ onNavigate }: ProfileSetupProgres
     return [
       {
         id: 'identity',
-        label: 'Studio Name & Business Mode',
+        label: 'Shop Name & Specialty',
         isComplete: Boolean(currentShop?.name),
         href: '/settings/studio',
         cta: 'Identity',
       },
       {
         id: 'phone',
-        label: 'WhatsApp / Phone Contact for Client Updates',
+        label: 'WhatsApp or Phone Number',
         isComplete: Boolean(currentShop?.phone),
         href: '/settings/studio',
         cta: 'Add Phone',
       },
       {
         id: 'bank',
-        label: 'Bank Account for Auto Injected Receipts & Invoices',
+        label: 'Bank Account for Receipts',
         isComplete: Boolean(currentShop?.bankDetails?.bankName && currentShop?.bankDetails?.accountNumber),
         href: '/settings/studio',
         cta: 'Add Bank',
       },
       {
         id: 'target',
-        label: 'Monthly Revenue Milestone Target',
+        label: 'Monthly Sales Target',
         isComplete: Boolean(currentShop?.monthlyRevenueTarget && currentShop.monthlyRevenueTarget > 0),
         href: '/settings/studio',
         cta: 'Set Goal',
       },
       {
         id: 'team',
-        label: 'Workshop Apprentices & Tailors Bench',
+        label: 'Tailors & Apprentices (Team)',
         isComplete: Boolean(staffMembers && staffMembers.length > 0),
         href: '/settings/staff',
         cta: 'Add Team',
@@ -73,7 +73,7 @@ export default function ProfileSetupProgress({ onNavigate }: ProfileSetupProgres
           <div className={styles.iconWrap}>
             <Symbol name="auto_awesome" size={14} />
           </div>
-          <span className={styles.title}>Atelier Profile Setup</span>
+          <span className={styles.title}>Shop Profile Setup</span>
         </div>
         <span className={styles.badge}>{progressPercent}% Complete</span>
       </div>

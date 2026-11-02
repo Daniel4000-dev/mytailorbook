@@ -255,8 +255,8 @@ export default function ReconciliationPage() {
       padding="none"
       header={
         <TopBar
-          title="Till Reconciliation"
-          subtitle="Daily cash drawer audit & bank ledger"
+          title="Daily Cash (Till)"
+          subtitle="Daily cash drawer & payments received"
           showBack
           onBack={() => router.push(ROUTES.production)}
         />
@@ -327,16 +327,16 @@ export default function ReconciliationPage() {
         {loading ? (
           <div className={styles.loadingState}>
             <Symbol name="progress_activity" size={28} className="global-spinner" />
-            <p>Auditing cash & bank transactions…</p>
+            <p>Loading cash & bank records…</p>
           </div>
         ) : (
           <>
-            {/* ── 2. HERO: ATELIER CASH DRAWER (TILL) CARD ── */}
+            {/* ── 2. HERO: CASH DRAWER (TILL) CARD ── */}
             <section className={styles.tillHeroCard}>
               <div className={styles.tillHeroTop}>
                 <div>
-                  <span className={styles.tillHeroEyebrow}>ATELIER CASH DRAWER</span>
-                  <h2 className={styles.tillHeroTitle}>Expected Physical Cash in Till</h2>
+                  <span className={styles.tillHeroEyebrow}>CASH DRAWER</span>
+                  <h2 className={styles.tillHeroTitle}>Cash in Drawer Today</h2>
                 </div>
                 <div className={styles.tillCashBadge}>
                   <Symbol name="payments" size={20} />
@@ -416,7 +416,7 @@ export default function ReconciliationPage() {
               </div>
             </section>
 
-            {/* ── 4. QUICK ACTION BAR: RECORD ATELIER EXPENSE ── */}
+            {/* ── 4. QUICK ACTION BAR: RECORD SHOP EXPENSE ── */}
             <div className={styles.quickActionsBar}>
               <button
                 type="button"

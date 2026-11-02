@@ -99,7 +99,7 @@ export default function NotificationBell() {
                       <Symbol name={badgeIcon} size={18} />
                     </span>
                     <span className={styles.itemBody}>
-                      <span className={styles.itemTitle}>{n.title || 'Atelier Notification'}</span>
+                      <span className={styles.itemTitle}>{n.title || 'Notification'}</span>
                       <span className={styles.itemSubtitle}>{n.subtitle}</span>
                     </span>
                     <span className={styles.itemMeta}>

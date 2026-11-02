@@ -21,7 +21,7 @@ const CRAFT_ACTIVITIES: ActivityOption[] = [
   { id: 'final_finishing', label: 'Pressing, Hemming & Quality Inspection' },
   { id: 'order_delivery', label: 'Garment Delivery & Handover' },
   { id: 'measurements_intake', label: 'Style Consultation & Measurements' },
-  { id: 'custom', label: 'Other Custom Atelier Activity...' },
+  { id: 'custom', label: 'Other Shop Work...' },
 ];
 
 export default function DailyActivityDropdown() {
@@ -50,8 +50,8 @@ export default function DailyActivityDropdown() {
   const handleLogActivity = async () => {
     const isCustom = selectedActivity === 'custom';
     const activityName = isCustom
-      ? customText.trim() || 'Custom Atelier Activity'
-      : CRAFT_ACTIVITIES.find((a) => a.id === selectedActivity)?.label || 'Atelier Activity';
+      ? customText.trim() || 'Custom Shop Work'
+      : CRAFT_ACTIVITIES.find((a) => a.id === selectedActivity)?.label || 'Shop Activity';
 
     setLoading(true);
     try {
@@ -97,7 +97,7 @@ export default function DailyActivityDropdown() {
             </span>
             <span className={styles.completedSub}>
               {currentStreak > 0
-                ? `${currentStreak}-day atelier streak active and protected.`
+                ? `${currentStreak}-day streak active and protected.`
                 : 'Your daily streak is secured for today.'}
             </span>
           </div>

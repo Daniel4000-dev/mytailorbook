@@ -209,10 +209,10 @@ function CalendarContent() {
     }
 
     const timeStr = evt.startTime ? ` at ${evt.startTime}` : '';
-    const shopName = currentShop?.name || 'our atelier';
+    const shopName = currentShop?.name || 'our shop';
     const address = currentShop?.address || '';
-    const addrText = address ? `\n\nAtelier Address: ${address}.` : '';
-    const message = `Hello ${customer.fullName},\n\nWarm greetings from ${shopName}.\n\nThis is a friendly reminder regarding your bespoke fitting appointment scheduled for ${evt.date}${timeStr}.${addrText}\n\nPlease let us know if you need to adjust this timing. See you soon!`;
+    const addrText = address ? `\n\nShop Address: ${address}.` : '';
+    const message = `Hello ${customer.fullName},\n\nWarm greetings from ${shopName}.\n\nThis is a friendly reminder regarding your fitting appointment scheduled for ${evt.date}${timeStr}.${addrText}\n\nPlease let us know if you need to adjust this timing. See you soon!`;
 
     window.open(getWhatsAppLink(customer.whatsappNumber, message), '_blank');
   };

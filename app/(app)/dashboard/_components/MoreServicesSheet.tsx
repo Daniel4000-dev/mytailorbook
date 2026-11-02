@@ -29,8 +29,8 @@ export default function MoreServicesSheet({
 
   const services = [
     {
-      title: 'Financial Intelligence & Margins',
-      sub: 'Revenue, margin, customer debt & expense telemetry',
+      title: 'Sales & Profit Reports',
+      sub: 'Revenue, profit, customer balances & expenses',
       icon: 'bar_chart',
       href: ROUTES.reports,
       iconClass: styles.iconDebt,
@@ -45,15 +45,15 @@ export default function MoreServicesSheet({
       badge: null,
     },
     {
-      title: 'Artisan Bench & Staff',
-      sub: 'Assign garments to cutters, apprentices & tailors',
+      title: 'Tailors & Staff',
+      sub: 'Assign orders to your tailors & apprentices',
       icon: 'group_add',
       href: '/settings/staff',
       iconClass: styles.iconTeam,
       badge: null,
     },
     {
-      title: 'Studio Settings & Receipts',
+      title: 'Shop Settings & Receipts',
       sub: 'Shop profile, currency, invoice branding',
       icon: 'tune',
       href: '/settings',
@@ -61,7 +61,7 @@ export default function MoreServicesSheet({
       badge: null,
     },
     {
-      title: 'Live Atelier Notifications',
+      title: 'Notifications',
       sub: 'Activity feed & customer order status alerts',
       icon: 'notifications',
       href: '/notifications',
@@ -74,7 +74,7 @@ export default function MoreServicesSheet({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Atelier Tools & Management"
+      title="More Tools"
       noPadding
     >
       <div className={styles.container}>

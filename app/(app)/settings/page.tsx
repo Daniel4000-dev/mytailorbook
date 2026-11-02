@@ -91,9 +91,9 @@ export default function SettingsPage() {
       repeat the same thing twice on one screen. */}
   const handleShareStorefront = () => {
     const slug = currentShop?.slug || 'savile-row';
-    const shopName = currentShop?.name || 'our atelier';
+    const shopName = currentShop?.name || 'our shop';
     const url = `${window.location.origin}/studio/${slug}`;
-    const text = `Greetings from ${shopName}! Explore our signature bespoke collections and storefront:\n\n${url}`;
+    const text = `Greetings from ${shopName}! View our designs and catalog here:\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -173,10 +173,10 @@ export default function SettingsPage() {
             {currentShop?.vacationMode
               ? 'Vacation Mode Paused'
               : currentShop?.businessMode === 'rtw'
-              ? 'Ready-to-Wear Rack Active'
+              ? 'Ready-to-Wear Active'
               : currentShop?.businessMode === 'hybrid'
-              ? 'Hybrid Atelier Operating'
-              : 'Bespoke Cutting Table Active'}
+              ? 'Custom & Ready-Made Active'
+              : 'Custom Orders Active'}
           </span>
         </div>
 
@@ -200,17 +200,17 @@ export default function SettingsPage() {
         {/* Studio Name & Identity Info */}
         <div className={styles.heroNameGroup}>
           <div className={styles.heroTitleRow}>
-            <h2 className={styles.heroStudioName}>{currentShop?.name || 'Your Studio'}</h2>
+            <h2 className={styles.heroStudioName}>{currentShop?.name || 'Your Shop'}</h2>
             <Symbol name="verified" size={17} className={styles.verifiedIcon} />
           </div>
 
           <div className={styles.heroBadgeRow}>
             <span className={styles.heroModeBadge}>
               {currentShop?.businessMode === 'rtw'
-                ? 'Ready-to-Wear Studio'
+                ? 'Ready-to-Wear'
                 : currentShop?.businessMode === 'hybrid'
-                ? 'Hybrid Fashion House'
-                : 'Bespoke Atelier'}
+                ? 'Custom & Ready-to-Wear'
+                : 'Custom Tailoring'}
             </span>
             {currentShop?.currency && (
               <span className={styles.heroCurrencyBadge}>{currentShop.currency}</span>

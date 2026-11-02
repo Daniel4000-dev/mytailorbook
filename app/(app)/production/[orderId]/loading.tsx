@@ -8,7 +8,7 @@ import styles from './page.module.css';
  *  right away instead of the old page just sitting frozen. */
 export default function OrderDetailLoading() {
   return (
-    <PageLayout header={<TopBar title="Order Dossier" showBack />}>
+    <PageLayout header={<TopBar title="Order Details" showBack />}>
       <div className={styles.detailWrapper}>
         {/* Command Hero Card Skeleton */}
         <div className={styles.heroCard}>

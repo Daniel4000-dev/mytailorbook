@@ -32,7 +32,7 @@ const EVENT_TYPES: { value: CalendarEventType; label: string }[] = [
   { value: 'payment_followup', label: 'Balance Payment Follow-up' },
   { value: 'shop_maintenance', label: 'Machine Needles & Generator Service' },
   { value: 'general_task', label: 'General Workshop Task' },
-  { value: 'off_day', label: 'Atelier Off Day / Holiday' },
+  { value: 'off_day', label: 'Shop Off Day / Holiday' },
 ];
 
 const TIME_PRESETS = [
@@ -148,8 +148,8 @@ export default function AddEventSheet({
       // Trigger WhatsApp notice if enabled
       if (sendWhatsAppNotice && selectedCustomer?.whatsappNumber) {
         const timeStr = startTime ? ` at ${startTime}` : '';
-        const shopName = currentShop?.name || 'our atelier';
-        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your bespoke appointment scheduled for ${date}${timeStr}.\n\nAtelier Address: ${currentShop?.address || 'our studio'}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
+        const shopName = currentShop?.name || 'our shop';
+        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your fitting appointment scheduled for ${date}${timeStr}.\n\nShop Address: ${currentShop?.address || 'our shop'}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
         window.open(getWhatsAppLink(selectedCustomer.whatsappNumber, msg), '_blank');
       }
 
@@ -180,8 +180,8 @@ export default function AddEventSheet({
       // Trigger WhatsApp notice if enabled
       if (sendWhatsAppNotice && selectedCustomer?.whatsappNumber) {
         const timeStr = startTime ? ` at ${startTime}` : '';
-        const shopName = currentShop?.name || 'our atelier';
-        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your bespoke appointment scheduled for ${date}${timeStr}.\n\nAtelier Address: ${currentShop?.address || 'our studio'}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
+        const shopName = currentShop?.name || 'our shop';
+        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your fitting appointment scheduled for ${date}${timeStr}.\n\nShop Address: ${currentShop?.address || 'our shop'}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
         window.open(getWhatsAppLink(selectedCustomer.whatsappNumber, msg), '_blank');
       }
 
@@ -203,7 +203,7 @@ export default function AddEventSheet({
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="Schedule Atelier Event" variant="panel">
+    <BottomSheet isOpen={isOpen} onClose={onClose} title="Schedule Event" variant="panel">
       <form onSubmit={handleSubmit} className={styles.form}>
         {/* Event Type Selector */}
         <div className={styles.field}>
@@ -329,7 +329,7 @@ export default function AddEventSheet({
         {/* Notes Field */}
         <div className={styles.field}>
           <TextArea
-            label="Atelier Fitting Notes (Optional)"
+            label="Fitting Notes (Optional)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. Focus on chest ease and sleeve taper"

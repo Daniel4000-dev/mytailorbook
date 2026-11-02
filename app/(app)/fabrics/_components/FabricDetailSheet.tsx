@@ -107,7 +107,7 @@ export default function FabricDetailSheet({
   const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
   const yardage = yardageMatch ? `${yardageMatch[1]} yds` : null;
 
-  const shopName = currentShop?.name || 'the atelier';
+  const shopName = currentShop?.name || 'our shop';
   const clientPhone = customer?.whatsappNumber;
   const clientName = customer?.fullName || order.customerName || 'Walk-in Client';
 
@@ -272,13 +272,13 @@ export default function FabricDetailSheet({
           {isClientFabric && (
             <span className={styles.specBadgeClient}>
               <Symbol name="person" size={13} />
-              <span>Client Sourced Material</span>
+              <span>Customer Fabric</span>
             </span>
           )}
           {isShopFabric && (
             <span className={styles.specBadgeShop}>
               <Symbol name="storefront" size={13} />
-              <span>Atelier Stock</span>
+              <span>Shop Fabric</span>
             </span>
           )}
           {hasPriority && (

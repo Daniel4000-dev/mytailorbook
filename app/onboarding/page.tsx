@@ -207,7 +207,7 @@ export default function OnboardingPage() {
           <div className={styles.header}>
             <div className={styles.brandBadge}>
               <Symbol name="auto_awesome" size={13} />
-              <span>Atelier Welcome</span>
+              <span>Welcome</span>
             </div>
             <BrandIcon alt="MyStitchBook" className={styles.sewingMachineSvg} />
             <h1 className={styles.brandTitle}>MYSTITCHBOOK</h1>
@@ -259,11 +259,11 @@ export default function OnboardingPage() {
       <div className={styles.ambientGlowSecondary} />
 
       <div className={styles.glassCard}>
-        {/* Atelier Top Stepper */}
+        {/* Top Stepper */}
         <div className={styles.stepMeta}>
-          <span>Atelier Setup</span>
+          <span>Shop Setup</span>
           <span>
-            Step {step - 1} of 3 • {step === 2 ? 'Studio Identity' : step === 3 ? 'Operating Model' : 'Operations & Focus'}
+            Step {step - 1} of 3 • {step === 2 ? 'Shop Name' : step === 3 ? 'What You Make' : 'Sales Target & Team'}
           </span>
         </div>
 
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.22, ease: 'easeOut' }}
               >
-                <h2 className={styles.cardTitle}>Name your atelier</h2>
+                <h2 className={styles.cardTitle}>Name your shop or brand</h2>
                 <p className={styles.cardSubtitle}>
                   This name appears on client invoices, live order tracking links, and your digital portfolio.
                 </p>
@@ -313,8 +313,8 @@ export default function OnboardingPage() {
                     <AuthInput
                       id="shopName"
                       type="text"
-                      label="Shop / Studio Name"
-                      placeholder="e.g. Savile Row Atelier"
+                      label="Shop / Brand Name"
+                      placeholder="e.g. Savile Row Tailors"
                       autoFocus
                       {...register('shopName')}
                       onKeyDown={(e) => {
@@ -331,10 +331,10 @@ export default function OnboardingPage() {
                 {/* Real-time Studio Identity Preview */}
                 <div className={styles.previewSection}>
                   <div className={styles.previewHeader}>
-                    <span className={styles.previewLabel}>Studio Badge Preview</span>
+                    <span className={styles.previewLabel}>Shop Badge Preview</span>
                     <span className={styles.verifiedBadge}>
                       <Symbol name="verified" size={14} />
-                      <span>Verified Atelier</span>
+                      <span>Verified Tailor</span>
                     </span>
                   </div>
 
@@ -342,7 +342,7 @@ export default function OnboardingPage() {
                     <div className={styles.monogramSeal}>{getMonogram(watchedShopName)}</div>
                     <div className={styles.previewAtelierDetails}>
                       <h3 className={styles.previewShopName}>
-                        {watchedShopName.trim() || 'Your Atelier'}
+                        {watchedShopName.trim() || 'Your Shop'}
                       </h3>
                       <p className={styles.previewSlug}>
                         mystitchbook.com/studio/{slugify(watchedShopName)}
@@ -477,11 +477,11 @@ export default function OnboardingPage() {
                     </div>
                     <div className={styles.cardContent}>
                       <div className={styles.cardRow}>
-                        <h3 className={styles.cardHeading}>Hybrid Atelier</h3>
-                        <span className={styles.cardTag}>Full Atelier Suite</span>
+                        <h3 className={styles.cardHeading}>Custom &amp; Ready-to-Wear</h3>
+                        <span className={styles.cardTag}>Full Suite</span>
                       </div>
                       <p className={styles.cardDescription}>
-                        The complete tailoring studio. Made-to-measure custom commissions alongside seasonal ready-to-wear collections.
+                        The complete tailoring shop. Custom orders from scratch alongside off-the-rack garments.
                       </p>
                     </div>
                     <div className={styles.checkIndicator}>
@@ -697,18 +697,18 @@ export default function OnboardingPage() {
                 <div className={styles.sectionBlock}>
                   <div className={styles.sectionHeader}>
                     <Symbol name="payments" size={18} />
-                    <span>Monthly Revenue Milestone Target</span>
+                    <span>Monthly Sales Target</span>
                   </div>
                   <p className={styles.sectionSubtext}>
-                    Sets your personalized financial milestone bar on your atelier dashboard.
+                    Sets your monthly sales goal on your dashboard.
                   </p>
 
                   <div className={styles.capacityGrid}>
                     {[
-                      { val: 500000, label: '₦500k', desc: 'Emerging Studio' },
-                      { val: 1500000, label: '₦1.5M', desc: 'Active Atelier' },
-                      { val: 3000000, label: '₦3.0M', desc: 'Growing House' },
-                      { val: 5000000, label: '₦5.0M', desc: 'Haute Couture' },
+                      { val: 500000, label: '₦500k', desc: 'Starting Out' },
+                      { val: 1500000, label: '₦1.5M', desc: 'Active Shop' },
+                      { val: 3000000, label: '₦3.0M', desc: 'Growing Brand' },
+                      { val: 5000000, label: '₦5.0M', desc: 'Large House' },
                     ].map((item) => (
                       <div
                         key={item.val}
@@ -736,18 +736,18 @@ export default function OnboardingPage() {
                 <div className={styles.sectionBlock}>
                   <div className={styles.sectionHeader}>
                     <Symbol name="group" size={18} />
-                    <span>Workshop Apprentices &amp; Tailors</span>
+                    <span>Tailors &amp; Apprentices</span>
                   </div>
                   <p className={styles.sectionSubtext}>
-                    Configure your atelier workforce to track cutting and sewing workloads.
+                    Add your team size to track who cuts and sews each garment.
                   </p>
 
                   <div className={styles.capacityGrid}>
                     {[
-                      { val: 'solo', label: 'Solo', desc: 'Master Only' },
+                      { val: 'solo', label: 'Solo', desc: 'Just Me' },
                       { val: '1-2', label: '1 – 2', desc: 'Apprentices' },
-                      { val: '3-5', label: '3 – 5', desc: 'Artisans' },
-                      { val: '6+', label: '6+', desc: 'Full Workshop' },
+                      { val: '3-5', label: '3 – 5', desc: 'Tailors' },
+                      { val: '6+', label: '6+', desc: 'Full Team' },
                     ].map((item) => (
                       <div
                         key={item.val}
@@ -809,11 +809,11 @@ export default function OnboardingPage() {
                     {submitting ? (
                       <>
                         <Symbol name="progress_activity" size={18} className="global-spinner" />
-                        <span>Crafting Atelier Workspace...</span>
+                        <span>Setting up your shop...</span>
                       </>
                     ) : (
                       <>
-                        <span>Launch Atelier Workspace</span>
+                        <span>Open My Shop</span>
                         <Symbol name="workspace_premium" size={18} />
                       </>
                     )}
