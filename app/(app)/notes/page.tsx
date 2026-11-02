@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/routes';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -28,35 +28,35 @@ const NOTE_CATEGORIES: {
   label: string;
   shortLabel: string;
   icon: string;
-  description: string;
+  placeholder: string;
 }[] = [
   {
     key: 'shopping',
     label: 'Market & Haberdashery',
     shortLabel: 'Market List',
     icon: 'storefront',
-    description: 'Threads, zips, interfacing, lining & buttons',
+    placeholder: 'Add thread, hidden zips, collar canvas…',
   },
   {
     key: 'craft',
     label: 'Machinist & Craft',
     shortLabel: 'Machinist',
     icon: 'content_cut',
-    description: 'Stitching notes, iron pressing & needle guidelines',
+    placeholder: 'Add stitching or pressing instruction…',
   },
   {
     key: 'client',
     label: 'Client Callbacks',
     shortLabel: 'Callbacks',
     icon: 'call',
-    description: 'Styling confirmations, fitting dates & pick-ups',
+    placeholder: 'Add customer styling confirmation…',
   },
   {
     key: 'general',
     label: 'Workshop Tasks',
     shortLabel: 'General',
     icon: 'notes',
-    description: 'Machine maintenance, supplies & shop tasks',
+    placeholder: 'Add general workshop errand or reminder…',
   },
 ];
 
@@ -114,13 +114,30 @@ const INITIAL_NOTES: WorkshopNote[] = [
 export default function WorkshopNotesPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const inlineInputRef = useRef<HTMLInputElement>(null);
 
   const [notes, setNotes] = useState<WorkshopNote[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | NoteCategory>('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newText, setNewText] = useState('');
-  const [newCategory, setNewCategory] = useState<NoteCategory>('shopping');
+  const [showCompleted, setShowCompleted] = useState(true);
+
+  // Inline Quick Add State
+  const [inlineText, setInlineText] = useState('');
+  const [inlineCategory, setInlineCategory] = useState<NoteCategory>('shopping');
+
+  // BottomSheet State (For Presets & rich add)
+  const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
+  const [modalText, setModalText] = useState('');
+  const [modalCategory, setModalCategory] = useState<NoteCategory>('shopping');
+
   const [loaded, setLoaded] = useState(false);
+
+  // Sync category with activeTab when user switches tabs
+  useEffect(() => {
+    if (activeTab !== 'all') {
+      setInlineCategory(activeTab);
+      setModalCategory(activeTab);
+    }
+  }, [activeTab]);
 
   // Load notes from localStorage
   useEffect(() => {
@@ -176,10 +193,38 @@ export default function WorkshopNotesPage() {
     showToast('Completed items cleared', 'success');
   };
 
-  // Add note
-  const handleAddNote = (e: React.FormEvent) => {
+  // Inline Quick Add Submission
+  const handleInlineAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = newText.trim();
+    const trimmed = inlineText.trim();
+    if (!trimmed) return;
+
+    const newNote: WorkshopNote = {
+      id: `note-${Date.now()}`,
+      text: trimmed,
+      category: inlineCategory,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    saveNotes([newNote, ...notes]);
+    setInlineText('');
+    showToast('Added to list', 'success');
+    inlineInputRef.current?.focus();
+  };
+
+  // Cycle inline category
+  const cycleInlineCategory = () => {
+    const categories: NoteCategory[] = ['shopping', 'craft', 'client', 'general'];
+    const currentIndex = categories.indexOf(inlineCategory);
+    const nextIndex = (currentIndex + 1) % categories.length;
+    setInlineCategory(categories[nextIndex]);
+  };
+
+  // Modal Presets Add Submission
+  const handleModalAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = modalText.trim();
     if (!trimmed) {
       showToast('Please type a note description', 'error');
       return;
@@ -188,15 +233,77 @@ export default function WorkshopNotesPage() {
     const newNote: WorkshopNote = {
       id: `note-${Date.now()}`,
       text: trimmed,
-      category: newCategory,
+      category: modalCategory,
       completed: false,
       createdAt: new Date().toISOString(),
     };
 
     saveNotes([newNote, ...notes]);
-    setNewText('');
-    setIsModalOpen(false);
+    setModalText('');
+    setIsPresetModalOpen(false);
     showToast('Note added to workshop list', 'success');
+  };
+
+  // 1-Tap WhatsApp Share for Market List / Tasks
+  const handleShareWhatsApp = () => {
+    const targetItems = notes.filter(
+      (n) => !n.completed && (activeTab === 'all' || n.category === activeTab)
+    );
+
+    if (targetItems.length === 0) {
+      showToast('No pending items to share', 'info');
+      return;
+    }
+
+    const listTitle =
+      activeTab === 'shopping'
+        ? '*Workshop Market List*'
+        : activeTab === 'craft'
+        ? '*Machinist Instructions*'
+        : activeTab === 'client'
+        ? '*Client Callbacks*'
+        : '*Workshop Action Items*';
+
+    const text =
+      `${listTitle} (${targetItems.length} items):\n\n` +
+      targetItems.map((item, idx) => `${idx + 1}. ${item.text}`).join('\n') +
+      '\n\n— Sent from MyTailorBook Workshop';
+
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  // Copy List to Clipboard
+  const handleCopyList = () => {
+    const targetItems = notes.filter(
+      (n) => !n.completed && (activeTab === 'all' || n.category === activeTab)
+    );
+
+    if (targetItems.length === 0) {
+      showToast('No pending items to copy', 'info');
+      return;
+    }
+
+    const listTitle =
+      activeTab === 'shopping'
+        ? 'Workshop Market List'
+        : activeTab === 'craft'
+        ? 'Machinist Instructions'
+        : activeTab === 'client'
+        ? 'Client Callbacks'
+        : 'Workshop Action Items';
+
+    const text =
+      `${listTitle} (${targetItems.length} items):\n\n` +
+      targetItems.map((item, idx) => `${idx + 1}. ${item.text}`).join('\n') +
+      '\n\n— Sent from MyTailorBook Workshop';
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      showToast('List copied to clipboard!', 'success');
+    } else {
+      showToast('Copying not supported on this device', 'error');
+    }
   };
 
   // Filtered notes
@@ -205,21 +312,15 @@ export default function WorkshopNotesPage() {
     return notes.filter((n) => n.category === activeTab);
   }, [notes, activeTab]);
 
-  // Counts
-  const pendingCount = useMemo(() => notes.filter((n) => !n.completed).length, [notes]);
-  const completedCount = useMemo(() => notes.filter((n) => n.completed).length, [notes]);
+  // Pending vs Completed Split
+  const pendingNotes = useMemo(() => filteredNotes.filter((n) => !n.completed), [filteredNotes]);
+  const completedNotes = useMemo(() => filteredNotes.filter((n) => n.completed), [filteredNotes]);
 
-  const shoppingCount = useMemo(
-    () => notes.filter((n) => n.category === 'shopping' && !n.completed).length,
-    [notes]
-  );
-  const craftCount = useMemo(
-    () => notes.filter((n) => n.category === 'craft' && !n.completed).length,
-    [notes]
-  );
-  const clientCount = useMemo(
-    () => notes.filter((n) => n.category === 'client' && !n.completed).length,
-    [notes]
+  // Counts
+  const totalPending = useMemo(() => notes.filter((n) => !n.completed).length, [notes]);
+  const activeCategoryObj = useMemo(
+    () => NOTE_CATEGORIES.find((c) => c.key === inlineCategory) || NOTE_CATEGORIES[0],
+    [inlineCategory]
   );
 
   return (
@@ -236,7 +337,7 @@ export default function WorkshopNotesPage() {
       }
     >
       <div className={styles.container}>
-        {/* ── 1. COCKPIT SUMMARY ── */}
+        {/* ── 1. COCKPIT HEADER ── */}
         <section className={styles.cockpitCard}>
           <div className={styles.cockpitTop}>
             <div className={styles.cockpitHeaderRow}>
@@ -247,85 +348,44 @@ export default function WorkshopNotesPage() {
                 <span className={styles.cockpitEyebrow}>Workshop Action Items</span>
               </div>
               <span className={styles.statusBadge}>
-                {pendingCount} Pending
+                {totalPending} Pending
               </span>
             </div>
 
             <div className={styles.cockpitStatsRow}>
               <div className={styles.mainCountBlock}>
-                <span className={styles.mainCountNumeral}>{pendingCount}</span>
-                <span className={styles.mainCountLabel}>to do</span>
+                <span className={styles.mainCountNumeral}>{totalPending}</span>
+                <span className={styles.mainCountLabel}>items to do</span>
               </div>
-              {completedCount > 0 && (
+
+              {/* Fast Action Buttons: WhatsApp & Copy */}
+              <div className={styles.cockpitActions}>
                 <button
                   type="button"
-                  className={styles.clearCompletedBtn}
-                  onClick={handleClearCompleted}
+                  className={styles.actionPillBtn}
+                  onClick={handleShareWhatsApp}
+                  title="Send pending list via WhatsApp"
+                  aria-label="Send pending list via WhatsApp"
                 >
-                  <Symbol name="delete" size={14} />
-                  <span>Clear {completedCount} Done</span>
+                  <Symbol name="chat" size={14} />
+                  <span>WhatsApp</span>
                 </button>
-              )}
+                <button
+                  type="button"
+                  className={styles.actionPillBtn}
+                  onClick={handleCopyList}
+                  title="Copy pending items to clipboard"
+                  aria-label="Copy pending items to clipboard"
+                >
+                  <Symbol name="content_copy" size={14} />
+                  <span>Copy</span>
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className={styles.cockpitDivider} />
-
-          <div className={styles.cockpitShelf}>
-            <button
-              type="button"
-              className={`${styles.shelfColBtn} ${activeTab === 'shopping' ? styles.shelfActive : ''}`}
-              onClick={() => setActiveTab('shopping')}
-            >
-              <div className={styles.shelfIconRow}>
-                <Symbol name="storefront" size={14} />
-                <span className={styles.shelfLabel}>Market List</span>
-              </div>
-              <span className={styles.shelfValue}>{shoppingCount} items</span>
-              <span className={styles.shelfSubtext}>Thread, zips, lining</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.shelfColBtn} ${activeTab === 'craft' ? styles.shelfActive : ''}`}
-              onClick={() => setActiveTab('craft')}
-            >
-              <div className={styles.shelfIconRow}>
-                <Symbol name="content_cut" size={14} />
-                <span className={styles.shelfLabel}>Machinist</span>
-              </div>
-              <span className={styles.shelfValue}>{craftCount} items</span>
-              <span className={styles.shelfSubtext}>Stitching &amp; ironing</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.shelfColBtn} ${activeTab === 'client' ? styles.shelfActive : ''}`}
-              onClick={() => setActiveTab('client')}
-            >
-              <div className={styles.shelfIconRow}>
-                <Symbol name="call" size={14} />
-                <span className={styles.shelfLabel}>Callbacks</span>
-              </div>
-              <span className={styles.shelfValue}>{clientCount} items</span>
-              <span className={styles.shelfSubtext}>Styling &amp; fittings</span>
-            </button>
           </div>
         </section>
 
-        {/* ── 2. ADD NOTE ACTION BUTTON ── */}
-        <div className={styles.actionRow}>
-          <button
-            type="button"
-            className={styles.primaryActionBtn}
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Symbol name="add" size={17} />
-            <span>Add Workshop Note</span>
-          </button>
-        </div>
-
-        {/* ── 3. SEGMENTED FILTER ── */}
+        {/* ── 2. SINGLE STREAMLINED CATEGORY FILTER ── */}
         <div className={styles.segmentedWrap} role="tablist" aria-label="Filter Notes">
           <div className={styles.segmentedControl}>
             <button
@@ -336,10 +396,10 @@ export default function WorkshopNotesPage() {
               onClick={() => setActiveTab('all')}
             >
               <span>All</span>
-              <span className={styles.segmentCount}>{notes.length}</span>
+              <span className={styles.segmentCount}>{notes.filter((n) => !n.completed).length}</span>
             </button>
             {NOTE_CATEGORIES.map((c) => {
-              const count = notes.filter((n) => n.category === c.key).length;
+              const count = notes.filter((n) => n.category === c.key && !n.completed).length;
               return (
                 <button
                   key={c.key}
@@ -357,16 +417,58 @@ export default function WorkshopNotesPage() {
           </div>
         </div>
 
-        {/* ── 4. NOTES LIST ── */}
+        {/* ── 3. INSTANT INLINE QUICK-ADD DOCK ── */}
+        <form onSubmit={handleInlineAdd} className={styles.quickAddDock}>
+          <button
+            type="button"
+            className={styles.dockCategoryChip}
+            onClick={cycleInlineCategory}
+            title="Tap to change category"
+          >
+            <Symbol name={activeCategoryObj.icon} size={15} />
+            <span>{activeCategoryObj.shortLabel}</span>
+          </button>
+
+          <input
+            ref={inlineInputRef}
+            type="text"
+            className={styles.dockInput}
+            placeholder={activeCategoryObj.placeholder}
+            value={inlineText}
+            onChange={(e) => setInlineText(e.target.value)}
+          />
+
+          <button
+            type="submit"
+            className={styles.dockAddBtn}
+            disabled={!inlineText.trim()}
+            aria-label="Add note"
+            title="Add note"
+          >
+            <Symbol name="add" size={18} />
+          </button>
+
+          <button
+            type="button"
+            className={styles.dockPresetBtn}
+            onClick={() => setIsPresetModalOpen(true)}
+            title="Tailor Presets & Ideas"
+            aria-label="Tailor Presets & Ideas"
+          >
+            <Symbol name="auto_awesome" size={17} />
+          </button>
+        </form>
+
+        {/* ── 4. PENDING ACTION ITEMS ── */}
         <section className={styles.listSection}>
           <div className={styles.listHeaderRow}>
             <h3 className={styles.listSectionTitle}>
               {activeTab === 'all'
-                ? 'All Notes'
-                : NOTE_CATEGORIES.find((c) => c.key === activeTab)?.label || 'Notes'}
+                ? 'Pending Tasks'
+                : NOTE_CATEGORIES.find((c) => c.key === activeTab)?.label || 'Tasks'}
             </h3>
             <span className={styles.listMutedSummary}>
-              {filteredNotes.length} {filteredNotes.length === 1 ? 'task' : 'tasks'}
+              {pendingNotes.length} {pendingNotes.length === 1 ? 'item' : 'items'}
             </span>
           </div>
 
@@ -375,41 +477,43 @@ export default function WorkshopNotesPage() {
               <Symbol name="progress_activity" size={24} className="global-spinner" />
               <p>Loading workshop notes…</p>
             </div>
-          ) : filteredNotes.length === 0 ? (
+          ) : pendingNotes.length === 0 ? (
             <div className={styles.emptyContainer}>
               <EmptyState
                 icon={<Symbol name="checklist" size={32} />}
-                title="No Notes in this Category"
-                description="Keep your cutting table and machinists organized by adding market items or craft instructions."
+                title="All Clear in this Section"
+                description="Type above to quickly jot down spools of thread, machinist reminders, or customer checks."
                 action={{
-                  label: 'Add Note',
-                  onClick: () => setIsModalOpen(true),
+                  label: 'Browse Tailor Presets',
+                  onClick: () => setIsPresetModalOpen(true),
                 }}
               />
             </div>
           ) : (
             <div className={styles.notesCard}>
-              {filteredNotes.map((note) => {
+              {pendingNotes.map((note) => {
                 const catObj = NOTE_CATEGORIES.find((c) => c.key === note.category);
                 return (
-                  <div
-                    key={note.id}
-                    className={`${styles.noteRow} ${note.completed ? styles.noteRowDone : ''}`}
-                  >
+                  <div key={note.id} className={styles.noteRow}>
+                    {/* 44px Touch Target Checkbox */}
                     <button
                       type="button"
                       className={styles.checkBtn}
                       onClick={() => handleToggle(note.id)}
-                      aria-label={note.completed ? 'Mark uncompleted' : 'Mark completed'}
+                      aria-label="Mark completed"
                     >
                       <Symbol
-                        name={note.completed ? 'check_circle' : 'radio_button_unchecked'}
-                        size={20}
-                        className={note.completed ? styles.checkedIcon : styles.uncheckedIcon}
+                        name="radio_button_unchecked"
+                        size={22}
+                        className={styles.uncheckedIcon}
                       />
                     </button>
 
-                    <div className={styles.noteContentWrap} onClick={() => handleToggle(note.id)}>
+                    {/* Note Content */}
+                    <div
+                      className={styles.noteContentWrap}
+                      onClick={() => handleToggle(note.id)}
+                    >
                       <span className={styles.noteText}>{note.text}</span>
                       <div className={styles.noteMeta}>
                         <span className={styles.categoryBadge}>
@@ -419,13 +523,15 @@ export default function WorkshopNotesPage() {
                       </div>
                     </div>
 
+                    {/* Delete Action */}
                     <button
                       type="button"
                       className={styles.deleteBtn}
                       onClick={() => handleDelete(note.id)}
                       aria-label="Delete note"
+                      title="Delete note"
                     >
-                      <Symbol name="delete" size={16} />
+                      <Symbol name="delete" size={17} />
                     </button>
                   </div>
                 );
@@ -433,25 +539,96 @@ export default function WorkshopNotesPage() {
             </div>
           )}
         </section>
+
+        {/* ── 5. COMPLETED ITEMS TRAY ── */}
+        {completedNotes.length > 0 && (
+          <section className={styles.completedSection}>
+            <div className={styles.completedHeaderRow}>
+              <button
+                type="button"
+                className={styles.completedToggleBtn}
+                onClick={() => setShowCompleted(!showCompleted)}
+              >
+                <Symbol name={showCompleted ? 'expand_less' : 'expand_more'} size={18} />
+                <span>Done ({completedNotes.length})</span>
+              </button>
+
+              <button
+                type="button"
+                className={styles.clearDoneBtn}
+                onClick={handleClearCompleted}
+              >
+                Clear All Done
+              </button>
+            </div>
+
+            {showCompleted && (
+              <div className={styles.completedCard}>
+                {completedNotes.map((note) => {
+                  const catObj = NOTE_CATEGORIES.find((c) => c.key === note.category);
+                  return (
+                    <div key={note.id} className={styles.completedRow}>
+                      <button
+                        type="button"
+                        className={styles.checkBtn}
+                        onClick={() => handleToggle(note.id)}
+                        aria-label="Mark uncompleted"
+                      >
+                        <Symbol
+                          name="check_circle"
+                          size={22}
+                          className={styles.checkedIcon}
+                        />
+                      </button>
+
+                      <div
+                        className={styles.noteContentWrap}
+                        onClick={() => handleToggle(note.id)}
+                      >
+                        <span className={styles.completedNoteText}>{note.text}</span>
+                        <div className={styles.noteMeta}>
+                          <span className={styles.categoryBadge}>
+                            <Symbol name={catObj?.icon || 'notes'} size={12} />
+                            <span>{catObj?.shortLabel || 'General'}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => handleDelete(note.id)}
+                        aria-label="Delete note"
+                        title="Delete note"
+                      >
+                        <Symbol name="delete" size={17} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
-      {/* ── 5. ADD NOTE BOTTOMSHEET ── */}
+      {/* ── 6. TAILOR PRESETS BOTTOMSHEET ── */}
       <BottomSheet
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="New Workshop Note"
+        isOpen={isPresetModalOpen}
+        onClose={() => setIsPresetModalOpen(false)}
+        title="Tailor Presets & Ideas"
       >
-        <form onSubmit={handleAddNote} className={styles.modalForm}>
+        <form onSubmit={handleModalAdd} className={styles.modalForm}>
           {/* Category Selector */}
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>Workshop Category</label>
+            <label className={styles.fieldLabel}>Category</label>
             <div className={styles.categoryChips}>
               {NOTE_CATEGORIES.map((c) => (
                 <button
                   key={c.key}
                   type="button"
-                  className={`${styles.categoryChip} ${newCategory === c.key ? styles.categoryChipActive : ''}`}
-                  onClick={() => setNewCategory(c.key)}
+                  className={`${styles.categoryChip} ${modalCategory === c.key ? styles.categoryChipActive : ''}`}
+                  onClick={() => setModalCategory(c.key)}
                 >
                   <Symbol name={c.icon} size={15} />
                   <span>{c.shortLabel}</span>
@@ -462,14 +639,14 @@ export default function WorkshopNotesPage() {
 
           {/* Quick Presets */}
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>Tailor Presets (1-Tap Fill)</label>
+            <label className={styles.fieldLabel}>Tap to Fill</label>
             <div className={styles.presetChips}>
-              {QUICK_PRESETS.filter((p) => p.category === newCategory).map((p, idx) => (
+              {QUICK_PRESETS.filter((p) => p.category === modalCategory).map((p, idx) => (
                 <button
                   key={idx}
                   type="button"
                   className={styles.presetChip}
-                  onClick={() => setNewText(p.text)}
+                  onClick={() => setModalText(p.text)}
                 >
                   {p.text}
                 </button>
@@ -479,16 +656,16 @@ export default function WorkshopNotesPage() {
 
           {/* Note Input */}
           <div className={styles.field}>
-            <label className={styles.fieldLabel} htmlFor="noteTextInput">
-              Note / Task Description
+            <label className={styles.fieldLabel} htmlFor="modalNoteTextInput">
+              Custom Description
             </label>
             <textarea
-              id="noteTextInput"
+              id="modalNoteTextInput"
               rows={3}
               className={styles.textArea}
-              placeholder="e.g. 5 spools royal blue thread, YKK hidden zips, double-stitch crotch"
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
+              placeholder="e.g. 5 spools royal blue thread, YKK hidden zips"
+              value={modalText}
+              onChange={(e) => setModalText(e.target.value)}
               autoFocus
               required
             />
@@ -499,14 +676,14 @@ export default function WorkshopNotesPage() {
             <button
               type="button"
               className={styles.modalCancelBtn}
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => setIsPresetModalOpen(false)}
             >
               Cancel
             </button>
             <button
               type="submit"
               className={styles.modalSubmitBtn}
-              disabled={!newText.trim()}
+              disabled={!modalText.trim()}
             >
               Add Note
             </button>

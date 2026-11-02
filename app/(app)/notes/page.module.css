@@ -1,4 +1,4 @@
-/* ── Workshop Notes (Apple Atelier Inset Aesthetic) ── */
+/* ── Frictionless Workshop Notes (Apple Atelier Inset Aesthetic) ── */
 
 .container {
   padding: 12px 16px 80px;
@@ -7,27 +7,27 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   -webkit-tap-highlight-color: transparent;
 }
 
 @media (min-width: 768px) {
   .container {
     padding: 20px 20px 80px;
-    gap: 16px;
+    gap: 14px;
   }
 }
 
-/* ── 1. Cockpit Summary Card ── */
+/* ── 1. Cockpit Card ── */
 
 .cockpitCard {
   background: var(--sf-bg-surface, #FFFFFF);
   border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 18px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 :global([data-theme='dark']) .cockpitCard {
@@ -38,7 +38,7 @@
 .cockpitTop {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .cockpitHeaderRow {
@@ -82,7 +82,7 @@
 .statusBadge {
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
   background: rgba(67, 56, 202, 0.08);
   color: var(--sf-brand-indigo, #4338CA);
@@ -95,173 +95,71 @@
 
 .cockpitStatsRow {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .mainCountBlock {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 6px;
 }
 
 .mainCountNumeral {
-  font-size: 38px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--sf-text-primary, #1C1A28);
-  line-height: 1.1;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .mainCountLabel {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--sf-text-tertiary);
 }
 
-.clearCompletedBtn {
+.cockpitActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionPillBtn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: transparent;
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
   border-radius: var(--sf-radius-full);
-  padding: 5px 12px;
+  padding: 6px 12px;
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--sf-text-secondary);
+  color: var(--sf-text-primary);
   cursor: pointer;
   transition: all var(--sf-transition-fast);
 }
 
-.clearCompletedBtn:hover {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #DC2626;
+:global([data-theme='dark']) .actionPillBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-primary);
 }
 
-.cockpitDivider {
-  height: 1px;
-  background: var(--sf-border-light, rgba(0, 0, 0, 0.06));
-}
-
-:global([data-theme='dark']) .cockpitDivider {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.cockpitShelf {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.shelfColBtn {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: var(--sf-bg-surface-elevated, #F8FAFC);
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.06));
-  cursor: pointer;
-  text-align: left;
-  transition: all var(--sf-transition-fast);
-}
-
-:global([data-theme='dark']) .shelfColBtn {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.shelfColBtn:hover {
-  background: rgba(67, 56, 202, 0.04);
-}
-
-.shelfActive {
-  background: rgba(67, 56, 202, 0.08) !important;
-  border-color: var(--sf-brand-indigo, #4338CA) !important;
-}
-
-:global([data-theme='dark']) .shelfActive {
-  background: rgba(99, 102, 241, 0.15) !important;
-  border-color: #6366F1 !important;
-}
-
-.shelfIconRow {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.actionPillBtn:hover {
+  background: rgba(67, 56, 202, 0.08);
+  border-color: var(--sf-brand-indigo, #4338CA);
   color: var(--sf-brand-indigo, #4338CA);
 }
 
-:global([data-theme='dark']) .shelfIconRow {
-  color: #818CF8;
-}
-
-.shelfLabel {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.shelfValue {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--sf-text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.shelfSubtext {
-  font-size: 10px;
-  color: var(--sf-text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ── 2. Primary Action Button ── */
-
-.actionRow {
-  display: flex;
-  width: 100%;
-}
-
-.primaryActionBtn {
-  width: 100%;
-  height: 42px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-brand-indigo, #4338CA);
-  color: #FFFFFF;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all var(--sf-transition-fast);
-}
-
-:global([data-theme='dark']) .primaryActionBtn {
-  background: #6366F1;
-}
-
-.primaryActionBtn:active {
-  transform: scale(0.98);
-}
-
-/* ── 3. Apple iOS Segmented Control ── */
+/* ── 2. Segmented Filter ── */
 
 .segmentedWrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding-bottom: 2px;
 }
 
 .segmentedWrap::-webkit-scrollbar {
@@ -271,14 +169,14 @@
 .segmentedControl {
   display: inline-flex;
   align-items: center;
-  background: rgba(120, 120, 128, 0.1);
+  background: rgba(120, 120, 128, 0.08);
   padding: 3px;
   border-radius: var(--sf-radius-full);
   min-width: 100%;
 }
 
 :global([data-theme='dark']) .segmentedControl {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .segmentBtn {
@@ -286,12 +184,12 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border: none;
   background: transparent;
   border-radius: var(--sf-radius-full);
   font-family: var(--sf-font-body);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--sf-text-secondary);
   cursor: pointer;
@@ -304,7 +202,7 @@
   background: var(--sf-bg-surface, #FFFFFF);
   color: var(--sf-text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme='dark']) .segmentActive {
@@ -317,11 +215,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
   border-radius: var(--sf-radius-full);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   background: rgba(0, 0, 0, 0.06);
   color: var(--sf-text-secondary);
@@ -342,7 +240,128 @@
   color: #161526;
 }
 
-/* ── 4. Inset Grouped Notes Card ── */
+/* ── 3. Instant Inline Quick-Add Dock ── */
+
+.quickAddDock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.1));
+  border-radius: 14px;
+  padding: 5px 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+:global([data-theme='dark']) .quickAddDock {
+  background: var(--sf-bg-surface, #161526);
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+}
+
+.quickAddDock:focus-within {
+  border-color: var(--sf-brand-indigo, #4338CA);
+  box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15);
+}
+
+.dockCategoryChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background var(--sf-transition-fast);
+}
+
+:global([data-theme='dark']) .dockCategoryChip {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818CF8;
+}
+
+.dockCategoryChip:hover {
+  background: rgba(67, 56, 202, 0.14);
+}
+
+.dockInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13.5px;
+  color: var(--sf-text-primary);
+  min-width: 0;
+  padding: 4px 6px;
+}
+
+.dockInput::placeholder {
+  color: var(--sf-text-tertiary);
+  font-size: 13px;
+}
+
+.dockAddBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+}
+
+:global([data-theme='dark']) .dockAddBtn {
+  background: #6366F1;
+}
+
+.dockAddBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: var(--sf-text-tertiary);
+}
+
+.dockAddBtn:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+.dockPresetBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+}
+
+:global([data-theme='dark']) .dockPresetBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-secondary);
+}
+
+.dockPresetBtn:hover {
+  color: var(--sf-brand-indigo, #4338CA);
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+/* ── 4. Main Task List ── */
 
 .listSection {
   display: flex;
@@ -359,7 +378,7 @@
 
 .listSectionTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--sf-text-primary);
 }
@@ -371,7 +390,7 @@
 }
 
 .emptyContainer {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .loadingState {
@@ -379,8 +398,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  gap: 12px;
+  padding: 40px 20px;
+  gap: 10px;
   color: var(--sf-text-secondary);
   font-size: 13px;
 }
@@ -399,11 +418,12 @@
 
 .noteRow {
   display: flex;
-  align-items: flex-start;
-  padding: 12px 14px;
+  align-items: center;
+  padding: 4px 10px 4px 6px;
   border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.05));
-  gap: 10px;
+  gap: 6px;
   transition: background var(--sf-transition-fast);
+  min-height: 52px;
 }
 
 :global([data-theme='dark']) .noteRow {
@@ -414,24 +434,31 @@
   border-bottom: none;
 }
 
-.noteRowDone {
-  opacity: 0.55;
+.noteRow:hover {
   background: var(--sf-bg-surface-elevated, #F8FAFC);
 }
 
-:global([data-theme='dark']) .noteRowDone {
+:global([data-theme='dark']) .noteRow:hover {
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* 44px Touch Target */
 .checkBtn {
+  min-width: 44px;
+  min-height: 44px;
   background: transparent;
   border: none;
-  padding: 2px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.checkBtn:active {
+  transform: scale(0.9);
 }
 
 .checkedIcon {
@@ -440,28 +467,29 @@
 
 .uncheckedIcon {
   color: var(--sf-text-tertiary);
+  transition: color var(--sf-transition-fast);
+}
+
+.checkBtn:hover .uncheckedIcon {
+  color: var(--sf-brand-indigo, #4338CA);
 }
 
 .noteContentWrap {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   min-width: 0;
+  padding: 8px 0;
 }
 
 .noteText {
   font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--sf-text-primary);
   word-break: break-word;
-}
-
-.noteRowDone .noteText {
-  text-decoration: line-through;
-  color: var(--sf-text-secondary);
 }
 
 .noteMeta {
@@ -474,7 +502,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   padding: 1px 7px;
   border-radius: var(--sf-radius-full);
@@ -488,12 +516,13 @@
 }
 
 .deleteBtn {
+  width: 36px;
+  height: 36px;
   background: transparent;
   border: none;
-  padding: 4px;
   cursor: pointer;
   color: var(--sf-text-tertiary);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -506,7 +535,97 @@
   color: #DC2626;
 }
 
-/* ── 5. Add Note BottomSheet Form ── */
+/* ── 5. Completed Items Tray ── */
+
+.completedSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.completedHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.completedToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.completedToggleBtn:hover {
+  color: var(--sf-text-primary);
+}
+
+.clearDoneBtn {
+  background: transparent;
+  border: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--sf-radius-full);
+  transition: all var(--sf-transition-fast);
+}
+
+.clearDoneBtn:hover {
+  color: #DC2626;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.completedCard {
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px dashed var(--sf-border-light, rgba(0, 0, 0, 0.1));
+  border-radius: 16px;
+  overflow: hidden;
+  opacity: 0.85;
+}
+
+:global([data-theme='dark']) .completedCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.completedRow {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px 4px 6px;
+  border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.05));
+  gap: 6px;
+  min-height: 50px;
+}
+
+:global([data-theme='dark']) .completedRow {
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+.completedRow:last-child {
+  border-bottom: none;
+}
+
+.completedNoteText {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--sf-text-tertiary);
+  text-decoration: line-through;
+  word-break: break-word;
+}
+
+/* ── 6. BottomSheet Form (Presets) ── */
 
 .modalForm {
   display: flex;
@@ -573,11 +692,11 @@
 }
 
 .presetChip {
-  padding: 4px 10px;
+  padding: 5px 11px;
   border-radius: 8px;
   border: 1px dashed var(--sf-border-light);
   background: var(--sf-bg-surface-elevated, #F8FAFC);
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--sf-text-secondary);
   cursor: pointer;
   text-align: left;
