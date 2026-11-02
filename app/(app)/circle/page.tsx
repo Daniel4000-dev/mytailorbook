@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Symbol from '@/components/ui/Symbol';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './page.module.css';
 import {
   getCircleHubDataAction,
