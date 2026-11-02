@@ -24,6 +24,7 @@ import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreac
 import type { StylePhotoSubmission } from '@/lib/types';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
+import AddCustomerSheet from './_components/AddCustomerSheet';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -50,6 +51,7 @@ export default function CustomersPage() {
   const [clientFilter, setClientFilter] = useState<ClientFilter>('all');
   const [styleFilter, setStyleFilter] = useState<string | null>(null);
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [approvedStyleNames, setApprovedStyleNames] = useState<Set<string>>(new Set());
 
   // Outreach states
@@ -326,7 +328,7 @@ export default function CustomersPage() {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => router.push(ROUTES.customerNew)}
+            onClick={() => setIsAddSheetOpen(true)}
             className={styles.addCustomerBtn}
           >
             <Symbol name="person_add" size={16} /> New Client
@@ -401,7 +403,7 @@ export default function CustomersPage() {
             {/* Shop Story Bubble */}
             <div
               className={styles.storyItem}
-              onClick={() => router.push(ROUTES.customerNew)}
+              onClick={() => setIsAddSheetOpen(true)}
               title="Add new client"
             >
               <div className={styles.storyBubble}>
@@ -749,7 +751,7 @@ export default function CustomersPage() {
             icon={<Symbol name="person_off" />}
             title="No customers found"
             description="Try a different search or filter"
-            action={{ label: 'Add Customer', href: ROUTES.customerNew }}
+            action={{ label: 'New Client', onClick: () => setIsAddSheetOpen(true) }}
           />
         )
       ) : (
@@ -855,6 +857,11 @@ export default function CustomersPage() {
           )}
         </>
       )}
+
+      <AddCustomerSheet
+        isOpen={isAddSheetOpen}
+        onClose={() => setIsAddSheetOpen(false)}
+      />
     </PageLayout>
   );
 }

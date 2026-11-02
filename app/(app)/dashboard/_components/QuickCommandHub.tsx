@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
-import MoreServicesSheet from './MoreServicesSheet';
 import styles from './QuickCommandHub.module.css';
 
 interface QuickCommandHubProps {
@@ -20,14 +18,10 @@ export default function QuickCommandHub({
   onNavigate,
   uncutFabricsCount = 0,
   fittingsTodayCount = 0,
-  debtorsCount = 0,
-  debtTotal = 0,
 }: QuickCommandHubProps) {
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
-
   return (
     <div className={styles.container}>
-      {/* ── Tier 1: High-Frequency Master Actions Bar (3 Core Verbs) ── */}
+      {/* ── Primary Creation Action Bar ── */}
       <div className={styles.masterBar}>
         <button
           type="button"
@@ -35,45 +29,12 @@ export default function QuickCommandHub({
           onClick={() => onNavigate(ROUTES.orderNew)}
           aria-label="Create New Order"
         >
-          <Symbol name="add" size={17} className={styles.btnIcon} />
+          <Symbol name="add" size={19} className={styles.btnIcon} />
           <span>New Order</span>
-        </button>
-
-        <button
-          type="button"
-          className={styles.secondaryActionBtn}
-          onClick={() => onNavigate(ROUTES.customerNew)}
-          aria-label="Measure Client"
-        >
-          <Symbol name="straighten" size={16} className={styles.btnIcon} />
-          <span>Measure</span>
-        </button>
-
-        <button
-          type="button"
-          className={styles.secondaryActionBtn}
-          onClick={() => onNavigate(ROUTES.reconciliation)}
-          aria-label="Record Cash or Payment"
-        >
-          <Symbol name="point_of_sale" size={16} className={styles.btnIcon} />
-          <span>Record Cash</span>
         </button>
       </div>
 
-      {/* ── Tier 2: 4×2 Strategic Atelier Switchboard Grid ──
-          Strictly routes NOT captured on the Bottom Nav (Production, Catalogues, Customers, Settings),
-          arranged in strict order of tailor workflow priority:
-          Row 1: The Workshop Floor & Client Showcase
-          1. Cutting Table (Fabrics awaiting pattern drafting & cutting)
-          2. Fittings (Today's client fitting appointments & trials)
-          3. Portfolio (Showcase masterworks & public storefront link)
-          4. Quick Quote (Rapid price calculations for prospects)
-          Row 2: Atelier Finances, Materials & Secondary Tools
-          5. Collections (Uncollected balances & debt recovery)
-          6. Daily Till (Cash drawer & operational expense tracking)
-          7. Inventory (Haberdashery, trims, buttons & notions)
-          8. More Tools (Slide-up launcher for Team bench, Stock POS, etc.)
-      */}
+      {/* ── 3×2 Workshop Switchboard Grid ── */}
       <div className={styles.switchboardCard}>
         <div className={styles.grid}>
           {/* 1. Cutting Table */}
@@ -108,12 +69,12 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Fittings</span>
           </button>
 
-          {/* 3. Portfolio & Atelier Storefront */}
+          {/* 3. Portfolio & Storefront */}
           <button
             type="button"
             className={styles.tile}
             onClick={() => onNavigate(ROUTES.portfolio)}
-            aria-label="Studio Showcase & Public Digital Storefront"
+            aria-label="Shop Portfolio & Digital Showcase"
           >
             <div className={`${styles.iconWrap} ${styles.iconPortfolio}`}>
               <Symbol name="photo_library" size={22} />
@@ -134,25 +95,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Quick Quote</span>
           </button>
 
-          {/* 5. Collections & Debt Recovery */}
-          <button
-            type="button"
-            className={styles.tile}
-            onClick={() => onNavigate(ROUTES.collections)}
-            aria-label="Debt Recovery & Client Balances"
-          >
-            <div className={`${styles.iconWrap} ${styles.iconCollections}`}>
-              <Symbol name="account_balance_wallet" size={22} />
-              {debtorsCount > 0 && (
-                <span className={`${styles.tileBadge} ${styles.tileBadgeDebt}`}>
-                  {debtorsCount}
-                </span>
-              )}
-            </div>
-            <span className={styles.tileLabel}>Collections</span>
-          </button>
-
-          {/* 6. Daily Cash Drawer */}
+          {/* 5. Daily Cash Drawer */}
           <button
             type="button"
             className={styles.tile}
@@ -165,7 +108,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Cash Drawer</span>
           </button>
 
-          {/* 7. Materials & Trims Inventory */}
+          {/* 6. Materials & Trims Inventory */}
           <button
             type="button"
             className={styles.tile}
@@ -177,29 +120,8 @@ export default function QuickCommandHub({
             </div>
             <span className={styles.tileLabel}>Inventory</span>
           </button>
-
-          {/* 8. More Services Launcher */}
-          <button
-            type="button"
-            className={styles.tile}
-            onClick={() => setIsMoreOpen(true)}
-            aria-label="More Atelier Tools & Secondary Services"
-          >
-            <div className={`${styles.iconWrap} ${styles.iconMore}`}>
-              <Symbol name="apps" size={22} />
-            </div>
-            <span className={styles.tileLabel}>More Tools</span>
-          </button>
         </div>
       </div>
-
-      {/* ── Slide-up Sheet for Secondary Atelier Tools ── */}
-      <MoreServicesSheet
-        isOpen={isMoreOpen}
-        onClose={() => setIsMoreOpen(false)}
-        onNavigate={onNavigate}
-        debtTotal={debtTotal}
-      />
     </div>
   );
 }

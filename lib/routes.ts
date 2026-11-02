@@ -91,7 +91,7 @@ export const ROUTES = {
   // ---- Authenticated app (app.<domain>) ----
   dashboard: '/dashboard',
   customers: '/customers',
-  customerNew: '/customers/new',
+  customerNew: '/customers',
   customerDetail: (id: string) => `/customers/${id}`,
   orderNew: '/orders/new',
   orderNewForCustomer: (customerId: string) => `/orders/new?customer=${customerId}`,

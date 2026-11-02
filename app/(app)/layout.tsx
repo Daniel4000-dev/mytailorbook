@@ -52,13 +52,15 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
   // The new-client wizard is a focused, transactional flow — global nav
   // and the create-FAB get out of its way (it brings its own action bar).
-  const isTransactional = pathname === '/customers/new' || pathname === '/orders/new';
+  const isTransactional = pathname === '/orders/new';
+  const isDashboard = pathname === '/' || pathname === '/dashboard';
   // The FAB creates orders/customers — not a relevant action on Settings
-  // (it would float over the Register Employee form) or on an order's own
+  // (it would float over the Register Employee form), on the Dashboard
+  // (which already has its own primary New Order button), or on an order's own
   // page, which has its floating WhatsApp shortcut in the same spot.
   // The in-app portfolio preview also skips it, as the portfolio has its
   // own WhatsApp FAB in that corner.
-  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/fabrics') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional;
+  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/fabrics') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional && !isDashboard;
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).

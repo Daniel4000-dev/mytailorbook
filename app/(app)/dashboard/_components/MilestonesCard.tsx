@@ -18,24 +18,17 @@ export default function MilestonesCard() {
     cta: 'Portfolio',
   };
 
-  if (customers.length === 0) {
+  if (customers.length === 0 || orders.length === 0) {
     nextMove = {
       tag: 'Step 1',
-      text: 'Add your first client profile & measurements',
-      href: '/customers/new',
-      cta: 'Add Client',
-    };
-  } else if (orders.length === 0) {
-    nextMove = {
-      tag: 'Step 2',
-      text: 'Create your first bespoke garment order',
+      text: 'Create your first garment order',
       href: '/orders/new',
       cta: 'New Order',
     };
   } else if (!currentShop?.monthlyRevenueTarget) {
     nextMove = {
       tag: 'Goal',
-      text: 'Set your monthly atelier revenue target',
+      text: 'Set your monthly sales target',
       href: '/settings/studio',
       cta: 'Set Goal',
     };
