@@ -17,7 +17,6 @@ interface QuickCommandHubProps {
 export default function QuickCommandHub({
   onNavigate,
   uncutFabricsCount = 0,
-  fittingsTodayCount = 0,
 }: QuickCommandHubProps) {
   return (
     <div className={styles.container}>
@@ -44,7 +43,7 @@ export default function QuickCommandHub({
         </button>
       </div>
 
-      {/* ── Workshop Switchboard Grid ── */}
+      {/* ── Workshop Switchboard Grid (Balanced 6-Tile Layout) ── */}
       <div className={styles.switchboardCard}>
         <div className={styles.grid}>
           {/* 1. Cutting Table */}
@@ -76,33 +75,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Catalogues</span>
           </button>
 
-          {/* 3. Quick Quote Estimator */}
-          <button
-            type="button"
-            className={styles.tile}
-            onClick={() => onNavigate(ROUTES.quotes)}
-            aria-label="Quick Price Estimator"
-          >
-            <div className={`${styles.iconWrap} ${styles.iconQuotes}`}>
-              <Symbol name="calculate" size={22} />
-            </div>
-            <span className={styles.tileLabel}>Quick Quote</span>
-          </button>
-
-          {/* 4. Daily Cash Drawer */}
-          <button
-            type="button"
-            className={styles.tile}
-            onClick={() => onNavigate(ROUTES.reconciliation)}
-            aria-label="Daily Cash Drawer & Expenses"
-          >
-            <div className={`${styles.iconWrap} ${styles.iconTill}`}>
-              <Symbol name="point_of_sale" size={22} />
-            </div>
-            <span className={styles.tileLabel}>Cash Drawer</span>
-          </button>
-
-          {/* 5. Materials & Trims Inventory */}
+          {/* 3. Materials & Trims Inventory */}
           <button
             type="button"
             className={styles.tile}
@@ -113,6 +86,45 @@ export default function QuickCommandHub({
               <Symbol name="inventory_2" size={21} />
             </div>
             <span className={styles.tileLabel}>Inventory</span>
+          </button>
+
+          {/* 4. Shop Expenses */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.reconciliation)}
+            aria-label="Daily Shop Expenses & Fuel"
+          >
+            <div className={`${styles.iconWrap} ${styles.iconExpenses}`}>
+              <Symbol name="receipt_long" size={22} />
+            </div>
+            <span className={styles.tileLabel}>Shop Expenses</span>
+          </button>
+
+          {/* 5. Workshop Notes */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.notes)}
+            aria-label="Workshop Tasks, Market List & Craft Notes"
+          >
+            <div className={`${styles.iconWrap} ${styles.iconNotes}`}>
+              <Symbol name="notes" size={22} />
+            </div>
+            <span className={styles.tileLabel}>Notes</span>
+          </button>
+
+          {/* 6. Quick Quote Estimator */}
+          <button
+            type="button"
+            className={styles.tile}
+            onClick={() => onNavigate(ROUTES.quotes)}
+            aria-label="Quick Price Estimator"
+          >
+            <div className={`${styles.iconWrap} ${styles.iconQuotes}`}>
+              <Symbol name="calculate" size={22} />
+            </div>
+            <span className={styles.tileLabel}>Quick Quote</span>
           </button>
         </div>
       </div>
