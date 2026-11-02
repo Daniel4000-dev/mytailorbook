@@ -255,10 +255,10 @@ export default function ReconciliationPage() {
       padding="none"
       header={
         <TopBar
-          title="Daily Cash (Till)"
-          subtitle="Daily cash drawer & payments received"
+          title="Cash Drawer"
+          subtitle="Daily cash in hand, expenses & payments received"
           showBack
-          onBack={() => router.push(ROUTES.production)}
+          onBack={() => router.push(ROUTES.dashboard)}
         />
       }
     >
