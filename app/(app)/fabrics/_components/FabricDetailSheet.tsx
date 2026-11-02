@@ -263,6 +263,9 @@ export default function FabricDetailSheet({
       <div className={styles.body}>
         {/* Apple Liquid Glass Swatch Specification Pills */}
         <div className={styles.specBadgesRow}>
+          <span className={styles.specBadgeTag}>
+            {`#${order.id.slice(0, 4).toUpperCase()}`}
+          </span>
           {yardage && (
             <span className={styles.specBadgeYardage}>
               <Symbol name="straighten" size={13} />

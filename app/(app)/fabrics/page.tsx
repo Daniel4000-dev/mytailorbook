@@ -184,9 +184,14 @@ export default function FabricsPage() {
         />
       }
     >
-      {/* 1. Apple Liquid Glass Workshop Metric Bar */}
+      {/* 1. Apple Liquid Glass Workshop Metric Bar (Interactive Cockpit) */}
       <div className={styles.workshopMetricBar}>
-        <div className={styles.workshopMetric}>
+        <button
+          type="button"
+          className={`${styles.workshopMetric} ${stageFilter === 'uncut' ? styles.workshopMetricActive : ''}`}
+          onClick={() => setStageFilter(stageFilter === 'uncut' ? 'all' : 'uncut')}
+          aria-label="Filter orders waiting to cut"
+        >
           <div className={styles.workshopMetricIcon}>
             <Symbol name="content_cut" size={18} />
           </div>
@@ -194,8 +199,14 @@ export default function FabricsPage() {
             <span className={styles.workshopMetricValue}>{uncutCount}</span>
             <span className={styles.workshopMetricLabel}>Waiting to Cut</span>
           </div>
-        </div>
-        <div className={styles.workshopMetric}>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.workshopMetric} ${stageFilter === 'cutting' ? styles.workshopMetricActive : ''}`}
+          onClick={() => setStageFilter(stageFilter === 'cutting' ? 'all' : 'cutting')}
+          aria-label="Filter orders currently cutting"
+        >
           <div className={styles.workshopMetricIcon}>
             <Symbol name="straighten" size={18} />
           </div>
@@ -203,8 +214,14 @@ export default function FabricsPage() {
             <span className={styles.workshopMetricValue}>{cuttingCount}</span>
             <span className={styles.workshopMetricLabel}>Currently Cutting</span>
           </div>
-        </div>
-        <div className={styles.workshopMetric}>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.workshopMetric} ${stageFilter === 'sewing' ? styles.workshopMetricActive : ''}`}
+          onClick={() => setStageFilter(stageFilter === 'sewing' ? 'all' : 'sewing')}
+          aria-label="Filter orders cut and sewing"
+        >
           <div className={styles.workshopMetricIcon}>
             <Symbol name="precision_manufacturing" size={18} />
           </div>
@@ -212,8 +229,14 @@ export default function FabricsPage() {
             <span className={styles.workshopMetricValue}>{sewingCount}</span>
             <span className={styles.workshopMetricLabel}>Cut &amp; Sewing</span>
           </div>
-        </div>
-        <div className={styles.workshopMetric}>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.workshopMetric} ${stageFilter === 'urgent' ? styles.workshopMetricActive : ''}`}
+          onClick={() => setStageFilter(stageFilter === 'urgent' ? 'all' : 'urgent')}
+          aria-label="Filter rush and urgent orders"
+        >
           <div
             className={styles.workshopMetricIcon}
             style={{ color: '#DC2626', background: 'rgba(220, 38, 38, 0.08)' }}
@@ -229,7 +252,7 @@ export default function FabricsPage() {
             </span>
             <span className={styles.workshopMetricLabel}>Rush &amp; Urgent</span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* 2. Demo Controls Pill Row (When viewing seeded sample fabrics) */}
@@ -294,34 +317,51 @@ export default function FabricsPage() {
       <div className={styles.filtersRow}>
         <button
           type="button"
-          className={`${styles.pill} ${stageFilter === 'uncut' ? `${styles.pillActive} ${styles.pillActiveUncut}` : ''
-            }`}
+          className={`${styles.pill} ${stageFilter === 'uncut' ? `${styles.pillActive} ${styles.pillActiveUncut}` : ''}`}
           onClick={() => setStageFilter('uncut')}
         >
           <Symbol name="content_cut" size={14} />
-          <span>Uncut Fabrics</span>
+          <span>Waiting to Cut</span>
           <span className={styles.pillCount}>{uncutCount}</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.pill} ${stageFilter === 'production' ? `${styles.pillActive} ${styles.pillActiveProduction}` : ''
-            }`}
-          onClick={() => setStageFilter('production')}
+          className={`${styles.pill} ${stageFilter === 'cutting' ? `${styles.pillActive} ${styles.pillActiveCutting}` : ''}`}
+          onClick={() => setStageFilter('cutting')}
         >
-          <Symbol name="dry_cleaning" size={14} />
-          <span>In Production</span>
-          <span className={styles.pillCount}>{productionCount}</span>
+          <Symbol name="straighten" size={14} />
+          <span>Currently Cutting</span>
+          <span className={styles.pillCount}>{cuttingCount}</span>
         </button>
 
         <button
           type="button"
-          className={`${styles.pill} ${stageFilter === 'all' ? `${styles.pillActive} ${styles.pillActiveAll}` : ''
-            }`}
+          className={`${styles.pill} ${stageFilter === 'sewing' ? `${styles.pillActive} ${styles.pillActiveSewing}` : ''}`}
+          onClick={() => setStageFilter('sewing')}
+        >
+          <Symbol name="precision_manufacturing" size={14} />
+          <span>In Sewing</span>
+          <span className={styles.pillCount}>{sewingCount}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.pill} ${stageFilter === 'urgent' ? `${styles.pillActive} ${styles.pillActiveUrgent}` : ''}`}
+          onClick={() => setStageFilter('urgent')}
+        >
+          <Symbol name="bolt" size={14} />
+          <span>Rush &amp; Urgent</span>
+          <span className={styles.pillCount}>{priorityCount}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.pill} ${stageFilter === 'all' ? `${styles.pillActive} ${styles.pillActiveAll}` : ''}`}
           onClick={() => setStageFilter('all')}
         >
           <Symbol name="texture" size={14} />
-          <span>All Materials</span>
+          <span>All Orders</span>
           <span className={styles.pillCount}>{allCount}</span>
         </button>
       </div>

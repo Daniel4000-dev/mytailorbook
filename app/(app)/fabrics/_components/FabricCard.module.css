@@ -1,26 +1,39 @@
 .card {
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--sf-bg-surface, #FFFFFF);
+  border-radius: 18px;
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.06));
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   width: 100%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: none;
   transition:
     transform var(--sf-transition-fast),
-    box-shadow var(--sf-transition-fast),
-    border-color var(--sf-transition-fast);
+    border-color var(--sf-transition-fast),
+    background var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
+}
+
+:global([data-theme='dark']) .card {
+  background: var(--sf-bg-surface, #161526);
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+  box-shadow: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .card {
+    background: var(--sf-bg-surface, #161526);
+    border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+    box-shadow: none;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    border-color: rgba(67, 56, 202, 0.2);
+    border-color: var(--sf-brand-indigo, #4338CA);
   }
 }
 
@@ -206,9 +219,9 @@
   gap: 3px;
   font-size: 11px;
   font-weight: var(--sf-weight-semibold);
-  padding: 3px 7px;
+  padding: 3px 8px;
   border-radius: var(--sf-radius-sm, 6px);
-  background: var(--sf-bg-surface);
+  background: var(--sf-bg-surface-elevated, #F1F5F9);
   color: var(--sf-text-primary);
   border: 1px solid var(--sf-border-light);
   cursor: pointer;
@@ -216,16 +229,22 @@
   flex-shrink: 0;
 }
 
+:global([data-theme='dark']) .quickSlipBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--sf-text-primary);
+}
+
 .quickSlipBtn:hover {
-  background: var(--sf-bg-sunken);
-  border-color: var(--sf-border-subtle);
-  color: var(--sf-color-brand-brown);
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-brand-indigo, #4338CA);
+  color: var(--sf-brand-indigo, #4338CA);
 }
 
 .customerName {
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
-  color: #1C1A28;
+  color: var(--sf-text-primary, #1C1A28);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
