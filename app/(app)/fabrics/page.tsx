@@ -162,20 +162,9 @@ export default function FabricsPage() {
         <TopBar
           title="Cutting Table"
           subtitle="Client fabrics, cutting slips, and shears queue"
-          rightAction={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                type="button"
-                className={styles.headerAddBtn}
-                onClick={() => router.push(ROUTES.orderNew)}
-                aria-label="Log new fabric order"
-              >
-                <Symbol name="add" size={15} />
-                <span>New Order</span>
-              </button>
-              <NotificationBell />
-            </div>
-          }
+          showBack
+          onBack={() => router.push(ROUTES.dashboard)}
+          rightAction={<NotificationBell />}
         />
       }
     >
@@ -337,7 +326,15 @@ export default function FabricsPage() {
                           label: 'View Cutting Queue',
                           onClick: () => setStageFilter('cutting'),
                         }
-                        : undefined
+                        : stageFilter !== 'all' && allCount > 0
+                          ? {
+                            label: 'View All Orders',
+                            onClick: () => setStageFilter('all'),
+                          }
+                          : {
+                            label: 'Create New Order',
+                            onClick: () => router.push(ROUTES.orderNew),
+                          }
                 }
               />
             </div>

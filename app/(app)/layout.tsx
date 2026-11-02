@@ -60,7 +60,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   // page, which has its floating WhatsApp shortcut in the same spot.
   // The in-app portfolio preview also skips it, as the portfolio has its
   // own WhatsApp FAB in that corner.
-  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/fabrics') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional && !isDashboard;
+  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional && !isDashboard;
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).
