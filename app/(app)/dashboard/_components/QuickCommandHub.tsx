@@ -44,7 +44,7 @@ export default function QuickCommandHub({
         </button>
       </div>
 
-      {/* ── 3×2 Workshop Switchboard Grid ── */}
+      {/* ── Workshop Switchboard Grid ── */}
       <div className={styles.switchboardCard}>
         <div className={styles.grid}>
           {/* 1. Cutting Table */}
@@ -63,23 +63,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Cutting Table</span>
           </button>
 
-          {/* 2. Fittings & Workshop Calendar */}
-          <button
-            type="button"
-            className={styles.tile}
-            onClick={() => onNavigate(ROUTES.calendarWithFilter('fitting'))}
-            aria-label="Fittings & Workshop Agenda"
-          >
-            <div className={`${styles.iconWrap} ${styles.iconFittings}`}>
-              <Symbol name="calendar_today" size={21} />
-              {fittingsTodayCount > 0 && (
-                <span className={styles.tileBadge}>{fittingsTodayCount}</span>
-              )}
-            </div>
-            <span className={styles.tileLabel}>Fittings</span>
-          </button>
-
-          {/* 3. Catalogues & Lookbooks */}
+          {/* 2. Catalogues & Lookbooks */}
           <button
             type="button"
             className={styles.tile}
@@ -92,7 +76,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Catalogues</span>
           </button>
 
-          {/* 4. Quick Quote Estimator */}
+          {/* 3. Quick Quote Estimator */}
           <button
             type="button"
             className={styles.tile}
@@ -105,7 +89,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Quick Quote</span>
           </button>
 
-          {/* 5. Daily Cash Drawer */}
+          {/* 4. Daily Cash Drawer */}
           <button
             type="button"
             className={styles.tile}
@@ -118,7 +102,7 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Cash Drawer</span>
           </button>
 
-          {/* 6. Materials & Trims Inventory */}
+          {/* 5. Materials & Trims Inventory */}
           <button
             type="button"
             className={styles.tile}
