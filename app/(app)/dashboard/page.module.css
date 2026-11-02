@@ -1312,60 +1312,59 @@
 .workshopMetricStrip,
 .operationsGrid {
   display: grid;
-.workshopMetricStrip,
-.operationsGrid {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.22);
-  border-radius: var(--sf-radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-  box-shadow: none;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px 6px;
+  align-items: stretch;
+  background: rgba(12, 10, 36, 0.52);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-radius: var(--sf-radius-xl);
+  padding: 10px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.6);
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.25);
   position: relative;
   z-index: 2;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
-.operationsRow {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-}
-
-.operationsRow:first-child {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.operationsCell {
-  flex: 1;
+.operationsCard {
+  grid-column: span 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 10px 6px;
-  background: transparent;
-  border: none;
+  gap: 2px;
+  padding: 8px 6px;
+  min-height: 52px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--sf-radius-md);
   color: #ffffff;
   cursor: pointer;
-  min-height: 52px;
-  gap: 2px;
-  transition: background 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.operationsCell:not(:last-child) {
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+.operationsCardWide {
+  grid-column: span 3;
 }
 
-.operationsCell:hover {
-  background: rgba(255, 255, 255, 0.05);
+.operationsCard:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.operationsCell:active {
-  background: rgba(255, 255, 255, 0.09);
-}
+.operationsCard:active,
+.metricItem:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .metricItem {

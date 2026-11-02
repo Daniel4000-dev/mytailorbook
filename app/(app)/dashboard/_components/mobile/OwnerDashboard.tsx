@@ -124,71 +124,73 @@ export default function OwnerDashboard({
           </div>
         ) : null}
 
-        {/* Operations Dashboard Grid — Seamless Hairline Table Panel */}
+        {/* Operations Dashboard Grid — Elevated Atelier Cockpit Deck */}
         <div className={styles.operationsGrid}>
-          {/* Row 1: Sewing, Cutting, Overdue Payment */}
-          <div className={styles.operationsRow}>
-            <button
-              type="button"
-              className={styles.operationsCell}
-              onClick={() => onNavigate('/production')}
-              aria-label="View active sewing production queue"
-            >
+          {/* Row 1: Sewing, Cutting, Overdue Payment (3 cards) */}
+          <button
+            type="button"
+            className={styles.operationsCard}
+            onClick={() => onNavigate('/production')}
+            aria-label="View active sewing production queue"
+          >
+            <div className={styles.metricTop}>
               <span className={styles.metricNum}>{inProductionCount}</span>
-              <span className={styles.metricLabel}>Sewing</span>
-            </button>
+            </div>
+            <span className={styles.metricLabel}>Sewing</span>
+          </button>
 
-            <button
-              type="button"
-              className={styles.operationsCell}
-              onClick={() => onNavigate('/fabrics')}
-              aria-label="View uncut fabrics on cutting table"
-            >
-              <div className={styles.metricTop}>
-                <span className={styles.metricNum}>{uncutFabricsCount}</span>
-                {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
-              </div>
-              <span className={styles.metricLabel}>Cutting</span>
-            </button>
+          <button
+            type="button"
+            className={styles.operationsCard}
+            onClick={() => onNavigate('/fabrics')}
+            aria-label="View uncut fabrics on cutting table"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{uncutFabricsCount}</span>
+              {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
+            </div>
+            <span className={styles.metricLabel}>Cutting</span>
+          </button>
 
-            <button
-              type="button"
-              className={styles.operationsCell}
-              onClick={() => onNavigate('/collections')}
-              aria-label="View uncollected debtor balances"
-            >
+          <button
+            type="button"
+            className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+            onClick={() => onNavigate('/collections')}
+            aria-label="View uncollected debtor balances"
+          >
+            <div className={styles.metricTop}>
               <span className={styles.metricNum}>
                 {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
               </span>
-              <span className={styles.metricLabel}>Overdue payment</span>
-            </button>
-          </div>
+            </div>
+            <span className={styles.metricLabel}>Overdue payment</span>
+          </button>
 
-          {/* Row 2: Overdue, Ready */}
-          <div className={styles.operationsRow}>
-            <button
-              type="button"
-              className={styles.operationsCell}
-              onClick={() => onNavigate('/production')}
-              aria-label="View overdue and urgent orders"
-            >
-              <div className={styles.metricTop}>
-                <span className={styles.metricNum}>{urgentCount}</span>
-                {urgentCount > 0 && <span className={styles.metricAlertDot} />}
-              </div>
-              <span className={styles.metricLabel}>Overdue</span>
-            </button>
+          {/* Row 2: Overdue, Ready (2 wide cards, balanced) */}
+          <button
+            type="button"
+            className={`${styles.operationsCard} ${styles.operationsCardWide} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
+            onClick={() => onNavigate('/production')}
+            aria-label="View overdue and urgent orders"
+          >
+            <div className={styles.metricTop}>
+              <span className={styles.metricNum}>{urgentCount}</span>
+              {urgentCount > 0 && <span className={styles.metricAlertDot} />}
+            </div>
+            <span className={styles.metricLabel}>Overdue</span>
+          </button>
 
-            <button
-              type="button"
-              className={styles.operationsCell}
-              onClick={() => onNavigate('/production?status=Ready')}
-              aria-label="View ready garments for pickup"
-            >
+          <button
+            type="button"
+            className={`${styles.operationsCard} ${styles.operationsCardWide}`}
+            onClick={() => onNavigate('/production?status=Ready')}
+            aria-label="View ready garments for pickup"
+          >
+            <div className={styles.metricTop}>
               <span className={styles.metricNum}>{readyCount}</span>
-              <span className={styles.metricLabel}>Ready</span>
-            </button>
-          </div>
+            </div>
+            <span className={styles.metricLabel}>Ready</span>
+          </button>
         </div>
       </section>
 
