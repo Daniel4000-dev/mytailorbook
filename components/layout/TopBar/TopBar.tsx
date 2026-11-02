@@ -114,6 +114,15 @@ export default function TopBar({
               {leftAction}
             </div>
             <div className={styles.right}>
+              <Link
+                href="/circle"
+                className={styles.circleBtn}
+                title="Atelier Circle & Buddy Pulse"
+                aria-label="Atelier Circle & Buddy Pulse"
+              >
+                <Symbol name="groups" size={20} />
+              </Link>
+
               <NotificationBell />
 
               <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

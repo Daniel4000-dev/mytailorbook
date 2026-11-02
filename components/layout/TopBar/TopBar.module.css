@@ -81,6 +81,34 @@
   position: relative;
 }
 
+.circleBtn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sf-text-secondary);
+  text-decoration: none;
+  transition: color var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .circleBtn:hover {
+    color: var(--sf-text-primary);
+    border-color: var(--sf-border-medium, rgba(0, 0, 0, 0.15));
+  }
+}
+
+.circleBtn:active {
+  transform: scale(0.92);
+}
+
 .notificationBadge {
   position: absolute;
   top: 4px;

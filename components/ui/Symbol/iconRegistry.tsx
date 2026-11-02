@@ -826,6 +826,19 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  groups: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M7 21v-2a4 4 0 0 1 3-3.87" />
+      <path d="M9 21v-2a4 4 0 0 1 6 0v2" />
+      <circle cx="12" cy="7" r="3.5" fill={fill ? color : 'none'} />
+      <circle cx="5" cy="9" r="2.5" fill={fill ? color : 'none'} />
+      <circle cx="19" cy="9" r="2.5" fill={fill ? color : 'none'} />
+      <path d="M1 21v-1.5a3.5 3.5 0 0 1 5-3.1" />
+      <path d="M23 21v-1.5a3.5 3.5 0 0 0-5-3.1" />
+    </svg>
+  ),
+
   group_add: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill={fill ? color : 'none'} />
