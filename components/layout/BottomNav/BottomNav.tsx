@@ -160,7 +160,8 @@ export default function BottomNav() {
       onMouseEnter={handleRestore}
     >
       {visibleItems.map((item) => {
-        const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
+        const itemPath = item.href.split('?')[0];
+        const isActive = pathname === itemPath || (itemPath !== '/dashboard' && pathname.startsWith(itemPath + '/'));
         const isProfile = item.href === '/settings';
         return (
           <Link key={item.href} href={item.href} className={styles.linkReset} aria-label={item.label}>

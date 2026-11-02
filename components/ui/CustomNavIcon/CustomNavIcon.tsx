@@ -68,6 +68,7 @@ export default function CustomNavIcon({ name, size = 24, fill = false, style, cl
       );
       break;
     case 'calendar_month':
+    case 'calendar_today':
       content = (
         <>
           <rect x="3" y="4" width="18" height="18" rx="2" stroke={strokeColor} strokeWidth={strokeWidth} fill={fill ? activeColor : "none"} />

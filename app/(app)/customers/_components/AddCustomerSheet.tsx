@@ -154,3 +154,4 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated }:
     </BottomSheet>
   );
 }
+

@@ -32,6 +32,16 @@ export default function QuickCommandHub({
           <Symbol name="add" size={19} className={styles.btnIcon} />
           <span>New Order</span>
         </button>
+
+        <button
+          type="button"
+          className={styles.portfolioActionBtn}
+          onClick={() => onNavigate(ROUTES.portfolio)}
+          aria-label="View Shop Portfolio"
+        >
+          <Symbol name="photo_library" size={19} className={styles.btnIcon} />
+          <span>Portfolio</span>
+        </button>
       </div>
 
       {/* ── 3×2 Workshop Switchboard Grid ── */}
@@ -69,17 +79,17 @@ export default function QuickCommandHub({
             <span className={styles.tileLabel}>Fittings</span>
           </button>
 
-          {/* 3. Portfolio & Storefront */}
+          {/* 3. Catalogues & Lookbooks */}
           <button
             type="button"
             className={styles.tile}
-            onClick={() => onNavigate(ROUTES.portfolio)}
-            aria-label="Shop Portfolio & Digital Showcase"
+            onClick={() => onNavigate('/catalogues')}
+            aria-label="Style Lookbooks & VIP Catalogues"
           >
-            <div className={`${styles.iconWrap} ${styles.iconPortfolio}`}>
-              <Symbol name="photo_library" size={22} />
+            <div className={`${styles.iconWrap} ${styles.iconLookbook}`}>
+              <Symbol name="collections_bookmark" size={21} />
             </div>
-            <span className={styles.tileLabel}>Portfolio</span>
+            <span className={styles.tileLabel}>Catalogues</span>
           </button>
 
           {/* 4. Quick Quote Estimator */}
