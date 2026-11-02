@@ -42,8 +42,8 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleRow}>
-          <Symbol name="flag" size={16} className={styles.headerIcon} />
-          <h2 className={styles.title}>Today&apos;s Priorities</h2>
+          <Symbol name="calendar_today" size={16} className={styles.headerIcon} />
+          <h2 className={styles.title}>Today&apos;s Schedule &amp; Priorities</h2>
         </div>
         {hasItems && (
           <span className={styles.pendingBadge}>

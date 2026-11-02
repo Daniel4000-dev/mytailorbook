@@ -8,9 +8,8 @@ import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
-import TodaysAgendaWidget from '../TodaysAgendaWidget';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
-import MilestonesCard from '../MilestonesCard';
+import ProfileSetupProgress from '../ProfileSetupProgress';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -232,6 +231,9 @@ export default function OwnerDashboard({
         </div>
       </div>
 
+      {/* Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
+      <ProfileSetupProgress onNavigate={onNavigate} />
+
       {/* OPay-Inspired Master Actions & Atelier Switchboard */}
       <QuickCommandHub
         onNavigate={onNavigate}
@@ -246,9 +248,6 @@ export default function OwnerDashboard({
       {/* 2-Column Command Workspace */}
       <div className={styles.twoCol}>
         <div className={styles.mainCol}>
-          {/* Today's Schedule & Fittings (Calendar) */}
-          <TodaysAgendaWidget />
-
           {/* Artisan Bench — Team Craft Workload */}
           {teamSnapshot.length === 0 ? (
             <div className={pageStyles.teamInviteCard}>
@@ -339,13 +338,10 @@ export default function OwnerDashboard({
               </div>
             </div>
           )}
-
-          {/* Studio Milestones & Growth */}
-          <MilestonesCard />
         </div>
 
         <div className={styles.rail}>
-          {/* Today's Priorities (Unified Fittings & Open Loops) */}
+          {/* Today's Schedule & Workshop Priorities */}
           <TodayPrioritiesWidget loops={openLoops} onNavigate={onNavigate} />
         </div>
       </div>

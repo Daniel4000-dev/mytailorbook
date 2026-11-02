@@ -9,8 +9,7 @@ import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
-import TodaysAgendaWidget from '../TodaysAgendaWidget';
-import MilestonesCard from '../MilestonesCard';
+import ProfileSetupProgress from '../ProfileSetupProgress';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
 import styles from '../../page.module.css';
@@ -217,7 +216,10 @@ export default function OwnerDashboard({
         </div>
       </section>
 
-      {/* 2. Quick Nav (Master Actions & Atelier Switchboard) */}
+      {/* 2. Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
+      <ProfileSetupProgress onNavigate={onNavigate} />
+
+      {/* 3. Quick Nav (Master Actions & Atelier Switchboard) */}
       <QuickCommandHub
         onNavigate={onNavigate}
         uncutFabricsCount={uncutFabricsCount}
@@ -228,19 +230,13 @@ export default function OwnerDashboard({
         debtTotal={debtTotal}
       />
 
-      {/* 3. Today's Workshop Priorities (Open Loops & Bottlenecks) */}
+      {/* 4. Today's Workshop Priorities & Schedule */}
       <TodayPrioritiesWidget
         loops={openLoops}
         onNavigate={onNavigate}
       />
 
-      {/* 4. Today's Schedule & Fittings (Calendar) */}
-      <TodaysAgendaWidget />
-
-      {/* 5. Studio Milestones & Atelier Growth */}
-      <MilestonesCard />
-
-      {/* 6. Artisan Bench — Team Craft Workload */}
+      {/* 5. Artisan Bench — Team Craft Workload */}
       {teamSnapshot.length === 0 ? (
         <div className={styles.teamInviteCard}>
           <div className={styles.teamInviteLeft}>
