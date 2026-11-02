@@ -116,11 +116,22 @@ export default function TopBar({
             <div className={styles.right}>
               <Link
                 href="/circle"
-                className={styles.circleBtn}
+                className={styles.buddyPulseBtn}
                 title="Atelier Circle & Buddy Pulse"
                 aria-label="Atelier Circle & Buddy Pulse"
               >
-                <Symbol name="groups" size={24} />
+                <div className={styles.buddyAvatarStack}>
+                  <span className={`${styles.buddyAvatar} ${styles.buddyAvatarOne}`} style={{ zIndex: 1 }}>
+                    K
+                  </span>
+                  <span className={`${styles.buddyAvatar} ${styles.buddyAvatarTwo}`} style={{ zIndex: 2 }}>
+                    F
+                  </span>
+                  <span className={`${styles.buddyAvatar} ${styles.buddyAvatarThree}`} style={{ zIndex: 3 }}>
+                    A
+                    <span className={styles.buddyPulsePing} aria-hidden="true" />
+                  </span>
+                </div>
               </Link>
 
               <NotificationBell />
