@@ -83,9 +83,9 @@
 
 .circleBtn {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 44px;
+  height: 38px;
+  border-radius: var(--sf-radius-full);
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   display: flex;

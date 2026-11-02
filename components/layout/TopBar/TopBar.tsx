@@ -120,7 +120,7 @@ export default function TopBar({
                 title="Atelier Circle & Buddy Pulse"
                 aria-label="Atelier Circle & Buddy Pulse"
               >
-                <Symbol name="groups" size={20} />
+                <Symbol name="groups" size={24} />
               </Link>
 
               <NotificationBell />

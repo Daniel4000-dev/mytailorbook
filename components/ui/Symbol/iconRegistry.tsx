@@ -826,16 +826,73 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  /** Separate circular avatar discs stacked horizontally with each subsequent circle layered on top of the previous */
   groups: ({ size, fill, color = 'currentColor' }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M7 21v-2a4 4 0 0 1 3-3.87" />
-      <path d="M9 21v-2a4 4 0 0 1 6 0v2" />
-      <circle cx="12" cy="7" r="3.5" fill={fill ? color : 'none'} />
-      <circle cx="5" cy="9" r="2.5" fill={fill ? color : 'none'} />
-      <circle cx="19" cy="9" r="2.5" fill={fill ? color : 'none'} />
-      <path d="M1 21v-1.5a3.5 3.5 0 0 1 5-3.1" />
-      <path d="M23 21v-1.5a3.5 3.5 0 0 0-5-3.1" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <mask id="avatar-stack-m1">
+          <rect width="24" height="24" fill="#ffffff" />
+          <circle cx="12" cy="12" r="5.8" fill="#000000" />
+        </mask>
+        <mask id="avatar-stack-m2">
+          <rect width="24" height="24" fill="#ffffff" />
+          <circle cx="18.6" cy="12" r="5.8" fill="#000000" />
+        </mask>
+      </defs>
+
+      {/* Avatar 1 (base layer, leftmost) */}
+      <g mask="url(#avatar-stack-m1)">
+        <circle cx="5.4" cy="12" r="4.6" stroke={color} strokeWidth="1.5" fill={fill ? color : 'none'} />
+        <circle cx="5.4" cy="10.5" r="1.4" fill={color} />
+        <path d="M2.8 15.2C3.1 13.5 4.1 12.8 5.4 12.8C6.7 12.8 7.7 13.5 8 15.2" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      </g>
+
+      {/* Avatar 2 (middle layer, overlapping on top of Avatar 1) */}
+      <g mask="url(#avatar-stack-m2)">
+        <circle cx="12" cy="12" r="4.6" stroke={color} strokeWidth="1.5" fill={fill ? color : 'none'} />
+        <circle cx="12" cy="10.5" r="1.4" fill={color} />
+        <path d="M9.4 15.2C9.7 13.5 10.7 12.8 12 12.8C13.3 12.8 14.3 13.5 14.6 15.2" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      </g>
+
+      {/* Avatar 3 (top layer, overlapping on top of Avatar 2) */}
+      <g>
+        <circle cx="18.6" cy="12" r="4.6" stroke={color} strokeWidth="1.5" fill={fill ? color : 'none'} />
+        <circle cx="18.6" cy="10.5" r="1.4" fill={color} />
+        <path d="M16 15.2C16.3 13.5 17.3 12.8 18.6 12.8C19.9 12.8 20.9 13.5 21.2 15.2" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      </g>
+    </svg>
+  ),
+
+  avatar_stack: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <mask id="avatar-stack-m1-alt">
+          <rect width="24" height="24" fill="#ffffff" />
+          <circle cx="12" cy="12" r="5.8" fill="#000000" />
+        </mask>
+        <mask id="avatar-stack-m2-alt">
+          <rect width="24" height="24" fill="#ffffff" />
+          <circle cx="18.6" cy="12" r="5.8" fill="#000000" />
+        </mask>
+      </defs>
+
+      <g mask="url(#avatar-stack-m1-alt)">
+        <circle cx="5.4" cy="12" r="4.6" stroke={color} strokeWidth="1.5" fill={fill ? color : 'none'} />
+        <circle cx="5.4" cy="10.5" r="1.4" fill={color} />
+        <path d="M2.8 15.2C3.1 13.5 4.1 12.8 5.4 12.8C6.7 12.8 7.7 13.5 8 15.2" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      </g>
+
+      <g mask="url(#avatar-stack-m2-alt)">
+        <circle cx="12" cy="12" r="4.6" stroke={color} strokeWidth="1.5" fill={fill ? color : 'none'} />
+        <circle cx="12" cy="10.5" r="1.4" fill={color} />
+        <path d="M9.4 15.2C9.7 13.5 10.7 12.8 12 12.8C13.3 12.8 14.3 13.5 14.6 15.2" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      </g>
+
+      <g>
+        <circle cx="18.6" cy="12" r="4.6" stroke={color} strokeWidth="1.5" fill={fill ? color : 'none'} />
+        <circle cx="18.6" cy="10.5" r="1.4" fill={color} />
+        <path d="M16 15.2C16.3 13.5 17.3 12.8 18.6 12.8C19.9 12.8 20.9 13.5 21.2 15.2" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      </g>
     </svg>
   ),
 
