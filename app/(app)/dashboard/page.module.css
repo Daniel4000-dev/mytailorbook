@@ -1312,136 +1312,60 @@
 .workshopMetricStrip,
 .operationsGrid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px 6px;
-  align-items: stretch;
-  background: rgba(12, 10, 36, 0.52);
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-radius: var(--sf-radius-xl);
-  padding: 10px 8px;
+.workshopMetricStrip,
+.operationsGrid {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: var(--sf-radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
   box-shadow: none;
   position: relative;
   z-index: 2;
+  margin-top: 8px;
 }
 
-.operationsCard {
-  grid-column: span 2;
+.operationsRow {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 8px 9px 7px;
-  min-height: 56px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: var(--sf-radius-md);
-  color: #ffffff;
-  cursor: pointer;
-  text-align: left;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.operationsCardWide {
-  grid-column: span 3;
-}
-
-.operationsCard:active,
-.metricItem:active {
-  transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.operationsCardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
+  align-items: stretch;
   width: 100%;
 }
 
-.operationsCardLabel {
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.72);
-  white-space: nowrap;
+.operationsRow:first-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.operationsCardIcon {
-  color: rgba(255, 255, 255, 0.45);
-  flex-shrink: 0;
-}
-
-.operationsCardMetric {
+.operationsCell {
+  flex: 1;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px;
-  margin-top: 3px;
-}
-
-.operationsLabelGroup {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 6px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  min-height: 52px;
+  gap: 2px;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.operationsCardSub {
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.5);
-  white-space: nowrap;
+.operationsCell:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Card Visual Elevation Themes */
-.operationsCardSewing:hover,
-.operationsCardCutting:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+.operationsCell:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.operationsCardDebt {
-  background: linear-gradient(145deg, rgba(245, 158, 11, 0.1), rgba(255, 255, 255, 0.03));
-  border-color: rgba(245, 158, 11, 0.22);
+.operationsCell:active {
+  background: rgba(255, 255, 255, 0.09);
 }
-
-.operationsCardDebt .operationsCardIcon {
-  color: #FBBF24;
-}
-
-.operationsCardDebt .metricNum {
-  color: #FDE68A;
-  font-size: 13.5px;
-}
-
-.operationsCardOverdue {
-  background: linear-gradient(145deg, rgba(239, 68, 68, 0.1), rgba(255, 255, 255, 0.03));
-  border-color: rgba(239, 68, 68, 0.22);
-}
-
-.operationsCardOverdue .operationsCardIcon {
-  color: #F87171;
-}
-
-.operationsCardOverdue .metricNum {
-  color: #FECACA;
-}
-
-.operationsCardReady {
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.11), rgba(255, 255, 255, 0.03));
-  border-color: rgba(16, 185, 129, 0.24);
-}
-
-.operationsCardReady .operationsCardIcon {
-  color: #34D399;
-}
-
-.operationsCardReady .metricNum {
-  color: #A7F3D0;
 }
 
 .metricItem {
