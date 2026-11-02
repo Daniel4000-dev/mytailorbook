@@ -6,9 +6,9 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './FabricCard.module.css';
 
 const STATUS_LABELS: Record<string, string> = {
-  Documented: 'Documented',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
+  Documented: 'Waiting to Cut',
+  Cutting: 'Currently Cutting',
+  Sewing: 'In Sewing',
   Ready: 'Ready',
   Delivered: 'Delivered',
 };
@@ -38,6 +38,7 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
   const hasPriority = isRush || isUrgent;
   const isClientFabric = order.materialSuppliedBy === 'customer';
   const isShopFabric = order.materialSuppliedBy === 'shop';
+  const orderTag = `#${order.id.slice(0, 4).toUpperCase()}`;
 
   // Extract yardage from orderDetails if mentioned (e.g. "4.0 yds", "7.0 yards")
   const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
@@ -63,12 +64,18 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
           />
         ) : (
           <div className={styles.noPhoto}>
-            <Symbol name="texture" size={32} className={styles.noPhotoIcon} />
-            <span className={styles.noPhotoText}>No photo</span>
+            <Symbol name="photo_camera" size={30} className={styles.noPhotoIcon} />
+            <span className={styles.noPhotoText}>No fabric photo</span>
+            <span className={styles.noPhotoSubtext}>Tap to add swatch</span>
           </div>
         )}
 
-        {/* Priority badge — top-left with native vector icon */}
+        {/* Physical Chalk / Tag Reference badge — Top-Left */}
+        <span className={styles.chalkTagBadge}>
+          {orderTag}
+        </span>
+
+        {/* Priority badge — below chalk tag */}
         {hasPriority && (
           <span className={`${styles.priorityBadge} ${isRush ? styles.rush : styles.urgent}`}>
             <Symbol name={isRush ? 'local_fire_department' : 'bolt'} size={11} />

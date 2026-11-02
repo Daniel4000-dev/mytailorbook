@@ -1,3 +1,29 @@
+.headerAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--sf-radius-full, 9999px);
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  border: none;
+  font-size: var(--sf-text-xs, 12px);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  box-shadow: none;
+}
+
+.headerAddBtn:active {
+  transform: scale(0.96);
+}
+
+:global([data-theme='dark']) .headerAddBtn {
+  background: #6366F1;
+}
+
 /* ── Apple Liquid Glass Workshop Metric Bar ────── */
 
 .workshopMetricBar {

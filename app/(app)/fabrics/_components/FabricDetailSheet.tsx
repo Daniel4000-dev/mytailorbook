@@ -18,9 +18,9 @@ import { ROUTES } from '@/lib/routes';
 import styles from './FabricDetailSheet.module.css';
 
 const STATUS_LABELS: Record<string, string> = {
-  Documented: 'Documented',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
+  Documented: 'Waiting to Cut',
+  Cutting: 'Currently Cutting',
+  Sewing: 'In Sewing',
   Ready: 'Ready',
   Delivered: 'Delivered',
 };
@@ -156,10 +156,10 @@ export default function FabricDetailSheet({
       } else {
         await updateOrder(order.id, { assignedToName: trimmed });
       }
-      showToast(`Artisan assigned to ${trimmed}!`, 'success');
+      showToast(`Tailor assigned to ${trimmed}!`, 'success');
       setIsEditingArtisan(false);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to assign artisan', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to assign tailor', 'error');
     }
   };
 
@@ -351,12 +351,12 @@ export default function FabricDetailSheet({
             </div>
           )}
 
-          {/* Assigned Artisan Section with Interactive Reassignment */}
+          {/* Assigned Tailor Section with Interactive Reassignment */}
           <div className={styles.row}>
             <Symbol name="engineering" size={16} className={styles.rowIcon} />
             <div className={styles.rowContent}>
               <div className={styles.artisanHeaderRow}>
-                <span className={styles.rowLabel}>Assigned Artisan</span>
+                <span className={styles.rowLabel}>Assigned Tailor / Cutter</span>
                 <button
                   type="button"
                   className={styles.artisanChangeBtn}
@@ -369,7 +369,7 @@ export default function FabricDetailSheet({
 
               {!isEditingArtisan ? (
                 <span className={styles.rowValue}>
-                  {order.assignedToName || 'Unassigned (Waiting on Cutter)'}
+                  {order.assignedToName || 'Unassigned (Waiting to Cut)'}
                 </span>
               ) : (
                 <div className={styles.artisanSelectorWrap}>
@@ -391,7 +391,7 @@ export default function FabricDetailSheet({
                     <input
                       type="text"
                       className={styles.artisanInput}
-                      placeholder="Or enter cutter/machinist name…"
+                      placeholder="Or enter tailor / cutter name…"
                       value={customArtisanName}
                       onChange={(e) => setCustomArtisanName(e.target.value)}
                     />
@@ -401,7 +401,7 @@ export default function FabricDetailSheet({
                       onClick={() => handleAssign(customArtisanName)}
                       disabled={!customArtisanName.trim()}
                     >
-                      Assign
+                      Assign Tailor
                     </button>
                   </div>
                 </div>
@@ -463,11 +463,11 @@ export default function FabricDetailSheet({
             <button
               type="button"
               className={styles.advanceBtn}
-              onClick={() => handleTransition('Cutting', 'Order moved to Cutting (On the Shears)!')}
+              onClick={() => handleTransition('Cutting', 'Moved to Cutting (On the Shears)!')}
               disabled={isAdvancing}
             >
               <Symbol name="content_cut" size={18} />
-              <span>{isAdvancing ? 'Advancing Stage…' : 'Advance to Cutting (On the Shears)'}</span>
+              <span>{isAdvancing ? 'Advancing Stage…' : 'Start Cutting Cloth'}</span>
             </button>
           )}
 
@@ -475,7 +475,7 @@ export default function FabricDetailSheet({
             <>
               {staffMembers && staffMembers.length > 0 && (
                 <div className={styles.quickMachinistHandoff}>
-                  <span className={styles.handoffLabel}>Assign Machinist &amp; Pass to Sewing:</span>
+                  <span className={styles.handoffLabel}>Assign Tailor &amp; Pass to Sewing:</span>
                   <div className={styles.machinistChipsRow}>
                     {staffMembers.map((staff) => (
                       <button
@@ -484,7 +484,7 @@ export default function FabricDetailSheet({
                         className={`${styles.machinistChip} ${order.assignedToName === staff.name ? styles.machinistChipActive : ''}`}
                         onClick={async () => {
                           await handleAssign(staff.name);
-                          await handleTransition('Sewing', `Cloth cut! Handed to ${staff.name} at sewing bench.`);
+                          await handleTransition('Sewing', `Cloth cut! Handed to ${staff.name} at sewing machine.`);
                         }}
                         disabled={isAdvancing}
                       >
@@ -499,35 +499,30 @@ export default function FabricDetailSheet({
               <button
                 type="button"
                 className={styles.passToSewingBtn}
-                onClick={() => handleTransition('Sewing', 'Cloth cut! Garment passed to Sewing Bench.')}
+                onClick={() => handleTransition('Sewing', 'Cloth cut! Garment passed to sewing machine.')}
                 disabled={isAdvancing}
               >
                 <Symbol name="precision_manufacturing" size={18} />
-                <span>{isAdvancing ? 'Updating Stage…' : 'Pass to Sewing Bench (Machinist)'}</span>
+                <span>{isAdvancing ? 'Updating Stage…' : 'Pass to Sewing Machine'}</span>
               </button>
               <button
                 type="button"
                 className={styles.revertBtn}
-                onClick={() => handleTransition('Documented', 'Returned to Waiting Table.')}
+                onClick={() => handleTransition('Documented', 'Returned to Waiting to Cut.')}
                 disabled={isAdvancing}
               >
                 <Symbol name="arrow_back" size={14} />
-                <span>Return to Table (Documented)</span>
+                <span>Return to Waiting to Cut</span>
               </button>
             </>
           )}
 
           {order.status === 'Sewing' && (
-            <>
-              <button
-                type="button"
-                className={styles.markReadyBtn}
-                onClick={() => handleTransition('Ready', 'Garment assembly finished! Ready for client.')}
-                disabled={isAdvancing}
-              >
-                <Symbol name="checkroom" size={18} />
-                <span>{isAdvancing ? 'Updating Stage…' : 'Mark Garment Ready'}</span>
-              </button>
+            <div className={styles.sewingInfoBlock}>
+              <div className={styles.sewingInfoText}>
+                <Symbol name="precision_manufacturing" size={16} />
+                <span>Cloth is cut and currently at the sewing machine. Tracking assembly continues on the Production Board.</span>
+              </div>
               <button
                 type="button"
                 className={styles.revertBtn}
@@ -535,9 +530,9 @@ export default function FabricDetailSheet({
                 disabled={isAdvancing}
               >
                 <Symbol name="arrow_back" size={14} />
-                <span>Return to Shears (Cutting)</span>
+                <span>Return to Cutting Table</span>
               </button>
-            </>
+            </div>
           )}
 
           <div className={styles.secondaryActionsRow}>

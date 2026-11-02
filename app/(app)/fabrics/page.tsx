@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { isMockDataAllowed } from '@/lib/constants';
@@ -15,6 +16,7 @@ import FabricCard from './_components/FabricCard';
 import FabricDetailSheet from './_components/FabricDetailSheet';
 import CuttingSlipModal from '../production/_components/CuttingSlipModal';
 import type { Order, Customer } from '@/lib/types';
+import { ROUTES } from '@/lib/routes';
 import { filterFabricOrders, type FabricStageFilter } from './utils';
 import {
   getStoredMockFabricOrders,
@@ -25,6 +27,7 @@ import {
 import styles from './page.module.css';
 
 export default function FabricsPage() {
+  const router = useRouter();
   const { orders: liveOrders, customers, isLoaded } = useData();
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -32,7 +35,7 @@ export default function FabricsPage() {
   const isMockAllowed = isMockDataAllowed(user?.email);
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState<FabricStageFilter>('uncut');
-  const [showNoPhoto, setShowNoPhoto] = useState(false);
+  const [showNoPhoto, setShowNoPhoto] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
 
@@ -40,9 +43,9 @@ export default function FabricsPage() {
   const [isUsingMock, setIsUsingMock] = useState(false);
 
   useEffect(() => {
-    // If live DB has orders with images/materials, use live data
+    // If live DB has active orders, use live data
     const realFabricOrders = liveOrders.filter(
-      (o) => o.images && o.images.length > 0 && o.status !== 'Delivered'
+      (o) => o.status !== 'Delivered'
     );
 
     if (realFabricOrders.length > 0) {
@@ -163,8 +166,21 @@ export default function FabricsPage() {
       header={
         <TopBar
           title="Cutting Table"
-          subtitle="Match cutting table fabrics to orders and cutting slips"
-          rightAction={<NotificationBell />}
+          subtitle="Client fabrics, cutting slips, and shears queue"
+          rightAction={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                className={styles.headerAddBtn}
+                onClick={() => router.push(ROUTES.orderNew)}
+                aria-label="Log new fabric order"
+              >
+                <Symbol name="add" size={15} />
+                <span>New Order</span>
+              </button>
+              <NotificationBell />
+            </div>
+          }
         />
       }
     >
@@ -176,7 +192,7 @@ export default function FabricsPage() {
           </div>
           <div className={styles.workshopMetricContent}>
             <span className={styles.workshopMetricValue}>{uncutCount}</span>
-            <span className={styles.workshopMetricLabel}>Waiting on Table</span>
+            <span className={styles.workshopMetricLabel}>Waiting to Cut</span>
           </div>
         </div>
         <div className={styles.workshopMetric}>
@@ -185,7 +201,7 @@ export default function FabricsPage() {
           </div>
           <div className={styles.workshopMetricContent}>
             <span className={styles.workshopMetricValue}>{cuttingCount}</span>
-            <span className={styles.workshopMetricLabel}>On the Shears</span>
+            <span className={styles.workshopMetricLabel}>Currently Cutting</span>
           </div>
         </div>
         <div className={styles.workshopMetric}>
@@ -194,7 +210,7 @@ export default function FabricsPage() {
           </div>
           <div className={styles.workshopMetricContent}>
             <span className={styles.workshopMetricValue}>{sewingCount}</span>
-            <span className={styles.workshopMetricLabel}>Sewing Floor</span>
+            <span className={styles.workshopMetricLabel}>Cut &amp; Sewing</span>
           </div>
         </div>
         <div className={styles.workshopMetric}>
@@ -211,7 +227,7 @@ export default function FabricsPage() {
             >
               {priorityCount}
             </span>
-            <span className={styles.workshopMetricLabel}>Rush & Urgent</span>
+            <span className={styles.workshopMetricLabel}>Rush &amp; Urgent</span>
           </div>
         </div>
       </div>
