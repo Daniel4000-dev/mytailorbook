@@ -29,8 +29,8 @@
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.22);
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  box-shadow: none;
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
 }
@@ -38,7 +38,7 @@
 @media (hover: hover) and (pointer: fine) {
   .primaryActionBtn:hover {
     background: #3730A3;
-    box-shadow: 0 6px 16px rgba(67, 56, 202, 0.3);
+    box-shadow: none;
   }
 }
 
@@ -60,7 +60,7 @@
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: none;
   transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), border-color var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
@@ -87,7 +87,7 @@
   background: var(--sf-bg-surface);
   border-radius: 20px;
   border: 1px solid var(--sf-border-light);
-  box-shadow: var(--sf-shadow-xs, 0 2px 8px rgba(0, 0, 0, 0.03));
+  box-shadow: none;
   padding: 16px 10px 14px;
   transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
@@ -95,26 +95,26 @@
 :global([data-theme='dark']) .switchboardCard {
   background: var(--sf-bg-surface, #161526);
   border-color: var(--sf-border, rgba(99, 102, 241, 0.24));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  box-shadow: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .switchboardCard {
     background: var(--sf-bg-surface, #161526);
     border-color: var(--sf-border, rgba(99, 102, 241, 0.24));
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+    box-shadow: none;
   }
 }
 
 :global([data-theme='dark']) .primaryActionBtn {
   background: #6366F1;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  box-shadow: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .primaryActionBtn {
     background: #6366F1;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    box-shadow: none;
   }
 }
 

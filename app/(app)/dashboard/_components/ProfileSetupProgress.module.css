@@ -4,7 +4,7 @@
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-xl);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -13,14 +13,14 @@
 :global([data-theme='dark']) .container {
   background: rgba(26, 22, 56, 0.6);
   border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme='light'])) .container {
     background: rgba(26, 22, 56, 0.6);
     border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    box-shadow: none;
   }
 }
 
@@ -174,3 +174,4 @@
     background: rgba(255, 255, 255, 0.1);
   }
 }
+

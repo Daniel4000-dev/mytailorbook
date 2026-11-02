@@ -26,7 +26,7 @@ export default function ProfileSetupProgress({ onNavigate }: ProfileSetupProgres
       {
         id: 'phone',
         label: 'WhatsApp / Phone Contact for Client Updates',
-        isComplete: Boolean(currentShop?.phone || user?.phone),
+        isComplete: Boolean(currentShop?.phone),
         href: '/settings/studio',
         cta: 'Add Phone',
       },
@@ -100,3 +100,4 @@ export default function ProfileSetupProgress({ onNavigate }: ProfileSetupProgres
     </div>
   );
 }
+
