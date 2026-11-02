@@ -81,7 +81,7 @@ export default function FabricsPage() {
     return filterFabricOrders(activeOrders, { search, stageFilter, showNoPhoto });
   }, [activeOrders, search, stageFilter, showNoPhoto]);
 
-  // Stage counts for badges & metric bar
+  // Stage counts for badges & segmented control
   const uncutCount = useMemo(
     () =>
       activeOrders.filter(
@@ -120,11 +120,6 @@ export default function FabricsPage() {
           (o.priority === 'rush' || o.priority === 'urgent')
       ).length,
     [activeOrders]
-  );
-
-  const productionCount = useMemo(
-    () => cuttingCount + sewingCount,
-    [cuttingCount, sewingCount]
   );
 
   const allCount = useMemo(
@@ -184,119 +179,14 @@ export default function FabricsPage() {
         />
       }
     >
-      {/* 1. Apple Liquid Glass Workshop Metric Bar (Interactive Cockpit) */}
-      <div className={styles.workshopMetricBar}>
-        <button
-          type="button"
-          className={`${styles.workshopMetric} ${stageFilter === 'uncut' ? styles.workshopMetricActive : ''}`}
-          onClick={() => setStageFilter(stageFilter === 'uncut' ? 'all' : 'uncut')}
-          aria-label="Filter orders waiting to cut"
-        >
-          <div className={styles.workshopMetricIcon}>
-            <Symbol name="content_cut" size={18} />
-          </div>
-          <div className={styles.workshopMetricContent}>
-            <span className={styles.workshopMetricValue}>{uncutCount}</span>
-            <span className={styles.workshopMetricLabel}>Waiting to Cut</span>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.workshopMetric} ${stageFilter === 'cutting' ? styles.workshopMetricActive : ''}`}
-          onClick={() => setStageFilter(stageFilter === 'cutting' ? 'all' : 'cutting')}
-          aria-label="Filter orders currently cutting"
-        >
-          <div className={styles.workshopMetricIcon}>
-            <Symbol name="straighten" size={18} />
-          </div>
-          <div className={styles.workshopMetricContent}>
-            <span className={styles.workshopMetricValue}>{cuttingCount}</span>
-            <span className={styles.workshopMetricLabel}>Currently Cutting</span>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.workshopMetric} ${stageFilter === 'sewing' ? styles.workshopMetricActive : ''}`}
-          onClick={() => setStageFilter(stageFilter === 'sewing' ? 'all' : 'sewing')}
-          aria-label="Filter orders cut and sewing"
-        >
-          <div className={styles.workshopMetricIcon}>
-            <Symbol name="precision_manufacturing" size={18} />
-          </div>
-          <div className={styles.workshopMetricContent}>
-            <span className={styles.workshopMetricValue}>{sewingCount}</span>
-            <span className={styles.workshopMetricLabel}>Cut &amp; Sewing</span>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.workshopMetric} ${stageFilter === 'urgent' ? styles.workshopMetricActive : ''}`}
-          onClick={() => setStageFilter(stageFilter === 'urgent' ? 'all' : 'urgent')}
-          aria-label="Filter rush and urgent orders"
-        >
-          <div
-            className={styles.workshopMetricIcon}
-            style={{ color: '#DC2626', background: 'rgba(220, 38, 38, 0.08)' }}
-          >
-            <Symbol name="bolt" size={18} />
-          </div>
-          <div className={styles.workshopMetricContent}>
-            <span
-              className={styles.workshopMetricValue}
-              style={{ color: priorityCount > 0 ? '#DC2626' : undefined }}
-            >
-              {priorityCount}
-            </span>
-            <span className={styles.workshopMetricLabel}>Rush &amp; Urgent</span>
-          </div>
-        </button>
-      </div>
-
-      {/* 2. Demo Controls Pill Row (When viewing seeded sample fabrics) */}
-      {isUsingMock && (
-        <div className={styles.demoControlsRow}>
-          <div className={styles.demoTag}>
-            <Symbol name="verified" size={12} />
-            <span>Demo Cutting Table</span>
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {mockOrders.length > 0 ? (
-              <button
-                type="button"
-                className={styles.demoActionBtn}
-                style={{ color: '#DC2626', borderColor: 'rgba(220, 38, 38, 0.3)' }}
-                onClick={handleWipeDemo}
-                title="Wipe demo fabrics"
-              >
-                <Symbol name="delete" size={12} />
-                <span>Wipe Demo</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={styles.demoActionBtn}
-                onClick={handleResetDemo}
-                title="Restore sample fabrics"
-              >
-                <Symbol name="auto_awesome" size={12} />
-                <span>Load Sample Fabrics</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 3. Search bar */}
+      {/* 1. Atelier Search Bar */}
       <div className={styles.searchWrap}>
         <Symbol name="search" size={18} className={styles.searchIcon} />
         <input
           id="fabric-search"
           type="search"
           className={styles.searchInput}
-          placeholder="Search customer, style, cutting notes, or #ref…"
+          placeholder="Search client, style, cutting notes, or #ref…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           autoComplete="off"
@@ -313,65 +203,76 @@ export default function FabricsPage() {
         )}
       </div>
 
-      {/* 4. Segmented Stage Filter Tabs */}
-      <div className={styles.filtersRow}>
-        <button
-          type="button"
-          className={`${styles.pill} ${stageFilter === 'uncut' ? `${styles.pillActive} ${styles.pillActiveUncut}` : ''}`}
-          onClick={() => setStageFilter('uncut')}
-        >
-          <Symbol name="content_cut" size={14} />
-          <span>Waiting to Cut</span>
-          <span className={styles.pillCount}>{uncutCount}</span>
-        </button>
+      {/* 2. Apple iOS Atelier Segmented Control */}
+      <div className={styles.stageSegmentedWrap} role="tablist" aria-label="Cutting Table Stages">
+        <div className={styles.stageSegmentedControl}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === 'uncut'}
+            className={`${styles.stageSegmentBtn} ${stageFilter === 'uncut' ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter('uncut')}
+          >
+            <span>Waiting to Cut</span>
+            <span className={styles.stageSegmentCount}>{uncutCount}</span>
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.pill} ${stageFilter === 'cutting' ? `${styles.pillActive} ${styles.pillActiveCutting}` : ''}`}
-          onClick={() => setStageFilter('cutting')}
-        >
-          <Symbol name="straighten" size={14} />
-          <span>Currently Cutting</span>
-          <span className={styles.pillCount}>{cuttingCount}</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === 'cutting'}
+            className={`${styles.stageSegmentBtn} ${stageFilter === 'cutting' ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter('cutting')}
+          >
+            <span>Cutting</span>
+            <span className={styles.stageSegmentCount}>{cuttingCount}</span>
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.pill} ${stageFilter === 'sewing' ? `${styles.pillActive} ${styles.pillActiveSewing}` : ''}`}
-          onClick={() => setStageFilter('sewing')}
-        >
-          <Symbol name="precision_manufacturing" size={14} />
-          <span>In Sewing</span>
-          <span className={styles.pillCount}>{sewingCount}</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === 'sewing'}
+            className={`${styles.stageSegmentBtn} ${stageFilter === 'sewing' ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter('sewing')}
+          >
+            <span>Sewing</span>
+            <span className={styles.stageSegmentCount}>{sewingCount}</span>
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.pill} ${stageFilter === 'urgent' ? `${styles.pillActive} ${styles.pillActiveUrgent}` : ''}`}
-          onClick={() => setStageFilter('urgent')}
-        >
-          <Symbol name="bolt" size={14} />
-          <span>Rush &amp; Urgent</span>
-          <span className={styles.pillCount}>{priorityCount}</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === 'urgent'}
+            className={`${styles.stageSegmentBtn} ${stageFilter === 'urgent' ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter('urgent')}
+          >
+            <span>Rush</span>
+            <span
+              className={`${styles.stageSegmentCount} ${priorityCount > 0 ? styles.stageSegmentCountUrgent : ''}`}
+            >
+              {priorityCount}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          className={`${styles.pill} ${stageFilter === 'all' ? `${styles.pillActive} ${styles.pillActiveAll}` : ''}`}
-          onClick={() => setStageFilter('all')}
-        >
-          <Symbol name="texture" size={14} />
-          <span>All Orders</span>
-          <span className={styles.pillCount}>{allCount}</span>
-        </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === 'all'}
+            className={`${styles.stageSegmentBtn} ${stageFilter === 'all' ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter('all')}
+          >
+            <span>All</span>
+            <span className={styles.stageSegmentCount}>{allCount}</span>
+          </button>
+        </div>
       </div>
 
-      {/* 5. Loading skeleton */}
+      {/* 3. Loading skeleton */}
       {!isLoaded && (
         <div className={styles.grid}>
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className={styles.skeletonCard}>
-              <Skeleton width="100%" height={220} borderRadius={12} />
+              <Skeleton width="100%" height={200} borderRadius={14} />
               <Skeleton width="70%" height={14} borderRadius={4} />
               <Skeleton width="50%" height={12} borderRadius={4} />
             </div>
@@ -379,7 +280,7 @@ export default function FabricsPage() {
         </div>
       )}
 
-      {/* 6. Gallery grid */}
+      {/* 4. Swatches Grid */}
       {isLoaded && (
         <>
           {filtered.length > 0 ? (
@@ -400,24 +301,28 @@ export default function FabricsPage() {
                 title={
                   search
                     ? 'No fabrics match your search'
-                    : isUsingMock && mockOrders.length === 0
-                      ? 'Cutting table is currently blank'
-                      : stageFilter === 'uncut'
-                        ? 'All documented fabrics have been cut'
-                        : stageFilter === 'production'
-                          ? 'No active fabrics in cutting or sewing'
-                          : 'No workshop materials found'
+                    : stageFilter === 'uncut'
+                      ? 'All documented fabrics have been cut'
+                      : stageFilter === 'cutting'
+                        ? 'No fabrics currently on the shears'
+                        : stageFilter === 'sewing'
+                          ? 'No cut fabrics currently in sewing'
+                          : stageFilter === 'urgent'
+                            ? 'No rush fabric orders pending'
+                            : 'Cutting table is clear'
                 }
                 description={
                   search
                     ? `No materials found matching "${search}". Try searching by customer name, style, or order reference.`
-                    : isUsingMock && mockOrders.length === 0
-                      ? 'You have wiped the demo fabrics. Tap below to reload 7 sample bespoke fabric rolls.'
-                      : stageFilter === 'uncut'
-                        ? 'No uncut fabrics currently waiting on the cutting table. Switch to "In Production" to see garments being crafted.'
-                        : stageFilter === 'production'
-                          ? 'Move uncut fabrics from the "Uncut Fabrics" tab to start cutting and sewing.'
-                          : 'Documented fabric swatches and workshop garments will appear here.'
+                    : stageFilter === 'uncut'
+                      ? 'No uncut fabrics currently waiting on the table. Switch to "Cutting" or "Sewing" to view active atelier garments.'
+                      : stageFilter === 'cutting'
+                        ? 'Select an order from "Waiting to Cut" to begin cutting cloth on the workshop table.'
+                        : stageFilter === 'sewing'
+                          ? 'Cut pieces are passed directly to the sewing machine.'
+                          : stageFilter === 'urgent'
+                            ? 'No rush or high-priority fabric orders are in queue.'
+                            : 'Documented fabric swatches and workshop garments will appear here.'
                 }
                 action={
                   search
@@ -427,37 +332,16 @@ export default function FabricsPage() {
                         label: 'Load Sample Fabrics',
                         onClick: handleResetDemo,
                       }
-                      : stageFilter === 'uncut' && productionCount > 0
+                      : stageFilter === 'uncut' && cuttingCount > 0
                         ? {
-                          label: 'View In-Production Fabrics',
-                          onClick: () => setStageFilter('production'),
+                          label: 'View Cutting Queue',
+                          onClick: () => setStageFilter('cutting'),
                         }
-                        : stageFilter === 'production' && uncutCount > 0
-                          ? {
-                            label: 'View Uncut Fabrics',
-                            onClick: () => setStageFilter('uncut'),
-                          }
-                          : !showNoPhoto
-                            ? {
-                              label: 'Show orders without photos',
-                              onClick: () => setShowNoPhoto(true),
-                            }
-                            : undefined
+                        : undefined
                 }
               />
             </div>
           )}
-
-          {/* Show-no-photo toggle */}
-          <label className={styles.noPhotoToggle}>
-            <input
-              type="checkbox"
-              checked={showNoPhoto}
-              onChange={(e) => setShowNoPhoto(e.target.checked)}
-              className={styles.noPhotoCheckbox}
-            />
-            <span>Show orders without fabric photos</span>
-          </label>
         </>
       )}
 

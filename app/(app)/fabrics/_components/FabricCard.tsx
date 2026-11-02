@@ -37,7 +37,6 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
   const isUrgent = order.priority === 'urgent';
   const hasPriority = isRush || isUrgent;
   const isClientFabric = order.materialSuppliedBy === 'customer';
-  const isShopFabric = order.materialSuppliedBy === 'shop';
   const orderTag = `#${order.id.slice(0, 4).toUpperCase()}`;
 
   // Extract yardage from orderDetails if mentioned (e.g. "4.0 yds", "7.0 yards")
@@ -51,7 +50,7 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
       onClick={onClick}
       aria-label={`View fabric for ${order.customerName || 'order'}`}
     >
-      {/* Photo area */}
+      {/* 1. Photo Area */}
       <div className={styles.photoWrap}>
         {photo ? (
           <Image
@@ -64,51 +63,33 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
           />
         ) : (
           <div className={styles.noPhoto}>
-            <Symbol name="photo_camera" size={30} className={styles.noPhotoIcon} />
-            <span className={styles.noPhotoText}>No fabric photo</span>
-            <span className={styles.noPhotoSubtext}>Tap to add swatch</span>
+            <Symbol name="photo_camera" size={24} className={styles.noPhotoIcon} />
+            <span className={styles.noPhotoText}>Swatch Pending</span>
           </div>
         )}
 
-        {/* Physical Chalk / Tag Reference badge — Top-Left */}
-        <span className={styles.chalkTagBadge}>
-          {orderTag}
-        </span>
+        {/* Minimalist Atelier Chalk Reference Tag — Top-Left */}
+        <div className={styles.chalkTag}>
+          <span className={styles.chalkTagId}>{orderTag}</span>
+          {hasPriority && (
+            <span
+              className={`${styles.rushDot} ${isRush ? styles.rushFlame : styles.rushBolt}`}
+              title={isRush ? 'Rush order' : 'Urgent order'}
+            />
+          )}
+        </div>
 
-        {/* Priority badge — below chalk tag */}
-        {hasPriority && (
-          <span className={`${styles.priorityBadge} ${isRush ? styles.rush : styles.urgent}`}>
-            <Symbol name={isRush ? 'local_fire_department' : 'bolt'} size={11} />
-            <span>{isRush ? 'Rush' : 'Urgent'}</span>
-          </span>
-        )}
-
-        {/* Material Provenance badge — top-right with native vector icon */}
+        {/* Client Fabric Indicator — Top-Right */}
         {isClientFabric && (
-          <span className={`${styles.provenanceBadge} ${styles.clientMaterial}`}>
-            <Symbol name="person" size={11} />
-            <span>Customer Fabric</span>
-          </span>
-        )}
-        {isShopFabric && (
-          <span className={`${styles.provenanceBadge} ${styles.shopMaterial}`}>
-            <Symbol name="storefront" size={11} />
-            <span>Shop Fabric</span>
-          </span>
-        )}
-
-        {/* Yardage tag — bottom-right */}
-        {yardage && (
-          <span className={styles.yardageBadge}>
-            <Symbol name="straighten" size={11} />
-            <span>{yardage}</span>
+          <span className={styles.clientClothTag}>
+            Client Cloth
           </span>
         )}
       </div>
 
-      {/* Info footer */}
+      {/* 2. Atelier Information Card */}
       <div className={styles.info}>
-        <div className={styles.infoHeaderRow}>
+        <div className={styles.nameRow}>
           <span className={styles.customerName}>{order.customerName || 'Walk-in Client'}</span>
           {onOpenSlip && (
             <button
@@ -127,25 +108,27 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
           )}
         </div>
 
-        <div className={styles.meta}>
-          <span className={`${styles.statusPill} ${styles[`status_${order.status}`]}`}>
-            {STATUS_LABELS[order.status] || order.status}
-          </span>
+        {/* Style & Yardage Subtitle */}
+        <div className={styles.subtext}>
+          {order.styleName && <span>{order.styleName}</span>}
+          {order.styleName && yardage && <span className={styles.dotSeparator}>·</span>}
+          {yardage && <span>{yardage}</span>}
+          {!order.styleName && !yardage && <span className={styles.dimText}>Bespoke Garment</span>}
+        </div>
+
+        {/* Clean Status Dot & Due Date */}
+        <div className={styles.statusFooter}>
+          <div className={styles.statusGroup}>
+            <span className={`${styles.statusDot} ${styles[`dot_${order.status}`] || ''}`} />
+            <span className={styles.statusLabel}>{STATUS_LABELS[order.status] || order.status}</span>
+          </div>
 
           {order.dueDate && (
-            <span className={`${styles.dueDateChip} ${overdue ? styles.overdue : ''}`}>
-              <Symbol name={overdue ? 'warning' : 'schedule'} size={11} />
-              <span>{formatDueDate(order.dueDate)}</span>
+            <span className={`${styles.dueDate} ${overdue ? styles.overdue : ''}`}>
+              {formatDueDate(order.dueDate)}
             </span>
           )}
         </div>
-
-        {order.styleName && (
-          <span className={styles.styleName}>
-            <Symbol name="checkroom" size={11} />
-            <span>{order.styleName}</span>
-          </span>
-        )}
       </div>
     </button>
   );

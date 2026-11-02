@@ -354,84 +354,116 @@
   border: 1px solid rgba(67, 56, 202, 0.16);
 }
 
-/* ── Apple Liquid Glass Swatch Specification Pills ── */
+/* ── Atelier Order Header ── */
 
-.specBadgesRow {
+.sheetHeaderInfo {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: var(--sf-space-sm);
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--sf-space-xs);
 }
 
-.specBadgeTag {
+.sheetTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chalkTagBadge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
+  font-family: var(--sf-font-mono, monospace);
   font-size: 11px;
   font-weight: 700;
-  font-family: var(--sf-font-mono, monospace);
-  background: rgba(15, 23, 42, 0.85);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.88);
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.2);
   letter-spacing: 0.04em;
 }
 
-:global([data-theme='dark']) .specBadgeTag {
+:global([data-theme='dark']) .chalkTagBadge {
   background: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.specBadgeYardage {
+.sheetCustomerName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sf-text-primary, #1C1A28);
+}
+
+.rushPill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  font-family: var(--sf-font-mono, monospace);
-  background: rgba(67, 56, 202, 0.08);
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.rushFlame {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.rushBolt {
+  background: rgba(67, 56, 202, 0.1);
   color: var(--sf-brand-indigo, #4338CA);
-  border: 1px solid rgba(67, 56, 202, 0.16);
+  border: 1px solid rgba(67, 56, 202, 0.2);
 }
 
-.specBadgeClient {
-  display: inline-flex;
+.sheetMetaRow {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11px;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  flex-wrap: wrap;
+}
+
+.sheetStyle {
+  font-weight: 500;
+  color: var(--sf-text-primary);
+}
+
+.sheetYardage {
+  font-family: var(--sf-font-mono, monospace);
   font-weight: 600;
-  background: rgba(16, 185, 129, 0.08);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.18);
+  color: var(--sf-brand-indigo, #4338CA);
 }
 
-.specBadgeShop {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11px;
-  font-weight: 600;
-  background: rgba(245, 158, 11, 0.08);
-  color: #D97706;
-  border: 1px solid rgba(245, 158, 11, 0.2);
+:global([data-theme='dark']) .sheetYardage {
+  color: #818CF8;
 }
 
-.specBadgePriority {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11px;
+.metaDot {
+  color: var(--sf-text-tertiary);
   font-weight: 700;
+}
+
+.provenancePill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--sf-bg-surface-elevated, #F1F5F9);
+  color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border-light);
+}
+
+:global([data-theme='dark']) .provenancePill {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-secondary);
 }
 
 /* ── Artisan Selector ────────────────────────── */

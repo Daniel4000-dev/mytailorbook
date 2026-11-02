@@ -261,35 +261,30 @@ export default function FabricDetailSheet({
 
       {/* Body */}
       <div className={styles.body}>
-        {/* Apple Liquid Glass Swatch Specification Pills */}
-        <div className={styles.specBadgesRow}>
-          <span className={styles.specBadgeTag}>
-            {`#${order.id.slice(0, 4).toUpperCase()}`}
-          </span>
-          {yardage && (
-            <span className={styles.specBadgeYardage}>
-              <Symbol name="straighten" size={13} />
-              <span>{yardage}</span>
+        {/* Atelier Order Header */}
+        <div className={styles.sheetHeaderInfo}>
+          <div className={styles.sheetTitleRow}>
+            <span className={styles.chalkTagBadge}>
+              {`#${order.id.slice(0, 4).toUpperCase()}`}
             </span>
-          )}
-          {isClientFabric && (
-            <span className={styles.specBadgeClient}>
-              <Symbol name="person" size={13} />
-              <span>Customer Fabric</span>
-            </span>
-          )}
-          {isShopFabric && (
-            <span className={styles.specBadgeShop}>
-              <Symbol name="storefront" size={13} />
-              <span>Shop Fabric</span>
-            </span>
-          )}
-          {hasPriority && (
-            <span className={`${styles.specBadgePriority} ${isRush ? styles.priorityRush : styles.priorityUrgent}`}>
-              <Symbol name={isRush ? 'local_fire_department' : 'bolt'} size={13} />
-              <span>{isRush ? 'Rush Delivery' : 'Urgent Workshop Order'}</span>
-            </span>
-          )}
+            <span className={styles.sheetCustomerName}>{clientName}</span>
+            {hasPriority && (
+              <span className={`${styles.rushPill} ${isRush ? styles.rushFlame : styles.rushBolt}`}>
+                {isRush ? 'Rush' : 'Urgent'}
+              </span>
+            )}
+          </div>
+
+          <div className={styles.sheetMetaRow}>
+            {order.styleName && <span className={styles.sheetStyle}>{order.styleName}</span>}
+            {order.styleName && yardage && <span className={styles.metaDot}>·</span>}
+            {yardage && <span className={styles.sheetYardage}>{yardage}</span>}
+            {(order.styleName || yardage) && (isClientFabric || isShopFabric) && (
+              <span className={styles.metaDot}>·</span>
+            )}
+            {isClientFabric && <span className={styles.provenancePill}>Client Cloth</span>}
+            {isShopFabric && <span className={styles.provenancePill}>Shop Material</span>}
+          </div>
         </div>
 
         {/* Customer & Direct Contact Card */}
