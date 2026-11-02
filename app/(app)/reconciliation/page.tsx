@@ -28,12 +28,12 @@ interface CombinedTransaction {
   category?: string;
 }
 
-const EXPENSE_CATEGORIES: { key: ExpenseCategory; label: string; icon: string }[] = [
-  { key: 'material', label: 'Sewing Materials (Threads, Zips, Lining, Stay)', icon: 'content_cut' },
-  { key: 'general', label: 'Generator Fuel / Workshop Power', icon: 'bolt' },
-  { key: 'outsourced', label: 'Machine Needles & Maintenance', icon: 'build' },
-  { key: 'logistics', label: 'Delivery & Transport', icon: 'local_shipping' },
-  { key: 'labor', label: 'Artisan & Apprentice Wages', icon: 'engineering' },
+const EXPENSE_CATEGORIES: { key: ExpenseCategory; label: string; shortLabel: string; icon: string }[] = [
+  { key: 'material', label: 'Sewing Materials (Threads, Zips, Linings)', shortLabel: 'Materials', icon: 'content_cut' },
+  { key: 'general', label: 'Generator Fuel / Workshop Power', shortLabel: 'Fuel & Power', icon: 'bolt' },
+  { key: 'outsourced', label: 'Machine Needles & Repairs', shortLabel: 'Machine Repairs', icon: 'build' },
+  { key: 'logistics', label: 'Delivery & Transport Fare', shortLabel: 'Delivery & Fare', icon: 'local_shipping' },
+  { key: 'labor', label: 'Artisan & Apprentice Wages', shortLabel: 'Wages', icon: 'engineering' },
 ];
 
 export default function ReconciliationPage() {
@@ -67,6 +67,10 @@ export default function ReconciliationPage() {
   const [expMethod, setExpMethod] = useState<PaymentMethod>('cash');
   const [expDescription, setExpDescription] = useState('');
   const [isSubmittingExpense, setIsSubmittingExpense] = useState(false);
+
+  // Cash Count / Reconcile BottomSheet state
+  const [countModalOpen, setCountModalOpen] = useState(false);
+  const [countedCash, setCountedCash] = useState('');
 
   // Fetch reconciliation data for selected date
   useEffect(() => {
@@ -116,7 +120,7 @@ export default function ReconciliationPage() {
         order_id: o.id,
         amount: o.depositPaid,
         method: 'cash' as PaymentMethod,
-        reference_note: `Deposit: ${o.orderDetails || 'Bespoke Outfit'} (${o.customerName || 'Client'})`,
+        reference_note: `Deposit: ${o.orderDetails || 'Bespoke Garment'} (${o.customerName || 'Client'})`,
         date: date,
         created_at: o.createdAt || new Date().toISOString(),
       }));
@@ -133,7 +137,7 @@ export default function ReconciliationPage() {
   const expectedTill = cashIn - cashOut;
   const totalElectronicIn = transferIn + posIn;
   const totalExpenses = cashOut + transferOut;
-  const netCashflow = (cashIn + totalElectronicIn) - totalExpenses;
+  const totalInflows = cashIn + totalElectronicIn;
 
   // Prepare combined transactions
   const transactions: CombinedTransaction[] = useMemo(() => {
@@ -191,15 +195,6 @@ export default function ReconciliationPage() {
     return new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }, [date, isToday, isYesterday]);
 
-  const fullDateLabel = useMemo(() => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  }, [date]);
-
   // Handle Quick Expense Submission
   const handleRecordExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,7 +212,7 @@ export default function ReconciliationPage() {
         shopId: currentShop.id,
         amount: numAmount,
         category: expCategory,
-        description: expDescription.trim() || EXPENSE_CATEGORIES.find((c) => c.key === expCategory)?.label || 'Shop Expense',
+        description: expDescription.trim() || EXPENSE_CATEGORIES.find((c) => c.key === expCategory)?.shortLabel || 'Workshop Expense',
         date: date,
         method: expMethod,
       });
@@ -249,6 +244,11 @@ export default function ReconciliationPage() {
     }
   };
 
+  // Difference calculation for cash drawer verification
+  const countedNum = parseFloat(countedCash.replace(/,/g, ''));
+  const hasCountedInput = !isNaN(countedNum);
+  const countDiff = hasCountedInput ? countedNum - expectedTill : 0;
+
   return (
     <PageLayout
       width="narrow"
@@ -263,8 +263,8 @@ export default function ReconciliationPage() {
       }
     >
       <div className={styles.container}>
-        {/* ── 1. APPLE INSET DATE NAVIGATOR ── */}
-        <section className={styles.dateNavigator}>
+        {/* ── 1. ATELIER COMPACT DATE NAVIGATOR ── */}
+        <section className={styles.dateBar}>
           <div className={styles.dateNavLeft}>
             <button
               type="button"
@@ -277,14 +277,14 @@ export default function ReconciliationPage() {
             <div className={styles.datePillGroup}>
               <button
                 type="button"
-                className={`${styles.dateQuickPill} ${isYesterday ? styles.dateQuickPillActive : ''}`}
+                className={`${styles.datePill} ${isYesterday ? styles.datePillActive : ''}`}
                 onClick={() => setDate(yesterdayStr)}
               >
                 Yesterday
               </button>
               <button
                 type="button"
-                className={`${styles.dateQuickPill} ${isToday ? styles.dateQuickPillActive : ''}`}
+                className={`${styles.datePill} ${isToday ? styles.datePillActive : ''}`}
                 onClick={() => setDate(todayStr)}
               >
                 Today
@@ -301,200 +301,189 @@ export default function ReconciliationPage() {
             </button>
           </div>
 
-          <div className={styles.calendarPickerWrap}>
-            <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
-              <Symbol name="calendar_today" size={16} />
-              <span>{displayDateText}</span>
-              <input
-                id="reconDateInput"
-                type="date"
-                className={styles.hiddenDateInput}
-                value={date}
-                max={todayStr}
-                onChange={(e) => e.target.value && setDate(e.target.value)}
-              />
-            </label>
-          </div>
+          <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
+            <Symbol name="calendar_today" size={15} />
+            <span>{displayDateText}</span>
+            <input
+              id="reconDateInput"
+              type="date"
+              className={styles.hiddenDateInput}
+              value={date}
+              max={todayStr}
+              onChange={(e) => e.target.value && setDate(e.target.value)}
+            />
+          </label>
         </section>
-
-        <div className={styles.dateSubtitleRow}>
-          <span className={styles.dateLongText}>{fullDateLabel}</span>
-          <span className={styles.netCashflowBadge} data-positive={netCashflow >= 0}>
-            {netCashflow >= 0 ? '+' : '-'}{currencySymbol}{formatNumber(Math.abs(netCashflow))} Net
-          </span>
-        </div>
 
         {loading ? (
           <div className={styles.loadingState}>
             <Symbol name="progress_activity" size={28} className="global-spinner" />
-            <p>Loading cash & bank records…</p>
+            <p>Loading cash drawer records…</p>
           </div>
         ) : (
           <>
-            {/* ── 2. HERO: CASH DRAWER (TILL) CARD ── */}
-            <section className={styles.tillHeroCard}>
-              <div className={styles.tillHeroTop}>
-                <div>
-                  <span className={styles.tillHeroEyebrow}>CASH DRAWER</span>
-                  <h2 className={styles.tillHeroTitle}>Cash in Drawer Today</h2>
+            {/* ── 2. CONSOLIDATED MASTER CASH COCKPIT ── */}
+            <section className={styles.cockpitCard}>
+              <div className={styles.cockpitTop}>
+                <div className={styles.cockpitHeaderRow}>
+                  <div className={styles.cockpitTitleWrap}>
+                    <div className={styles.cashIconWrap}>
+                      <Symbol name="point_of_sale" size={18} />
+                    </div>
+                    <span className={styles.cockpitEyebrow}>Physical Cash in Drawer</span>
+                  </div>
+                  <span
+                    className={`${styles.statusBadge} ${expectedTill >= 0 ? styles.statusBadgeGood : styles.statusBadgeDeficit}`}
+                  >
+                    {expectedTill >= 0 ? 'Cash on Hand' : 'Deficit / Short'}
+                  </span>
                 </div>
-                <div className={styles.tillCashBadge}>
-                  <Symbol name="payments" size={20} />
-                  <span>CASH</span>
+
+                <div className={styles.mainAmountRow}>
+                  <span className={styles.mainAmountNumeral}>
+                    {currencySymbol}{formatNumber(expectedTill)}
+                  </span>
+                </div>
+
+                <div className={styles.cashMovementSubtitle}>
+                  <span>+{currencySymbol}{formatNumber(cashIn)} cash received</span>
+                  <span className={styles.movementDot}>·</span>
+                  <span>−{currencySymbol}{formatNumber(cashOut)} cash paid out</span>
                 </div>
               </div>
 
-              <div className={styles.tillAmountRow}>
-                <span className={styles.tillAmountFigure}>
-                  {currencySymbol}{formatNumber(expectedTill)}
-                </span>
-                <span className={styles.tillStatusTag} data-in-hand={expectedTill >= 0}>
-                  {expectedTill >= 0 ? 'Cash On Hand' : 'Deficit / Overdrawn'}
-                </span>
-              </div>
+              <div className={styles.cockpitDivider} />
 
-              <div className={styles.tillFormulaBanner}>
-                <div className={styles.formulaSegment}>
-                  <span className={styles.formulaLabel}>Cash Collected</span>
-                  <span className={styles.formulaValPositive}>+{currencySymbol}{formatNumber(cashIn)}</span>
+              <div className={styles.cockpitShelf}>
+                <div className={styles.shelfCol}>
+                  <span className={styles.shelfLabel}>Bank &amp; POS In</span>
+                  <span className={styles.shelfValue}>{currencySymbol}{formatNumber(totalElectronicIn)}</span>
+                  <span className={styles.shelfSubtext}>Transfers received</span>
                 </div>
-                <span className={styles.formulaOperator}>−</span>
-                <div className={styles.formulaSegment}>
-                  <span className={styles.formulaLabel}>Cash Paid Out</span>
-                  <span className={styles.formulaValNegative}>−{currencySymbol}{formatNumber(cashOut)}</span>
+
+                <div className={styles.shelfCol}>
+                  <span className={styles.shelfLabel}>Total Outflows</span>
+                  <span className={`${styles.shelfValue} ${styles.shelfExpense}`}>
+                    −{currencySymbol}{formatNumber(totalExpenses)}
+                  </span>
+                  <span className={styles.shelfSubtext}>Materials &amp; bills</span>
                 </div>
-                <span className={styles.formulaOperator}>=</span>
-                <div className={styles.formulaSegment}>
-                  <span className={styles.formulaLabel}>In Drawer</span>
-                  <span className={styles.formulaValResult}>{currencySymbol}{formatNumber(expectedTill)}</span>
+
+                <div className={styles.shelfCol}>
+                  <span className={styles.shelfLabel}>Total Inflows</span>
+                  <span className={`${styles.shelfValue} ${styles.shelfIncome}`}>
+                    +{currencySymbol}{formatNumber(totalInflows)}
+                  </span>
+                  <span className={styles.shelfSubtext}>All payment modes</span>
                 </div>
               </div>
             </section>
 
-            {/* ── 3. SECONDARY FINANCIAL SUMMARY GRID ── */}
-            <section className={styles.summaryGrid}>
-              {/* Bank & POS Transfers */}
-              <div className={styles.summaryCard}>
-                <div className={styles.summaryCardHeader}>
-                  <div className={styles.summaryIconWrap} data-variant="bank">
-                    <Symbol name="account_balance" size={18} />
-                  </div>
-                  <span className={styles.summaryCardEyebrow}>ELECTRONIC INFLOWS</span>
-                </div>
-                <h3 className={styles.summaryCardAmount}>
-                  {currencySymbol}{formatNumber(totalElectronicIn)}
-                </h3>
-                <div className={styles.summaryCardBreakdown}>
-                  <span className={styles.breakdownChip}>
-                    Transfer: <strong>{currencySymbol}{formatNumber(transferIn)}</strong>
-                  </span>
-                  <span className={styles.breakdownChip}>
-                    POS: <strong>{currencySymbol}{formatNumber(posIn)}</strong>
-                  </span>
-                </div>
-              </div>
-
-              {/* Total Workshop Outflows */}
-              <div className={styles.summaryCard}>
-                <div className={styles.summaryCardHeader}>
-                  <div className={styles.summaryIconWrap} data-variant="expense">
-                    <Symbol name="receipt_long" size={18} />
-                  </div>
-                  <span className={styles.summaryCardEyebrow}>WORKSHOP EXPENSES</span>
-                </div>
-                <h3 className={`${styles.summaryCardAmount} ${styles.expenseAmount}`}>
-                  {currencySymbol}{formatNumber(totalExpenses)}
-                </h3>
-                <div className={styles.summaryCardBreakdown}>
-                  <span className={styles.breakdownChip}>
-                    Cash Out: <strong>{currencySymbol}{formatNumber(cashOut)}</strong>
-                  </span>
-                  <span className={styles.breakdownChip}>
-                    Bank Out: <strong>{currencySymbol}{formatNumber(transferOut)}</strong>
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            {/* ── 4. QUICK ACTION BAR: RECORD SHOP EXPENSE ── */}
-            <div className={styles.quickActionsBar}>
+            {/* ── 3. ATELIER ACTION COCKPIT ── */}
+            <div className={styles.actionRow}>
               <button
                 type="button"
-                className={styles.recordExpenseBtn}
+                className={styles.primaryActionBtn}
                 onClick={() => setExpenseModalOpen(true)}
               >
-                <Symbol name="add" size={18} />
-                <span>Record Workshop Expense</span>
+                <Symbol name="receipt_long" size={16} />
+                <span>Record Expense</span>
+              </button>
+
+              <button
+                type="button"
+                className={styles.secondaryActionBtn}
+                onClick={() => {
+                  setCountedCash('');
+                  setCountModalOpen(true);
+                }}
+              >
+                <Symbol name="calculate" size={16} />
+                <span>Count &amp; Verify Till</span>
               </button>
             </div>
 
-            {/* ── 5. METHOD SEGMENTED FILTER ── */}
-            <div className={styles.filterSection}>
-              <div className={styles.segmentedControl} role="tablist">
+            {/* ── 4. APPLE IOS SEGMENTED METHOD FILTER ── */}
+            <div className={styles.methodSegmentedWrap} role="tablist" aria-label="Payment Method Filters">
+              <div className={styles.methodSegmentedControl}>
                 <button
                   type="button"
                   role="tab"
                   aria-selected={methodFilter === 'all'}
-                  className={`${styles.segmentBtn} ${methodFilter === 'all' ? styles.segmentBtnActive : ''}`}
+                  className={`${styles.methodSegmentBtn} ${methodFilter === 'all' ? styles.methodSegmentActive : ''}`}
                   onClick={() => setMethodFilter('all')}
                 >
-                  All ({transactions.length})
+                  <span>All</span>
+                  <span className={styles.methodSegmentCount}>{transactions.length}</span>
                 </button>
                 <button
                   type="button"
                   role="tab"
                   aria-selected={methodFilter === 'cash'}
-                  className={`${styles.segmentBtn} ${methodFilter === 'cash' ? styles.segmentBtnActive : ''}`}
+                  className={`${styles.methodSegmentBtn} ${methodFilter === 'cash' ? styles.methodSegmentActive : ''}`}
                   onClick={() => setMethodFilter('cash')}
                 >
-                  Cash ({transactions.filter((t) => t.method === 'cash').length})
+                  <span>Cash</span>
+                  <span className={styles.methodSegmentCount}>
+                    {transactions.filter((t) => t.method === 'cash').length}
+                  </span>
                 </button>
                 <button
                   type="button"
                   role="tab"
                   aria-selected={methodFilter === 'transfer'}
-                  className={`${styles.segmentBtn} ${methodFilter === 'transfer' ? styles.segmentBtnActive : ''}`}
+                  className={`${styles.methodSegmentBtn} ${methodFilter === 'transfer' ? styles.methodSegmentActive : ''}`}
                   onClick={() => setMethodFilter('transfer')}
                 >
-                  Transfer ({transactions.filter((t) => t.method === 'transfer').length})
+                  <span>Transfer</span>
+                  <span className={styles.methodSegmentCount}>
+                    {transactions.filter((t) => t.method === 'transfer').length}
+                  </span>
                 </button>
                 <button
                   type="button"
                   role="tab"
                   aria-selected={methodFilter === 'pos'}
-                  className={`${styles.segmentBtn} ${methodFilter === 'pos' ? styles.segmentBtnActive : ''}`}
+                  className={`${styles.methodSegmentBtn} ${methodFilter === 'pos' ? styles.methodSegmentActive : ''}`}
                   onClick={() => setMethodFilter('pos')}
                 >
-                  POS ({transactions.filter((t) => t.method === 'pos').length})
+                  <span>POS</span>
+                  <span className={styles.methodSegmentCount}>
+                    {transactions.filter((t) => t.method === 'pos').length}
+                  </span>
                 </button>
               </div>
             </div>
 
-            {/* ── 6. INSET GROUPED TRANSACTION LEDGER ── */}
+            {/* ── 5. INSET GROUPED DAILY AUDIT LEDGER ── */}
             <section className={styles.ledgerSection}>
               <div className={styles.ledgerHeaderRow}>
                 <h3 className={styles.ledgerSectionTitle}>
-                  Daily Audit Ledger ({filteredTransactions.length})
+                  Daily Audit Ledger
                 </h3>
                 <span className={styles.ledgerMutedSummary}>
-                  {filteredTransactions.filter((t) => t.type === 'income').length} in • {filteredTransactions.filter((t) => t.type === 'expense').length} out
+                  {filteredTransactions.filter((t) => t.type === 'income').length} in · {filteredTransactions.filter((t) => t.type === 'expense').length} out
                 </span>
               </div>
 
               {filteredTransactions.length === 0 ? (
                 <div className={styles.emptyContainer}>
                   <EmptyState
-                    icon={<Symbol name="account_balance_wallet" size={36} />}
+                    icon={<Symbol name="account_balance_wallet" size={32} />}
                     title="No Transactions on this Date"
-                    description={`No ${methodFilter === 'all' ? '' : methodFilter.toUpperCase() + ' '}receipts or workshop expenses recorded for ${displayDateText}.`}
+                    description={`No ${methodFilter === 'all' ? '' : methodFilter.toUpperCase() + ' '}receipts or workshop disbursements logged for ${displayDateText}.`}
+                    action={{
+                      label: 'Record Expense',
+                      onClick: () => setExpenseModalOpen(true),
+                    }}
                   />
                 </div>
               ) : (
-                <div className={styles.ledgerListCard}>
-                  {filteredTransactions.map((t, idx) => (
+                <div className={styles.ledgerCard}>
+                  {filteredTransactions.map((t) => (
                     <div
                       key={t.id}
-                      className={styles.ledgerRow}
+                      className={`${styles.ledgerRow} ${t.orderId ? styles.ledgerRowClickable : ''}`}
                       onClick={() => {
                         if (t.orderId) {
                           router.push(ROUTES.productionOrder(t.orderId));
@@ -505,23 +494,26 @@ export default function ReconciliationPage() {
                     >
                       <div className={styles.ledgerLeft}>
                         <div
-                          className={styles.craftBadge}
-                          data-type={t.type}
+                          className={`${styles.flowIconWrap} ${t.type === 'income' ? styles.incomeIcon : styles.expenseIcon}`}
                         >
                           <Symbol
                             name={t.type === 'income' ? 'south_west' : 'north_east'}
-                            size={18}
+                            size={16}
                           />
                         </div>
-                        <div className={styles.ledgerTextWrap}>
-                          <span className={styles.ledgerDescTitle}>{t.desc}</span>
-                          <div className={styles.ledgerMetaRow}>
-                            <span className={styles.timeTag}>{t.time}</span>
-                            <span className={styles.methodBadge} data-method={t.method}>
-                              {t.method.toUpperCase()}
-                            </span>
+                        <div className={styles.ledgerDetails}>
+                          <span className={styles.ledgerTitle}>{t.desc}</span>
+                          <div className={styles.ledgerMeta}>
+                            <span>{t.time}</span>
+                            <span className={styles.metaDot}>·</span>
+                            <span className={styles.methodBadge}>{t.method.toUpperCase()}</span>
                             {t.category && (
-                              <span className={styles.categoryBadge}>{t.category}</span>
+                              <>
+                                <span className={styles.metaDot}>·</span>
+                                <span className={styles.categoryName}>
+                                  {EXPENSE_CATEGORIES.find((c) => c.key === t.category)?.shortLabel || t.category}
+                                </span>
+                              </>
                             )}
                           </div>
                         </div>
@@ -529,15 +521,14 @@ export default function ReconciliationPage() {
 
                       <div className={styles.ledgerRight}>
                         <span
-                          className={styles.ledgerAmountNumeral}
-                          data-type={t.type}
+                          className={`${styles.ledgerAmount} ${t.type === 'income' ? styles.amountIncome : styles.amountExpense}`}
                         >
                           {t.type === 'income' ? '+' : '−'}
                           {currencySymbol}
                           {formatNumber(t.amount)}
                         </span>
                         {t.orderId && (
-                          <Symbol name="chevron_right" size={16} className={styles.ledgerChevron} />
+                          <Symbol name="chevron_right" size={14} className={styles.ledgerChevron} />
                         )}
                       </div>
                     </div>
@@ -549,40 +540,39 @@ export default function ReconciliationPage() {
         )}
       </div>
 
-      {/* ── 7. QUICK RECORD EXPENSE BOTTOMSHEET ── */}
+      {/* ── 6. RECORD WORKSHOP EXPENSE SHEET ── */}
       <BottomSheet
         isOpen={expenseModalOpen}
         onClose={() => setExpenseModalOpen(false)}
         title="Record Workshop Expense"
       >
-        <form onSubmit={handleRecordExpense} className={styles.expenseForm}>
-          <p className={styles.expenseModalIntro}>
-            Record direct material purchases, generator fuel, or maintenance. This automatically updates your cash till and daily audit.
-          </p>
-
+        <form onSubmit={handleRecordExpense} className={styles.modalForm}>
           <div className={styles.field}>
-            <label className={styles.capsLabel} htmlFor="expAmountInput">
+            <label className={styles.fieldLabel} htmlFor="expAmountInput">
               Amount Spent ({currencySymbol})
             </label>
-            <input
-              id="expAmountInput"
-              type="text"
-              inputMode="decimal"
-              className={styles.amountInput}
-              placeholder="e.g. 3,500"
-              value={expAmount}
-              onChange={(e) => setExpAmount(e.target.value)}
-              autoFocus
-              required
-            />
+            <div className={styles.amountInputWrap}>
+              <span className={styles.currencyPrefix}>{currencySymbol}</span>
+              <input
+                id="expAmountInput"
+                type="text"
+                inputMode="decimal"
+                className={styles.amountInput}
+                placeholder="0"
+                value={expAmount}
+                onChange={(e) => setExpAmount(e.target.value)}
+                autoFocus
+                required
+              />
+            </div>
           </div>
 
           <div className={styles.field}>
-            <label className={styles.capsLabel}>Payment Method</label>
-            <div className={styles.methodToggleRow}>
+            <label className={styles.fieldLabel}>Payment Source</label>
+            <div className={styles.toggleRow}>
               <button
                 type="button"
-                className={`${styles.methodToggleBtn} ${expMethod === 'cash' ? styles.methodToggleBtnActive : ''}`}
+                className={`${styles.toggleBtn} ${expMethod === 'cash' ? styles.toggleBtnActive : ''}`}
                 onClick={() => setExpMethod('cash')}
               >
                 <Symbol name="payments" size={18} />
@@ -590,79 +580,145 @@ export default function ReconciliationPage() {
               </button>
               <button
                 type="button"
-                className={`${styles.methodToggleBtn} ${expMethod === 'transfer' ? styles.methodToggleBtnActive : ''}`}
+                className={`${styles.toggleBtn} ${expMethod === 'transfer' ? styles.toggleBtnActive : ''}`}
                 onClick={() => setExpMethod('transfer')}
               >
                 <Symbol name="account_balance" size={18} />
                 <span>Bank Transfer</span>
               </button>
             </div>
-            <span className={styles.methodHint}>
-              {expMethod === 'cash'
-                ? 'Deducts directly from your expected physical cash in till.'
-                : 'Recorded as an electronic bank disbursement.'}
-            </span>
           </div>
 
           <div className={styles.field}>
-            <label className={styles.capsLabel} htmlFor="expCategorySelect">
-              Expense Category
-            </label>
-            <div className={styles.selectWrapper}>
-              <select
-                id="expCategorySelect"
-                className={styles.selectInput}
-                value={expCategory}
-                onChange={(e) => setExpCategory(e.target.value as ExpenseCategory)}
-              >
-                {EXPENSE_CATEGORIES.map((c) => (
-                  <option key={c.key} value={c.key}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-              <Symbol name="expand_more" size={18} className={styles.selectChevron} />
+            <label className={styles.fieldLabel}>Expense Category</label>
+            <div className={styles.categoryChips}>
+              {EXPENSE_CATEGORIES.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  className={`${styles.categoryChip} ${expCategory === c.key ? styles.categoryChipActive : ''}`}
+                  onClick={() => setExpCategory(c.key)}
+                >
+                  <Symbol name={c.icon} size={15} />
+                  <span>{c.shortLabel}</span>
+                </button>
+              ))}
             </div>
           </div>
 
           <div className={styles.field}>
-            <label className={styles.capsLabel} htmlFor="expDescInput">
-              Note / Supplier (Optional)
+            <label className={styles.fieldLabel} htmlFor="expDescInput">
+              Supplier / Note (Optional)
             </label>
             <input
               id="expDescInput"
               type="text"
-              className={styles.input}
+              className={styles.textInput}
               placeholder="e.g. 5 spools black thread + 4 YKK zips"
               value={expDescription}
               onChange={(e) => setExpDescription(e.target.value)}
             />
           </div>
 
-          <div className={styles.modalActionRow}>
+          <div className={styles.modalActions}>
             <button
               type="button"
-              className={styles.cancelBtn}
+              className={styles.modalCancelBtn}
               onClick={() => setExpenseModalOpen(false)}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={styles.submitExpenseBtn}
+              className={styles.modalSubmitBtn}
               disabled={isSubmittingExpense || !expAmount.trim()}
             >
-              {isSubmittingExpense ? (
-                <span>Recording…</span>
-              ) : (
-                <>
-                  <Symbol name="check" size={18} />
-                  <span>Save Expense</span>
-                </>
-              )}
+              {isSubmittingExpense ? 'Saving…' : 'Save Expense'}
             </button>
           </div>
         </form>
+      </BottomSheet>
+
+      {/* ── 7. COUNT & VERIFY TILL BOTTOMSHEET ── */}
+      <BottomSheet
+        isOpen={countModalOpen}
+        onClose={() => setCountModalOpen(false)}
+        title="Count & Verify Cash Drawer"
+      >
+        <div className={styles.verifyModalContent}>
+          <p className={styles.verifyIntro}>
+            Count the physical paper banknotes currently in your cash drawer to confirm they match your expected workshop till.
+          </p>
+
+          <div className={styles.verifyExpectedCard}>
+            <span className={styles.verifyExpectedLabel}>Expected Cash in Drawer</span>
+            <span className={styles.verifyExpectedAmount}>
+              {currencySymbol}{formatNumber(expectedTill)}
+            </span>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.fieldLabel} htmlFor="actualCountInput">
+              Actual Cash Counted in Hand ({currencySymbol})
+            </label>
+            <div className={styles.amountInputWrap}>
+              <span className={styles.currencyPrefix}>{currencySymbol}</span>
+              <input
+                id="actualCountInput"
+                type="text"
+                inputMode="decimal"
+                className={styles.amountInput}
+                placeholder="0"
+                value={countedCash}
+                onChange={(e) => setCountedCash(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+
+          {hasCountedInput && (
+            <div
+              className={`${styles.differenceCard} ${
+                countDiff === 0
+                  ? styles.diffBalanced
+                  : countDiff > 0
+                    ? styles.diffOver
+                    : styles.diffShort
+              }`}
+            >
+              <div className={styles.diffHeader}>
+                <Symbol
+                  name={countDiff === 0 ? 'check_circle' : countDiff > 0 ? 'trending_up' : 'warning'}
+                  size={20}
+                />
+                <span className={styles.diffTitle}>
+                  {countDiff === 0
+                    ? 'Drawer Balances Perfectly!'
+                    : countDiff > 0
+                      ? `Surplus: +${currencySymbol}${formatNumber(countDiff)}`
+                      : `Shortage: −${currencySymbol}${formatNumber(Math.abs(countDiff))}`}
+                </span>
+              </div>
+              <p className={styles.diffDesc}>
+                {countDiff === 0
+                  ? 'Your physical cash in hand matches the cash records exactly.'
+                  : countDiff > 0
+                    ? 'You have more cash in the drawer than recorded. Check if a client deposit was not logged.'
+                    : 'Physical cash is lower than expected. Check if an unrecorded cash payout was made for fuel, thread, or delivery.'}
+              </p>
+            </div>
+          )}
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.modalPrimaryFullBtn}
+              onClick={() => setCountModalOpen(false)}
+            >
+              Done Counting
+            </button>
+          </div>
+        </div>
       </BottomSheet>
     </PageLayout>
   );
