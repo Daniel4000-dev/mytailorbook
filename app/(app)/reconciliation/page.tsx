@@ -29,22 +29,6 @@ export const EXPENSE_CATEGORIES: {
   { key: 'logistics', label: 'Delivery Courier & Transport Fare', shortLabel: 'Delivery Fare', icon: 'local_shipping' },
 ];
 
-const QUICK_AMOUNTS = [1000, 2000, 5000, 10000];
-
-const WORKSHOP_PRESETS: {
-  label: string;
-  amount: string;
-  category: ExpenseCategory;
-  description: string;
-  method?: PaymentMethod;
-}[] = [
-  { label: 'Fuel (₦5,000)', amount: '5000', category: 'general', description: 'Generator Fuel', method: 'cash' },
-  { label: 'Fuel (₦10,000)', amount: '10000', category: 'general', description: 'Generator Fuel', method: 'transfer' },
-  { label: 'Threads & Zips', amount: '3000', category: 'material', description: 'Market spools and zips', method: 'cash' },
-  { label: 'Delivery Fare', amount: '2000', category: 'logistics', description: 'Dispatch rider delivery', method: 'cash' },
-  { label: 'Artisan Payout', amount: '', category: 'labor', description: 'Machinist sewing fee', method: 'transfer' },
-];
-
 const getLocalDateString = (d: Date = new Date()) => {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -178,13 +162,70 @@ export default function ShopExpensesPage() {
     [expenses]
   );
 
+  // Dynamic localized quick amounts
+  const quickAmounts = useMemo(() => {
+    const curr = (currentShop?.currency || 'NGN').toUpperCase();
+    if (['USD', 'EUR', 'GBP'].includes(curr)) {
+      return [5, 10, 20, 50];
+    }
+    return [1000, 2000, 5000, 10000];
+  }, [currentShop?.currency]);
+
+  // Dynamic localized presets using workshop currency
+  const workshopPresets = useMemo(() => {
+    const curr = (currentShop?.currency || 'NGN').toUpperCase();
+    const isWestern = ['USD', 'EUR', 'GBP'].includes(curr);
+    return [
+      {
+        label: `Fuel (${currencySymbol}${formatNumber(isWestern ? 20 : 5000)})`,
+        amount: isWestern ? '20' : '5000',
+        category: 'general' as ExpenseCategory,
+        description: 'Generator Fuel',
+        method: 'cash' as PaymentMethod,
+      },
+      {
+        label: `Fuel (${currencySymbol}${formatNumber(isWestern ? 40 : 10000)})`,
+        amount: isWestern ? '40' : '10000',
+        category: 'general' as ExpenseCategory,
+        description: 'Generator Fuel',
+        method: 'transfer' as PaymentMethod,
+      },
+      {
+        label: 'Threads & Zips',
+        amount: isWestern ? '15' : '3000',
+        category: 'material' as ExpenseCategory,
+        description: 'Market spools and zips',
+        method: 'cash' as PaymentMethod,
+      },
+      {
+        label: 'Delivery Fare',
+        amount: isWestern ? '10' : '2000',
+        category: 'logistics' as ExpenseCategory,
+        description: 'Dispatch rider delivery',
+        method: 'cash' as PaymentMethod,
+      },
+      {
+        label: 'Artisan Payout',
+        amount: '',
+        category: 'labor' as ExpenseCategory,
+        description: 'Machinist sewing fee',
+        method: 'transfer' as PaymentMethod,
+      },
+    ];
+  }, [currencySymbol, currentShop?.currency]);
+
   // Sorted active orders for job-costing dropdown
-  const activeOrdersList = useMemo(() => {
+  const selectableOrders = useMemo(() => {
     if (!orders) return [];
     const inProgress = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled');
     const others = orders.filter((o) => o.status === 'delivered' || o.status === 'cancelled');
-    return [...inProgress, ...others].slice(0, 50);
-  }, [orders]);
+    const list = [...inProgress, ...others].slice(0, 50);
+    if (expOrderId && !list.some((o) => o.id === expOrderId)) {
+      const match = orders.find((o) => o.id === expOrderId);
+      if (match) list.unshift(match);
+    }
+    return list;
+  }, [orders, expOrderId]);
 
   // Filtered expenses
   const filteredExpenses = useMemo(() => {
@@ -199,6 +240,11 @@ export default function ShopExpensesPage() {
     y.setDate(y.getDate() - 1);
     return getLocalDateString(y);
   }, []);
+  const tomorrowStr = useMemo(() => {
+    const t = new Date();
+    t.setDate(t.getDate() + 1);
+    return getLocalDateString(t);
+  }, []);
 
   const changeDate = (days: number) => {
     const [y, m, d] = date.split('-').map(Number);
@@ -208,14 +254,16 @@ export default function ShopExpensesPage() {
 
   const isToday = date === todayStr;
   const isYesterday = date === yesterdayStr;
+  const isTomorrow = date === tomorrowStr;
 
   const displayDateText = useMemo(() => {
     if (isToday) return 'Today';
     if (isYesterday) return 'Yesterday';
+    if (isTomorrow) return 'Tomorrow';
     const [y, m, d] = date.split('-').map(Number);
     const localDate = new Date(y, m - 1, d);
     return localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  }, [date, isToday, isYesterday]);
+  }, [date, isToday, isYesterday, isTomorrow]);
 
   // Open Create Modal
   const handleOpenCreateModal = (preset?: {
@@ -259,7 +307,7 @@ export default function ShopExpensesPage() {
   // 1-Tap Copy WhatsApp Daily Reconciliation Summary
   const handleShareSummary = () => {
     const lines = [
-      `✂️ Shop Expenses Reconciliation — ${displayDateText} (${date})`,
+      `Shop Expenses Reconciliation — ${displayDateText} (${date})`,
       `Total Spent: ${currencySymbol}${formatNumber(totalDayExpense)}`,
       `• Cash from Drawer: ${currencySymbol}${formatNumber(cashTotal)}`,
       `• Bank Transfer / POS: ${currencySymbol}${formatNumber(transferTotal)}`,
@@ -297,7 +345,8 @@ export default function ShopExpensesPage() {
 
   // Delete Expense with Instant 6-Second Undo
   const handleDeleteExpense = async (id: string) => {
-    const expenseToDelete = expenses.find((e) => e.id === id);
+    const deletedIndex = expenses.findIndex((e) => e.id === id);
+    const expenseToDelete = expenses[deletedIndex];
     if (!expenseToDelete) return;
 
     // Optimistically remove from state
@@ -315,7 +364,11 @@ export default function ShopExpensesPage() {
           pendingItem.undone = true;
           if (pendingItem.timer) clearTimeout(pendingItem.timer);
           pendingDeletionsRef.current.delete(id);
-          setExpenses([expenseToDelete, ...updated]);
+          setExpenses((prev) => {
+            const copy = [...prev];
+            copy.splice(deletedIndex >= 0 ? deletedIndex : 0, 0, expenseToDelete);
+            return copy;
+          });
           showToast('Expense restored', 'success');
         },
       }
@@ -328,6 +381,12 @@ export default function ShopExpensesPage() {
           await deleteExpense(id, currentShop.id);
         } catch (err) {
           console.error('Failed to delete expense from server', err);
+          setExpenses((prev) => {
+            const copy = [...prev];
+            copy.splice(deletedIndex >= 0 ? deletedIndex : 0, 0, expenseToDelete);
+            return copy;
+          });
+          showToast('Could not delete expense from server. Restored.', 'error');
         }
       }
     }, 6200);
@@ -350,6 +409,7 @@ export default function ShopExpensesPage() {
     const desc = expDescription.trim() || EXPENSE_CATEGORIES.find((c) => c.key === expCategory)?.shortLabel || 'Workshop Expense';
     const targetDate = expDate || date;
     const editId = editingExpenseId;
+    const previousExpense = editId ? expenses.find((item) => item.id === editId) : null;
     const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, '0')}`;
@@ -421,7 +481,14 @@ export default function ShopExpensesPage() {
         setExpenses((prev) => prev.map((item) => (item.id === tempId ? (savedExp as Expense) : item)));
       }
     } catch (err: any) {
-      console.warn('Expense sync offline/fallback mode', err);
+      console.warn('Expense sync error', err);
+      // Rollback optimistic state
+      if (editId && previousExpense) {
+        setExpenses((prev) => prev.map((item) => (item.id === editId ? previousExpense : item)));
+      } else if (!editId) {
+        setExpenses((prev) => prev.filter((item) => item.id !== tempId));
+      }
+      showToast('Could not save expense to server. Please check your connection.', 'error');
     } finally {
       setIsSubmittingExpense(false);
     }
@@ -472,14 +539,24 @@ export default function ShopExpensesPage() {
               type="button"
               className={styles.chevronBtn}
               onClick={() => changeDate(1)}
-              disabled={isToday}
               aria-label="Next day"
             >
               <Symbol name="chevron_right" size={20} />
             </button>
           </div>
 
-          <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
+          <label
+            className={styles.calendarPickerBtn}
+            htmlFor="reconDateInput"
+            onClick={(e) => {
+              try {
+                const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+                if (input && 'showPicker' in input) {
+                  input.showPicker();
+                }
+              } catch (_) {}
+            }}
+          >
             <Symbol name="calendar_today" size={15} />
             <span>{displayDateText}</span>
             <input
@@ -487,7 +564,6 @@ export default function ShopExpensesPage() {
               type="date"
               className={styles.hiddenDateInput}
               value={date}
-              max={todayStr}
               onChange={(e) => e.target.value && setDate(e.target.value)}
             />
           </label>
@@ -665,7 +741,7 @@ export default function ShopExpensesPage() {
             {/* ── 1-Tap Workshop Quick Presets Bar ── */}
             <div className={styles.presetScrollWrap}>
               <span className={styles.presetLabel}>1-Tap Log:</span>
-              {WORKSHOP_PRESETS.map((p, idx) => (
+              {workshopPresets.map((p, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -888,7 +964,7 @@ export default function ShopExpensesPage() {
                 Amount Spent ({currencySymbol})
               </label>
               <div className={styles.quickAmountPills}>
-                {QUICK_AMOUNTS.map((amt) => (
+                {quickAmounts.map((amt) => (
                   <button
                     key={amt}
                     type="button"
@@ -984,7 +1060,6 @@ export default function ShopExpensesPage() {
               type="date"
               className={styles.textInput}
               value={expDate}
-              max={todayStr}
               onChange={(e) => e.target.value && setExpDate(e.target.value)}
             />
           </div>
@@ -1005,7 +1080,7 @@ export default function ShopExpensesPage() {
           </div>
 
           {/* Optional Order Attribution */}
-          {activeOrdersList.length > 0 ? (
+          {selectableOrders.length > 0 ? (
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="expOrderSelect">
                 Link to Customer Order (Optional Job Costing)
@@ -1017,7 +1092,7 @@ export default function ShopExpensesPage() {
                 onChange={(e) => setExpOrderId(e.target.value)}
               >
                 <option value="">None (General Workshop Overhead)</option>
-                {activeOrdersList.map((o) => (
+                {selectableOrders.map((o) => (
                   <option key={o.id} value={o.id}>
                     Order #{o.orderNumber || o.id.slice(0, 4)} — {o.customerName || 'Customer'} ({o.styleName || 'Custom Outfit'})
                   </option>

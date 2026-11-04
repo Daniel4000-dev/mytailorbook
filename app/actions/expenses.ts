@@ -71,6 +71,7 @@ export async function getOrderExpenses(orderId: string): Promise<Expense[]> {
     category: d.category,
     description: d.description,
     date: d.date,
+    method: d.method || 'cash',
     createdAt: d.created_at,
   }));
 }
@@ -180,7 +181,7 @@ export async function updateExpense(id: string, shopId: string, data: Partial<Ex
     category: updated.category,
     description: updated.description,
     date: updated.date,
-    method: updated.method,
+    method: updated.method || 'cash',
     createdAt: updated.created_at,
   };
 }
