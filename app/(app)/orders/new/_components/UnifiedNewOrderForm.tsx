@@ -135,6 +135,14 @@ export default function UnifiedNewOrderForm() {
     if (custId && customers.length > 0 && !selectedCustomer) {
       const match = customers.find((c) => c.id === custId);
       if (match) setSelectedCustomer(match);
+    } else if (!custId && !selectedCustomer) {
+      const nameParam = searchParams.get('clientName');
+      const phoneParam = searchParams.get('phone');
+      if (nameParam || phoneParam) {
+        setShowInlineNewCustomer(true);
+        if (nameParam) setNewCustomerName(nameParam);
+        if (phoneParam) setNewCustomerPhone(phoneParam);
+      }
     }
   }, [searchParams, customers, selectedCustomer]);
 

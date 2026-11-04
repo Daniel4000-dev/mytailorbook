@@ -164,7 +164,8 @@ export default function QuoteEstimatorPage() {
   const [marginPercent, setMarginPercent] = useState('50');
   const [depositMode, setDepositMode] = useState<'preset' | 'custom'>('preset');
   const [depositPercent, setDepositPercent] = useState(70);
-  const [customDepositAmount, setCustomDepositAmount] = useState('');
+  const [customDepositType, setCustomDepositType] = useState<'percent' | 'amount'>('percent');
+  const [customDepositValue, setCustomDepositValue] = useState('');
 
   // WhatsApp Format Preference
   const [whatsAppFormat, setWhatsAppFormat] = useState<'inclusive' | 'itemized'>('inclusive');
@@ -262,14 +263,19 @@ export default function QuoteEstimatorPage() {
   const projectedProfit = recommendedPrice - baseCost;
   const profitMarginPercent = recommendedPrice > 0 ? (projectedProfit / recommendedPrice) * 100 : 0;
 
-  // Deposit breakdown
+  // Deposit breakdown (Supports presets, custom %, or custom flat amount)
   const depositAmount = useMemo(() => {
-    if (depositMode === 'custom' && customDepositAmount) {
-      const parsed = parseInt(customDepositAmount, 10) || 0;
-      return Math.min(recommendedPrice, parsed);
+    if (depositMode === 'custom' && customDepositValue) {
+      if (customDepositType === 'percent') {
+        const pct = Math.min(100, Math.max(0, parseFloat(customDepositValue) || 0));
+        return Math.round((recommendedPrice * pct) / 100);
+      } else {
+        const parsed = parseInt(customDepositValue, 10) || 0;
+        return Math.min(recommendedPrice, parsed);
+      }
     }
     return Math.round((recommendedPrice * depositPercent) / 100);
-  }, [depositMode, customDepositAmount, recommendedPrice, depositPercent]);
+  }, [depositMode, customDepositValue, customDepositType, recommendedPrice, depositPercent]);
 
   const effectiveDepositPercent = useMemo(() => {
     if (recommendedPrice <= 0) return 0;
@@ -290,6 +296,38 @@ export default function QuoteEstimatorPage() {
     });
   }, [activeTurnaround.days]);
 
+  // Seamless Mode Switcher that keeps numbers synchronized
+  const handleSwitchCostingMode = (targetMode: 'quick' | 'itemized') => {
+    if (targetMode === costingMode) return;
+    if (targetMode === 'itemized') {
+      const totalInQuick = (parseInt(tailoringCost, 10) || 0) + calculatedFabricCost;
+      const currentItemizedSum = costs.reduce((sum, item) => sum + (item.amount || 0), 0);
+      if (totalInQuick > 0 && currentItemizedSum !== totalInQuick) {
+        if (fabricSourcing === 'shop' && calculatedFabricCost > 0) {
+          setCosts([
+            { id: 'fabric-sync', name: `${fabricYards} yds Fabric Material`, amount: calculatedFabricCost },
+            { id: 'labor-sync', name: `Tailoring & Finishing (${garmentTitle})`, amount: parseInt(tailoringCost, 10) || 0 },
+          ]);
+        } else {
+          setCosts([
+            { id: 'labor-sync', name: `Tailoring & Finishing (${garmentTitle})`, amount: totalInQuick },
+          ]);
+        }
+      }
+    } else {
+      const itemizedTotal = costs.reduce((sum, item) => sum + (item.amount || 0), 0);
+      if (itemizedTotal > 0) {
+        if (fabricSourcing === 'shop' && calculatedFabricCost > 0) {
+          const laborPart = Math.max(0, itemizedTotal - calculatedFabricCost);
+          setTailoringCost(laborPart.toString());
+        } else {
+          setTailoringCost(itemizedTotal.toString());
+        }
+      }
+    }
+    setCostingMode(targetMode);
+  };
+
   // Cost Item Handlers
   const addCostItem = (name = '', defaultAmount = 0) => {
     setCosts((prev) => [...prev, { id: `${Date.now()}-${Math.random()}`, name, amount: defaultAmount }]);
@@ -307,15 +345,17 @@ export default function QuoteEstimatorPage() {
     setCosts((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
   };
 
-  // Style Selection with Instant Benchmark
+  // Style Selection with Instant Benchmark for both modes
   const handleSelectStyle = (style: string) => {
     setGarmentTitle(style);
     const benchmark = STYLE_BENCHMARKS[style];
     if (benchmark) {
       setFabricYards(benchmark.fabricYards.toString());
-      if (costingMode === 'quick') {
-        setTailoringCost(benchmark.cost.toString());
-      }
+      setTailoringCost(benchmark.cost.toString());
+      setCosts([
+        ...(fabricSourcing === 'shop' ? [{ id: '1', name: `${benchmark.fabricYards} yds Fabric Material`, amount: Math.round(benchmark.cost * 0.4) }] : []),
+        { id: '2', name: `Tailoring & Finishing (${style})`, amount: fabricSourcing === 'shop' ? Math.round(benchmark.cost * 0.6) : benchmark.cost },
+      ]);
     }
   };
 
@@ -339,7 +379,7 @@ export default function QuoteEstimatorPage() {
     }
   };
 
-  // Convert Quote into Order
+  // Convert Quote into Order (Zero retyping for customer)
   const handleConvertToOrder = () => {
     const custId = selectedCustomer?.id || '';
     const styleQuery = encodeURIComponent(garmentTitle.trim() || 'Custom Outfit');
@@ -384,6 +424,9 @@ export default function QuoteEstimatorPage() {
     let targetUrl = `/orders/new?style=${styleQuery}&price=${priceQuery}&material=${materialQuery}&notes=${notesQuery}`;
     if (custId) {
       targetUrl += `&customer=${custId}`;
+    } else {
+      if (manualCustomerName) targetUrl += `&clientName=${encodeURIComponent(manualCustomerName)}`;
+      if (manualCustomerPhone) targetUrl += `&phone=${encodeURIComponent(manualCustomerPhone)}`;
     }
 
     showToast('Converting quote to order...', 'success');
@@ -485,6 +528,33 @@ ${shopName}`;
     setFabricRatePerYard('0');
     showToast(`Loaded quote for ${saved.clientName}`, 'info');
     setShowRecentTray(false);
+  };
+
+  // Complete Reset Handler
+  const handleReset = () => {
+    setGarmentTitle('Senator Suite');
+    setGenderTab('male');
+    setFabricSourcing('shop');
+    setFabricYards('4');
+    setFabricRatePerYard('0');
+    setCostingMode('quick');
+    setTailoringCost('22000');
+    setCosts([
+      { id: '1', name: 'Fabric Material', amount: 10000 },
+      { id: '2', name: 'Cutting & Sewing', amount: 12000 },
+    ]);
+    setSelectedCustomer(null);
+    setCustomerSearch('');
+    setManualCustomerName('');
+    setManualCustomerPhone('');
+    setMarginPercent('50');
+    setTurnaroundIndex(0);
+    setDepositMode('preset');
+    setDepositPercent(70);
+    setCustomDepositType('percent');
+    setCustomDepositValue('');
+    setWhatsAppFormat('inclusive');
+    showToast('Quotation inputs reset', 'info');
   };
 
   return (
@@ -772,7 +842,7 @@ ${shopName}`;
                   <button
                     type="button"
                     className={`${styles.modeBtn} ${costingMode === 'quick' ? styles.modeBtnActive : ''}`}
-                    onClick={() => setCostingMode('quick')}
+                    onClick={() => handleSwitchCostingMode('quick')}
                   >
                     <Symbol name="bolt" size={15} />
                     <span>Quick Estimate</span>
@@ -780,7 +850,7 @@ ${shopName}`;
                   <button
                     type="button"
                     className={`${styles.modeBtn} ${costingMode === 'itemized' ? styles.modeBtnActive : ''}`}
-                    onClick={() => setCostingMode('itemized')}
+                    onClick={() => handleSwitchCostingMode('itemized')}
                   >
                     <Symbol name="checklist" size={15} />
                     <span>Itemized Breakdown</span>
@@ -792,10 +862,12 @@ ${shopName}`;
                   <div className={styles.quickCostBox}>
                     <div className={styles.formGroup}>
                       <div className={styles.costSplitRow}>
-                        <label className={styles.label}>Tailoring / Labor Cost ({currency})</label>
+                        <label className={styles.label}>
+                          {calculatedFabricCost > 0 ? 'Tailoring & Labor Cost' : 'Estimated Production Cost'} ({currency})
+                        </label>
                         {calculatedFabricCost > 0 && (
                           <span className={styles.costNotice}>
-                            + {formatCurrency(calculatedFabricCost, currency)} Fabric
+                            + {formatCurrency(calculatedFabricCost, currency)} Fabric = {formatCurrency(baseCost, currency)} Total
                           </span>
                         )}
                       </div>
@@ -949,9 +1021,16 @@ ${shopName}`;
                     <button
                       type="button"
                       className={styles.customDepositToggle}
-                      onClick={() => setDepositMode(depositMode === 'preset' ? 'custom' : 'preset')}
+                      onClick={() => {
+                        if (depositMode === 'preset') {
+                          setDepositMode('custom');
+                          setCustomDepositValue(depositPercent.toString());
+                        } else {
+                          setDepositMode('preset');
+                        }
+                      }}
                     >
-                      {depositMode === 'preset' ? 'Enter Custom Amount' : 'Use Presets'}
+                      {depositMode === 'preset' ? 'Enter Custom Deposit' : 'Use Presets'}
                     </button>
                   </div>
 
@@ -969,15 +1048,53 @@ ${shopName}`;
                       ))}
                     </div>
                   ) : (
-                    <div className={styles.customDepositInputWrap}>
-                      <label className={styles.subLabel}>Custom Deposit Amount ({currency})</label>
-                      <MoneyInput
-                        value={customDepositAmount}
-                        onChange={(val) => setCustomDepositAmount(val)}
-                        placeholder={formatCurrency(Math.round(recommendedPrice * 0.7), currency)}
-                      />
+                    <div className={styles.customDepositBox}>
+                      <div className={styles.customDepositTypeRow}>
+                        <button
+                          type="button"
+                          className={`${styles.customDepositTypeBtn} ${customDepositType === 'percent' ? styles.customDepositTypeBtnActive : ''}`}
+                          onClick={() => {
+                            setCustomDepositType('percent');
+                            setCustomDepositValue('70');
+                          }}
+                        >
+                          Percentage (%)
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.customDepositTypeBtn} ${customDepositType === 'amount' ? styles.customDepositTypeBtnActive : ''}`}
+                          onClick={() => {
+                            setCustomDepositType('amount');
+                            setCustomDepositValue(Math.round(recommendedPrice * 0.7).toString());
+                          }}
+                        >
+                          Flat Amount ({currency})
+                        </button>
+                      </div>
+
+                      {customDepositType === 'percent' ? (
+                        <div className={styles.percentInputWrap}>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            className={styles.percentInput}
+                            placeholder="70"
+                            value={customDepositValue}
+                            onChange={(e) => setCustomDepositValue(e.target.value)}
+                          />
+                          <span className={styles.percentBadge}>%</span>
+                        </div>
+                      ) : (
+                        <MoneyInput
+                          value={customDepositValue}
+                          onChange={(val) => setCustomDepositValue(val)}
+                          placeholder="50,000"
+                        />
+                      )}
+
                       <span className={styles.customDepositHint}>
-                        Equals approximately {effectiveDepositPercent}% of total quote.
+                        Required Deposit: {formatCurrency(depositAmount, currency)} ({effectiveDepositPercent}% of total quote).
                       </span>
                     </div>
                   )}
@@ -1236,24 +1353,7 @@ ${shopName}`;
                   <button
                     type="button"
                     className={styles.secondaryActionBtn}
-                    onClick={() => {
-                      setTailoringCost('22000');
-                      setFabricRatePerYard('0');
-                      setCosts([
-                        { id: '1', name: 'Fabric Material', amount: 10000 },
-                        { id: '2', name: 'Cutting & Sewing', amount: 12000 },
-                      ]);
-                      setSelectedCustomer(null);
-                      setCustomerSearch('');
-                      setManualCustomerName('');
-                      setManualCustomerPhone('');
-                      setGarmentTitle('Senator Suite');
-                      setMarginPercent('50');
-                      setFabricSourcing('shop');
-                      setDepositMode('preset');
-                      setDepositPercent(70);
-                      setCustomDepositAmount('');
-                    }}
+                    onClick={handleReset}
                     title="Reset quotation inputs"
                   >
                     <Symbol name="undo" size={15} />

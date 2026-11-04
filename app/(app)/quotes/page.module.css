@@ -903,14 +903,41 @@
   text-decoration: underline;
 }
 
-.customDepositInputWrap {
+.customDepositBox {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   background: var(--sf-surface-variant);
   padding: 12px;
   border-radius: var(--sf-radius-md, 12px);
   border: 1px solid var(--sf-border-light);
+}
+
+.customDepositTypeRow {
+  display: flex;
+  gap: 6px;
+  background: var(--sf-bg-surface);
+  padding: 3px;
+  border-radius: var(--sf-radius-pill, 9999px);
+  border: 1px solid var(--sf-border-light);
+  width: fit-content;
+}
+
+.customDepositTypeBtn {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-pill, 9999px);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.customDepositTypeBtnActive {
+  background: var(--sf-accent-indigo, #4F46E5);
+  color: #fff;
 }
 
 .customDepositHint {
