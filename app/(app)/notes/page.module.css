@@ -1,44 +1,48 @@
-/* ── Frictionless Workshop Notes (Apple Atelier Inset Aesthetic) ── */
+/* ── Elevated Atelier Workshop Notes (Apple Inset Luxury Aesthetic) ── */
 
 .container {
-  padding: 12px 16px 80px;
+  padding: 12px 16px 88px;
   max-width: 640px;
   width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   -webkit-tap-highlight-color: transparent;
 }
 
 @media (min-width: 768px) {
   .container {
-    padding: 20px 20px 80px;
-    gap: 14px;
+    padding: 22px 20px 96px;
+    gap: 16px;
   }
 }
 
-/* ── 1. Cockpit Card ── */
+/* ── 1. Luxury Cockpit Card ── */
 
 .cockpitCard {
   background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
-  border-radius: 18px;
-  padding: 16px 18px;
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.09));
+  border-radius: 20px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  box-shadow: 0 4px 20px -2px rgba(67, 56, 202, 0.05), 0 2px 6px -1px rgba(27, 27, 34, 0.03);
+  position: relative;
+  overflow: hidden;
 }
 
 :global([data-theme='dark']) .cockpitCard {
   background: var(--sf-bg-surface, #161526);
-  border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.22));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .cockpitTop {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .cockpitHeaderRow {
@@ -55,26 +59,28 @@
 }
 
 .noteIconWrap {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   background: rgba(67, 56, 202, 0.08);
   color: var(--sf-brand-indigo, #4338CA);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(67, 56, 202, 0.1);
 }
 
 :global([data-theme='dark']) .noteIconWrap {
   background: rgba(99, 102, 241, 0.15);
   color: #818CF8;
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25);
 }
 
 .cockpitEyebrow {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--sf-text-secondary);
 }
@@ -82,15 +88,18 @@
 .statusBadge {
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
   background: rgba(67, 56, 202, 0.08);
   color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  letter-spacing: 0.02em;
 }
 
 :global([data-theme='dark']) .statusBadge {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818CF8;
+  background: rgba(99, 102, 241, 0.16);
+  color: #A5B4FC;
+  border-color: rgba(99, 102, 241, 0.25);
 }
 
 .cockpitStatsRow {
@@ -103,28 +112,30 @@
 .mainCountBlock {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 8px;
 }
 
 .mainCountNumeral {
-  font-size: 32px;
+  font-family: var(--sf-font-numeric, var(--sf-font-body));
+  font-size: 36px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--sf-text-primary, #1C1A28);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .mainCountLabel {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--sf-text-tertiary);
+  letter-spacing: -0.01em;
 }
 
 .cockpitActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .actionPillBtn {
@@ -132,20 +143,22 @@
   align-items: center;
   gap: 5px;
   background: var(--sf-bg-surface-elevated, #F8FAFC);
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.1));
   border-radius: var(--sf-radius-full);
-  padding: 6px 12px;
+  padding: 6px 13px;
   font-size: 11.5px;
   font-weight: 600;
   color: var(--sf-text-primary);
   cursor: pointer;
   transition: all var(--sf-transition-fast);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 :global([data-theme='dark']) .actionPillBtn {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
   color: var(--sf-text-primary);
+  box-shadow: none;
 }
 
 .actionPillBtn:hover {
@@ -154,12 +167,17 @@
   color: var(--sf-brand-indigo, #4338CA);
 }
 
-/* ── 2. Segmented Filter ── */
+.actionPillBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── 2. Apple Glass Segmented Filter ── */
 
 .segmentedWrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  padding-bottom: 2px;
 }
 
 .segmentedWrap::-webkit-scrollbar {
@@ -170,7 +188,7 @@
   display: inline-flex;
   align-items: center;
   background: rgba(120, 120, 128, 0.08);
-  padding: 3px;
+  padding: 3.5px;
   border-radius: var(--sf-radius-full);
   min-width: 100%;
 }
@@ -184,17 +202,17 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 12px;
   border: none;
   background: transparent;
   border-radius: var(--sf-radius-full);
   font-family: var(--sf-font-body);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--sf-text-secondary);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   flex: 1;
 }
 
@@ -202,13 +220,13 @@
   background: var(--sf-bg-surface, #FFFFFF);
   color: var(--sf-text-primary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 :global([data-theme='dark']) .segmentActive {
   background: var(--sf-bg-surface-elevated, #201E34);
   color: #FFFFFF;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 .segmentCount {
@@ -217,11 +235,11 @@
   justify-content: center;
   min-width: 17px;
   height: 17px;
-  padding: 0 4px;
+  padding: 0 5px;
   border-radius: var(--sf-radius-full);
   font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.05);
   color: var(--sf-text-secondary);
 }
 
@@ -240,54 +258,60 @@
   color: #161526;
 }
 
-/* ── 3. Instant Inline Quick-Add Dock ── */
+/* ── 3. Atelier ToolDock (Instant Quick-Add) ── */
 
 .quickAddDock {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.1));
-  border-radius: 14px;
-  padding: 5px 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.12));
+  border-radius: 16px;
+  padding: 6px 8px;
+  box-shadow: 0 4px 18px -2px rgba(67, 56, 202, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
   transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 :global([data-theme='dark']) .quickAddDock {
   background: var(--sf-bg-surface, #161526);
-  border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.22));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 .quickAddDock:focus-within {
   border-color: var(--sf-brand-indigo, #4338CA);
-  box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.15);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12), 0 4px 16px -2px rgba(67, 56, 202, 0.08);
 }
 
 .dockCategoryChip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 9px;
+  gap: 5px;
+  padding: 7px 10px;
   border-radius: 10px;
-  border: none;
-  background: rgba(67, 56, 202, 0.08);
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  background: rgba(67, 56, 202, 0.06);
   color: var(--sf-brand-indigo, #4338CA);
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background var(--sf-transition-fast);
+  transition: all var(--sf-transition-fast);
 }
 
 :global([data-theme='dark']) .dockCategoryChip {
   background: rgba(99, 102, 241, 0.15);
-  color: #818CF8;
+  border-color: rgba(99, 102, 241, 0.25);
+  color: #A5B4FC;
 }
 
 .dockCategoryChip:hover {
-  background: rgba(67, 56, 202, 0.14);
+  background: rgba(67, 56, 202, 0.12);
+}
+
+.dockCategoryChip:active {
+  transform: scale(0.96);
 }
 
 /* 16px font-size prevents mobile Safari auto-zoom */
@@ -299,24 +323,25 @@
   font-size: 16px;
   color: var(--sf-text-primary);
   min-width: 0;
-  padding: 4px 6px;
+  padding: 6px 6px;
+  letter-spacing: -0.01em;
 }
 
 @media (min-width: 768px) {
   .dockInput {
-    font-size: 13.5px;
+    font-size: 14px;
   }
 }
 
 .dockInput::placeholder {
   color: var(--sf-text-tertiary);
-  font-size: 13px;
+  font-size: 13.5px;
 }
 
 .dockAddBtn {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   border: none;
   background: var(--sf-brand-indigo, #4338CA);
   color: #FFFFFF;
@@ -326,16 +351,19 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: all var(--sf-transition-fast);
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
 }
 
 :global([data-theme='dark']) .dockAddBtn {
   background: #6366F1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
 }
 
 .dockAddBtn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
   background: var(--sf-text-tertiary);
+  box-shadow: none;
 }
 
 .dockAddBtn:not(:disabled):active {
@@ -343,10 +371,10 @@
 }
 
 .dockPresetBtn {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid var(--sf-border-light);
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.1));
   background: var(--sf-bg-surface-elevated, #F8FAFC);
   color: var(--sf-text-secondary);
   display: flex;
@@ -359,21 +387,26 @@
 
 :global([data-theme='dark']) .dockPresetBtn {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
   color: var(--sf-text-secondary);
 }
 
 .dockPresetBtn:hover {
   color: var(--sf-brand-indigo, #4338CA);
   border-color: var(--sf-brand-indigo, #4338CA);
+  background: rgba(67, 56, 202, 0.05);
 }
 
-/* ── 4. Main Task List ── */
+.dockPresetBtn:active {
+  transform: scale(0.94);
+}
+
+/* ── 4. Main Inset Grouped Task Ledger ── */
 
 .listSection {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
 .listHeaderRow {
@@ -387,6 +420,7 @@
   margin: 0;
   font-size: 14.5px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--sf-text-primary);
 }
 
@@ -405,32 +439,34 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  gap: 10px;
+  padding: 48px 20px;
+  gap: 12px;
   color: var(--sf-text-secondary);
   font-size: 13px;
 }
 
 .notesCard {
   background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
-  border-radius: 16px;
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.09));
+  border-radius: 18px;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(27, 27, 34, 0.03);
 }
 
 :global([data-theme='dark']) .notesCard {
   background: var(--sf-bg-surface, #161526);
   border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .noteRow {
   display: flex;
   align-items: center;
-  padding: 4px 8px 4px 6px;
+  padding: 6px 10px 6px 6px;
   border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.05));
-  gap: 6px;
+  gap: 8px;
   transition: background var(--sf-transition-fast);
-  min-height: 52px;
+  min-height: 54px;
 }
 
 :global([data-theme='dark']) .noteRow {
@@ -442,14 +478,14 @@
 }
 
 .noteRow:hover {
-  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  background: rgba(67, 56, 202, 0.02);
 }
 
 :global([data-theme='dark']) .noteRow:hover {
   background: rgba(255, 255, 255, 0.02);
 }
 
-/* 44px Touch Target */
+/* 44px Continuous Squircle Touch Target */
 .checkBtn {
   min-width: 44px;
   min-height: 44px;
@@ -465,16 +501,23 @@
 }
 
 .checkBtn:active {
-  transform: scale(0.9);
+  transform: scale(0.88);
 }
 
 .checkedIcon {
   color: #059669;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }
 
 .uncheckedIcon {
   color: var(--sf-text-tertiary);
-  transition: color var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
 .checkBtn:hover .uncheckedIcon {
@@ -494,36 +537,39 @@
 .noteText {
   font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.42;
   color: var(--sf-text-primary);
   word-break: break-word;
+  letter-spacing: -0.01em;
 }
 
-/* 1-Tap Dialing Phone Chip */
+/* 1-Tap Dialing Phone Badge */
 .phoneChip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 1px 7px;
+  padding: 2px 8px;
   border-radius: 6px;
   background: rgba(5, 150, 105, 0.1);
   color: #059669;
   font-weight: 600;
   font-size: 12px;
   text-decoration: none;
-  margin: 0 3px;
+  margin: 0 4px;
   vertical-align: baseline;
   transition: all var(--sf-transition-fast);
+  border: 1px solid rgba(5, 150, 105, 0.18);
 }
 
 :global([data-theme='dark']) .phoneChip {
   background: rgba(16, 185, 129, 0.15);
   color: #34D399;
+  border-color: rgba(16, 185, 129, 0.25);
 }
 
 .phoneChip:hover {
   background: rgba(5, 150, 105, 0.2);
-  text-decoration: underline;
+  transform: translateY(-1px);
 }
 
 .noteMeta {
@@ -532,21 +578,64 @@
   gap: 6px;
 }
 
+/* ── Artisanal Category Badges with Dedicated Hue Personas ── */
 .categoryBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 10px;
   font-weight: 600;
-  padding: 1px 7px;
+  padding: 2px 7.5px;
   border-radius: var(--sf-radius-full);
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--sf-text-secondary);
+  letter-spacing: 0.02em;
 }
 
-:global([data-theme='dark']) .categoryBadge {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--sf-text-secondary);
+.badge_shopping {
+  background: rgba(234, 88, 12, 0.09);
+  color: #C2410C;
+  border: 1px solid rgba(234, 88, 12, 0.18);
+}
+
+:global([data-theme='dark']) .badge_shopping {
+  background: rgba(234, 88, 12, 0.16);
+  color: #FB923C;
+  border-color: rgba(234, 88, 12, 0.28);
+}
+
+.badge_craft {
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.16);
+}
+
+:global([data-theme='dark']) .badge_craft {
+  background: rgba(99, 102, 241, 0.15);
+  color: #A5B4FC;
+  border-color: rgba(99, 102, 241, 0.26);
+}
+
+.badge_client {
+  background: rgba(5, 150, 105, 0.08);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.16);
+}
+
+:global([data-theme='dark']) .badge_client {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.26);
+}
+
+.badge_general {
+  background: rgba(71, 85, 105, 0.08);
+  color: #475569;
+  border: 1px solid rgba(71, 85, 105, 0.15);
+}
+
+:global([data-theme='dark']) .badge_general {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94A3B8;
+  border-color: rgba(148, 163, 184, 0.22);
 }
 
 /* Action Group: Edit & Delete */
@@ -564,7 +653,7 @@
   border: none;
   cursor: pointer;
   color: var(--sf-text-tertiary);
-  border-radius: 8px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -581,13 +670,13 @@
   color: #DC2626;
 }
 
-/* ── 5. Completed Items Tray ── */
+/* ── 5. Luxury Completed Items Tray ── */
 
 .completedSection {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .completedHeaderRow {
@@ -603,12 +692,13 @@
   gap: 4px;
   background: transparent;
   border: none;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--sf-text-secondary);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
+  transition: color var(--sf-transition-fast);
 }
 
 .completedToggleBtn:hover {
@@ -633,25 +723,25 @@
 }
 
 .completedCard {
-  background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px dashed var(--sf-border-light, rgba(0, 0, 0, 0.1));
-  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.65);
+  border: 1px dashed var(--sf-border-light, rgba(67, 56, 202, 0.16));
+  border-radius: 18px;
   overflow: hidden;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 :global([data-theme='dark']) .completedCard {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(22, 21, 38, 0.6);
+  border-color: rgba(99, 102, 241, 0.18);
 }
 
 .completedRow {
   display: flex;
   align-items: center;
-  padding: 4px 8px 4px 6px;
-  border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.05));
-  gap: 6px;
-  min-height: 50px;
+  padding: 6px 10px 6px 6px;
+  border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.04));
+  gap: 8px;
+  min-height: 52px;
 }
 
 :global([data-theme='dark']) .completedRow {
@@ -665,7 +755,7 @@
 .completedNoteText {
   font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--sf-text-tertiary);
   text-decoration: line-through;
   word-break: break-word;
@@ -704,7 +794,7 @@
   gap: 5px;
   padding: 6px 12px;
   border-radius: var(--sf-radius-full);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.12));
   background: var(--sf-bg-surface);
   color: var(--sf-text-secondary);
   font-size: 12px;
@@ -738,9 +828,9 @@
 }
 
 .presetChip {
-  padding: 5px 11px;
-  border-radius: 8px;
-  border: 1px dashed var(--sf-border-light);
+  padding: 6px 11px;
+  border-radius: 9px;
+  border: 1px dashed var(--sf-border-light, rgba(67, 56, 202, 0.14));
   background: var(--sf-bg-surface-elevated, #F8FAFC);
   font-size: 11.5px;
   color: var(--sf-text-secondary);
@@ -765,8 +855,8 @@
 .textArea {
   width: 100%;
   padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.15));
   font-size: 16px;
   line-height: 1.45;
   color: var(--sf-text-primary);
@@ -816,6 +906,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: transform var(--sf-transition-fast);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
 }
 
 :global([data-theme='dark']) .modalSubmitBtn {
@@ -825,4 +916,5 @@
 .modalSubmitBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
 }

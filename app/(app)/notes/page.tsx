@@ -624,7 +624,7 @@ export default function WorkshopNotesPage() {
                         {renderNoteContent(note.text)}
                       </span>
                       <div className={styles.noteMeta}>
-                        <span className={styles.categoryBadge}>
+                        <span className={`${styles.categoryBadge} ${styles['badge_' + note.category] || ''}`}>
                           <Symbol name={catObj?.icon || 'notes'} size={12} />
                           <span>{catObj?.shortLabel || 'General'}</span>
                         </span>
@@ -715,7 +715,7 @@ export default function WorkshopNotesPage() {
                           {renderNoteContent(note.text)}
                         </span>
                         <div className={styles.noteMeta}>
-                          <span className={styles.categoryBadge}>
+                          <span className={`${styles.categoryBadge} ${styles['badge_' + note.category] || ''}`}>
                             <Symbol name={catObj?.icon || 'notes'} size={12} />
                             <span>{catObj?.shortLabel || 'General'}</span>
                           </span>
