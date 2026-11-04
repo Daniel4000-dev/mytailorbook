@@ -206,9 +206,12 @@ select:focus-visible {
   outline: none;
 }
 
-/* ── Utility: Prevent body scroll when sheet/modal open ───── */
+/* ── Utility: Prevent background scroll when sheet/modal open ───── */
+html.no-scroll,
 body.no-scroll {
-  overflow: hidden;
+  overflow: hidden !important;
+  height: 100% !important;
+  overscroll-behavior: none !important;
 }
 
 /* ── Animations ────────────────────────────────────────────── */
