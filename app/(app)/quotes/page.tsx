@@ -33,7 +33,7 @@ interface SavedQuote {
 }
 
 const STYLE_BENCHMARKS: Record<string, { cost: number; fabricYards: number; male: boolean }> = {
-  'Senator Suite': { cost: 22000, fabricYards: 4, male: true },
+  'Senator Suit': { cost: 22000, fabricYards: 4, male: true },
   'Royal 3-Piece Agbada': { cost: 55000, fabricYards: 7, male: true },
   'Luxury Kaftan': { cost: 18000, fabricYards: 4, male: true },
   'Two-Piece Suit': { cost: 65000, fabricYards: 3.5, male: true },
@@ -82,7 +82,7 @@ const CRAFT_PRESET_CATEGORIES = [
 ];
 
 const STYLE_PRESETS_MALE = [
-  'Senator Suite',
+  'Senator Suit',
   'Royal 3-Piece Agbada',
   'Luxury Kaftan',
   'Two-Piece Suit',
@@ -140,7 +140,7 @@ export default function QuoteEstimatorPage() {
 
   // Style & Fabric Sourcing
   const [genderTab, setGenderTab] = useState<'male' | 'female'>('male');
-  const [garmentTitle, setGarmentTitle] = useState('Senator Suite');
+  const [garmentTitle, setGarmentTitle] = useState('Senator Suit');
   const [fabricSourcing, setFabricSourcing] = useState<'customer' | 'shop'>('shop');
 
   // Costing Mode: 'quick' vs 'itemized'
@@ -150,6 +150,15 @@ export default function QuoteEstimatorPage() {
   // Fabric Yardage Calculator
   const [fabricYards, setFabricYards] = useState('4');
   const [fabricRatePerYard, setFabricRatePerYard] = useState('0');
+
+  // Dynamic localized price-per-yard presets
+  const ratePresets = useMemo(() => {
+    const curr = (currency || 'NGN').toUpperCase();
+    if (['USD', 'EUR', 'GBP'].includes(curr)) {
+      return [15, 25, 40, 60];
+    }
+    return [2500, 4000, 6000, 10000];
+  }, [currency]);
 
   // Detailed Costs Breakdown
   const [costs, setCosts] = useState<CostItem[]>([
@@ -532,7 +541,7 @@ ${shopName}`;
 
   // Complete Reset Handler
   const handleReset = () => {
-    setGarmentTitle('Senator Suite');
+    setGarmentTitle('Senator Suit');
     setGenderTab('male');
     setFabricSourcing('shop');
     setFabricYards('4');
@@ -772,6 +781,20 @@ ${shopName}`;
                           onChange={(val) => setFabricRatePerYard(val)}
                           placeholder="0"
                         />
+                        <div className={styles.rateQuickChips}>
+                          {ratePresets.map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              className={`${styles.rateChip} ${
+                                fabricRatePerYard === r.toString() ? styles.rateChipActive : ''
+                              }`}
+                              onClick={() => setFabricRatePerYard(r.toString())}
+                            >
+                              {formatCurrency(r, currency)}/yd
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -784,7 +807,7 @@ ${shopName}`;
                     className={`${styles.genderTab} ${genderTab === 'male' ? styles.genderTabActive : ''}`}
                     onClick={() => {
                       setGenderTab('male');
-                      handleSelectStyle('Senator Suite');
+                      handleSelectStyle('Senator Suit');
                     }}
                   >
                     Gentlemen
