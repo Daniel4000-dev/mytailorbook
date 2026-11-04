@@ -65,7 +65,6 @@ export default function ShopExpensesPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expDate, setExpDate] = useState<string>(date);
   const [expAmount, setExpAmount] = useState('');
-  const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   const [expCategory, setExpCategory] = useState<ExpenseCategory>('material');
   const [expMethod, setExpMethod] = useState<PaymentMethod>('cash');
   const [expDescription, setExpDescription] = useState('');
@@ -176,28 +175,28 @@ export default function ShopExpensesPage() {
     const isWestern = ['USD', 'EUR', 'GBP'].includes(curr);
     return [
       {
-        label: `+ Fuel (${currencySymbol}${formatNumber(isWestern ? 20 : 5000)})`,
+        label: `Fuel (${currencySymbol}${formatNumber(isWestern ? 20 : 5000)})`,
         amount: isWestern ? '20' : '5000',
         category: 'general' as ExpenseCategory,
         description: 'Generator Fuel',
         method: 'cash' as PaymentMethod,
       },
       {
-        label: '+ Threads & Zips',
+        label: 'Threads & Zips',
         amount: isWestern ? '15' : '3000',
         category: 'material' as ExpenseCategory,
         description: 'Sewing threads & zips',
         method: 'cash' as PaymentMethod,
       },
       {
-        label: '+ Staff Pay',
+        label: 'Staff Pay',
         amount: '',
         category: 'labor' as ExpenseCategory,
         description: 'Tailor wage',
         method: 'transfer' as PaymentMethod,
       },
       {
-        label: '+ Delivery Fare',
+        label: 'Delivery Fare',
         amount: isWestern ? '10' : '2000',
         category: 'logistics' as ExpenseCategory,
         description: 'Delivery dispatch fare',
@@ -267,7 +266,6 @@ export default function ShopExpensesPage() {
     setEditingExpenseId(null);
     setExpDate(date);
     setExpAmount(preset?.amount || '');
-    setShouldAutoFocus(!preset?.amount);
     setExpCategory(preset?.category || (categoryFilter !== 'all' ? categoryFilter : 'material'));
     setExpMethod(preset?.method || 'cash');
     setExpDescription(preset?.description || '');
@@ -280,7 +278,6 @@ export default function ShopExpensesPage() {
     setEditingExpenseId(expense.id);
     setExpDate(expense.date || date);
     setExpAmount(expense.amount.toString());
-    setShouldAutoFocus(false);
     setExpCategory(expense.category);
     setExpMethod(expense.method || 'cash');
     setExpDescription(expense.description || '');
@@ -506,6 +503,73 @@ export default function ShopExpensesPage() {
       }
     >
       <div className={styles.container}>
+        {/* ── 1. CLEAN DATE STRIP ── */}
+        <section className={styles.dateBar}>
+          <div className={styles.dateNavWrap}>
+            <button
+              type="button"
+              className={styles.chevronBtn}
+              onClick={() => changeDate(-1)}
+              aria-label="Previous day"
+            >
+              <Symbol name="chevron_left" size={18} />
+            </button>
+
+            <div className={styles.datePillGroup}>
+              <button
+                type="button"
+                className={`${styles.dateQuickPill} ${isYesterday ? styles.dateQuickPillActive : ''}`}
+                onClick={() => setDate(yesterdayStr)}
+              >
+                Yesterday
+              </button>
+              <button
+                type="button"
+                className={`${styles.dateQuickPill} ${isToday ? styles.dateQuickPillActive : ''}`}
+                onClick={() => setDate(todayStr)}
+              >
+                Today
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className={styles.chevronBtn}
+              onClick={() => changeDate(1)}
+              aria-label="Next day"
+            >
+              <Symbol name="chevron_right" size={18} />
+            </button>
+          </div>
+
+          <div className={styles.dateBarRight}>
+            <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
+              <Symbol name="calendar_today" size={13} />
+              <span>{displayDateText}</span>
+              <input
+                id="reconDateInput"
+                type="date"
+                className={styles.hiddenDateInput}
+                value={date}
+                onChange={(e) => e.target.value && setDate(e.target.value)}
+              />
+            </label>
+
+            {expenses.length > 0 && (
+              <button
+                type="button"
+                className={styles.shareSummaryBtn}
+                onClick={handleShareSummary}
+                title="Copy WhatsApp-ready reconciliation summary"
+                aria-label="Share summary on WhatsApp"
+              >
+                <Symbol name="share" size={13} />
+                <span>Share</span>
+              </button>
+            )}
+          </div>
+        </section>
+
         {initialLoading ? (
           <div className={styles.loadingState}>
             <Symbol name="progress_activity" size={28} className="global-spinner" />
@@ -513,140 +577,87 @@ export default function ShopExpensesPage() {
           </div>
         ) : (
           <>
-            {/* ── 1. UNIFIED COMMAND HERO (Date + Spend + Drawer Balance + Primary CTA) ── */}
-            <section className={styles.heroCard}>
-              <div className={styles.heroTopBar}>
-                <div className={styles.dateNavWrap}>
-                  <button
-                    type="button"
-                    className={styles.dateNavArrow}
-                    onClick={() => changeDate(-1)}
-                    aria-label="Previous day"
-                  >
-                    <Symbol name="chevron_left" size={18} />
-                  </button>
-
-                  <label className={styles.dateLabelBtn} htmlFor="reconDateInput">
-                    <Symbol name="calendar_today" size={13} />
-                    <span>{displayDateText}</span>
-                    <input
-                      id="reconDateInput"
-                      type="date"
-                      className={styles.hiddenDateInput}
-                      value={date}
-                      onChange={(e) => e.target.value && setDate(e.target.value)}
-                    />
-                  </label>
-
-                  <button
-                    type="button"
-                    className={styles.dateNavArrow}
-                    onClick={() => changeDate(1)}
-                    aria-label="Next day"
-                  >
-                    <Symbol name="chevron_right" size={18} />
-                  </button>
-
-                  {!isToday && (
-                    <button
-                      type="button"
-                      className={styles.todayJumpBtn}
-                      onClick={() => setDate(todayStr)}
-                    >
-                      Today
-                    </button>
-                  )}
-                </div>
-
-                <div className={styles.heroTopRight}>
-                  {isRefreshing && (
-                    <span className={styles.refreshPulse} title="Refreshing...">
-                      <Symbol name="progress_activity" size={13} className="global-spinner" />
-                    </span>
-                  )}
-                  {expenses.length > 0 && (
-                    <button
-                      type="button"
-                      className={styles.shareSummaryBtn}
-                      onClick={handleShareSummary}
-                      title="Copy WhatsApp-ready reconciliation summary"
-                      aria-label="Share summary on WhatsApp"
-                    >
-                      <Symbol name="share" size={13} />
-                      <span>Share</span>
-                    </button>
-                  )}
-                </div>
+            {/* ── 2. ELEVATED FINANCIAL HERO CARD ── */}
+            <section className={styles.summaryDeck}>
+              <div className={styles.summaryDeckHeader}>
+                <span className={styles.summaryEyebrow}>
+                  Total Expenses · {displayDateText}
+                </span>
+                {isRefreshing && (
+                  <span className={styles.refreshPulse} title="Syncing...">
+                    <Symbol name="progress_activity" size={12} className="global-spinner" />
+                  </span>
+                )}
               </div>
 
-              {/* Main Total Expense Display */}
-              <div className={styles.heroMain}>
-                <span className={styles.heroEyebrow}>Total Expenses</span>
-                <div className={styles.heroAmountRow}>
-                  <span className={styles.heroAmount}>
-                    {currencySymbol}{formatNumber(totalDayExpense)}
-                  </span>
-                  <span className={styles.heroCountBadge}>
-                    {expenses.length} {expenses.length === 1 ? 'entry' : 'entries'}
-                  </span>
-                </div>
+              <div className={styles.mainAmountRow}>
+                <span className={styles.mainAmountNumeral}>
+                  {currencySymbol}{formatNumber(totalDayExpense)}
+                </span>
+                <span className={styles.countBadge}>
+                  {expenses.length} {expenses.length === 1 ? 'entry' : 'entries'}
+                </span>
               </div>
 
-              {/* Drawer Cash vs Bank Transfer Breakdown */}
+              {/* Drawer Balance Breakdown */}
               <div className={styles.drawerSplitStrip}>
                 <div className={styles.drawerSegment}>
                   <span className={styles.dotCash} />
-                  <span className={styles.drawerLabel}>Drawer Cash:</span>
-                  <strong className={styles.drawerValue}>
-                    {currencySymbol}{formatNumber(cashTotal)}
-                  </strong>
+                  <div className={styles.drawerTextCol}>
+                    <span className={styles.drawerLabel}>Cash in Drawer</span>
+                    <strong className={styles.drawerValue}>
+                      {currencySymbol}{formatNumber(cashTotal)}
+                    </strong>
+                  </div>
                 </div>
 
                 <div className={styles.drawerSplitDivider} />
 
                 <div className={styles.drawerSegment}>
                   <span className={styles.dotTransfer} />
-                  <span className={styles.drawerLabel}>Bank / POS:</span>
-                  <strong className={styles.drawerValue}>
-                    {currencySymbol}{formatNumber(transferTotal)}
-                  </strong>
-                </div>
-              </div>
-
-              {/* Primary Action Button & Quick Preset Chips */}
-              <div className={styles.heroActionsWrap}>
-                <button
-                  type="button"
-                  className={styles.primaryActionBtn}
-                  onClick={() => handleOpenCreateModal()}
-                >
-                  <Symbol name="add" size={18} />
-                  <span>Record Expense</span>
-                </button>
-
-                <div className={styles.presetScrollWrap}>
-                  {workshopPresets.map((p, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      className={styles.presetChip}
-                      onClick={() =>
-                        handleOpenCreateModal({
-                          amount: p.amount,
-                          category: p.category,
-                          description: p.description,
-                          method: p.method,
-                        })
-                      }
-                    >
-                      {p.label}
-                    </button>
-                  ))}
+                  <div className={styles.drawerTextCol}>
+                    <span className={styles.drawerLabel}>Bank Transfer / POS</span>
+                    <strong className={styles.drawerValue}>
+                      {currencySymbol}{formatNumber(transferTotal)}
+                    </strong>
+                  </div>
                 </div>
               </div>
             </section>
 
-            {/* ── 2. CLEAN HORIZONTAL CATEGORY FILTER TABS ── */}
+            {/* ── 3. PRIMARY ACTION & 1-TAP QUICK PRESETS ── */}
+            <div className={styles.actionSection}>
+              <button
+                type="button"
+                className={styles.primaryActionBtn}
+                onClick={() => handleOpenCreateModal()}
+              >
+                <Symbol name="add" size={18} />
+                <span>Record Expense</span>
+              </button>
+
+              <div className={styles.presetScrollWrap}>
+                {workshopPresets.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles.presetChip}
+                    onClick={() =>
+                      handleOpenCreateModal({
+                        amount: p.amount,
+                        category: p.category,
+                        description: p.description,
+                        method: p.method,
+                      })
+                    }
+                  >
+                    + {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── 4. CATEGORY FILTER BAR ── */}
             <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
               <div className={styles.filterBar}>
                 <button
@@ -680,7 +691,7 @@ export default function ShopExpensesPage() {
               </div>
             </div>
 
-            {/* ── 3. UNCLUTTERED EXPENSE LEDGER ── */}
+            {/* ── 5. CLEAN LEDGER SECTION ── */}
             <section className={styles.ledgerSection}>
               {filteredExpenses.length === 0 ? (
                 <div className={styles.emptyContainer}>
@@ -786,13 +797,14 @@ export default function ShopExpensesPage() {
         )}
       </div>
 
-      {/* ── 4. RECORD / EDIT EXPENSE BOTTOMSHEET ── */}
+      {/* ── 6. RECORD / EDIT EXPENSE BOTTOMSHEET (Smooth & Native) ── */}
       <BottomSheet
         isOpen={expenseModalOpen}
         onClose={() => {
           setExpenseModalOpen(false);
           setEditingExpenseId(null);
         }}
+        variant="modal"
         title={editingExpenseId ? 'Edit Shop Expense' : 'Record Shop Expense'}
         footer={
           <div className={styles.modalActions}>
@@ -807,7 +819,7 @@ export default function ShopExpensesPage() {
                   handleDeleteExpense(idToDelete);
                 }}
               >
-                <Symbol name="delete" size={14} />
+                <Symbol name="delete" size={15} />
                 <span>Delete</span>
               </button>
             ) : (
@@ -841,32 +853,9 @@ export default function ShopExpensesPage() {
         <form id="reconExpenseForm" onSubmit={handleRecordExpense} className={styles.modalForm}>
           {/* Amount Field with 1-Tap Quick Pills */}
           <div className={styles.field}>
-            <div className={styles.amountHeaderRow}>
-              <label className={styles.fieldLabel} htmlFor="expAmountInput">
-                Amount Spent ({currencySymbol})
-              </label>
-              <div className={styles.quickAmountPills}>
-                {quickAmounts.map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    className={styles.quickAmountBtn}
-                    onClick={() => handleAddQuickAmount(amt)}
-                  >
-                    +{formatNumber(amt)}
-                  </button>
-                ))}
-                {expAmount && (
-                  <button
-                    type="button"
-                    className={styles.clearAmountBtn}
-                    onClick={() => setExpAmount('')}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
+            <label className={styles.fieldLabel} htmlFor="expAmountInput">
+              Amount Spent ({currencySymbol})
+            </label>
 
             <div className={styles.amountInputWrap}>
               <span className={styles.currencyPrefix}>{currencySymbol}</span>
@@ -879,21 +868,39 @@ export default function ShopExpensesPage() {
                 placeholder="0"
                 value={expAmount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                autoFocus={shouldAutoFocus}
                 required
               />
             </div>
-            {parseFloat(expAmount) > 0 && (
-              <div className={styles.amountLivePreview}>
-                <span>Formatted:</span>
-                <strong>{currencySymbol}{formatNumber(parseFloat(expAmount) || 0)}</strong>
+
+            {/* Clean Quick Amount Pills */}
+            <div className={styles.amountQuickRow}>
+              <div className={styles.quickAmountPills}>
+                {quickAmounts.map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    className={styles.quickAmountBtn}
+                    onClick={() => handleAddQuickAmount(amt)}
+                  >
+                    +{formatNumber(amt)}
+                  </button>
+                ))}
               </div>
-            )}
+              {expAmount && (
+                <button
+                  type="button"
+                  className={styles.clearAmountBtn}
+                  onClick={() => setExpAmount('')}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Expense Category */}
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>Expense Category</label>
+            <label className={styles.fieldLabel}>Category</label>
             <div className={styles.categoryChips}>
               {EXPENSE_CATEGORIES.map((c) => (
                 <button
@@ -911,14 +918,14 @@ export default function ShopExpensesPage() {
 
           {/* Payment Mode (Cash vs Bank Transfer) */}
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>Payment Source</label>
+            <label className={styles.fieldLabel}>Payment Method</label>
             <div className={styles.toggleRow}>
               <button
                 type="button"
                 className={`${styles.toggleBtn} ${expMethod === 'cash' ? styles.toggleBtnActive : ''}`}
                 onClick={() => setExpMethod('cash')}
               >
-                <Symbol name="payments" size={17} />
+                <Symbol name="payments" size={16} />
                 <span>Cash from Drawer</span>
               </button>
               <button
@@ -926,69 +933,63 @@ export default function ShopExpensesPage() {
                 className={`${styles.toggleBtn} ${expMethod === 'transfer' ? styles.toggleBtnActive : ''}`}
                 onClick={() => setExpMethod('transfer')}
               >
-                <Symbol name="account_balance" size={17} />
+                <Symbol name="account_balance" size={16} />
                 <span>Bank Transfer / POS</span>
               </button>
             </div>
           </div>
 
-          {/* Expense Date */}
-          <div className={styles.field}>
-            <label className={styles.fieldLabel} htmlFor="expDateField">
-              Expense Date
-            </label>
-            <input
-              id="expDateField"
-              type="date"
-              className={styles.textInput}
-              value={expDate}
-              onChange={(e) => e.target.value && setExpDate(e.target.value)}
-            />
-          </div>
-
           {/* Description */}
           <div className={styles.field}>
             <label className={styles.fieldLabel} htmlFor="expDescInput">
-              Item Details / Supplier Note (Optional)
+              Description (Optional)
             </label>
             <input
               id="expDescInput"
               type="text"
               className={styles.textInput}
-              placeholder="e.g. 5 spools navy thread + 4 YKK zips"
+              placeholder="e.g. 5 spools thread, fuel, machine needle"
               value={expDescription}
               onChange={(e) => setExpDescription(e.target.value)}
             />
           </div>
 
-          {/* Optional Order Attribution */}
-          {selectableOrders.length > 0 ? (
-            <div className={styles.field}>
-              <label className={styles.fieldLabel} htmlFor="expOrderSelect">
-                Link to Customer Order (Optional Job Costing)
+          {/* Expense Date & Order Link in Clean Row */}
+          <div className={styles.metaFieldsRow}>
+            <div className={styles.fieldHalf}>
+              <label className={styles.fieldLabel} htmlFor="expDateField">
+                Date
               </label>
-              <select
-                id="expOrderSelect"
-                className={styles.selectInput}
-                value={expOrderId}
-                onChange={(e) => setExpOrderId(e.target.value)}
-              >
-                <option value="">None (General Workshop Overhead)</option>
-                {selectableOrders.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    Order #{o.id.slice(0, 6).toUpperCase()} — {o.customerName || 'Customer'} ({o.orderDetails || 'Custom Outfit'})
-                  </option>
-                ))}
-              </select>
+              <input
+                id="expDateField"
+                type="date"
+                className={styles.textInput}
+                value={expDate}
+                onChange={(e) => e.target.value && setExpDate(e.target.value)}
+              />
             </div>
-          ) : (
-            <div className={styles.orderTipBox}>
-              <Symbol name="info" size={15} />
-              <span>
-                Tip: As you create client orders, you can tag material costs directly to them for true outfit profit margins.
-              </span>
-            </div>
-          )}
+
+            {selectableOrders.length > 0 && (
+              <div className={styles.fieldHalf}>
+                <label className={styles.fieldLabel} htmlFor="expOrderSelect">
+                  Link Order (Optional)
+                </label>
+                <select
+                  id="expOrderSelect"
+                  className={styles.selectInput}
+                  value={expOrderId}
+                  onChange={(e) => setExpOrderId(e.target.value)}
+                >
+                  <option value="">General Overhead</option>
+                  {selectableOrders.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      #{o.id.slice(0, 6).toUpperCase()} · {o.customerName || 'Customer'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </form>
       </BottomSheet>
     </PageLayout>

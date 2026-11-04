@@ -21,9 +21,21 @@ interface BottomSheetProps {
    *  centered dialog, for a quick single choice or single-field edit
    *  where a full-height side panel would be oversized. */
   variant?: 'panel' | 'modal';
+  /** Whether the sheet can be dismissed via backdrop click, drag gesture, or ESC. Default: true */
+  dismissible?: boolean;
 }
 
-export default function BottomSheet({ isOpen, onClose, title, subHeader, children, footer, noPadding, variant = 'panel' }: BottomSheetProps) {
+export default function BottomSheet({
+  isOpen,
+  onClose,
+  title,
+  subHeader,
+  children,
+  footer,
+  noPadding,
+  variant = 'panel',
+  dismissible = true,
+}: BottomSheetProps) {
   const [direction, setDirection] = useState<'bottom' | 'right'>('bottom');
   const [isDesktop, setIsDesktop] = useState(false);
   const mounted = useHasMounted();
@@ -32,12 +44,12 @@ export default function BottomSheet({ isOpen, onClose, title, subHeader, childre
     const handleResize = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
-      setDirection(desktop ? 'right' : 'bottom');
+      setDirection(desktop && variant !== 'modal' ? 'right' : 'bottom');
     };
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [variant]);
 
   // Don't render until client-side so direction and vaul styles never mismatch SSR
   if (!mounted) return null;
@@ -49,7 +61,7 @@ export default function BottomSheet({ isOpen, onClose, title, subHeader, childre
       open={isOpen}
       onOpenChange={(open) => !open && onClose()}
       direction={direction}
-      dismissible={isModal}
+      dismissible={dismissible}
       noBodyStyles
     >
       <Drawer.Portal>

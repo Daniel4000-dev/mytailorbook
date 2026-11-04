@@ -146,12 +146,14 @@
      edge, then jump-snap into the centered position. Override with a
      higher-specificity selector (class + every attribute vaul's own
      rule matches) and a centered fade/scale animation instead. */
-  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='open'].contentModal {
+  .content[data-vaul-drawer].contentModal[data-state='open'],
+  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-state='open'].contentModal {
     animation-name: modalCenterIn;
     animation-duration: 0.25s;
   }
 
-  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='closed'].contentModal {
+  .content[data-vaul-drawer].contentModal[data-state='closed'],
+  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-state='closed'].contentModal {
     animation-name: modalCenterOut;
     animation-duration: 0.2s;
   }
