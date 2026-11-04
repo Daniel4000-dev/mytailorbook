@@ -392,10 +392,13 @@ export default function CustomersPage() {
         <button
           type="button"
           className={`${styles.filterActionBtn} ${styleFilter ? styles.filterActionBtnActive : ''}`}
-          onClick={() => setIsStyleSheetOpen(true)}
-          title="Filter styles"
+          onClick={() => {
+            if (styleFilter) setStyleFilter(null);
+            else setIsStyleSheetOpen(true);
+          }}
+          title={styleFilter ? `Clear ${styleFilter} filter` : 'Filter styles'}
         >
-          <Symbol name="tune" size={14} />
+          <Symbol name={styleFilter ? 'close' : 'tune'} size={14} />
           <span>{styleFilter || 'Filter'}</span>
         </button>
       </div>
@@ -760,20 +763,33 @@ export default function CustomersPage() {
             action={{ label: 'Create Order', href: ROUTES.orderNew }}
           />
         ) : (
-          <EmptyState
-            icon={<Symbol name="person_off" />}
-            title="No customers found"
-            description={
-              search.trim()
-                ? `No client matching "${search.trim()}". You can clear your search or save them as a new client right away.`
-                : 'Try adjusting your filters or search term'
-            }
-            action={
-              search.trim()
-                ? { label: `Add "${search.trim()}"`, onClick: () => setIsAddSheetOpen(true) }
-                : { label: 'New Client', onClick: () => setIsAddSheetOpen(true) }
-            }
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <EmptyState
+              icon={<Symbol name="person_off" />}
+              title="No customers found"
+              description={
+                search.trim()
+                  ? `No client matching "${search.trim()}". You can clear your search or save them as a new client right away.`
+                  : 'Try adjusting your filters or search term'
+              }
+              action={
+                search.trim()
+                  ? { label: `Add "${search.trim()}"`, onClick: () => setIsAddSheetOpen(true) }
+                  : { label: 'New Client', onClick: () => setIsAddSheetOpen(true) }
+              }
+            />
+            {search.trim() && (
+              <button
+                type="button"
+                className={styles.softPill}
+                style={{ marginTop: '-8px', marginBottom: '24px' }}
+                onClick={() => setSearch('')}
+              >
+                <Symbol name="close" size={13} />
+                <span>Clear search</span>
+              </button>
+            )}
+          </div>
         )
       ) : (
         <>

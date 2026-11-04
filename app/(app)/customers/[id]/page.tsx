@@ -43,12 +43,13 @@ interface Point {
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
+  const router = useRouter();
   const { isOwner, loading: authLoading } = useAuth();
   const { customers, orders, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer, isDemoMode } = useData();
 
   if (authLoading || !isLoaded) {
     return (
-      <PageLayout className={styles.page} header={<TopBar title="Customer Details" showBack />}>
+      <PageLayout className={styles.page} header={<TopBar title="Customer Details" showBack onBack={() => router.push(ROUTES.customers)} />}>
         <CustomerDetailSkeleton />
       </PageLayout>
     );
@@ -56,7 +57,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
 
   if (!isOwner) {
     return (
-      <PageLayout header={<TopBar title="Customer" showBack />}>
+      <PageLayout header={<TopBar title="Customer" showBack onBack={() => router.push(ROUTES.customers)} />}>
         <EmptyState icon={<Symbol name="person_off" />} title="Access Denied" />
       </PageLayout>
     );
@@ -66,7 +67,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
 
   if (!customer) {
     return (
-      <PageLayout header={<TopBar title="Customer" showBack />}>
+      <PageLayout header={<TopBar title="Customer" showBack onBack={() => router.push(ROUTES.customers)} />}>
         <EmptyState icon={<Symbol name="person_off" />} title="Customer not found" />
       </PageLayout>
     );
@@ -244,33 +245,34 @@ function CustomerProfileContent({
 
   const activePointsList = customer.gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
 
-  const navigatePoint = (direction: -1 | 1) => {
+  const commitCurrentPointValue = (valToCommit: string = currentValue) => {
     if (!selectedPoint) return;
-    // Commit current input value first
-    if (currentValue !== (measurements[selectedPoint.id] || '')) {
-      const updatedMeasurements: Measurements = { ...customer.measurements };
-      Object.entries(measurements).forEach(([key, val]) => {
+    setMeasurements((prev) => ({
+      ...prev,
+      [selectedPoint.id]: valToCommit,
+    }));
+
+    const updatedMeasurements: Measurements = {
+      ...customer.measurements,
+    };
+
+    Object.entries(measurements).forEach(([key, val]) => {
+      if (key !== selectedPoint.id) {
         const num = parseMeasurementValue(val);
-        if (num !== null) (updatedMeasurements as unknown as Record<string, number>)[key] = num;
-      });
-      const parsed = parseMeasurementValue(currentValue);
-      if (parsed !== null) {
-        (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id] = parsed;
-      } else {
-        delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
+        if (num !== null) {
+          (updatedMeasurements as unknown as Record<string, number>)[key] = num;
+        }
       }
-      setMeasurements((prev) => ({ ...prev, [selectedPoint.id]: currentValue }));
-      updateCustomerMeasurements(customer.id, updatedMeasurements);
+    });
+
+    const parsed = parseMeasurementValue(valToCommit);
+    if (parsed !== null) {
+      (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id] = parsed;
+    } else {
+      delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
     }
 
-    const currentIndex = activePointsList.findIndex((p) => p.id === selectedPoint.id);
-    if (currentIndex === -1) return;
-    const nextIndex = currentIndex + direction;
-    if (nextIndex >= 0 && nextIndex < activePointsList.length) {
-      const nextPoint = activePointsList[nextIndex];
-      setSelectedPoint(nextPoint);
-      setCurrentValue(measurements[nextPoint.id] || '');
-    }
+    updateCustomerMeasurements(customer.id, updatedMeasurements);
   };
 
   const handleSaveNotes = () => {
@@ -280,33 +282,37 @@ function CustomerProfileContent({
 
   const handleSaveMeasurement = () => {
     if (selectedPoint) {
-      const newVal = currentValue;
-      setMeasurements((prev) => ({
-        ...prev,
-        [selectedPoint.id]: newVal,
-      }));
-
-      const updatedMeasurements: Measurements = {
-        ...customer.measurements,
-      };
-
-      Object.entries(measurements).forEach(([key, val]) => {
-        const num = parseMeasurementValue(val);
-        if (num !== null) {
-          (updatedMeasurements as unknown as Record<string, number>)[key] = num;
-        }
-      });
-
-      const parsed = parseMeasurementValue(newVal);
-      if (parsed !== null) {
-        (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id] = parsed;
-      } else {
-        delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
-      }
-
-      updateCustomerMeasurements(customer.id, updatedMeasurements);
+      commitCurrentPointValue();
       showToast(`${selectedPoint.name} measurement saved`, 'success');
       setSelectedPoint(null);
+    }
+  };
+
+  const handleEnterKeyInModal = () => {
+    if (!selectedPoint) return;
+    commitCurrentPointValue();
+    const currentIndex = activePointsList.findIndex((p) => p.id === selectedPoint.id);
+    if (currentIndex >= 0 && currentIndex < activePointsList.length - 1) {
+      const nextPoint = activePointsList[currentIndex + 1];
+      setSelectedPoint(nextPoint);
+      setCurrentValue(measurements[nextPoint.id] || '');
+    } else {
+      showToast('All landmarks recorded', 'success');
+      setSelectedPoint(null);
+    }
+  };
+
+  const navigatePoint = (direction: -1 | 1) => {
+    if (!selectedPoint) return;
+    commitCurrentPointValue();
+
+    const currentIndex = activePointsList.findIndex((p) => p.id === selectedPoint.id);
+    if (currentIndex === -1) return;
+    const nextIndex = currentIndex + direction;
+    if (nextIndex >= 0 && nextIndex < activePointsList.length) {
+      const nextPoint = activePointsList[nextIndex];
+      setSelectedPoint(nextPoint);
+      setCurrentValue(measurements[nextPoint.id] || '');
     }
   };
 
@@ -399,6 +405,7 @@ function CustomerProfileContent({
         <TopBar
           title="Client Profile"
           showBack
+          onBack={() => router.push(ROUTES.customers)}
           rightAction={
             <button
               type="button"
@@ -910,7 +917,7 @@ function CustomerProfileContent({
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                handleSaveMeasurement();
+                handleEnterKeyInModal();
               }
             }}
           />
@@ -924,14 +931,15 @@ function CustomerProfileContent({
                 className={styles.fractionChip}
                 onClick={() => {
                   const base = currentValue.trim();
-                  if (!base) {
-                    setCurrentValue(fraction.startsWith('.') ? `0${fraction}` : fraction);
-                  } else if (fraction.startsWith('.')) {
-                    const intPart = Math.floor(parseFloat(base) || 0);
-                    setCurrentValue(`${intPart}${fraction}`);
+                  const intPart = parseInt(base, 10);
+                  if (!isNaN(intPart) && intPart > 0) {
+                    if (fraction.startsWith('.')) {
+                      setCurrentValue(`${intPart}${fraction}`);
+                    } else {
+                      setCurrentValue(`${intPart} ${fraction}`);
+                    }
                   } else {
-                    const intPart = base.split(' ')[0] || base;
-                    setCurrentValue(`${intPart} ${fraction}`);
+                    setCurrentValue(fraction.startsWith('.') ? `0${fraction}` : fraction);
                   }
                 }}
               >
