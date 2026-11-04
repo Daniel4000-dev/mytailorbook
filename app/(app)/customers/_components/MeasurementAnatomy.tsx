@@ -168,23 +168,12 @@ export default function MeasurementAnatomy({
         </div>
       ) : (
         <>
+          <p className={styles.visualHint}>
+            Tap any anatomical landmark to record or update its measurement
+          </p>
           <div className={styles.anatomyContainer}>
             <div className={styles.anatomyInner}>
-              {gender === 'female' ? (
-              <svg viewBox="0 0 100 100" className={styles.bodySvg} preserveAspectRatio="xMidYMid meet">
-                <ellipse cx="50" cy="9" rx="7" ry="9" className={styles.bodyPart} />
-                <polygon points="46,17 46,21 32,23 38,35 41,45 34,58 37,78 39,96 45,96 47,78 50,62 53,78 55,96 61,96 63,78 66,58 59,45 62,35 68,23 54,21 54,17" className={styles.bodyPart} />
-                <polygon points="32,23 26,42 20,62 26,62 31,42 38,35" className={styles.bodyPart} />
-                <polygon points="68,23 74,42 80,62 74,62 69,42 62,35" className={styles.bodyPart} />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 100 100" className={styles.bodySvg} preserveAspectRatio="xMidYMid meet">
-                <ellipse cx="50" cy="9" rx="7" ry="9" className={styles.bodyPart} />
-                <polygon points="45,17 45,21 28,22 34,35 37,48 36,58 38,78 39,96 45,96 46,78 50,63 54,78 55,96 61,96 62,78 64,58 63,48 66,35 72,22 55,21 55,17" className={styles.bodyPart} />
-                <polygon points="28,22 23,43 17,64 24,64 29,43 34,35" className={styles.bodyPart} />
-                <polygon points="72,22 77,43 83,64 76,64 71,43 66,35" className={styles.bodyPart} />
-              </svg>
-            )}
+              {gender === 'female' ? <FemaleTailorForm /> : <MaleTailorForm />}
 
             {/* Span lines — drawn first so the point markers sit on top */}
             <svg viewBox="0 0 100 100" className={styles.spanSvg} preserveAspectRatio="xMidYMid meet">
@@ -242,5 +231,219 @@ export default function MeasurementAnatomy({
         </>
       )}
     </div>
+  );
+}
+
+function FemaleTailorForm() {
+  return (
+    <svg viewBox="0 0 100 100" className={styles.bodySvg} preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="femaleMannequinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="var(--sf-border)" stopOpacity="0.4" />
+          <stop offset="30%" stopColor="var(--sf-border)" stopOpacity="0.18" />
+          <stop offset="50%" stopColor="var(--sf-border)" stopOpacity="0.08" />
+          <stop offset="70%" stopColor="var(--sf-border)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--sf-border)" stopOpacity="0.4" />
+        </linearGradient>
+        <linearGradient id="femaleArmGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="var(--sf-border)" stopOpacity="0.35" />
+          <stop offset="50%" stopColor="var(--sf-border)" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="var(--sf-border)" stopOpacity="0.35" />
+        </linearGradient>
+      </defs>
+
+      {/* Head & Neck Cap / Finial */}
+      <path d="M 47,2.5 Q 50,1.2 53,2.5 L 53,3.8 Q 50,4.8 47,3.8 Z" className={styles.mannequinFinial} />
+      <ellipse cx="50" cy="9.5" rx="6.2" ry="8" className={styles.mannequinHead} />
+      <path d="M 46.5,15.5 Q 50,17 53.5,15.5" className={styles.mannequinGuideSubtle} />
+
+      {/* Graceful Torso and Legs (Continuous Bézier Curves) */}
+      <path
+        d="M 50,19
+           C 47.5,19 45.5,19.6 44.2,20.4
+           C 40.5,21.5 36.5,22.8 33.8,23.8
+           C 34.6,26.5 36.2,29.5 37.6,31.6
+           C 38.6,32.8 39,33.5 38.8,35
+           C 38.2,37.5 39,40 40.5,41.5
+           C 41.5,43 42,44.5 41.8,46
+           C 41.2,48.5 37.2,53 35.2,57.5
+           C 34.5,60 36.2,63.5 38,66
+           C 39.2,68.5 39.8,73 40,77.5
+           C 40.2,80 39.2,83.5 39.2,86.5
+           C 39.2,89.5 40,93 40.5,96.5
+           L 44.2,96.5
+           C 44.5,93 45,89 45,86.5
+           C 45,83 44.6,80 44.8,77.5
+           C 45.2,73 47,67.5 50,63
+           C 53,67.5 54.8,73 55.2,77.5
+           C 55.4,80 55,83 55,86.5
+           C 55,89 55.5,93 55.8,96.5
+           L 59.5,96.5
+           C 60,93 60.8,89.5 60.8,86.5
+           C 60.8,83.5 59.8,80 60,77.5
+           C 60.2,73 60.8,68.5 62,66
+           C 63.8,63.5 65.5,60 64.8,57.5
+           C 62.8,53 58.8,48.5 58.2,46
+           C 58,44.5 58.5,43 59.5,41.5
+           C 61,40 61.8,37.5 61.2,35
+           C 61,33.5 61.4,32.8 62.4,31.6
+           C 63.8,29.5 65.4,26.5 66.2,23.8
+           C 63.5,22.8 59.5,21.5 55.8,20.4
+           C 54.5,19.6 52.5,19 50,19 Z"
+        className={styles.mannequinBody}
+        fill="url(#femaleMannequinGrad)"
+      />
+
+      {/* Draped Left Arm */}
+      <path
+        d="M 33.8,23.8
+           C 31,25.5 29,29.5 28.5,34
+           C 28,38.5 27.2,43.5 26.2,48
+           C 25.2,52.5 23.5,58.5 21.8,65
+           C 21.2,67.5 20,70.5 19,72
+           L 21.5,72.5
+           C 23,70 24.5,66.5 25.5,64
+           C 27.5,58 29.2,52 30.5,47
+           C 31.8,42.5 33.2,37.5 35,33
+           C 36,30.5 36.8,28.5 37.6,27.2 Z"
+        className={styles.mannequinArm}
+        fill="url(#femaleArmGrad)"
+      />
+
+      {/* Draped Right Arm */}
+      <path
+        d="M 66.2,23.8
+           C 69,25.5 71,29.5 71.5,34
+           C 72,38.5 72.8,43.5 73.8,48
+           C 74.8,52.5 76.5,58.5 78.2,65
+           C 78.8,67.5 80,70.5 81,72
+           L 78.5,72.5
+           C 77,70 75.5,66.5 74.5,64
+           C 72.5,58 70.8,52 69.5,47
+           C 68.2,42.5 66.8,37.5 65,33
+           C 64,30.5 63.2,28.5 62.4,27.2 Z"
+        className={styles.mannequinArm}
+        fill="url(#femaleArmGrad)"
+      />
+
+      {/* Center Front Tailor Seam */}
+      <line x1="50" y1="19" x2="50" y2="63" className={styles.mannequinSeam} />
+
+      {/* Atelier Chalk Guidelines */}
+      <path d="M 44.5,20.5 Q 50,21.5 55.5,20.5" className={styles.mannequinGuide} />
+      <path d="M 37.8,34 Q 50,36.5 62.2,34" className={styles.mannequinGuide} />
+      <path d="M 40.5,39 Q 50,41 59.5,39" className={styles.mannequinGuideSubtle} />
+      <path d="M 41.8,45 Q 50,47 58.2,45" className={styles.mannequinGuide} />
+      <path d="M 35.2,58 Q 50,60.5 64.8,58" className={styles.mannequinGuide} />
+      <line x1="39.8" y1="78" x2="60.2" y2="78" className={styles.mannequinGuideSubtle} />
+      <line x1="40.5" y1="96" x2="59.5" y2="96" className={styles.mannequinGuideSubtle} />
+    </svg>
+  );
+}
+
+function MaleTailorForm() {
+  return (
+    <svg viewBox="0 0 100 100" className={styles.bodySvg} preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="maleMannequinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="var(--sf-border)" stopOpacity="0.4" />
+          <stop offset="30%" stopColor="var(--sf-border)" stopOpacity="0.18" />
+          <stop offset="50%" stopColor="var(--sf-border)" stopOpacity="0.08" />
+          <stop offset="70%" stopColor="var(--sf-border)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--sf-border)" stopOpacity="0.4" />
+        </linearGradient>
+        <linearGradient id="maleArmGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="var(--sf-border)" stopOpacity="0.35" />
+          <stop offset="50%" stopColor="var(--sf-border)" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="var(--sf-border)" stopOpacity="0.35" />
+        </linearGradient>
+      </defs>
+
+      {/* Head & Neck Cap / Finial */}
+      <path d="M 46.5,2.5 Q 50,1.2 53.5,2.5 L 53.5,3.8 Q 50,4.8 46.5,3.8 Z" className={styles.mannequinFinial} />
+      <ellipse cx="50" cy="9.5" rx="6.5" ry="8.2" className={styles.mannequinHead} />
+      <path d="M 45.5,15.8 Q 50,17.2 54.5,15.8" className={styles.mannequinGuideSubtle} />
+
+      {/* Tailored Athletic Torso and Legs */}
+      <path
+        d="M 50,19
+           C 47,19 44.8,19.6 43.5,20.2
+           C 39.5,21.2 34.5,22.2 31,23.2
+           C 31.8,26.5 33.5,29.5 35.2,31.5
+           C 36.2,32.5 37.2,33.5 37.5,35
+           C 38,38.5 38.5,41.5 39.2,44.5
+           C 39.8,47 40.2,49 40,51
+           C 39.5,53.5 37.8,56 36.5,58.5
+           C 35.8,60.5 37.2,63.5 38.8,66
+           C 39.8,68.5 40.2,73 40.2,77.5
+           C 40.2,80 39.5,83.5 39.5,86.5
+           C 39.5,89.5 40.2,93 40.5,96.5
+           L 44.5,96.5
+           C 44.8,93 45.2,89 45.2,86.5
+           C 45.2,83 44.8,80 44.8,77.5
+           C 45.2,73 47,68 50,63
+           C 53,68 54.8,73 55.2,77.5
+           C 55.2,80 54.8,83 54.8,86.5
+           C 54.8,89 55.2,93 55.5,96.5
+           L 59.5,96.5
+           C 59.8,93 60.5,89.5 60.5,86.5
+           C 60.5,83.5 59.8,80 59.8,77.5
+           C 59.8,73 60.2,68.5 61.2,66
+           C 62.8,63.5 64.2,60.5 63.5,58.5
+           C 62.2,56 60.5,53.5 60,51
+           C 59.8,49 60.2,47 60.8,44.5
+           C 61.5,41.5 62,38.5 62.5,35
+           C 62.8,33.5 63.8,32.5 64.8,31.5
+           C 66.5,29.5 68.2,26.5 69,23.2
+           C 65.5,22.2 60.5,21.2 56.5,20.2
+           C 55.2,19.6 53,19 50,19 Z"
+        className={styles.mannequinBody}
+        fill="url(#maleMannequinGrad)"
+      />
+
+      {/* Athletic Draped Left Arm */}
+      <path
+        d="M 31,23.2
+           C 28,25 26,29 25.2,33.5
+           C 24.5,38 23.8,43 23,47.5
+           C 22,52 20.5,58 19,64.5
+           C 18.5,67 17.5,70 16.5,71.5
+           L 19.5,72
+           C 21,69.5 22.5,66 23.5,63.5
+           C 25.5,57.5 27,51.5 28.2,46.5
+           C 29.5,42 30.8,37 32.5,32.5
+           C 33.5,30 34.2,28 35.2,26.5 Z"
+        className={styles.mannequinArm}
+        fill="url(#maleArmGrad)"
+      />
+
+      {/* Athletic Draped Right Arm */}
+      <path
+        d="M 69,23.2
+           C 72,25 74,29 74.8,33.5
+           C 75.5,38 76.2,43 77,47.5
+           C 78,52 79.5,58 81,64.5
+           C 81.5,67 82.5,70 83.5,71.5
+           L 80.5,72
+           C 79,69.5 77.5,66 76.5,63.5
+           C 74.5,57.5 73,51.5 71.8,46.5
+           C 70.5,42 69.2,37 67.5,32.5
+           C 66.5,30 65.8,28 64.8,26.5 Z"
+        className={styles.mannequinArm}
+        fill="url(#maleArmGrad)"
+      />
+
+      {/* Center Front Tailor Seam */}
+      <line x1="50" y1="19" x2="50" y2="63" className={styles.mannequinSeam} />
+
+      {/* Atelier Chalk Guidelines */}
+      <path d="M 43.5,20.2 Q 50,21.2 56.5,20.2" className={styles.mannequinGuide} />
+      <path d="M 37.5,33 Q 50,35.5 62.5,33" className={styles.mannequinGuide} />
+      <path d="M 39.2,42 Q 50,44 60.8,42" className={styles.mannequinGuideSubtle} />
+      <path d="M 40,48 Q 50,50 60,48" className={styles.mannequinGuide} />
+      <path d="M 36.5,58 Q 50,60 63.5,58" className={styles.mannequinGuide} />
+      <line x1="39.8" y1="78" x2="60.2" y2="78" className={styles.mannequinGuideSubtle} />
+      <line x1="40.5" y1="96" x2="59.5" y2="96" className={styles.mannequinGuideSubtle} />
+    </svg>
   );
 }

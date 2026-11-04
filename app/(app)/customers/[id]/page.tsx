@@ -25,6 +25,7 @@ import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
+import { getStoredMockCustomers, saveMockCustomers, MOCK_ORDERS } from '@/lib/mockCustomers';
 import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements, Customer, Order, OrderPhoto } from '@/lib/types';
@@ -63,7 +64,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const customer = customers.find((c) => c.id === id);
+  const customer = customers.find((c) => c.id === id) || getStoredMockCustomers().find((c) => c.id === id);
 
   if (!customer) {
     return (
@@ -73,14 +74,36 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
+  const effectiveOrders = orders.length > 0 ? orders : MOCK_ORDERS;
+
+  const handleUpdateMeasurements = async (customerId: string, newMeasurements: Measurements) => {
+    if (customerId.startsWith('mock-')) {
+      const all = getStoredMockCustomers();
+      const updated = all.map((c) => (c.id === customerId ? { ...c, measurements: newMeasurements, measurementsUpdatedAt: new Date().toISOString() } : c));
+      saveMockCustomers(updated);
+      return;
+    }
+    return updateCustomerMeasurements(customerId, newMeasurements);
+  };
+
+  const handleUpdateProfile = async (customerId: string, updates: Partial<Customer>) => {
+    if (customerId.startsWith('mock-')) {
+      const all = getStoredMockCustomers();
+      const updated = all.map((c) => (c.id === customerId ? { ...c, ...updates } : c));
+      saveMockCustomers(updated);
+      return;
+    }
+    return updateCustomerProfile(customerId, updates);
+  };
+
   return (
     <CustomerProfileContent
       customer={customer}
-      orders={orders}
-      updateCustomerMeasurements={updateCustomerMeasurements}
-      updateCustomerProfile={updateCustomerProfile}
+      orders={effectiveOrders}
+      updateCustomerMeasurements={handleUpdateMeasurements}
+      updateCustomerProfile={handleUpdateProfile}
       deleteCustomer={deleteCustomer}
-      isDemoMode={isDemoMode}
+      isDemoMode={isDemoMode || customer.id.startsWith('mock-')}
     />
   );
 }

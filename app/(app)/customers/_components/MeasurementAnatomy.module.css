@@ -62,11 +62,64 @@
   pointer-events: none;
 }
 
+.mannequinFinial {
+  fill: var(--sf-text-tertiary);
+  opacity: 0.6;
+}
+
+.mannequinHead {
+  fill: none;
+  stroke: var(--sf-border);
+  stroke-width: 0.85;
+  opacity: 0.6;
+}
+
+.mannequinBody {
+  stroke: var(--sf-border);
+  stroke-width: 0.85;
+  transition: all var(--sf-transition-fast);
+}
+
+.mannequinArm {
+  stroke: var(--sf-border);
+  stroke-width: 0.75;
+  opacity: 0.8;
+}
+
+.mannequinSeam {
+  stroke: var(--sf-border);
+  stroke-width: 0.7;
+  stroke-dasharray: 2 2;
+  opacity: 0.65;
+}
+
+.mannequinGuide {
+  fill: none;
+  stroke: var(--sf-text-tertiary);
+  stroke-width: 0.6;
+  stroke-dasharray: 1.5 2;
+  opacity: 0.45;
+}
+
+.mannequinGuideSubtle {
+  stroke: var(--sf-border);
+  stroke-width: 0.5;
+  stroke-dasharray: 1.5 2.5;
+  opacity: 0.35;
+}
+
 .bodyPart {
   fill: var(--sf-border);
   stroke: var(--sf-border-light);
   stroke-width: 0.5;
   opacity: 0.4;
+}
+
+.visualHint {
+  text-align: center;
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin-bottom: var(--sf-space-xs);
 }
 
 /* ── Span measurements (two landmarks, connected by a line) ─── */
@@ -82,14 +135,15 @@
 
 .spanLine {
   stroke: var(--sf-text-tertiary);
-  stroke-width: 0.6;
+  stroke-width: 0.75;
   stroke-dasharray: 2 1.5;
   opacity: 0.6;
 }
 
 .spanLineFilled {
   stroke: var(--sf-brand-indigo);
-  opacity: 0.9;
+  stroke-width: 1;
+  opacity: 0.95;
 }
 
 /* ── Measurement Points ───────────────────────────────── */
@@ -103,7 +157,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px; /* Slightly larger hit area */
+  padding: 8px; /* Hit area */
   z-index: 2;
   -webkit-tap-highlight-color: transparent;
 }
@@ -113,67 +167,75 @@
 }
 
 .pointDot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-text-tertiary);
-  border: 2px solid var(--sf-bg-surface-elevated);
-  box-shadow: 0 0 0 1px var(--sf-border);
+  background: var(--sf-bg-surface);
+  border: 2px solid var(--sf-text-tertiary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
   transition: all var(--sf-transition-fast);
+}
+
+.point:hover .pointDot {
+  transform: scale(1.3);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .pointLabel {
   position: absolute;
   left: 100%;
-  margin-left: 4px;
+  margin-left: 5px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 9px;
-  font-weight: var(--sf-weight-medium);
-  color: var(--sf-text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
   white-space: nowrap;
-  background: var(--sf-bg-surface);
-  padding: 2px 5px;
+  background: var(--sf-bg-surface-elevated);
+  padding: 2px 6px;
   border-radius: var(--sf-radius-xs);
   border: 1px solid var(--sf-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   opacity: 0;
-  transition: opacity var(--sf-transition-fast);
+  transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
   pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.point:hover .pointLabel,
-.selected .pointLabel,
-.filled .pointLabel {
-  opacity: 1;
-}
+  .point:hover .pointLabel,
+  .selected .pointLabel,
+  .filled .pointLabel {
+    opacity: 1;
+  }
 }
 
 /* Filled state */
 .filled .pointDot {
   background: var(--sf-brand-indigo);
-  border-color: var(--sf-bg-surface-elevated);
-  box-shadow: 0 0 0 1px var(--sf-brand-indigo), 0 0 8px var(--sf-brand-indigo-glow);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1.5px var(--sf-brand-indigo), 0 2px 6px rgba(79, 70, 229, 0.35);
 }
 
 .filled .pointLabel {
   color: var(--sf-brand-indigo);
-  border-color: var(--sf-brand-indigo-glow);
+  border-color: rgba(99, 102, 241, 0.3);
+  background: var(--sf-bg-surface-elevated);
 }
 
 /* Selected state */
 .selected .pointDot {
-  background: var(--sf-accent-gold);
-  border-color: var(--sf-bg-surface-elevated);
-  box-shadow: 0 0 0 2px var(--sf-accent-gold), 0 0 12px var(--sf-accent-gold-glow);
-  transform: scale(1.3);
+  background: #f59e0b;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #f59e0b, 0 0 12px rgba(245, 158, 11, 0.5);
+  transform: scale(1.4);
 }
 
 .selected .pointLabel {
-  color: var(--sf-accent-gold);
-  font-weight: var(--sf-weight-bold);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.4);
+  background: var(--sf-bg-surface-elevated);
 }
 
 /* Span tap-target — a short bar instead of a dot, signaling "this represents
@@ -312,9 +374,58 @@
   color: var(--sf-text-secondary);
 }
 
-:global([data-theme='dark']) .bodyPart {
-  fill: rgba(255, 255, 255, 0.08);
+:global([data-theme='dark']) .bodyPart,
+:global([data-theme='dark']) .mannequinBody {
+  stroke: rgba(255, 255, 255, 0.15);
+}
+
+:global([data-theme='dark']) .mannequinArm {
   stroke: rgba(255, 255, 255, 0.12);
+}
+
+:global([data-theme='dark']) .mannequinFinial {
+  fill: rgba(255, 255, 255, 0.4);
+}
+
+:global([data-theme='dark']) .mannequinHead {
+  stroke: rgba(255, 255, 255, 0.15);
+}
+
+:global([data-theme='dark']) .mannequinSeam {
+  stroke: rgba(255, 255, 255, 0.18);
+}
+
+:global([data-theme='dark']) .mannequinGuide,
+:global([data-theme='dark']) .mannequinGuideSubtle {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+:global([data-theme='dark']) .pointDot {
+  background: #161526;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+:global([data-theme='dark']) .filled .pointDot {
+  background: #818cf8;
+  border-color: #161526;
+  box-shadow: 0 0 0 1.5px #818cf8, 0 0 10px rgba(129, 140, 248, 0.4);
+}
+
+:global([data-theme='dark']) .filled .pointLabel {
+  background: #1e1b4b;
+  color: #c7d2fe;
+  border-color: rgba(129, 140, 248, 0.3);
+}
+
+:global([data-theme='dark']) .selected .pointDot {
+  background: #f59e0b;
+  border-color: #161526;
+}
+
+:global([data-theme='dark']) .selected .pointLabel {
+  background: #451a03;
+  color: #fde68a;
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 :global([data-theme='dark']) .spanLine {

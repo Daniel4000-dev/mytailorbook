@@ -25,6 +25,13 @@ import type { StylePhotoSubmission } from '@/lib/types';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
 import AddCustomerSheet from './_components/AddCustomerSheet';
+import {
+  getStoredMockCustomers,
+  isMockCustomersActive,
+  wipeMockCustomers,
+  resetMockCustomers,
+  MOCK_ORDERS,
+} from '@/lib/mockCustomers';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -43,8 +50,28 @@ interface CustomerStatDetail {
 export default function CustomersPage() {
   const router = useRouter();
   const { user, isOwner, loading: authLoading } = useAuth();
-  const { currentShop, customers, orders, isLoaded } = useData();
+  const { currentShop, customers: liveCustomers, orders: liveOrders, isLoaded } = useData();
   const { showToast } = useToast();
+
+  const [mockCustomers, setMockCustomers] = useState<Customer[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return isMockCustomersActive() ? getStoredMockCustomers() : [];
+  });
+  const [isUsingMock, setIsUsingMock] = useState(false);
+
+  useEffect(() => {
+    if (liveCustomers.length > 0) {
+      setIsUsingMock(false);
+    } else {
+      const active = isMockCustomersActive();
+      const stored = getStoredMockCustomers();
+      setMockCustomers(stored);
+      setIsUsingMock(active && stored.length > 0);
+    }
+  }, [liveCustomers]);
+
+  const customers = isUsingMock ? mockCustomers : liveCustomers;
+  const orders = isUsingMock ? (liveOrders.length > 0 ? liveOrders : MOCK_ORDERS) : liveOrders;
 
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -312,6 +339,28 @@ export default function CustomersPage() {
 
   return (
     <PageLayout header={topBar}>
+      {/* ── Sample Clients Preview Banner ──────────────────────────── */}
+      {isUsingMock && (
+        <div className={styles.mockBanner}>
+          <div className={styles.mockBannerText}>
+            <Symbol name="visibility" size={15} />
+            <span>Showing <strong>{customers.length} sample clients</strong> so you can preview the elevated UI.</span>
+          </div>
+          <button
+            type="button"
+            className={styles.mockBannerBtn}
+            onClick={() => {
+              wipeMockCustomers();
+              setMockCustomers([]);
+              setIsUsingMock(false);
+              showToast('Switched to blank state', 'info');
+            }}
+          >
+            Show Blank State
+          </button>
+        </div>
+      )}
+
       {/* ── 1. Executive Workshop Client Pulse (KPI Cards) ─────────── */}
       <div className={styles.kpiGrid}>
         <div
@@ -700,12 +749,28 @@ export default function CustomersPage() {
       {/* ── 4. Customer Feed (Continuous, Borderless List) ───────────── */}
       {filtered.length === 0 ? (
         customers.length === 0 ? (
-          <EmptyState
-            image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
-            title="No customers yet"
-            description="Your customer book starts with your first order — create one and the customer is saved here automatically."
-            action={{ label: 'Create Order', href: ROUTES.orderNew }}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <EmptyState
+              image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
+              title="No customers yet"
+              description="Your customer book starts with your first order — create one or load sample workshop clients to preview the directory."
+              action={{ label: 'Create Order', href: ROUTES.orderNew }}
+            />
+            <button
+              type="button"
+              className={styles.softPill}
+              style={{ marginTop: '-8px', marginBottom: '24px' }}
+              onClick={() => {
+                const fresh = resetMockCustomers();
+                setMockCustomers(fresh);
+                setIsUsingMock(true);
+                showToast('Sample clients loaded', 'success');
+              }}
+            >
+              <Symbol name="visibility" size={14} />
+              <span>Load Sample Clients</span>
+            </button>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <EmptyState

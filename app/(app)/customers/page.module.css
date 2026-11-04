@@ -3,6 +3,50 @@
    Zero heavy borders, zero table frames — continuous fluid feed
    ============================================================ */
 
+/* ── Preview Mode Banner ─────────────────────────────────────── */
+.mockBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding: 8px 14px;
+  background: var(--sf-bg-surface-elevated);
+  border: 1px dashed var(--sf-brand-indigo);
+  border-radius: var(--sf-radius-md);
+  margin-bottom: var(--sf-space-md);
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+}
+
+.mockBannerText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mockBannerText span strong {
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
+}
+
+.mockBannerBtn {
+  background: none;
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-full);
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.mockBannerBtn:hover {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border-color: var(--sf-border-hover);
+}
+
 .headerActions {
   display: flex;
   align-items: center;
