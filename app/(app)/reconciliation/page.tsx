@@ -505,69 +505,63 @@ export default function ShopExpensesPage() {
       <div className={styles.container}>
         {/* ── 1. CLEAN DATE STRIP ── */}
         <section className={styles.dateBar}>
-          <div className={styles.dateNavWrap}>
-            <button
-              type="button"
-              className={styles.chevronBtn}
-              onClick={() => changeDate(-1)}
-              aria-label="Previous day"
-            >
-              <Symbol name="chevron_left" size={18} />
-            </button>
-
-            <div className={styles.datePillGroup}>
+            <div className={styles.dateBarCenter}>
               <button
                 type="button"
-                className={`${styles.dateQuickPill} ${isYesterday ? styles.dateQuickPillActive : ''}`}
-                onClick={() => setDate(yesterdayStr)}
+                className={styles.chevronBtn}
+                onClick={() => changeDate(-1)}
+                aria-label="Previous day"
               >
-                Yesterday
+                <Symbol name="chevron_left" size={18} />
               </button>
+
+              <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
+                <Symbol name="calendar_today" size={13} />
+                <span className={styles.displayDateLabel}>{displayDateText}</span>
+                <span className={styles.displayDateSub}>({date})</span>
+                <input
+                  id="reconDateInput"
+                  type="date"
+                  className={styles.hiddenDateInput}
+                  value={date}
+                  onChange={(e) => e.target.value && setDate(e.target.value)}
+                />
+              </label>
+
               <button
                 type="button"
-                className={`${styles.dateQuickPill} ${isToday ? styles.dateQuickPillActive : ''}`}
-                onClick={() => setDate(todayStr)}
+                className={styles.chevronBtn}
+                onClick={() => changeDate(1)}
+                aria-label="Next day"
               >
-                Today
+                <Symbol name="chevron_right" size={18} />
               </button>
             </div>
 
-            <button
-              type="button"
-              className={styles.chevronBtn}
-              onClick={() => changeDate(1)}
-              aria-label="Next day"
-            >
-              <Symbol name="chevron_right" size={18} />
-            </button>
-          </div>
+            <div className={styles.dateBarRight}>
+              {!isToday && (
+                <button
+                  type="button"
+                  className={styles.todayJumpBtn}
+                  onClick={() => setDate(todayStr)}
+                >
+                  Today
+                </button>
+              )}
 
-          <div className={styles.dateBarRight}>
-            <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
-              <Symbol name="calendar_today" size={13} />
-              <span>{displayDateText}</span>
-              <input
-                id="reconDateInput"
-                type="date"
-                className={styles.hiddenDateInput}
-                value={date}
-                onChange={(e) => e.target.value && setDate(e.target.value)}
-              />
-            </label>
-
-            {expenses.length > 0 && (
-              <button
-                type="button"
-                className={styles.shareSummaryBtn}
-                onClick={handleShareSummary}
-                title="Copy WhatsApp-ready reconciliation summary"
-                aria-label="Share summary on WhatsApp"
-              >
-                <Symbol name="share" size={13} />
-                <span>Share</span>
-              </button>
-            )}
-          </div>
+              {expenses.length > 0 && (
+                <button
+                  type="button"
+                  className={styles.shareSummaryBtn}
+                  onClick={handleShareSummary}
+                  title="Copy WhatsApp-ready reconciliation summary"
+                  aria-label="Share summary on WhatsApp"
+                >
+                  <Symbol name="share" size={13} />
+                  <span>Share</span>
+                </button>
+              )}
+            </div>
         </section>
 
         {initialLoading ? (
@@ -625,7 +619,7 @@ export default function ShopExpensesPage() {
               </div>
             </section>
 
-            {/* ── 3. PRIMARY ACTION & 1-TAP QUICK PRESETS ── */}
+            {/* ── 3. PRIMARY ACTION ── */}
             <div className={styles.actionSection}>
               <button
                 type="button"
@@ -635,61 +629,44 @@ export default function ShopExpensesPage() {
                 <Symbol name="add" size={18} />
                 <span>Record Expense</span>
               </button>
+            </div>
 
-              <div className={styles.presetScrollWrap}>
-                {workshopPresets.map((p, idx) => (
+            {/* ── 4. CATEGORY FILTER (Decluttered — only shown when entries exist) ── */}
+            {expenses.length > 0 && (
+              <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
+                <div className={styles.filterBar}>
                   <button
-                    key={idx}
                     type="button"
-                    className={styles.presetChip}
-                    onClick={() =>
-                      handleOpenCreateModal({
-                        amount: p.amount,
-                        category: p.category,
-                        description: p.description,
-                        method: p.method,
-                      })
-                    }
+                    role="tab"
+                    aria-selected={categoryFilter === 'all'}
+                    className={`${styles.filterPill} ${categoryFilter === 'all' ? styles.filterPillActive : ''}`}
+                    onClick={() => setCategoryFilter('all')}
                   >
-                    + {p.label}
+                    <span>All</span>
+                    <span className={styles.filterCount}>{expenses.length}</span>
                   </button>
-                ))}
+                  {EXPENSE_CATEGORIES.map((cat) => {
+                    const count = expenses.filter((e) => e.category === cat.key).length;
+                    const isActive = categoryFilter === cat.key;
+                    if (count === 0 && categoryFilter !== cat.key) return null;
+                    return (
+                      <button
+                        key={cat.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        className={`${styles.filterPill} ${isActive ? styles.filterPillActive : ''}`}
+                        onClick={() => setCategoryFilter(isActive ? 'all' : cat.key)}
+                      >
+                        <Symbol name={cat.icon} size={13} />
+                        <span>{cat.shortLabel}</span>
+                        {count > 0 && <span className={styles.filterCount}>{count}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-
-            {/* ── 4. CATEGORY FILTER BAR ── */}
-            <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
-              <div className={styles.filterBar}>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={categoryFilter === 'all'}
-                  className={`${styles.filterPill} ${categoryFilter === 'all' ? styles.filterPillActive : ''}`}
-                  onClick={() => setCategoryFilter('all')}
-                >
-                  <span>All</span>
-                  {expenses.length > 0 && <span className={styles.filterCount}>{expenses.length}</span>}
-                </button>
-                {EXPENSE_CATEGORIES.map((cat) => {
-                  const count = expenses.filter((e) => e.category === cat.key).length;
-                  const isActive = categoryFilter === cat.key;
-                  return (
-                    <button
-                      key={cat.key}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      className={`${styles.filterPill} ${isActive ? styles.filterPillActive : ''}`}
-                      onClick={() => setCategoryFilter(isActive ? 'all' : cat.key)}
-                    >
-                      <Symbol name={cat.icon} size={14} />
-                      <span>{cat.shortLabel}</span>
-                      {count > 0 && <span className={styles.filterCount}>{count}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            )}
 
             {/* ── 5. CLEAN LEDGER SECTION ── */}
             <section className={styles.ledgerSection}>
@@ -700,7 +677,7 @@ export default function ShopExpensesPage() {
                     title={
                       categoryFilter !== 'all' && expenses.length > 0
                         ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel || ''} Expenses`
-                        : "No Expenses Logged on this Date"
+                        : `No Expenses Logged on this Date`
                     }
                     description={
                       categoryFilter !== 'all' && expenses.length > 0
@@ -712,6 +689,32 @@ export default function ShopExpensesPage() {
                       onClick: categoryFilter !== 'all' && expenses.length > 0 ? () => setCategoryFilter('all') : () => handleOpenCreateModal(),
                     }}
                   />
+
+                  {/* 1-Tap Quick Presets shown contextually in Empty State */}
+                  {categoryFilter === 'all' && (
+                    <div className={styles.emptyPresetsBlock}>
+                      <span className={styles.emptyPresetsTitle}>Quick 1-tap log:</span>
+                      <div className={styles.emptyPresetsGrid}>
+                        {workshopPresets.map((p, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            className={styles.emptyPresetBtn}
+                            onClick={() =>
+                              handleOpenCreateModal({
+                                amount: p.amount,
+                                category: p.category,
+                                description: p.description,
+                                method: p.method,
+                              })
+                            }
+                          >
+                            + {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className={styles.ledgerCard}>
@@ -851,6 +854,30 @@ export default function ShopExpensesPage() {
         }
       >
         <form id="reconExpenseForm" onSubmit={handleRecordExpense} className={styles.modalForm}>
+          {/* 1-Tap Quick Fill Presets (Create mode only) */}
+          {!editingExpenseId && (
+            <div className={styles.modalPresetRow}>
+              <span className={styles.modalPresetLabel}>Quick presets:</span>
+              <div className={styles.modalPresetChips}>
+                {workshopPresets.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles.modalPresetChip}
+                    onClick={() => {
+                      setExpAmount(p.amount);
+                      setExpCategory(p.category);
+                      setExpDescription(p.description);
+                      setExpMethod(p.method);
+                    }}
+                  >
+                    + {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Amount Field with 1-Tap Quick Pills */}
           <div className={styles.field}>
             <label className={styles.fieldLabel} htmlFor="expAmountInput">
