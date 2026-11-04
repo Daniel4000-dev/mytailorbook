@@ -108,7 +108,7 @@ export default function StaffDashboard({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
-              {currentStaff?.name || 'Artisan Workbench'}
+              {currentStaff?.name || 'Tailor Workbench'}
             </span>
             <span style={{
               fontSize: '11px',

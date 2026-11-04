@@ -58,7 +58,7 @@ const MOCK_FINANCIAL_TOTALS: FinancialReport['totals'] = {
   },
   expenseBreakdown: [
     { label: 'Fabric Sourcing & Aso-Oke', value: 780000 },
-    { label: 'Artisan & Tailor Wages', value: 420000 },
+    { label: 'Staff & Tailor Wages', value: 420000 },
     { label: 'Haberdashery, Linings & Zips', value: 180000 },
     { label: 'Generator & Studio Utilities', value: 170000 },
   ],

@@ -68,11 +68,11 @@ export default function RunPayrollSheet({ isOpen, onClose, staffMembers, orders,
 
   const handleSharePayoutWhatsApp = (staff: User, earned: number, tasksCompleted: number, ordersList: Order[]) => {
     const lines = ordersList.map((o) => `• #${o.id.slice(0, 4).toUpperCase()} ${o.styleName || o.orderDetails || 'Garment'}`).join('\n');
-    const msg = `Hello ${staff.name}! Here is your weekly artisan payout summary:
+    const msg = `Hello ${staff.name}! Here is your weekly pay summary:
 Total Earned: ${formatCurrency(earned, currency)}
 Garments Completed: ${tasksCompleted}
 ${lines ? `\nCompleted Pieces:\n${lines}\n` : ''}
-Thank you for your excellent craftsmanship!`;
+Thank you for your hard work!`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 

@@ -219,7 +219,7 @@ export default function StaffSettingsPage() {
     <PageLayout width="narrow"
       header={
         <TopBar
-          title="Staff & Artisans"
+          title="Staff & Tailors"
           showBack={!isDesktop}
           onBack={() => router.push(ROUTES.settings)}
           rightAction={
@@ -501,7 +501,7 @@ export default function StaffSettingsPage() {
                   fontSize: 'var(--sf-text-sm)',
                 }}
               >
-                <option value="Staff">Staff / Artisan</option>
+                <option value="Staff">Staff / Tailor</option>
                 <option value="BranchManager">Branch Manager</option>
                 <option value="Accountant">Accountant</option>
               </select>

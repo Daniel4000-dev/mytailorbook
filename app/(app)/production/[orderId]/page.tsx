@@ -1254,7 +1254,7 @@ export default function OrderDetailPage() {
 
                 <div className={styles.metaGrid}>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Assigned Artisan</span>
+                    <span className={styles.metaLabel}>Assigned Tailor</span>
                     <div className={styles.metaAssignee}>
                       <span className={styles.metaAvatar}>
                         {(order.assignedToName || '—').slice(0, 2).toUpperCase()}

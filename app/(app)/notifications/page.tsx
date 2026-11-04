@@ -221,12 +221,12 @@ export default function NotificationsPage() {
                 ? "You're all caught up"
                 : searchQuery
                 ? 'No activity matches your search'
-                : 'No atelier activity yet'}
+                : 'No shop activity yet'}
             </h3>
             <p className={styles.emptyStateDesc}>
               {activeTab === 'unread'
                 ? 'All customer fitting comments, workshop stage transitions, and lookbook reactions have been reviewed.'
-                : 'When clients approve quotes, artisans cut fabrics, or payments arrive, they will appear right here.'}
+                : 'When clients approve quotes, tailors cut fabrics, or payments arrive, they will appear right here.'}
             </p>
           </div>
         ) : (
@@ -236,7 +236,7 @@ export default function NotificationsPage() {
               <div className={styles.rowList}>
                 {items.map((n) => {
                   const isUnread = !readIds.has(n.id) && !n.readAt;
-                  const itemTitle = n.title || 'Atelier Update';
+                  const itemTitle = n.title || 'Shop Update';
                   const actor = n.actorName || (itemTitle.split(' ')[0] + ' ' + (itemTitle.split(' ')[1] || ''));
                   const badgeIcon = n.badgeIcon || (n.tone === 'alert' ? 'warning' : 'check_circle');
                   const badgeBg = n.badgeBg || (n.tone === 'alert' ? '#FEE2E2' : '#D1FAE5');

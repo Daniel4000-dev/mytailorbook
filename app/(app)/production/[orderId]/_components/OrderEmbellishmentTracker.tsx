@@ -233,7 +233,7 @@ export default function OrderEmbellishmentTracker({
         <div className={styles.titleGroup}>
           <div className={styles.titleRow}>
             <Symbol name="diamond" size={16} style={{ color: '#C4B5FD' }} />
-            <h3 className={styles.cardTitle}>Artisan Embellishment &amp; Beading</h3>
+            <h3 className={styles.cardTitle}>Specialist Embellishment &amp; Beading</h3>
           </div>
           <span className={styles.cardSubtitle}>
             Specialist embroidery, tambour beading, and stoning tracker
@@ -265,7 +265,7 @@ export default function OrderEmbellishmentTracker({
           <div className={styles.emptyTextGroup}>
             <span className={styles.emptyTitle}>No specialist embellishment attached</span>
             <span className={styles.emptyDesc}>
-              Track computer embroidery, hand-beading, or stoning outsourced to artisans (can be done before sewing on flat panels or after sewing).
+              Track computer embroidery, hand-beading, or stoning outsourced to external specialists (can be done before sewing on flat panels or after sewing).
             </span>
           </div>
           <button type="button" className={styles.addBtn} onClick={startEdit}>
@@ -298,7 +298,7 @@ export default function OrderEmbellishmentTracker({
                 disabled={saving}
               >
                 <Symbol name="undo" size={14} />
-                <span>Send to Artisan</span>
+                <span>Send to Specialist</span>
               </button>
             )}
 
@@ -310,7 +310,7 @@ export default function OrderEmbellishmentTracker({
                 className={styles.actionBtnWhatsapp}
               >
                 <WhatsappIcon size={14} />
-                <span>WhatsApp {data.artisan ? data.artisan.split(' ')[0] : 'Artisan'}</span>
+                <span>WhatsApp {data.artisan ? data.artisan.split(' ')[0] : 'Specialist'}</span>
               </a>
             )}
 
@@ -356,7 +356,7 @@ export default function OrderEmbellishmentTracker({
 
             <div className={styles.detailTile}>
               <span className={styles.detailLabel}>
-                <Symbol name="person" size={12} /> Artisan / Specialist
+                <Symbol name="person" size={12} /> Specialist / Vendor
               </span>
               <span className={styles.detailValue}>
                 {data.artisan || 'In-House Specialist'}
@@ -448,13 +448,13 @@ export default function OrderEmbellishmentTracker({
               required
             />
             <Input
-              label="Artisan / Vendor Name"
+              label="Specialist / Vendor Name"
               value={formArtisan}
               onChange={(e) => setFormArtisan(e.target.value)}
               placeholder="e.g. Mama Aisha Beads, Ibrahim Machine"
             />
             <Input
-              label="Artisan WhatsApp / Phone"
+              label="Specialist WhatsApp / Phone"
               value={formPhone}
               onChange={(e) => setFormPhone(e.target.value)}
               placeholder="e.g. 08012345678"
@@ -466,7 +466,7 @@ export default function OrderEmbellishmentTracker({
               onChange={(e) => setFormDue(e.target.value)}
             />
             <MoneyInput
-              label="Agreed Artisan Fee (₦)"
+              label="Agreed Specialist Fee (₦)"
               value={formCost}
               onChange={setFormCost}
               placeholder="0"

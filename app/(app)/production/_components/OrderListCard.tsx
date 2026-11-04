@@ -284,9 +284,9 @@ export default function OrderListCard({
               </span>
             )}
             {isWithArtisan && (
-              <span className={styles.artisanBadge} title={`With Artisan: ${embellishmentType || 'Specialist'}`}>
+              <span className={styles.artisanBadge} title={`With Specialist: ${embellishmentType || 'Specialist'}`}>
                 <Symbol name="diamond" size={10} fill />
-                <span>ARTISAN ({truncateText(embellishmentType || 'BEADING', 10)})</span>
+                <span>SPECIALIST ({truncateText(embellishmentType || 'BEADING', 10)})</span>
               </span>
             )}
             {order.batchId && (
@@ -395,7 +395,7 @@ export default function OrderListCard({
             {embellishmentType && (
               <span
                 className={styles.embellishmentPill}
-                title={`Artisan Craft: ${embellishmentType} (${embellishmentStatus || 'Pending'})`}
+                title={`Specialist Craft: ${embellishmentType} (${embellishmentStatus || 'Pending'})`}
               >
                 <Symbol name="diamond" size={11} /> {truncateText(embellishmentType, 16)}
               </span>

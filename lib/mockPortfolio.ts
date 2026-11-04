@@ -37,7 +37,7 @@ export const DEFAULT_MOCK_PORTFOLIO: PublicPortfolio = {
     },
     {
       customerName: 'Kemi Adeyemi',
-      comment: 'The internal corsetry on my reception gown was breathtaking yet comfortable enough to dance in all night. A truly master artisan.',
+      comment: 'The internal corsetry on my reception gown was breathtaking yet comfortable enough to dance in all night. A truly master tailor.',
       rating: 5,
       submittedAt: new Date(Date.now() - 86400000 * 20).toISOString(),
     },

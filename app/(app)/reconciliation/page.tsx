@@ -23,10 +23,10 @@ const EXPENSE_CATEGORIES: {
   icon: string;
 }[] = [
   { key: 'material', label: 'Sewing Materials (Threads, Zips, Linings)', shortLabel: 'Materials', icon: 'content_cut' },
-  { key: 'general', label: 'Generator Fuel / Workshop Power', shortLabel: 'Fuel & Power', icon: 'bolt' },
-  { key: 'labor', label: 'Artisan & Machinist Sewing Wages', shortLabel: 'Artisan Wages', icon: 'engineering' },
-  { key: 'outsourced', label: 'Machine Needles & Technician Repairs', shortLabel: 'Machine Repairs', icon: 'build' },
-  { key: 'logistics', label: 'Delivery Courier & Transport Fare', shortLabel: 'Delivery Fare', icon: 'local_shipping' },
+  { key: 'general', label: 'Generator Fuel & Workshop Power', shortLabel: 'Fuel & Power', icon: 'bolt' },
+  { key: 'labor', label: 'Staff & Tailor Wages (Daily / Weekly Pay)', shortLabel: 'Staff Wages', icon: 'payments' },
+  { key: 'outsourced', label: 'Machine Needles & Technician Repairs', shortLabel: 'Repairs', icon: 'build' },
+  { key: 'logistics', label: 'Delivery Courier & Transport Fare', shortLabel: 'Delivery', icon: 'local_shipping' },
 ];
 
 const getLocalDateString = (d: Date = new Date()) => {
@@ -77,7 +77,6 @@ export default function ShopExpensesPage() {
 
   useEffect(() => {
     return () => {
-      // Flush pending deletions on unmount so no deletes are dropped on back navigation
       pendingDeletionsRef.current.forEach((item, id) => {
         clearTimeout(item.timer);
         if (!item.undone && currentShop?.id) {
@@ -177,39 +176,32 @@ export default function ShopExpensesPage() {
     const isWestern = ['USD', 'EUR', 'GBP'].includes(curr);
     return [
       {
-        label: `Fuel (${currencySymbol}${formatNumber(isWestern ? 20 : 5000)})`,
+        label: `+ Fuel (${currencySymbol}${formatNumber(isWestern ? 20 : 5000)})`,
         amount: isWestern ? '20' : '5000',
         category: 'general' as ExpenseCategory,
         description: 'Generator Fuel',
         method: 'cash' as PaymentMethod,
       },
       {
-        label: `Fuel (${currencySymbol}${formatNumber(isWestern ? 40 : 10000)})`,
-        amount: isWestern ? '40' : '10000',
-        category: 'general' as ExpenseCategory,
-        description: 'Generator Fuel',
-        method: 'transfer' as PaymentMethod,
-      },
-      {
-        label: 'Threads & Zips',
+        label: '+ Threads & Zips',
         amount: isWestern ? '15' : '3000',
         category: 'material' as ExpenseCategory,
-        description: 'Market spools and zips',
+        description: 'Sewing threads & zips',
         method: 'cash' as PaymentMethod,
       },
       {
-        label: 'Delivery Fare',
-        amount: isWestern ? '10' : '2000',
-        category: 'logistics' as ExpenseCategory,
-        description: 'Dispatch rider delivery',
-        method: 'cash' as PaymentMethod,
-      },
-      {
-        label: 'Artisan Payout',
+        label: '+ Staff Pay',
         amount: '',
         category: 'labor' as ExpenseCategory,
-        description: 'Machinist sewing fee',
+        description: 'Tailor wage',
         method: 'transfer' as PaymentMethod,
+      },
+      {
+        label: '+ Delivery Fare',
+        amount: isWestern ? '10' : '2000',
+        category: 'logistics' as ExpenseCategory,
+        description: 'Delivery dispatch fare',
+        method: 'cash' as PaymentMethod,
       },
     ];
   }, [currencySymbol, currentShop?.currency]);
@@ -307,7 +299,7 @@ export default function ShopExpensesPage() {
   // 1-Tap Copy WhatsApp Daily Reconciliation Summary
   const handleShareSummary = () => {
     const lines = [
-      `Shop Expenses Reconciliation — ${displayDateText} (${date})`,
+      `Shop Expenses — ${displayDateText} (${date})`,
       `Total Spent: ${currencySymbol}${formatNumber(totalDayExpense)}`,
       `• Cash from Drawer: ${currencySymbol}${formatNumber(cashTotal)}`,
       `• Bank Transfer / POS: ${currencySymbol}${formatNumber(transferTotal)}`,
@@ -315,9 +307,9 @@ export default function ShopExpensesPage() {
       `Category Breakdown:`,
       `• Materials: ${currencySymbol}${formatNumber(materialsTotal)}`,
       `• Fuel & Power: ${currencySymbol}${formatNumber(fuelTotal)}`,
-      `• Artisan Wages: ${currencySymbol}${formatNumber(wagesTotal)}`,
-      `• Machine Repairs: ${currencySymbol}${formatNumber(repairsTotal)}`,
-      `• Delivery Fare: ${currencySymbol}${formatNumber(deliveryTotal)}`,
+      `• Staff Wages: ${currencySymbol}${formatNumber(wagesTotal)}`,
+      `• Repairs: ${currencySymbol}${formatNumber(repairsTotal)}`,
+      `• Delivery: ${currencySymbol}${formatNumber(deliveryTotal)}`,
       ``,
       `Entries (${expenses.length}):`,
       ...expenses.map(
@@ -394,7 +386,7 @@ export default function ShopExpensesPage() {
     pendingDeletionsRef.current.set(id, pendingItem);
   };
 
-  // Handle Quick Expense Submission (Create or Edit with 0ms perceived latency)
+  // Handle Quick Expense Submission
   const handleRecordExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(expAmount.replace(/[^0-9.]/g, ''));
@@ -426,13 +418,11 @@ export default function ShopExpensesPage() {
       createdAt: new Date().toISOString(),
     };
 
-    // Close modal immediately for instant 0ms perceived latency
     setExpenseModalOpen(false);
     setExpAmount('');
     setExpDescription('');
     setEditingExpenseId(null);
 
-    // Optimistic UI updates
     if (editId) {
       if (targetDate === date) {
         setExpenses((prev) => prev.map((item) => (item.id === editId ? optimisticExp : item)));
@@ -456,7 +446,6 @@ export default function ShopExpensesPage() {
       }
     }
 
-    // Background sync to database
     try {
       if (editId) {
         await updateExpense(editId, currentShop.id, {
@@ -477,12 +466,10 @@ export default function ShopExpensesPage() {
           method: expMethod,
           orderId: expOrderId || undefined,
         });
-        // Swap tempId with confirmed database id
         setExpenses((prev) => prev.map((item) => (item.id === tempId ? (savedExp as Expense) : item)));
       }
     } catch (err: any) {
       console.warn('Expense sync error', err);
-      // Rollback optimistic state
       if (editId && previousExpense) {
         setExpenses((prev) => prev.map((item) => (item.id === editId ? previousExpense : item)));
       } else if (!editId) {
@@ -519,67 +506,6 @@ export default function ShopExpensesPage() {
       }
     >
       <div className={styles.container}>
-        {/* ── 1. COMPACT DATE NAVIGATOR ── */}
-        <section className={styles.dateBar}>
-          <div className={styles.dateNavLeft}>
-            <button
-              type="button"
-              className={styles.chevronBtn}
-              onClick={() => changeDate(-1)}
-              aria-label="Previous day"
-            >
-              <Symbol name="chevron_left" size={20} />
-            </button>
-            <div className={styles.datePillGroup}>
-              <button
-                type="button"
-                className={`${styles.datePill} ${isYesterday ? styles.datePillActive : ''}`}
-                onClick={() => setDate(yesterdayStr)}
-              >
-                Yesterday
-              </button>
-              <button
-                type="button"
-                className={`${styles.datePill} ${isToday ? styles.datePillActive : ''}`}
-                onClick={() => setDate(todayStr)}
-              >
-                Today
-              </button>
-            </div>
-            <button
-              type="button"
-              className={styles.chevronBtn}
-              onClick={() => changeDate(1)}
-              aria-label="Next day"
-            >
-              <Symbol name="chevron_right" size={20} />
-            </button>
-          </div>
-
-          <label
-            className={styles.calendarPickerBtn}
-            htmlFor="reconDateInput"
-            onClick={(e) => {
-              try {
-                const input = e.currentTarget.querySelector('input') as HTMLInputElement;
-                if (input && 'showPicker' in input) {
-                  input.showPicker();
-                }
-              } catch (_) {}
-            }}
-          >
-            <Symbol name="calendar_today" size={14} />
-            <span>{displayDateText}</span>
-            <input
-              id="reconDateInput"
-              type="date"
-              className={styles.hiddenDateInput}
-              value={date}
-              onChange={(e) => e.target.value && setDate(e.target.value)}
-            />
-          </label>
-        </section>
-
         {initialLoading ? (
           <div className={styles.loadingState}>
             <Symbol name="progress_activity" size={28} className="global-spinner" />
@@ -587,100 +513,140 @@ export default function ShopExpensesPage() {
           </div>
         ) : (
           <>
-            {/* ── 2. ELEVATED SUMMARY DECK ── */}
-            <section className={styles.summaryCard}>
-              <div className={styles.summaryHeader}>
-                <div className={styles.summaryLabelWrap}>
-                  <span className={styles.summaryEyebrow}>Total Expenses · {displayDateText}</span>
-                  {isRefreshing && (
-                    <span className={styles.refreshPulse}>
-                      <Symbol name="progress_activity" size={12} className="global-spinner" />
-                    </span>
-                  )}
-                </div>
-                {expenses.length > 0 && (
+            {/* ── 1. UNIFIED COMMAND HERO (Date + Spend + Drawer Balance + Primary CTA) ── */}
+            <section className={styles.heroCard}>
+              <div className={styles.heroTopBar}>
+                <div className={styles.dateNavWrap}>
                   <button
                     type="button"
-                    className={styles.shareSummaryBtn}
-                    onClick={handleShareSummary}
-                    title="Copy WhatsApp-ready reconciliation summary"
-                    aria-label="Copy WhatsApp summary"
+                    className={styles.dateNavArrow}
+                    onClick={() => changeDate(-1)}
+                    aria-label="Previous day"
                   >
-                    <Symbol name="share" size={13} />
-                    <span>Share Summary</span>
+                    <Symbol name="chevron_left" size={18} />
                   </button>
-                )}
-              </div>
 
-              <div className={styles.mainAmountRow}>
-                <span className={styles.mainAmountNumeral}>
-                  {currencySymbol}{formatNumber(totalDayExpense)}
-                </span>
-                <span className={styles.countBadge}>
-                  {expenses.length} {expenses.length === 1 ? 'entry' : 'entries'}
-                </span>
-              </div>
+                  <label className={styles.dateLabelBtn} htmlFor="reconDateInput">
+                    <Symbol name="calendar_today" size={13} />
+                    <span>{displayDateText}</span>
+                    <input
+                      id="reconDateInput"
+                      type="date"
+                      className={styles.hiddenDateInput}
+                      value={date}
+                      onChange={(e) => e.target.value && setDate(e.target.value)}
+                    />
+                  </label>
 
-              {/* Drawer Cash vs Bank Transfer Balance Meter */}
-              <div className={styles.reconciliationSplitCard}>
-                <div className={styles.splitSegment}>
-                  <span className={styles.splitDotCash} />
-                  <div className={styles.splitTextWrap}>
-                    <span className={styles.splitLabel}>Cash from Drawer</span>
-                    <strong className={styles.splitValue}>
-                      {currencySymbol}{formatNumber(cashTotal)}
-                    </strong>
-                  </div>
+                  <button
+                    type="button"
+                    className={styles.dateNavArrow}
+                    onClick={() => changeDate(1)}
+                    aria-label="Next day"
+                  >
+                    <Symbol name="chevron_right" size={18} />
+                  </button>
+
+                  {!isToday && (
+                    <button
+                      type="button"
+                      className={styles.todayJumpBtn}
+                      onClick={() => setDate(todayStr)}
+                    >
+                      Today
+                    </button>
+                  )}
                 </div>
 
-                <div className={styles.splitDivider} />
+                <div className={styles.heroTopRight}>
+                  {isRefreshing && (
+                    <span className={styles.refreshPulse} title="Refreshing...">
+                      <Symbol name="progress_activity" size={13} className="global-spinner" />
+                    </span>
+                  )}
+                  {expenses.length > 0 && (
+                    <button
+                      type="button"
+                      className={styles.shareSummaryBtn}
+                      onClick={handleShareSummary}
+                      title="Copy WhatsApp-ready reconciliation summary"
+                      aria-label="Share summary on WhatsApp"
+                    >
+                      <Symbol name="share" size={13} />
+                      <span>Share</span>
+                    </button>
+                  )}
+                </div>
+              </div>
 
-                <div className={styles.splitSegment}>
-                  <span className={styles.splitDotTransfer} />
-                  <div className={styles.splitTextWrap}>
-                    <span className={styles.splitLabel}>Bank Transfer / POS</span>
-                    <strong className={styles.splitValue}>
-                      {currencySymbol}{formatNumber(transferTotal)}
-                    </strong>
-                  </div>
+              {/* Main Total Expense Display */}
+              <div className={styles.heroMain}>
+                <span className={styles.heroEyebrow}>Total Expenses</span>
+                <div className={styles.heroAmountRow}>
+                  <span className={styles.heroAmount}>
+                    {currencySymbol}{formatNumber(totalDayExpense)}
+                  </span>
+                  <span className={styles.heroCountBadge}>
+                    {expenses.length} {expenses.length === 1 ? 'entry' : 'entries'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Drawer Cash vs Bank Transfer Breakdown */}
+              <div className={styles.drawerSplitStrip}>
+                <div className={styles.drawerSegment}>
+                  <span className={styles.dotCash} />
+                  <span className={styles.drawerLabel}>Drawer Cash:</span>
+                  <strong className={styles.drawerValue}>
+                    {currencySymbol}{formatNumber(cashTotal)}
+                  </strong>
+                </div>
+
+                <div className={styles.drawerSplitDivider} />
+
+                <div className={styles.drawerSegment}>
+                  <span className={styles.dotTransfer} />
+                  <span className={styles.drawerLabel}>Bank / POS:</span>
+                  <strong className={styles.drawerValue}>
+                    {currencySymbol}{formatNumber(transferTotal)}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Primary Action Button & Quick Preset Chips */}
+              <div className={styles.heroActionsWrap}>
+                <button
+                  type="button"
+                  className={styles.primaryActionBtn}
+                  onClick={() => handleOpenCreateModal()}
+                >
+                  <Symbol name="add" size={18} />
+                  <span>Record Expense</span>
+                </button>
+
+                <div className={styles.presetScrollWrap}>
+                  {workshopPresets.map((p, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={styles.presetChip}
+                      onClick={() =>
+                        handleOpenCreateModal({
+                          amount: p.amount,
+                          category: p.category,
+                          description: p.description,
+                          method: p.method,
+                        })
+                      }
+                    >
+                      {p.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </section>
 
-            {/* ── 3. PRIMARY ACTION & 1-TAP QUICK PRESETS ── */}
-            <div className={styles.actionSection}>
-              <button
-                type="button"
-                className={styles.primaryActionBtn}
-                onClick={() => handleOpenCreateModal()}
-              >
-                <Symbol name="add" size={18} />
-                <span>Record Expense</span>
-              </button>
-
-              <div className={styles.presetScrollWrap}>
-                <span className={styles.presetLabel}>Quick:</span>
-                {workshopPresets.map((p, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={styles.presetChip}
-                    onClick={() =>
-                      handleOpenCreateModal({
-                        amount: p.amount,
-                        category: p.category,
-                        description: p.description,
-                        method: p.method,
-                      })
-                    }
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* ── 4. SINGLE UNIFIED CATEGORY FILTER ── */}
+            {/* ── 2. CLEAN HORIZONTAL CATEGORY FILTER TABS ── */}
             <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
               <div className={styles.filterBar}>
                 <button
@@ -691,7 +657,7 @@ export default function ShopExpensesPage() {
                   onClick={() => setCategoryFilter('all')}
                 >
                   <span>All</span>
-                  <span className={styles.filterCount}>{expenses.length}</span>
+                  {expenses.length > 0 && <span className={styles.filterCount}>{expenses.length}</span>}
                 </button>
                 {EXPENSE_CATEGORIES.map((cat) => {
                   const count = expenses.filter((e) => e.category === cat.key).length;
@@ -714,19 +680,8 @@ export default function ShopExpensesPage() {
               </div>
             </div>
 
-            {/* ── 5. EXPENSE LEDGER ── */}
+            {/* ── 3. UNCLUTTERED EXPENSE LEDGER ── */}
             <section className={styles.ledgerSection}>
-              <div className={styles.ledgerHeaderRow}>
-                <h3 className={styles.ledgerSectionTitle}>
-                  {categoryFilter === 'all'
-                    ? 'Daily Ledger'
-                    : `${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel || 'Category'} Records`}
-                </h3>
-                <span className={styles.ledgerMutedSummary}>
-                  {currencySymbol}{formatNumber(filteredExpenses.reduce((s, e) => s + e.amount, 0))} ({filteredExpenses.length})
-                </span>
-              </div>
-
               {filteredExpenses.length === 0 ? (
                 <div className={styles.emptyContainer}>
                   <EmptyState
@@ -754,7 +709,19 @@ export default function ShopExpensesPage() {
                     const linkedOrder = e.orderId ? orders?.find((o) => o.id === e.orderId) : null;
 
                     return (
-                      <div key={e.id} className={styles.ledgerRow}>
+                      <div
+                        key={e.id}
+                        className={styles.ledgerRow}
+                        onClick={() => handleOpenEditModal(e)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(evt) => {
+                          if (evt.key === 'Enter' || evt.key === ' ') {
+                            evt.preventDefault();
+                            handleOpenEditModal(e);
+                          }
+                        }}
+                      >
                         <div className={styles.ledgerLeft}>
                           <div className={`${styles.expenseItemIconWrap} ${styles['icon_' + e.category] || ''}`}>
                             <Symbol name={catObj?.icon || 'receipt_long'} size={17} />
@@ -796,26 +763,18 @@ export default function ShopExpensesPage() {
                             −{currencySymbol}{formatNumber(e.amount)}
                           </span>
 
-                          <div className={styles.rowActions}>
-                            <button
-                              type="button"
-                              className={styles.rowActionBtn}
-                              onClick={() => handleOpenEditModal(e)}
-                              aria-label="Edit expense"
-                              title="Edit expense"
-                            >
-                              <Symbol name="edit" size={15} />
-                            </button>
-                            <button
-                              type="button"
-                              className={`${styles.rowActionBtn} ${styles.deleteActionBtn}`}
-                              onClick={() => handleDeleteExpense(e.id)}
-                              aria-label="Delete expense"
-                              title="Delete expense"
-                            >
-                              <Symbol name="delete" size={15} />
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            className={styles.rowDeleteQuickBtn}
+                            onClick={(evt) => {
+                              evt.stopPropagation();
+                              handleDeleteExpense(e.id);
+                            }}
+                            aria-label="Delete expense"
+                            title="Delete expense"
+                          >
+                            <Symbol name="delete" size={14} />
+                          </button>
                         </div>
                       </div>
                     );
@@ -827,7 +786,7 @@ export default function ShopExpensesPage() {
         )}
       </div>
 
-      {/* ── 6. RECORD / EDIT EXPENSE BOTTOMSHEET ── */}
+      {/* ── 4. RECORD / EDIT EXPENSE BOTTOMSHEET ── */}
       <BottomSheet
         isOpen={expenseModalOpen}
         onClose={() => {
@@ -837,16 +796,33 @@ export default function ShopExpensesPage() {
         title={editingExpenseId ? 'Edit Shop Expense' : 'Record Shop Expense'}
         footer={
           <div className={styles.modalActions}>
-            <button
-              type="button"
-              className={styles.modalCancelBtn}
-              onClick={() => {
-                setExpenseModalOpen(false);
-                setEditingExpenseId(null);
-              }}
-            >
-              Cancel
-            </button>
+            {editingExpenseId ? (
+              <button
+                type="button"
+                className={styles.modalDeleteBtn}
+                onClick={() => {
+                  const idToDelete = editingExpenseId;
+                  setExpenseModalOpen(false);
+                  setEditingExpenseId(null);
+                  handleDeleteExpense(idToDelete);
+                }}
+              >
+                <Symbol name="delete" size={14} />
+                <span>Delete</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={() => {
+                  setExpenseModalOpen(false);
+                  setEditingExpenseId(null);
+                }}
+              >
+                Cancel
+              </button>
+            )}
+
             <button
               type="submit"
               form="reconExpenseForm"

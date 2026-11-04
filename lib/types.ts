@@ -199,7 +199,7 @@ export const CRAFT_ROLE_LABELS: Record<AtelierCraftRole, string> = {
   apprentice: 'Apprentice / Trainee',
   finisher: 'Finisher / Presser',
   embroiderer: 'Embroiderer',
-  general: 'Artisan',
+  general: 'Shop Staff',
 };
 
 export interface User {

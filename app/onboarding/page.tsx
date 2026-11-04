@@ -538,7 +538,7 @@ export default function OnboardingPage() {
 
                     <div className={styles.capacityGrid}>
                       {[
-                        { val: '5', label: '1 – 5', desc: 'Artisan Solo' },
+                        { val: '5', label: '1 – 5', desc: 'Solo Tailor' },
                         { val: '20', label: '6 – 20', desc: 'Active Studio' },
                         { val: '50', label: '21 – 50', desc: 'Growing Team' },
                         { val: '100', label: '51 – 100', desc: 'Production' },

@@ -110,9 +110,9 @@ export default function ProductionFilterSheet({
                     if (val) setFilterMyTasks(false);
                   }}
                   className={styles.staffSelect}
-                  aria-label="Filter by assigned artisan"
+                  aria-label="Filter by assigned tailor"
                 >
-                  <option value="">Filter by Specific Artisan…</option>
+                  <option value="">Filter by Specific Tailor…</option>
                   {staffMembers.map((staff) => (
                     <option key={staff.uid} value={staff.uid}>
                       {staff.name} {staff.craftRole ? `(${staff.craftRole})` : ''}
