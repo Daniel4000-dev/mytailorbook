@@ -804,7 +804,7 @@ export default function ShopExpensesPage() {
           setExpenseModalOpen(false);
           setEditingExpenseId(null);
         }}
-        variant="modal"
+        variant="panel"
         title={editingExpenseId ? 'Edit Shop Expense' : 'Record Shop Expense'}
         footer={
           <div className={styles.modalActions}>
