@@ -671,7 +671,7 @@ export default function ShopExpensesPage() {
                       role="tab"
                       aria-selected={categoryFilter === cat.key}
                       className={`${styles.methodSegmentBtn} ${categoryFilter === cat.key ? styles.methodSegmentActive : ''}`}
-                      onClick={() => setCategoryFilter(cat.key)}
+                      onClick={() => setCategoryFilter(categoryFilter === cat.key ? 'all' : cat.key)}
                     >
                       <span>{cat.shortLabel}</span>
                       <span className={styles.methodSegmentCount}>{count}</span>
@@ -739,9 +739,17 @@ export default function ShopExpensesPage() {
                               {linkedOrder && (
                                 <>
                                   <span className={styles.metaDot}>·</span>
-                                  <span className={styles.orderBadge}>
-                                    Order #{linkedOrder.orderNumber || linkedOrder.id.slice(0, 4)}
-                                  </span>
+                                  <button
+                                    type="button"
+                                    className={styles.orderBadgeBtn}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      router.push(ROUTES.productionOrder(linkedOrder.id));
+                                    }}
+                                    title={`View Order #${linkedOrder.orderNumber || linkedOrder.id.slice(0, 4)} in Production`}
+                                  >
+                                    Order #{linkedOrder.orderNumber || linkedOrder.id.slice(0, 4)} &rarr;
+                                  </button>
                                 </>
                               )}
                             </div>
@@ -830,6 +838,7 @@ export default function ShopExpensesPage() {
                 type="text"
                 inputMode="decimal"
                 className={styles.amountInput}
+                style={{ paddingLeft: `${Math.max(38, currencySymbol.length * 13 + 18)}px` }}
                 placeholder="0"
                 value={expAmount}
                 onChange={(e) => setExpAmount(e.target.value)}
