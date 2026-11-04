@@ -33,6 +33,8 @@ export async function addExpense(data: Omit<Expense, 'id' | 'createdAt'>) {
   if (data.orderId) {
     revalidatePath(`/production/${data.orderId}`);
   }
+  revalidatePath('/reconciliation');
+  revalidatePath('/reports');
   revalidatePath('/dashboard');
 
   return {
@@ -43,6 +45,7 @@ export async function addExpense(data: Omit<Expense, 'id' | 'createdAt'>) {
     category: newExpense.category,
     description: newExpense.description,
     date: newExpense.date,
+    method: newExpense.method || data.method || 'cash',
     createdAt: newExpense.created_at,
   };
 }

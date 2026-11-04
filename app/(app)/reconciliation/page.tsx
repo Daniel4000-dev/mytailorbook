@@ -70,6 +70,7 @@ export default function ShopExpensesPage() {
   // Quick Expense BottomSheet state (Create or Edit)
   const [expenseModalOpen, setExpenseModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [expDate, setExpDate] = useState<string>(date);
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState<ExpenseCategory>('material');
   const [expMethod, setExpMethod] = useState<PaymentMethod>('cash');
@@ -146,6 +147,14 @@ export default function ShopExpensesPage() {
     [expenses]
   );
 
+  // Sorted active orders for job-costing dropdown
+  const activeOrdersList = useMemo(() => {
+    if (!orders) return [];
+    const inProgress = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled');
+    const others = orders.filter((o) => o.status === 'delivered' || o.status === 'cancelled');
+    return [...inProgress, ...others].slice(0, 50);
+  }, [orders]);
+
   // Filtered expenses
   const filteredExpenses = useMemo(() => {
     if (categoryFilter === 'all') return expenses;
@@ -182,6 +191,7 @@ export default function ShopExpensesPage() {
     description?: string;
   }) => {
     setEditingExpenseId(null);
+    setExpDate(date);
     setExpAmount(preset?.amount || '');
     setExpCategory(preset?.category || (categoryFilter !== 'all' ? categoryFilter : 'material'));
     setExpMethod('cash');
@@ -193,6 +203,7 @@ export default function ShopExpensesPage() {
   // Open Edit Modal
   const handleOpenEditModal = (expense: Expense) => {
     setEditingExpenseId(expense.id);
+    setExpDate(expense.date || date);
     setExpAmount(expense.amount.toString());
     setExpCategory(expense.category);
     setExpMethod(expense.method || 'cash');
@@ -203,7 +214,7 @@ export default function ShopExpensesPage() {
 
   // Quick Amount Add
   const handleAddQuickAmount = (val: number) => {
-    const current = parseFloat(expAmount.replace(/,/g, '')) || 0;
+    const current = parseFloat(expAmount.replace(/[^0-9.]/g, '')) || 0;
     setExpAmount((current + val).toString());
   };
 
@@ -245,7 +256,7 @@ export default function ShopExpensesPage() {
   // Handle Quick Expense Submission (Create or Edit)
   const handleRecordExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numAmount = parseFloat(expAmount.replace(/,/g, ''));
+    const numAmount = parseFloat(expAmount.replace(/[^0-9.]/g, ''));
     if (isNaN(numAmount) || numAmount <= 0) {
       showToast('Please enter a valid expense amount', 'error');
       return;
@@ -255,6 +266,7 @@ export default function ShopExpensesPage() {
     setIsSubmittingExpense(true);
 
     const desc = expDescription.trim() || EXPENSE_CATEGORIES.find((c) => c.key === expCategory)?.shortLabel || 'Workshop Expense';
+    const targetDate = expDate || date;
 
     try {
       if (editingExpenseId) {
@@ -263,26 +275,35 @@ export default function ShopExpensesPage() {
           amount: numAmount,
           category: expCategory,
           description: desc,
-          date: date,
+          date: targetDate,
           method: expMethod,
           orderId: expOrderId || null,
         });
 
-        setExpenses((prev) =>
-          prev.map((item) =>
-            item.id === editingExpenseId
-              ? {
-                  ...item,
-                  amount: numAmount,
-                  category: expCategory,
-                  description: desc,
-                  method: expMethod,
-                  orderId: expOrderId || undefined,
-                }
-              : item
-          )
-        );
-        showToast(`Expense updated!`, 'success');
+        if (targetDate === date) {
+          setExpenses((prev) =>
+            prev.map((item) =>
+              item.id === editingExpenseId
+                ? {
+                    ...item,
+                    amount: numAmount,
+                    category: expCategory,
+                    description: desc,
+                    date: targetDate,
+                    method: expMethod,
+                    orderId: expOrderId || undefined,
+                  }
+                : item
+            )
+          );
+          showToast(`Expense updated!`, 'success');
+        } else {
+          setExpenses((prev) => prev.filter((item) => item.id !== editingExpenseId));
+          showToast(`Expense updated and moved to ${targetDate}`, 'success', {
+            label: 'View Date',
+            onClick: () => setDate(targetDate),
+          });
+        }
       } else {
         // Create new
         const newExp = await addExpense({
@@ -290,13 +311,20 @@ export default function ShopExpensesPage() {
           amount: numAmount,
           category: expCategory,
           description: desc,
-          date: date,
+          date: targetDate,
           method: expMethod,
           orderId: expOrderId || undefined,
         });
 
-        setExpenses((prev) => [newExp as Expense, ...prev]);
-        showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
+        if (targetDate === date) {
+          setExpenses((prev) => [newExp as Expense, ...prev]);
+          showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
+        } else {
+          showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved for ${targetDate}`, 'success', {
+            label: 'View Date',
+            onClick: () => setDate(targetDate),
+          });
+        }
       }
 
       setExpenseModalOpen(false);
@@ -306,21 +334,30 @@ export default function ShopExpensesPage() {
     } catch (err: any) {
       // In offline / fallback mode
       if (editingExpenseId) {
-        setExpenses((prev) =>
-          prev.map((item) =>
-            item.id === editingExpenseId
-              ? {
-                  ...item,
-                  amount: numAmount,
-                  category: expCategory,
-                  description: desc,
-                  method: expMethod,
-                  orderId: expOrderId || undefined,
-                }
-              : item
-          )
-        );
-        showToast(`Expense updated!`, 'success');
+        if (targetDate === date) {
+          setExpenses((prev) =>
+            prev.map((item) =>
+              item.id === editingExpenseId
+                ? {
+                    ...item,
+                    amount: numAmount,
+                    category: expCategory,
+                    description: desc,
+                    date: targetDate,
+                    method: expMethod,
+                    orderId: expOrderId || undefined,
+                  }
+                : item
+            )
+          );
+          showToast(`Expense updated!`, 'success');
+        } else {
+          setExpenses((prev) => prev.filter((item) => item.id !== editingExpenseId));
+          showToast(`Expense moved to ${targetDate}`, 'success', {
+            label: 'View Date',
+            onClick: () => setDate(targetDate),
+          });
+        }
       } else {
         const mockExp: Expense = {
           id: `mock-exp-${Date.now()}`,
@@ -328,13 +365,20 @@ export default function ShopExpensesPage() {
           amount: numAmount,
           category: expCategory,
           description: desc,
-          date: date,
+          date: targetDate,
           method: expMethod,
           orderId: expOrderId || undefined,
           createdAt: new Date().toISOString(),
         };
-        setExpenses((prev) => [mockExp, ...prev]);
-        showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
+        if (targetDate === date) {
+          setExpenses((prev) => [mockExp, ...prev]);
+          showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
+        } else {
+          showToast(`Expense saved for ${targetDate}`, 'success', {
+            label: 'View Date',
+            onClick: () => setDate(targetDate),
+          });
+        }
       }
       setExpenseModalOpen(false);
       setExpAmount('');
@@ -619,11 +663,19 @@ export default function ShopExpensesPage() {
                 <div className={styles.emptyContainer}>
                   <EmptyState
                     icon={<Symbol name="receipt_long" size={32} />}
-                    title="No Expenses Logged on this Date"
-                    description={`No workshop payouts or material purchases recorded for ${displayDateText}.`}
+                    title={
+                      categoryFilter !== 'all' && expenses.length > 0
+                        ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel || ''} Expenses`
+                        : "No Expenses Logged on this Date"
+                    }
+                    description={
+                      categoryFilter !== 'all' && expenses.length > 0
+                        ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel.toLowerCase() || ''} expenses found for ${displayDateText}.`
+                        : `No workshop payouts or material purchases recorded for ${displayDateText}.`
+                    }
                     action={{
-                      label: 'Record Expense',
-                      onClick: () => handleOpenCreateModal(),
+                      label: categoryFilter !== 'all' && expenses.length > 0 ? 'Show All Expenses' : 'Record Expense',
+                      onClick: categoryFilter !== 'all' && expenses.length > 0 ? () => setCategoryFilter('all') : () => handleOpenCreateModal(),
                     }}
                   />
                 </div>
@@ -795,6 +847,21 @@ export default function ShopExpensesPage() {
             </div>
           </div>
 
+          {/* Expense Date */}
+          <div className={styles.field}>
+            <label className={styles.fieldLabel} htmlFor="expDateField">
+              Expense Date
+            </label>
+            <input
+              id="expDateField"
+              type="date"
+              className={styles.textInput}
+              value={expDate}
+              max={todayStr}
+              onChange={(e) => e.target.value && setExpDate(e.target.value)}
+            />
+          </div>
+
           {/* Description */}
           <div className={styles.field}>
             <label className={styles.fieldLabel} htmlFor="expDescInput">
@@ -811,7 +878,7 @@ export default function ShopExpensesPage() {
           </div>
 
           {/* Optional Order Attribution */}
-          {orders && orders.length > 0 && (
+          {activeOrdersList.length > 0 && (
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="expOrderSelect">
                 Link to Customer Order (Optional Job Costing)
@@ -823,7 +890,7 @@ export default function ShopExpensesPage() {
                 onChange={(e) => setExpOrderId(e.target.value)}
               >
                 <option value="">None (General Workshop Overhead)</option>
-                {orders.slice(0, 20).map((o) => (
+                {activeOrdersList.map((o) => (
                   <option key={o.id} value={o.id}>
                     Order #{o.orderNumber || o.id.slice(0, 4)} — {o.customerName || 'Customer'} ({o.styleName || 'Custom Outfit'})
                   </option>
