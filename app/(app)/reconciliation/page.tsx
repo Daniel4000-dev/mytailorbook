@@ -36,13 +36,21 @@ const WORKSHOP_PRESETS: {
   amount: string;
   category: ExpenseCategory;
   description: string;
+  method?: PaymentMethod;
 }[] = [
-  { label: 'Fuel (₦5,000)', amount: '5000', category: 'general', description: 'Generator Fuel' },
-  { label: 'Fuel (₦10,000)', amount: '10000', category: 'general', description: 'Generator Fuel' },
-  { label: 'Threads & Zips', amount: '3000', category: 'material', description: 'Market spools and zips' },
-  { label: 'Delivery Fare', amount: '2000', category: 'logistics', description: 'Dispatch rider delivery' },
-  { label: 'Artisan Payout', amount: '', category: 'labor', description: 'Machinist sewing fee' },
+  { label: 'Fuel (₦5,000)', amount: '5000', category: 'general', description: 'Generator Fuel', method: 'cash' },
+  { label: 'Fuel (₦10,000)', amount: '10000', category: 'general', description: 'Generator Fuel', method: 'transfer' },
+  { label: 'Threads & Zips', amount: '3000', category: 'material', description: 'Market spools and zips', method: 'cash' },
+  { label: 'Delivery Fare', amount: '2000', category: 'logistics', description: 'Dispatch rider delivery', method: 'cash' },
+  { label: 'Artisan Payout', amount: '', category: 'labor', description: 'Machinist sewing fee', method: 'transfer' },
 ];
+
+const getLocalDateString = (d: Date = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function ShopExpensesPage() {
   const { currentShop, orders } = useData();
@@ -59,8 +67,8 @@ export default function ShopExpensesPage() {
     }
   }, [user, isOwner, router]);
 
-  // Selected date (ISO string YYYY-MM-DD)
-  const [date, setDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  // Selected date (Local YYYY-MM-DD)
+  const [date, setDate] = useState<string>(() => getLocalDateString());
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,6 +85,22 @@ export default function ShopExpensesPage() {
   const [expDescription, setExpDescription] = useState('');
   const [expOrderId, setExpOrderId] = useState<string>('');
   const [isSubmittingExpense, setIsSubmittingExpense] = useState(false);
+
+  // Safe pending deletions tracker across unmounts
+  const pendingDeletionsRef = React.useRef<Map<string, { timer: NodeJS.Timeout; undone: boolean }>>(new Map());
+
+  useEffect(() => {
+    return () => {
+      // Flush pending deletions on unmount so no deletes are dropped on back navigation
+      pendingDeletionsRef.current.forEach((item, id) => {
+        clearTimeout(item.timer);
+        if (!item.undone && currentShop?.id) {
+          deleteExpense(id, currentShop.id).catch(console.error);
+        }
+      });
+      pendingDeletionsRef.current.clear();
+    };
+  }, [currentShop?.id]);
 
   // Fetch expenses for selected date
   useEffect(() => {
@@ -162,18 +186,18 @@ export default function ShopExpensesPage() {
   }, [expenses, categoryFilter]);
 
   // Date Navigator Helpers
-  const changeDate = (days: number) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + days);
-    setDate(d.toISOString().split('T')[0]);
-  };
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const yesterdayStr = (() => {
+  const todayStr = useMemo(() => getLocalDateString(), []);
+  const yesterdayStr = useMemo(() => {
     const y = new Date();
     y.setDate(y.getDate() - 1);
-    return y.toISOString().split('T')[0];
-  })();
+    return getLocalDateString(y);
+  }, []);
+
+  const changeDate = (days: number) => {
+    const [y, m, d] = date.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d + days);
+    setDate(getLocalDateString(dateObj));
+  };
 
   const isToday = date === todayStr;
   const isYesterday = date === yesterdayStr;
@@ -181,7 +205,9 @@ export default function ShopExpensesPage() {
   const displayDateText = useMemo(() => {
     if (isToday) return 'Today';
     if (isYesterday) return 'Yesterday';
-    return new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const [y, m, d] = date.split('-').map(Number);
+    const localDate = new Date(y, m - 1, d);
+    return localDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }, [date, isToday, isYesterday]);
 
   // Open Create Modal
@@ -189,12 +215,13 @@ export default function ShopExpensesPage() {
     amount?: string;
     category?: ExpenseCategory;
     description?: string;
+    method?: PaymentMethod;
   }) => {
     setEditingExpenseId(null);
     setExpDate(date);
     setExpAmount(preset?.amount || '');
     setExpCategory(preset?.category || (categoryFilter !== 'all' ? categoryFilter : 'material'));
-    setExpMethod('cash');
+    setExpMethod(preset?.method || 'cash');
     setExpDescription(preset?.description || '');
     setExpOrderId('');
     setExpenseModalOpen(true);
@@ -227,23 +254,26 @@ export default function ShopExpensesPage() {
     const updated = expenses.filter((e) => e.id !== id);
     setExpenses(updated);
 
-    let undone = false;
+    const pendingItem = { timer: null as any, undone: false };
+
     showToast(
       `Expense of ${currencySymbol}${formatNumber(expenseToDelete.amount)} removed`,
       'info',
       {
         label: 'Undo',
         onClick: async () => {
-          undone = true;
+          pendingItem.undone = true;
+          if (pendingItem.timer) clearTimeout(pendingItem.timer);
+          pendingDeletionsRef.current.delete(id);
           setExpenses([expenseToDelete, ...updated]);
           showToast('Expense restored', 'success');
         },
       }
     );
 
-    // Call server after undo window
-    setTimeout(async () => {
-      if (!undone && currentShop?.id) {
+    pendingItem.timer = setTimeout(async () => {
+      if (!pendingItem.undone && currentShop?.id) {
+        pendingDeletionsRef.current.delete(id);
         try {
           await deleteExpense(id, currentShop.id);
         } catch (err) {
@@ -251,6 +281,8 @@ export default function ShopExpensesPage() {
         }
       }
     }, 6200);
+
+    pendingDeletionsRef.current.set(id, pendingItem);
   };
 
   // Handle Quick Expense Submission (Create or Edit)
@@ -608,6 +640,7 @@ export default function ShopExpensesPage() {
                       amount: p.amount,
                       category: p.category,
                       description: p.description,
+                      method: p.method,
                     })
                   }
                 >

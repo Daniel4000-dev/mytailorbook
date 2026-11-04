@@ -80,11 +80,16 @@ export async function getExpensesByDate(shopId: string, date: string): Promise<E
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Match either exact date string or full timestamp range within the day
+  const startOfDay = `${date}T00:00:00`;
+  const endOfDay = `${date}T23:59:59.999999`;
+
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
     .eq('shop_id', shopId)
-    .eq('date', date)
+    .gte('date', startOfDay)
+    .lte('date', endOfDay)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -98,8 +103,8 @@ export async function getExpensesByDate(shopId: string, date: string): Promise<E
     amount: e.amount,
     category: e.category,
     description: e.description,
-    date: e.date,
-    method: e.method,
+    date: e.date ? (typeof e.date === 'string' && e.date.includes('T') ? e.date.split('T')[0] : e.date) : date,
+    method: e.method || 'cash',
     createdAt: e.created_at,
   }));
 }
@@ -109,17 +114,22 @@ export async function deleteExpense(id: string, shopId: string) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) throw new Error('Not authenticated');
 
-  const { error } = await supabase
+  const { data: deleted, error } = await supabase
     .from('expenses')
     .delete()
     .eq('id', id)
-    .eq('shop_id', shopId);
+    .eq('shop_id', shopId)
+    .select('order_id')
+    .maybeSingle();
 
   if (error) {
     console.error('Delete expense error:', error);
     throw new Error('Failed to delete expense');
   }
 
+  if (deleted?.order_id) {
+    revalidatePath(`/production/${deleted.order_id}`);
+  }
   revalidatePath('/reconciliation');
   revalidatePath('/reports');
   revalidatePath('/dashboard');
@@ -152,6 +162,12 @@ export async function updateExpense(id: string, shopId: string, data: Partial<Ex
     throw new Error('Failed to update expense');
   }
 
+  if (updated?.order_id) {
+    revalidatePath(`/production/${updated.order_id}`);
+  }
+  if (data.orderId && data.orderId !== updated?.order_id) {
+    revalidatePath(`/production/${data.orderId}`);
+  }
   revalidatePath('/reconciliation');
   revalidatePath('/reports');
   revalidatePath('/dashboard');
