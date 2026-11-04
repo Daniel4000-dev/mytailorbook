@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNetwork } from '@/lib/hooks/useNetwork';
 import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
@@ -52,16 +52,6 @@ export default function TopBar({
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
   const currentTier = getTierForXp(xp);
-
-  const prevStreakRef = useRef(currentShop?.streakCurrent);
-
-  useEffect(() => {
-    if (currentStreak > (prevStreakRef.current || 0) && prevStreakRef.current !== undefined) {
-      // Streak increased! Show the Duolingo-style modal
-      setIsStreakModalOpen(true);
-    }
-    prevStreakRef.current = currentStreak;
-  }, [currentStreak]);
 
   const streakIndicator = (
     <button

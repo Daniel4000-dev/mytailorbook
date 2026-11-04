@@ -422,21 +422,9 @@ function CustomerProfileContent({
       <div className={styles.profileBar}>
         {/* ── 1. Luxury Profile Header (Instagram Profile Style) ── */}
         <section className={styles.profileHeader}>
-          {/* Avatar with Gradient / Ready Ring */}
+          {/* Clean Elevated Avatar */}
           <div className={styles.avatarWrap}>
-            <div
-              className={`${styles.avatarRing} ${
-                hasReadyOrder
-                  ? styles.ringReady
-                  : hasActiveOrder
-                  ? styles.ringGradient
-                  : styles.ringNeutral
-              }`}
-            >
-              <div className={styles.avatarInner}>
-                <Avatar name={customer.fullName} size="xl" shape="circle" />
-              </div>
-            </div>
+            <Avatar name={customer.fullName} size="xl" shape="circle" />
             {hasReadyOrder ? (
               <span className={styles.onlineBadge} title="Ready for pickup" />
             ) : hasActiveOrder ? (
@@ -536,51 +524,49 @@ function CustomerProfileContent({
             </a>
           </div>
 
-          {/* ── 2. Promoted Instagram Story Highlights (Garment Style Profiles) ── */}
-          <div className={styles.highlightsSection}>
-            <div className={styles.highlightsCarousel}>
+          {/* ── 2. Saved Style Profiles (Elevated Fit Cards) ─────────── */}
+          <div className={styles.styleProfilesSection}>
+            <div className={styles.styleProfilesHeader}>
+              <span className={styles.styleProfilesTitle}>Saved Garment Profiles</span>
+              <button
+                type="button"
+                className={styles.addStyleTextBtn}
+                onClick={() => setStyleSheet({ open: true, style: null })}
+              >
+                <Symbol name="add" size={13} /> Add Garment Fit
+              </button>
+            </div>
+            <div className={styles.styleProfilesTrack}>
               {profileEntries.map(([styleName, profile]) => {
                 const pointsCount = Object.keys(profile.measurements || {}).length;
                 return (
                   <button
                     key={styleName}
                     type="button"
-                    className={styles.highlightCard}
+                    className={styles.styleProfileCard}
                     onClick={() => setStyleSheet({ open: true, style: styleName })}
                     title={`View ${styleName} measurements`}
                   >
-                    <div className={styles.highlightPhotoWrap}>
-                      {stylePhotos[styleName] ? (
-                        <Image
-                          src={stylePhotos[styleName]}
-                          alt={styleName}
-                          width={64}
-                          height={64}
-                          className={styles.highlightImg}
-                        />
-                      ) : (
-                        <div className={styles.highlightPlaceholder}>
-                          <Symbol name="checkroom" size={24} />
-                        </div>
-                      )}
+                    <div className={styles.styleProfileIconWrap}>
+                      <Symbol name="checkroom" size={16} />
                     </div>
-                    <span className={styles.highlightTitle}>{styleName}</span>
-                    <span className={styles.highlightSub}>{pointsCount} pts</span>
+                    <div className={styles.styleProfileInfo}>
+                      <span className={styles.styleProfileName}>{styleName}</span>
+                      <span className={styles.styleProfileMeta}>{pointsCount} landmarks</span>
+                    </div>
                   </button>
                 );
               })}
-              <button
-                type="button"
-                className={styles.highlightCard}
-                onClick={() => setStyleSheet({ open: true, style: null })}
-                title="Add new garment style"
-              >
-                <div className={`${styles.highlightPhotoWrap} ${styles.addHighlightCard}`}>
-                  <Symbol name="add" size={22} style={{ color: 'var(--sf-brand-indigo)' }} />
-                </div>
-                <span className={styles.highlightTitle}>+ Add Style</span>
-                <span className={styles.highlightSub}>New Fit</span>
-              </button>
+              {profileEntries.length === 0 && (
+                <button
+                  type="button"
+                  className={styles.styleProfileEmptyCard}
+                  onClick={() => setStyleSheet({ open: true, style: null })}
+                >
+                  <Symbol name="add" size={15} />
+                  <span>Record style-specific fit (Senator, Agbada, Kaftan...)</span>
+                </button>
+              )}
             </div>
           </div>
 

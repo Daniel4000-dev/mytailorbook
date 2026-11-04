@@ -54,43 +54,9 @@
 
 .avatarWrap {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatarRing {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  padding: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ringGradient {
-  background: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #EC4899 100%);
-}
-
-.ringReady {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-}
-
-.ringNeutral {
-  background: transparent;
-  padding: 0;
-}
-
-.avatarInner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  padding: 2.5px;
-  background: var(--sf-bg-primary, #FFFFFF);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,25 +64,25 @@
 
 .onlineBadge {
   position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 16px;
-  height: 16px;
+  bottom: 0px;
+  right: 0px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #10B981;
-  border: 3px solid var(--sf-bg-primary, #FFFFFF);
+  border: 2.5px solid var(--sf-bg-primary, #FFFFFF);
   z-index: 2;
 }
 
 .activeBadge {
   position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 16px;
-  height: 16px;
+  bottom: 0px;
+  right: 0px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  background: #6366F1;
-  border: 3px solid var(--sf-bg-primary, #FFFFFF);
+  background: var(--sf-brand-indigo);
+  border: 2.5px solid var(--sf-bg-primary, #FFFFFF);
   z-index: 2;
 }
 
@@ -290,96 +256,136 @@
   background: rgba(0, 0, 0, 0.08);
 }
 
-/* ── 4. Promoted Instagram Story Highlights (Style Profiles) ── */
-.highlightsSection {
+/* ── 4. Saved Style Profiles (Elevated Fit Cards) ─────────────── */
+.styleProfilesSection {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.highlightsCarousel {
+.styleProfilesHeader {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.styleProfilesTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-text-tertiary);
+}
+
+.addStyleTextBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-sm);
+  transition: all var(--sf-transition-fast);
+}
+
+.addStyleTextBtn:hover {
+  background: rgba(67, 56, 202, 0.08);
+}
+
+.styleProfilesTrack {
+  display: flex;
+  gap: 10px;
   overflow-x: auto;
-  padding: 4px 4px 10px;
+  padding: 2px 2px 8px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.highlightsCarousel::-webkit-scrollbar {
+.styleProfilesTrack::-webkit-scrollbar {
   display: none;
 }
 
-.highlightCard {
+.styleProfileCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  cursor: pointer;
+  user-select: none;
   flex-shrink: 0;
-  width: 76px;
+  text-align: left;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.styleProfileCard:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border);
+}
+
+.styleProfileCard:active {
+  transform: scale(0.97);
+}
+
+.styleProfileIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-sm);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.styleProfileInfo {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  transition: transform var(--sf-transition-fast);
 }
 
-.highlightCard:active {
-  transform: scale(0.94);
-}
-
-.highlightPhotoWrap {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--sf-bg-surface);
-  border: 2px solid var(--sf-brand-indigo-light);
-  padding: 2.5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.highlightImg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.highlightPlaceholder {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: rgba(67, 56, 202, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sf-brand-indigo);
-}
-
-.highlightTitle {
-  font-size: 11.5px;
+.styleProfileName {
+  font-size: 13px;
   font-weight: 600;
   color: var(--sf-text-primary);
-  text-align: center;
-  max-width: 74px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.highlightSub {
-  font-size: 10px;
+.styleProfileMeta {
+  font-size: 10.5px;
   color: var(--sf-text-tertiary);
-  margin-top: -3px;
+  font-weight: 500;
 }
 
-.addHighlightCard {
+.styleProfileEmptyCard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
   border: 1.5px dashed var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  color: var(--sf-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
   background: transparent;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.styleProfileEmptyCard:hover {
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
 }
 
 /* ── 5. Sleek Instagram Tab Bar ──────────────────────────────── */

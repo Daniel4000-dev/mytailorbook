@@ -182,16 +182,20 @@ export default function CustomersPage() {
     });
   }, [customers, clientFilter, styleFilter, search, customerStats]);
 
-  const { totalCustomers, activeCustomers, owingCount, readyCount } = useMemo(() => {
+  const { totalCustomers, activeCustomers, owingCount, readyCount, totalBalanceOwed } = useMemo(() => {
     let active = 0;
     let owing = 0;
     let ready = 0;
+    let totalBal = 0;
     customers.forEach((c) => {
       const s = customerStats[c.id];
       if (s) {
         if (s.activeOrder?.status === 'Ready') ready += 1;
         if (s.activeOrders > 0) active += 1;
-        if (s.totalBalance > 0) owing += 1;
+        if (s.totalBalance > 0) {
+          owing += 1;
+          totalBal += s.totalBalance;
+        }
       }
     });
     return {
@@ -199,67 +203,8 @@ export default function CustomersPage() {
       activeCustomers: active,
       owingCount: owing,
       readyCount: ready,
+      totalBalanceOwed: totalBal,
     };
-  }, [customers, customerStats]);
-
-  // Active / VIP clients for Instagram-style Story Notes Row
-  const storyClients = useMemo(() => {
-    const activeOrOwing = customers.filter(c => {
-      const s = customerStats[c.id];
-      return s && (s.activeOrders > 0 || s.totalBalance > 0);
-    });
-
-    const list = [...activeOrOwing];
-    if (list.length < 8) {
-      customers.forEach(c => {
-        if (!list.some(p => p.id === c.id) && list.length < 8) {
-          list.push(c);
-        }
-      });
-    }
-
-    return list.slice(0, 10).map(c => {
-      const s = customerStats[c.id];
-      let noteText = 'Client';
-      let noteIcon = 'person';
-      let isReady = false;
-      let hasActive = false;
-
-      if (s?.activeOrder) {
-        hasActive = true;
-        if (s.activeOrder.status === 'Ready') {
-          noteText = 'Ready';
-          noteIcon = 'checkroom';
-          isReady = true;
-        } else if (s.activeOrder.status === 'Sewing') {
-          noteText = 'In Sewing';
-          noteIcon = 'needle';
-        } else if (s.activeOrder.status === 'Cutting') {
-          noteText = 'In Cutting';
-          noteIcon = 'content_cut';
-        } else {
-          noteText = s.activeOrder.styleName ? s.activeOrder.styleName.split(' ')[0] : 'In Progress';
-          noteIcon = 'inventory_2';
-        }
-      } else if (s && s.totalBalance > 0) {
-        noteText = `₦${Math.round(s.totalBalance / 1000)}k due`;
-        noteIcon = 'payments';
-      } else {
-        noteText = c.preferredStyles?.[0] || 'Client';
-        noteIcon = 'star';
-      }
-
-      const firstName = c.fullName.split(' ')[0] || c.fullName;
-
-      return {
-        customer: c,
-        noteText,
-        noteIcon,
-        isReady,
-        hasActive,
-        firstName,
-      };
-    });
   }, [customers, customerStats]);
 
   const openOutreachSheet = () => {
@@ -367,7 +312,70 @@ export default function CustomersPage() {
 
   return (
     <PageLayout header={topBar}>
-      {/* ── 1. Search Bar with Integrated Filter (Instagram Pill Style) ── */}
+      {/* ── 1. Executive Workshop Client Pulse (KPI Cards) ─────────── */}
+      <div className={styles.kpiGrid}>
+        <div
+          className={`${styles.kpiCard} ${clientFilter === 'all' ? styles.kpiCardActive : ''}`}
+          onClick={() => setClientFilter('all')}
+          title="View all clients"
+        >
+          <div className={styles.kpiIconWrap}>
+            <Symbol name="group" size={16} />
+          </div>
+          <div className={styles.kpiContent}>
+            <span className={styles.kpiVal}>{totalCustomers}</span>
+            <span className={styles.kpiLabel}>Total Clients</span>
+          </div>
+        </div>
+
+        <div
+          className={`${styles.kpiCard} ${clientFilter === 'ready' ? styles.kpiCardActive : ''} ${readyCount > 0 ? styles.kpiCardReady : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
+          title="View clients ready for pickup"
+        >
+          <div className={`${styles.kpiIconWrap} ${readyCount > 0 ? styles.kpiIconReady : ''}`}>
+            <Symbol name="checkroom" size={16} />
+          </div>
+          <div className={styles.kpiContent}>
+            <span className={styles.kpiVal}>{readyCount}</span>
+            <span className={styles.kpiLabel}>Ready for Pickup</span>
+          </div>
+        </div>
+
+        <div
+          className={`${styles.kpiCard} ${clientFilter === 'active' ? styles.kpiCardActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
+          title="View clients with outfits in production"
+        >
+          <div className={styles.kpiIconWrap}>
+            <Symbol name="content_cut" size={16} />
+          </div>
+          <div className={styles.kpiContent}>
+            <span className={styles.kpiVal}>{activeCustomers}</span>
+            <span className={styles.kpiLabel}>In Production</span>
+          </div>
+        </div>
+
+        <div
+          className={`${styles.kpiCard} ${clientFilter === 'owing' ? styles.kpiCardActive : ''} ${owingCount > 0 ? styles.kpiCardOwing : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+          title="View clients with outstanding balances"
+        >
+          <div className={`${styles.kpiIconWrap} ${owingCount > 0 ? styles.kpiIconOwing : ''}`}>
+            <Symbol name="payments" size={16} />
+          </div>
+          <div className={styles.kpiContent}>
+            <span className={styles.kpiVal}>
+              {totalBalanceOwed > 0 ? `₦${Math.round(totalBalanceOwed / 1000)}k` : `${owingCount}`}
+            </span>
+            <span className={styles.kpiLabel}>
+              {owingCount > 0 ? `${owingCount} Owing` : 'Zero Debt'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. Search Bar with Integrated Filter ─────────────────────── */}
       <div className={styles.searchBarRow}>
         <div className={styles.searchBarPill}>
           <Symbol name="search" size={16} className={styles.searchIcon} />
@@ -402,70 +410,6 @@ export default function CustomersPage() {
           <span>{styleFilter || 'Filter'}</span>
         </button>
       </div>
-
-      {/* ── 2. Top Story Notes Carousel (Instagram Highlights / Notes) ── */}
-      {storyClients.length > 0 && (
-        <section className={styles.storiesSection} aria-label="Active fits & clients">
-          <div className={styles.storiesTrack}>
-            {/* Shop Story Bubble */}
-            <div
-              className={styles.storyItem}
-              onClick={() => setIsAddSheetOpen(true)}
-              title="Add new client"
-            >
-              <div className={styles.storyBubble}>
-                <Symbol name="auto_awesome" size={10} />
-                <span>Shop</span>
-                <span className={styles.storyBubbleTail} />
-              </div>
-              <div className={styles.storyAvatarWrap}>
-                <div className={`${styles.storyRing} ${styles.storyRingGradient}`}>
-                  <div className={styles.storyAvatarInner}>
-                    <Avatar name={shopInitials} size="lg" shape="circle" />
-                  </div>
-                </div>
-              </div>
-              <span className={styles.storyName}>Your note</span>
-            </div>
-
-            {/* Client Story Bubbles */}
-            {storyClients.map((item) => (
-              <div
-                key={item.customer.id}
-                className={styles.storyItem}
-                onClick={() => router.push(ROUTES.customerDetail(item.customer.id))}
-                title={`View ${item.customer.fullName}`}
-              >
-                <div className={styles.storyBubble}>
-                  <Symbol name={item.noteIcon} size={10} />
-                  <span>{item.noteText}</span>
-                  <span className={styles.storyBubbleTail} />
-                </div>
-                <div className={styles.storyAvatarWrap}>
-                  <div
-                    className={`${styles.storyRing} ${
-                      item.isReady
-                        ? styles.storyRingReady
-                        : item.hasActive
-                        ? styles.storyRingGradient
-                        : styles.storyRingNeutral
-                    }`}
-                  >
-                    <div
-                      className={`${styles.storyAvatarInner} ${
-                        !item.hasActive && !item.isReady ? styles.storyAvatarInnerPlain : ''
-                      }`}
-                    >
-                      <Avatar name={item.customer.fullName} size="lg" shape="circle" />
-                    </div>
-                  </div>
-                </div>
-                <span className={styles.storyName}>{item.firstName}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* ── 3. Soft Filter Pills (Borderless Capsules) ──────────────── */}
       <div className={styles.pillTrack}>
@@ -832,19 +776,7 @@ export default function CustomersPage() {
                   onClick={() => router.push(ROUTES.customerDetail(c.id))}
                 >
                   <div className={styles.avatarWrap}>
-                    <div
-                      className={`${styles.avatarRing} ${
-                        isReady
-                          ? styles.ringReady
-                          : hasActive
-                          ? styles.ringGradient
-                          : ''
-                      }`}
-                    >
-                      <div className={`${styles.avatarInner} ${!hasActive && !isReady ? styles.avatarInnerPlain : ''}`}>
-                        <Avatar name={c.fullName} size="lg" shape="circle" className={styles.circleAvatar} />
-                      </div>
-                    </div>
+                    <Avatar name={c.fullName} size="lg" shape="circle" className={styles.circleAvatar} />
                     {isReady ? (
                       <span className={styles.onlineBadge} title="Ready for pickup" />
                     ) : hasActive ? (
