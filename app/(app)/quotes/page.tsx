@@ -331,7 +331,7 @@ export default function QuoteEstimatorPage() {
     let noteSummary = '';
     if (costingMode === 'quick') {
       noteSummary = `[QUOTATION SPEC] ${garmentTitle}. Fabric: ${
-        fabricSourcing === 'customer' ? 'Client Provided' : 'Atelier Sourced'
+        fabricSourcing === 'customer' ? 'Client Provided' : 'Shop Sourced'
       }. Est. Production Cost: ${formatCurrency(baseCost, currency)}. Target: ${estimatedCompletionDate}. Deposit: ${formatCurrency(
         depositAmount,
         currency
@@ -340,7 +340,7 @@ export default function QuoteEstimatorPage() {
       const filteredCosts = costs.filter((c) => c.name.trim() && c.amount > 0);
       const costNoteLines = filteredCosts.map((c) => `${c.name}: ${formatCurrency(c.amount, currency)}`).join(', ');
       noteSummary = `[QUOTATION SPEC] ${garmentTitle}. Fabric: ${
-        fabricSourcing === 'customer' ? 'Client Provided' : 'Atelier Sourced'
+        fabricSourcing === 'customer' ? 'Client Provided' : 'Shop Sourced'
       }. Items: ${costNoteLines || 'Standard Tailoring'}. Target: ${estimatedCompletionDate}. Deposit: ${formatCurrency(
         depositAmount,
         currency
@@ -377,8 +377,8 @@ export default function QuoteEstimatorPage() {
 
     const fabricNote =
       fabricSourcing === 'customer'
-        ? '• Fabric: Client Provided (delivered to atelier)'
-        : '• Fabric: Sourced & Supplied by Atelier';
+        ? '• Fabric: Client Provided (delivered to shop)'
+        : '• Fabric: Sourced & Supplied by Shop';
 
     let contentBody = '';
     if (whatsAppFormat === 'inclusive' || costingMode === 'quick') {
@@ -772,7 +772,7 @@ ${shopName}`;
                     onClick={() => handleToggleFabricSourcing('shop')}
                   >
                     <Symbol name="storefront" size={16} />
-                    <span>Atelier Supplies Fabric</span>
+                    <span>Shop Supplies Fabric</span>
                   </button>
                   <button
                     type="button"
@@ -939,7 +939,7 @@ ${shopName}`;
                   /* ── Detailed Itemized Breakdown Flow ── */
                   <div className={styles.itemizedCostBox}>
                     <div className={styles.costPresetsSection}>
-                      <span className={styles.costPresetLabel}>Quick Add Atelier Craft Items:</span>
+                      <span className={styles.costPresetLabel}>Quick Add Workshop Items:</span>
                       <div className={styles.presetGroupStack}>
                         {CRAFT_PRESET_CATEGORIES.map((cat) => (
                           <div key={cat.category} className={styles.presetGroup}>

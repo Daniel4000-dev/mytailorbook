@@ -143,7 +143,7 @@ export default function CatalogueClient({
               target="_blank"
               rel="noopener noreferrer"
               className={styles.headerContactBtn}
-              title="Chat with atelier on WhatsApp"
+              title="Chat on WhatsApp"
             >
               <WhatsappIcon size={16} />
               <span>Contact Studio</span>
@@ -246,7 +246,7 @@ export default function CatalogueClient({
             <Symbol name="photo_library" size={40} />
             <h3 className={styles.emptyTitle}>No Designs in this Collection Yet</h3>
             <p className={styles.emptyText}>
-              The atelier is currently curating new bespoke inspirations for this collection. Please check back soon or browse All Looks.
+              We are currently adding new designs to this collection. Please check back soon or browse All Looks.
             </p>
             {activeFilterId !== null && (
               <button
@@ -295,11 +295,11 @@ export default function CatalogueClient({
                   <Symbol name="collections" size={14} />
                   <span>{selectedPhoto.albumTitle}</span>
                 </span>
-                <span className={styles.modalStudioSign}>{shopName} Atelier</span>
+                <span className={styles.modalStudioSign}>{shopName}</span>
               </div>
 
               <p className={styles.modalInstructions}>
-                Love this design? Send it directly to our atelier on WhatsApp to confirm custom measurements, fabric selection, and order delivery dates.
+                Love this design? Send it directly on WhatsApp to confirm custom measurements, fabric selection, and order delivery dates.
               </p>
 
               <div className={styles.modalActions}>
@@ -314,7 +314,7 @@ export default function CatalogueClient({
                   </button>
                 ) : (
                   <div className={styles.sharePinBtn} style={{ cursor: 'default', opacity: 0.8 }}>
-                    <span>Contact atelier directly to request this garment</span>
+                    <span>Contact shop directly to request this garment</span>
                   </div>
                 )}
 
@@ -332,15 +332,15 @@ export default function CatalogueClient({
         </div>
       )}
 
-      {/* ── Luxury Atelier Footer ── */}
+      {/* ── Footer ── */}
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <Symbol name="content_cut" size={16} />
-            <span>{shopName} Bespoke Atelier</span>
+            <span>{shopName}</span>
           </div>
           <p className={styles.footerNote}>
-            Powered by MyTailorBook • Haute Couture & Bespoke Atelier Management
+            Powered by MyTailorBook • Tailoring & Fashion Business Management
           </p>
         </div>
       </footer>

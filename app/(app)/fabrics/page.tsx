@@ -304,7 +304,7 @@ export default function FabricsPage() {
                   search
                     ? `No materials found matching "${search}". Try searching by customer name, style, or order reference.`
                     : stageFilter === 'uncut'
-                      ? 'No uncut fabrics currently waiting on the table. Switch to "Cutting" or "Sewing" to view active atelier garments.'
+                      ? 'No uncut fabrics currently waiting on the table. Switch to "Cutting" or "Sewing" to view active garments in production.'
                       : stageFilter === 'cutting'
                         ? 'Select an order from "Waiting to Cut" to begin cutting cloth on the workshop table.'
                         : stageFilter === 'sewing'

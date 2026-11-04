@@ -43,7 +43,7 @@ export default function MilestonesCard() {
           </span>
           <h2 className={styles.title}>Studio Milestones</h2>
         </div>
-        <span className={styles.subtitle}>Atelier Growth</span>
+        <span className={styles.subtitle}>Shop Growth</span>
       </div>
 
       {/* Actionable Next Move Prompt */}

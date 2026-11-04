@@ -504,6 +504,17 @@ export default function ShopExpensesPage() {
           subtitle="Daily supplies, generator fuel & workshop costs"
           showBack
           onBack={() => router.push(ROUTES.dashboard)}
+          rightAction={
+            <button
+              type="button"
+              className={styles.headerReportsBtn}
+              onClick={() => router.push(ROUTES.reports)}
+              title="View Monthly Profit & Loss Reports"
+            >
+              <Symbol name="monitoring" size={15} />
+              <span>Reports</span>
+            </button>
+          }
         />
       }
     >
@@ -557,7 +568,7 @@ export default function ShopExpensesPage() {
               } catch (_) {}
             }}
           >
-            <Symbol name="calendar_today" size={15} />
+            <Symbol name="calendar_today" size={14} />
             <span>{displayDateText}</span>
             <input
               id="reconDateInput"
@@ -572,220 +583,131 @@ export default function ShopExpensesPage() {
         {initialLoading ? (
           <div className={styles.loadingState}>
             <Symbol name="progress_activity" size={28} className="global-spinner" />
-            <p>Loading workshop expenses…</p>
+            <p>Loading shop expenses…</p>
           </div>
         ) : (
           <>
-            {/* ── 2. CONSOLIDATED MASTER EXPENSE COCKPIT ── */}
-            <section className={styles.cockpitCard}>
-              <div className={styles.cockpitTop}>
-                <div className={styles.cockpitHeaderRow}>
-                  <div className={styles.cockpitTitleWrap}>
-                    <div className={styles.expenseIconWrap}>
-                      <Symbol name="receipt_long" size={18} />
-                    </div>
-                    <span className={styles.cockpitEyebrow}>Total Spent on {displayDateText}</span>
-                    {isRefreshing && (
-                      <span className={styles.refreshingIndicator}>
-                        <Symbol name="progress_activity" size={13} className="global-spinner" />
-                      </span>
-                    )}
-                  </div>
-                  <div className={styles.cockpitActionsRow}>
-                    <span className={styles.statusBadge}>
-                      {expenses.length} {expenses.length === 1 ? 'Expense' : 'Expenses'}
+            {/* ── 2. ELEVATED SUMMARY DECK ── */}
+            <section className={styles.summaryCard}>
+              <div className={styles.summaryHeader}>
+                <div className={styles.summaryLabelWrap}>
+                  <span className={styles.summaryEyebrow}>Total Expenses · {displayDateText}</span>
+                  {isRefreshing && (
+                    <span className={styles.refreshPulse}>
+                      <Symbol name="progress_activity" size={12} className="global-spinner" />
                     </span>
-                    {expenses.length > 0 && (
-                      <button
-                        type="button"
-                        className={styles.shareSummaryBtn}
-                        onClick={handleShareSummary}
-                        title="Copy WhatsApp-ready reconciliation summary"
-                        aria-label="Copy WhatsApp reconciliation summary"
-                      >
-                        <Symbol name="share" size={13} />
-                        <span>Share</span>
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
-
-                <div className={styles.mainAmountRow}>
-                  <span className={styles.mainAmountNumeral}>
-                    {currencySymbol}{formatNumber(totalDayExpense)}
-                  </span>
-                </div>
-
-                {/* ── Physical Cash vs Bank Transfer Meter ── */}
-                <div className={styles.reconciliationSplitCard}>
-                  <div className={styles.splitSegment}>
-                    <div className={styles.splitIconCash}>
-                      <Symbol name="payments" size={15} />
-                    </div>
-                    <div className={styles.splitTextWrap}>
-                      <span className={styles.splitLabel}>Cash from Drawer</span>
-                      <span className={styles.splitValue}>
-                        {currencySymbol}{formatNumber(cashTotal)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.splitDivider} />
-
-                  <div className={styles.splitSegment}>
-                    <div className={styles.splitIconTransfer}>
-                      <Symbol name="account_balance" size={15} />
-                    </div>
-                    <div className={styles.splitTextWrap}>
-                      <span className={styles.splitLabel}>Bank Transfer</span>
-                      <span className={styles.splitValue}>
-                        {currencySymbol}{formatNumber(transferTotal)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.reportHint}>
-                  <Symbol name="monitoring" size={14} className={styles.hintIcon} />
-                  <span>Deducted automatically from your monthly profit report</span>
-                </div>
+                {expenses.length > 0 && (
+                  <button
+                    type="button"
+                    className={styles.shareSummaryBtn}
+                    onClick={handleShareSummary}
+                    title="Copy WhatsApp-ready reconciliation summary"
+                    aria-label="Copy WhatsApp summary"
+                  >
+                    <Symbol name="share" size={13} />
+                    <span>Share Summary</span>
+                  </button>
+                )}
               </div>
 
-              <div className={styles.cockpitDivider} />
+              <div className={styles.mainAmountRow}>
+                <span className={styles.mainAmountNumeral}>
+                  {currencySymbol}{formatNumber(totalDayExpense)}
+                </span>
+                <span className={styles.countBadge}>
+                  {expenses.length} {expenses.length === 1 ? 'entry' : 'entries'}
+                </span>
+              </div>
 
-              {/* ── Category Breakdown Shelf (All 5 Tailor Categories) ── */}
-              <div className={styles.cockpitShelf}>
-                <button
-                  type="button"
-                  className={`${styles.shelfColBtn} ${categoryFilter === 'material' ? styles.shelfActive : ''}`}
-                  onClick={() => setCategoryFilter(categoryFilter === 'material' ? 'all' : 'material')}
-                  aria-pressed={categoryFilter === 'material'}
-                  aria-label={`Filter by Materials, total ${currencySymbol}${formatNumber(materialsTotal)}`}
-                >
-                  <span className={styles.shelfLabel}>Materials</span>
-                  <span className={styles.shelfValue}>{currencySymbol}{formatNumber(materialsTotal)}</span>
-                  <span className={styles.shelfSubtext}>Thread, zips, lining</span>
-                </button>
+              {/* Drawer Cash vs Bank Transfer Balance Meter */}
+              <div className={styles.reconciliationSplitCard}>
+                <div className={styles.splitSegment}>
+                  <span className={styles.splitDotCash} />
+                  <div className={styles.splitTextWrap}>
+                    <span className={styles.splitLabel}>Cash from Drawer</span>
+                    <strong className={styles.splitValue}>
+                      {currencySymbol}{formatNumber(cashTotal)}
+                    </strong>
+                  </div>
+                </div>
 
-                <button
-                  type="button"
-                  className={`${styles.shelfColBtn} ${categoryFilter === 'general' ? styles.shelfActive : ''}`}
-                  onClick={() => setCategoryFilter(categoryFilter === 'general' ? 'all' : 'general')}
-                  aria-pressed={categoryFilter === 'general'}
-                  aria-label={`Filter by Fuel & Power, total ${currencySymbol}${formatNumber(fuelTotal)}`}
-                >
-                  <span className={styles.shelfLabel}>Fuel &amp; Power</span>
-                  <span className={styles.shelfValue}>{currencySymbol}{formatNumber(fuelTotal)}</span>
-                  <span className={styles.shelfSubtext}>Generator &amp; power</span>
-                </button>
+                <div className={styles.splitDivider} />
 
-                <button
-                  type="button"
-                  className={`${styles.shelfColBtn} ${categoryFilter === 'labor' ? styles.shelfActive : ''}`}
-                  onClick={() => setCategoryFilter(categoryFilter === 'labor' ? 'all' : 'labor')}
-                  aria-pressed={categoryFilter === 'labor'}
-                  aria-label={`Filter by Artisan Wages, total ${currencySymbol}${formatNumber(wagesTotal)}`}
-                >
-                  <span className={styles.shelfLabel}>Artisan Wages</span>
-                  <span className={styles.shelfValue}>{currencySymbol}{formatNumber(wagesTotal)}</span>
-                  <span className={styles.shelfSubtext}>Machinist fees</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`${styles.shelfColBtn} ${categoryFilter === 'outsourced' ? styles.shelfActive : ''}`}
-                  onClick={() => setCategoryFilter(categoryFilter === 'outsourced' ? 'all' : 'outsourced')}
-                  aria-pressed={categoryFilter === 'outsourced'}
-                  aria-label={`Filter by Machine Repairs, total ${currencySymbol}${formatNumber(repairsTotal)}`}
-                >
-                  <span className={styles.shelfLabel}>Repairs</span>
-                  <span className={styles.shelfValue}>{currencySymbol}{formatNumber(repairsTotal)}</span>
-                  <span className={styles.shelfSubtext}>Needles &amp; service</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`${styles.shelfColBtn} ${categoryFilter === 'logistics' ? styles.shelfActive : ''}`}
-                  onClick={() => setCategoryFilter(categoryFilter === 'logistics' ? 'all' : 'logistics')}
-                  aria-pressed={categoryFilter === 'logistics'}
-                  aria-label={`Filter by Delivery Fare, total ${currencySymbol}${formatNumber(deliveryTotal)}`}
-                >
-                  <span className={styles.shelfLabel}>Delivery</span>
-                  <span className={styles.shelfValue}>{currencySymbol}{formatNumber(deliveryTotal)}</span>
-                  <span className={styles.shelfSubtext}>Dispatch fares</span>
-                </button>
+                <div className={styles.splitSegment}>
+                  <span className={styles.splitDotTransfer} />
+                  <div className={styles.splitTextWrap}>
+                    <span className={styles.splitLabel}>Bank Transfer / POS</span>
+                    <strong className={styles.splitValue}>
+                      {currencySymbol}{formatNumber(transferTotal)}
+                    </strong>
+                  </div>
+                </div>
               </div>
             </section>
 
-            {/* ── 3. ACTION ROW & WORKSHOP QUICK PRESETS ── */}
-            <div className={styles.actionRow}>
+            {/* ── 3. PRIMARY ACTION & 1-TAP QUICK PRESETS ── */}
+            <div className={styles.actionSection}>
               <button
                 type="button"
                 className={styles.primaryActionBtn}
                 onClick={() => handleOpenCreateModal()}
               >
-                <Symbol name="add" size={17} />
+                <Symbol name="add" size={18} />
                 <span>Record Expense</span>
               </button>
 
-              <button
-                type="button"
-                className={styles.secondaryActionBtn}
-                onClick={() => router.push(ROUTES.reports)}
-              >
-                <Symbol name="monitoring" size={16} />
-                <span>Monthly Profit &rarr;</span>
-              </button>
+              <div className={styles.presetScrollWrap}>
+                <span className={styles.presetLabel}>Quick:</span>
+                {workshopPresets.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles.presetChip}
+                    onClick={() =>
+                      handleOpenCreateModal({
+                        amount: p.amount,
+                        category: p.category,
+                        description: p.description,
+                        method: p.method,
+                      })
+                    }
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* ── 1-Tap Workshop Quick Presets Bar ── */}
-            <div className={styles.presetScrollWrap}>
-              <span className={styles.presetLabel}>1-Tap Log:</span>
-              {workshopPresets.map((p, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={styles.presetChip}
-                  onClick={() =>
-                    handleOpenCreateModal({
-                      amount: p.amount,
-                      category: p.category,
-                      description: p.description,
-                      method: p.method,
-                    })
-                  }
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            {/* ── 4. CATEGORY SEGMENTED FILTER ── */}
-            <div className={styles.methodSegmentedWrap} role="tablist" aria-label="Expense Categories">
-              <div className={styles.methodSegmentedControl}>
+            {/* ── 4. SINGLE UNIFIED CATEGORY FILTER ── */}
+            <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
+              <div className={styles.filterBar}>
                 <button
                   type="button"
                   role="tab"
                   aria-selected={categoryFilter === 'all'}
-                  className={`${styles.methodSegmentBtn} ${categoryFilter === 'all' ? styles.methodSegmentActive : ''}`}
+                  className={`${styles.filterPill} ${categoryFilter === 'all' ? styles.filterPillActive : ''}`}
                   onClick={() => setCategoryFilter('all')}
                 >
                   <span>All</span>
-                  <span className={styles.methodSegmentCount}>{expenses.length}</span>
+                  <span className={styles.filterCount}>{expenses.length}</span>
                 </button>
                 {EXPENSE_CATEGORIES.map((cat) => {
                   const count = expenses.filter((e) => e.category === cat.key).length;
+                  const isActive = categoryFilter === cat.key;
                   return (
                     <button
                       key={cat.key}
                       type="button"
                       role="tab"
-                      aria-selected={categoryFilter === cat.key}
-                      className={`${styles.methodSegmentBtn} ${categoryFilter === cat.key ? styles.methodSegmentActive : ''}`}
-                      onClick={() => setCategoryFilter(categoryFilter === cat.key ? 'all' : cat.key)}
+                      aria-selected={isActive}
+                      className={`${styles.filterPill} ${isActive ? styles.filterPillActive : ''}`}
+                      onClick={() => setCategoryFilter(isActive ? 'all' : cat.key)}
                     >
+                      <Symbol name={cat.icon} size={14} />
                       <span>{cat.shortLabel}</span>
-                      <span className={styles.methodSegmentCount}>{count}</span>
+                      {count > 0 && <span className={styles.filterCount}>{count}</span>}
                     </button>
                   );
                 })}
@@ -796,30 +718,14 @@ export default function ShopExpensesPage() {
             <section className={styles.ledgerSection}>
               <div className={styles.ledgerHeaderRow}>
                 <h3 className={styles.ledgerSectionTitle}>
-                  Daily Expenses Ledger
+                  {categoryFilter === 'all'
+                    ? 'Daily Ledger'
+                    : `${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel || 'Category'} Records`}
                 </h3>
                 <span className={styles.ledgerMutedSummary}>
-                  {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
+                  {currencySymbol}{formatNumber(filteredExpenses.reduce((s, e) => s + e.amount, 0))} ({filteredExpenses.length})
                 </span>
               </div>
-
-              {categoryFilter !== 'all' && (
-                <div className={styles.filterBanner}>
-                  <div className={styles.filterBannerLeft}>
-                    <Symbol name="tune" size={14} />
-                    <span>
-                      Filtered to <strong>{EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel}</strong> ({filteredExpenses.length} of {expenses.length})
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.clearFilterBtn}
-                    onClick={() => setCategoryFilter('all')}
-                  >
-                    Show All
-                  </button>
-                </div>
-              )}
 
               {filteredExpenses.length === 0 ? (
                 <div className={styles.emptyContainer}>
@@ -855,15 +761,15 @@ export default function ShopExpensesPage() {
                           </div>
                           <div className={styles.ledgerDetails}>
                             <span className={styles.ledgerTitle}>
-                              {e.description || catObj?.label || 'Workshop Cost'}
+                              {e.description || catObj?.label || 'Shop Expense'}
                             </span>
                             <div className={styles.ledgerMeta}>
-                              <span className={`${styles.categoryBadge} ${styles['badge_' + e.category] || ''}`}>
-                                {catObj?.shortLabel || e.category}
+                              <span className={styles.methodBadge}>
+                                {e.method === 'transfer' ? 'Transfer' : 'Cash'}
                               </span>
                               <span className={styles.metaDot}>·</span>
-                              <span className={styles.methodBadge}>
-                                {e.method === 'transfer' ? 'Bank Transfer' : 'Cash'}
+                              <span className={`${styles.categoryBadge} ${styles['badge_' + e.category] || ''}`}>
+                                {catObj?.shortLabel || e.category}
                               </span>
                               {linkedOrder && (
                                 <>
