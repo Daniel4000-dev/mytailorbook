@@ -80,6 +80,7 @@ export default function ShopExpensesPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expDate, setExpDate] = useState<string>(date);
   const [expAmount, setExpAmount] = useState('');
+  const [shouldAutoFocus, setShouldAutoFocus] = useState(false);
   const [expCategory, setExpCategory] = useState<ExpenseCategory>('material');
   const [expMethod, setExpMethod] = useState<PaymentMethod>('cash');
   const [expDescription, setExpDescription] = useState('');
@@ -220,6 +221,7 @@ export default function ShopExpensesPage() {
     setEditingExpenseId(null);
     setExpDate(date);
     setExpAmount(preset?.amount || '');
+    setShouldAutoFocus(!preset?.amount);
     setExpCategory(preset?.category || (categoryFilter !== 'all' ? categoryFilter : 'material'));
     setExpMethod(preset?.method || 'cash');
     setExpDescription(preset?.description || '');
@@ -232,6 +234,7 @@ export default function ShopExpensesPage() {
     setEditingExpenseId(expense.id);
     setExpDate(expense.date || date);
     setExpAmount(expense.amount.toString());
+    setShouldAutoFocus(false);
     setExpCategory(expense.category);
     setExpMethod(expense.method || 'cash');
     setExpDescription(expense.description || '');
@@ -391,8 +394,11 @@ export default function ShopExpensesPage() {
           });
         }
       } else {
+        const fallbackId = typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, '0')}`;
         const mockExp: Expense = {
-          id: `mock-exp-${Date.now()}`,
+          id: fallbackId,
           shopId: currentShop.id,
           amount: numAmount,
           category: expCategory,
@@ -800,8 +806,34 @@ export default function ShopExpensesPage() {
           setEditingExpenseId(null);
         }}
         title={editingExpenseId ? 'Edit Shop Expense' : 'Record Shop Expense'}
+        footer={
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.modalCancelBtn}
+              onClick={() => {
+                setExpenseModalOpen(false);
+                setEditingExpenseId(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="reconExpenseForm"
+              className={styles.modalSubmitBtn}
+              disabled={isSubmittingExpense || !expAmount.trim()}
+            >
+              {isSubmittingExpense
+                ? 'Saving…'
+                : editingExpenseId
+                ? 'Save Changes'
+                : 'Save Expense'}
+            </button>
+          </div>
+        }
       >
-        <form onSubmit={handleRecordExpense} className={styles.modalForm}>
+        <form id="reconExpenseForm" onSubmit={handleRecordExpense} className={styles.modalForm}>
           {/* Amount Field with 1-Tap Quick Pills */}
           <div className={styles.field}>
             <div className={styles.amountHeaderRow}>
@@ -842,7 +874,7 @@ export default function ShopExpensesPage() {
                 placeholder="0"
                 value={expAmount}
                 onChange={(e) => setExpAmount(e.target.value)}
-                autoFocus
+                autoFocus={shouldAutoFocus}
                 required
               />
             </div>
@@ -940,31 +972,6 @@ export default function ShopExpensesPage() {
               </select>
             </div>
           )}
-
-          {/* Modal Actions */}
-          <div className={styles.modalActions}>
-            <button
-              type="button"
-              className={styles.modalCancelBtn}
-              onClick={() => {
-                setExpenseModalOpen(false);
-                setEditingExpenseId(null);
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className={styles.modalSubmitBtn}
-              disabled={isSubmittingExpense || !expAmount.trim()}
-            >
-              {isSubmittingExpense
-                ? 'Saving…'
-                : editingExpenseId
-                ? 'Save Changes'
-                : 'Save Expense'}
-            </button>
-          </div>
         </form>
       </BottomSheet>
     </PageLayout>
