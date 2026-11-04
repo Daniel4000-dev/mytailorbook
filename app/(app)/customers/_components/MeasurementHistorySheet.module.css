@@ -148,6 +148,36 @@
   background: rgba(16, 185, 129, 0.12);
 }
 
+.restoreRow {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.restoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.restoreBtn:hover {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+}
+
+.restoreBtn:active {
+  transform: scale(0.96);
+}
+
 /* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
 :global([data-theme='dark']) .entryCard {
   background: var(--sf-bg-surface, #161526);
@@ -215,5 +245,10 @@
 
   :global(:root:not([data-theme="light"])) .itemValue {
     color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .restoreBtn {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818CF8;
   }
 }

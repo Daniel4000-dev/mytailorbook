@@ -229,6 +229,50 @@ function CustomerProfileContent({
     }
   };
 
+  const handleWhatsAppMeasurements = () => {
+    const points = customer.gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
+    const labels = Object.fromEntries(points.map((p) => [p.id, p.name]));
+    const text = formatMeasurementsSummary({
+      customerName: customer.fullName,
+      gender: customer.gender,
+      measurements,
+      notes: notes || customer.measurementNotes,
+      labels,
+    });
+    window.open(getWhatsAppLink(customer.whatsappNumber, text), '_blank');
+  };
+
+  const activePointsList = customer.gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
+
+  const navigatePoint = (direction: -1 | 1) => {
+    if (!selectedPoint) return;
+    // Commit current input value first
+    if (currentValue !== (measurements[selectedPoint.id] || '')) {
+      const updatedMeasurements: Measurements = { ...customer.measurements };
+      Object.entries(measurements).forEach(([key, val]) => {
+        const num = parseMeasurementValue(val);
+        if (num !== null) (updatedMeasurements as unknown as Record<string, number>)[key] = num;
+      });
+      const parsed = parseMeasurementValue(currentValue);
+      if (parsed !== null) {
+        (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id] = parsed;
+      } else {
+        delete (updatedMeasurements as unknown as Record<string, number>)[selectedPoint.id];
+      }
+      setMeasurements((prev) => ({ ...prev, [selectedPoint.id]: currentValue }));
+      updateCustomerMeasurements(customer.id, updatedMeasurements);
+    }
+
+    const currentIndex = activePointsList.findIndex((p) => p.id === selectedPoint.id);
+    if (currentIndex === -1) return;
+    const nextIndex = currentIndex + direction;
+    if (nextIndex >= 0 && nextIndex < activePointsList.length) {
+      const nextPoint = activePointsList[nextIndex];
+      setSelectedPoint(nextPoint);
+      setCurrentValue(measurements[nextPoint.id] || '');
+    }
+  };
+
   const handleSaveNotes = () => {
     updateCustomerProfile(customer.id, { measurementNotes: notes.trim() || undefined });
     showToast('Notes saved', 'success');
@@ -454,8 +498,24 @@ function CustomerProfileContent({
               <Symbol name="add_circle" size={17} />
               <span>New Order</span>
             </button>
+            <button
+              type="button"
+              className={styles.appleSecondaryActionBtn}
+              onClick={() => router.push(`/quotes?customer=${customer.id}`)}
+              title="Calculate quick quote for this customer"
+            >
+              <Symbol name="calculate" size={16} />
+              <span>Quote</span>
+            </button>
             <a
-              href={getWhatsAppLink(customer.whatsappNumber)}
+              href={getWhatsAppLink(
+                customer.whatsappNumber,
+                hasReadyOrder
+                  ? `Hello ${customer.fullName}, your outfit is ready for pickup at our workshop! Looking forward to seeing you.`
+                  : totalOwed > 0
+                  ? `Hello ${customer.fullName}, friendly reminder regarding your pending balance of ${formatCurrency(totalOwed)}. Thank you!`
+                  : `Hello ${customer.fullName}!`
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.appleSecondaryActionBtn}
@@ -558,6 +618,14 @@ function CustomerProfileContent({
                 <button
                   type="button"
                   className={styles.newBtn}
+                  onClick={handleWhatsAppMeasurements}
+                  title="Send measurements summary via WhatsApp"
+                >
+                  <WhatsappIcon size={14} /> WHATSAPP
+                </button>
+                <button
+                  type="button"
+                  className={styles.newBtn}
                   onClick={handleCopyMeasurements}
                   title="Copy measurements summary to clipboard"
                 >
@@ -585,7 +653,49 @@ function CustomerProfileContent({
 
           {/* Posture & Fitting Notes */}
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Posture & Fit Notes</h3>
+            <div className={styles.sectionTitleRow}>
+              <h3 className={styles.sectionTitle}>Posture & Fit Notes</h3>
+              <span className={styles.notesSaveHint}>Auto-saved</span>
+            </div>
+            {/* Quick Posture Tags */}
+            <div className={styles.postureTagsTrack}>
+              {(customer.gender === 'female'
+                ? [
+                    'Corset Fit',
+                    'High Waist',
+                    'Full Bust',
+                    'Sloping Shoulder',
+                    'Hourglass Fit',
+                    'Wide Hips',
+                    'Petite Fit',
+                    'Modest Neckline',
+                  ]
+                : [
+                    'Sloping Shoulder',
+                    'Broad Shoulder',
+                    'Erect Posture',
+                    'Prominent Belly',
+                    'Drop Crotch',
+                    'Slim Fitted',
+                    'Regular Fit',
+                    'Extra Length',
+                  ]
+              ).map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={styles.postureChip}
+                  onClick={() => {
+                    const nextNotes = notes.trim() ? `${notes.trim()}, ${tag}` : tag;
+                    setNotes(nextNotes);
+                    updateCustomerProfile(customer.id, { measurementNotes: nextNotes });
+                    showToast(`Added "${tag}" to notes`, 'info');
+                  }}
+                >
+                  + {tag}
+                </button>
+              ))}
+            </div>
             <textarea
               className={styles.notesTextarea}
               placeholder="Add posture quirks, preferences, or fitting details here..."
@@ -760,15 +870,40 @@ function CustomerProfileContent({
 
       <BottomSheet isOpen={!!selectedPoint} onClose={() => setSelectedPoint(null)} variant="modal">
         <div style={{ padding: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-md)' }}>
-          <div>
-            <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>Selected point</p>
-            <h3 style={{ fontSize: 'var(--sf-text-lg)', fontWeight: 'var(--sf-weight-semibold)', color: 'var(--sf-text-primary)', marginBottom: 'var(--sf-space-md)' }}>
-              {selectedPoint?.name}
-            </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>Selected landmark</p>
+              <h3 style={{ fontSize: 'var(--sf-text-lg)', fontWeight: 'var(--sf-weight-semibold)', color: 'var(--sf-text-primary)' }}>
+                {selectedPoint?.name}
+              </h3>
+            </div>
+            {/* Previous and Next Navigation */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                className={styles.modalNavBtn}
+                onClick={() => navigatePoint(-1)}
+                disabled={activePointsList.findIndex((p) => p.id === selectedPoint?.id) <= 0}
+                title="Previous landmark point"
+              >
+                <Symbol name="arrow_back" size={16} />
+              </button>
+              <button
+                type="button"
+                className={styles.modalNavBtn}
+                onClick={() => navigatePoint(1)}
+                disabled={activePointsList.findIndex((p) => p.id === selectedPoint?.id) >= activePointsList.length - 1}
+                title="Next landmark point"
+              >
+                <Symbol name="arrow_forward" size={16} />
+              </button>
+            </div>
           </div>
 
           <Input
-            label="Measurement Value"
+            label="Measurement Value (inches)"
+            type="text"
+            inputMode="decimal"
             placeholder="e.g. 15 1/2 or 38.5"
             value={currentValue}
             onChange={(e) => setCurrentValue(e.target.value)}
@@ -780,12 +915,37 @@ function CustomerProfileContent({
             }}
           />
 
+          {/* Quick Fraction Chips */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {['1/4', '1/2', '3/4', '.25', '.5', '.75'].map((fraction) => (
+              <button
+                key={fraction}
+                type="button"
+                className={styles.fractionChip}
+                onClick={() => {
+                  const base = currentValue.trim();
+                  if (!base) {
+                    setCurrentValue(fraction.startsWith('.') ? `0${fraction}` : fraction);
+                  } else if (fraction.startsWith('.')) {
+                    const intPart = Math.floor(parseFloat(base) || 0);
+                    setCurrentValue(`${intPart}${fraction}`);
+                  } else {
+                    const intPart = base.split(' ')[0] || base;
+                    setCurrentValue(`${intPart} ${fraction}`);
+                  }
+                }}
+              >
+                +{fraction}&quot;
+              </button>
+            ))}
+          </div>
+
           <div style={{ display: 'flex', gap: 'var(--sf-space-md)', marginTop: 'var(--sf-space-sm)' }}>
             <Button variant="ghost" fullWidth onClick={handleClearMeasurement}>
               Clear
             </Button>
             <Button variant="primary" fullWidth onClick={handleSaveMeasurement}>
-              Save
+              Save Landmark
             </Button>
           </div>
         </div>

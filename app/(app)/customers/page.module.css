@@ -312,6 +312,14 @@
   display: inline-block;
 }
 
+.pillDotEmerald {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+}
+
 /* ── 4. Customer Feed (Continuous, Borderless Rows) ──────────── */
 .customerFeed {
   display: flex;
@@ -496,6 +504,30 @@
 .quickActionIcons {
   display: flex;
   align-items: center;
+  gap: 2px;
+}
+
+.callActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--sf-text-tertiary);
+  text-decoration: none;
+  transition: all var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .callActionBtn:hover {
+    background: rgba(67, 56, 202, 0.08);
+    color: var(--sf-brand-indigo);
+  }
+}
+
+.callActionBtn:active {
+  transform: scale(0.92);
 }
 
 .whatsappActionBtn {

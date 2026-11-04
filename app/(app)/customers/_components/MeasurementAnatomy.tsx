@@ -144,6 +144,7 @@ export default function MeasurementAnatomy({
               <input
                 id={point.id}
                 type="text"
+                inputMode="decimal"
                 enterKeyHint={i < points.length - 1 ? 'next' : 'done'}
                 className={styles.listInput}
                 placeholder="--"
@@ -153,10 +154,11 @@ export default function MeasurementAnatomy({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    (e.target as HTMLInputElement).blur();
                     const nextPoint = points[i + 1];
                     if (nextPoint) {
                       document.getElementById(nextPoint.id)?.focus();
+                    } else {
+                      (e.target as HTMLInputElement).blur();
                     }
                   }
                 }}

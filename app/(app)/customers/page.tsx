@@ -29,7 +29,7 @@ import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 40;
-type ClientFilter = 'all' | 'active' | 'owing' | 'male' | 'female';
+type ClientFilter = 'all' | 'ready' | 'active' | 'owing' | 'male' | 'female';
 
 interface CustomerStatDetail {
   totalOrders: number;
@@ -165,6 +165,7 @@ export default function CustomersPage() {
       const stats = customerStats[c.id];
       if (clientFilter === 'male' && c.gender !== 'male') return false;
       if (clientFilter === 'female' && c.gender !== 'female') return false;
+      if (clientFilter === 'ready' && stats?.activeOrder?.status !== 'Ready') return false;
       if (clientFilter === 'active' && (!stats || stats.activeOrders <= 0)) return false;
       if (clientFilter === 'owing' && (!stats || stats.totalBalance <= 0)) return false;
       if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
@@ -181,12 +182,14 @@ export default function CustomersPage() {
     });
   }, [customers, clientFilter, styleFilter, search, customerStats]);
 
-  const { totalCustomers, activeCustomers, owingCount } = useMemo(() => {
+  const { totalCustomers, activeCustomers, owingCount, readyCount } = useMemo(() => {
     let active = 0;
     let owing = 0;
+    let ready = 0;
     customers.forEach((c) => {
       const s = customerStats[c.id];
       if (s) {
+        if (s.activeOrder?.status === 'Ready') ready += 1;
         if (s.activeOrders > 0) active += 1;
         if (s.totalBalance > 0) owing += 1;
       }
@@ -195,6 +198,7 @@ export default function CustomersPage() {
       totalCustomers: customers.length,
       activeCustomers: active,
       owingCount: owing,
+      readyCount: ready,
     };
   }, [customers, customerStats]);
 
@@ -469,6 +473,15 @@ export default function CustomersPage() {
         >
           {clientFilter === 'all' && <span className={styles.pillDot} />}
           <span>All {totalCustomers > 0 ? totalCustomers : ''}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.softPill} ${clientFilter === 'ready' ? styles.softPillActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
+        >
+          {clientFilter === 'ready' ? <span className={styles.pillDotEmerald} /> : (readyCount > 0 && <span className={styles.pillDotEmerald} />)}
+          <span>Ready {readyCount > 0 ? readyCount : ''}</span>
         </button>
 
         <button
@@ -750,8 +763,16 @@ export default function CustomersPage() {
           <EmptyState
             icon={<Symbol name="person_off" />}
             title="No customers found"
-            description="Try a different search or filter"
-            action={{ label: 'New Client', onClick: () => setIsAddSheetOpen(true) }}
+            description={
+              search.trim()
+                ? `No client matching "${search.trim()}". You can clear your search or save them as a new client right away.`
+                : 'Try adjusting your filters or search term'
+            }
+            action={
+              search.trim()
+                ? { label: `Add "${search.trim()}"`, onClick: () => setIsAddSheetOpen(true) }
+                : { label: 'New Client', onClick: () => setIsAddSheetOpen(true) }
+            }
           />
         )
       ) : (
@@ -775,11 +796,18 @@ export default function CustomersPage() {
               } else if (hasBalance) {
                 subtitle = `₦${Math.round(stats.totalBalance).toLocaleString()} balance due · ${formatPhone(c.whatsappNumber)}`;
               } else if (stats?.latestOrder) {
-                const garment = stats.latestOrder.styleName || 'Bespoke Order';
+                const garment = stats.latestOrder.styleName || 'Custom Order';
                 subtitle = `Last: ${garment} · ${formatShortMonthYear(stats.latestOrder.createdAt)}`;
               } else {
                 subtitle = `Client · ${formatPhone(c.whatsappNumber)}`;
               }
+
+              // Contextual WhatsApp greeting to remove typing friction for tailors
+              const whatsappGreeting = isReady
+                ? `Hello ${c.fullName}, your ${stats?.activeOrder?.styleName || 'outfit'} is ready for pickup at our workshop! Looking forward to seeing you.`
+                : hasBalance
+                ? `Hello ${c.fullName}, friendly reminder regarding your pending balance of ₦${Math.round(stats.totalBalance).toLocaleString()} at our shop. Thank you!`
+                : `Hello ${c.fullName}!`;
 
               return (
                 <div
@@ -831,11 +859,20 @@ export default function CustomersPage() {
                     )}
                     <div className={styles.quickActionIcons} onClick={(e) => e.stopPropagation()}>
                       <a
-                        href={getWhatsAppLink(c.whatsappNumber)}
+                        href={`tel:+${c.whatsappNumber}`}
+                        className={styles.callActionBtn}
+                        aria-label={`Call ${c.fullName}`}
+                        title={`Call ${c.fullName}`}
+                      >
+                        <Symbol name="call" size={16} />
+                      </a>
+                      <a
+                        href={getWhatsAppLink(c.whatsappNumber, whatsappGreeting)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.whatsappActionBtn}
                         aria-label={`WhatsApp ${c.fullName}`}
+                        title={`WhatsApp ${c.fullName}`}
                       >
                         <WhatsappIcon size={18} />
                       </a>
@@ -861,6 +898,12 @@ export default function CustomersPage() {
       <AddCustomerSheet
         isOpen={isAddSheetOpen}
         onClose={() => setIsAddSheetOpen(false)}
+        initialName={search.trim()}
+        onCustomerCreated={(newCust) => {
+          setIsAddSheetOpen(false);
+          setSearch('');
+          router.push(ROUTES.customerDetail(newCust.id));
+        }}
       />
     </PageLayout>
   );

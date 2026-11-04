@@ -113,7 +113,7 @@ export default function StyleMeasureForm({
                   ref={(el) => { inputRefs.current[p.key] = el; }}
                   className={styles.measureInput}
                   type="text"
-                  inputMode="text"
+                  inputMode="decimal"
                   enterKeyHint={i < spec.points.length - 1 ? 'next' : 'done'}
                   placeholder="0.0"
                   value={values[p.key] || ''}

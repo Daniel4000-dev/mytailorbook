@@ -97,9 +97,29 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       setError(`Another client (${existingWithPhone.fullName}) is already registered with this phone number.`);
       return;
     }
-    if (birthdate && !/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(birthdate)) {
-      setError('Birthday format must be MM-DD.');
-      return;
+    let cleanBirthdate: string | undefined = undefined;
+    if (birthdate.trim()) {
+      const trimmed = birthdate.trim();
+      if (/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(trimmed)) {
+        cleanBirthdate = trimmed;
+      } else if (/^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/.test(trimmed)) {
+        cleanBirthdate = trimmed.replace('/', '-');
+      } else {
+        const ddmMatch = trimmed.match(/^([0-2]?\d|3[01])[-/](0?[1-9]|1[0-2])$/);
+        if (ddmMatch) {
+          const day = ddmMatch[1].padStart(2, '0');
+          const month = ddmMatch[2].padStart(2, '0');
+          cleanBirthdate = `${month}-${day}`;
+        } else {
+          const ymdMatch = trimmed.match(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/);
+          if (ymdMatch) {
+            cleanBirthdate = `${ymdMatch[1]}-${ymdMatch[2]}`;
+          } else {
+            setError('Enter birthday as MM-DD or DD/MM (e.g. 05-24 or 24/05).');
+            return;
+          }
+        }
+      }
     }
     setSaving(true);
     try {
@@ -108,7 +128,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
         whatsappNumber: phone.trim(),
         gender,
         address: address.trim() || undefined,
-        birthdate: birthdate.trim() || undefined,
+        birthdate: cleanBirthdate,
         preferredStyles: styleSet,
       });
       showToast('Profile updated', 'success');
@@ -142,10 +162,11 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
             className={styles.input}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           />
         </div>
 
-        <div className={styles.field}>
+        <div className={styles.field} onKeyDown={(e) => e.key === 'Enter' && handleSave()}>
           <label className={styles.capsLabel} htmlFor="edit-phone">Phone Number (WhatsApp)</label>
           <PhoneInput
             id="edit-phone"
@@ -164,6 +185,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
               placeholder="e.g. 12 Adeola Street, Lagos"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
             />
           </div>
         )}
@@ -174,9 +196,10 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
             id="edit-birthdate"
             type="text"
             className={styles.input}
-            placeholder="MM-DD (e.g. 05-24)"
+            placeholder="MM-DD or DD/MM (e.g. 05-24 or 24/05)"
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           />
         </div>
 

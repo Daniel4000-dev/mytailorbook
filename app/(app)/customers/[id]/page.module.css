@@ -561,7 +561,53 @@
   opacity: 1;
 }
 
-/* ── 8. Notes Textarea ───────────────────────────────────────── */
+/* ── 8. Notes Textarea & Posture Tags ───────────────────────── */
+.notesSaveHint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-text-tertiary);
+}
+
+.postureTagsTrack {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.postureTagsTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.postureChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-text-secondary);
+  font-size: 11.5px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+}
+
+.postureChip:hover {
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+}
+
+.postureChip:active {
+  transform: scale(0.95);
+}
+
 .notesTextarea {
   width: 100%;
   min-height: 100px;
@@ -584,6 +630,51 @@
 
 .notesTextarea::placeholder {
   color: var(--sf-text-tertiary);
+}
+
+.modalNavBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-text-primary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.modalNavBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.modalNavBtn:not(:disabled):hover {
+  background: rgba(67, 56, 202, 0.1);
+  color: var(--sf-brand-indigo);
+}
+
+.fractionChip {
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.fractionChip:hover {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+}
+
+.fractionChip:active {
+  transform: scale(0.95);
 }
 
 /* ── 9. Orders & Financial Health ────────────────────────────── */

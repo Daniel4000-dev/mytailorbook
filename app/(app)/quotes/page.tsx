@@ -138,6 +138,29 @@ export default function QuoteEstimatorPage() {
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const recentDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Auto-select customer from query param (?customer=xyz)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const custId = params.get('customer');
+    if (custId && customers.length > 0 && !selectedCustomer) {
+      const match = customers.find((c) => c.id === custId);
+      if (match) {
+        setSelectedCustomer(match);
+        setCustomerSearch(match.fullName);
+        if (match.gender === 'female') {
+          setGenderTab('female');
+          setGarmentTitle('Royal Silk Boubou');
+          setTailoringCost('28000');
+        } else {
+          setGenderTab('male');
+          setGarmentTitle('Senator Suit');
+          setTailoringCost('22000');
+        }
+      }
+    }
+  }, [customers, selectedCustomer]);
+
   // Style & Fabric Sourcing
   const [genderTab, setGenderTab] = useState<'male' | 'female'>('male');
   const [garmentTitle, setGarmentTitle] = useState('Senator Suit');

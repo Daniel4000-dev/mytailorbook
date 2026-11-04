@@ -15,17 +15,29 @@ interface AddCustomerSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onCustomerCreated?: (customer: Customer) => void;
+  initialName?: string;
 }
 
-export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated }: AddCustomerSheetProps) {
+export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, initialName }: AddCustomerSheetProps) {
   const { addCustomer, customers } = useData();
   const { showToast } = useToast();
 
-  const [fullName, setFullName] = useState('');
+  const [fullName, setFullName] = useState(initialName || '');
   const [phone, setPhone] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Sync initialName when sheet opens
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (isOpen && !prevOpen) {
+    setPrevOpen(true);
+    if (!fullName && initialName) {
+      setFullName(initialName);
+    }
+  } else if (!isOpen && prevOpen) {
+    setPrevOpen(false);
+  }
 
   const resetForm = () => {
     setFullName('');
@@ -101,12 +113,25 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated }:
             className={styles.input}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const phoneInput = document.getElementById('add-customer-phone');
+                if (phoneInput) phoneInput.focus();
+                else handleSave();
+              }
+            }}
             placeholder="e.g. Chief Adebayo"
             autoFocus
           />
         </div>
 
-        <div className={styles.field}>
+        <div className={styles.field} onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSave();
+          }
+        }}>
           <label className={styles.label} htmlFor="add-customer-phone">
             WhatsApp or phone number
           </label>

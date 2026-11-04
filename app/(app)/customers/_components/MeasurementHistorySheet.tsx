@@ -3,6 +3,8 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatDate, parseMeasurementValue } from '@/lib/formatters';
 import type { Customer, Measurements } from '@/lib/types';
+import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
 import { FEMALE_MEASUREMENT_POINTS, MALE_MEASUREMENT_POINTS } from './MeasurementAnatomy';
 import styles from './MeasurementHistorySheet.module.css';
 
@@ -19,11 +21,28 @@ interface TimelineEntry {
 }
 
 export default function MeasurementHistorySheet({ isOpen, onClose, customer }: Props) {
+  const { updateCustomerMeasurements } = useData();
+  const { showToast } = useToast();
   const history = customer.measurementsHistory || [];
   const currentMeasurements = customer.measurements || {};
   const currentUpdatedAt = customer.measurementsUpdatedAt;
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
+
+  const handleRestore = async (snapshot: Record<string, number | string | undefined>, date: string) => {
+    const parsed: Measurements = {};
+    Object.entries(snapshot).forEach(([k, v]) => {
+      const num = parseMeasurementValue(v);
+      if (num !== null) (parsed as unknown as Record<string, number>)[k] = num;
+    });
+    try {
+      await updateCustomerMeasurements(customer.id, parsed);
+      showToast(`Restored measurements from ${formatDate(date)}`, 'success');
+      onClose();
+    } catch {
+      showToast('Could not restore measurements', 'error');
+    }
+  };
 
   // Combine current and history for a full timeline
   const timeline: TimelineEntry[] = [];
@@ -109,6 +128,17 @@ export default function MeasurementHistorySheet({ isOpen, onClose, customer }: P
                         );
                       })}
                     </div>
+                    {!entry.isCurrent && (
+                      <div className={styles.restoreRow}>
+                        <button
+                          type="button"
+                          className={styles.restoreBtn}
+                          onClick={() => handleRestore(entry.measurements, entry.date)}
+                        >
+                          <Symbol name="history" size={14} /> Use as active measurements
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
