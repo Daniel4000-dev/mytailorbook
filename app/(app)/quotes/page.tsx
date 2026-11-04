@@ -186,6 +186,9 @@ export default function QuoteEstimatorPage() {
   const [recentQuotes, setRecentQuotes] = useState<SavedQuote[]>([]);
   const [showRecentTray, setShowRecentTray] = useState(false);
 
+  // Progressive disclosure: Show/hide advanced margin, deposit, and delivery controls
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   // Close dropdowns on outside click
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -743,11 +746,16 @@ ${shopName}`;
           <div className={styles.twoColQuote}>
             {/* Left Column: Form & Cost Configuration */}
             <div className={styles.configCol}>
-              {/* Section 1: Garment Style & Fabric Sourcing */}
+              {/* Card 1: Core Garment & Tailoring Setup */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
-                  <Symbol name="dry_cleaning" size={20} className={styles.cardIcon} />
-                  <h2 className={styles.cardTitle}>Garment Style &amp; Fabric Source</h2>
+                  <Symbol name="checkroom" size={20} className={styles.cardIcon} />
+                  <div className={styles.cardTitleRow}>
+                    <h2 className={styles.cardTitle}>Garment &amp; Tailoring Setup</h2>
+                    <span className={styles.costTotalPill}>
+                      Est. Cost: {formatCurrency(baseCost, currency)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Fabric Sourcing Selector */}
@@ -773,12 +781,12 @@ ${shopName}`;
                 {fabricSourcing === 'customer' ? (
                   <div className={styles.clientFabricBanner}>
                     <Symbol name="info" size={16} />
-                    <span>Client provides fabric. Fabric material cost is set to zero; calculation covers tailoring, interfacing, lining, and finishing.</span>
+                    <span>Client provides fabric. Material cost is 0; price covers tailoring, interfacing, lining, and finishing.</span>
                   </div>
                 ) : (
                   <div className={styles.yardageHelper}>
                     <div className={styles.yardageHeader}>
-                      <span className={styles.yardageLabel}>Fabric Sourcing Calculator</span>
+                      <span className={styles.yardageLabel}>Fabric Sourcing</span>
                       {calculatedFabricCost > 0 && (
                         <span className={styles.yardageSubtotal}>
                           Total Fabric: {formatCurrency(calculatedFabricCost, currency)}
@@ -824,358 +832,97 @@ ${shopName}`;
                   </div>
                 )}
 
-                {/* Gender Tabs */}
-                <div className={styles.genderTabs}>
-                  <button
-                    type="button"
-                    className={`${styles.genderTab} ${genderTab === 'male' ? styles.genderTabActive : ''}`}
-                    onClick={() => {
-                      setGenderTab('male');
-                      handleSelectStyle('Senator Suit');
-                    }}
-                  >
-                    Gentlemen
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.genderTab} ${genderTab === 'female' ? styles.genderTabActive : ''}`}
-                    onClick={() => {
-                      setGenderTab('female');
-                      handleSelectStyle('Royal Silk Boubou');
-                    }}
-                  >
-                    Ladies
-                  </button>
-                </div>
+                {/* Garment Style Selector */}
+                <div className={styles.formGroup}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className={styles.label} style={{ margin: 0 }}>Garment Style</label>
+                    <div className={styles.genderTabs} style={{ border: 'none', padding: 0 }}>
+                      <button
+                        type="button"
+                        className={`${styles.genderTab} ${genderTab === 'male' ? styles.genderTabActive : ''}`}
+                        style={{ padding: '3px 10px', fontSize: '11.5px' }}
+                        onClick={() => {
+                          setGenderTab('male');
+                          handleSelectStyle('Senator Suit');
+                        }}
+                      >
+                        Gentlemen
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.genderTab} ${genderTab === 'female' ? styles.genderTabActive : ''}`}
+                        style={{ padding: '3px 10px', fontSize: '11.5px' }}
+                        onClick={() => {
+                          setGenderTab('female');
+                          handleSelectStyle('Royal Silk Boubou');
+                        }}
+                      >
+                        Ladies
+                      </button>
+                    </div>
+                  </div>
 
-                {/* Style Chips */}
-                <div className={styles.stylePresetsRow}>
-                  {(genderTab === 'male' ? STYLE_PRESETS_MALE : STYLE_PRESETS_FEMALE).map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      className={`${styles.styleChip} ${garmentTitle === preset ? styles.styleChipActive : ''}`}
-                      onClick={() => handleSelectStyle(preset)}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
+                  <div className={styles.stylePresetsRow}>
+                    {(genderTab === 'male' ? STYLE_PRESETS_MALE : STYLE_PRESETS_FEMALE).map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        className={`${styles.styleChip} ${garmentTitle === preset ? styles.styleChipActive : ''}`}
+                        onClick={() => handleSelectStyle(preset)}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
 
-                <div className={styles.formGroup} style={{ marginTop: '12px' }}>
-                  <label className={styles.label}>Garment Name / Description</label>
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="e.g. 3-Piece Agbada with Embroidery"
+                    style={{ marginTop: '10px' }}
+                    placeholder="e.g. Senator Suit with Chest Embroidery"
                     value={garmentTitle}
                     onChange={(e) => setGarmentTitle(e.target.value)}
                   />
                 </div>
-              </div>
 
-              {/* Section 2: Production Cost */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="receipt_long" size={20} className={styles.cardIcon} />
-                  <div className={styles.cardTitleRow}>
-                    <h2 className={styles.cardTitle}>Production Cost Calculation</h2>
-                    <span className={styles.costTotalPill}>Total Cost: {formatCurrency(baseCost, currency)}</span>
-                  </div>
-                </div>
-
-                {/* Costing Mode Switcher */}
-                <div className={styles.modeSwitcherRow}>
-                  <button
-                    type="button"
-                    className={`${styles.modeBtn} ${costingMode === 'quick' ? styles.modeBtnActive : ''}`}
-                    onClick={() => handleSwitchCostingMode('quick')}
-                  >
-                    <Symbol name="bolt" size={15} />
-                    <span>Quick Estimate</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.modeBtn} ${costingMode === 'itemized' ? styles.modeBtnActive : ''}`}
-                    onClick={() => handleSwitchCostingMode('itemized')}
-                  >
-                    <Symbol name="checklist" size={15} />
-                    <span>Itemized Breakdown</span>
-                  </button>
-                </div>
-
-                {costingMode === 'quick' ? (
-                  /* ── Quick Flow ── */
-                  <div className={styles.quickCostBox}>
-                    <div className={styles.formGroup}>
-                      <div className={styles.costSplitRow}>
-                        <label className={styles.label}>
-                          {calculatedFabricCost > 0 ? 'Tailoring & Labor Cost' : 'Estimated Production Cost'} ({currency})
-                        </label>
-                        {calculatedFabricCost > 0 && (
-                          <span className={styles.costNotice}>
-                            + {formatCurrency(calculatedFabricCost, currency)} Fabric = {formatCurrency(baseCost, currency)} Total
-                          </span>
-                        )}
-                      </div>
-                      <MoneyInput
-                        value={tailoringCost}
-                        onChange={(val) => setTailoringCost(val)}
-                        placeholder="22,000"
-                      />
-                    </div>
-
-                    <div className={styles.quickBenchmarkRow}>
-                      <span className={styles.subLabel}>Quick benchmarks:</span>
-                      <div className={styles.quickBenchmarkChips}>
-                        {QUICK_COST_BENCHMARKS.map((amt) => (
-                          <button
-                            key={amt}
-                            type="button"
-                            className={`${styles.benchmarkChip} ${
-                              tailoringCost === amt.toString() ? styles.benchmarkChipActive : ''
-                            }`}
-                            onClick={() => setTailoringCost(amt.toString())}
-                          >
-                            {formatCurrency(amt, currency)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* ── Itemized Breakdown Flow ── */
-                  <div className={styles.itemizedCostBox}>
-                    <div className={styles.costPresetsSection}>
-                      <span className={styles.costPresetLabel}>Quick Add Items:</span>
-                      <div className={styles.presetGroupStack}>
-                        {CRAFT_PRESET_CATEGORIES.map((cat) => (
-                          <div key={cat.category} className={styles.presetGroup}>
-                            <span className={styles.presetGroupTitle}>{cat.category}</span>
-                            <div className={styles.costPresetsList}>
-                              {cat.items.map((item) => (
-                                <button
-                                  key={item.name}
-                                  type="button"
-                                  className={styles.costPresetChip}
-                                  onClick={() => addCostItem(item.name, item.defaultAmount)}
-                                >
-                                  <Symbol name="add" size={12} />
-                                  <span>{item.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Dynamic Cost Rows */}
-                    <div className={styles.costsList}>
-                      {costs.map((cost, idx) => (
-                        <div key={cost.id} className={styles.costRow}>
-                          <div className={styles.costNameCol}>
-                            {idx === 0 && <label className={styles.label}>Item Description</label>}
-                            <input
-                              type="text"
-                              className={styles.input}
-                              placeholder="e.g. Embroidery / Stoning"
-                              value={cost.name}
-                              onChange={(e) => updateCostItem(cost.id, 'name', e.target.value)}
-                            />
-                          </div>
-
-                          <div className={styles.costAmountCol}>
-                            {idx === 0 && <label className={styles.label}>Amount ({currency})</label>}
-                            <MoneyInput
-                              value={cost.amount ? cost.amount.toString() : ''}
-                              onChange={(val) => updateCostItem(cost.id, 'amount', parseInt(val, 10) || 0)}
-                              placeholder="0"
-                            />
-                          </div>
-
-                          <button
-                            type="button"
-                            className={styles.deleteCostBtn}
-                            onClick={() => removeCostItem(cost.id)}
-                            title="Remove item"
-                            style={{ marginTop: idx === 0 ? '24px' : '0' }}
-                            aria-label="Remove item"
-                          >
-                            <Symbol name="close" size={18} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      className={styles.addCustomCostBtn}
-                      onClick={() => addCostItem('')}
-                    >
-                      <Symbol name="add" size={16} />
-                      <span>Add Custom Cost Item</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Section 3: Markup & Deposit Strategy */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="trending_up" size={20} className={styles.cardIcon} />
-                  <h2 className={styles.cardTitle}>Profit Markup &amp; Deposit Schedule</h2>
-                </div>
-
-                <label className={styles.label}>Profit Markup on Cost</label>
-                <div className={styles.markupPresetsRow}>
-                  {MARKUP_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      className={`${styles.markupChip} ${marginPercent === preset.value ? styles.markupChipActive : ''}`}
-                      onClick={() => setMarginPercent(preset.value)}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className={styles.customMarkupWrap}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.subLabel}>Custom Markup (% on cost)</label>
-                    <div className={styles.percentInputWrap}>
-                      <input
-                        type="number"
-                        className={styles.percentInput}
-                        placeholder="50"
-                        value={marginPercent}
-                        onChange={(e) => setMarginPercent(e.target.value)}
-                      />
-                      <span className={styles.percentBadge}>%</span>
-                    </div>
-                  </div>
-                  <p className={styles.markupExplanation}>
-                    A {marginPercent}% markup on {formatCurrency(baseCost, currency)} cost yields{' '}
-                    <strong>{formatCurrency(projectedProfit, currency)} profit</strong> ({profitMarginPercent.toFixed(0)}% gross margin).
-                  </p>
-                </div>
-
-                {/* Commitment Deposit Ratio */}
-                <div style={{ marginTop: '16px' }}>
-                  <div className={styles.depositLabelRow}>
-                    <label className={styles.label}>Upfront Deposit Requirement</label>
-                    <button
-                      type="button"
-                      className={styles.customDepositToggle}
-                      onClick={() => {
-                        if (depositMode === 'preset') {
-                          setDepositMode('custom');
-                          setCustomDepositValue(depositPercent.toString());
-                        } else {
-                          setDepositMode('preset');
-                        }
-                      }}
-                    >
-                      {depositMode === 'preset' ? 'Enter Custom Deposit' : 'Use Presets'}
-                    </button>
-                  </div>
-
-                  {depositMode === 'preset' ? (
-                    <div className={styles.depositRow}>
-                      {DEPOSIT_PRESETS.map((dep) => (
-                        <button
-                          key={dep.value}
-                          type="button"
-                          className={`${styles.depositChip} ${depositPercent === dep.value ? styles.depositChipActive : ''}`}
-                          onClick={() => setDepositPercent(dep.value)}
-                        >
-                          {dep.label}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className={styles.customDepositBox}>
-                      <div className={styles.customDepositTypeRow}>
-                        <button
-                          type="button"
-                          className={`${styles.customDepositTypeBtn} ${customDepositType === 'percent' ? styles.customDepositTypeBtnActive : ''}`}
-                          onClick={() => {
-                            setCustomDepositType('percent');
-                            setCustomDepositValue('70');
-                          }}
-                        >
-                          Percentage (%)
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.customDepositTypeBtn} ${customDepositType === 'amount' ? styles.customDepositTypeBtnActive : ''}`}
-                          onClick={() => {
-                            setCustomDepositType('amount');
-                            setCustomDepositValue(Math.round(recommendedPrice * 0.7).toString());
-                          }}
-                        >
-                          Flat Amount ({currency})
-                        </button>
-                      </div>
-
-                      {customDepositType === 'percent' ? (
-                        <div className={styles.percentInputWrap}>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            className={styles.percentInput}
-                            placeholder="70"
-                            value={customDepositValue}
-                            onChange={(e) => setCustomDepositValue(e.target.value)}
-                          />
-                          <span className={styles.percentBadge}>%</span>
-                        </div>
-                      ) : (
-                        <MoneyInput
-                          value={customDepositValue}
-                          onChange={(val) => setCustomDepositValue(val)}
-                          placeholder="50,000"
-                        />
-                      )}
-
-                      <span className={styles.customDepositHint}>
-                        Required Deposit: {formatCurrency(depositAmount, currency)} ({effectiveDepositPercent}% of total quote).
+                {/* Tailoring & Labor Cost */}
+                <div className={styles.formGroup}>
+                  <div className={styles.costSplitRow}>
+                    <label className={styles.label}>
+                      {calculatedFabricCost > 0 ? 'Tailoring & Labor Cost' : 'Estimated Production Cost'} ({currency})
+                    </label>
+                    {calculatedFabricCost > 0 && (
+                      <span className={styles.costNotice}>
+                        + {formatCurrency(calculatedFabricCost, currency)} Fabric = {formatCurrency(baseCost, currency)} Total Cost
                       </span>
+                    )}
+                  </div>
+                  <MoneyInput
+                    value={tailoringCost}
+                    onChange={(val) => setTailoringCost(val)}
+                    placeholder="22,000"
+                  />
+                  <div className={styles.quickBenchmarkRow} style={{ marginTop: '8px' }}>
+                    <span className={styles.subLabel}>Quick benchmarks:</span>
+                    <div className={styles.quickBenchmarkChips}>
+                      {QUICK_COST_BENCHMARKS.map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          className={`${styles.benchmarkChip} ${
+                            tailoringCost === amt.toString() ? styles.benchmarkChipActive : ''
+                          }`}
+                          onClick={() => setTailoringCost(amt.toString())}
+                        >
+                          {formatCurrency(amt, currency)}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Section 4: Turnaround & Timeline */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Symbol name="schedule" size={20} className={styles.cardIcon} />
-                  <div className={styles.cardTitleRow}>
-                    <h2 className={styles.cardTitle}>Turnaround Time</h2>
-                    <span className={styles.deliveryBadge}>Est. Delivery: {estimatedCompletionDate}</span>
                   </div>
                 </div>
-
-                <div className={styles.turnaroundRow}>
-                  {TURNAROUND_PRESETS.map((preset, idx) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      className={`${styles.turnaroundBtn} ${turnaroundIndex === idx ? styles.turnaroundBtnActive : ''}`}
-                      onClick={() => setTurnaroundIndex(idx)}
-                    >
-                      <span className={styles.turnaroundLabel}>{preset.label}</span>
-                      {preset.rushFeePercent > 0 && (
-                        <span className={styles.rushFeeBadge}>+{preset.rushFeePercent}% Rush</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
               </div>
 
-              {/* Section 5: Client Information (Optional) */}
+              {/* Card 2: Client Contact Information (Optional) */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
                   <Symbol name="person" size={20} className={styles.cardIcon} />
@@ -1255,7 +1002,7 @@ ${shopName}`;
                     )}
 
                     <div className={styles.orDivider}>
-                      <span>or enter walk-in contact details</span>
+                      <span>or enter walk-in contact</span>
                     </div>
 
                     <div className={styles.walkInRow}>
@@ -1279,6 +1026,272 @@ ${shopName}`;
                           onChange={(e) => setManualCustomerPhone(e.target.value)}
                         />
                       </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Card 3: Collapsible Progressive Disclosure for Advanced Settings */}
+              <div className={styles.advancedAccordion}>
+                <button
+                  type="button"
+                  className={styles.advancedToggleBtn}
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  aria-expanded={showAdvanced}
+                >
+                  <div className={styles.advancedToggleLeft}>
+                    <Symbol name="tune" size={20} className={styles.advancedToggleIcon} />
+                    <div className={styles.advancedToggleTitleRow}>
+                      <span className={styles.advancedToggleTitle}>
+                        {showAdvanced ? 'Hide Pricing & Timeline Adjustments' : 'Customize Markup, Deposit & Delivery'}
+                      </span>
+                      <span className={styles.advancedToggleSubtitle}>
+                        +{marginPercent}% Markup • {effectiveDepositPercent}% Deposit • {activeTurnaround.label}
+                      </span>
+                    </div>
+                  </div>
+                  <Symbol
+                    name="expand_more"
+                    size={20}
+                    className={`${styles.advancedToggleChevron} ${showAdvanced ? styles.advancedToggleChevronOpen : ''}`}
+                  />
+                </button>
+
+                {showAdvanced && (
+                  <div className={styles.advancedBody}>
+                    {/* Markup Selection */}
+                    <div className={styles.advancedSubSection}>
+                      <label className={styles.label}>Profit Markup on Cost</label>
+                      <div className={styles.markupPresetsRow}>
+                        {MARKUP_PRESETS.map((preset) => (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            className={`${styles.markupChip} ${marginPercent === preset.value ? styles.markupChipActive : ''}`}
+                            onClick={() => setMarginPercent(preset.value)}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className={styles.customMarkupWrap}>
+                        <div className={styles.formGroup}>
+                          <label className={styles.subLabel}>Custom Markup (% on cost)</label>
+                          <div className={styles.percentInputWrap}>
+                            <input
+                              type="number"
+                              className={styles.percentInput}
+                              placeholder="50"
+                              value={marginPercent}
+                              onChange={(e) => setMarginPercent(e.target.value)}
+                            />
+                            <span className={styles.percentBadge}>%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Deposit Requirement */}
+                    <div className={styles.advancedSubSection}>
+                      <div className={styles.depositLabelRow}>
+                        <label className={styles.label}>Upfront Deposit Requirement</label>
+                        <button
+                          type="button"
+                          className={styles.customDepositToggle}
+                          onClick={() => {
+                            if (depositMode === 'preset') {
+                              setDepositMode('custom');
+                              setCustomDepositValue(depositPercent.toString());
+                            } else {
+                              setDepositMode('preset');
+                            }
+                          }}
+                        >
+                          {depositMode === 'preset' ? 'Enter Custom Deposit' : 'Use Presets'}
+                        </button>
+                      </div>
+
+                      {depositMode === 'preset' ? (
+                        <div className={styles.depositRow}>
+                          {DEPOSIT_PRESETS.map((dep) => (
+                            <button
+                              key={dep.value}
+                              type="button"
+                              className={`${styles.depositChip} ${depositPercent === dep.value ? styles.depositChipActive : ''}`}
+                              onClick={() => setDepositPercent(dep.value)}
+                            >
+                              {dep.label}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={styles.customDepositBox}>
+                          <div className={styles.customDepositTypeRow}>
+                            <button
+                              type="button"
+                              className={`${styles.customDepositTypeBtn} ${customDepositType === 'percent' ? styles.customDepositTypeBtnActive : ''}`}
+                              onClick={() => {
+                                setCustomDepositType('percent');
+                                setCustomDepositValue('70');
+                              }}
+                            >
+                              Percentage (%)
+                            </button>
+                            <button
+                              type="button"
+                              className={`${styles.customDepositTypeBtn} ${customDepositType === 'amount' ? styles.customDepositTypeBtnActive : ''}`}
+                              onClick={() => {
+                                setCustomDepositType('amount');
+                                setCustomDepositValue(Math.round(recommendedPrice * 0.7).toString());
+                              }}
+                            >
+                              Flat Amount ({currency})
+                            </button>
+                          </div>
+
+                          {customDepositType === 'percent' ? (
+                            <div className={styles.percentInputWrap}>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                className={styles.percentInput}
+                                placeholder="70"
+                                value={customDepositValue}
+                                onChange={(e) => setCustomDepositValue(e.target.value)}
+                              />
+                              <span className={styles.percentBadge}>%</span>
+                            </div>
+                          ) : (
+                            <MoneyInput
+                              value={customDepositValue}
+                              onChange={(val) => setCustomDepositValue(val)}
+                              placeholder="50,000"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Turnaround Time */}
+                    <div className={styles.advancedSubSection}>
+                      <div className={styles.cardTitleRow}>
+                        <label className={styles.label}>Turnaround Time &amp; Delivery</label>
+                        <span className={styles.deliveryBadge}>Est. Delivery: {estimatedCompletionDate}</span>
+                      </div>
+                      <div className={styles.turnaroundRow}>
+                        {TURNAROUND_PRESETS.map((preset, idx) => (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            className={`${styles.turnaroundBtn} ${turnaroundIndex === idx ? styles.turnaroundBtnActive : ''}`}
+                            onClick={() => setTurnaroundIndex(idx)}
+                          >
+                            <span className={styles.turnaroundLabel}>{preset.label}</span>
+                            {preset.rushFeePercent > 0 && (
+                              <span className={styles.rushFeeBadge}>+{preset.rushFeePercent}% Rush</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Costing Mode: Switch to Itemized Breakdown if needed */}
+                    <div className={styles.advancedSubSection} style={{ borderTop: '1px solid var(--sf-border-light)', paddingTop: '12px' }}>
+                      <div className={styles.cardTitleRow} style={{ marginBottom: '8px' }}>
+                        <label className={styles.label}>Itemized Cost Breakdown</label>
+                        <div className={styles.modeSwitcherRow} style={{ width: 'auto' }}>
+                          <button
+                            type="button"
+                            className={`${styles.modeBtn} ${costingMode === 'quick' ? styles.modeBtnActive : ''}`}
+                            onClick={() => handleSwitchCostingMode('quick')}
+                          >
+                            <span>Lump-Sum</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.modeBtn} ${costingMode === 'itemized' ? styles.modeBtnActive : ''}`}
+                            onClick={() => handleSwitchCostingMode('itemized')}
+                          >
+                            <span>Line Items</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {costingMode === 'itemized' && (
+                        <div className={styles.itemizedCostBox}>
+                          <div className={styles.costPresetsSection}>
+                            <span className={styles.costPresetLabel}>Quick Add Items:</span>
+                            <div className={styles.presetGroupStack}>
+                              {CRAFT_PRESET_CATEGORIES.map((cat) => (
+                                <div key={cat.category} className={styles.presetGroup}>
+                                  <span className={styles.presetGroupTitle}>{cat.category}</span>
+                                  <div className={styles.costPresetsList}>
+                                    {cat.items.map((item) => (
+                                      <button
+                                        key={item.name}
+                                        type="button"
+                                        className={styles.costPresetChip}
+                                        onClick={() => addCostItem(item.name, item.defaultAmount)}
+                                      >
+                                        <Symbol name="add" size={12} />
+                                        <span>{item.name}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className={styles.costsList}>
+                            {costs.map((cost, idx) => (
+                              <div key={cost.id} className={styles.costRow}>
+                                <div className={styles.costNameCol}>
+                                  {idx === 0 && <label className={styles.label}>Item Description</label>}
+                                  <input
+                                    type="text"
+                                    className={styles.input}
+                                    placeholder="e.g. Embroidery / Stoning"
+                                    value={cost.name}
+                                    onChange={(e) => updateCostItem(cost.id, 'name', e.target.value)}
+                                  />
+                                </div>
+
+                                <div className={styles.costAmountCol}>
+                                  {idx === 0 && <label className={styles.label}>Amount ({currency})</label>}
+                                  <MoneyInput
+                                    value={cost.amount ? cost.amount.toString() : ''}
+                                    onChange={(val) => updateCostItem(cost.id, 'amount', parseInt(val, 10) || 0)}
+                                    placeholder="0"
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  className={styles.deleteCostBtn}
+                                  onClick={() => removeCostItem(cost.id)}
+                                  title="Remove item"
+                                  style={{ marginTop: idx === 0 ? '24px' : '0' }}
+                                  aria-label="Remove item"
+                                >
+                                  <Symbol name="close" size={18} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            className={styles.addCustomCostBtn}
+                            onClick={() => addCostItem('')}
+                          >
+                            <Symbol name="add" size={16} />
+                            <span>Add Custom Cost Item</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

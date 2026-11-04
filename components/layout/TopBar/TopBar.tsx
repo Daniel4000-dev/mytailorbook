@@ -134,11 +134,11 @@ export default function TopBar({
                 </div>
               </Link>
 
-              <NotificationBell />
-
               <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {streakIndicator}
               </div>
+
+              <NotificationBell />
 
             </div>
           </div>

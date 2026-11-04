@@ -258,6 +258,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = isDemoMode ? true : !!data;
 
+  // Daily Streak Auto Check-in on Login / App Open
+  useEffect(() => {
+    if (!currentShop?.id || isDemoMode) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const sessionKey = `mtb_daily_checkin_${todayStr}_${currentShop.id}`;
+
+    if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey)) {
+      return;
+    }
+
+    const lastCountedStr = currentShop.streakLastCountedAt
+      ? new Date(currentShop.streakLastCountedAt).toISOString().split('T')[0]
+      : null;
+
+    if (lastCountedStr !== todayStr) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(sessionKey, '1');
+      }
+      logStreakAction('daily_login', 10, false)
+        .then((res) => {
+          if (res?.streak_bumped || res?.streak_current !== undefined) {
+            mutate();
+          }
+        })
+        .catch((err) => {
+          console.error('Streak auto check-in error:', err);
+        });
+    }
+  }, [currentShop?.id, currentShop?.streakLastCountedAt, isDemoMode, mutate]);
+
   const addOrder = useCallback(
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
       if (!activeBranchId) return;
@@ -273,6 +303,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         },
         measurements: orderData.measurements,
         triggerCelebration: false,
+      }).then((res) => {
+        if (res?.streak_bumped) mutate();
       });
     },
     [activeBranchId, mutate]
@@ -285,7 +317,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (res && 'error' in res) throw new Error(res.error);
       mutate((current) => (current ? { ...current, orders: res.orders as Order[] } : current), { revalidate: false });
 
-      logStreakAction('created_order', 20, false);
+      logStreakAction('created_order', 20, false).then((streakRes) => {
+        if (streakRes?.streak_bumped) mutate();
+      });
       return res.insertedIds;
     },
     [activeBranchId, mutate]
@@ -333,12 +367,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       );
       
       // GAMIFICATION TRIGGER
+      const handleStreakBump = (sRes: any) => {
+        if (sRes?.streak_bumped) mutate();
+      };
       if (newStatus === 'Ready' || newStatus === 'Delivered') {
-        logStreakAction('completed_order', 20, true);
+        logStreakAction('completed_order', 20, true).then(handleStreakBump);
       } else if (newStatus === 'Cutting' || newStatus === 'Sewing') {
-        logStreakAction('updated_order', 15, false);
+        logStreakAction('updated_order', 15, false).then(handleStreakBump);
       } else {
-        logStreakAction('updated_order', 10, false);
+        logStreakAction('updated_order', 10, false).then(handleStreakBump);
       }
     },
     [activeBranchId, mutate, isDemoMode]
@@ -468,6 +505,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       logStreakAction('measurements_added', 15, {
         measurements: measurements as Record<string, unknown>,
         triggerCelebration: false,
+      }).then((sRes) => {
+        if (sRes?.streak_bumped) mutate();
       });
     },
     [orgId, mutate, isDemoMode]

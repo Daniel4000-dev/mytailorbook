@@ -49,6 +49,14 @@ export async function POST(req: Request) {
     let cheatFlagReason: string | null = null;
     let measurementFingerprint: string | null = null;
 
+    // Daily Login deduplication (one XP reward per calendar day)
+    const lastCountedStrInitial = shop.streak_last_counted_at 
+      ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
+      : null;
+    if (action === 'daily_login' && lastCountedStrInitial === todayStr) {
+      baseReward = 0;
+    }
+
     // A. Order Intake Check
     if (action === 'created_order') {
       // Pacing check: ensure at least 45s between rapid order creations

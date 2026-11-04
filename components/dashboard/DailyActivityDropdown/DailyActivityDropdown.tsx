@@ -16,7 +16,7 @@ interface ActivityOption {
 const CRAFT_ACTIVITIES: ActivityOption[] = [
   { id: 'fabric_market', label: 'Fabric & Accessories Sourcing at Market' },
   { id: 'fabric_cutting', label: 'Pattern Drafting & Fabric Cutting' },
-  { id: 'garment_sewing', label: 'Bespoke Sewing & Garment Assembly' },
+  { id: 'garment_sewing', label: 'Custom Sewing & Garment Assembly' },
   { id: 'client_fitting', label: 'Client Fitting & Alterations Session' },
   { id: 'final_finishing', label: 'Pressing, Hemming & Quality Inspection' },
   { id: 'order_delivery', label: 'Garment Delivery & Handover' },
@@ -25,7 +25,7 @@ const CRAFT_ACTIVITIES: ActivityOption[] = [
 ];
 
 export default function DailyActivityDropdown() {
-  const { currentShop } = useData();
+  const { currentShop, refreshShop } = useData();
   const { showToast } = useToast();
 
   const [selectedActivity, setSelectedActivity] = useState<string>('fabric_cutting');
@@ -73,6 +73,7 @@ export default function DailyActivityDropdown() {
 
         setLoggedActivity(activityName);
         setIsEditing(false);
+        refreshShop();
         showToast('Craft activity logged. Your daily streak is secured!', 'success');
       } else {
         showToast('Could not record activity. Please try again.', 'error');

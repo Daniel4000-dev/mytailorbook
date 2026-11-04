@@ -3,66 +3,201 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 24px 16px 8px;
+  padding: 8px 8px 16px;
 }
 
 .flameContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 50%;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(255, 152, 0, 0.3);
-  animation: pulse 2s infinite ease-in-out;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
+  animation: pulse 2.5s infinite ease-in-out;
 }
 
 .flame {
-  font-size: 64px;
-  line-height: 1;
-  filter: drop-shadow(0 4px 8px rgba(255, 87, 34, 0.4));
-  animation: float 3s infinite ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.3));
 }
 
 .title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--sf-text-primary);
-  margin: 0 0 12px;
+  margin: 0 0 6px;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 16px;
+  font-size: 13px;
   color: var(--sf-text-secondary);
   line-height: 1.5;
-  margin: 0 0 32px;
-  max-width: 280px;
+  margin: 0 0 20px;
+  max-width: 360px;
 }
 
-.actions {
+/* 3-Column At-a-Glance Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.statCard {
+  background: var(--sf-bg-surface-hover, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.statIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  margin-top: 2px;
+}
+
+/* Studio Rest Day Card */
+.restDayCard {
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+  width: 100%;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.restDayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.restDayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.restDayTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.restDayIcon {
+  color: var(--sf-accent-indigo, #6366f1);
+}
+
+.restDayTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.restDayRemaining {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+}
+
+.restDayBtn {
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sf-accent-indigo, #6366f1);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.restDayBtn:hover:not(:disabled) {
+  background: var(--sf-accent-indigo, #6366f1);
+  color: #ffffff;
+}
+
+.restDayBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.restDayDesc {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
+.restDayStatus {
+  display: block;
+  font-size: 11px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.restDaySuccess {
+  color: var(--sf-success, #10b981);
+}
+
+.restDayError {
+  color: var(--sf-error, #ef4444);
+}
+
+/* Activity Section */
+.activitySection {
   width: 100%;
 }
 
 @keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 8px 32px rgba(255, 152, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
   }
   50% {
-    transform: scale(1.05);
-    box-shadow: 0 12px 48px rgba(255, 152, 0, 0.5);
+    transform: scale(1.04);
+    box-shadow: 0 8px 28px rgba(245, 158, 11, 0.35);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 8px 32px rgba(255, 152, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
   }
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
 }
