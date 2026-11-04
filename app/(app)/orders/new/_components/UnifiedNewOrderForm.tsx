@@ -454,6 +454,23 @@ export default function UnifiedNewOrderForm() {
     }
   }, [sumOfGarmentPrices]);
 
+  // Pre-populate deposit, due date, and priority if passed from Quotes or Quick Estimates
+  useEffect(() => {
+    const depositParam = searchParams.get('deposit');
+    const dueDateParam = searchParams.get('dueDate');
+    const priorityParam = searchParams.get('priority');
+
+    if (depositParam && !depositPaid) {
+      setDepositPaid(depositParam);
+    }
+    if (dueDateParam) {
+      setDueDate(dueDateParam);
+    }
+    if (priorityParam && (priorityParam === 'normal' || priorityParam === 'high' || priorityParam === 'urgent')) {
+      setPriority(priorityParam as Priority);
+    }
+  }, [searchParams]);
+
   const numericTotal = useMemo(() => {
     if (manualTotalBill) return parseInt(manualTotalBill.replace(/,/g, '')) || 0;
     return sumOfGarmentPrices;

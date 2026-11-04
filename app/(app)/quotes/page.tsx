@@ -362,8 +362,20 @@ export default function QuoteEstimatorPage() {
       setFabricYards(benchmark.fabricYards.toString());
       setTailoringCost(benchmark.cost.toString());
       setCosts([
-        ...(fabricSourcing === 'shop' ? [{ id: '1', name: `${benchmark.fabricYards} yds Fabric Material`, amount: Math.round(benchmark.cost * 0.4) }] : []),
-        { id: '2', name: `Tailoring & Finishing (${style})`, amount: fabricSourcing === 'shop' ? Math.round(benchmark.cost * 0.6) : benchmark.cost },
+        ...(fabricSourcing === 'shop'
+          ? [
+              {
+                id: '1',
+                name: `${benchmark.fabricYards} yds Fabric Material`,
+                amount: calculatedFabricCost > 0 ? calculatedFabricCost : Math.round(benchmark.cost * 0.4),
+              },
+            ]
+          : []),
+        {
+          id: '2',
+          name: `Tailoring & Finishing (${style})`,
+          amount: fabricSourcing === 'shop' && calculatedFabricCost === 0 ? Math.round(benchmark.cost * 0.6) : benchmark.cost,
+        },
       ]);
     }
   };
@@ -430,7 +442,19 @@ export default function QuoteEstimatorPage() {
       createdAt: new Date().toISOString(),
     });
 
-    let targetUrl = `/orders/new?style=${styleQuery}&price=${priceQuery}&material=${materialQuery}&notes=${notesQuery}`;
+    // Target Due Date calculation for order
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + activeTurnaround.days);
+    const yyyy = targetDate.getFullYear();
+    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(targetDate.getDate()).padStart(2, '0');
+    const dueDateString = `${yyyy}-${mm}-${dd}`;
+
+    const priorityParam = activeTurnaround.rushFeePercent >= 30 ? 'urgent' : activeTurnaround.rushFeePercent > 0 ? 'high' : 'normal';
+
+    let targetUrl = `/orders/new?style=${styleQuery}&price=${priceQuery}&material=${materialQuery}&notes=${notesQuery}&deposit=${encodeURIComponent(
+      depositAmount.toString()
+    )}&dueDate=${encodeURIComponent(dueDateString)}&priority=${priorityParam}`;
     if (custId) {
       targetUrl += `&customer=${custId}`;
     } else {
