@@ -16,7 +16,7 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import styles from './page.module.css';
 
-export const EXPENSE_CATEGORIES: {
+const EXPENSE_CATEGORIES: {
   key: ExpenseCategory;
   label: string;
   shortLabel: string;
@@ -217,8 +217,8 @@ export default function ShopExpensesPage() {
   // Sorted active orders for job-costing dropdown
   const selectableOrders = useMemo(() => {
     if (!orders) return [];
-    const inProgress = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled');
-    const others = orders.filter((o) => o.status === 'delivered' || o.status === 'cancelled');
+    const inProgress = orders.filter((o) => o.status !== 'Delivered');
+    const others = orders.filter((o) => o.status === 'Delivered');
     const list = [...inProgress, ...others].slice(0, 50);
     if (expOrderId && !list.some((o) => o.id === expOrderId)) {
       const match = orders.find((o) => o.id === expOrderId);
@@ -465,7 +465,7 @@ export default function ShopExpensesPage() {
           description: desc,
           date: targetDate,
           method: expMethod,
-          orderId: expOrderId || null,
+          orderId: expOrderId || undefined,
         });
       } else {
         const savedExp = await addExpense({
@@ -875,9 +875,9 @@ export default function ShopExpensesPage() {
                                       event.stopPropagation();
                                       router.push(ROUTES.productionOrder(linkedOrder.id));
                                     }}
-                                    title={`View Order #${linkedOrder.orderNumber || linkedOrder.id.slice(0, 4)} in Production`}
+                                    title={`View Order #${linkedOrder.id.slice(0, 6).toUpperCase()} in Production`}
                                   >
-                                    Order #{linkedOrder.orderNumber || linkedOrder.id.slice(0, 4)} &rarr;
+                                    Order #{linkedOrder.id.slice(0, 6).toUpperCase()} &rarr;
                                   </button>
                                 </>
                               )}
@@ -1094,7 +1094,7 @@ export default function ShopExpensesPage() {
                 <option value="">None (General Workshop Overhead)</option>
                 {selectableOrders.map((o) => (
                   <option key={o.id} value={o.id}>
-                    Order #{o.orderNumber || o.id.slice(0, 4)} — {o.customerName || 'Customer'} ({o.styleName || 'Custom Outfit'})
+                    Order #{o.id.slice(0, 6).toUpperCase()} — {o.customerName || 'Customer'} ({o.orderDetails || 'Custom Outfit'})
                   </option>
                 ))}
               </select>
