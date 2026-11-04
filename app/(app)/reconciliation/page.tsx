@@ -70,7 +70,8 @@ export default function ShopExpensesPage() {
   // Selected date (Local YYYY-MM-DD)
   const [date, setDate] = useState<string>(() => getLocalDateString());
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Category filter: 'all' | ExpenseCategory
   const [categoryFilter, setCategoryFilter] = useState<'all' | ExpenseCategory>('all');
@@ -109,7 +110,9 @@ export default function ShopExpensesPage() {
     let isMounted = true;
 
     async function fetchData() {
-      setLoading(true);
+      if (!initialLoading) {
+        setIsRefreshing(true);
+      }
       try {
         const expensesData = await getExpensesByDate(currentShop!.id, date);
         if (isMounted) {
@@ -118,7 +121,10 @@ export default function ShopExpensesPage() {
       } catch (err) {
         console.error('Failed to fetch expenses', err);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setInitialLoading(false);
+          setIsRefreshing(false);
+        }
       }
     }
 
@@ -127,7 +133,7 @@ export default function ShopExpensesPage() {
     return () => {
       isMounted = false;
     };
-  }, [currentShop?.id, date]);
+  }, [currentShop?.id, date, initialLoading]);
 
   // Calculations
   const totalDayExpense = useMemo(
@@ -242,6 +248,47 @@ export default function ShopExpensesPage() {
     setExpenseModalOpen(true);
   };
 
+  // Real-time input sanitizer: numbers and max 1 decimal point
+  const handleAmountChange = (raw: string) => {
+    const clean = raw.replace(/[^0-9.]/g, '');
+    const parts = clean.split('.');
+    const sanitized = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+    setExpAmount(sanitized);
+  };
+
+  // 1-Tap Copy WhatsApp Daily Reconciliation Summary
+  const handleShareSummary = () => {
+    const lines = [
+      `✂️ Shop Expenses Reconciliation — ${displayDateText} (${date})`,
+      `Total Spent: ${currencySymbol}${formatNumber(totalDayExpense)}`,
+      `• Cash from Drawer: ${currencySymbol}${formatNumber(cashTotal)}`,
+      `• Bank Transfer / POS: ${currencySymbol}${formatNumber(transferTotal)}`,
+      ``,
+      `Category Breakdown:`,
+      `• Materials: ${currencySymbol}${formatNumber(materialsTotal)}`,
+      `• Fuel & Power: ${currencySymbol}${formatNumber(fuelTotal)}`,
+      `• Artisan Wages: ${currencySymbol}${formatNumber(wagesTotal)}`,
+      `• Machine Repairs: ${currencySymbol}${formatNumber(repairsTotal)}`,
+      `• Delivery Fare: ${currencySymbol}${formatNumber(deliveryTotal)}`,
+      ``,
+      `Entries (${expenses.length}):`,
+      ...expenses.map(
+        (e) =>
+          `• ${e.description || 'Cost'}: ${currencySymbol}${formatNumber(e.amount)} (${e.method === 'transfer' ? 'Transfer' : 'Cash'})`
+      ),
+      ``,
+      `Logged with MyTailorBook`,
+    ];
+
+    const text = lines.join('\n');
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      showToast('Daily summary copied! Ready to paste into WhatsApp', 'success');
+    } else {
+      showToast('Could not access clipboard', 'error');
+    }
+  };
+
   // Quick Amount Add
   const handleAddQuickAmount = (val: number) => {
     const current = parseFloat(expAmount.replace(/[^0-9.]/g, '')) || 0;
@@ -288,7 +335,7 @@ export default function ShopExpensesPage() {
     pendingDeletionsRef.current.set(id, pendingItem);
   };
 
-  // Handle Quick Expense Submission (Create or Edit)
+  // Handle Quick Expense Submission (Create or Edit with 0ms perceived latency)
   const handleRecordExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(expAmount.replace(/[^0-9.]/g, ''));
@@ -302,11 +349,57 @@ export default function ShopExpensesPage() {
 
     const desc = expDescription.trim() || EXPENSE_CATEGORIES.find((c) => c.key === expCategory)?.shortLabel || 'Workshop Expense';
     const targetDate = expDate || date;
+    const editId = editingExpenseId;
+    const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, '0')}`;
 
+    const optimisticExp: Expense = {
+      id: editId || tempId,
+      shopId: currentShop.id,
+      amount: numAmount,
+      category: expCategory,
+      description: desc,
+      date: targetDate,
+      method: expMethod,
+      orderId: expOrderId || undefined,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Close modal immediately for instant 0ms perceived latency
+    setExpenseModalOpen(false);
+    setExpAmount('');
+    setExpDescription('');
+    setEditingExpenseId(null);
+
+    // Optimistic UI updates
+    if (editId) {
+      if (targetDate === date) {
+        setExpenses((prev) => prev.map((item) => (item.id === editId ? optimisticExp : item)));
+        showToast('Expense updated!', 'success');
+      } else {
+        setExpenses((prev) => prev.filter((item) => item.id !== editId));
+        showToast(`Expense updated and moved to ${targetDate}`, 'success', {
+          label: 'View Date',
+          onClick: () => setDate(targetDate),
+        });
+      }
+    } else {
+      if (targetDate === date) {
+        setExpenses((prev) => [optimisticExp, ...prev]);
+        showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
+      } else {
+        showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved for ${targetDate}`, 'success', {
+          label: 'View Date',
+          onClick: () => setDate(targetDate),
+        });
+      }
+    }
+
+    // Background sync to database
     try {
-      if (editingExpenseId) {
-        // Edit existing
-        await updateExpense(editingExpenseId, currentShop.id, {
+      if (editId) {
+        await updateExpense(editId, currentShop.id, {
           amount: numAmount,
           category: expCategory,
           description: desc,
@@ -314,34 +407,8 @@ export default function ShopExpensesPage() {
           method: expMethod,
           orderId: expOrderId || null,
         });
-
-        if (targetDate === date) {
-          setExpenses((prev) =>
-            prev.map((item) =>
-              item.id === editingExpenseId
-                ? {
-                    ...item,
-                    amount: numAmount,
-                    category: expCategory,
-                    description: desc,
-                    date: targetDate,
-                    method: expMethod,
-                    orderId: expOrderId || undefined,
-                  }
-                : item
-            )
-          );
-          showToast(`Expense updated!`, 'success');
-        } else {
-          setExpenses((prev) => prev.filter((item) => item.id !== editingExpenseId));
-          showToast(`Expense updated and moved to ${targetDate}`, 'success', {
-            label: 'View Date',
-            onClick: () => setDate(targetDate),
-          });
-        }
       } else {
-        // Create new
-        const newExp = await addExpense({
+        const savedExp = await addExpense({
           shopId: currentShop.id,
           amount: numAmount,
           category: expCategory,
@@ -350,78 +417,11 @@ export default function ShopExpensesPage() {
           method: expMethod,
           orderId: expOrderId || undefined,
         });
-
-        if (targetDate === date) {
-          setExpenses((prev) => [newExp as Expense, ...prev]);
-          showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
-        } else {
-          showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved for ${targetDate}`, 'success', {
-            label: 'View Date',
-            onClick: () => setDate(targetDate),
-          });
-        }
+        // Swap tempId with confirmed database id
+        setExpenses((prev) => prev.map((item) => (item.id === tempId ? (savedExp as Expense) : item)));
       }
-
-      setExpenseModalOpen(false);
-      setExpAmount('');
-      setExpDescription('');
-      setEditingExpenseId(null);
     } catch (err: any) {
-      // In offline / fallback mode
-      if (editingExpenseId) {
-        if (targetDate === date) {
-          setExpenses((prev) =>
-            prev.map((item) =>
-              item.id === editingExpenseId
-                ? {
-                    ...item,
-                    amount: numAmount,
-                    category: expCategory,
-                    description: desc,
-                    date: targetDate,
-                    method: expMethod,
-                    orderId: expOrderId || undefined,
-                  }
-                : item
-            )
-          );
-          showToast(`Expense updated!`, 'success');
-        } else {
-          setExpenses((prev) => prev.filter((item) => item.id !== editingExpenseId));
-          showToast(`Expense moved to ${targetDate}`, 'success', {
-            label: 'View Date',
-            onClick: () => setDate(targetDate),
-          });
-        }
-      } else {
-        const fallbackId = typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, '0')}`;
-        const mockExp: Expense = {
-          id: fallbackId,
-          shopId: currentShop.id,
-          amount: numAmount,
-          category: expCategory,
-          description: desc,
-          date: targetDate,
-          method: expMethod,
-          orderId: expOrderId || undefined,
-          createdAt: new Date().toISOString(),
-        };
-        if (targetDate === date) {
-          setExpenses((prev) => [mockExp, ...prev]);
-          showToast(`Expense of ${currencySymbol}${formatNumber(numAmount)} saved!`, 'success');
-        } else {
-          showToast(`Expense saved for ${targetDate}`, 'success', {
-            label: 'View Date',
-            onClick: () => setDate(targetDate),
-          });
-        }
-      }
-      setExpenseModalOpen(false);
-      setExpAmount('');
-      setExpDescription('');
-      setEditingExpenseId(null);
+      console.warn('Expense sync offline/fallback mode', err);
     } finally {
       setIsSubmittingExpense(false);
     }
@@ -493,7 +493,7 @@ export default function ShopExpensesPage() {
           </label>
         </section>
 
-        {loading ? (
+        {initialLoading ? (
           <div className={styles.loadingState}>
             <Symbol name="progress_activity" size={28} className="global-spinner" />
             <p>Loading workshop expenses…</p>
@@ -509,10 +509,29 @@ export default function ShopExpensesPage() {
                       <Symbol name="receipt_long" size={18} />
                     </div>
                     <span className={styles.cockpitEyebrow}>Total Spent on {displayDateText}</span>
+                    {isRefreshing && (
+                      <span className={styles.refreshingIndicator}>
+                        <Symbol name="progress_activity" size={13} className="global-spinner" />
+                      </span>
+                    )}
                   </div>
-                  <span className={styles.statusBadge}>
-                    {expenses.length} {expenses.length === 1 ? 'Expense' : 'Expenses'}
-                  </span>
+                  <div className={styles.cockpitActionsRow}>
+                    <span className={styles.statusBadge}>
+                      {expenses.length} {expenses.length === 1 ? 'Expense' : 'Expenses'}
+                    </span>
+                    {expenses.length > 0 && (
+                      <button
+                        type="button"
+                        className={styles.shareSummaryBtn}
+                        onClick={handleShareSummary}
+                        title="Copy WhatsApp-ready reconciliation summary"
+                        aria-label="Copy WhatsApp reconciliation summary"
+                      >
+                        <Symbol name="share" size={13} />
+                        <span>Share</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className={styles.mainAmountRow}>
@@ -564,6 +583,8 @@ export default function ShopExpensesPage() {
                   type="button"
                   className={`${styles.shelfColBtn} ${categoryFilter === 'material' ? styles.shelfActive : ''}`}
                   onClick={() => setCategoryFilter(categoryFilter === 'material' ? 'all' : 'material')}
+                  aria-pressed={categoryFilter === 'material'}
+                  aria-label={`Filter by Materials, total ${currencySymbol}${formatNumber(materialsTotal)}`}
                 >
                   <span className={styles.shelfLabel}>Materials</span>
                   <span className={styles.shelfValue}>{currencySymbol}{formatNumber(materialsTotal)}</span>
@@ -574,6 +595,8 @@ export default function ShopExpensesPage() {
                   type="button"
                   className={`${styles.shelfColBtn} ${categoryFilter === 'general' ? styles.shelfActive : ''}`}
                   onClick={() => setCategoryFilter(categoryFilter === 'general' ? 'all' : 'general')}
+                  aria-pressed={categoryFilter === 'general'}
+                  aria-label={`Filter by Fuel & Power, total ${currencySymbol}${formatNumber(fuelTotal)}`}
                 >
                   <span className={styles.shelfLabel}>Fuel &amp; Power</span>
                   <span className={styles.shelfValue}>{currencySymbol}{formatNumber(fuelTotal)}</span>
@@ -584,6 +607,8 @@ export default function ShopExpensesPage() {
                   type="button"
                   className={`${styles.shelfColBtn} ${categoryFilter === 'labor' ? styles.shelfActive : ''}`}
                   onClick={() => setCategoryFilter(categoryFilter === 'labor' ? 'all' : 'labor')}
+                  aria-pressed={categoryFilter === 'labor'}
+                  aria-label={`Filter by Artisan Wages, total ${currencySymbol}${formatNumber(wagesTotal)}`}
                 >
                   <span className={styles.shelfLabel}>Artisan Wages</span>
                   <span className={styles.shelfValue}>{currencySymbol}{formatNumber(wagesTotal)}</span>
@@ -594,6 +619,8 @@ export default function ShopExpensesPage() {
                   type="button"
                   className={`${styles.shelfColBtn} ${categoryFilter === 'outsourced' ? styles.shelfActive : ''}`}
                   onClick={() => setCategoryFilter(categoryFilter === 'outsourced' ? 'all' : 'outsourced')}
+                  aria-pressed={categoryFilter === 'outsourced'}
+                  aria-label={`Filter by Machine Repairs, total ${currencySymbol}${formatNumber(repairsTotal)}`}
                 >
                   <span className={styles.shelfLabel}>Repairs</span>
                   <span className={styles.shelfValue}>{currencySymbol}{formatNumber(repairsTotal)}</span>
@@ -604,6 +631,8 @@ export default function ShopExpensesPage() {
                   type="button"
                   className={`${styles.shelfColBtn} ${categoryFilter === 'logistics' ? styles.shelfActive : ''}`}
                   onClick={() => setCategoryFilter(categoryFilter === 'logistics' ? 'all' : 'logistics')}
+                  aria-pressed={categoryFilter === 'logistics'}
+                  aria-label={`Filter by Delivery Fare, total ${currencySymbol}${formatNumber(deliveryTotal)}`}
                 >
                   <span className={styles.shelfLabel}>Delivery</span>
                   <span className={styles.shelfValue}>{currencySymbol}{formatNumber(deliveryTotal)}</span>
@@ -697,6 +726,24 @@ export default function ShopExpensesPage() {
                   {filteredExpenses.length} {filteredExpenses.length === 1 ? 'entry' : 'entries'}
                 </span>
               </div>
+
+              {categoryFilter !== 'all' && (
+                <div className={styles.filterBanner}>
+                  <div className={styles.filterBannerLeft}>
+                    <Symbol name="tune" size={14} />
+                    <span>
+                      Filtered to <strong>{EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel}</strong> ({filteredExpenses.length} of {expenses.length})
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.clearFilterBtn}
+                    onClick={() => setCategoryFilter('all')}
+                  >
+                    Show All
+                  </button>
+                </div>
+              )}
 
               {filteredExpenses.length === 0 ? (
                 <div className={styles.emptyContainer}>
@@ -873,11 +920,17 @@ export default function ShopExpensesPage() {
                 style={{ paddingLeft: `${Math.max(38, currencySymbol.length * 13 + 18)}px` }}
                 placeholder="0"
                 value={expAmount}
-                onChange={(e) => setExpAmount(e.target.value)}
+                onChange={(e) => handleAmountChange(e.target.value)}
                 autoFocus={shouldAutoFocus}
                 required
               />
             </div>
+            {parseFloat(expAmount) > 0 && (
+              <div className={styles.amountLivePreview}>
+                <span>Formatted:</span>
+                <strong>{currencySymbol}{formatNumber(parseFloat(expAmount) || 0)}</strong>
+              </div>
+            )}
           </div>
 
           {/* Expense Category */}
@@ -952,7 +1005,7 @@ export default function ShopExpensesPage() {
           </div>
 
           {/* Optional Order Attribution */}
-          {activeOrdersList.length > 0 && (
+          {activeOrdersList.length > 0 ? (
             <div className={styles.field}>
               <label className={styles.fieldLabel} htmlFor="expOrderSelect">
                 Link to Customer Order (Optional Job Costing)
@@ -970,6 +1023,13 @@ export default function ShopExpensesPage() {
                   </option>
                 ))}
               </select>
+            </div>
+          ) : (
+            <div className={styles.orderTipBox}>
+              <Symbol name="info" size={15} />
+              <span>
+                Tip: As you create client orders, you can tag material costs directly to them for true outfit profit margins.
+              </span>
             </div>
           )}
         </form>
