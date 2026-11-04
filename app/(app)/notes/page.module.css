@@ -290,15 +290,22 @@
   background: rgba(67, 56, 202, 0.14);
 }
 
+/* 16px font-size prevents mobile Safari auto-zoom */
 .dockInput {
   flex: 1;
   border: none;
   background: transparent;
   outline: none;
-  font-size: 13.5px;
+  font-size: 16px;
   color: var(--sf-text-primary);
   min-width: 0;
   padding: 4px 6px;
+}
+
+@media (min-width: 768px) {
+  .dockInput {
+    font-size: 13.5px;
+  }
 }
 
 .dockInput::placeholder {
@@ -419,7 +426,7 @@
 .noteRow {
   display: flex;
   align-items: center;
-  padding: 4px 10px 4px 6px;
+  padding: 4px 8px 4px 6px;
   border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.05));
   gap: 6px;
   transition: background var(--sf-transition-fast);
@@ -487,9 +494,36 @@
 .noteText {
   font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--sf-text-primary);
   word-break: break-word;
+}
+
+/* 1-Tap Dialing Phone Chip */
+.phoneChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+  margin: 0 3px;
+  vertical-align: baseline;
+  transition: all var(--sf-transition-fast);
+}
+
+:global([data-theme='dark']) .phoneChip {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+}
+
+.phoneChip:hover {
+  background: rgba(5, 150, 105, 0.2);
+  text-decoration: underline;
 }
 
 .noteMeta {
@@ -515,9 +549,17 @@
   color: var(--sf-text-secondary);
 }
 
-.deleteBtn {
-  width: 36px;
-  height: 36px;
+/* Action Group: Edit & Delete */
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.rowActionBtn {
+  width: 34px;
+  height: 34px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -526,11 +568,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
   transition: all var(--sf-transition-fast);
 }
 
-.deleteBtn:hover {
+.rowActionBtn:hover {
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+}
+
+.deleteActionBtn:hover {
   background: rgba(239, 68, 68, 0.1);
   color: #DC2626;
 }
@@ -602,7 +648,7 @@
 .completedRow {
   display: flex;
   align-items: center;
-  padding: 4px 10px 4px 6px;
+  padding: 4px 8px 4px 6px;
   border-bottom: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.05));
   gap: 6px;
   min-height: 50px;
@@ -625,7 +671,7 @@
   word-break: break-word;
 }
 
-/* ── 6. BottomSheet Form (Presets) ── */
+/* ── 6. BottomSheet Form (Presets & Edit) ── */
 
 .modalForm {
   display: flex;
@@ -715,12 +761,13 @@
   background: rgba(67, 56, 202, 0.05);
 }
 
+/* 16px font-size prevents mobile Safari auto-zoom */
 .textArea {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--sf-border-light);
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.45;
   color: var(--sf-text-primary);
   background: var(--sf-bg-surface);
@@ -728,6 +775,12 @@
   resize: vertical;
   font-family: inherit;
   transition: border-color var(--sf-transition-fast);
+}
+
+@media (min-width: 768px) {
+  .textArea {
+    font-size: 13.5px;
+  }
 }
 
 .textArea:focus {

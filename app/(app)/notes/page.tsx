@@ -97,7 +97,7 @@ const INITIAL_NOTES: WorkshopNote[] = [
   },
   {
     id: 'note-4',
-    text: 'Call client to confirm cuff style (french vs button) before cutting',
+    text: 'Call client to confirm cuff style (french vs button) before cutting: 08023456789',
     category: 'client',
     completed: false,
     createdAt: new Date().toISOString(),
@@ -110,6 +110,9 @@ const INITIAL_NOTES: WorkshopNote[] = [
     createdAt: new Date().toISOString(),
   },
 ];
+
+/** Regex to match Nigerian and international phone formats */
+const PHONE_REGEX = /(\+?[0-9]{1,4}[\s-]?)?(\(?\d{3,4}\)?[\s-]?)?[\d\s-]{7,11}/g;
 
 export default function WorkshopNotesPage() {
   const router = useRouter();
@@ -124,8 +127,9 @@ export default function WorkshopNotesPage() {
   const [inlineText, setInlineText] = useState('');
   const [inlineCategory, setInlineCategory] = useState<NoteCategory>('shopping');
 
-  // BottomSheet State (For Presets & rich add)
-  const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
+  // BottomSheet State (For Presets & Editing)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [modalText, setModalText] = useState('');
   const [modalCategory, setModalCategory] = useState<NoteCategory>('shopping');
 
@@ -171,26 +175,73 @@ export default function WorkshopNotesPage() {
     }
   };
 
-  // Toggle completed
+  // Toggle completed with optional haptic tap
   const handleToggle = (id: string) => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(15);
+      } catch {
+        // Ignore vibration errors if not supported
+      }
+    }
     const updated = notes.map((n) =>
       n.id === id ? { ...n, completed: !n.completed } : n
     );
     saveNotes(updated);
   };
 
-  // Delete note
+  // Delete note with instant Undo support
   const handleDelete = (id: string) => {
+    const noteToDelete = notes.find((n) => n.id === id);
+    if (!noteToDelete) return;
+
     const updated = notes.filter((n) => n.id !== id);
     saveNotes(updated);
-    showToast('Note removed', 'info');
+
+    showToast('Note removed', 'info', {
+      label: 'Undo',
+      onClick: () => {
+        saveNotes([noteToDelete, ...updated]);
+        showToast('Note restored', 'success');
+      },
+    });
   };
 
-  // Clear completed
+  // Clear completed with Undo support
   const handleClearCompleted = () => {
+    const completedToClear = notes.filter((n) => n.completed);
+    if (completedToClear.length === 0) return;
+
     const remaining = notes.filter((n) => !n.completed);
     saveNotes(remaining);
-    showToast('Completed items cleared', 'success');
+
+    showToast(
+      `Cleared ${completedToClear.length} completed ${completedToClear.length === 1 ? 'task' : 'tasks'}`,
+      'info',
+      {
+        label: 'Undo',
+        onClick: () => {
+          saveNotes([...remaining, ...completedToClear]);
+          showToast('Tasks restored', 'success');
+        },
+      }
+    );
+  };
+
+  // Open modal in Edit mode
+  const handleOpenEdit = (note: WorkshopNote) => {
+    setEditingNoteId(note.id);
+    setModalText(note.text);
+    setModalCategory(note.category);
+    setIsModalOpen(true);
+  };
+
+  // Open modal in Create / Presets mode
+  const handleOpenNewModal = () => {
+    setEditingNoteId(null);
+    setModalText('');
+    setModalCategory(activeTab !== 'all' ? activeTab : 'shopping');
+    setIsModalOpen(true);
   };
 
   // Inline Quick Add Submission
@@ -221,8 +272,8 @@ export default function WorkshopNotesPage() {
     setInlineCategory(categories[nextIndex]);
   };
 
-  // Modal Presets Add Submission
-  const handleModalAdd = (e: React.FormEvent) => {
+  // Modal Submit (Handles Create or Edit)
+  const handleModalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = modalText.trim();
     if (!trimmed) {
@@ -230,18 +281,31 @@ export default function WorkshopNotesPage() {
       return;
     }
 
-    const newNote: WorkshopNote = {
-      id: `note-${Date.now()}`,
-      text: trimmed,
-      category: modalCategory,
-      completed: false,
-      createdAt: new Date().toISOString(),
-    };
+    if (editingNoteId) {
+      // Edit existing note
+      const updated = notes.map((n) =>
+        n.id === editingNoteId
+          ? { ...n, text: trimmed, category: modalCategory }
+          : n
+      );
+      saveNotes(updated);
+      showToast('Note updated', 'success');
+    } else {
+      // Create new note
+      const newNote: WorkshopNote = {
+        id: `note-${Date.now()}`,
+        text: trimmed,
+        category: modalCategory,
+        completed: false,
+        createdAt: new Date().toISOString(),
+      };
+      saveNotes([newNote, ...notes]);
+      showToast('Note added to workshop list', 'success');
+    }
 
-    saveNotes([newNote, ...notes]);
     setModalText('');
-    setIsPresetModalOpen(false);
-    showToast('Note added to workshop list', 'success');
+    setEditingNoteId(null);
+    setIsModalOpen(false);
   };
 
   // 1-Tap WhatsApp Share for Market List / Tasks
@@ -304,6 +368,48 @@ export default function WorkshopNotesPage() {
     } else {
       showToast('Copying not supported on this device', 'error');
     }
+  };
+
+  // Render text with clickable phone numbers
+  const renderNoteContent = (text: string) => {
+    const phoneMatches = text.match(PHONE_REGEX);
+    if (!phoneMatches || phoneMatches.length === 0) {
+      return text;
+    }
+
+    // Filter valid phone lengths
+    const validPhones = phoneMatches
+      .map((p) => p.trim())
+      .filter((p) => p.replace(/\D/g, '').length >= 10);
+
+    if (validPhones.length === 0) {
+      return text;
+    }
+
+    const parts = text.split(new RegExp(`(${validPhones.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g'));
+
+    return (
+      <>
+        {parts.map((part, index) => {
+          if (validPhones.includes(part)) {
+            const cleanDigits = part.replace(/\D/g, '');
+            return (
+              <a
+                key={index}
+                href={`tel:${cleanDigits}`}
+                className={styles.phoneChip}
+                onClick={(e) => e.stopPropagation()}
+                title={`Call ${part}`}
+              >
+                <Symbol name="call" size={12} />
+                <span>{part}</span>
+              </a>
+            );
+          }
+          return part;
+        })}
+      </>
+    );
   };
 
   // Filtered notes
@@ -451,7 +557,7 @@ export default function WorkshopNotesPage() {
           <button
             type="button"
             className={styles.dockPresetBtn}
-            onClick={() => setIsPresetModalOpen(true)}
+            onClick={handleOpenNewModal}
             title="Tailor Presets & Ideas"
             aria-label="Tailor Presets & Ideas"
           >
@@ -485,7 +591,7 @@ export default function WorkshopNotesPage() {
                 description="Type above to quickly jot down spools of thread, machinist reminders, or customer checks."
                 action={{
                   label: 'Browse Tailor Presets',
-                  onClick: () => setIsPresetModalOpen(true),
+                  onClick: handleOpenNewModal,
                 }}
               />
             </div>
@@ -514,7 +620,9 @@ export default function WorkshopNotesPage() {
                       className={styles.noteContentWrap}
                       onClick={() => handleToggle(note.id)}
                     >
-                      <span className={styles.noteText}>{note.text}</span>
+                      <span className={styles.noteText}>
+                        {renderNoteContent(note.text)}
+                      </span>
                       <div className={styles.noteMeta}>
                         <span className={styles.categoryBadge}>
                           <Symbol name={catObj?.icon || 'notes'} size={12} />
@@ -523,16 +631,34 @@ export default function WorkshopNotesPage() {
                       </div>
                     </div>
 
-                    {/* Delete Action */}
-                    <button
-                      type="button"
-                      className={styles.deleteBtn}
-                      onClick={() => handleDelete(note.id)}
-                      aria-label="Delete note"
-                      title="Delete note"
-                    >
-                      <Symbol name="delete" size={17} />
-                    </button>
+                    {/* Action Group: Edit & Delete */}
+                    <div className={styles.rowActions}>
+                      <button
+                        type="button"
+                        className={styles.rowActionBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEdit(note);
+                        }}
+                        aria-label="Edit note"
+                        title="Edit note"
+                      >
+                        <Symbol name="edit" size={16} />
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`${styles.rowActionBtn} ${styles.deleteActionBtn}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(note.id);
+                        }}
+                        aria-label="Delete note"
+                        title="Delete note"
+                      >
+                        <Symbol name="delete" size={16} />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -585,7 +711,9 @@ export default function WorkshopNotesPage() {
                         className={styles.noteContentWrap}
                         onClick={() => handleToggle(note.id)}
                       >
-                        <span className={styles.completedNoteText}>{note.text}</span>
+                        <span className={styles.completedNoteText}>
+                          {renderNoteContent(note.text)}
+                        </span>
                         <div className={styles.noteMeta}>
                           <span className={styles.categoryBadge}>
                             <Symbol name={catObj?.icon || 'notes'} size={12} />
@@ -594,15 +722,20 @@ export default function WorkshopNotesPage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className={styles.deleteBtn}
-                        onClick={() => handleDelete(note.id)}
-                        aria-label="Delete note"
-                        title="Delete note"
-                      >
-                        <Symbol name="delete" size={17} />
-                      </button>
+                      <div className={styles.rowActions}>
+                        <button
+                          type="button"
+                          className={`${styles.rowActionBtn} ${styles.deleteActionBtn}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(note.id);
+                          }}
+                          aria-label="Delete note"
+                          title="Delete note"
+                        >
+                          <Symbol name="delete" size={16} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -612,13 +745,16 @@ export default function WorkshopNotesPage() {
         )}
       </div>
 
-      {/* ── 6. TAILOR PRESETS BOTTOMSHEET ── */}
+      {/* ── 6. TAILOR PRESETS & EDIT BOTTOMSHEET ── */}
       <BottomSheet
-        isOpen={isPresetModalOpen}
-        onClose={() => setIsPresetModalOpen(false)}
-        title="Tailor Presets & Ideas"
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingNoteId(null);
+        }}
+        title={editingNoteId ? 'Edit Workshop Note' : 'Tailor Presets & Ideas'}
       >
-        <form onSubmit={handleModalAdd} className={styles.modalForm}>
+        <form onSubmit={handleModalSubmit} className={styles.modalForm}>
           {/* Category Selector */}
           <div className={styles.field}>
             <label className={styles.fieldLabel}>Category</label>
@@ -637,27 +773,29 @@ export default function WorkshopNotesPage() {
             </div>
           </div>
 
-          {/* Quick Presets */}
-          <div className={styles.field}>
-            <label className={styles.fieldLabel}>Tap to Fill</label>
-            <div className={styles.presetChips}>
-              {QUICK_PRESETS.filter((p) => p.category === modalCategory).map((p, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={styles.presetChip}
-                  onClick={() => setModalText(p.text)}
-                >
-                  {p.text}
-                </button>
-              ))}
+          {/* Quick Presets (Only in create mode) */}
+          {!editingNoteId && (
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Tap to Fill</label>
+              <div className={styles.presetChips}>
+                {QUICK_PRESETS.filter((p) => p.category === modalCategory).map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={styles.presetChip}
+                    onClick={() => setModalText(p.text)}
+                  >
+                    {p.text}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Note Input */}
           <div className={styles.field}>
             <label className={styles.fieldLabel} htmlFor="modalNoteTextInput">
-              Custom Description
+              {editingNoteId ? 'Edit Description' : 'Custom Description'}
             </label>
             <textarea
               id="modalNoteTextInput"
@@ -676,7 +814,10 @@ export default function WorkshopNotesPage() {
             <button
               type="button"
               className={styles.modalCancelBtn}
-              onClick={() => setIsPresetModalOpen(false)}
+              onClick={() => {
+                setIsModalOpen(false);
+                setEditingNoteId(null);
+              }}
             >
               Cancel
             </button>
@@ -685,7 +826,7 @@ export default function WorkshopNotesPage() {
               className={styles.modalSubmitBtn}
               disabled={!modalText.trim()}
             >
-              Add Note
+              {editingNoteId ? 'Save Changes' : 'Add Note'}
             </button>
           </div>
         </form>
