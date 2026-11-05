@@ -575,7 +575,7 @@ export default function CustomersPage() {
         savedPhotos.length > 0 ? (
           <button type="button" className={styles.reachOutBar} onClick={openOutreachSheet}>
             <Symbol name="ios_share" size={18} />
-            <span>Reach out to {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
+            <span>Message {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
           </button>
         ) : (
           <a href={ROUTES.styleDetail(styleFilter)} className={styles.reachOutHint}>
@@ -588,7 +588,7 @@ export default function CustomersPage() {
       <BottomSheet
         isOpen={isOutreachSheetOpen}
         onClose={closeOutreachSheet}
-        title={outreachStep === 'compose' ? `Reach Out — ${styleFilter}` : undefined}
+        title={outreachStep === 'compose' ? `Message Customers — ${styleFilter}` : undefined}
       >
         {outreachStep === 'compose' ? (
           <div className={styles.composeWrap}>
@@ -615,7 +615,7 @@ export default function CustomersPage() {
               rows={3}
             />
 
-            <span className={styles.composeLabel}>Who should get this?</span>
+            <span className={styles.composeLabel}>Send to</span>
             <div className={styles.pillTrack}>
               <button
                 type="button"
@@ -700,7 +700,7 @@ export default function CustomersPage() {
             {queueIndex >= queueList.length ? (
               <div className={styles.queueDone}>
                 <Symbol name="check_circle" size={40} />
-                <p>All done — reached out to everyone in this list.</p>
+                <p>All done — messaged everyone on this list.</p>
                 <button type="button" className={styles.startBtn} onClick={closeOutreachSheet}>Close</button>
               </div>
             ) : (
@@ -713,7 +713,7 @@ export default function CustomersPage() {
                     <p className={styles.queuePhone}>{formatPhone(queueList[queueIndex].whatsappNumber)}</p>
                     {outreachMap[queueList[queueIndex].id] && (
                       <span className={styles.contactedTag}>
-                        Already reached out {formatDate(outreachMap[queueList[queueIndex].id])}
+                        Already messaged {formatDate(outreachMap[queueList[queueIndex].id])}
                       </span>
                     )}
                   </div>
@@ -738,7 +738,7 @@ export default function CustomersPage() {
                   </button>
                 </div>
                 <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>
-                  Already sent this manually — just mark as contacted
+                  Already sent — mark as sent
                 </button>
               </>
             )}

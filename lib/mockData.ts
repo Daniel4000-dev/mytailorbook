@@ -17,7 +17,7 @@ export const MOCK_STAFF: User[] = [
   {
     uid: 'staff-emeka-01',
     name: 'Emeka Eze',
-    email: 'emeka@atelier.test',
+    email: 'emeka@workshop.test',
     role: 'Staff',
     craftRole: 'cutter',
     payrollType: 'piece_rate',
@@ -30,7 +30,7 @@ export const MOCK_STAFF: User[] = [
   {
     uid: 'staff-blessing-02',
     name: 'Blessing Oladipo',
-    email: 'blessing@atelier.test',
+    email: 'blessing@workshop.test',
     role: 'Staff',
     craftRole: 'tailor',
     payrollType: 'piece_rate',
@@ -43,7 +43,7 @@ export const MOCK_STAFF: User[] = [
   {
     uid: 'staff-tunde-03',
     name: 'Tunde Bakare',
-    email: 'tunde@atelier.test',
+    email: 'tunde@workshop.test',
     role: 'Staff',
     craftRole: 'finisher',
     payrollType: 'salary',
@@ -56,7 +56,7 @@ export const MOCK_STAFF: User[] = [
   {
     uid: 'staff-chioma-04',
     name: 'Chioma Okeke',
-    email: 'chioma@atelier.test',
+    email: 'chioma@workshop.test',
     role: 'Staff',
     craftRole: 'apprentice',
     payrollType: 'none',
@@ -265,7 +265,7 @@ export const MOCK_CUSTOMERS: Customer[] = [
     gender: 'male',
     wallet_balance: 0,
     address: 'Ikoyi, Lagos',
-    preferredStyles: ['Kaftan', 'Bespoke Suit'],
+    preferredStyles: ['Kaftan', 'Tailored Suit'],
     measurements: {
       neck: 16.5,
       shoulder: 19.5,

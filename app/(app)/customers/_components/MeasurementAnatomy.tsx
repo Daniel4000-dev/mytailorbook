@@ -113,26 +113,26 @@ export default function MeasurementAnatomy({
   return (
     <div className={styles.wrapper}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Body Measurements</h3>
+        <h3 className={styles.title}>Measurements</h3>
         <span className={styles.counter}>
-          {filledCount}/{totalCount} recorded
+          {filledCount}/{totalCount} saved
         </span>
       </div>
 
       <div className={styles.viewModeTabs}>
         <button
           type="button"
-          className={`${styles.viewModeBtn} ${viewMode === 'list' ? styles.viewModeBtnActive : ''}`}
-          onClick={() => setViewMode('list')}
-        >
-          Quick List
-        </button>
-        <button
-          type="button"
           className={`${styles.viewModeBtn} ${viewMode === 'visual' ? styles.viewModeBtnActive : ''}`}
           onClick={() => setViewMode('visual')}
         >
-          Visual Anatomy
+          Body View
+        </button>
+        <button
+          type="button"
+          className={`${styles.viewModeBtn} ${viewMode === 'list' ? styles.viewModeBtnActive : ''}`}
+          onClick={() => setViewMode('list')}
+        >
+          List View
         </button>
       </div>
 
@@ -169,7 +169,7 @@ export default function MeasurementAnatomy({
       ) : (
         <>
           <p className={styles.visualHint}>
-            Tap any anatomical landmark to record or update its measurement
+            Tap any point on the body to enter or update measurements
           </p>
           <div className={styles.anatomyContainer}>
             <div className={styles.anatomyInner}>
@@ -221,11 +221,11 @@ export default function MeasurementAnatomy({
           <div className={styles.legend}>
             <span className={styles.legendItem}>
               <span className={`${styles.legendDot} ${styles.legendEmpty}`} />
-              Not recorded
+              Empty
             </span>
             <span className={styles.legendItem}>
               <span className={`${styles.legendDot} ${styles.legendFilled}`} />
-              Recorded
+              Saved
             </span>
           </div>
         </>
@@ -329,7 +329,7 @@ function FemaleTailorForm() {
       {/* Center Front Tailor Seam */}
       <line x1="50" y1="19" x2="50" y2="63" className={styles.mannequinSeam} />
 
-      {/* Atelier Chalk Guidelines */}
+      {/* Tailor Chalk Guidelines */}
       <path d="M 44.5,20.5 Q 50,21.5 55.5,20.5" className={styles.mannequinGuide} />
       <path d="M 37.8,34 Q 50,36.5 62.2,34" className={styles.mannequinGuide} />
       <path d="M 40.5,39 Q 50,41 59.5,39" className={styles.mannequinGuideSubtle} />
@@ -436,7 +436,7 @@ function MaleTailorForm() {
       {/* Center Front Tailor Seam */}
       <line x1="50" y1="19" x2="50" y2="63" className={styles.mannequinSeam} />
 
-      {/* Atelier Chalk Guidelines */}
+      {/* Tailor Chalk Guidelines */}
       <path d="M 43.5,20.2 Q 50,21.2 56.5,20.2" className={styles.mannequinGuide} />
       <path d="M 37.5,33 Q 50,35.5 62.5,33" className={styles.mannequinGuide} />
       <path d="M 39.2,42 Q 50,44 60.8,42" className={styles.mannequinGuideSubtle} />

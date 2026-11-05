@@ -513,7 +513,7 @@
   opacity: 0.4;
 }
 
-/* ── 7. Instagram 3-Column Fabric Stash Grid ─────────────────── */
+/* ── 7. Customer Fabrics Grid ─────────────────────────────── */
 .fabricGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

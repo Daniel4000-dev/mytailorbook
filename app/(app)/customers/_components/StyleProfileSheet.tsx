@@ -182,11 +182,11 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
             }
           />
           <div style={{ padding: '0 20px' }}>
-            <h3 className={styles.sectionTitle} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>Fit Preferences & Amendments</h3>
+            <h3 className={styles.sectionTitle} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>Fit Preferences & Notes</h3>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Record unique body quirks, preferred looseness/tightness, or past amendments here..."
+              placeholder="Record fitting preferences, preferred looseness or tightness, or past adjustments here..."
               style={{
                 width: '100%',
                 minHeight: '120px',

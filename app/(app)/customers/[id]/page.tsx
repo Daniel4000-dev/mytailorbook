@@ -320,7 +320,7 @@ function CustomerProfileContent({
       setSelectedPoint(nextPoint);
       setCurrentValue(measurements[nextPoint.id] || '');
     } else {
-      showToast('All landmarks recorded', 'success');
+      showToast('All measurements recorded', 'success');
       setSelectedPoint(null);
     }
   };
@@ -406,7 +406,7 @@ function CustomerProfileContent({
         uploaded.push({ url, stage: 'Documented', uploadedAt: new Date().toISOString() });
       }
       await updateCustomerProfile(customer.id, { fabrics: [...(customer.fabrics || []), ...uploaded] });
-      showToast(uploaded.length > 1 ? `${uploaded.length} fabrics added to stash` : 'Fabric added to stash', 'success');
+      showToast(uploaded.length > 1 ? `${uploaded.length} fabrics saved` : 'Fabric saved', 'success');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to upload fabric', 'error');
     } finally {
@@ -547,16 +547,16 @@ function CustomerProfileContent({
             </a>
           </div>
 
-          {/* ── 2. Saved Style Profiles (Elevated Fit Cards) ─────────── */}
+          {/* ── 2. Saved Style Fits ─────────────────────────── */}
           <div className={styles.styleProfilesSection}>
             <div className={styles.styleProfilesHeader}>
-              <span className={styles.styleProfilesTitle}>Saved Garment Profiles</span>
+              <span className={styles.styleProfilesTitle}>Saved Style Fits</span>
               <button
                 type="button"
                 className={styles.addStyleTextBtn}
                 onClick={() => setStyleSheet({ open: true, style: null })}
               >
-                <Symbol name="add" size={13} /> Add Garment Fit
+                <Symbol name="add" size={13} /> Add Style Fit
               </button>
             </div>
             <div className={styles.styleProfilesTrack}>
@@ -575,7 +575,7 @@ function CustomerProfileContent({
                     </div>
                     <div className={styles.styleProfileInfo}>
                       <span className={styles.styleProfileName}>{styleName}</span>
-                      <span className={styles.styleProfileMeta}>{pointsCount} landmarks</span>
+                      <span className={styles.styleProfileMeta}>{pointsCount} measurements</span>
                     </div>
                   </button>
                 );
@@ -587,13 +587,13 @@ function CustomerProfileContent({
                   onClick={() => setStyleSheet({ open: true, style: null })}
                 >
                   <Symbol name="add" size={15} />
-                  <span>Record style-specific fit (Senator, Agbada, Kaftan...)</span>
+                  <span>Add fit measurements for specific styles (Senator, Agbada, Kaftan...)</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* ── 3. Sleek Instagram Tab Bar ── */}
+          {/* ── 3. Profile Navigation Tabs ── */}
           <div className={styles.igTabBar}>
             <button
               type="button"
@@ -601,7 +601,7 @@ function CustomerProfileContent({
               onClick={() => setActiveTab('measurements')}
             >
               <Symbol name="straighten" size={16} />
-              <span>Fits & Anatomy</span>
+              <span>Measurements</span>
             </button>
             <button
               type="button"
@@ -609,7 +609,7 @@ function CustomerProfileContent({
               onClick={() => setActiveTab('fabrics')}
             >
               <Symbol name="texture" size={16} />
-              <span>Fabric Stash ({(customer.fabrics || []).length})</span>
+              <span>Fabrics ({(customer.fabrics || []).length})</span>
             </button>
             <button
               type="button"
@@ -623,13 +623,13 @@ function CustomerProfileContent({
         </section>
       </div>
 
-      {/* ── TAB 1: FITS & ANATOMY ── */}
+      {/* ── TAB 1: MEASUREMENTS ── */}
       {activeTab === 'measurements' && (
         <div className={styles.tabContent}>
           {/* Full-body reference profile */}
           <section className={styles.section}>
             <div className={styles.sectionTitleRow}>
-              <h3 className={styles.sectionTitle}>Full-Body Anatomy</h3>
+              <h3 className={styles.sectionTitle}>Body Measurements</h3>
               <div className={styles.sectionActions}>
                 <button
                   type="button"
@@ -637,7 +637,7 @@ function CustomerProfileContent({
                   onClick={handleWhatsAppMeasurements}
                   title="Send measurements summary via WhatsApp"
                 >
-                  <WhatsappIcon size={14} /> WHATSAPP
+                  <WhatsappIcon size={14} /> WhatsApp
                 </button>
                 <button
                   type="button"
@@ -645,7 +645,7 @@ function CustomerProfileContent({
                   onClick={handleCopyMeasurements}
                   title="Copy measurements summary to clipboard"
                 >
-                  <Symbol name="content_copy" size={14} /> COPY
+                  <Symbol name="content_copy" size={14} /> Copy
                 </button>
                 <button
                   type="button"
@@ -653,7 +653,7 @@ function CustomerProfileContent({
                   onClick={() => setHistorySheetOpen(true)}
                   title="View measurement history"
                 >
-                  <Symbol name="history" size={14} /> HISTORY
+                  <Symbol name="history" size={14} /> History
                 </button>
               </div>
             </div>
@@ -723,11 +723,11 @@ function CustomerProfileContent({
         </div>
       )}
 
-      {/* ── TAB 2: FABRIC STASH (Instagram 3-Column Grid) ── */}
+      {/* ── TAB 2: CUSTOMER FABRICS ── */}
       {activeTab === 'fabrics' && (
         <section className={styles.section}>
           <div className={styles.sectionTitleRow}>
-            <h3 className={styles.sectionTitle}>Fabric Stash</h3>
+            <h3 className={styles.sectionTitle}>Customer Fabrics</h3>
             <label className={styles.newBtn}>
               <input
                 type="file"
@@ -737,14 +737,14 @@ function CustomerProfileContent({
                 onChange={handleFabricUpload}
                 disabled={uploadingFabric}
               />
-              <Symbol name="add_a_photo" size={16} /> {uploadingFabric ? 'UPLOADING...' : 'SNAP CLOTH'}
+              <Symbol name="add_a_photo" size={16} /> {uploadingFabric ? 'Uploading...' : 'Add Photo'}
             </label>
           </div>
 
           {(customer.fabrics || []).length === 0 ? (
             <div className={styles.emptyHint}>
               <Symbol name="texture" className={styles.emptyHintIcon} />
-              <span>No fabrics stashed. Dropped off Aso Ebi or cloth? Snap a picture here.</span>
+              <span>No customer fabrics saved yet. Dropped off material or cloth? Add a picture here.</span>
             </div>
           ) : (
             <div className={styles.fabricGrid}>
@@ -776,10 +776,10 @@ function CustomerProfileContent({
       {/* ── TAB 3: ORDERS & FINANCIALS ── */}
       {activeTab === 'orders' && (
         <div className={styles.tabContent}>
-          {/* Financial Summary */}
+          {/* Payment Summary */}
           <section className={styles.section}>
             <div className={styles.sectionTitleRow}>
-              <h3 className={styles.sectionTitle}>Financial Health</h3>
+              <h3 className={styles.sectionTitle}>Payment Summary</h3>
               {totalOwed > 0 && customer.whatsappNumber && (
                 <a
                   href={getWhatsAppLink(
@@ -807,7 +807,7 @@ function CustomerProfileContent({
                 </span>
               </div>
               <div className={`${styles.statCard} ${styles.statCardWide}`}>
-                <span className={styles.statLabel}>Lifetime Outfits</span>
+                <span className={styles.statLabel}>Total Orders</span>
                 <span className={styles.statValue}>{custOrders.length}</span>
               </div>
             </div>
@@ -822,7 +822,7 @@ function CustomerProfileContent({
 
           {/* Recent Orders List */}
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Production History</h3>
+            <h3 className={styles.sectionTitle}>Order History</h3>
             {custOrders.length > 0 ? (
               <div className={styles.orderList}>
                 {custOrders.map((o, i) => (
@@ -859,10 +859,10 @@ function CustomerProfileContent({
             )}
           </section>
 
-          {/* Danger Zone */}
+          {/* Delete Customer */}
           <section className={styles.dangerZone}>
-            <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
-            <p className={styles.dangerZoneHint}>This action is permanent and cannot be undone.</p>
+            <h3 className={styles.dangerZoneTitle}>Delete Customer</h3>
+            <p className={styles.dangerZoneHint}>Permanently remove this customer record and their measurements.</p>
             <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
               <Symbol name="delete" /> Delete Customer
             </Button>
@@ -888,7 +888,7 @@ function CustomerProfileContent({
         <div style={{ padding: 'var(--sf-space-md)', display: 'flex', flexDirection: 'column', gap: 'var(--sf-space-md)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>Selected landmark</p>
+              <p style={{ fontSize: 'var(--sf-text-sm)', color: 'var(--sf-text-secondary)' }}>Measurement</p>
               <h3 style={{ fontSize: 'var(--sf-text-lg)', fontWeight: 'var(--sf-weight-semibold)', color: 'var(--sf-text-primary)' }}>
                 {selectedPoint?.name}
               </h3>
@@ -900,7 +900,7 @@ function CustomerProfileContent({
                 className={styles.modalNavBtn}
                 onClick={() => navigatePoint(-1)}
                 disabled={activePointsList.findIndex((p) => p.id === selectedPoint?.id) <= 0}
-                title="Previous landmark point"
+                title="Previous measurement"
               >
                 <Symbol name="arrow_back" size={16} />
               </button>
@@ -909,7 +909,7 @@ function CustomerProfileContent({
                 className={styles.modalNavBtn}
                 onClick={() => navigatePoint(1)}
                 disabled={activePointsList.findIndex((p) => p.id === selectedPoint?.id) >= activePointsList.length - 1}
-                title="Next landmark point"
+                title="Next measurement"
               >
                 <Symbol name="arrow_forward" size={16} />
               </button>
@@ -962,7 +962,7 @@ function CustomerProfileContent({
               Clear
             </Button>
             <Button variant="primary" fullWidth onClick={handleSaveMeasurement}>
-              Save Landmark
+              Save Measurement
             </Button>
           </div>
         </div>
