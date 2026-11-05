@@ -367,54 +367,78 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* ── 1. Compact Apple iOS 4-Segment Metric Bar ── */}
-      <div className={styles.iosMetricBar} role="tablist" aria-label="Filter clients by status">
+      {/* ── 1. Four-Metric Client Pulse Grid ── */}
+      <div className={styles.kpiGrid} role="tablist" aria-label="Filter clients by status">
         <button
           type="button"
           role="tab"
           aria-selected={clientFilter === 'all'}
-          className={`${styles.iosMetricSegment} ${clientFilter === 'all' ? styles.iosMetricSegmentActive : ''}`}
+          className={`${styles.kpiCard} ${clientFilter === 'all' ? styles.kpiCardActive : ''}`}
           onClick={() => setClientFilter('all')}
         >
-          <span className={styles.iosMetricValue}>{totalCustomers}</span>
-          <span className={styles.iosMetricLabel}>All</span>
+          <div className={styles.kpiTopRow}>
+            <div className={`${styles.kpiIconWrap} ${styles.kpiIconAll}`}>
+              <Symbol name="group" size={16} />
+            </div>
+            <span className={styles.kpiVal}>{totalCustomers}</span>
+          </div>
+          <span className={styles.kpiLabel}>Total Clients</span>
         </button>
 
         <button
           type="button"
           role="tab"
           aria-selected={clientFilter === 'active'}
-          className={`${styles.iosMetricSegment} ${clientFilter === 'active' ? styles.iosMetricSegmentActive : ''}`}
+          className={`${styles.kpiCard} ${clientFilter === 'active' ? styles.kpiCardActive : ''}`}
           onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
         >
-          <span className={styles.iosMetricValue}>{activeCustomers}</span>
-          <span className={styles.iosMetricLabel}>Active</span>
+          <div className={styles.kpiTopRow}>
+            <div className={`${styles.kpiIconWrap} ${styles.kpiIconProduction}`}>
+              <Symbol name="content_cut" size={16} />
+            </div>
+            <span className={styles.kpiVal}>{activeCustomers}</span>
+          </div>
+          <span className={styles.kpiLabel}>In Production</span>
         </button>
 
         <button
           type="button"
           role="tab"
           aria-selected={clientFilter === 'ready'}
-          className={`${styles.iosMetricSegment} ${clientFilter === 'ready' ? styles.iosMetricSegmentActive : ''}`}
+          className={`${styles.kpiCard} ${clientFilter === 'ready' ? styles.kpiCardActive : ''}`}
           onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
         >
-          <span className={`${styles.iosMetricValue} ${readyCount > 0 ? styles.iosMetricReady : ''}`}>
-            {readyCount}
-          </span>
-          <span className={styles.iosMetricLabel}>Ready</span>
+          <div className={styles.kpiTopRow}>
+            <div className={`${styles.kpiIconWrap} ${styles.kpiIconReady}`}>
+              <Symbol name="checkroom" size={16} />
+            </div>
+            <span className={`${styles.kpiVal} ${readyCount > 0 ? styles.kpiValReady : ''}`}>
+              {readyCount}
+            </span>
+          </div>
+          <span className={styles.kpiLabel}>Ready for Pickup</span>
         </button>
 
         <button
           type="button"
           role="tab"
           aria-selected={clientFilter === 'owing'}
-          className={`${styles.iosMetricSegment} ${clientFilter === 'owing' ? styles.iosMetricSegmentActive : ''}`}
+          className={`${styles.kpiCard} ${clientFilter === 'owing' ? styles.kpiCardActive : ''}`}
           onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
         >
-          <span className={`${styles.iosMetricValue} ${owingCount > 0 ? styles.iosMetricOwing : ''}`}>
-            {owingCount}
+          <div className={styles.kpiTopRow}>
+            <div className={`${styles.kpiIconWrap} ${styles.kpiIconOwing}`}>
+              <Symbol name="payments" size={16} />
+            </div>
+            <span className={`${styles.kpiVal} ${owingCount > 0 ? styles.kpiValOwing : ''}`}>
+              {owingCount}
+            </span>
+          </div>
+          <span className={styles.kpiLabel}>
+            {totalBalanceOwed > 0
+              ? `Owing · ₦${Math.round(totalBalanceOwed / 1000)}k`
+              : 'Owing Balance'}
           </span>
-          <span className={styles.iosMetricLabel}>Owing</span>
         </button>
       </div>
 

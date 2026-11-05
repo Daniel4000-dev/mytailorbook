@@ -73,80 +73,138 @@
   transform: scale(0.96);
 }
 
-/* ── 1. Compact Apple iOS 4-Segment Metric Bar ──────────────── */
-.iosMetricBar {
+/* ── 1. Four-Metric Client Pulse Grid ───────────────────────── */
+.kpiGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  padding: 4px;
-  background: rgba(118, 118, 128, 0.09);
-  border-radius: 14px;
-  margin-bottom: 10px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: var(--sf-space-md);
+  width: 100%;
 }
 
-:global([data-theme='dark']) .iosMetricBar {
-  background: rgba(255, 255, 255, 0.07);
+@media (min-width: 640px) {
+  .kpiGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
 }
 
-.iosMetricSegment {
+.kpiCard {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 13px 14px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid var(--sf-border-light, rgba(15, 23, 42, 0.08));
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s cubic-bezier(0.2, 0, 0, 1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+:global([data-theme='dark']) .kpiCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.kpiCard:hover {
+  border-color: var(--sf-border);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.kpiCard:active {
+  transform: scale(0.98);
+}
+
+.kpiCardActive {
+  border-color: var(--sf-brand-indigo, #4338CA);
+  background: rgba(79, 70, 229, 0.04);
+  box-shadow: 0 0 0 1.5px var(--sf-brand-indigo, #4338CA), 0 4px 12px rgba(79, 70, 229, 0.08);
+}
+
+:global([data-theme='dark']) .kpiCardActive {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: #818CF8;
+  box-shadow: 0 0 0 1.5px #818CF8;
+}
+
+.kpiTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.kpiIconWrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  padding: 8px 4px;
-  border-radius: 10px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
-  -webkit-tap-highlight-color: transparent;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
-.iosMetricSegment:active {
-  transform: scale(0.97);
+.kpiIconAll {
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--sf-brand-indigo, #4F46E5);
 }
 
-.iosMetricSegmentActive {
-  background: var(--sf-bg-surface, #FFFFFF);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
+.kpiIconProduction {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366F1;
 }
 
-:global([data-theme='dark']) .iosMetricSegmentActive {
-  background: var(--sf-bg-surface-elevated, #222038);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-}
-
-.iosMetricValue {
-  font-family: var(--sf-font-numeric, var(--sf-font-body));
-  font-size: 17px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--sf-text-primary);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-.iosMetricReady {
+.kpiIconReady {
+  background: rgba(16, 185, 129, 0.12);
   color: #059669;
 }
 
-.iosMetricOwing {
+.kpiIconOwing {
+  background: rgba(245, 158, 11, 0.12);
   color: #D97706;
 }
 
-.iosMetricLabel {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--sf-text-secondary);
-  line-height: 1.2;
-  white-space: nowrap;
+.kpiVal {
+  font-family: var(--sf-font-numeric, var(--sf-font-heading));
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
-.iosMetricSegmentActive .iosMetricLabel {
-  color: var(--sf-text-primary);
+.kpiValReady {
+  color: #059669;
+}
+
+.kpiValOwing {
+  color: #D97706;
+}
+
+.kpiLabel {
+  font-size: 12px;
   font-weight: 600;
+  color: var(--sf-text-secondary);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpiCardActive .kpiLabel {
+  color: var(--sf-brand-indigo, #4338CA);
+}
+
+:global([data-theme='dark']) .kpiCardActive .kpiLabel {
+  color: #A5B4FC;
 }
 
 /* ── 2. Search & Integrated Filter Bar ──────────────────────── */
