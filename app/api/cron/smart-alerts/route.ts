@@ -334,14 +334,20 @@ export async function GET(request: NextRequest) {
       const shopStockItems = (allFinishedGoods || []).filter((fg) => fg.shop_id === shop.id && fg.quantity > 0);
       const totalStockUnits = shopStockItems.reduce((sum, fg) => sum + fg.quantity, 0);
 
-      // Bespoke Morning Kickstart
-      if ((mode === 'bespoke' || mode === 'hybrid') && bespokeWipCount > 0) {
+      // Bespoke Morning Kickstart (fires even if 0 active orders so inactive tailors still get a morning nudge)
+      if (mode === 'bespoke' || mode === 'hybrid') {
         let title = 'Good morning! Workshop Kickstart';
-        let subtitle = `You have ${bespokeWipCount} custom client job${bespokeWipCount === 1 ? '' : 's'} on the rack. Ready to make today count?`;
+        let subtitle =
+          bespokeWipCount > 0
+            ? `You have ${bespokeWipCount} custom client job${bespokeWipCount === 1 ? '' : 's'} on the rack. Ready to make today count?`
+            : `Start your workshop day strong — log a new client order, record body measurements, or send a price quote today.`;
 
         if (currentStreak >= 2) {
           title = `Good morning! Keep your ${currentStreak}-day streak alive`;
-          subtitle = `You have ${bespokeWipCount} client garments in progress. Log your first cut or stage update today to maintain your streak.`;
+          subtitle =
+            bespokeWipCount > 0
+              ? `You have ${bespokeWipCount} client garments in progress. Log your first cut or stage update today to maintain your streak.`
+              : `Log a client measurement, new order, or payment today to keep your ${currentStreak}-day streak growing.`;
         }
 
         const alertKey = `system:${shop.id}:${title}`;
@@ -359,19 +365,21 @@ export async function GET(request: NextRequest) {
             badgeColor: currentStreak >= 2 ? '#EA580C' : '#0284C7',
             title,
             subtitle,
-            actionLabel: 'Open Workshop',
-            actionHref: '/production',
+            actionLabel: bespokeWipCount > 0 ? 'Open Workshop' : 'Open Dashboard',
+            actionHref: bespokeWipCount > 0 ? '/production' : '/dashboard',
           },
         });
       }
 
       // RTW Morning Kickstart
-      if ((mode === 'rtw' || mode === 'hybrid') && (rtwBatchWipCount > 0 || totalStockUnits > 0)) {
+      if (mode === 'rtw' || mode === 'hybrid') {
         let title = 'Good morning! Ready-to-Wear Storefront';
         let subtitle =
           totalStockUnits > 0
             ? `You have ${totalStockUnits} ready-made piece${totalStockUnits === 1 ? '' : 's'} in stock${rtwBatchWipCount > 0 ? ` and ${rtwBatchWipCount} batch run in production` : ''}. Log today's POS sales or stock updates!`
-            : `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} on the production floor. Keep moving batches to Stock!`;
+            : rtwBatchWipCount > 0
+            ? `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} on the production floor. Keep moving batches to Stock!`
+            : `Start your brand day strong — add ready-made pieces to Stock & POS or launch a new multi-size batch run today.`;
 
         if (currentStreak >= 2) {
           title = `Good morning! Keep your ${currentStreak}-day brand streak alive`;
@@ -667,12 +675,14 @@ export async function GET(request: NextRequest) {
         });
       }
     }
+  }
 
-    // =========================================================================
-    // Priority 6: FEATURE DISCOVERY NUDGES (Unused Feature Adoption)
-    // Automatically steps into empty afternoon slots when urgent alerts aren't triggered!
-    // Strictly separated by Bespoke vs RTW vs Universal, and max 1 feature nudge per shop per day.
-    // =========================================================================
+  // =========================================================================
+  // Priority 6: FEATURE DISCOVERY NUDGES (Unused Feature Adoption)
+  // Automatically steps into empty afternoon OR evening slots when urgent alerts aren't triggered!
+  // Strictly separated by Bespoke vs RTW vs Universal, and max 1 feature nudge per shop per day.
+  // =========================================================================
+  if (runMidday || runEvening) {
     const [
       { data: customerRows },
       { data: catalogueRows },

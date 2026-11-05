@@ -73,108 +73,182 @@
   transform: scale(0.96);
 }
 
-/* ── 1. Executive Workshop Pulse (KPI Cards) ─────────────────── */
-.kpiGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: var(--sf-space-md);
-  width: 100%;
-}
-
-@media (min-width: 640px) {
-  .kpiGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.kpiCard {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--sf-bg-surface);
+/* ── 1. Executive Atelier Client Pulse (Unified Luxury Card) ──── */
+.pulseCard {
+  position: relative;
+  background: linear-gradient(145deg, var(--sf-bg-surface) 0%, var(--sf-bg-surface-elevated, #f8fafc) 100%);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg, 12px);
-  cursor: pointer;
-  transition: all var(--sf-transition-fast);
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: var(--sf-space-md);
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
 }
 
-.kpiCard:hover {
-  background: var(--sf-bg-surface-hover);
-  border-color: var(--sf-border);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.kpiCard:active {
-  transform: scale(0.98);
-}
-
-.kpiCardActive {
-  border-color: var(--sf-brand-indigo);
-  background: rgba(67, 56, 202, 0.06);
-  box-shadow: 0 0 0 1.5px var(--sf-brand-indigo);
-}
-
-.kpiIconWrap {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--sf-radius-md, 8px);
+.pulseHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--sf-text-secondary);
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 0 4px;
 }
 
-.kpiCardActive .kpiIconWrap {
-  background: rgba(67, 56, 202, 0.12);
-  color: var(--sf-brand-indigo);
+.pulseTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.kpiCardReady {
-  border-left: 3.5px solid #10B981;
+.pulseEyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sf-text-tertiary);
 }
 
-.kpiIconReady {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-}
-
-.kpiCardOwing {
-  border-left: 3.5px solid #F59E0B;
-}
-
-.kpiIconOwing {
+.pulseReceivableBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   background: rgba(245, 158, 11, 0.12);
   color: #D97706;
 }
 
-.kpiContent {
+.pulseResetBtn {
+  background: none;
+  border: none;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo);
+  background: rgba(79, 70, 229, 0.08);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pulseResetBtn:hover {
+  opacity: 0.85;
+}
+
+.pulseMetricsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(15, 23, 42, 0.025);
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.pulseCell {
+  position: relative;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);
+  -webkit-tap-highlight-color: transparent;
   min-width: 0;
 }
 
-.kpiVal {
-  font-family: var(--sf-font-heading);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--sf-text-primary);
-  line-height: 1.2;
+.pulseCell:hover {
+  background: rgba(255, 255, 255, 0.65);
 }
 
-.kpiLabel {
-  font-size: 11px;
-  font-weight: 500;
+.pulseCell:active {
+  transform: scale(0.97);
+}
+
+.pulseCellActive {
+  background: var(--sf-bg-surface);
+  border-color: rgba(79, 70, 229, 0.22);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.pulseCellTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.pulseVal {
+  font-family: var(--sf-font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.pulseValEmerald {
+  color: #059669;
+}
+
+.pulseValAmber {
+  color: #D97706;
+}
+
+.pulseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pulseDotIndigo {
+  background: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.pulseDotEmerald {
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+}
+
+.pulseDotViolet {
+  background: #8B5CF6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.16);
+}
+
+.pulseDotAmber {
+  background: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+.pulseDotMuted {
+  background: var(--sf-border);
+}
+
+.pulseLabel {
+  font-size: 10.5px;
+  font-weight: 600;
   color: var(--sf-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
+}
+
+.pulseCellActive .pulseLabel {
+  color: var(--sf-brand-indigo);
 }
 
 /* ── 2. Search & Integrated Filter Bar ──────────────────────── */
@@ -990,6 +1064,53 @@
 }
 
 /* ── 7. Dark Mode Overrides (data-theme="dark") ───────────────── */
+:global([data-theme='dark']) .pulseCard {
+  background: linear-gradient(145deg, #161526 0%, #1B1930 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.45);
+}
+
+:global([data-theme='dark']) .pulseMetricsRow {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+:global([data-theme='dark']) .pulseCell:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:global([data-theme='dark']) .pulseCellActive {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(129, 140, 248, 0.3);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .pulseVal {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .pulseValEmerald {
+  color: #34D399;
+}
+
+:global([data-theme='dark']) .pulseValAmber {
+  color: #FBBF24;
+}
+
+:global([data-theme='dark']) .pulseCellActive .pulseLabel {
+  color: #A5B4FC;
+}
+
+:global([data-theme='dark']) .pulseReceivableBadge {
+  background: rgba(245, 158, 11, 0.18);
+  color: #FBBF24;
+}
+
+:global([data-theme='dark']) .pulseResetBtn {
+  background: rgba(99, 102, 241, 0.2);
+  color: #A5B4FC;
+}
+
 :global([data-theme='dark']) .storyBubble {
   background: #1E1D32;
   color: #FFFFFF;

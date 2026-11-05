@@ -435,18 +435,19 @@ function CustomerProfileContent({
           rightAction={
             <button
               type="button"
-              className={styles.editBtn}
+              className={styles.topEditPillBtn}
               onClick={() => setEditOpen(true)}
-              aria-label="Edit profile"
+              aria-label="Edit client profile"
             >
-              <Symbol name="edit" size={20} />
+              <Symbol name="edit" size={14} />
+              <span>Edit</span>
             </button>
           }
         />
       }
     >
       <div className={styles.profileBar}>
-        {/* ── 1. Executive Workshop Client Dossier ── */}
+        {/* ── 1. Streamlined Luxury Client Dossier Hero ── */}
         <section className={styles.executiveCard}>
           <div className={styles.cardMainRow}>
             <div className={styles.avatarWrap}>
@@ -459,95 +460,94 @@ function CustomerProfileContent({
             </div>
 
             <div className={styles.profileDetails}>
-              <div className={styles.nameActionRow}>
+              <div className={styles.nameHeaderRow}>
                 <h2 className={styles.name}>{customer.fullName}</h2>
-                <button
-                  type="button"
-                  className={styles.inlineEditBtn}
-                  onClick={() => setEditOpen(true)}
-                  aria-label="Edit customer profile"
-                >
-                  <Symbol name="edit" size={15} />
-                </button>
+                {hasReadyOrder ? (
+                  <span className={styles.readyBadge}>Ready</span>
+                ) : hasActiveOrder ? (
+                  <span className={styles.inProdBadge}>Sewing</span>
+                ) : null}
               </div>
 
               <div className={styles.metaRow}>
-                <span className={styles.phoneText}>{formatPhone(customer.whatsappNumber)}</span>
                 <button
                   type="button"
-                  className={styles.copyPhoneBtn}
+                  className={styles.phoneCopyPill}
                   onClick={() => {
                     navigator.clipboard.writeText(customer.whatsappNumber);
                     showToast('Phone number copied', 'info');
                   }}
-                  title="Copy phone number"
+                  title="Tap to copy phone number"
                 >
-                  <Symbol name="content_copy" size={12} />
+                  <span>{formatPhone(customer.whatsappNumber)}</span>
+                  <Symbol name="content_copy" size={11} />
                 </button>
+
                 {customer.gender && (
                   <span className={styles.genderBadge}>
                     {customer.gender === 'female' ? 'Women' : 'Men'}
                   </span>
                 )}
-                {hasReadyOrder && <span className={styles.readyBadge}>Ready</span>}
-                {hasActiveOrder && !hasReadyOrder && <span className={styles.inProdBadge}>In Production</span>}
+
+                {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
+                  <span className={styles.storeCreditBadge}>
+                    Credit: {formatCurrency(customer.wallet_balance)}
+                  </span>
+                )}
               </div>
 
               {FEATURE_FLAGS.customerAddress && customer.address && (
                 <div className={styles.customerAddress}>
-                  <Symbol name="storefront" size={13} /> {customer.address}
-                </div>
-              )}
-
-              {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
-                <div className={styles.storeCreditBadge}>
-                  <Symbol name="account_balance_wallet" size={13} />
-                  Store Credit: {formatCurrency(customer.wallet_balance)}
+                  <Symbol name="location_on" size={12} />
+                  <span>{customer.address}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Inset 3-Metric Executive Stats Tray */}
+          {/* Inset 3-Metric Executive Stats Strip */}
           <div className={styles.statsTray}>
-            <div className={styles.statBox} onClick={() => setActiveTab('orders')} title="View orders">
+            <button
+              type="button"
+              className={styles.statBox}
+              onClick={() => setActiveTab('orders')}
+            >
               <span className={styles.statBoxVal}>{custOrders.length}</span>
-              <span className={styles.statBoxLabel}>Total Orders</span>
-            </div>
+              <span className={styles.statBoxLabel}>Orders</span>
+            </button>
             <div className={styles.statBoxDivider} />
-            <div className={styles.statBox} onClick={() => setActiveTab('orders')} title="View total spent">
+            <button
+              type="button"
+              className={styles.statBox}
+              onClick={() => setActiveTab('orders')}
+            >
               <span className={styles.statBoxVal}>{formatCurrency(totalSpend)}</span>
               <span className={styles.statBoxLabel}>Total Billed</span>
-            </div>
+            </button>
             <div className={styles.statBoxDivider} />
-            <div className={styles.statBox} onClick={() => setActiveTab('orders')} title="View balance due">
-              <span className={`${styles.statBoxVal} ${totalOwed > 0 ? styles.warn : ''}`}>
+            <button
+              type="button"
+              className={styles.statBox}
+              onClick={() => setActiveTab('orders')}
+            >
+              <span className={`${styles.statBoxVal} ${totalOwed > 0 ? styles.warn : styles.settledVal}`}>
                 {totalOwed > 0 ? formatCurrency(totalOwed) : '₦0'}
               </span>
-              <span className={`${styles.statBoxBadge} ${totalOwed > 0 ? styles.statBoxBadgeWarn : styles.statBoxBadgeClean}`}>
-                {totalOwed > 0 ? 'Pending' : 'Settled'}
+              <span className={styles.statBoxLabel}>
+                {totalOwed > 0 ? 'Balance Due' : 'All Settled'}
               </span>
-            </div>
+            </button>
           </div>
 
-          {/* Action Command Strip */}
+          {/* Balanced Action Command Strip */}
           <div className={styles.actionCommandStrip}>
             <button
               type="button"
               className={styles.primaryOrderBtn}
               onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}
             >
-              <Symbol name="add_circle" size={17} />
+              <Symbol name="add" size={16} />
               <span>New Order</span>
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryActionBtn}
-              onClick={() => router.push(`/quotes?customer=${customer.id}`)}
-              title="Calculate quick quote"
-            >
-              <Symbol name="calculate" size={16} />
-              <span>Quote</span>
             </button>
             <a
               href={getWhatsAppLink(
@@ -563,15 +563,24 @@ function CustomerProfileContent({
               className={styles.secondaryActionBtnWhatsApp}
               title="Message on WhatsApp"
             >
-              <WhatsappIcon size={16} />
+              <WhatsappIcon size={15} />
               <span>WhatsApp</span>
             </a>
+            <button
+              type="button"
+              className={styles.secondaryActionBtn}
+              onClick={() => router.push(`/quotes?customer=${customer.id}`)}
+              title="Calculate quick quote"
+            >
+              <Symbol name="calculate" size={15} />
+              <span>Quote</span>
+            </button>
             <a
               href={`tel:+${customer.whatsappNumber}`}
               className={styles.secondaryActionBtn}
               title="Call customer"
             >
-              <Symbol name="call" size={16} />
+              <Symbol name="call" size={15} />
               <span>Call</span>
             </a>
           </div>
@@ -625,12 +634,14 @@ function CustomerProfileContent({
       {/* ── TAB 1: MEASUREMENTS ── */}
       {activeTab === 'measurements' && (
         <div className={styles.tabContent}>
-          {/* Baseline Measurements Glance Tray */}
+          {/* Key Baseline Measurements Glance Tray */}
           <div className={styles.baselineTray}>
             <div className={styles.baselineItem}>
               <span className={styles.baselineLabel}>{customer.gender === 'female' ? 'Bust' : 'Chest'}</span>
               <span className={styles.baselineValue}>
-                {measurements[customer.gender === 'female' ? 'bust' : 'chest'] ? `${measurements[customer.gender === 'female' ? 'bust' : 'chest']}"` : '--'}
+                {measurements[customer.gender === 'female' ? 'bust' : 'chest']
+                  ? `${measurements[customer.gender === 'female' ? 'bust' : 'chest']}"`
+                  : '--'}
               </span>
             </div>
             <div className={styles.baselineDivider} />
@@ -651,41 +662,51 @@ function CustomerProfileContent({
             <div className={styles.baselineItem}>
               <span className={styles.baselineLabel}>{customer.gender === 'female' ? 'Dress L.' : 'Trouser L.'}</span>
               <span className={styles.baselineValue}>
-                {measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength'] ? `${measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength']}"` : '--'}
+                {measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength']
+                  ? `${measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength']}"`
+                  : '--'}
               </span>
             </div>
           </div>
-          {/* Full-body reference profile */}
-          <section className={styles.section}>
-            <div className={styles.sectionTitleRow}>
-              <h3 className={styles.sectionTitle}>Body Measurements</h3>
-              <div className={styles.sectionActions}>
+
+          {/* Elevated Body Measurements Dossier Card */}
+          <section className={styles.measurementDossierCard}>
+            <div className={styles.dossierHeaderRow}>
+              <div className={styles.dossierTitleBlock}>
+                <span className={styles.dossierEyebrow}>Anatomical Fit Record</span>
+                <h3 className={styles.sectionTitle}>Body Measurements</h3>
+              </div>
+              <div className={styles.dossierActionRow}>
                 <button
                   type="button"
-                  className={styles.newBtn}
+                  className={styles.dossierActionPill}
                   onClick={handleWhatsAppMeasurements}
                   title="Send measurements summary via WhatsApp"
                 >
-                  <WhatsappIcon size={14} /> WhatsApp
+                  <WhatsappIcon size={13} />
+                  <span>Share</span>
                 </button>
                 <button
                   type="button"
-                  className={styles.newBtn}
+                  className={styles.dossierActionPill}
                   onClick={handleCopyMeasurements}
                   title="Copy measurements summary to clipboard"
                 >
-                  <Symbol name="content_copy" size={14} /> Copy
+                  <Symbol name="content_copy" size={13} />
+                  <span>Copy</span>
                 </button>
                 <button
                   type="button"
-                  className={styles.newBtn}
+                  className={styles.dossierActionPill}
                   onClick={() => setHistorySheetOpen(true)}
                   title="View measurement history"
                 >
-                  <Symbol name="history" size={14} /> History
+                  <Symbol name="history" size={13} />
+                  <span>History</span>
                 </button>
               </div>
             </div>
+
             <MeasurementAnatomy
               gender={customer.gender || 'female'}
               measurements={measurements}
@@ -696,14 +717,28 @@ function CustomerProfileContent({
             />
           </section>
 
-          {/* Posture & Fitting Notes */}
-          <section className={styles.section}>
-            <div className={styles.sectionTitleRow}>
-              <h3 className={styles.sectionTitle}>Posture & Fit Notes</h3>
-              <span className={styles.notesSaveHint}>Auto-saved</span>
+          {/* Elevated Posture & Fitting Notes Dossier Card */}
+          <section className={styles.postureDossierCard}>
+            <div className={styles.postureHeaderRow}>
+              <div className={styles.postureTitleGroup}>
+                <div className={styles.postureIconWrap}>
+                  <Symbol name="notes" size={16} />
+                </div>
+                <div>
+                  <h3 className={styles.postureCardTitle}>Posture & Fit Notes</h3>
+                  <p className={styles.postureCardSub}>
+                    Select anatomical traits or record custom tailoring adjustments
+                  </p>
+                </div>
+              </div>
+              <span className={styles.autoSavePill}>
+                <Symbol name="check_circle" size={12} />
+                <span>Auto-saved</span>
+              </span>
             </div>
-            {/* Quick Posture Tags */}
-            <div className={styles.postureTagsTrack}>
+
+            {/* Interactive Toggleable Posture Chips */}
+            <div className={styles.postureTagsGrid}>
               {(customer.gender === 'female'
                 ? [
                     'Corset Fit',
@@ -725,29 +760,48 @@ function CustomerProfileContent({
                     'Regular Fit',
                     'Extra Length',
                   ]
-              ).map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={styles.postureChip}
-                  onClick={() => {
-                    const nextNotes = notes.trim() ? `${notes.trim()}, ${tag}` : tag;
-                    setNotes(nextNotes);
-                    updateCustomerProfile(customer.id, { measurementNotes: nextNotes });
-                    showToast(`Added "${tag}" to notes`, 'info');
-                  }}
-                >
-                  + {tag}
-                </button>
-              ))}
+              ).map((tag) => {
+                const isTagActive = notes.toLowerCase().includes(tag.toLowerCase());
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`${styles.postureChip} ${isTagActive ? styles.postureChipActive : ''}`}
+                    onClick={() => {
+                      let nextNotes: string;
+                      if (isTagActive) {
+                        const parts = notes
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter((s) => s && s.toLowerCase() !== tag.toLowerCase());
+                        nextNotes = parts.join(', ');
+                      } else {
+                        nextNotes = notes.trim() ? `${notes.trim()}, ${tag}` : tag;
+                      }
+                      setNotes(nextNotes);
+                      updateCustomerProfile(customer.id, { measurementNotes: nextNotes });
+                      showToast(
+                        isTagActive ? `Removed "${tag}"` : `Added "${tag}" to fit notes`,
+                        'info'
+                      );
+                    }}
+                  >
+                    <Symbol name={isTagActive ? 'check' : 'add'} size={12} />
+                    <span>{tag}</span>
+                  </button>
+                );
+              })}
             </div>
-            <textarea
-              className={styles.notesTextarea}
-              placeholder="Add posture quirks, preferences, or fitting details here..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleSaveNotes}
-            />
+
+            <div className={styles.notesPadWrap}>
+              <textarea
+                className={styles.notesTextarea}
+                placeholder="Record shoulder slope, ease allowance preferences, fabric drape notes, or alteration reminders..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={handleSaveNotes}
+              />
+            </div>
           </section>
         </div>
       )}

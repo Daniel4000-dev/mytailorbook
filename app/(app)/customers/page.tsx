@@ -361,66 +361,90 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* ── 1. Executive Workshop Client Pulse (KPI Cards) ─────────── */}
-      <div className={styles.kpiGrid}>
-        <div
-          className={`${styles.kpiCard} ${clientFilter === 'all' ? styles.kpiCardActive : ''}`}
-          onClick={() => setClientFilter('all')}
-          title="View all clients"
-        >
-          <div className={styles.kpiIconWrap}>
-            <Symbol name="group" size={16} />
+      {/* ── 1. Executive Atelier Client Pulse (Unified Luxury Metric Card) ── */}
+      <div className={styles.pulseCard}>
+        <div className={styles.pulseHeader}>
+          <div className={styles.pulseTitleGroup}>
+            <span className={styles.pulseEyebrow}>Atelier Client Pulse</span>
+            {totalBalanceOwed > 0 && (
+              <span className={styles.pulseReceivableBadge}>
+                ₦{totalBalanceOwed.toLocaleString()} receivable
+              </span>
+            )}
           </div>
-          <div className={styles.kpiContent}>
-            <span className={styles.kpiVal}>{totalCustomers}</span>
-            <span className={styles.kpiLabel}>Total Clients</span>
-          </div>
+          {clientFilter !== 'all' && (
+            <button
+              type="button"
+              className={styles.pulseResetBtn}
+              onClick={() => setClientFilter('all')}
+            >
+              Show All
+            </button>
+          )}
         </div>
 
-        <div
-          className={`${styles.kpiCard} ${clientFilter === 'ready' ? styles.kpiCardActive : ''} ${readyCount > 0 ? styles.kpiCardReady : ''}`}
-          onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
-          title="View clients ready for pickup"
-        >
-          <div className={`${styles.kpiIconWrap} ${readyCount > 0 ? styles.kpiIconReady : ''}`}>
-            <Symbol name="checkroom" size={16} />
-          </div>
-          <div className={styles.kpiContent}>
-            <span className={styles.kpiVal}>{readyCount}</span>
-            <span className={styles.kpiLabel}>Ready for Pickup</span>
-          </div>
-        </div>
+        <div className={styles.pulseMetricsRow} role="tablist" aria-label="Filter clients by status">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={clientFilter === 'all'}
+            className={`${styles.pulseCell} ${clientFilter === 'all' ? styles.pulseCellActive : ''}`}
+            onClick={() => setClientFilter('all')}
+          >
+            <div className={styles.pulseCellTop}>
+              <span className={styles.pulseVal}>{totalCustomers}</span>
+              <span className={`${styles.pulseDot} ${styles.pulseDotIndigo}`} />
+            </div>
+            <span className={styles.pulseLabel}>Total Clients</span>
+          </button>
 
-        <div
-          className={`${styles.kpiCard} ${clientFilter === 'active' ? styles.kpiCardActive : ''}`}
-          onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
-          title="View clients with outfits in production"
-        >
-          <div className={styles.kpiIconWrap}>
-            <Symbol name="content_cut" size={16} />
-          </div>
-          <div className={styles.kpiContent}>
-            <span className={styles.kpiVal}>{activeCustomers}</span>
-            <span className={styles.kpiLabel}>In Production</span>
-          </div>
-        </div>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={clientFilter === 'ready'}
+            className={`${styles.pulseCell} ${clientFilter === 'ready' ? styles.pulseCellActive : ''}`}
+            onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
+          >
+            <div className={styles.pulseCellTop}>
+              <span className={`${styles.pulseVal} ${readyCount > 0 ? styles.pulseValEmerald : ''}`}>
+                {readyCount}
+              </span>
+              <span className={`${styles.pulseDot} ${readyCount > 0 ? styles.pulseDotEmerald : styles.pulseDotMuted}`} />
+            </div>
+            <span className={styles.pulseLabel}>Ready Pickup</span>
+          </button>
 
-        <div
-          className={`${styles.kpiCard} ${clientFilter === 'owing' ? styles.kpiCardActive : ''} ${owingCount > 0 ? styles.kpiCardOwing : ''}`}
-          onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
-          title="View clients with outstanding balances"
-        >
-          <div className={`${styles.kpiIconWrap} ${owingCount > 0 ? styles.kpiIconOwing : ''}`}>
-            <Symbol name="payments" size={16} />
-          </div>
-          <div className={styles.kpiContent}>
-            <span className={styles.kpiVal}>
-              {totalBalanceOwed > 0 ? `₦${Math.round(totalBalanceOwed / 1000)}k` : `${owingCount}`}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={clientFilter === 'active'}
+            className={`${styles.pulseCell} ${clientFilter === 'active' ? styles.pulseCellActive : ''}`}
+            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
+          >
+            <div className={styles.pulseCellTop}>
+              <span className={styles.pulseVal}>{activeCustomers}</span>
+              <span className={`${styles.pulseDot} ${activeCustomers > 0 ? styles.pulseDotViolet : styles.pulseDotMuted}`} />
+            </div>
+            <span className={styles.pulseLabel}>In Production</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={clientFilter === 'owing'}
+            className={`${styles.pulseCell} ${clientFilter === 'owing' ? styles.pulseCellActive : ''}`}
+            onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+          >
+            <div className={styles.pulseCellTop}>
+              <span className={`${styles.pulseVal} ${owingCount > 0 ? styles.pulseValAmber : ''}`}>
+                {owingCount}
+              </span>
+              <span className={`${styles.pulseDot} ${owingCount > 0 ? styles.pulseDotAmber : styles.pulseDotMuted}`} />
+            </div>
+            <span className={styles.pulseLabel}>
+              {owingCount > 0 ? 'Owing Balance' : 'Zero Owing'}
             </span>
-            <span className={styles.kpiLabel}>
-              {owingCount > 0 ? `${owingCount} Owing` : 'Zero Debt'}
-            </span>
-          </div>
+          </button>
         </div>
       </div>
 

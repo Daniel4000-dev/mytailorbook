@@ -20,52 +20,54 @@
   min-width: 0;
 }
 
-.editBtn {
-  display: flex;
+.topEditPillBtn {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: var(--sf-touch-target);
-  height: var(--sf-touch-target);
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
   border-radius: var(--sf-radius-full);
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.16);
   color: var(--sf-brand-indigo);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .editBtn:hover {
-    background: var(--sf-surface-variant);
-  }
+.topEditPillBtn:hover {
+  background: rgba(79, 70, 229, 0.14);
 }
 
-.editBtn:active {
-  background: var(--sf-surface-variant);
-  transform: scale(0.9);
+.topEditPillBtn:active {
+  transform: scale(0.96);
 }
 
-/* ── 1. Executive Workshop Client Dossier ─────────────────────── */
+/* ── 1. Streamlined Luxury Client Dossier Hero ────────────────── */
 .executiveCard {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background: var(--sf-bg-surface);
+  gap: 14px;
+  background: linear-gradient(155deg, var(--sf-bg-surface) 0%, var(--sf-bg-surface-elevated, #f8fafc) 100%);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl, 18px);
-  padding: 20px 18px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
   width: 100%;
 }
 
 .cardMainRow {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   width: 100%;
 }
 
 .avatarWrap {
   position: relative;
-  width: 68px;
-  height: 68px;
+  width: 60px;
+  height: 60px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -76,28 +78,28 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
 }
 
 .onlineBadge {
   position: absolute;
   bottom: 1px;
   right: 1px;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: #10B981;
   border: 2.5px solid var(--sf-bg-surface, #FFFFFF);
   z-index: 2;
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
 }
 
 .activeBadge {
   position: absolute;
   bottom: 1px;
   right: 1px;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--sf-brand-indigo, #4F46E5);
   border: 2.5px solid var(--sf-bg-surface, #FFFFFF);
@@ -107,49 +109,29 @@
 .profileDetails {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   flex: 1;
   min-width: 0;
 }
 
-.nameActionRow {
+.nameHeaderRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .name {
   font-family: var(--sf-font-heading);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 19px;
+  font-weight: 800;
   color: var(--sf-text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.inlineEditBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--sf-text-secondary);
-  cursor: pointer;
-  transition: all var(--sf-transition-fast);
-  flex-shrink: 0;
-}
-
-.inlineEditBtn:hover {
-  background: rgba(67, 56, 202, 0.1);
-  color: var(--sf-brand-indigo);
 }
 
 .metaRow {
@@ -159,28 +141,25 @@
   flex-wrap: wrap;
 }
 
-.phoneText {
-  font-size: 13px;
-  color: var(--sf-text-secondary);
-  font-weight: 500;
-}
-
-.copyPhoneBtn {
+.phoneCopyPill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  color: var(--sf-text-tertiary);
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-secondary);
   cursor: pointer;
-  transition: color var(--sf-transition-fast);
-  padding: 0;
+  transition: all 0.15s ease;
 }
 
-.copyPhoneBtn:hover {
+.phoneCopyPill:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.2);
   color: var(--sf-brand-indigo);
 }
 
@@ -189,26 +168,29 @@
   font-weight: 700;
   color: var(--sf-brand-indigo);
   background: rgba(67, 56, 202, 0.08);
-  padding: 1.5px 7px;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
 }
 
 .readyBadge {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: #059669;
   background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  padding: 1.5px 7px;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
 }
 
 .inProdBadge {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sf-brand-indigo);
   background: rgba(67, 56, 202, 0.1);
-  padding: 1.5px 7px;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
 }
 
@@ -216,35 +198,31 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--sf-text-tertiary);
-  margin-top: 2px;
 }
 
 .storeCreditBadge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: rgba(245, 158, 11, 0.12);
   color: #B45309;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
-  font-size: 11.5px;
-  font-weight: 600;
-  margin-top: 2px;
-  width: fit-content;
+  font-size: 10.5px;
+  font-weight: 700;
 }
 
-/* ── 2. Inset 3-Metric Executive Stats Tray ──────────────────── */
+/* ── 2. Inset 3-Metric Executive Stats Strip ─────────────────── */
 .statsTray {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--sf-bg-surface-elevated, rgba(0, 0, 0, 0.02));
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md, 10px);
-  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.025);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  border-radius: 12px;
+  padding: 10px 8px;
   width: 100%;
 }
 
@@ -254,6 +232,9 @@
   align-items: center;
   gap: 2px;
   flex: 1;
+  background: none;
+  border: none;
+  padding: 2px 4px;
   cursor: pointer;
   transition: transform var(--sf-transition-fast);
 }
@@ -264,10 +245,15 @@
 
 .statBoxVal {
   font-family: var(--sf-font-heading);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--sf-text-primary);
   line-height: 1.2;
+}
+
+.settledVal {
+  color: #059669;
 }
 
 .statBoxLabel {
@@ -275,42 +261,23 @@
   font-weight: 600;
   color: var(--sf-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .statBoxDivider {
   width: 1px;
-  height: 24px;
+  height: 22px;
   background: var(--sf-border-light);
-}
-
-.statBoxBadge {
-  font-size: 9.5px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: var(--sf-radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.statBoxBadgeClean {
-  color: #059669;
-  background: rgba(16, 185, 129, 0.12);
-}
-
-.statBoxBadgeWarn {
-  color: #D97706;
-  background: rgba(245, 158, 11, 0.12);
 }
 
 .warn {
   color: #D97706;
 }
 
-/* ── 3. Action Command Strip ────────────────────────────────── */
+/* ── 3. Balanced Action Command Strip ───────────────────────── */
 .actionCommandStrip {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1.3fr 1fr;
+  grid-template-columns: 1.35fr 1.15fr 1fr 0.9fr;
   gap: 8px;
   width: 100%;
 }
@@ -319,23 +286,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 5px;
+  height: 38px;
+  padding: 0 12px;
   background: var(--sf-brand-indigo, #4F46E5);
   color: #FFFFFF;
   border: none;
-  border-radius: var(--sf-radius-full);
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: 11px;
+  font-size: 12.5px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
   transition: all var(--sf-transition-fast);
   white-space: nowrap;
 }
 
 .primaryOrderBtn:active {
   transform: scale(0.97);
-  box-shadow: none;
 }
 
 .secondaryActionBtn {
@@ -343,12 +310,13 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 10px 10px;
-  background: rgba(0, 0, 0, 0.04);
+  height: 38px;
+  padding: 0 10px;
+  background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-full);
+  border-radius: 11px;
   color: var(--sf-text-primary);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -357,7 +325,8 @@
 }
 
 .secondaryActionBtn:hover {
-  background: rgba(0, 0, 0, 0.07);
+  border-color: var(--sf-border);
+  background: var(--sf-bg-surface-hover);
 }
 
 .secondaryActionBtn:active {
@@ -369,13 +338,14 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 10px 10px;
-  background: rgba(37, 211, 102, 0.12);
+  height: 38px;
+  padding: 0 10px;
+  background: rgba(37, 211, 102, 0.1);
   border: 1px solid rgba(37, 211, 102, 0.25);
-  border-radius: var(--sf-radius-full);
+  border-radius: 11px;
   color: #15803D;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   text-decoration: none;
   cursor: pointer;
   transition: all var(--sf-transition-fast);
@@ -383,7 +353,7 @@
 }
 
 .secondaryActionBtnWhatsApp:hover {
-  background: rgba(37, 211, 102, 0.2);
+  background: rgba(37, 211, 102, 0.16);
 }
 
 .secondaryActionBtnWhatsApp:active {
@@ -888,71 +858,187 @@
   opacity: 1;
 }
 
-/* ── 8. Notes Textarea & Posture Tags ───────────────────────── */
-.notesSaveHint {
-  font-size: 11px;
-  font-weight: 500;
+/* ── 8. Elevated Body Measurements & Posture Dossier Cards ───── */
+.measurementDossierCard,
+.postureDossierCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 3px 16px -4px rgba(15, 23, 42, 0.04);
+}
+
+.dossierHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dossierTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dossierEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sf-brand-indigo);
+}
+
+.dossierActionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dossierActionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 11px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.035);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dossierActionPill:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.25);
+  color: var(--sf-brand-indigo);
+}
+
+.dossierActionPill:active {
+  transform: scale(0.96);
+}
+
+/* Posture & Fit Notes Dossier Card */
+.postureHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.postureTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.postureIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.postureCardTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.postureCardSub {
+  margin: 1px 0 0;
+  font-size: 11.5px;
   color: var(--sf-text-tertiary);
 }
 
-.postureTagsTrack {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch;
+.autoSavePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  font-size: 10.5px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-.postureTagsTrack::-webkit-scrollbar {
-  display: none;
+.postureTagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .postureChip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 6px 12px;
   border-radius: var(--sf-radius-full);
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--sf-border-light);
   color: var(--sf-text-secondary);
-  font-size: 11.5px;
-  font-weight: 500;
-  border: none;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  flex-shrink: 0;
-  transition: all var(--sf-transition-fast);
+  transition: all 0.15s ease;
 }
 
 .postureChip:hover {
-  background: rgba(67, 56, 202, 0.08);
+  border-color: rgba(79, 70, 229, 0.35);
   color: var(--sf-brand-indigo);
 }
 
 .postureChip:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
+}
+
+.postureChipActive {
+  background: rgba(79, 70, 229, 0.1);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+}
+
+.notesPadWrap {
+  position: relative;
 }
 
 .notesTextarea {
   width: 100%;
-  min-height: 100px;
-  background: var(--sf-bg-surface-elevated);
+  min-height: 104px;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
+  border-radius: 14px;
+  padding: 12px 14px;
   color: var(--sf-text-primary);
   font-family: inherit;
-  font-size: var(--sf-text-sm);
+  font-size: 13.5px;
+  line-height: 1.55;
   resize: vertical;
-  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast), background var(--sf-transition-fast);
 }
 
 .notesTextarea:focus {
   outline: none;
+  background: var(--sf-bg-surface);
   border-color: var(--sf-brand-indigo);
-  box-shadow: 0 0 0 1px var(--sf-brand-indigo);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
 .notesTextarea::placeholder {
@@ -1272,10 +1358,31 @@
 }
 
 :global([data-theme='dark']) .executiveCard,
-:global([data-theme='dark']) .baselineTray {
+:global([data-theme='dark']) .baselineTray,
+:global([data-theme='dark']) .measurementDossierCard,
+:global([data-theme='dark']) .postureDossierCard {
   background: #161526;
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .phoneCopyPill,
+:global([data-theme='dark']) .dossierActionPill,
+:global([data-theme='dark']) .postureChip,
+:global([data-theme='dark']) .secondaryActionBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.09);
+  color: #cbd5e1;
+}
+
+:global([data-theme='dark']) .postureChipActive {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: #818cf8;
+  color: #a5b4fc;
+}
+
+:global([data-theme='dark']) .postureCardTitle {
+  color: #ffffff;
 }
 
 :global([data-theme='dark']) .statsTray {

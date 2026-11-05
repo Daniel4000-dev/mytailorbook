@@ -1,30 +1,151 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
-  animation: fadeInUp 0.5s ease 0.15s both;
+  gap: 14px;
+  animation: fadeInUp 0.45s ease 0.1s both;
 }
 
-.header {
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mannequinLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 440px;
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 16px;
+}
+
+.mannequinLoaderSpinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid rgba(79, 70, 229, 0.15);
+  border-top-color: var(--sf-brand-indigo, #4f46e5);
+  border-radius: 50%;
+  animation: spinLoader 0.8s linear infinite;
+}
+
+@keyframes spinLoader {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 1. Unified Command Control Bar ─────────────────────────── */
+.controlBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 14px;
+  padding: 6px 8px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
 }
 
-.title {
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-semibold);
+.segmentedTabs {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.04);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.segBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.segBtn:hover {
   color: var(--sf-text-primary);
 }
 
-.counter {
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border);
-  padding: 4px 10px;
+.segBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-brand-indigo);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.controlBarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
   border-radius: var(--sf-radius-full);
+  background: rgba(79, 70, 229, 0.06);
+  border: 1px solid rgba(79, 70, 229, 0.14);
+  font-size: 11.5px;
+  color: var(--sf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.progressDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sf-brand-indigo);
+}
+
+.progressText strong {
+  color: var(--sf-brand-indigo);
+  font-weight: 800;
+}
+
+.launchStudioBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  background: var(--sf-brand-indigo);
+  color: #ffffff;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.22);
+}
+
+.launchStudioBtn:hover {
+  opacity: 0.93;
+}
+
+.launchStudioBtn:active {
+  transform: scale(0.97);
+}
+
+/* ── 2. 3D Visual Block & Legend Bar ────────────────────────── */
+.visualBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .anatomyContainer {
@@ -33,447 +154,643 @@
   margin: 0 auto;
 }
 
-.anatomyInner {
-  position: absolute;
-  inset: 2%;
-  width: 96%;
-  height: 96%;
-}
-
-.bodySvg {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.mannequinFinial {
-  fill: var(--sf-text-tertiary);
-  opacity: 0.6;
-}
-
-.mannequinHead {
-  fill: none;
-  stroke: var(--sf-border);
-  stroke-width: 0.85;
-  opacity: 0.6;
-}
-
-.mannequinBody {
-  stroke: var(--sf-border);
-  stroke-width: 0.85;
-  transition: all var(--sf-transition-fast);
-}
-
-.mannequinArm {
-  stroke: var(--sf-border);
-  stroke-width: 0.75;
-  opacity: 0.8;
-}
-
-.mannequinSeam {
-  stroke: var(--sf-border);
-  stroke-width: 0.7;
-  stroke-dasharray: 2 2;
-  opacity: 0.65;
-}
-
-.mannequinGuide {
-  fill: none;
-  stroke: var(--sf-text-tertiary);
-  stroke-width: 0.6;
-  stroke-dasharray: 1.5 2;
-  opacity: 0.45;
-}
-
-.mannequinGuideSubtle {
-  stroke: var(--sf-border);
-  stroke-width: 0.5;
-  stroke-dasharray: 1.5 2.5;
-  opacity: 0.35;
-}
-
-.bodyPart {
-  fill: var(--sf-border);
-  stroke: var(--sf-border-light);
-  stroke-width: 0.5;
-  opacity: 0.4;
-}
-
-.visualHint {
-  text-align: center;
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
-  margin-bottom: var(--sf-space-xs);
-}
-
-/* ── Span measurements (two landmarks, connected by a line) ─── */
-
-.spanSvg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.spanLine {
-  stroke: var(--sf-text-tertiary);
-  stroke-width: 0.75;
-  stroke-dasharray: 2 1.5;
-  opacity: 0.6;
-}
-
-.spanLineFilled {
-  stroke: var(--sf-brand-indigo);
-  stroke-width: 1;
-  opacity: 0.95;
-}
-
-/* ── Measurement Points ───────────────────────────────── */
-
-.point {
-  position: absolute;
-  transform: translate(-50%, -50%);
+.legendBar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px; /* Hit area */
-  z-index: 2;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.point:active .pointDot {
-  transform: scale(1.3);
-}
-
-.pointDot {
-  width: 9px;
-  height: 9px;
-  border-radius: var(--sf-radius-full);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 14px;
   background: var(--sf-bg-surface);
-  border: 2px solid var(--sf-text-tertiary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  flex-shrink: 0;
-  transition: all var(--sf-transition-fast);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
 }
 
-.point:hover .pointDot {
-  transform: scale(1.3);
-  border-color: var(--sf-brand-indigo);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.pointLabel {
-  position: absolute;
-  left: 100%;
-  margin-left: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--sf-text-secondary);
-  white-space: nowrap;
-  background: var(--sf-bg-surface-elevated);
-  padding: 2px 6px;
-  border-radius: var(--sf-radius-xs);
-  border: 1px solid var(--sf-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
-  pointer-events: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .point:hover .pointLabel,
-  .selected .pointLabel,
-  .filled .pointLabel {
-    opacity: 1;
-  }
-}
-
-/* Filled state */
-.filled .pointDot {
-  background: var(--sf-brand-indigo);
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 0 1.5px var(--sf-brand-indigo), 0 2px 6px rgba(79, 70, 229, 0.35);
-}
-
-.filled .pointLabel {
-  color: var(--sf-brand-indigo);
-  border-color: rgba(99, 102, 241, 0.3);
-  background: var(--sf-bg-surface-elevated);
-}
-
-/* Selected state */
-.selected .pointDot {
-  background: #f59e0b;
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 0 2px #f59e0b, 0 0 12px rgba(245, 158, 11, 0.5);
-  transform: scale(1.4);
-}
-
-.selected .pointLabel {
-  color: #d97706;
-  border-color: rgba(245, 158, 11, 0.4);
-  background: var(--sf-bg-surface-elevated);
-}
-
-/* Span tap-target — a short bar instead of a dot, signaling "this represents
-   a line between two points," not a single spot. */
-.spanPoint .pointDot {
-  width: 14px;
-  height: 6px;
-  border-radius: var(--sf-radius-xs);
-}
-
-/* ── Legend ────────────────────────────────────────────── */
-
-.legend {
+.legendItems {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--sf-space-lg);
+  gap: 16px;
 }
 
 .legendItem {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-xs);
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
 }
 
 .legendDot {
   width: 8px;
   height: 8px;
-  border-radius: var(--sf-radius-full);
+  border-radius: 50%;
 }
 
 .legendEmpty {
-  background: var(--sf-text-tertiary);
-  opacity: 0.5;
+  background: transparent;
+  border: 2px solid #94a3b8;
 }
 
 .legendFilled {
   background: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.legendExpandLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--sf-brand-indigo);
+  cursor: pointer;
+  padding: 2px 4px;
 }
 
-/* ── View Mode Tabs ── */
-.viewModeTabs {
+.legendExpandLink:hover {
+  text-decoration: underline;
+}
+
+/* ── 3. Categorized Luxury Measurement Grid (List View) ─────── */
+.categoriesStack {
   display: flex;
-  gap: var(--sf-space-xs);
-  margin-bottom: var(--sf-space-md);
-  border-bottom: 1px solid var(--sf-border-light);
-  padding-bottom: var(--sf-space-sm);
+  flex-direction: column;
+  gap: 14px;
 }
 
-.viewModeBtn {
-  padding: 6px 14px;
+.categoryCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.025);
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.categoryTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.categoryIconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.categoryTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.categorySubtitle {
+  margin: 1px 0 0;
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+}
+
+.categoryCountPill {
+  padding: 3px 9px;
   border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.04);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-secondary);
+}
+
+.categoryCountComplete {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 560px) {
+  .categoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.fieldCell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--sf-border-light);
+  transition: all 0.15s ease;
+}
+
+.fieldCell:focus-within {
+  border-color: var(--sf-brand-indigo);
+  background: var(--sf-bg-surface);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.fieldCellFilled {
+  background: rgba(79, 70, 229, 0.035);
+  border-color: rgba(79, 70, 229, 0.2);
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.fieldDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sf-border);
+  flex-shrink: 0;
+}
+
+.fieldCellFilled .fieldDot {
+  background: var(--sf-brand-indigo);
+}
+
+.fieldName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fieldInputWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border);
-  color: var(--sf-text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--sf-transition-fast);
+  border-radius: 7px;
+  padding: 4px 8px;
+  flex-shrink: 0;
 }
 
-.viewModeBtnActive {
-  background: var(--sf-secondary-container, rgba(67, 56, 202, 0.12));
+.fieldCell:focus-within .fieldInputWrap {
+  border-color: var(--sf-brand-indigo);
+}
+
+.fieldInput {
+  width: 56px;
+  border: none;
+  background: transparent;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  text-align: right;
+  outline: none;
+  padding: 0;
+}
+
+.fieldInput::placeholder {
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.fieldUnit {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  user-select: none;
+}
+
+/* ── 4. Fullscreen 3D Anatomy Studio (Mobile Takeover & Desktop Split Modal) ── */
+.studioBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(10, 9, 18, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeStudio 0.2s ease;
+}
+
+@keyframes fadeStudio {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mobile: Full screen takeover */
+.studioModal {
+  width: 100vw;
+  height: 100dvh;
+  background: var(--sf-bg-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Desktop: Spacious centered split-screen studio modal */
+@media (min-width: 768px) {
+  .studioModal {
+    width: 94vw;
+    max-width: 1120px;
+    height: 86vh;
+    max-height: 820px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  }
+}
+
+.studioHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--sf-bg-surface);
+  border-bottom: 1px solid var(--sf-border-light);
+  flex-shrink: 0;
+}
+
+.studioTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.studioEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sf-brand-indigo);
+}
+
+.studioTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.studioTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+}
+
+.studioSavedPill {
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--sf-brand-indigo);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.studioCancelBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.studioCancelBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.studioBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .studioBody {
+    flex-direction: row;
+  }
+}
+
+.studioStagePane {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+
+.studioInspectorPane {
+  background: var(--sf-bg-surface);
+  border-top: 1px solid var(--sf-border-light);
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .studioInspectorPane {
+    width: 390px;
+    border-top: none;
+    border-left: 1px solid var(--sf-border-light);
+    padding: 16px;
+  }
+}
+
+.activePointCard {
+  background: linear-gradient(145deg, rgba(79, 70, 229, 0.05) 0%, rgba(79, 70, 229, 0.02) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activePointHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.navPointBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.navPointBtn:hover {
   border-color: var(--sf-brand-indigo);
   color: var(--sf-brand-indigo);
 }
 
-/* ── List View Input Grid ── */
-.listView {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sf-space-sm);
-  max-height: 450px;
-  overflow-y: auto;
-  padding-right: var(--sf-space-xs);
+.activePointTitleWrap {
+  text-align: center;
 }
 
-@media (min-width: 600px) {
-  .listView {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--sf-space-md);
+.activePointStep {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sf-text-tertiary);
+}
+
+.activePointName {
+  margin: 1px 0 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+}
+
+.activePointControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.stepperBtn {
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stepperBtn:active {
+  transform: scale(0.96);
+}
+
+.activeInputBox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--sf-bg-surface);
+  border: 1.5px solid var(--sf-brand-indigo);
+  border-radius: 10px;
+  padding: 6px 12px;
+}
+
+.activePointInput {
+  width: 72px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  text-align: center;
+  outline: none;
+}
+
+.activeInputUnit {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+}
+
+/* Desktop scrollable list inside studio modal */
+.studioPointList {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .studioPointList {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
   }
 }
 
-.listRow {
+.studioListRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sf-space-md);
-  background: var(--sf-bg-surface);
-  padding: 6px 12px;
-  border: 1px solid var(--sf-border-light);
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.025);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.14s ease;
 }
 
-.listLabel {
+.studioListRow:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.studioListRowActive {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.studioListName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
   color: var(--sf-text-primary);
 }
 
-.listInput {
-  width: 90px;
-  padding: 4px 8px;
-  border: 1px solid var(--sf-border);
-  border-radius: 4px;
-  background: var(--sf-bg-surface);
-  font-size: 13px;
-  color: var(--sf-text-primary);
-  text-align: right;
-  outline: none;
-  transition: border-color var(--sf-transition-fast);
+.studioListDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sf-border);
 }
 
-.listInput:focus {
-  border-color: var(--sf-brand-indigo);
+.studioListRowFilled .studioListDot {
+  background: var(--sf-brand-indigo);
 }
 
-/* ── Dark Mode Overrides (data-theme="dark") ─────────────────── */
-:global([data-theme='dark']) .anatomyContainer {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-}
-
-:global([data-theme='dark']) .counter {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--sf-text-secondary);
-}
-
-:global([data-theme='dark']) .bodyPart,
-:global([data-theme='dark']) .mannequinBody {
-  stroke: rgba(255, 255, 255, 0.15);
-}
-
-:global([data-theme='dark']) .mannequinArm {
-  stroke: rgba(255, 255, 255, 0.12);
-}
-
-:global([data-theme='dark']) .mannequinFinial {
-  fill: rgba(255, 255, 255, 0.4);
-}
-
-:global([data-theme='dark']) .mannequinHead {
-  stroke: rgba(255, 255, 255, 0.15);
-}
-
-:global([data-theme='dark']) .mannequinSeam {
-  stroke: rgba(255, 255, 255, 0.18);
-}
-
-:global([data-theme='dark']) .mannequinGuide,
-:global([data-theme='dark']) .mannequinGuideSubtle {
-  stroke: rgba(255, 255, 255, 0.12);
-}
-
-:global([data-theme='dark']) .pointDot {
-  background: #161526;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-:global([data-theme='dark']) .filled .pointDot {
-  background: #818cf8;
-  border-color: #161526;
-  box-shadow: 0 0 0 1.5px #818cf8, 0 0 10px rgba(129, 140, 248, 0.4);
-}
-
-:global([data-theme='dark']) .filled .pointLabel {
-  background: #1e1b4b;
-  color: #c7d2fe;
-  border-color: rgba(129, 140, 248, 0.3);
-}
-
-:global([data-theme='dark']) .selected .pointDot {
+.studioListRowActive .studioListDot {
   background: #f59e0b;
-  border-color: #161526;
 }
 
-:global([data-theme='dark']) .selected .pointLabel {
-  background: #451a03;
-  color: #fde68a;
-  border-color: rgba(245, 158, 11, 0.3);
+.studioListVal {
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-tertiary);
 }
 
-:global([data-theme='dark']) .spanLine {
-  stroke: rgba(255, 255, 255, 0.3);
+.studioListRowFilled .studioListVal {
+  color: var(--sf-brand-indigo);
 }
 
-:global([data-theme='dark']) .listRow {
-  background: var(--sf-bg-surface, #161526);
+/* ── Dark Mode Overrides ─────────────────────────────────────── */
+:global([data-theme='dark']) .controlBar,
+:global([data-theme='dark']) .legendBar,
+:global([data-theme='dark']) .categoryCard,
+:global([data-theme='dark']) .studioModal,
+:global([data-theme='dark']) .studioHeader,
+:global([data-theme='dark']) .studioInspectorPane {
+  background: #161526;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-:global([data-theme='dark']) .listLabel {
-  color: #FFFFFF;
+:global([data-theme='dark']) .segmentedTabs {
+  background: rgba(0, 0, 0, 0.3);
 }
 
-:global([data-theme='dark']) .listInput {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
+:global([data-theme='dark']) .segBtnActive {
+  background: #232138;
+  color: #a5b4fc;
 }
 
-:global([data-theme='dark']) .listInput:focus {
-  border-color: #818CF8;
+:global([data-theme='dark']) .progressBadge {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(129, 140, 248, 0.25);
 }
 
-/* ── Dark Mode Overrides (prefers-color-scheme: dark) ────────── */
-@media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme="light"])) .anatomyContainer {
-    background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  }
+:global([data-theme='dark']) .progressText strong {
+  color: #a5b4fc;
+}
 
-  :global(:root:not([data-theme="light"])) .counter {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.08);
-    color: var(--sf-text-secondary);
-  }
+:global([data-theme='dark']) .fieldCell {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
+}
 
-  :global(:root:not([data-theme="light"])) .bodyPart {
-    fill: rgba(255, 255, 255, 0.08);
-    stroke: rgba(255, 255, 255, 0.12);
-  }
+:global([data-theme='dark']) .fieldCellFilled {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(129, 140, 248, 0.28);
+}
 
-  :global(:root:not([data-theme="light"])) .spanLine {
-    stroke: rgba(255, 255, 255, 0.3);
-  }
+:global([data-theme='dark']) .fieldInputWrap,
+:global([data-theme='dark']) .activeInputBox,
+:global([data-theme='dark']) .stepperBtn,
+:global([data-theme='dark']) .navPointBtn {
+  background: #1e1c30;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
 
-  :global(:root:not([data-theme="light"])) .listRow {
-    background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
+:global([data-theme='dark']) .fieldName,
+:global([data-theme='dark']) .fieldInput,
+:global([data-theme='dark']) .categoryTitle,
+:global([data-theme='dark']) .studioTitle,
+:global([data-theme='dark']) .activePointName,
+:global([data-theme='dark']) .activePointInput,
+:global([data-theme='dark']) .studioListName {
+  color: #ffffff;
+}
 
-  :global(:root:not([data-theme="light"])) .listLabel {
-    color: #FFFFFF;
-  }
+:global([data-theme='dark']) .studioCancelBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
 
-  :global(:root:not([data-theme="light"])) .listInput {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #FFFFFF;
-  }
+:global([data-theme='dark']) .studioListRow {
+  background: rgba(255, 255, 255, 0.03);
+}
 
-  :global(:root:not([data-theme="light"])) .listInput:focus {
-    border-color: #818CF8;
-  }
+:global([data-theme='dark']) .studioListRowActive {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.45);
 }
