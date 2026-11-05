@@ -33,8 +33,6 @@ export async function GET(request: NextRequest) {
   const validSecrets = [
     process.env.CRON_SECRET,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
-    'local-test-secret-d',
-    'local-test-secret-df1c5753b',
   ].filter((s): s is string => Boolean(s && s.trim().length > 0));
 
   const authBuf = Buffer.from(authHeader ?? '');
