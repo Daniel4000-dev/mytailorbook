@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
   let readyBalanceNotified = 0;
   let stagnantOrdersNotified = 0;
   let streakRemindersSent = 0;
+  let closingDayMessagesSent = 0;
 
   // =========================================================================
   // 1. MORNING SEGMENT: Today's Deadlines, Calendar Schedule & Daily Kickstart
@@ -425,6 +426,64 @@ export async function GET(request: NextRequest) {
         streakRemindersSent++;
       }
     }
+
+    // B. Closing-Day "Well Done" Message — shops with meaningful activity today
+    // We count XP ledger entries for today as a proxy for active craft sessions.
+    // 2+ entries = they had a productive day worth celebrating.
+    const { data: todayLedger } = await admin
+      .from('xp_ledger')
+      .select('shop_id, action_type')
+      .gte('created_at', todayStartStr);
+
+    if (todayLedger && todayLedger.length > 0) {
+      // Group by shop: count meaningful actions (exclude daily_login which is passive)
+      const shopActivityMap: Record<string, { count: number; actionTypes: Set<string> }> = {};
+      for (const entry of todayLedger) {
+        if (entry.action_type === 'daily_login') continue;
+        if (!shopActivityMap[entry.shop_id]) {
+          shopActivityMap[entry.shop_id] = { count: 0, actionTypes: new Set() };
+        }
+        shopActivityMap[entry.shop_id].count++;
+        shopActivityMap[entry.shop_id].actionTypes.add(entry.action_type);
+      }
+
+      for (const [shopId, activity] of Object.entries(shopActivityMap)) {
+        if (activity.count < 2) continue; // Only celebrate genuinely active days
+
+        const alertKey = `system:${shopId}:Closing Day`;
+        if (sentAlertKeys.has(alertKey)) continue;
+
+        // Pick message based on how much they did
+        let title: string;
+        let subtitle: string;
+
+        if (activity.count >= 6) {
+          title = "What a day — incredible output 🔥";
+          subtitle = `You logged ${activity.count} craft sessions today. The kind of hard work that builds great reputation. Rest well — from the MyTailorBook Team.`;
+        } else if (activity.count >= 4) {
+          title = "Solid day's work. Well done!";
+          subtitle = `${activity.count} workshop actions completed today. You're building something real. Keep showing up — from the MyTailorBook Team.`;
+        } else {
+          title = "Good effort today!";
+          subtitle = `You put in the work today and that's what it takes. Every stitch is progress. See you tomorrow — from the MyTailorBook Team.`;
+        }
+
+        await createAtelierNotification({
+          shopId,
+          category: 'system',
+          tone: 'info',
+          badgeIcon: 'check_circle',
+          badgeBg: '#DCFCE7',
+          badgeColor: '#16A34A',
+          title,
+          subtitle,
+          actionLabel: 'View Dashboard',
+          actionHref: '/dashboard',
+        });
+        sentAlertKeys.add(alertKey);
+        closingDayMessagesSent++;
+      }
+    }
   }
 
   return NextResponse.json({
@@ -443,5 +502,6 @@ export async function GET(request: NextRequest) {
     readyBalanceNotified,
     stagnantOrdersNotified,
     streakRemindersSent,
+    closingDayMessagesSent,
   });
 }
