@@ -9,20 +9,48 @@
       "schedule": "0 4 * * *"
     },
     {
-      "path": "/api/cron/smart-alerts?segment=morning",
+      "path": "/api/cron/subscription-grace",
       "schedule": "0 7 * * *"
     },
     {
-      "path": "/api/cron/subscription-grace",
+      "path": "/api/cron/smart-alerts?segment=morning&slot=1",
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/smart-alerts?segment=midday",
+      "path": "/api/cron/smart-alerts?segment=morning&slot=2",
+      "schedule": "25 8 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=morning&slot=3",
+      "schedule": "50 8 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=midday&slot=1",
       "schedule": "0 12 * * *"
     },
     {
-      "path": "/api/cron/smart-alerts?segment=evening",
-      "schedule": "0 18 * * *"
+      "path": "/api/cron/smart-alerts?segment=midday&slot=2",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=midday&slot=3",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=midday&slot=4",
+      "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=midday&slot=5",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=evening&slot=1",
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=evening&slot=2",
+      "schedule": "30 19 * * *"
     }
   ]
 }
