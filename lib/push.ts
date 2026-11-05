@@ -73,7 +73,11 @@ export async function sendPushToProfile(profileId: string, payload: PushPayload)
 
 export async function sendPushToShop(shopId: string, excludeProfileId: string | null, payload: PushPayload) {
   const admin = createAdminClient();
-  const { data: profiles } = await admin.from('profiles').select('id').eq('shop_id', shopId).eq('active', true);
+  const { data: profiles } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('shop_id', shopId)
+    .or('active.is.null,active.eq.true');
   const recipientIds = (profiles || []).map((p) => p.id).filter((id) => id !== excludeProfileId);
   if (!recipientIds.length) return;
   await Promise.all(recipientIds.map((id) => sendPushToProfile(id, payload)));

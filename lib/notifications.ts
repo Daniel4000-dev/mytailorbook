@@ -1,6 +1,6 @@
 import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { sendPushToShop } from '@/lib/push';
+import { sendPushToShop, sendPushToProfile } from '@/lib/push';
 
 export interface AtelierNotificationPayload {
   shopId: string;
@@ -66,15 +66,21 @@ export async function createAtelierNotification(
   }
 
   // Fire Web Push in parallel; swallow errors — DB row is the source of truth.
-  sendPushToShop(
-    payload.shopId,
-    payload.excludeActorId ?? null,
-    {
-      title: payload.title,
-      body: payload.subtitle ?? '',
-      orderId: payload.orderId ?? undefined,
-      url: payload.pushUrl ?? payload.actionHref,
-    },
-  ).catch(() => {});
+  const pushPayload = {
+    title: payload.title,
+    body: payload.subtitle ?? '',
+    orderId: payload.orderId ?? undefined,
+    url: payload.pushUrl ?? payload.actionHref,
+  };
+
+  if (payload.recipientId) {
+    sendPushToProfile(payload.recipientId, pushPayload).catch(() => {});
+  } else {
+    sendPushToShop(
+      payload.shopId,
+      payload.excludeActorId ?? null,
+      pushPayload,
+    ).catch(() => {});
+  }
 }
 

@@ -9,12 +9,20 @@
       "schedule": "0 4 * * *"
     },
     {
+      "path": "/api/cron/smart-alerts?segment=morning",
+      "schedule": "0 7 * * *"
+    },
+    {
       "path": "/api/cron/subscription-grace",
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/smart-alerts",
-      "schedule": "0 9 * * *"
+      "path": "/api/cron/smart-alerts?segment=midday",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/smart-alerts?segment=evening",
+      "schedule": "0 18 * * *"
     }
   ]
 }

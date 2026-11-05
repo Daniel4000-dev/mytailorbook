@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useNotifications, type NotificationItem, type NotificationCategory } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
+import { sendTestPushAction } from '@/app/actions';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { getInitials } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
@@ -57,8 +59,28 @@ export default function NotificationsPage() {
   const { notifications, isLoaded } = useNotifications();
   const { readIds, markRead, markAllRead } = useNotificationReadState();
 
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [testingPush, setTestingPush] = useState(false);
+
+  const handleTestPush = async () => {
+    if (testingPush) return;
+    setTestingPush(true);
+    showToast('Sending test push in 3s — lock screen or switch apps to view', 'info');
+    try {
+      const res = await sendTestPushAction(3);
+      if (res.error) {
+        showToast(res.error, 'error');
+      } else {
+        showToast(`Test alert delivered to ${res.sentCount || 1} registered device(s)`, 'success');
+      }
+    } catch {
+      showToast('Could not deliver test notification', 'error');
+    } finally {
+      setTestingPush(false);
+    }
+  };
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !readIds.has(n.id) && !n.readAt).length,
@@ -135,6 +157,16 @@ export default function NotificationsPage() {
           </button>
 
           <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={styles.headerIconBtn}
+              onClick={handleTestPush}
+              disabled={testingPush}
+              title="Send test push alert to this device"
+              aria-label="Send test push alert to this device"
+            >
+              <Symbol name="send" size={17} />
+            </button>
             {unreadCount > 0 && (
               <button
                 type="button"

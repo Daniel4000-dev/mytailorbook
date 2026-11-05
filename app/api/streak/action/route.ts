@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidAnatomy, getMeasurementFingerprint } from '@/lib/validations/anatomy';
+import { createAtelierNotification } from '@/lib/notifications';
+import { getTierForXp } from '@/lib/gamification';
 
 export async function POST(req: Request) {
   try {
@@ -273,9 +275,41 @@ export async function POST(req: Request) {
     }
 
     // -------------------------------------------------------------
-    // 7. Commit XP & Ledger Audit
+    // 7. Calculate Rank & Milestones Before DB Commit
     // -------------------------------------------------------------
-    const totalXp = (shop.xp || 0) + earnedXp;
+    const oldXp = shop.xp || 0;
+    const totalXp = oldXp + earnedXp;
+
+    let rankMovedUp = false;
+    let oldRank = 0;
+    let newRank = 0;
+
+    if (earnedXp > 0) {
+      const { count: countBefore } = await admin
+        .from('shops')
+        .select('*', { count: 'exact', head: true })
+        .gt('xp', oldXp);
+      oldRank = (countBefore || 0) + 1;
+
+      const { count: countAfter } = await admin
+        .from('shops')
+        .select('*', { count: 'exact', head: true })
+        .gt('xp', totalXp);
+      newRank = (countAfter || 0) + 1;
+
+      if (newRank < oldRank) {
+        rankMovedUp = true;
+      }
+    }
+
+    const oldTier = getTierForXp(oldXp);
+    const newTier = getTierForXp(totalXp);
+    const tierUnlocked = newTier.minXp > oldTier.minXp;
+    const isStreakMilestone = streakChanged && [3, 7, 14, 21, 30, 50, 100].includes(currentStreak);
+
+    // -------------------------------------------------------------
+    // 8. Commit XP & Ledger Audit
+    // -------------------------------------------------------------
     const updateData: Record<string, unknown> = {
       xp: totalXp,
       daily_quests: questsState,
@@ -301,6 +335,72 @@ export async function POST(req: Request) {
         description: cheatFlagReason ? `Flagged: ${cheatFlagReason}` : `Craft XP: ${action}`,
         fingerprint: measurementFingerprint,
       });
+    }
+
+    // -------------------------------------------------------------
+    // 9. Dispatch Rank & Milestone Push Notifications
+    // -------------------------------------------------------------
+    if (rankMovedUp) {
+      createAtelierNotification({
+        shopId: shop.id,
+        recipientId: user.id,
+        category: 'system',
+        tone: 'info',
+        badgeIcon: 'leaderboard',
+        badgeBg: '#FEF3C7',
+        badgeColor: '#D97706',
+        title: 'You moved up the board!',
+        subtitle: `You climbed to #${newRank} on the Master Tailor leaderboard with ${totalXp} XP (+${earnedXp} XP).`,
+        actionLabel: 'View Leaderboard',
+        actionHref: '/dashboard',
+      }).catch(() => {});
+    }
+
+    if (tierUnlocked) {
+      createAtelierNotification({
+        shopId: shop.id,
+        recipientId: user.id,
+        category: 'system',
+        tone: 'info',
+        badgeIcon: 'military_tech',
+        badgeBg: '#EDE9FE',
+        badgeColor: '#7C3AED',
+        title: `Rank Unlocked: ${newTier.name}!`,
+        subtitle: `Your workshop reached ${newTier.name} rank with ${totalXp} XP. High standard craft!`,
+        actionLabel: 'View Rank',
+        actionHref: '/dashboard',
+      }).catch(() => {});
+    }
+
+    if (isStreakMilestone) {
+      createAtelierNotification({
+        shopId: shop.id,
+        recipientId: user.id,
+        category: 'system',
+        tone: 'info',
+        badgeIcon: 'local_fire_department',
+        badgeBg: '#FFEDD5',
+        badgeColor: '#EA580C',
+        title: `${currentStreak}-Day Streak Milestone!`,
+        subtitle: `Consistent craft! You've logged workshop activity for ${currentStreak} days in a row.`,
+        actionLabel: 'View Streak',
+        actionHref: '/dashboard',
+      }).catch(() => {});
+    }
+
+    if (buddySynced && shop.buddy_shop_id) {
+      createAtelierNotification({
+        shopId: shop.buddy_shop_id,
+        category: 'system',
+        tone: 'info',
+        badgeIcon: 'group',
+        badgeBg: '#DCFCE7',
+        badgeColor: '#16A34A',
+        title: 'Studio Buddy Streak Synced!',
+        subtitle: `${shop.name} logged craft activity! Your shared streak is now ${buddyStreakCount} days (+15 XP).`,
+        actionLabel: 'View Leaderboard',
+        actionHref: '/dashboard',
+      }).catch(() => {});
     }
 
     return NextResponse.json({ 
