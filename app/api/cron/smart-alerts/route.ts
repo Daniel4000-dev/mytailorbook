@@ -94,11 +94,15 @@ export async function GET(request: NextRequest) {
   }
 
   // Load all shops and their business_mode so we NEVER tangle Bespoke and RTW alerts!
-  const { data: allShops } = await admin
+  const { data: allShops, error: shopsError } = await admin
     .from('shops')
     .select('id, name, business_mode, streak_current, streak_last_counted_at')
-    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(500);
+
+  if (shopsError) {
+    console.error('[smart-alerts] Failed to load shops:', shopsError.message);
+  }
 
   const shopModeMap = new Map<string, BusinessMode>();
   for (const s of allShops || []) {
@@ -1040,6 +1044,47 @@ export async function GET(request: NextRequest) {
           title,
           subtitle,
           actionLabel: 'View Dashboard',
+          actionHref: '/dashboard',
+        },
+      });
+    }
+
+    // Priority 3: Evening Workshop Wrap-Up / Check-In for shops with < 2 logged actions today
+    for (const shop of allShops || []) {
+      const activityCount = shopActivityMap[shop.id]?.count || 0;
+      if (activityCount >= 2) continue;
+
+      const mode = shopModeMap.get(shop.id) || 'bespoke';
+      const shopActiveOrders = (allActiveOrders || []).filter((o) => o.shop_id === shop.id);
+      const bespokeWipCount = shopActiveOrders.filter((o) => !o.is_internal_batch).length;
+      const rtwBatchWipCount = shopActiveOrders.filter((o) => o.is_internal_batch).length;
+
+      const title = 'Evening Workshop Wrap-Up';
+      const subtitle =
+        mode === 'rtw'
+          ? rtwBatchWipCount > 0
+            ? `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} in progress for tomorrow. Log any evening sales or stock updates before closing.`
+            : 'Sold any ready-made pieces or restocked sizes today? Log them tonight so your inventory stays accurate for tomorrow.'
+          : bespokeWipCount > 0
+          ? `You have ${bespokeWipCount} active client job${bespokeWipCount === 1 ? '' : 's'} on the rack for tomorrow. Log any new measurements or payments before closing up.`
+          : 'Took any client measurements, fabric drop-offs, or deposits today? Log them tonight so your workshop starts fresh tomorrow.';
+
+      const alertKey = `system:${shop.id}:${title}`;
+      enqueueForShop(shop.id, {
+        alertKey,
+        track: 'universal',
+        basePriority: 35,
+        metricKey: 'closingDayMessagesSent',
+        params: {
+          shopId: shop.id,
+          category: 'system',
+          tone: 'info',
+          badgeIcon: 'schedule',
+          badgeBg: '#EEF2FF',
+          badgeColor: '#4F46E5',
+          title,
+          subtitle,
+          actionLabel: 'Open Dashboard',
           actionHref: '/dashboard',
         },
       });

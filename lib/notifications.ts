@@ -65,7 +65,8 @@ export async function createAtelierNotification(
     console.error('[atelier_notifications] insert failed:', error.message);
   }
 
-  // Fire Web Push in parallel; swallow errors — DB row is the source of truth.
+  // Fire Web Push and await completion so serverless/cron invocations do not
+  // freeze the execution context before Web Push HTTP requests complete.
   const pushPayload = {
     title: payload.title,
     body: payload.subtitle ?? '',
@@ -73,14 +74,18 @@ export async function createAtelierNotification(
     url: payload.pushUrl ?? payload.actionHref,
   };
 
-  if (payload.recipientId) {
-    sendPushToProfile(payload.recipientId, pushPayload).catch(() => {});
-  } else {
-    sendPushToShop(
-      payload.shopId,
-      payload.excludeActorId ?? null,
-      pushPayload,
-    ).catch(() => {});
+  try {
+    if (payload.recipientId) {
+      await sendPushToProfile(payload.recipientId, pushPayload);
+    } else {
+      await sendPushToShop(
+        payload.shopId,
+        payload.excludeActorId ?? null,
+        pushPayload,
+      );
+    }
+  } catch (err) {
+    console.error('[atelier_notifications] push delivery failed:', err);
   }
 }
 
