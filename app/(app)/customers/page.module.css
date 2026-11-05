@@ -262,6 +262,88 @@
   color: var(--sf-brand-indigo);
 }
 
+.genderSegment {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px;
+  border-radius: var(--sf-radius-full);
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.genderSegmentBtn {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.genderSegmentBtn:active {
+  transform: scale(0.96);
+}
+
+.genderSegmentBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.activeFilterChipRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--sf-space-sm);
+  margin-top: -2px;
+}
+
+.activeFilterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  padding: 5px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.activeFilterChipClose {
+  border: none;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .searchBarRow {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .searchBarPill {
+    flex: 1 1 100%;
+    order: 1;
+  }
+  .genderSegment {
+    order: 2;
+  }
+  .filterActionBtn {
+    order: 3;
+  }
+}
+
 /* ── 3. Soft Capsule Filter Pills (No Hard Borders) ─────────── */
 .pillTrack {
   display: flex;

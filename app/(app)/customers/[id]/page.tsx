@@ -128,7 +128,7 @@ function CustomerProfileContent({
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingCustomer, setDeletingCustomer] = useState(false);
-  const [activeTab, setActiveTab] = useState<'measurements' | 'fabrics' | 'orders'>('measurements');
+  const [activeTab, setActiveTab] = useState<'measurements' | 'orders' | 'fabrics' | 'fits'>('measurements');
   const customerOrderCount = useMemo(
     () => orders.filter((o) => o.customerId === customer.id).length,
     [orders, customer.id]
@@ -547,53 +547,7 @@ function CustomerProfileContent({
             </a>
           </div>
 
-          {/* ── 2. Saved Style Fits ─────────────────────────── */}
-          <div className={styles.styleProfilesSection}>
-            <div className={styles.styleProfilesHeader}>
-              <span className={styles.styleProfilesTitle}>Saved Style Fits</span>
-              <button
-                type="button"
-                className={styles.addStyleTextBtn}
-                onClick={() => setStyleSheet({ open: true, style: null })}
-              >
-                <Symbol name="add" size={13} /> Add Style Fit
-              </button>
-            </div>
-            <div className={styles.styleProfilesTrack}>
-              {profileEntries.map(([styleName, profile]) => {
-                const pointsCount = Object.keys(profile.measurements || {}).length;
-                return (
-                  <button
-                    key={styleName}
-                    type="button"
-                    className={styles.styleProfileCard}
-                    onClick={() => setStyleSheet({ open: true, style: styleName })}
-                    title={`View ${styleName} measurements`}
-                  >
-                    <div className={styles.styleProfileIconWrap}>
-                      <Symbol name="checkroom" size={16} />
-                    </div>
-                    <div className={styles.styleProfileInfo}>
-                      <span className={styles.styleProfileName}>{styleName}</span>
-                      <span className={styles.styleProfileMeta}>{pointsCount} measurements</span>
-                    </div>
-                  </button>
-                );
-              })}
-              {profileEntries.length === 0 && (
-                <button
-                  type="button"
-                  className={styles.styleProfileEmptyCard}
-                  onClick={() => setStyleSheet({ open: true, style: null })}
-                >
-                  <Symbol name="add" size={15} />
-                  <span>Add fit measurements for specific styles (Senator, Agbada, Kaftan...)</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* ── 3. Profile Navigation Tabs ── */}
+          {/* ── 2. Profile Navigation Tabs ── */}
           <div className={styles.igTabBar}>
             <button
               type="button"
@@ -605,6 +559,14 @@ function CustomerProfileContent({
             </button>
             <button
               type="button"
+              className={`${styles.igTabBtn} ${activeTab === 'orders' ? styles.igTabActive : ''}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              <Symbol name="inventory_2" size={16} />
+              <span>Orders ({custOrders.length})</span>
+            </button>
+            <button
+              type="button"
               className={`${styles.igTabBtn} ${activeTab === 'fabrics' ? styles.igTabActive : ''}`}
               onClick={() => setActiveTab('fabrics')}
             >
@@ -613,11 +575,11 @@ function CustomerProfileContent({
             </button>
             <button
               type="button"
-              className={`${styles.igTabBtn} ${activeTab === 'orders' ? styles.igTabActive : ''}`}
-              onClick={() => setActiveTab('orders')}
+              className={`${styles.igTabBtn} ${activeTab === 'fits' ? styles.igTabActive : ''}`}
+              onClick={() => setActiveTab('fits')}
             >
-              <Symbol name="inventory_2" size={16} />
-              <span>Orders ({custOrders.length})</span>
+              <Symbol name="checkroom" size={16} />
+              <span>Style Fits ({profileEntries.length})</span>
             </button>
           </div>
         </section>
@@ -866,6 +828,68 @@ function CustomerProfileContent({
             <Button variant="danger" fullWidth onClick={() => setConfirmingDelete(true)}>
               <Symbol name="delete" /> Delete Customer
             </Button>
+          </section>
+        </div>
+      )}
+
+      {/* ── TAB 4: STYLE FITS ── */}
+      {activeTab === 'fits' && (
+        <div className={styles.tabContent}>
+          <section className={styles.section}>
+            <div className={styles.sectionTitleRow}>
+              <h3 className={styles.sectionTitle}>Saved Style Fits</h3>
+              <button
+                type="button"
+                className={styles.newBtn}
+                onClick={() => setStyleSheet({ open: true, style: null })}
+              >
+                <Symbol name="add" size={14} /> Add Style Fit
+              </button>
+            </div>
+
+            <p className={styles.fitsDescription}>
+              Save custom measurement adjustments for specific styles (Senator, Agbada, Kaftan, Suit) so you can quickly tailor future orders to perfection.
+            </p>
+
+            <div className={styles.fitsGrid}>
+              {profileEntries.map(([styleName, profile]) => {
+                const pointsCount = Object.keys(profile.measurements || {}).length;
+                return (
+                  <div
+                    key={styleName}
+                    className={styles.fitCard}
+                    onClick={() => setStyleSheet({ open: true, style: styleName })}
+                  >
+                    <div className={styles.fitCardHeader}>
+                      <div className={styles.fitCardIcon}>
+                        <Symbol name="checkroom" size={20} />
+                      </div>
+                      <div className={styles.fitCardMeta}>
+                        <h4 className={styles.fitCardTitle}>{styleName}</h4>
+                        <span className={styles.fitCardSub}>{pointsCount} custom measurements</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.fitCardAction}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setStyleSheet({ open: true, style: styleName });
+                      }}
+                    >
+                      <Symbol name="edit" size={14} /> Edit Fit
+                    </button>
+                  </div>
+                );
+              })}
+
+              {profileEntries.length === 0 && (
+                <div className={styles.emptyHint}>
+                  <Symbol name="checkroom" className={styles.emptyHintIcon} />
+                  <span>No style fits saved yet. Tap &quot;Add Style Fit&quot; to save measurements for Senator, Agbada, Kaftan, or Suits.</span>
+                </div>
+              )}
+            </div>
           </section>
         </div>
       )}

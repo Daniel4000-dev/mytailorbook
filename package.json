@@ -27,6 +27,7 @@
     "@serwist/next": "^9.5.12",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.0",
+    "@types/three": "^0.187.0",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.43.0",
     "gray-matter": "^4.0.3",
@@ -42,6 +43,7 @@
     "server-only": "^0.0.1",
     "serwist": "^9.5.12",
     "swr": "^2.4.2",
+    "three": "^0.187.0",
     "vaul": "^1.1.2",
     "web-push": "^3.6.7",
     "zod": "^4.4.3"

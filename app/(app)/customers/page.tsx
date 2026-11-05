@@ -424,7 +424,7 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* ── 2. Search Bar with Integrated Filter ─────────────────────── */}
+      {/* ── 2. Search Bar with Integrated Gender & Style Controls ── */}
       <div className={styles.searchBarRow}>
         <div className={styles.searchBarPill}>
           <Symbol name="search" size={16} className={styles.searchIcon} />
@@ -446,6 +446,44 @@ export default function CustomersPage() {
             </button>
           )}
         </div>
+
+        {/* Gender Segmented Switch [All | Men | Women] */}
+        <div className={styles.genderSegment} role="group" aria-label="Filter by gender">
+          <button
+            type="button"
+            className={`${styles.genderSegmentBtn} ${clientFilter !== 'male' && clientFilter !== 'female' ? styles.genderSegmentBtnActive : ''}`}
+            onClick={() => {
+              if (clientFilter === 'male' || clientFilter === 'female') setClientFilter('all');
+            }}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            className={`${styles.genderSegmentBtn} ${clientFilter === 'male' ? styles.genderSegmentBtnActive : ''}`}
+            onClick={() => {
+              setClientFilter(clientFilter === 'male' ? 'all' : 'male');
+              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
+                setStyleFilter(null);
+              }
+            }}
+          >
+            Men
+          </button>
+          <button
+            type="button"
+            className={`${styles.genderSegmentBtn} ${clientFilter === 'female' ? styles.genderSegmentBtnActive : ''}`}
+            onClick={() => {
+              setClientFilter(clientFilter === 'female' ? 'all' : 'female');
+              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
+                setStyleFilter(null);
+              }
+            }}
+          >
+            Women
+          </button>
+        </div>
+
         <button
           type="button"
           className={`${styles.filterActionBtn} ${styleFilter ? styles.filterActionBtnActive : ''}`}
@@ -456,86 +494,26 @@ export default function CustomersPage() {
           title={styleFilter ? `Clear ${styleFilter} filter` : 'Filter styles'}
         >
           <Symbol name={styleFilter ? 'close' : 'tune'} size={14} />
-          <span>{styleFilter || 'Filter'}</span>
+          <span>{styleFilter || 'Style'}</span>
         </button>
       </div>
 
-      {/* ── 3. Soft Filter Pills (Borderless Capsules) ──────────────── */}
-      <div className={styles.pillTrack}>
-        <button
-          type="button"
-          className={`${styles.softPill} ${clientFilter === 'all' ? styles.softPillActive : ''}`}
-          onClick={() => setClientFilter('all')}
-        >
-          {clientFilter === 'all' && <span className={styles.pillDot} />}
-          <span>All {totalCustomers > 0 ? totalCustomers : ''}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.softPill} ${clientFilter === 'ready' ? styles.softPillActive : ''}`}
-          onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
-        >
-          {clientFilter === 'ready' ? <span className={styles.pillDotEmerald} /> : (readyCount > 0 && <span className={styles.pillDotEmerald} />)}
-          <span>Ready {readyCount > 0 ? readyCount : ''}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.softPill} ${clientFilter === 'active' ? styles.softPillActive : ''}`}
-          onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
-        >
-          {clientFilter === 'active' && <span className={styles.pillDot} />}
-          <span>In Production {activeCustomers > 0 ? activeCustomers : ''}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.softPill} ${clientFilter === 'owing' ? styles.softPillActive : ''}`}
-          onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
-        >
-          {clientFilter === 'owing' && <span className={styles.pillDotAmber} />}
-          <span>Owing {owingCount > 0 ? owingCount : ''}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.softPill} ${clientFilter === 'male' ? styles.softPillActive : ''}`}
-          onClick={() => {
-            setClientFilter(clientFilter === 'male' ? 'all' : 'male');
-            if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
-              setStyleFilter(null);
-            }
-          }}
-        >
-          <span>Men</span>
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.softPill} ${clientFilter === 'female' ? styles.softPillActive : ''}`}
-          onClick={() => {
-            setClientFilter(clientFilter === 'female' ? 'all' : 'female');
-            if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
-              setStyleFilter(null);
-            }
-          }}
-        >
-          <span>Women</span>
-        </button>
-
-        {styleFilter && (
-          <button
-            type="button"
-            className={`${styles.softPill} ${styles.softPillActive}`}
-            onClick={() => setStyleFilter(null)}
-            title="Clear style filter"
-          >
-            <span>{styleFilter}</span>
-            <Symbol name="close" size={11} />
-          </button>
-        )}
-      </div>
+      {/* Active style filter chip */}
+      {styleFilter && (
+        <div className={styles.activeFilterChipRow}>
+          <span className={styles.activeFilterChip}>
+            Style: <strong>{styleFilter}</strong>
+            <button
+              type="button"
+              onClick={() => setStyleFilter(null)}
+              className={styles.activeFilterChipClose}
+              aria-label={`Remove ${styleFilter} filter`}
+            >
+              <Symbol name="close" size={12} />
+            </button>
+          </span>
+        </div>
+      )}
 
       {/* Style Filter BottomSheet */}
       <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">

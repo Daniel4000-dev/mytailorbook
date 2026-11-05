@@ -388,6 +388,104 @@
   color: var(--sf-brand-indigo);
 }
 
+.fitsDescription {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.fitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-xs);
+}
+
+.fitCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fitCard:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border);
+}
+
+.fitCard:active {
+  transform: scale(0.98);
+}
+
+.fitCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fitCardIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sf-radius-sm);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fitCardMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fitCardTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fitCardSub {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}
+
+.fitCardAction {
+  border: none;
+  background: rgba(67, 56, 202, 0.06);
+  color: var(--sf-brand-indigo);
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.fitCardAction:hover {
+  background: rgba(67, 56, 202, 0.12);
+}
+
 /* ── 5. Sleek Instagram Tab Bar ──────────────────────────────── */
 .igTabBar {
   display: flex;
