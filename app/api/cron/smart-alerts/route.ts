@@ -65,6 +65,8 @@ export async function GET(request: NextRequest) {
   const urlSegment = request.nextUrl.searchParams.get('segment');
   const urlType = request.nextUrl.searchParams.get('type');
   const urlSlot = request.nextUrl.searchParams.get('slot');
+  const targetShopId = request.nextUrl.searchParams.get('shopId');
+  const forceSend = request.nextUrl.searchParams.get('force') === '1';
   const utcHour = now.getUTCHours();
 
   const isBatchAll = urlSegment === 'all' || urlType === 'all';
@@ -94,11 +96,48 @@ export async function GET(request: NextRequest) {
   }
 
   // Load all shops and their business_mode so we NEVER tangle Bespoke and RTW alerts!
-  const { data: allShops, error: shopsError } = await admin
+  // Includes resilient fallback if optional columns (business_mode / streak_*) have not been migrated yet.
+  let allShops: Array<{
+    id: string;
+    name: string;
+    business_mode?: string | null;
+    streak_current?: number | null;
+    streak_last_counted_at?: string | null;
+  }> | null = null;
+  let shopsError: { message: string } | null = null;
+
+  const primaryShopsRes = await admin
     .from('shops')
     .select('id, name, business_mode, streak_current, streak_last_counted_at')
     .order('created_at', { ascending: false })
     .limit(500);
+
+  if (primaryShopsRes.error) {
+    console.warn('[smart-alerts] Primary shops select failed, retrying core columns:', primaryShopsRes.error.message);
+    const secondShopsRes = await admin
+      .from('shops')
+      .select('id, name, business_mode')
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (secondShopsRes.error) {
+      const minimalShopsRes = await admin
+        .from('shops')
+        .select('id, name')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      allShops = minimalShopsRes.data;
+      shopsError = minimalShopsRes.error;
+    } else {
+      allShops = secondShopsRes.data;
+    }
+  } else {
+    allShops = primaryShopsRes.data;
+  }
+
+  if (targetShopId && allShops) {
+    allShops = allShops.filter((s) => s.id === targetShopId);
+  }
 
   if (shopsError) {
     console.error('[smart-alerts] Failed to load shops:', shopsError.message);
@@ -122,18 +161,20 @@ export async function GET(request: NextRequest) {
   const sentWeekFeatureKeys = new Set<string>();
   const shopsWithFeatureNudgeToday = new Set<string>();
 
-  for (const n of recentNotifications || []) {
-    const isToday = n.created_at >= todayStartStr;
-    if (isToday) {
-      if (n.order_id) sentTodayAlertKeys.add(`${n.category}:${n.order_id}`);
-      if (n.recipient_id) sentTodayAlertKeys.add(`${n.category}:${n.recipient_id}:${n.title}`);
-      if (n.shop_id) sentTodayAlertKeys.add(`${n.category}:${n.shop_id}:${n.title}`);
-      if (n.shop_id && n.title?.startsWith('Feature Tip:')) {
-        shopsWithFeatureNudgeToday.add(n.shop_id);
+  if (!forceSend) {
+    for (const n of recentNotifications || []) {
+      const isToday = n.created_at >= todayStartStr;
+      if (isToday) {
+        if (n.order_id) sentTodayAlertKeys.add(`${n.category}:${n.order_id}`);
+        if (n.recipient_id) sentTodayAlertKeys.add(`${n.category}:${n.recipient_id}:${n.title}`);
+        if (n.shop_id) sentTodayAlertKeys.add(`${n.category}:${n.shop_id}:${n.title}`);
+        if (n.shop_id && n.title?.startsWith('Feature Tip:')) {
+          shopsWithFeatureNudgeToday.add(n.shop_id);
+        }
       }
-    }
-    if (n.shop_id && n.title?.startsWith('Feature Tip:')) {
-      sentWeekFeatureKeys.add(`${n.shop_id}:${n.title}`);
+      if (n.shop_id && n.title?.startsWith('Feature Tip:')) {
+        sentWeekFeatureKeys.add(`${n.shop_id}:${n.title}`);
+      }
     }
   }
 
@@ -154,6 +195,7 @@ export async function GET(request: NextRequest) {
 
   const enqueueForShop = (shopId: string, alert: QueuedAlert) => {
     if (!shopId) return;
+    if (targetShopId && shopId !== targetShopId) return;
     // Strict Business Mode Guard: Bespoke only gets Bespoke + Universal; RTW only gets RTW + Universal; Hybrid gets all
     if (!canShopReceiveTrack(shopId, alert.track)) return;
     if (sentTodayAlertKeys.has(alert.alertKey)) return;
@@ -1110,6 +1152,15 @@ export async function GET(request: NextRequest) {
     closingDayMessagesSent: 0,
   };
 
+  let pushDevicesSent = 0;
+  const dispatchedAlerts: Array<{
+    shopId: string;
+    title: string;
+    subtitle?: string;
+    pushSentCount: number;
+    pushError?: string;
+  }> = [];
+
   for (const [shopId, queue] of shopQueues.entries()) {
     if (queue.length === 0) continue;
 
@@ -1138,7 +1189,15 @@ export async function GET(request: NextRequest) {
     const itemsToSend = isBatchAll ? queue : [queue[0]];
 
     for (const item of itemsToSend) {
-      await createAtelierNotification(item.params);
+      const pushRes = await createAtelierNotification(item.params);
+      pushDevicesSent += pushRes.pushSentCount || 0;
+      dispatchedAlerts.push({
+        shopId,
+        title: item.params.title,
+        subtitle: item.params.subtitle,
+        pushSentCount: pushRes.pushSentCount || 0,
+        pushError: pushRes.pushError,
+      });
       sentTodayAlertKeys.add(item.alertKey);
       metrics[item.metricKey]++;
     }
@@ -1148,6 +1207,9 @@ export async function GET(request: NextRequest) {
     ok: true,
     mode: isBatchAll ? 'batch_all' : 'priority_slot',
     slot: urlSlot ?? 'auto',
+    shopsLoaded: (allShops || []).length,
+    pushDevicesSent,
+    dispatchedAlerts,
     segmentExecuted: {
       morning: runMorning,
       midday: runMidday,

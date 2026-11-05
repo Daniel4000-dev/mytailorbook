@@ -36,7 +36,7 @@ export interface AtelierNotificationPayload {
  */
 export async function createAtelierNotification(
   payload: AtelierNotificationPayload,
-): Promise<void> {
+): Promise<{ pushSentCount: number; pushError?: string }> {
   const admin = createAdminClient();
 
   // Persist the notification row (service role bypasses RLS insert restriction).
@@ -76,16 +76,22 @@ export async function createAtelierNotification(
 
   try {
     if (payload.recipientId) {
-      await sendPushToProfile(payload.recipientId, pushPayload);
+      const res = await sendPushToProfile(payload.recipientId, pushPayload);
+      return { pushSentCount: res.sentCount, pushError: res.error };
     } else {
-      await sendPushToShop(
+      const res = await sendPushToShop(
         payload.shopId,
         payload.excludeActorId ?? null,
         pushPayload,
       );
+      return { pushSentCount: res.sentCount, pushError: res.error };
     }
   } catch (err) {
     console.error('[atelier_notifications] push delivery failed:', err);
+    return {
+      pushSentCount: 0,
+      pushError: err instanceof Error ? err.message : String(err),
+    };
   }
 }
 

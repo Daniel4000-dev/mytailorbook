@@ -71,7 +71,11 @@ export async function sendPushToProfile(profileId: string, payload: PushPayload)
   };
 }
 
-export async function sendPushToShop(shopId: string, excludeProfileId: string | null, payload: PushPayload) {
+export async function sendPushToShop(
+  shopId: string,
+  excludeProfileId: string | null,
+  payload: PushPayload
+): Promise<{ success: boolean; sentCount: number; error?: string }> {
   const admin = createAdminClient();
   const { data: profiles } = await admin
     .from('profiles')
@@ -79,6 +83,15 @@ export async function sendPushToShop(shopId: string, excludeProfileId: string | 
     .eq('shop_id', shopId)
     .or('active.is.null,active.eq.true');
   const recipientIds = (profiles || []).map((p) => p.id).filter((id) => id !== excludeProfileId);
-  if (!recipientIds.length) return;
-  await Promise.all(recipientIds.map((id) => sendPushToProfile(id, payload)));
+  if (!recipientIds.length) {
+    return { success: false, sentCount: 0, error: 'No active staff profiles found for shop' };
+  }
+  const results = await Promise.all(recipientIds.map((id) => sendPushToProfile(id, payload)));
+  const sentCount = results.reduce((sum, r) => sum + (r.sentCount || 0), 0);
+  const firstError = results.find((r) => !r.success)?.error;
+  return {
+    success: sentCount > 0,
+    sentCount,
+    error: sentCount === 0 ? firstError : undefined,
+  };
 }

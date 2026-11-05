@@ -2130,6 +2130,63 @@ export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: st
   return { success: true, sentCount: result.sentCount };
 }
 
+export async function sendTestSmartAlertAction(
+  segment: 'morning' | 'midday' | 'evening' | 'auto' = 'auto',
+  delaySeconds = 3
+): Promise<{ error?: string; success?: boolean; sentCount?: number; alertTitle?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData?.user) return { error: 'Not signed in' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id')
+    .eq('id', authData.user.id)
+    .single();
+
+  if (!profile?.shop_id) {
+    return { error: 'Shop profile not found' };
+  }
+
+  if (delaySeconds > 0) {
+    await new Promise((r) => setTimeout(r, delaySeconds * 1000));
+  }
+
+  const { NextRequest } = await import('next/server');
+  const { GET: runSmartAlertsCron } = await import('@/app/api/cron/smart-alerts/route');
+
+  const segmentParam = segment === 'auto' ? '' : `&segment=${segment}`;
+  const reqUrl = `http://localhost/api/cron/smart-alerts?shopId=${encodeURIComponent(profile.shop_id)}&slot=1&force=1${segmentParam}`;
+  const req = new NextRequest(reqUrl, {
+    headers: {
+      authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
+    },
+  });
+
+  const res = await runSmartAlertsCron(req);
+  const body = (await res.json()) as {
+    ok?: boolean;
+    error?: string;
+    pushDevicesSent?: number;
+    dispatchedAlerts?: Array<{ title: string; pushSentCount: number; pushError?: string }>;
+  };
+
+  if (!res.ok || !body.ok) {
+    return { error: body.error || 'Smart alert cron failed to execute' };
+  }
+
+  const dispatched = body.dispatchedAlerts?.[0];
+  if (!dispatched) {
+    return { error: 'No candidate smart alert queued for your shop' };
+  }
+
+  return {
+    success: true,
+    sentCount: dispatched.pushSentCount || body.pushDevicesSent || 1,
+    alertTitle: dispatched.title,
+  };
+}
+
 // --- Inventory ---
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
