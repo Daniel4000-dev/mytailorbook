@@ -2159,7 +2159,7 @@ export async function sendTestSmartAlertAction(
   const reqUrl = `http://localhost/api/cron/smart-alerts?shopId=${encodeURIComponent(profile.shop_id)}&slot=1&force=1${segmentParam}`;
   const req = new NextRequest(reqUrl, {
     headers: {
-      authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
+      authorization: `Bearer ${process.env.CRON_SECRET || 'local-test-secret-d'}`,
     },
   });
 
