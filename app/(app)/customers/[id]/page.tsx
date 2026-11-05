@@ -26,7 +26,7 @@ import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
-import { getStoredMockCustomers, saveMockCustomers, MOCK_ORDERS } from '@/lib/mockCustomers';
+import { getStoredMockCustomers, saveMockCustomers, MOCK_CUSTOMERS, MOCK_ORDERS } from '@/lib/mockCustomers';
 import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements, Customer, Order, OrderPhoto } from '@/lib/types';
@@ -67,7 +67,8 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
 
   const customer =
     findByIdOrSlug(customers, id, (c) => c.fullName) ||
-    findByIdOrSlug(getStoredMockCustomers(), id, (c) => c.fullName);
+    findByIdOrSlug(getStoredMockCustomers(), id, (c) => c.fullName) ||
+    findByIdOrSlug(MOCK_CUSTOMERS, id, (c) => c.fullName);
 
   if (!customer) {
     return (

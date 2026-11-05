@@ -143,13 +143,61 @@ export function findByIdOrSlug<T extends { id: string }>(
 ): T | undefined {
   if (!param || !items || items.length === 0) return undefined;
   const decoded = decodeURIComponent(param).trim();
+  const decodedLower = decoded.toLowerCase();
   const canonical = extractCanonicalId(decoded);
+  const canonicalLower = canonical.toLowerCase();
 
   // 1. Direct ID or canonical UUID match
-  const exact = items.find((item) => item.id === decoded || item.id === canonical);
+  const exact = items.find(
+    (item) =>
+      item.id === decoded ||
+      item.id === canonical ||
+      item.id.toLowerCase() === decodedLower ||
+      item.id.toLowerCase() === canonicalLower
+  );
   if (exact) return exact;
 
-  // 2. Short hex code suffix match (e.g. `chief-adebayo-9b1deb` -> `9b1deb` matches start of compact UUID)
+  // 2. Exact generated slug match (Customer, Order, or Catalogue) or ID suffix match (e.g., `-mock-cust-01`)
+  const matchedByGeneratedSlug = items.find((item) => {
+    const idLower = item.id.toLowerCase();
+    if (decodedLower.endsWith(`-${idLower}`)) return true;
+
+    const record = item as Record<string, unknown>;
+    if (typeof record.fullName === 'string') {
+      if (toCustomerSlug({ id: item.id, fullName: record.fullName }).toLowerCase() === decodedLower) {
+        return true;
+      }
+    }
+    if (typeof record.customerName === 'string' || typeof record.styleName === 'string' || typeof record.orderDetails === 'string') {
+      const orderCandidate = {
+        id: item.id,
+        customerName: typeof record.customerName === 'string' ? record.customerName : null,
+        styleName: typeof record.styleName === 'string' ? record.styleName : null,
+        orderDetails: typeof record.orderDetails === 'string' ? record.orderDetails : null,
+      };
+      if (
+        toOrderSlug(orderCandidate).toLowerCase() === decodedLower ||
+        toOrderSlug(orderCandidate, { publicToken: true }).toLowerCase() === decodedLower
+      ) {
+        return true;
+      }
+    }
+    if (typeof record.title === 'string') {
+      if (toCatalogueSlug({ id: item.id, title: record.title }).toLowerCase() === decodedLower) {
+        return true;
+      }
+    }
+    if (getLabel) {
+      const label = getLabel(item);
+      if (label && toCustomerSlug({ id: item.id, fullName: label }).toLowerCase() === decodedLower) {
+        return true;
+      }
+    }
+    return false;
+  });
+  if (matchedByGeneratedSlug) return matchedByGeneratedSlug;
+
+  // 3. Short hex code suffix match (e.g. `chief-adebayo-9b1deb` -> `9b1deb` matches start of compact UUID)
   const shortMatch = decoded.match(SHORT_HEX_TAIL_REGEX);
   if (shortMatch) {
     const shortHex = shortMatch[1].toLowerCase();
@@ -159,11 +207,21 @@ export function findByIdOrSlug<T extends { id: string }>(
     if (matchedByHex) return matchedByHex;
   }
 
-  // 3. Pure label slug match if getLabel is provided
+  // 4. Label slug match (exact or prefix) if getLabel is provided
   if (getLabel) {
-    const targetSlug = slugifyText(decoded, 48);
+    const targetSlug = slugifyText(decoded, 64);
     if (targetSlug) {
-      const matchedByLabel = items.find((item) => slugifyText(getLabel(item), 48) === targetSlug);
+      const matchedByLabel = items.find((item) => {
+        const rawLabel = getLabel(item);
+        const fullSlug = slugifyText(rawLabel, 48);
+        const shortSlug = slugifyText(rawLabel, 28);
+        if (!fullSlug) return false;
+        return (
+          targetSlug === fullSlug ||
+          targetSlug === shortSlug ||
+          (shortSlug.length >= 3 && targetSlug.startsWith(`${shortSlug}-`))
+        );
+      });
       if (matchedByLabel) return matchedByLabel;
     }
   }

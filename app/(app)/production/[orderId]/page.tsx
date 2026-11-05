@@ -47,6 +47,7 @@ import ScheduleFittingPromptModal from '../_components/ScheduleFittingPromptModa
 import { createCalendarEvent } from '@/app/actions/calendar';
 import { publishOrderStoryToPortfolioAction } from '@/app/(app)/settings/portfolio/actions';
 import { addOrderToMockPortfolio } from '@/lib/mockPortfolio';
+import { MOCK_ORDERS } from '@/lib/mockData';
 import styles from './page.module.css';
 
 type DetailTab = 'spec' | 'feed' | 'ledger';
@@ -62,7 +63,10 @@ export default function OrderDetailPage() {
   const isDesktop = useIsDesktop();
   const [activeTab, setActiveTab] = useState<DetailTab>('spec');
 
-  const order = findByIdOrSlug(orders, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) || null;
+  const order =
+    findByIdOrSlug(orders, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) ||
+    findByIdOrSlug(MOCK_ORDERS, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) ||
+    null;
   const customer = order ? customers.find((c) => c.id === order.customerId) || null : null;
   const resolvedOrderId = order?.id || orderId;
 

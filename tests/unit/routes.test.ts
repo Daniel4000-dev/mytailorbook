@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ROUTES, PUBLIC_PATHS, MARKETING_PATHS, APP_PREFIXES, SEARCH_DISALLOW, isPublicPath, isAppPath } from '@/lib/routes';
+import { findByIdOrSlug, toCustomerSlug, toOrderSlug, toCatalogueSlug } from '@/lib/slugs';
 
 // This file exists because getting a route's classification wrong has
 // already caused two real incidents in this project: a stale robots.txt
@@ -165,5 +166,50 @@ describe('PUBLIC_PATHS / MARKETING_PATHS sanity', () => {
     for (const path of appOnlyPaths) {
       expect(PUBLIC_PATHS as readonly string[]).not.toContain(path);
     }
+  });
+});
+
+describe('findByIdOrSlug resolution', () => {
+  const sampleCustomers = [
+    { id: 'mock-cust-01', fullName: 'Chief Adeleke Adeleke' },
+    { id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', fullName: 'Chief Adebayo Okafor' },
+  ];
+
+  const sampleOrders = [
+    { id: 'mock-ord-101', customerName: 'Chief Adeleke Adeleke', styleName: 'Agbada' },
+    { id: '550e8400-e29b-41d4-a716-446655440000', customerName: 'Chief Adebayo', styleName: 'Senator Suit' },
+  ];
+
+  const sampleCatalogues = [
+    { id: 'mock-cat-1', title: 'Eid 2026 Collection' },
+    { id: '7c9e6679-7425-40de-944b-e07fc1f90ae7', title: 'Bridal Lookbook' },
+  ];
+
+  it('resolves mock customer slugs and UUID customer slugs accurately', () => {
+    const mockSlug = toCustomerSlug(sampleCustomers[0]);
+    expect(mockSlug).toBe('chief-adeleke-adeleke-mock-cust-01');
+    expect(findByIdOrSlug(sampleCustomers, mockSlug, (c) => c.fullName)?.id).toBe('mock-cust-01');
+    expect(findByIdOrSlug(sampleCustomers, 'mock-cust-01', (c) => c.fullName)?.id).toBe('mock-cust-01');
+
+    const uuidSlug = toCustomerSlug(sampleCustomers[1]);
+    expect(uuidSlug).toBe('chief-adebayo-okafor-9b1deb');
+    expect(findByIdOrSlug(sampleCustomers, uuidSlug, (c) => c.fullName)?.id).toBe('9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d');
+    expect(findByIdOrSlug(sampleCustomers, '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', (c) => c.fullName)?.id).toBe('9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d');
+  });
+
+  it('resolves mock order slugs and UUID order slugs accurately', () => {
+    const mockOrderSlug = toOrderSlug(sampleOrders[0]);
+    expect(findByIdOrSlug(sampleOrders, mockOrderSlug)?.id).toBe('mock-ord-101');
+
+    const uuidOrderSlug = toOrderSlug(sampleOrders[1]);
+    expect(findByIdOrSlug(sampleOrders, uuidOrderSlug)?.id).toBe('550e8400-e29b-41d4-a716-446655440000');
+  });
+
+  it('resolves mock catalogue slugs and UUID catalogue slugs accurately', () => {
+    const mockCatSlug = toCatalogueSlug(sampleCatalogues[0]);
+    expect(findByIdOrSlug(sampleCatalogues, mockCatSlug, (c) => c.title)?.id).toBe('mock-cat-1');
+
+    const uuidCatSlug = toCatalogueSlug(sampleCatalogues[1]);
+    expect(findByIdOrSlug(sampleCatalogues, uuidCatSlug, (c) => c.title)?.id).toBe('7c9e6679-7425-40de-944b-e07fc1f90ae7');
   });
 });

@@ -209,12 +209,16 @@ export default function CustomersPage() {
     });
   }, [customers, clientFilter, styleFilter, search, customerStats]);
 
-  const { totalCustomers, activeCustomers, owingCount, readyCount, totalBalanceOwed } = useMemo(() => {
+  const { totalCustomers, activeCustomers, owingCount, readyCount, totalBalanceOwed, maleCount, femaleCount } = useMemo(() => {
     let active = 0;
     let owing = 0;
     let ready = 0;
     let totalBal = 0;
+    let men = 0;
+    let women = 0;
     customers.forEach((c) => {
+      if (c.gender === 'male') men += 1;
+      else if (c.gender === 'female') women += 1;
       const s = customerStats[c.id];
       if (s) {
         if (s.activeOrder?.status === 'Ready') ready += 1;
@@ -231,6 +235,8 @@ export default function CustomersPage() {
       owingCount: owing,
       readyCount: ready,
       totalBalanceOwed: totalBal,
+      maleCount: men,
+      femaleCount: women,
     };
   }, [customers, customerStats]);
 
@@ -361,92 +367,104 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* ── 1. Executive Atelier Client Pulse (Unified Luxury Metric Card) ── */}
-      <div className={styles.pulseCard}>
-        <div className={styles.pulseHeader}>
-          <div className={styles.pulseTitleGroup}>
-            <span className={styles.pulseEyebrow}>Atelier Client Pulse</span>
+      {/* ── 1. Elevated Client Directory Summary Deck ── */}
+      <section className={styles.summaryDeck}>
+        <div className={styles.summaryDeckHeader}>
+          <span className={styles.summaryEyebrow}>Client Directory</span>
+          <div className={styles.summaryHeaderRight}>
             {totalBalanceOwed > 0 && (
-              <span className={styles.pulseReceivableBadge}>
-                ₦{totalBalanceOwed.toLocaleString()} receivable
-              </span>
+              <button
+                type="button"
+                className={`${styles.receivableBadge} ${clientFilter === 'owing' ? styles.receivableBadgeActive : ''}`}
+                onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+              >
+                ₦{totalBalanceOwed.toLocaleString()} balance due
+              </button>
+            )}
+            {clientFilter !== 'all' && (
+              <button
+                type="button"
+                className={styles.resetFilterPill}
+                onClick={() => setClientFilter('all')}
+              >
+                <span>Show All</span>
+                <Symbol name="close" size={12} />
+              </button>
             )}
           </div>
-          {clientFilter !== 'all' && (
-            <button
-              type="button"
-              className={styles.pulseResetBtn}
-              onClick={() => setClientFilter('all')}
-            >
-              Show All
-            </button>
+        </div>
+
+        <div className={styles.mainAmountRow}>
+          <button
+            type="button"
+            className={styles.mainHeroBtn}
+            onClick={() => setClientFilter('all')}
+          >
+            <span className={styles.mainAmountNumeral}>{totalCustomers}</span>
+            <span className={styles.countBadge}>
+              {totalCustomers === 1 ? 'client' : 'clients'}
+            </span>
+          </button>
+          {(maleCount > 0 || femaleCount > 0) && (
+            <span className={styles.genderBreakdownMeta}>
+              {maleCount} men · {femaleCount} women
+            </span>
           )}
         </div>
 
-        <div className={styles.pulseMetricsRow} role="tablist" aria-label="Filter clients by status">
+        {/* Interactive Pipeline & Balance Breakdown Strip */}
+        <div className={styles.drawerSplitStrip} role="tablist" aria-label="Filter clients by status">
           <button
             type="button"
             role="tab"
-            aria-selected={clientFilter === 'all'}
-            className={`${styles.pulseCell} ${clientFilter === 'all' ? styles.pulseCellActive : ''}`}
-            onClick={() => setClientFilter('all')}
+            aria-selected={clientFilter === 'active'}
+            className={`${styles.drawerSegmentBtn} ${clientFilter === 'active' ? styles.drawerSegmentActive : ''}`}
+            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
           >
-            <div className={styles.pulseCellTop}>
-              <span className={styles.pulseVal}>{totalCustomers}</span>
-              <span className={`${styles.pulseDot} ${styles.pulseDotIndigo}`} />
+            <span className={`${styles.statusDot} ${activeCustomers > 0 ? styles.dotProduction : styles.dotMuted}`} />
+            <div className={styles.drawerTextCol}>
+              <span className={styles.drawerLabel}>In Production</span>
+              <strong className={styles.drawerValue}>{activeCustomers}</strong>
             </div>
-            <span className={styles.pulseLabel}>Total Clients</span>
           </button>
+
+          <div className={styles.drawerSplitDivider} />
 
           <button
             type="button"
             role="tab"
             aria-selected={clientFilter === 'ready'}
-            className={`${styles.pulseCell} ${clientFilter === 'ready' ? styles.pulseCellActive : ''}`}
+            className={`${styles.drawerSegmentBtn} ${clientFilter === 'ready' ? styles.drawerSegmentActive : ''}`}
             onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
           >
-            <div className={styles.pulseCellTop}>
-              <span className={`${styles.pulseVal} ${readyCount > 0 ? styles.pulseValEmerald : ''}`}>
+            <span className={`${styles.statusDot} ${readyCount > 0 ? styles.dotReady : styles.dotMuted}`} />
+            <div className={styles.drawerTextCol}>
+              <span className={styles.drawerLabel}>Ready Pickup</span>
+              <strong className={`${styles.drawerValue} ${readyCount > 0 ? styles.valEmerald : ''}`}>
                 {readyCount}
-              </span>
-              <span className={`${styles.pulseDot} ${readyCount > 0 ? styles.pulseDotEmerald : styles.pulseDotMuted}`} />
+              </strong>
             </div>
-            <span className={styles.pulseLabel}>Ready Pickup</span>
           </button>
 
-          <button
-            type="button"
-            role="tab"
-            aria-selected={clientFilter === 'active'}
-            className={`${styles.pulseCell} ${clientFilter === 'active' ? styles.pulseCellActive : ''}`}
-            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
-          >
-            <div className={styles.pulseCellTop}>
-              <span className={styles.pulseVal}>{activeCustomers}</span>
-              <span className={`${styles.pulseDot} ${activeCustomers > 0 ? styles.pulseDotViolet : styles.pulseDotMuted}`} />
-            </div>
-            <span className={styles.pulseLabel}>In Production</span>
-          </button>
+          <div className={styles.drawerSplitDivider} />
 
           <button
             type="button"
             role="tab"
             aria-selected={clientFilter === 'owing'}
-            className={`${styles.pulseCell} ${clientFilter === 'owing' ? styles.pulseCellActive : ''}`}
+            className={`${styles.drawerSegmentBtn} ${clientFilter === 'owing' ? styles.drawerSegmentActive : ''}`}
             onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
           >
-            <div className={styles.pulseCellTop}>
-              <span className={`${styles.pulseVal} ${owingCount > 0 ? styles.pulseValAmber : ''}`}>
+            <span className={`${styles.statusDot} ${owingCount > 0 ? styles.dotOwing : styles.dotMuted}`} />
+            <div className={styles.drawerTextCol}>
+              <span className={styles.drawerLabel}>Owing Balance</span>
+              <strong className={`${styles.drawerValue} ${owingCount > 0 ? styles.valAmber : ''}`}>
                 {owingCount}
-              </span>
-              <span className={`${styles.pulseDot} ${owingCount > 0 ? styles.pulseDotAmber : styles.pulseDotMuted}`} />
+              </strong>
             </div>
-            <span className={styles.pulseLabel}>
-              {owingCount > 0 ? 'Owing Balance' : 'Zero Owing'}
-            </span>
           </button>
         </div>
-      </div>
+      </section>
 
       {/* ── 2. Search Bar with Integrated Gender & Style Controls ── */}
       <div className={styles.searchBarRow}>
