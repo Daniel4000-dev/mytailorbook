@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './page.module.css';
 import {
   getCircleHubDataAction,
@@ -37,6 +38,10 @@ export default function AtelierCirclePage() {
   const [salutes, setSalutes] = useState<Record<string, SaluteState>>({});
 
   useEffect(() => {
+    if (!isXpSystemEnabled()) {
+      router.replace('/dashboard');
+      return;
+    }
     async function loadData() {
       setLoading(true);
       const res = await getCircleHubDataAction();

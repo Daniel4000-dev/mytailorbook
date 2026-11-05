@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
 import { isOrgPremium } from '@/lib/subscription';
 import { isOwnerLikeRole, type AtelierCraftRole } from '@/lib/types';
+import { recordServerXpLedger } from '@/lib/xp';
 
 /**
  * Runs for every first-time sign-in, Google or email — neither gives us a
@@ -110,8 +111,8 @@ export async function completeOnboarding(
     orgId = shop.org_id;
   }
 
-  // Record Welcome XP in ledger
-  await admin.from('xp_ledger').insert({
+  // Record Welcome XP in ledger (via standalone XP module — no-ops when xpSystem is false)
+  await recordServerXpLedger(admin, {
     shop_id: shopId,
     amount: 50,
     action_type: 'onboarding_complete',

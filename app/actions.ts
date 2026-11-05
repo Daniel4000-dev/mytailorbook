@@ -843,7 +843,7 @@ export async function updateCustomerMeasurementsAction(customerId: string, measu
   // 1. Fetch current measurements and history
   const { data: current, error: fetchError } = await supabase
     .from('customers')
-    .select('measurements, measurements_updated_at, measurements_history')
+    .select('shop_id, full_name, measurements, measurements_updated_at, measurements_history')
     .eq('id', customerId)
     .single();
     
@@ -869,6 +869,26 @@ export async function updateCustomerMeasurementsAction(customerId: string, measu
   }).eq('id', customerId);
   
   if (error) return { error: error.message };
+
+  if (current.shop_id) {
+    const { data: authData } = await supabase.auth.getUser();
+    const actorId = authData?.user?.id ?? null;
+    let actorName = 'Unknown';
+    if (actorId) {
+      const { data: actorProfile } = await supabase.from('profiles').select('name').eq('id', actorId).single();
+      actorName = actorProfile?.name || actorName;
+    }
+    await logAudit({
+      shopId: current.shop_id,
+      actorId,
+      actorName,
+      action: 'customer.measurements_updated',
+      entityType: 'customer',
+      entityId: customerId,
+      diff: { customerName: current.full_name, pointsCount: Object.keys(measurements || {}).length },
+    });
+  }
+
   return getCustomers(orgId);
 }
 

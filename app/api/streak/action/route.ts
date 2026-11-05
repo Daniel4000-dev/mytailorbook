@@ -3,9 +3,17 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidAnatomy, getMeasurementFingerprint } from '@/lib/validations/anatomy';
 import { createAtelierNotification } from '@/lib/notifications';
-import { getTierForXp } from '@/lib/gamification';
+import { getTierForXp, isXpSystemEnabled } from '@/lib/xp';
 
 export async function POST(req: Request) {
+  if (!isXpSystemEnabled()) {
+    return NextResponse.json({
+      success: true,
+      disabled: true,
+      streak_bumped: false,
+    });
+  }
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

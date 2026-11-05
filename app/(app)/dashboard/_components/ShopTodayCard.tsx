@@ -1,6 +1,7 @@
 import { motion, Variants } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useData } from '@/contexts/DataContext';
+import { isXpSystemEnabled } from '@/lib/xp';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
 import { useMilestones } from '../_hooks/useMilestones';
 import styles from './ShopTodayCard.module.css';
@@ -17,8 +18,9 @@ export default function ShopTodayCard({
 }) {
   const { milestones } = useMilestones();
   const { calendarEvents } = useData();
+  const xpEnabled = isXpSystemEnabled();
   const isAllCaughtUp = loops.length === 0;
-  const currentStreak = shop?.streakCurrent || 0;
+  const currentStreak = xpEnabled ? (shop?.streakCurrent || 0) : 0;
 
   const todayStr = new Date().toISOString().split('T')[0];
   const isMarketRunToday = (calendarEvents || []).some(
@@ -35,7 +37,9 @@ export default function ShopTodayCard({
 
   if (isMarketRunToday) {
     title = "Out Sourcing Materials";
-    subtitle = `Fabric market run active today. Your ${currentStreak > 0 ? `${currentStreak}-day ` : ''}streak is fully protected!`;
+    subtitle = xpEnabled
+      ? `Fabric market run active today. Your ${currentStreak > 0 ? `${currentStreak}-day ` : ''}streak is fully protected!`
+      : 'Fabric market run active today — happy sourcing!';
     emotion = "celebratory";
   } else if (newlyHitMilestone && isAllCaughtUp) {
     title = "Milestone reached!";
@@ -45,7 +49,7 @@ export default function ShopTodayCard({
     title = "Needs Attention";
     subtitle = `${loops.length} item${loops.length === 1 ? '' : 's'} need attention before today is done.`;
     emotion = "concerned";
-  } else if (currentStreak > 0) {
+  } else if (xpEnabled && currentStreak > 0) {
     title = "Your shop is on track";
     if (shop?.onboardingGoal) {
       subtitle = `You are on a ${currentStreak}-day streak! You are successfully building your reputation for ${shop.onboardingGoal.toLowerCase()}.`;
@@ -96,7 +100,11 @@ export default function ShopTodayCard({
       {!isAllCaughtUp && (
         <p className={styles.criteriaHint}>
           <Symbol name="info" size={14} className={styles.hintIcon} /> 
-          <span>Clear all items before midnight to maintain your streak!</span>
+          <span>
+            {xpEnabled
+              ? 'Clear all items before midnight to maintain your streak!'
+              : 'Clear these items before the end of the workday to stay on schedule.'}
+          </span>
         </p>
       )}
 

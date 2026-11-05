@@ -9,7 +9,7 @@ import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import FlameIcon from "@/components/ui/FlameIcon/FlameIcon";
-import { getTierForXp } from '@/lib/gamification';
+import { getTierForXp, isXpSystemEnabled } from '@/lib/xp';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
 import ChallengeModal from '@/components/ui/ChallengeModal/ChallengeModal';
@@ -49,11 +49,12 @@ export default function TopBar({
 
   const finalRightAction = rightAction || actions;
 
+  const xpEnabled = isXpSystemEnabled();
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
   const currentTier = getTierForXp(xp);
 
-  const streakIndicator = (
+  const streakIndicator = xpEnabled ? (
     <button
       type="button"
       className={styles.streakBadge}
@@ -63,7 +64,7 @@ export default function TopBar({
     >
       <FlameIcon size={18} style={{ marginRight: '4px' }} /> <span>{currentStreak}</span>
     </button>
-  );
+  ) : null;
 
   return (
     <>
@@ -74,59 +75,69 @@ export default function TopBar({
               <Link
                 href="/settings"
                 className={styles.brandLogoLink}
-                title={`Shop Profile • Tier: ${currentTier.name} (${xp} XP)`}
-                aria-label={`Shop Profile • Tier: ${currentTier.name} (${xp} XP)`}
+                title={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
+                aria-label={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
               >
                 <div
                   className={styles.brandLogoWrapper}
-                  style={{
-                    ['--tier-color' as string]: currentTier.color,
-                  }}
+                  style={
+                    xpEnabled
+                      ? {
+                          ['--tier-color' as string]: currentTier.color,
+                        }
+                      : undefined
+                  }
                 >
                   <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
-                  <span
-                    className={styles.tierNeedleBadge}
-                    style={{ backgroundColor: currentTier.color }}
-                    title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsChallengeModalOpen(true);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
-                  >
-                    <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
-                  </span>
+                  {xpEnabled && (
+                    <span
+                      className={styles.tierNeedleBadge}
+                      style={{ backgroundColor: currentTier.color }}
+                      title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsChallengeModalOpen(true);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
+                    >
+                      <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
+                    </span>
+                  )}
                 </div>
               </Link>
               {leftAction}
             </div>
             <div className={styles.right}>
-              <Link
-                href="/circle"
-                className={styles.buddyPulseBtn}
-                title="Tailor Circle"
-                aria-label="Tailor Circle"
-              >
-                <div className={styles.buddyAvatarStack}>
-                  <span className={`${styles.buddyAvatar} ${styles.buddyAvatarOne}`} style={{ zIndex: 1 }}>
-                    K
-                  </span>
-                  <span className={`${styles.buddyAvatar} ${styles.buddyAvatarTwo}`} style={{ zIndex: 2 }}>
-                    F
-                  </span>
-                  <span className={`${styles.buddyAvatar} ${styles.buddyAvatarThree}`} style={{ zIndex: 3 }}>
-                    A
-                    <span className={styles.buddyPulsePing} aria-hidden="true" />
-                  </span>
-                </div>
-              </Link>
+              {xpEnabled && (
+                <>
+                  <Link
+                    href="/circle"
+                    className={styles.buddyPulseBtn}
+                    title="Tailor Circle"
+                    aria-label="Tailor Circle"
+                  >
+                    <div className={styles.buddyAvatarStack}>
+                      <span className={`${styles.buddyAvatar} ${styles.buddyAvatarOne}`} style={{ zIndex: 1 }}>
+                        K
+                      </span>
+                      <span className={`${styles.buddyAvatar} ${styles.buddyAvatarTwo}`} style={{ zIndex: 2 }}>
+                        F
+                      </span>
+                      <span className={`${styles.buddyAvatar} ${styles.buddyAvatarThree}`} style={{ zIndex: 3 }}>
+                        A
+                        <span className={styles.buddyPulsePing} aria-hidden="true" />
+                      </span>
+                    </div>
+                  </Link>
 
-              <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {streakIndicator}
-              </div>
+                  <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {streakIndicator}
+                  </div>
+                </>
+              )}
 
               <NotificationBell />
 
@@ -168,16 +179,20 @@ export default function TopBar({
       </header>
 
 
-      <StreakModal 
-        isOpen={isStreakModalOpen} 
-        onClose={() => setIsStreakModalOpen(false)} 
-        streakCount={currentStreak} 
-      />
+      {xpEnabled && (
+        <>
+          <StreakModal 
+            isOpen={isStreakModalOpen} 
+            onClose={() => setIsStreakModalOpen(false)} 
+            streakCount={currentStreak} 
+          />
 
-      <ChallengeModal
-        isOpen={isChallengeModalOpen}
-        onClose={() => setIsChallengeModalOpen(false)}
-      />
+          <ChallengeModal
+            isOpen={isChallengeModalOpen}
+            onClose={() => setIsChallengeModalOpen(false)}
+          />
+        </>
+      )}
     </>
   );
 }

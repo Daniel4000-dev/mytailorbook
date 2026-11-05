@@ -14,6 +14,7 @@ import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopExcept
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
 import { logStreakAction } from '@/lib/streakClient';
+import { isXpSystemEnabled } from '@/lib/xp';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
@@ -258,9 +259,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = isDemoMode ? true : !!data;
 
-  // Daily Streak Auto Check-in on Login / App Open
+  // Daily Streak Auto Check-in on Login / App Open (only when standalone XP module is plugged in)
   useEffect(() => {
-    if (!currentShop?.id || isDemoMode) return;
+    if (!isXpSystemEnabled() || !currentShop?.id || isDemoMode) return;
     const todayStr = new Date().toISOString().split('T')[0];
     const sessionKey = `mtb_daily_checkin_${todayStr}_${currentShop.id}`;
 

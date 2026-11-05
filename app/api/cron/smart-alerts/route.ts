@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createAtelierNotification } from '@/lib/notifications';
 import { toOrderSlug, toCustomerSlug } from '@/lib/slugs';
+import { isXpSystemEnabled } from '@/lib/xp';
 
 type BusinessMode = 'bespoke' | 'rtw' | 'hybrid';
 type AlertTrack = 'bespoke' | 'rtw' | 'universal';
@@ -324,9 +325,10 @@ export async function GET(request: NextRequest) {
     }
 
     // C. Morning Kickstart & Streak Motivation (Tailored separately for Bespoke vs RTW!)
+    const xpEnabledForMorning = isXpSystemEnabled();
     for (const shop of allShops || []) {
       const mode = shopModeMap.get(shop.id) || 'bespoke';
-      const currentStreak = shop.streak_current || 0;
+      const currentStreak = xpEnabledForMorning ? (shop.streak_current || 0) : 0;
 
       const shopActiveOrders = (allActiveOrders || []).filter((o) => o.shop_id === shop.id);
       const bespokeWipCount = shopActiveOrders.filter((o) => !o.is_internal_batch).length;
@@ -924,60 +926,77 @@ export async function GET(request: NextRequest) {
 
   // =========================================================================
   // 3. EVENING PRIORITY QUEUE (8:00 PM, 8:30 PM WAT)
-  // Priority 1: Streak Protection Nudge
-  // Priority 2: Closing-Day "Well Done" Message from MyTailorBook Team
+  // Priority 1: Streak Protection Nudge (only when standalone XP module is plugged in)
+  // Priority 2: Closing-Day "Well Done" Message from MyTailorBook Team (reads from audit_log)
   // =========================================================================
   if (runEvening) {
-    // Priority 1: Streak Protection Nudge (tailored copy for Bespoke vs RTW!)
-    for (const shop of allShops || []) {
-      if ((shop.streak_current || 0) <= 0) continue;
+    // Priority 1: Streak Protection Nudge (only active when XP/Streak module is enabled)
+    if (isXpSystemEnabled()) {
+      for (const shop of allShops || []) {
+        if ((shop.streak_current || 0) <= 0) continue;
 
-      const lastCountedStr = shop.streak_last_counted_at
-        ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
-        : null;
+        const lastCountedStr = shop.streak_last_counted_at
+          ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
+          : null;
 
-      if (lastCountedStr === todayStr) continue;
+        if (lastCountedStr === todayStr) continue;
 
-      const mode = shopModeMap.get(shop.id) || 'bespoke';
-      const title = 'Protect your workshop streak!';
-      const subtitle =
-        mode === 'rtw'
-          ? `You have an active ${shop.streak_current}-day streak at risk. Log a POS sale, stock update, or batch progress before midnight.`
-          : mode === 'hybrid'
-          ? `You have an active ${shop.streak_current}-day streak at risk. Log a cut, POS sale, payment, or measurement before midnight.`
-          : `You have an active ${shop.streak_current}-day streak at risk. Log a cut, payment, or measurement before midnight.`;
+        const mode = shopModeMap.get(shop.id) || 'bespoke';
+        const title = 'Protect your workshop streak!';
+        const subtitle =
+          mode === 'rtw'
+            ? `You have an active ${shop.streak_current}-day streak at risk. Log a POS sale, stock update, or batch progress before midnight.`
+            : mode === 'hybrid'
+            ? `You have an active ${shop.streak_current}-day streak at risk. Log a cut, POS sale, payment, or measurement before midnight.`
+            : `You have an active ${shop.streak_current}-day streak at risk. Log a cut, payment, or measurement before midnight.`;
 
-      const alertKey = `system:${shop.id}:${title}`;
+        const alertKey = `system:${shop.id}:${title}`;
 
-      enqueueForShop(shop.id, {
-        alertKey,
-        track: 'universal',
-        basePriority: 10,
-        metricKey: 'streakRemindersSent',
-        params: {
-          shopId: shop.id,
-          category: 'system',
-          tone: 'info',
-          badgeIcon: 'local_fire_department',
-          badgeBg: '#FFEDD5',
-          badgeColor: '#EA580C',
-          title,
-          subtitle,
-          actionLabel: 'Open Dashboard',
-          actionHref: '/dashboard',
-        },
-      });
+        enqueueForShop(shop.id, {
+          alertKey,
+          track: 'universal',
+          basePriority: 10,
+          metricKey: 'streakRemindersSent',
+          params: {
+            shopId: shop.id,
+            category: 'system',
+            tone: 'info',
+            badgeIcon: 'local_fire_department',
+            badgeBg: '#FFEDD5',
+            badgeColor: '#EA580C',
+            title,
+            subtitle,
+            actionLabel: 'Open Dashboard',
+            actionHref: '/dashboard',
+          },
+        });
+      }
     }
 
-    // Priority 2: Closing-Day "Well Done" Message for active shops today
-    const { data: todayLedger } = await admin
-      .from('xp_ledger')
-      .select('shop_id, action_type')
+    // Priority 2: Closing-Day "Well Done" Message for active shops today (decoupled via audit_log)
+    const { data: todayAudits } = await admin
+      .from('audit_log')
+      .select('shop_id, action')
       .gte('created_at', todayStartStr);
 
-    if (todayLedger && todayLedger.length > 0) {
-      const shopActivityMap: Record<string, { count: number; actionTypes: Set<string> }> = {};
-      for (const entry of todayLedger) {
+    const shopActivityMap: Record<string, { count: number; actionTypes: Set<string> }> = {};
+
+    for (const entry of todayAudits || []) {
+      if (!entry.shop_id) continue;
+      if (!shopActivityMap[entry.shop_id]) {
+        shopActivityMap[entry.shop_id] = { count: 0, actionTypes: new Set() };
+      }
+      shopActivityMap[entry.shop_id].count++;
+      shopActivityMap[entry.shop_id].actionTypes.add(entry.action);
+    }
+
+    if (isXpSystemEnabled()) {
+      const { data: todayLedger } = await admin
+        .from('xp_ledger')
+        .select('shop_id, action_type')
+        .gte('created_at', todayStartStr);
+
+      for (const entry of todayLedger || []) {
         if (entry.action_type === 'daily_login') continue;
         if (!shopActivityMap[entry.shop_id]) {
           shopActivityMap[entry.shop_id] = { count: 0, actionTypes: new Set() };
@@ -985,45 +1004,45 @@ export async function GET(request: NextRequest) {
         shopActivityMap[entry.shop_id].count++;
         shopActivityMap[entry.shop_id].actionTypes.add(entry.action_type);
       }
+    }
 
-      for (const [shopId, activity] of Object.entries(shopActivityMap)) {
-        if (activity.count < 2) continue;
+    for (const [shopId, activity] of Object.entries(shopActivityMap)) {
+      if (activity.count < 2) continue;
 
-        let title: string;
-        let subtitle: string;
+      let title: string;
+      let subtitle: string;
 
-        if (activity.count >= 6) {
-          title = 'What a day — incredible output!';
-          subtitle = `You logged ${activity.count} craft sessions today. The kind of hard work that builds great reputation. Rest well — from the MyTailorBook Team.`;
-        } else if (activity.count >= 4) {
-          title = "Solid day's work. Well done!";
-          subtitle = `${activity.count} workshop actions completed today. You're building something real. Keep showing up — from the MyTailorBook Team.`;
-        } else {
-          title = 'Good effort today!';
-          subtitle = `You put in the work today and that's what it takes. Every stitch is progress. See you tomorrow — from the MyTailorBook Team.`;
-        }
-
-        const alertKey = `system:${shopId}:${title}`;
-
-        enqueueForShop(shopId, {
-          alertKey,
-          track: 'universal',
-          basePriority: 20,
-          metricKey: 'closingDayMessagesSent',
-          params: {
-            shopId,
-            category: 'system',
-            tone: 'info',
-            badgeIcon: 'check_circle',
-            badgeBg: '#DCFCE7',
-            badgeColor: '#16A34A',
-            title,
-            subtitle,
-            actionLabel: 'View Dashboard',
-            actionHref: '/dashboard',
-          },
-        });
+      if (activity.count >= 6) {
+        title = 'What a day — incredible output!';
+        subtitle = `You logged ${activity.count} craft sessions today. The kind of hard work that builds great reputation. Rest well — from the MyTailorBook Team.`;
+      } else if (activity.count >= 4) {
+        title = "Solid day's work. Well done!";
+        subtitle = `${activity.count} workshop actions completed today. You're building something real. Keep showing up — from the MyTailorBook Team.`;
+      } else {
+        title = 'Good effort today!';
+        subtitle = `You put in the work today and that's what it takes. Every stitch is progress. See you tomorrow — from the MyTailorBook Team.`;
       }
+
+      const alertKey = `system:${shopId}:${title}`;
+
+      enqueueForShop(shopId, {
+        alertKey,
+        track: 'universal',
+        basePriority: 20,
+        metricKey: 'closingDayMessagesSent',
+        params: {
+          shopId,
+          category: 'system',
+          tone: 'info',
+          badgeIcon: 'check_circle',
+          badgeBg: '#DCFCE7',
+          badgeColor: '#16A34A',
+          title,
+          subtitle,
+          actionLabel: 'View Dashboard',
+          actionHref: '/dashboard',
+        },
+      });
     }
   }
 
