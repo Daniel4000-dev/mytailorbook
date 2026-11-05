@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { AnatomyZone } from './ThreeMannequin';
@@ -13,7 +14,7 @@ const ThreeMannequin = dynamic(
     loading: () => (
       <div className={styles.mannequinLoader}>
         <div className={styles.mannequinLoaderSpinner} />
-        <span>Loading 3D tailor mannequin...</span>
+        <span>Loading 3D view...</span>
       </div>
     ),
   }
@@ -92,36 +93,26 @@ type CategoryGroupKey = Exclude<AnatomyZone, 'all'>;
 const CATEGORY_META: Array<{
   key: CategoryGroupKey;
   title: string;
-  subtitle: string;
-  icon: 'straighten' | 'apparel' | 'checkroom' | 'layers';
   pointIds: string[];
 }> = [
   {
     key: 'upper',
-    title: 'Upper Body & Torso',
-    subtitle: 'Collar, shoulder, chest, bust, waist & hip circumferences',
-    icon: 'straighten',
+    title: 'Upper Body',
     pointIds: ['neck', 'shoulder', 'crossFront', 'crossBack', 'chest', 'bust', 'underBust', 'stomach', 'waist', 'hips'],
   },
   {
     key: 'arms',
     title: 'Arms & Sleeves',
-    subtitle: 'Scye, bicep, sleeve drop & cuff finish',
-    icon: 'apparel',
     pointIds: ['armhole', 'bicep', 'sleeveLength', 'wrist'],
   },
   {
     key: 'lower',
-    title: 'Lower Body & Trouser',
-    subtitle: 'Rise, leg circumferences, inseam & trouser drop',
-    icon: 'checkroom',
+    title: 'Lower Body',
     pointIds: ['crotch', 'thigh', 'knee', 'calf', 'ankle', 'inseam', 'outseam', 'trouserLength'],
   },
   {
     key: 'spans',
-    title: 'Lengths & Anatomical Spans',
-    subtitle: 'Vertical drops & dart/landmark spans',
-    icon: 'layers',
+    title: 'Lengths',
     pointIds: [
       'shirtLength',
       'frontLength',
@@ -232,7 +223,7 @@ export default function MeasurementAnatomy({
 
   return (
     <div className={styles.wrapper}>
-      {/* ── Unified Control Bar (View Mode + Progress + Fullscreen Launch) ── */}
+      {/* ── Control Bar (View Mode + Recorded Count) ── */}
       <div className={styles.controlBar}>
         <div className={styles.segmentedTabs} role="tablist" aria-label="Measurement view mode">
           <button
@@ -243,7 +234,7 @@ export default function MeasurementAnatomy({
             onClick={() => setViewMode('visual')}
           >
             <Symbol name="person" size={14} />
-            <span>3D Anatomy</span>
+            <span>3D View</span>
           </button>
           <button
             type="button"
@@ -253,33 +244,21 @@ export default function MeasurementAnatomy({
             onClick={() => setViewMode('list')}
           >
             <Symbol name="checklist" size={14} />
-            <span>Quick Grid</span>
+            <span>List View</span>
           </button>
         </div>
 
         <div className={styles.controlBarRight}>
-          <div className={styles.progressBadge} title={`${completionPct}% of body landmarks recorded`}>
+          <div className={styles.progressBadge} title={`${completionPct}% recorded`}>
             <span className={styles.progressDot} />
             <span className={styles.progressText}>
               <strong>{filledCount}</strong>/{totalCount} saved
             </span>
           </div>
-
-          <button
-            type="button"
-            className={styles.launchStudioBtn}
-            onClick={() => {
-              setStudioActivePointId(selectedPointId || points[0]?.id);
-              setIsFullscreenStudio(true);
-            }}
-          >
-            <Symbol name="open_in_full" size={13} />
-            <span>Full Screen</span>
-          </button>
         </div>
       </div>
 
-      {/* ── View Mode 1: Interactive 3D Body View (Decluttered Inline) ── */}
+      {/* ── View Mode 1: Interactive 3D Body View ── */}
       {viewMode === 'visual' ? (
         <div className={styles.visualBlock}>
           <div className={styles.anatomyContainer}>
@@ -299,47 +278,14 @@ export default function MeasurementAnatomy({
               }}
             />
           </div>
-
-          {/* Legend & Quick Expand Prompt */}
-          <div className={styles.legendBar}>
-            <div className={styles.legendItems}>
-              <span className={styles.legendItem}>
-                <span className={`${styles.legendDot} ${styles.legendEmpty}`} />
-                Unrecorded
-              </span>
-              <span className={styles.legendItem}>
-                <span className={`${styles.legendDot} ${styles.legendFilled}`} />
-                Saved Landmark
-              </span>
-            </div>
-            <button
-              type="button"
-              className={styles.legendExpandLink}
-              onClick={() => {
-                setStudioActivePointId(selectedPointId || points[0]?.id);
-                setIsFullscreenStudio(true);
-              }}
-            >
-              <Symbol name="open_in_full" size={12} />
-              <span>Open Full-Screen 3D Studio</span>
-            </button>
-          </div>
         </div>
       ) : (
-        /* ── View Mode 2: Categorized Luxury Input Grid ──────────────── */
+        /* ── View Mode 2: Categorized Input Grid ──────────────── */
         <div className={styles.categoriesStack}>
           {categorizedGroups.map((group) => (
             <div key={group.key} className={styles.categoryCard}>
               <div className={styles.categoryHeader}>
-                <div className={styles.categoryTitleWrap}>
-                  <div className={styles.categoryIconBox}>
-                    <Symbol name={group.icon} size={15} />
-                  </div>
-                  <div>
-                    <h4 className={styles.categoryTitle}>{group.title}</h4>
-                    <p className={styles.categorySubtitle}>{group.subtitle}</p>
-                  </div>
-                </div>
+                <h4 className={styles.categoryTitle}>{group.title}</h4>
                 <span
                   className={`${styles.categoryCountPill} ${
                     group.filledCount === group.points.length ? styles.categoryCountComplete : ''
@@ -398,161 +344,159 @@ export default function MeasurementAnatomy({
         </div>
       )}
 
-      {/* ── Fullscreen 3D Anatomy Studio (Mobile Full-Viewport / Desktop Split Modal) ── */}
-      {isFullscreenStudio && (
-        <div
-          className={styles.studioBackdrop}
-          role="dialog"
-          aria-modal="true"
-          aria-label="3D Body Measurement Studio"
-        >
-          <div className={styles.studioModal}>
-            {/* Studio Header Bar */}
-            <div className={styles.studioHeader}>
-              <div className={styles.studioTitleBlock}>
-                <span className={styles.studioEyebrow}>Interactive 3D Fitting Room</span>
+      {/* ── Fullscreen 3D View (Portaled to document.body to guarantee 100% viewport coverage) ── */}
+      {isFullscreenStudio &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className={styles.studioBackdrop}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Measurements Full Screen"
+          >
+            <div className={styles.studioModal}>
+              {/* Header Bar */}
+              <div className={styles.studioHeader}>
                 <div className={styles.studioTitleRow}>
-                  <h3 className={styles.studioTitle}>
-                    {gender === 'female' ? 'Female' : 'Male'} Anatomical Studio
-                  </h3>
+                  <h3 className={styles.studioTitle}>Measurements</h3>
                   <span className={styles.studioSavedPill}>
-                    {filledCount}/{totalCount} recorded
+                    {filledCount}/{totalCount} saved
                   </span>
                 </div>
+
+                <button
+                  type="button"
+                  className={styles.studioCancelBtn}
+                  onClick={() => setIsFullscreenStudio(false)}
+                >
+                  <Symbol name="close" size={16} />
+                  <span>Close</span>
+                </button>
               </div>
 
-              <button
-                type="button"
-                className={styles.studioCancelBtn}
-                onClick={() => setIsFullscreenStudio(false)}
-              >
-                <Symbol name="close" size={16} />
-                <span>Cancel</span>
-              </button>
-            </div>
+              {/* Body: Full-Viewport 3D Stage + Measurement Dock */}
+              <div className={styles.studioBody}>
+                <div className={styles.studioStagePane}>
+                  <ThreeMannequin
+                    gender={gender}
+                    measurements={measurements}
+                    selectedPointId={activeStudioPoint?.id}
+                    zoneFilter={studioZone}
+                    onZoneFilterChange={setStudioZone}
+                    isFullscreen
+                    onToggleFullscreen={() => setIsFullscreenStudio(false)}
+                    onPointSelect={(pt) => {
+                      setStudioActivePointId(pt.id);
+                    }}
+                  />
+                </div>
 
-            {/* Studio Body: 3D Stage + Live Measurement Dock / Inspector */}
-            <div className={styles.studioBody}>
-              <div className={styles.studioStagePane}>
-                <ThreeMannequin
-                  gender={gender}
-                  measurements={measurements}
-                  selectedPointId={activeStudioPoint?.id}
-                  zoneFilter={studioZone}
-                  onZoneFilterChange={setStudioZone}
-                  isFullscreen
-                  onToggleFullscreen={() => setIsFullscreenStudio(false)}
-                  onPointSelect={(pt) => {
-                    setStudioActivePointId(pt.id);
-                  }}
-                />
-              </div>
-
-              {/* Right / Bottom Synchronized Measurement Inspector */}
-              <div className={styles.studioInspectorPane}>
-                {activeStudioPoint && (
-                  <div className={styles.activePointCard}>
-                    <div className={styles.activePointHeader}>
-                      <button
-                        type="button"
-                        className={styles.navPointBtn}
-                        onClick={() => stepStudioPoint(-1)}
-                        title="Previous landmark"
-                      >
-                        <Symbol name="chevron_left" size={16} />
-                      </button>
-                      <div className={styles.activePointTitleWrap}>
-                        <span className={styles.activePointStep}>
-                          Landmark {activeStudioIndex + 1} of {totalCount}
-                        </span>
-                        <h4 className={styles.activePointName}>{activeStudioPoint.name}</h4>
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.navPointBtn}
-                        onClick={() => stepStudioPoint(1)}
-                        title="Next landmark"
-                      >
-                        <Symbol name="chevron_right" size={16} />
-                      </button>
-                    </div>
-
-                    <div className={styles.activePointControls}>
-                      <button
-                        type="button"
-                        className={styles.stepperBtn}
-                        onClick={() => adjustStudioValue(-0.5)}
-                      >
-                        -0.5&Prime;
-                      </button>
-
-                      <div className={styles.activeInputBox}>
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          className={styles.activePointInput}
-                          placeholder="--"
-                          value={measurements[activeStudioPoint.id] || ''}
-                          onChange={(e) => onValueChange?.(activeStudioPoint.id, e.target.value)}
-                          onBlur={(e) => onValueBlur?.(activeStudioPoint.id, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              (e.target as HTMLInputElement).blur();
-                              stepStudioPoint(1);
-                            }
-                          }}
-                        />
-                        <span className={styles.activeInputUnit}>inches</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        className={styles.stepperBtn}
-                        onClick={() => adjustStudioValue(0.5)}
-                      >
-                        +0.5&Prime;
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Desktop Scrollable Landmark List (Synchronized with 3D View) */}
-                <div className={styles.studioPointList}>
-                  {points
-                    .filter((p) => {
-                      if (studioZone === 'all') return true;
-                      const cat = CATEGORY_META.find((c) => c.key === studioZone);
-                      return cat ? cat.pointIds.includes(p.id) : true;
-                    })
-                    .map((pt) => {
-                      const val = measurements[pt.id] || '';
-                      const isCurrent = activeStudioPoint?.id === pt.id;
-                      return (
+                {/* Right / Bottom Synchronized Measurement Inspector */}
+                <div className={styles.studioInspectorPane}>
+                  {activeStudioPoint && (
+                    <div className={styles.activePointCard}>
+                      <div className={styles.activePointHeader}>
                         <button
-                          key={pt.id}
                           type="button"
-                          className={`${styles.studioListRow} ${
-                            isCurrent ? styles.studioListRowActive : ''
-                          } ${val ? styles.studioListRowFilled : ''}`}
-                          onClick={() => setStudioActivePointId(pt.id)}
+                          className={styles.navPointBtn}
+                          onClick={() => stepStudioPoint(-1)}
+                          title="Previous"
                         >
-                          <span className={styles.studioListName}>
-                            <span className={styles.studioListDot} />
-                            {pt.name}
-                          </span>
-                          <span className={styles.studioListVal}>
-                            {val ? `${val}"` : 'Tap to set'}
-                          </span>
+                          <Symbol name="chevron_left" size={16} />
                         </button>
-                      );
-                    })}
+                        <div className={styles.activePointTitleWrap}>
+                          <span className={styles.activePointStep}>
+                            {activeStudioIndex + 1} of {totalCount}
+                          </span>
+                          <h4 className={styles.activePointName}>{activeStudioPoint.name}</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.navPointBtn}
+                          onClick={() => stepStudioPoint(1)}
+                          title="Next"
+                        >
+                          <Symbol name="chevron_right" size={16} />
+                        </button>
+                      </div>
+
+                      <div className={styles.activePointControls}>
+                        <button
+                          type="button"
+                          className={styles.stepperBtn}
+                          onClick={() => adjustStudioValue(-0.5)}
+                        >
+                          -0.5&Prime;
+                        </button>
+
+                        <div className={styles.activeInputBox}>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className={styles.activePointInput}
+                            placeholder="--"
+                            value={measurements[activeStudioPoint.id] || ''}
+                            onChange={(e) => onValueChange?.(activeStudioPoint.id, e.target.value)}
+                            onBlur={(e) => onValueBlur?.(activeStudioPoint.id, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                (e.target as HTMLInputElement).blur();
+                                stepStudioPoint(1);
+                              }
+                            }}
+                          />
+                          <span className={styles.activeInputUnit}>in</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.stepperBtn}
+                          onClick={() => adjustStudioValue(0.5)}
+                        >
+                          +0.5&Prime;
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Desktop Scrollable List */}
+                  <div className={styles.studioPointList}>
+                    {points
+                      .filter((p) => {
+                        if (studioZone === 'all') return true;
+                        const cat = CATEGORY_META.find((c) => c.key === studioZone);
+                        return cat ? cat.pointIds.includes(p.id) : true;
+                      })
+                      .map((pt) => {
+                        const val = measurements[pt.id] || '';
+                        const isCurrent = activeStudioPoint?.id === pt.id;
+                        return (
+                          <button
+                            key={pt.id}
+                            type="button"
+                            className={`${styles.studioListRow} ${
+                              isCurrent ? styles.studioListRowActive : ''
+                            } ${val ? styles.studioListRowFilled : ''}`}
+                            onClick={() => setStudioActivePointId(pt.id)}
+                          >
+                            <span className={styles.studioListName}>
+                              <span className={styles.studioListDot} />
+                              {pt.name}
+                            </span>
+                            <span className={styles.studioListVal}>
+                              {val ? `${val}"` : '--'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

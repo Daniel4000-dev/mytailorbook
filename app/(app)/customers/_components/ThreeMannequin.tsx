@@ -558,15 +558,15 @@ export default function ThreeMannequin({
           ))}
         </div>
 
-        {onToggleFullscreen && (
+        {!isFullscreen && onToggleFullscreen && (
           <button
             type="button"
             className={styles.expandStudioBtn}
             onClick={onToggleFullscreen}
-            title={isFullscreen ? 'Exit Fullscreen Studio' : 'Open Fullscreen 3D Studio'}
+            title="Full Screen"
           >
-            <Symbol name={isFullscreen ? 'close_fullscreen' : 'open_in_full'} size={13} />
-            <span>{isFullscreen ? 'Minimize' : 'Expand'}</span>
+            <Symbol name="open_in_full" size={13} />
+            <span>Full Screen</span>
           </button>
         )}
       </div>
@@ -599,7 +599,7 @@ export default function ThreeMannequin({
       {isLoading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingSpinner} />
-          <span className={styles.loadingText}>Loading 3D anatomy...</span>
+          <span className={styles.loadingText}>Loading 3D view...</span>
         </div>
       )}
 
@@ -669,21 +669,11 @@ export default function ThreeMannequin({
         })}
       </div>
 
-      {/* Bottom Interactive Helper & Fullscreen Callout */}
+      {/* Bottom Interactive Helper */}
       <div className={styles.bottomBar}>
         <span className={styles.rotationHint}>
-          Drag 360° · Tap zone to zoom · Tap pin to record
+          Drag to rotate · Tap a point to edit
         </span>
-        {!isFullscreen && onToggleFullscreen && (
-          <button
-            type="button"
-            className={styles.fullscreenBannerBtn}
-            onClick={onToggleFullscreen}
-          >
-            <Symbol name="open_in_full" size={12} />
-            <span>Full Screen</span>
-          </button>
-        )}
       </div>
     </div>
   );

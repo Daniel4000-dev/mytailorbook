@@ -670,13 +670,9 @@ function CustomerProfileContent({
             </div>
           </div>
 
-          {/* Elevated Body Measurements Dossier Card */}
+          {/* Measurements Card */}
           <section className={styles.measurementDossierCard}>
             <div className={styles.dossierHeaderRow}>
-              <div className={styles.dossierTitleBlock}>
-                <span className={styles.dossierEyebrow}>Anatomical Fit Record</span>
-                <h3 className={styles.sectionTitle}>Body Measurements</h3>
-              </div>
               <div className={styles.dossierActionRow}>
                 <button
                   type="button"
@@ -718,23 +714,13 @@ function CustomerProfileContent({
             />
           </section>
 
-          {/* Elevated Posture & Fitting Notes Dossier Card */}
+          {/* Fit Notes Card */}
           <section className={styles.postureDossierCard}>
             <div className={styles.postureHeaderRow}>
-              <div className={styles.postureTitleGroup}>
-                <div className={styles.postureIconWrap}>
-                  <Symbol name="notes" size={16} />
-                </div>
-                <div>
-                  <h3 className={styles.postureCardTitle}>Posture & Fit Notes</h3>
-                  <p className={styles.postureCardSub}>
-                    Select anatomical traits or record custom tailoring adjustments
-                  </p>
-                </div>
-              </div>
+              <h3 className={styles.postureCardTitle}>Fit Notes</h3>
               <span className={styles.autoSavePill}>
                 <Symbol name="check_circle" size={12} />
-                <span>Auto-saved</span>
+                <span>Saved</span>
               </span>
             </div>
 

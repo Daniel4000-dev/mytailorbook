@@ -73,270 +73,80 @@
   transform: scale(0.96);
 }
 
-/* ── 1. Elevated Client Directory Summary Deck ──────────────── */
-.summaryDeck {
-  background: var(--sf-bg-surface, #FFFFFF);
-  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.09));
-  border-radius: 20px;
-  padding: 18px 20px;
+/* ── 1. Compact Apple iOS 4-Segment Metric Bar ──────────────── */
+.iosMetricBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  background: rgba(118, 118, 128, 0.09);
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+:global([data-theme='dark']) .iosMetricBar {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.iosMetricSegment {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: var(--sf-space-md);
-  box-shadow: 0 4px 20px -2px rgba(67, 56, 202, 0.04), 0 2px 6px -1px rgba(27, 27, 34, 0.02);
-}
-
-:global([data-theme='dark']) .summaryDeck {
-  background: var(--sf-bg-surface, #161526);
-  border-color: var(--sf-border, rgba(99, 102, 241, 0.22));
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-}
-
-.summaryDeckHeader {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.summaryEyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--sf-text-secondary);
-}
-
-.summaryHeaderRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.receivableBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  background: rgba(245, 158, 11, 0.12);
-  color: #D97706;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.receivableBadge:hover {
-  background: rgba(245, 158, 11, 0.18);
-}
-
-.receivableBadgeActive {
-  background: #D97706;
-  color: #FFFFFF;
-  border-color: #D97706;
-}
-
-.resetFilterPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--sf-brand-indigo);
-  background: rgba(79, 70, 229, 0.08);
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.resetFilterPill:hover {
-  opacity: 0.85;
-}
-
-.mainAmountRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.mainHeroBtn {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mainAmountNumeral {
-  font-family: var(--sf-font-numeric, var(--sf-font-body));
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--sf-text-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.countBadge {
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface-elevated, #F1F5F9);
-  color: var(--sf-text-tertiary);
-  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.08));
-}
-
-:global([data-theme='dark']) .countBadge {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: var(--sf-text-secondary);
-}
-
-.genderBreakdownMeta {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--sf-text-tertiary);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Interactive Pipeline & Balance Breakdown Strip */
-.drawerSplitStrip {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr;
-  align-items: center;
-  gap: 6px;
-  padding: 6px;
-  background: var(--sf-bg-surface-elevated, #F8FAFC);
-  border-radius: 14px;
-  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.06));
-}
-
-:global([data-theme='dark']) .drawerSplitStrip {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.07);
-}
-
-.drawerSplitDivider {
-  width: 1px;
-  height: 26px;
-  background: var(--sf-border-light, rgba(15, 23, 42, 0.08));
-}
-
-:global([data-theme='dark']) .drawerSplitDivider {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.drawerSegmentBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 6px 8px;
+  justify-content: center;
+  gap: 1px;
+  padding: 8px 4px;
   border-radius: 10px;
+  border: none;
   background: transparent;
-  border: 1px solid transparent;
   cursor: pointer;
-  text-align: left;
-  transition: all 0.16s ease;
+  transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease;
   -webkit-tap-highlight-color: transparent;
+  min-width: 0;
 }
 
-.drawerSegmentBtn:hover {
-  background: rgba(255, 255, 255, 0.65);
-}
-
-:global([data-theme='dark']) .drawerSegmentBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.drawerSegmentBtn:active {
+.iosMetricSegment:active {
   transform: scale(0.97);
 }
 
-.drawerSegmentActive {
+.iosMetricSegmentActive {
   background: var(--sf-bg-surface, #FFFFFF);
-  border-color: rgba(79, 70, 229, 0.22);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-:global([data-theme='dark']) .drawerSegmentActive {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(99, 102, 241, 0.35);
+:global([data-theme='dark']) .iosMetricSegmentActive {
+  background: var(--sf-bg-surface-elevated, #222038);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
-.statusDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.dotProduction {
-  background: #6366F1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-}
-
-.dotReady {
-  background: #10B981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-}
-
-.dotOwing {
-  background: #F59E0B;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-}
-
-.dotMuted {
-  background: var(--sf-border, #CBD5E1);
-}
-
-.drawerTextCol {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.drawerLabel {
-  font-size: 10.5px;
-  color: var(--sf-text-tertiary);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.drawerSegmentActive .drawerLabel {
-  color: var(--sf-brand-indigo);
-  font-weight: 600;
-}
-
-.drawerValue {
+.iosMetricValue {
   font-family: var(--sf-font-numeric, var(--sf-font-body));
-  color: var(--sf-text-primary);
+  font-size: 17px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  font-size: 14px;
-  line-height: 1.2;
+  color: var(--sf-text-primary);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
-.valEmerald {
+.iosMetricReady {
   color: #059669;
 }
 
-.valAmber {
+.iosMetricOwing {
   color: #D97706;
+}
+
+.iosMetricLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.iosMetricSegmentActive .iosMetricLabel {
+  color: var(--sf-text-primary);
+  font-weight: 600;
 }
 
 /* ── 2. Search & Integrated Filter Bar ──────────────────────── */

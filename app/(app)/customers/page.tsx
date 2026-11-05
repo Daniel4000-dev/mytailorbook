@@ -367,104 +367,56 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* ── 1. Elevated Client Directory Summary Deck ── */}
-      <section className={styles.summaryDeck}>
-        <div className={styles.summaryDeckHeader}>
-          <span className={styles.summaryEyebrow}>Client Directory</span>
-          <div className={styles.summaryHeaderRight}>
-            {totalBalanceOwed > 0 && (
-              <button
-                type="button"
-                className={`${styles.receivableBadge} ${clientFilter === 'owing' ? styles.receivableBadgeActive : ''}`}
-                onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
-              >
-                ₦{totalBalanceOwed.toLocaleString()} balance due
-              </button>
-            )}
-            {clientFilter !== 'all' && (
-              <button
-                type="button"
-                className={styles.resetFilterPill}
-                onClick={() => setClientFilter('all')}
-              >
-                <span>Show All</span>
-                <Symbol name="close" size={12} />
-              </button>
-            )}
-          </div>
-        </div>
+      {/* ── 1. Compact Apple iOS 4-Segment Metric Bar ── */}
+      <div className={styles.iosMetricBar} role="tablist" aria-label="Filter clients by status">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={clientFilter === 'all'}
+          className={`${styles.iosMetricSegment} ${clientFilter === 'all' ? styles.iosMetricSegmentActive : ''}`}
+          onClick={() => setClientFilter('all')}
+        >
+          <span className={styles.iosMetricValue}>{totalCustomers}</span>
+          <span className={styles.iosMetricLabel}>All</span>
+        </button>
 
-        <div className={styles.mainAmountRow}>
-          <button
-            type="button"
-            className={styles.mainHeroBtn}
-            onClick={() => setClientFilter('all')}
-          >
-            <span className={styles.mainAmountNumeral}>{totalCustomers}</span>
-            <span className={styles.countBadge}>
-              {totalCustomers === 1 ? 'client' : 'clients'}
-            </span>
-          </button>
-          {(maleCount > 0 || femaleCount > 0) && (
-            <span className={styles.genderBreakdownMeta}>
-              {maleCount} men · {femaleCount} women
-            </span>
-          )}
-        </div>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={clientFilter === 'active'}
+          className={`${styles.iosMetricSegment} ${clientFilter === 'active' ? styles.iosMetricSegmentActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
+        >
+          <span className={styles.iosMetricValue}>{activeCustomers}</span>
+          <span className={styles.iosMetricLabel}>Active</span>
+        </button>
 
-        {/* Interactive Pipeline & Balance Breakdown Strip */}
-        <div className={styles.drawerSplitStrip} role="tablist" aria-label="Filter clients by status">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={clientFilter === 'active'}
-            className={`${styles.drawerSegmentBtn} ${clientFilter === 'active' ? styles.drawerSegmentActive : ''}`}
-            onClick={() => setClientFilter(clientFilter === 'active' ? 'all' : 'active')}
-          >
-            <span className={`${styles.statusDot} ${activeCustomers > 0 ? styles.dotProduction : styles.dotMuted}`} />
-            <div className={styles.drawerTextCol}>
-              <span className={styles.drawerLabel}>In Production</span>
-              <strong className={styles.drawerValue}>{activeCustomers}</strong>
-            </div>
-          </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={clientFilter === 'ready'}
+          className={`${styles.iosMetricSegment} ${clientFilter === 'ready' ? styles.iosMetricSegmentActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
+        >
+          <span className={`${styles.iosMetricValue} ${readyCount > 0 ? styles.iosMetricReady : ''}`}>
+            {readyCount}
+          </span>
+          <span className={styles.iosMetricLabel}>Ready</span>
+        </button>
 
-          <div className={styles.drawerSplitDivider} />
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={clientFilter === 'ready'}
-            className={`${styles.drawerSegmentBtn} ${clientFilter === 'ready' ? styles.drawerSegmentActive : ''}`}
-            onClick={() => setClientFilter(clientFilter === 'ready' ? 'all' : 'ready')}
-          >
-            <span className={`${styles.statusDot} ${readyCount > 0 ? styles.dotReady : styles.dotMuted}`} />
-            <div className={styles.drawerTextCol}>
-              <span className={styles.drawerLabel}>Ready Pickup</span>
-              <strong className={`${styles.drawerValue} ${readyCount > 0 ? styles.valEmerald : ''}`}>
-                {readyCount}
-              </strong>
-            </div>
-          </button>
-
-          <div className={styles.drawerSplitDivider} />
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={clientFilter === 'owing'}
-            className={`${styles.drawerSegmentBtn} ${clientFilter === 'owing' ? styles.drawerSegmentActive : ''}`}
-            onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
-          >
-            <span className={`${styles.statusDot} ${owingCount > 0 ? styles.dotOwing : styles.dotMuted}`} />
-            <div className={styles.drawerTextCol}>
-              <span className={styles.drawerLabel}>Owing Balance</span>
-              <strong className={`${styles.drawerValue} ${owingCount > 0 ? styles.valAmber : ''}`}>
-                {owingCount}
-              </strong>
-            </div>
-          </button>
-        </div>
-      </section>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={clientFilter === 'owing'}
+          className={`${styles.iosMetricSegment} ${clientFilter === 'owing' ? styles.iosMetricSegmentActive : ''}`}
+          onClick={() => setClientFilter(clientFilter === 'owing' ? 'all' : 'owing')}
+        >
+          <span className={`${styles.iosMetricValue} ${owingCount > 0 ? styles.iosMetricOwing : ''}`}>
+            {owingCount}
+          </span>
+          <span className={styles.iosMetricLabel}>Owing</span>
+        </button>
+      </div>
 
       {/* ── 2. Search Bar with Integrated Gender & Style Controls ── */}
       <div className={styles.searchBarRow}>
