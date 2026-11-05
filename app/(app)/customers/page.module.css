@@ -1538,3 +1538,169 @@
     color: var(--sf-text-secondary);
   }
 }
+
+/* ── Queue Outfit Switcher Rail & Album Preview ── */
+.queueOutfitSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.queueOutfitHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.queueOutfitTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.queueOutfitBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: rgba(79, 70, 229, 0.08);
+  padding: 1px 8px;
+  border-radius: var(--sf-radius-full);
+}
+
+.queueOutfitTrack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.queueOutfitTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.queueOutfitPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--sf-radius-full);
+  border: 1.5px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+}
+
+.queueOutfitPillActive {
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo, #4338CA);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+
+.queueOutfitThumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.queueOutfitImg {
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  transition: all var(--sf-transition-fast);
+  background: var(--sf-surface-container-highest);
+}
+
+.queueOutfitThumbActive .queueOutfitImg {
+  border-color: var(--sf-brand-indigo, #4338CA);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.35);
+  transform: scale(1.05);
+}
+
+.queueOutfitLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
+.queueOutfitThumbActive .queueOutfitLabel {
+  color: var(--sf-brand-indigo, #4338CA);
+  font-weight: 700;
+}
+
+.queueAddLookBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--sf-radius-full);
+  border: 1px dashed var(--sf-border);
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--sf-brand-indigo, #4338CA);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.queueAlbumPreviewCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(16, 185, 129, 0.06) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: var(--sf-radius-md);
+  padding: 12px 14px;
+}
+
+.queueAlbumIconBox {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.queueAlbumTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.queueAlbumTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.queueAlbumSub {
+  font-size: 11.5px;
+  color: var(--sf-text-secondary);
+  line-height: 1.35;
+}
+

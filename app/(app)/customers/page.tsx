@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,10 +19,11 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
 import { formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getInitials } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
-import type { Customer, Order } from '@/lib/types';
-import { GARMENT_STYLES, resolveCanonicalStyleName } from '@/lib/constants';
+import type { Customer, Order, StyleCatalogue } from '@/lib/types';
+import { GARMENT_STYLES, resolveCanonicalStyleName, isMockDataAllowed } from '@/lib/constants';
 import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
-import type { StylePhotoSubmission } from '@/lib/types';
+import { getCataloguesAction } from '@/app/actions/catalogues';
+import { getStoredMockCatalogues } from '@/lib/mockCatalogues';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
 import AddCustomerSheet from './_components/AddCustomerSheet';
@@ -37,6 +39,13 @@ import styles from './page.module.css';
 
 const PAGE_SIZE = 40;
 type ClientFilter = 'all' | 'ready' | 'active' | 'owing' | 'male' | 'female';
+
+export interface LookbookOutreachPhoto {
+  id: string;
+  photoUrl: string;
+  label?: string;
+  albumTitle?: string;
+}
 
 interface CustomerStatDetail {
   totalOrders: number;
@@ -81,12 +90,14 @@ export default function CustomersPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [approvedStyleNames, setApprovedStyleNames] = useState<Set<string>>(new Set());
 
-  // Outreach states
-  const [savedPhotos, setSavedPhotos] = useState<StylePhotoSubmission[]>([]);
+  // Lookbooks & Outreach states
+  const [catalogues, setCatalogues] = useState<StyleCatalogue[]>([]);
+  const [matchingAlbum, setMatchingAlbum] = useState<StyleCatalogue | null>(null);
+  const [outreachPhotos, setOutreachPhotos] = useState<LookbookOutreachPhoto[]>([]);
   const [outreachMap, setOutreachMap] = useState<Record<string, string>>({});
   const [isOutreachSheetOpen, setIsOutreachSheetOpen] = useState(false);
   const [outreachStep, setOutreachStep] = useState<'compose' | 'queue'>('compose');
-  const [selectedPhoto, setSelectedPhoto] = useState<StylePhotoSubmission | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<LookbookOutreachPhoto | null>(null);
   const [noteText, setNoteText] = useState('');
   const [queueList, setQueueList] = useState<Customer[]>([]);
   const [queueIndex, setQueueIndex] = useState(0);
@@ -94,6 +105,35 @@ export default function CustomersPage() {
   const [includeContacted, setIncludeContacted] = useState(false);
   const [selectionMode, setSelectionMode] = useState<'everyone' | 'choose'>('everyone');
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<Set<string>>(new Set());
+
+  // Support direct deep-link ?style=Senator into Style Leads
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const qStyle = searchParams.get('style');
+    if (qStyle) {
+      setStyleFilter(decodeURIComponent(qStyle));
+    }
+  }, [searchParams]);
+
+  // Load shop lookbook catalogues
+  useEffect(() => {
+    if (!currentShop?.id) return;
+    getCataloguesAction(currentShop.id)
+      .then((cats) => {
+        if (cats && cats.length > 0) {
+          setCatalogues(cats);
+        } else if (isMockDataAllowed(user?.email)) {
+          setCatalogues(getStoredMockCatalogues());
+        } else {
+          setCatalogues([]);
+        }
+      })
+      .catch(() => {
+        if (isMockDataAllowed(user?.email)) {
+          setCatalogues(getStoredMockCatalogues());
+        }
+      });
+  }, [currentShop?.id, user?.email]);
 
   useEffect(() => {
     if (!currentShop?.id) return;
@@ -110,25 +150,82 @@ export default function CustomersPage() {
   const [prevStyleFilter, setPrevStyleFilter] = useState(styleFilter);
   if (styleFilter !== prevStyleFilter) {
     setPrevStyleFilter(styleFilter);
-    setSavedPhotos([]);
+    setOutreachPhotos([]);
+    setSelectedPhoto(null);
     setOutreachMap({});
   }
 
+  // Derive matching public lookbook album URL
+  const matchingAlbumUrl = useMemo(() => {
+    if (!matchingAlbum || !currentShop) return null;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const slug = currentShop.slug || 'studio';
+    return `${origin}/catalogue/${slug}?album=${matchingAlbum.id}`;
+  }, [matchingAlbum, currentShop]);
+
   useEffect(() => {
-    if (!styleFilter || !currentShop?.id) return;
-    getStylePhotoSubmissionsAction(currentShop.id, styleFilter).then((result) => {
-      if (!result || 'error' in result) return;
-      setSavedPhotos(result.saved);
-    });
-    getOutreachLogAction(currentShop.id, styleFilter).then((entries) => {
-      if (!entries || 'error' in entries) return;
-      const map: Record<string, string> = {};
-      entries.forEach((e) => {
-        if (!map[e.customerId]) map[e.customerId] = e.contactedAt;
+    if (!styleFilter) {
+      setMatchingAlbum(null);
+      setOutreachPhotos([]);
+      setSelectedPhoto(null);
+      return;
+    }
+
+    const norm = styleFilter.toLowerCase().trim();
+    const album = catalogues.find((c) => {
+      const t = c.title.toLowerCase().trim();
+      return t === norm || t.includes(norm) || norm.includes(t);
+    }) || null;
+
+    setMatchingAlbum(album);
+
+    const photos: LookbookOutreachPhoto[] = [];
+    if (album?.photos?.length) {
+      album.photos.forEach((p, idx) => {
+        photos.push({
+          id: p.id,
+          photoUrl: p.imageUrl,
+          label: `Look ${idx + 1}`,
+          albumTitle: album.title,
+        });
       });
-      setOutreachMap(map);
-    });
-  }, [styleFilter, currentShop]);
+    }
+
+    // Also include any legacy submissions if present
+    if (currentShop?.id) {
+      getStylePhotoSubmissionsAction(currentShop.id, styleFilter).then((res) => {
+        if (res && 'saved' in res && res.saved?.length) {
+          res.saved.forEach((s) => {
+            if (!photos.some((p) => p.photoUrl === s.photoUrl)) {
+              photos.push({
+                id: s.id,
+                photoUrl: s.photoUrl,
+                label: `Look ${photos.length + 1}`,
+                albumTitle: styleFilter,
+              });
+            }
+          });
+        }
+        setOutreachPhotos(photos);
+        setSelectedPhoto(photos[0] || null);
+      }).catch(() => {
+        setOutreachPhotos(photos);
+        setSelectedPhoto(photos[0] || null);
+      });
+
+      getOutreachLogAction(currentShop.id, styleFilter).then((entries) => {
+        if (!entries || 'error' in entries) return;
+        const map: Record<string, string> = {};
+        entries.forEach((e) => {
+          if (!map[e.customerId]) map[e.customerId] = e.contactedAt;
+        });
+        setOutreachMap(map);
+      });
+    } else {
+      setOutreachPhotos(photos);
+      setSelectedPhoto(photos[0] || null);
+    }
+  }, [styleFilter, catalogues, currentShop?.id]);
 
   // Derive order stats and identify active & latest garment per customer
   const customerStats = useMemo(() => {
@@ -281,16 +378,21 @@ export default function CustomersPage() {
   }, [customers, customerStats]);
 
   const getDefaultOutreachNote = useCallback(
-    (styleName: string | null) =>
-      currentShop?.outreachTemplate ||
-      `Hi {name}, we just finished some fresh ${styleName || 'bespoke'} designs at our workshop that would fit your measurements really well. Would you like me to send you pictures?`,
-    [currentShop?.outreachTemplate]
+    (styleName: string | null, hasPhotoSelected = false) => {
+      if (currentShop?.outreachTemplate) return currentShop.outreachTemplate;
+      if (matchingAlbumUrl && !hasPhotoSelected) {
+        return `Hi {name}, we just finished some fresh ${styleName || 'bespoke'} designs at our workshop that would fit your measurements really well. Browse our latest looks here: ${matchingAlbumUrl} — let me know which style you'd love to commission!`;
+      }
+      return `Hi {name}, we just finished some fresh ${styleName || 'bespoke'} designs at our workshop that would fit your measurements really well. Would you like me to send you pictures?`;
+    },
+    [currentShop?.outreachTemplate, matchingAlbumUrl]
   );
 
   const openOutreachSheet = (directToQueue = false) => {
-    const defaultNote = getDefaultOutreachNote(styleFilter);
-    setNoteText((prev) => prev || defaultNote);
-    setSelectedPhoto(savedPhotos[0] || null);
+    const defaultPhoto = outreachPhotos[0] || null;
+    setSelectedPhoto(defaultPhoto);
+    const defaultNote = getDefaultOutreachNote(styleFilter, Boolean(defaultPhoto));
+    setNoteText(defaultNote);
     setIncludeContacted(false);
     setSelectionMode('everyone');
     setSelectedCustomerIds(new Set());
@@ -342,7 +444,7 @@ export default function CustomersPage() {
   const handleSendWhatsAppInQueue = useCallback(async () => {
     const customer = queueList[queueIndex];
     if (!customer || !styleFilter) return;
-    const personalNote = (noteText || getDefaultOutreachNote(styleFilter)).replace(
+    const personalNote = (noteText || getDefaultOutreachNote(styleFilter, Boolean(selectedPhoto))).replace(
       /\{name\}/g,
       customer.fullName.split(' ')[0]
     );
@@ -350,12 +452,12 @@ export default function CustomersPage() {
     await markCustomerContacted(customer.id);
     showToast(`Opened WhatsApp for ${customer.fullName.split(' ')[0]}`, 'success');
     setQueueIndex((i) => i + 1);
-  }, [queueList, queueIndex, styleFilter, noteText, getDefaultOutreachNote, markCustomerContacted, showToast]);
+  }, [queueList, queueIndex, styleFilter, noteText, selectedPhoto, getDefaultOutreachNote, markCustomerContacted, showToast]);
 
   const handleShareToCurrent = useCallback(async () => {
     const customer = queueList[queueIndex];
     if (!customer || !styleFilter) return;
-    const personalNote = (noteText || getDefaultOutreachNote(styleFilter)).replace(
+    const personalNote = (noteText || getDefaultOutreachNote(styleFilter, Boolean(selectedPhoto))).replace(
       /\{name\}/g,
       customer.fullName.split(' ')[0]
     );
@@ -753,34 +855,45 @@ export default function CustomersPage() {
         {outreachStep === 'compose' ? (
           <div className={styles.composeWrap}>
             <div className={styles.composeSectionHeader}>
-              <span className={styles.composeLabel}>1. Photo Attachment (Optional)</span>
-              <a href={styleFilter ? ROUTES.styleDetail(styleFilter) : '#'} className={styles.manageGalleryLink}>
-                + Add shop photo
-              </a>
+              <span className={styles.composeLabel}>1. Outfit or Lookbook Link</span>
+              <Link
+                href={matchingAlbum ? ROUTES.catalogueDetail(matchingAlbum.id) : ROUTES.catalogues}
+                className={styles.manageGalleryLink}
+              >
+                + Manage in Lookbooks
+              </Link>
             </div>
-            {savedPhotos.length > 0 ? (
+            {outreachPhotos.length > 0 || matchingAlbumUrl ? (
               <div className={styles.styleFilterGrid}>
-                <button
-                  type="button"
-                  className={`${styles.styleFilterCard} ${selectedPhoto === null ? styles.styleFilterCardSelected : ''}`}
-                  onClick={() => setSelectedPhoto(null)}
-                >
-                  <div className={`${styles.styleFilterPhoto} ${styles.textOnlyCardBox}`}>
-                    <Symbol name="chat" size={22} />
-                  </div>
-                  <span>Message Only</span>
-                </button>
-                {savedPhotos.map((p) => (
+                {matchingAlbumUrl && (
+                  <button
+                    type="button"
+                    className={`${styles.styleFilterCard} ${selectedPhoto === null ? styles.styleFilterCardSelected : ''}`}
+                    onClick={() => {
+                      setSelectedPhoto(null);
+                      setNoteText(getDefaultOutreachNote(styleFilter, false));
+                    }}
+                  >
+                    <div className={`${styles.styleFilterPhoto} ${styles.textOnlyCardBox}`}>
+                      <Symbol name="collections_bookmark" size={24} />
+                    </div>
+                    <span>All Looks Link</span>
+                  </button>
+                )}
+                {outreachPhotos.map((p) => (
                   <button
                     key={p.id}
                     type="button"
                     className={`${styles.styleFilterCard} ${selectedPhoto?.id === p.id ? styles.styleFilterCardSelected : ''}`}
-                    onClick={() => setSelectedPhoto(p)}
+                    onClick={() => {
+                      setSelectedPhoto(p);
+                      setNoteText(getDefaultOutreachNote(styleFilter, true));
+                    }}
                   >
                     <div className={styles.styleFilterPhoto}>
                       <Image src={p.photoUrl} alt="" width={200} height={200} />
                     </div>
-                    <span>Shop Photo</span>
+                    <span>{p.label || 'Look'}</span>
                   </button>
                 ))}
               </div>
@@ -789,7 +902,7 @@ export default function CustomersPage() {
                 <Symbol name="chat" size={16} />
                 <span>
                   Sending personalized WhatsApp note directly. You can also{' '}
-                  <a href={styleFilter ? ROUTES.styleDetail(styleFilter) : '#'}>add a {styleFilter} photo</a> in Style Gallery anytime.
+                  <Link href={ROUTES.catalogues}>create a {styleFilter} Lookbook</Link> anytime.
                 </span>
               </div>
             )}
@@ -914,13 +1027,77 @@ export default function CustomersPage() {
                     )}
                   </div>
                 </div>
-                {selectedPhoto && (
+
+                {/* ── Outfit Switcher Rail (Pick different look per client in 1 tap) ── */}
+                {(outreachPhotos.length > 0 || matchingAlbumUrl) && (
+                  <div className={styles.queueOutfitSection}>
+                    <div className={styles.queueOutfitHeader}>
+                      <span className={styles.queueOutfitTitle}>Select Outfit for this Client</span>
+                      {selectedPhoto && (
+                        <span className={styles.queueOutfitBadge}>{selectedPhoto.label || 'Selected Look'}</span>
+                      )}
+                      {!selectedPhoto && matchingAlbumUrl && (
+                        <span className={styles.queueOutfitBadge}>Full Album Link</span>
+                      )}
+                    </div>
+                    <div className={styles.queueOutfitTrack}>
+                      {matchingAlbumUrl && (
+                        <button
+                          type="button"
+                          className={`${styles.queueOutfitPill} ${selectedPhoto === null ? styles.queueOutfitPillActive : ''}`}
+                          onClick={() => setSelectedPhoto(null)}
+                        >
+                          <Symbol name="collections_bookmark" size={13} />
+                          <span>All Looks Link</span>
+                        </button>
+                      )}
+                      {outreachPhotos.map((p) => {
+                        const isSel = selectedPhoto?.id === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className={`${styles.queueOutfitThumb} ${isSel ? styles.queueOutfitThumbActive : ''}`}
+                            onClick={() => setSelectedPhoto(p)}
+                            title={p.label || 'Select look'}
+                          >
+                            <img src={p.photoUrl} alt="" className={styles.queueOutfitImg} />
+                            <span className={styles.queueOutfitLabel}>{p.label || 'Look'}</span>
+                          </button>
+                        );
+                      })}
+                      {matchingAlbum && (
+                        <Link
+                          href={ROUTES.catalogueDetail(matchingAlbum.id)}
+                          className={styles.queueAddLookBtn}
+                          target="_blank"
+                        >
+                          <Symbol name="add" size={13} />
+                          <span>Add Look</span>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {selectedPhoto ? (
                   <div className={styles.queuePreviewPhoto}>
                     <Image src={selectedPhoto.photoUrl} alt="" width={200} height={200} />
                   </div>
-                )}
+                ) : matchingAlbumUrl ? (
+                  <div className={styles.queueAlbumPreviewCard}>
+                    <div className={styles.queueAlbumIconBox}>
+                      <Symbol name="collections_bookmark" size={22} />
+                    </div>
+                    <div className={styles.queueAlbumTextCol}>
+                      <span className={styles.queueAlbumTitle}>{matchingAlbum?.title || styleFilter} Lookbook</span>
+                      <span className={styles.queueAlbumSub}>Client receives direct link to browse all outfits & tap to order</span>
+                    </div>
+                  </div>
+                ) : null}
+
                 <p className={styles.queueNotePreview}>
-                  {(noteText || getDefaultOutreachNote(styleFilter)).replace(
+                  {(noteText || getDefaultOutreachNote(styleFilter, Boolean(selectedPhoto))).replace(
                     /\{name\}/g,
                     queueList[queueIndex].fullName.split(' ')[0]
                   )}
@@ -1034,7 +1211,7 @@ export default function CustomersPage() {
 
               // Contextual WhatsApp greeting (automatically switches to Outbound Style Pitch when a style filter is active)
               const whatsappGreeting = styleFilter
-                ? (noteText || getDefaultOutreachNote(styleFilter)).replace(
+                ? (noteText || getDefaultOutreachNote(styleFilter, Boolean(outreachPhotos[0]))).replace(
                   /\{name\}/g,
                   c.fullName.split(' ')[0]
                 )

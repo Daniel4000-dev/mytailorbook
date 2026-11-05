@@ -144,9 +144,9 @@ export default function SidebarMenu() {
           <CustomNavIcon name="favorite" className={styles.menuIcon} />
           <span className={styles.menuText}>My Portfolio</span>
         </Link>
-        <Link href={ROUTES.styles} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
-          <CustomNavIcon name="photo_library" className={styles.menuIcon} />
-          <span className={styles.menuText}>Style Gallery</span>
+        <Link href={ROUTES.catalogues} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+          <CustomNavIcon name="collections_bookmark" className={styles.menuIcon} />
+          <span className={styles.menuText}>Lookbooks</span>
         </Link>
         {isOwner && (
           <Link href={ROUTES.collections} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
@@ -174,16 +174,10 @@ export default function SidebarMenu() {
         {renderNavGroup('Workspace', workspaceGroup)}
         {renderNavGroup('Storefront', marketingGroup, (
           currentShop ? (
-            <>
-              <Link href={ROUTES.portfolio} className={styles.menuItem} title={isCollapsed ? 'My Portfolio' : undefined} onClick={() => setMenuOpen(false)}>
-                <CustomNavIcon name="favorite" className={styles.menuIcon} />
-                <span className={styles.menuText}>My Portfolio</span>
-              </Link>
-              <Link href={ROUTES.styles} className={styles.menuItem} title={isCollapsed ? 'Style Gallery' : undefined} onClick={() => setMenuOpen(false)}>
-                <CustomNavIcon name="photo_library" className={styles.menuIcon} />
-                <span className={styles.menuText}>Style Gallery</span>
-              </Link>
-            </>
+            <Link href={ROUTES.portfolio} className={styles.menuItem} title={isCollapsed ? 'My Portfolio' : undefined} onClick={() => setMenuOpen(false)}>
+              <CustomNavIcon name="favorite" className={styles.menuIcon} />
+              <span className={styles.menuText}>My Portfolio</span>
+            </Link>
           ) : null
         ))}
         {renderNavGroup('Finance', financeGroup)}

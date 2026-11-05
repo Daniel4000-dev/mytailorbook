@@ -47,7 +47,7 @@ function getEstimatedYardage(title?: string): string {
 
 export default function CatalogueDetailPage() {
   const { catalogueId } = useParams() as { catalogueId: string };
-  const { currentShop, customers } = useData();
+  const { currentShop, customers, orders } = useData();
   const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
@@ -110,21 +110,26 @@ export default function CatalogueDetailPage() {
     loadData();
   }, [currentShop, catalogueId, isMockAllowed]);
 
-  // Smart case-insensitive matching between album title and customer preferredStyles
+  // Smart matching across preferredStyles, custom style measurements, and past order history
   const matchingCustomers = useMemo(() => {
     if (!catalogue?.title || !customers || customers.length === 0) return [];
     const catTitleLower = catalogue.title.toLowerCase().trim();
     const catWords = catTitleLower.split(/[\s,&/-]+/).filter((w) => w.length > 2);
 
+    const matchesStyle = (styleStr?: string | null) => {
+      if (!styleStr) return false;
+      const sLower = styleStr.toLowerCase().trim();
+      if (catTitleLower.includes(sLower) || sLower.includes(catTitleLower)) return true;
+      return catWords.some((w) => sLower.includes(w));
+    };
+
     return customers.filter((c) => {
-      if (!c.preferredStyles || c.preferredStyles.length === 0) return false;
-      return c.preferredStyles.some((pref) => {
-        const prefLower = pref.toLowerCase().trim();
-        if (catTitleLower.includes(prefLower) || prefLower.includes(catTitleLower)) return true;
-        return catWords.some((w) => prefLower.includes(w));
-      });
+      if (c.preferredStyles?.some(matchesStyle)) return true;
+      if (c.styleMeasurements && Object.keys(c.styleMeasurements).some(matchesStyle)) return true;
+      if (orders?.some((o) => o.customerId === c.id && matchesStyle(o.styleName))) return true;
+      return false;
     });
-  }, [catalogue?.title, customers]);
+  }, [catalogue?.title, customers, orders]);
 
   // Multi-photo batch upload with client-side compression
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -684,6 +689,17 @@ export default function CatalogueDetailPage() {
           )}
 
           <div className={styles.broadcastActions}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                setShowBroadcast(false);
+                router.push(`/customers?style=${encodeURIComponent(catalogue.title)}`);
+              }}
+            >
+              <Symbol name="send" size={16} />
+              <span>Open in Clients Outbound Queue</span>
+            </Button>
             <Button
               variant="primary"
               fullWidth
