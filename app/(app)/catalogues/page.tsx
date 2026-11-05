@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { isMockDataAllowed } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -124,7 +125,7 @@ export default function CataloguesPage() {
         showToast(`Album "${title}" created!`, 'success');
         setIsCreating(false);
         setNewTitle('');
-        router.push(`/catalogues/${id}`);
+        router.push(ROUTES.catalogueDetail({ id, title }));
       } else {
         // Frontend Mock Mode creation
         const newCat: StyleCatalogue = {
@@ -141,7 +142,7 @@ export default function CataloguesPage() {
         showToast(`Album "${title}" created in mock mode!`, 'success');
         setIsCreating(false);
         setNewTitle('');
-        router.push(`/catalogues/${newCat.id}`);
+        router.push(ROUTES.catalogueDetail(newCat));
       }
     } catch (e: any) {
       showToast(e.message || 'Could not create album', 'error');
@@ -379,13 +380,13 @@ export default function CataloguesPage() {
                 <div
                   key={cat.id}
                   className={styles.albumCard}
-                  onClick={() => router.push(`/catalogues/${cat.id}`)}
+                  onClick={() => router.push(ROUTES.catalogueDetail(cat))}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      router.push(`/catalogues/${cat.id}`);
+                      router.push(ROUTES.catalogueDetail(cat));
                     }
                   }}
                 >
@@ -444,13 +445,13 @@ export default function CataloguesPage() {
               <div
                 key={photo.id}
                 className={styles.pinCard}
-                onClick={() => router.push(`/catalogues/${photo.catalogueId}`)}
+                onClick={() => router.push(ROUTES.catalogueDetail({ id: photo.catalogueId, title: photo.albumTitle }))}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    router.push(`/catalogues/${photo.catalogueId}`);
+                    router.push(ROUTES.catalogueDetail({ id: photo.catalogueId, title: photo.albumTitle }));
                   }
                 }}
               >

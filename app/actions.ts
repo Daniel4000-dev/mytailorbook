@@ -6,6 +6,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { createAtelierNotification } from '@/lib/notifications';
+import { toOrderSlug } from '@/lib/slugs';
 
 const STAGE_BADGE_ICON: Record<OrderStatus, string> = {
   Documented: 'assignment',
@@ -513,8 +514,25 @@ export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | '
     return { error: `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.` };
   }
 
-  const { error } = await supabase.from('orders').insert(orderToRow(shopId, order));
+  const { data: insertedOrder, error } = await supabase
+    .from('orders')
+    .insert(orderToRow(shopId, order))
+    .select('id')
+    .single();
   if (error) return { error: error.message };
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  await logAudit({
+    shopId,
+    actorId,
+    actorName: order.assignedToName || 'Tailor',
+    action: 'order.created',
+    entityType: 'order',
+    entityId: insertedOrder?.id ?? null,
+    diff: { customerName: order.customerName, orderDetails: order.orderDetails },
+  });
+
   return getOrders(shopId);
 }
 
@@ -545,6 +563,18 @@ export async function addOrderBatchAction(
     .select('id, customer_id, assigned_to, order_details, due_date');
     
   if (error) return { error: error.message };
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  await logAudit({
+    shopId,
+    actorId,
+    actorName: 'Tailor',
+    action: 'order.created',
+    entityType: 'order',
+    entityId: insertedOrders?.[0]?.id ?? null,
+    diff: { batchSize: garments.length, customerName: garments[0]?.customerName },
+  });
 
   // Phase 2: Reverse-Scheduling Automations
   if (insertedOrders && insertedOrders.length > 0) {
@@ -670,7 +700,7 @@ export async function updateOrderStatusAction(
     title: `${current.customer_name}'s order moved to ${newStatus}`,
     subtitle: `By ${changedByName}`,
     actionLabel: 'View Order',
-    actionHref: `/production/${orderId}`,
+    actionHref: `/production/${toOrderSlug({ id: orderId, customerName: current.customer_name })}`,
     orderId,
   }).catch(() => {});
 
@@ -719,7 +749,7 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
         title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
         subtitle: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
         actionLabel: 'View Receipt',
-        actionHref: `/production/${orderId}`,
+        actionHref: `/production/${toOrderSlug({ id: orderId, customerName: orderRow?.customer_name })}`,
         orderId,
       }).catch(() => {});
     }
@@ -790,6 +820,18 @@ export async function addCustomerAction(
     .select()
     .single();
   if (error) return { error: error.message };
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  await logAudit({
+    shopId,
+    actorId,
+    actorName: 'Tailor',
+    action: 'customer.created',
+    entityType: 'customer',
+    entityId: data?.id ?? null,
+    diff: { fullName: customer.fullName },
+  });
 
   const customers = await getCustomers(orgId);
   return { newCustomer: customerFromRow(data), customers };

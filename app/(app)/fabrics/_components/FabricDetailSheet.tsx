@@ -120,7 +120,7 @@ export default function FabricDetailSheet({
 
   const handleOpenOrder = () => {
     onClose();
-    router.push(ROUTES.productionOrder(order.id));
+    router.push(ROUTES.productionOrder(order));
   };
 
   const handleTransition = async (targetStatus: OrderStatus, successMessage: string) => {

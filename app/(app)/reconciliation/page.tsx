@@ -760,7 +760,7 @@ export default function ShopExpensesPage() {
                                     className={styles.orderBadgeBtn}
                                     onClick={(event) => {
                                       event.stopPropagation();
-                                      router.push(ROUTES.productionOrder(linkedOrder.id));
+                                      router.push(ROUTES.productionOrder(linkedOrder));
                                     }}
                                     title={`View Order #${linkedOrder.id.slice(0, 6).toUpperCase()} in Production`}
                                   >

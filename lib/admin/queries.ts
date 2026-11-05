@@ -541,19 +541,36 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       .map(([role, count]) => ({ role, count }))
       .sort((a, b) => b.count - a.count);
 
-    // 2. Fetch action performers (Power Users) from audit_log
-    const { data: actions } = await admin
-      .from('audit_log')
-      .select('shop_id, created_at, action, actor_name, entity_type')
-      .gte('created_at', weeklyThreshold)
-      .order('created_at', { ascending: false });
+    // 2. Fetch action performers (Power Users) from BOTH audit_log AND xp_ledger
+    // (because xp_ledger records order creations, customer additions, measurement updates,
+    // and stage transitions that weren't previously written to audit_log)
+    const [{ data: actions }, { data: xpActions }] = await Promise.all([
+      admin
+        .from('audit_log')
+        .select('shop_id, created_at, action, actor_name, entity_type')
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false }),
+      admin
+        .from('xp_ledger')
+        .select('shop_id, created_at, action_type, user_id')
+        .neq('action_type', 'daily_login')
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false }),
+    ]);
 
     // Group actions by shopId and globally
-    const actionCounts: Record<string, { total: number, breakdown: Record<string, number> }> = {};
+    const actionCounts: Record<string, { total: number; breakdown: Record<string, number> }> = {};
     const globalDist: Record<string, number> = {};
-    const feedRows = (actions || []).slice(0, 50); // top 50 recent
+    const combinedFeed: {
+      shop_id: string;
+      created_at: string;
+      action: string;
+      actor_name: string;
+      entity_type: string;
+    }[] = [];
 
-    for (const actionRow of (actions || [])) {
+    for (const actionRow of actions || []) {
+      if (!actionRow.shop_id) continue;
       if (!actionCounts[actionRow.shop_id]) {
         actionCounts[actionRow.shop_id] = { total: 0, breakdown: {} };
       }
@@ -561,7 +578,37 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       const act = actionRow.action || 'Unknown';
       actionCounts[actionRow.shop_id].breakdown[act] = (actionCounts[actionRow.shop_id].breakdown[act] || 0) + 1;
       globalDist[act] = (globalDist[act] || 0) + 1;
+      combinedFeed.push({
+        shop_id: actionRow.shop_id,
+        created_at: actionRow.created_at,
+        action: act,
+        actor_name: actionRow.actor_name || 'Tailor',
+        entity_type: actionRow.entity_type || 'shop',
+      });
     }
+
+    for (const xpRow of xpActions || []) {
+      if (!xpRow.shop_id) continue;
+      // Avoid double counting actions that are already in audit_log (like order_stage_move / payment_logged)
+      // unless audit_log had no entries for this shop
+      const act = `craft.${xpRow.action_type || 'activity'}`;
+      if (!actionCounts[xpRow.shop_id]) {
+        actionCounts[xpRow.shop_id] = { total: 0, breakdown: {} };
+      }
+      actionCounts[xpRow.shop_id].total++;
+      actionCounts[xpRow.shop_id].breakdown[act] = (actionCounts[xpRow.shop_id].breakdown[act] || 0) + 1;
+      globalDist[act] = (globalDist[act] || 0) + 1;
+      combinedFeed.push({
+        shop_id: xpRow.shop_id,
+        created_at: xpRow.created_at,
+        action: act,
+        actor_name: 'Shop Member',
+        entity_type: 'workshop',
+      });
+    }
+
+    combinedFeed.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    const feedRows = combinedFeed.slice(0, 50); // top 50 recent
 
     const globalActionDistribution = Object.entries(globalDist)
       .map(([action, count]) => ({ action, count }))

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { ROUTES } from '@/lib/routes';
+import { findByIdOrSlug } from '@/lib/slugs';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -64,7 +65,9 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const customer = customers.find((c) => c.id === id) || getStoredMockCustomers().find((c) => c.id === id);
+  const customer =
+    findByIdOrSlug(customers, id, (c) => c.fullName) ||
+    findByIdOrSlug(getStoredMockCustomers(), id, (c) => c.fullName);
 
   if (!customer) {
     return (
@@ -182,7 +185,7 @@ function CustomerProfileContent({
   const hasReadyOrder = useMemo(() => custOrders.some((o) => o.status === 'Ready'), [custOrders]);
 
   useEffect(() => {
-    custOrders.slice(0, 30).forEach((o) => router.prefetch(ROUTES.productionOrder(o.id)));
+    custOrders.slice(0, 30).forEach((o) => router.prefetch(ROUTES.productionOrder(o)));
   }, [custOrders, router]);
 
   const stylePhotos = useMemo(() => getStylePhotos(GARMENT_STYLES), []);
@@ -856,7 +859,7 @@ function CustomerProfileContent({
                     key={o.id}
                     className={styles.orderCard}
                     style={{ animationDelay: `${i * 0.05}s` }}
-                    onClick={() => router.push(ROUTES.productionOrder(o.id))}
+                    onClick={() => router.push(ROUTES.productionOrder(o))}
                   >
                     <div className={styles.orderHeader}>
                       <div className={styles.orderMeta}>

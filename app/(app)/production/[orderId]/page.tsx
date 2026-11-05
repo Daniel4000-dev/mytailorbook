@@ -26,6 +26,7 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
+import { findByIdOrSlug } from '@/lib/slugs';
 import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
@@ -61,8 +62,9 @@ export default function OrderDetailPage() {
   const isDesktop = useIsDesktop();
   const [activeTab, setActiveTab] = useState<DetailTab>('spec');
 
-  const order = orders.find((o) => o.id === orderId) || null;
+  const order = findByIdOrSlug(orders, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) || null;
   const customer = order ? customers.find((c) => c.id === order.customerId) || null : null;
+  const resolvedOrderId = order?.id || orderId;
 
   const [comments, setComments] = useState<OrderComment[]>([]);
   const [batchSiblings, setBatchSiblings] = useState<Order[]>([]);
@@ -92,7 +94,7 @@ export default function OrderDetailPage() {
   const [exceptionReason, setExceptionReason] = useState('');
   const [savingException, setSavingException] = useState(false);
 
-  const orderExceptions = useMemo(() => exceptions.filter((e) => e.orderId === orderId), [exceptions, orderId]);
+  const orderExceptions = useMemo(() => exceptions.filter((e) => e.orderId === resolvedOrderId), [exceptions, resolvedOrderId]);
   const activeException = useMemo(() => {
     const now = new Date();
     return orderExceptions.find((e) => !e.endDate || new Date(e.endDate) > now);
@@ -102,7 +104,7 @@ export default function OrderDetailPage() {
     if (!exceptionReason.trim()) return;
     setSavingException(true);
     try {
-      await logException('delay', exceptionReason.trim(), orderId);
+      await logException('delay', exceptionReason.trim(), resolvedOrderId);
       showToast('Delay exception logged', 'success');
       setLoggingException(false);
       setExceptionReason('');
@@ -125,7 +127,7 @@ export default function OrderDetailPage() {
 
   const handleDeleteOrder = async () => {
     setDeletingOrder(true);
-    const { error } = await deleteOrder(orderId);
+    const { error } = await deleteOrder(resolvedOrderId);
     if (error) {
       showToast(error, 'error');
       setDeletingOrder(false);
@@ -197,7 +199,7 @@ export default function OrderDetailPage() {
   // Always the canonical production domain, not whatever host this
   // request happened to come in on (e.g. a Vercel preview deployment) —
   // this link goes straight into a WhatsApp message sent to the customer.
-  const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+  const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
   // null/undefined means "never overridden" — inherit the shop's own default.
   const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
   const whatsAppMessage = customer
@@ -681,7 +683,7 @@ export default function OrderDetailPage() {
                 <div className={styles.refRow}>
                   <span className={styles.refBadge}>Order #{orderRef}</span>
                   {customer && (
-                    <Link href={ROUTES.customerDetail(customer.id)} className={styles.viewProfileBtn}>
+                    <Link href={ROUTES.customerDetail(customer)} className={styles.viewProfileBtn}>
                       <span>Client Profile</span>
                       <Symbol name="arrow_forward" size={12} />
                     </Link>
@@ -1031,7 +1033,7 @@ export default function OrderDetailPage() {
                   </div>
                   <div className={styles.batchList}>
                     {batchSiblings.map((sibling) => (
-                      <Link key={sibling.id} href={ROUTES.productionOrder(sibling.id)} className={styles.batchRow}>
+                      <Link key={sibling.id} href={ROUTES.productionOrder(sibling)} className={styles.batchRow}>
                         <span className={styles.batchDetails}>{sibling.orderDetails}</span>
                         <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
                           {sibling.status}
@@ -1582,7 +1584,7 @@ export default function OrderDetailPage() {
           setShowAmendmentPrompt(false);
           await performAdvance('Delivered');
           if (order.customerId) {
-            router.push(ROUTES.customerDetail(order.customerId));
+            router.push(ROUTES.customerDetail(customer || order.customerId));
           }
         }}
         title="Any Fit Amendments?"

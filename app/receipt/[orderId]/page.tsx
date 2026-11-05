@@ -7,6 +7,7 @@ import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { formatCurrency, formatPhone } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import ReceiptActions from './_components/ReceiptActions';
 import styles from './page.module.css';
 
@@ -36,7 +37,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
   return (
     <div className={styles.page}>
       <div className={`${styles.actionsBar} noPrint`}>
-        <Link href={`/track/${order.id}`} className={styles.trackPill}>
+        <Link href={ROUTES.track(order)} className={styles.trackPill}>
           <Symbol name="local_shipping" size={16} />
           <span>Track Garment</span>
         </Link>

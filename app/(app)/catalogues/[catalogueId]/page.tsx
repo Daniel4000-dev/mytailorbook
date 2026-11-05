@@ -15,6 +15,7 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { StyleCatalogue, StyleCataloguePhoto, Customer } from '@/lib/types';
+import { findByIdOrSlug } from '@/lib/slugs';
 import {
   getCataloguesAction,
   addCataloguePhotoAction,
@@ -76,7 +77,7 @@ export default function CatalogueDetailPage() {
       if (currentShop) {
         try {
           const res = await getCataloguesAction(currentShop.id);
-          const found = res.find((c) => c.id === catalogueId);
+          const found = findByIdOrSlug(res, catalogueId, (c) => c.title);
           if (found) {
             setCatalogue(found);
             setEditedTitle(found.title);
@@ -92,7 +93,7 @@ export default function CatalogueDetailPage() {
       // Check stored frontend mock catalogues if allowed
       if (isMockAllowed) {
         const mocks = getStoredMockCatalogues();
-        const mockFound = mocks.find((c) => c.id === catalogueId);
+        const mockFound = findByIdOrSlug(mocks, catalogueId, (c) => c.title);
         if (mockFound) {
           setCatalogue(mockFound);
           setEditedTitle(mockFound.title);

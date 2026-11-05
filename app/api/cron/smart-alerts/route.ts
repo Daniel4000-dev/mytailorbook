@@ -2,9 +2,15 @@ import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createAtelierNotification } from '@/lib/notifications';
+import { toOrderSlug, toCustomerSlug } from '@/lib/slugs';
+
+type BusinessMode = 'bespoke' | 'rtw' | 'hybrid';
+type AlertTrack = 'bespoke' | 'rtw' | 'universal';
 
 type QueuedAlert = {
   alertKey: string;
+  track: AlertTrack;
+  basePriority: number;
   params: Parameters<typeof createAtelierNotification>[0];
   metricKey:
     | 'morningDeliveriesNotified'
@@ -13,8 +19,10 @@ type QueuedAlert = {
     | 'stuckOrdersNotified'
     | 'stagnantOrdersNotified'
     | 'readyBalanceNotified'
+    | 'lowStockNotified'
     | 'overdueDigestsSent'
     | 'birthdaysNotified'
+    | 'featureDiscoveryNotified'
     | 'streakRemindersSent'
     | 'closingDayMessagesSent';
 };
@@ -51,13 +59,13 @@ export async function GET(request: NextRequest) {
   const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
   const tomorrowMMDD = tomorrowStr.substring(5);
 
+  const sevenDaysAgoStr = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
   const urlSegment = request.nextUrl.searchParams.get('segment');
   const urlType = request.nextUrl.searchParams.get('type');
   const urlSlot = request.nextUrl.searchParams.get('slot');
   const utcHour = now.getUTCHours();
 
-  // Determine whether we are running in single-item priority queue mode (default for crons)
-  // or full batch mode (?segment=all or ?type=all for manual testing)
   const isBatchAll = urlSegment === 'all' || urlType === 'all';
 
   let runMorning = false;
@@ -75,10 +83,6 @@ export async function GET(request: NextRequest) {
     runMidday = true;
     runEvening = true;
   } else {
-    // Automatic schedule based on UTC hours:
-    // 05:00 - 10:00 UTC (06:00 - 11:00 WAT) -> Morning
-    // 10:00 - 16:00 UTC (11:00 - 17:00 WAT) -> Midday
-    // 16:00 - 23:59 UTC (17:00 - 00:59 WAT) -> Evening
     if (utcHour >= 5 && utcHour < 10) {
       runMorning = true;
     } else if (utcHour >= 10 && utcHour < 16) {
@@ -88,28 +92,67 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Fetch today's notification records to know what has ALREADY been delivered today
-  // so the next highest-priority alert automatically steps up into the current time slot!
-  const { data: todayNotifications } = await admin
-    .from('atelier_notifications')
-    .select('order_id, recipient_id, shop_id, category, title')
-    .gte('created_at', todayStartStr);
+  // Load all shops and their business_mode so we NEVER tangle Bespoke and RTW alerts!
+  const { data: allShops } = await admin
+    .from('shops')
+    .select('id, name, business_mode, streak_current, streak_last_counted_at')
+    .order('updated_at', { ascending: false })
+    .limit(500);
 
-  const sentAlertKeys = new Set<string>();
-  for (const n of todayNotifications || []) {
-    if (n.order_id) sentAlertKeys.add(`${n.category}:${n.order_id}`);
-    if (n.recipient_id) sentAlertKeys.add(`${n.category}:${n.recipient_id}:${n.title}`);
-    if (n.shop_id) sentAlertKeys.add(`${n.category}:${n.shop_id}:${n.title}`);
+  const shopModeMap = new Map<string, BusinessMode>();
+  for (const s of allShops || []) {
+    const mode = (s.business_mode as BusinessMode) || 'bespoke';
+    shopModeMap.set(s.id, mode);
   }
 
-  // Per-shop priority queues so each shop gets AT MOST 1 notification per cron slot,
-  // and if Priority #1 isn't applicable or was already sent, Priority #2 automatically takes the slot!
+  // Fetch recent notifications (last 7 days) so:
+  // 1) Today's operational notifications are not repeated across slots (allowing Priority #2 to step up!)
+  // 2) Feature discovery nudges are not repeated within 7 days AND max 1 feature nudge is sent per day
+  const { data: recentNotifications } = await admin
+    .from('atelier_notifications')
+    .select('order_id, recipient_id, shop_id, category, title, created_at')
+    .gte('created_at', sevenDaysAgoStr);
+
+  const sentTodayAlertKeys = new Set<string>();
+  const sentWeekFeatureKeys = new Set<string>();
+  const shopsWithFeatureNudgeToday = new Set<string>();
+
+  for (const n of recentNotifications || []) {
+    const isToday = n.created_at >= todayStartStr;
+    if (isToday) {
+      if (n.order_id) sentTodayAlertKeys.add(`${n.category}:${n.order_id}`);
+      if (n.recipient_id) sentTodayAlertKeys.add(`${n.category}:${n.recipient_id}:${n.title}`);
+      if (n.shop_id) sentTodayAlertKeys.add(`${n.category}:${n.shop_id}:${n.title}`);
+      if (n.shop_id && n.title?.startsWith('Feature Tip:')) {
+        shopsWithFeatureNudgeToday.add(n.shop_id);
+      }
+    }
+    if (n.shop_id && n.title?.startsWith('Feature Tip:')) {
+      sentWeekFeatureKeys.add(`${n.shop_id}:${n.title}`);
+    }
+  }
+
+  // For Hybrid shops: compute their usage ratio (Bespoke vs RTW) so their priority queue
+  // dynamically ranks whichever track they use more higher in the queue!
+  const shopBespokeScore = new Map<string, number>();
+  const shopRtwScore = new Map<string, number>();
+
+  // Per-shop priority queues
   const shopQueues = new Map<string, QueuedAlert[]>();
+
+  const canShopReceiveTrack = (shopId: string, track: AlertTrack): boolean => {
+    const mode = shopModeMap.get(shopId) || 'bespoke';
+    if (track === 'universal') return true;
+    if (mode === 'hybrid') return true;
+    return mode === track;
+  };
 
   const enqueueForShop = (shopId: string, alert: QueuedAlert) => {
     if (!shopId) return;
-    if (sentAlertKeys.has(alert.alertKey)) return;
-    // Also support optional single-type filter if manually queried with ?type=...
+    // Strict Business Mode Guard: Bespoke only gets Bespoke + Universal; RTW only gets RTW + Universal; Hybrid gets all
+    if (!canShopReceiveTrack(shopId, alert.track)) return;
+    if (sentTodayAlertKeys.has(alert.alertKey)) return;
+
     if (urlType && !isBatchAll) {
       const typeToMetric: Record<string, QueuedAlert['metricKey']> = {
         deliveries_today: 'morningDeliveriesNotified',
@@ -118,8 +161,10 @@ export async function GET(request: NextRequest) {
         stuck_tomorrow: 'stuckOrdersNotified',
         stagnant_wip: 'stagnantOrdersNotified',
         ready_balance: 'readyBalanceNotified',
+        low_stock: 'lowStockNotified',
         backlog_digest: 'overdueDigestsSent',
         birthdays: 'birthdaysNotified',
+        feature_discovery: 'featureDiscoveryNotified',
         streak_protection: 'streakRemindersSent',
         closing_day: 'closingDayMessagesSent',
       };
@@ -127,66 +172,121 @@ export async function GET(request: NextRequest) {
         return;
       }
     }
+
     const list = shopQueues.get(shopId) ?? [];
-    // Prevent duplicate alertKey within the same run
     if (list.some((item) => item.alertKey === alert.alertKey)) return;
     list.push(alert);
     shopQueues.set(shopId, list);
   };
 
+  // Preload active orders & stock counts to know usage patterns (for Hybrid priority ordering)
+  // and feature adoption (for Feature Discovery Nudges)
+  const [
+    { data: allActiveOrders },
+    { data: allFinishedGoods },
+  ] = await Promise.all([
+    admin
+      .from('orders')
+      .select('id, shop_id, customer_name, status, is_internal_batch, due_date, updated_at, total_bill, deposit_paid, order_details, style_name')
+      .neq('status', 'Delivered'),
+    admin
+      .from('finished_goods')
+      .select('id, shop_id, name, size, quantity, price'),
+  ]);
+
+  for (const o of allActiveOrders || []) {
+    if (o.is_internal_batch || o.customer_name === 'Retail Walk-In') {
+      shopRtwScore.set(o.shop_id, (shopRtwScore.get(o.shop_id) || 0) + 2);
+    } else {
+      shopBespokeScore.set(o.shop_id, (shopBespokeScore.get(o.shop_id) || 0) + 1);
+    }
+  }
+  for (const fg of allFinishedGoods || []) {
+    shopRtwScore.set(fg.shop_id, (shopRtwScore.get(fg.shop_id) || 0) + 1);
+  }
+
   // =========================================================================
   // 1. MORNING PRIORITY QUEUE (9:00 AM, 9:25 AM, 9:50 AM WAT)
-  // Priority 1: Today's Deliveries
-  // Priority 2: Today's Client Appointments / Fittings
-  // Priority 3: Morning Workshop Kickstart & Streak Motivation
   // =========================================================================
   if (runMorning) {
-    // Priority 1: Orders Due Today
-    const { data: todayDueOrders } = await admin
-      .from('orders')
-      .select('id, shop_id, customer_name, status')
-      .neq('status', 'Delivered')
-      .gte('due_date', todayStartStr)
-      .lte('due_date', todayEndStr);
+    // A. Bespoke Due Today & RTW Batch Runs Due Today (separated by track!)
+    const todayOrders = (allActiveOrders || []).filter(
+      (o) => o.due_date && o.due_date >= todayStartStr && o.due_date <= todayEndStr
+    );
 
-    if (todayDueOrders && todayDueOrders.length > 0) {
-      const shopOrdersMap: Record<string, { count: number; names: string[] }> = {};
-      for (const o of todayDueOrders) {
-        if (!shopOrdersMap[o.shop_id]) {
-          shopOrdersMap[o.shop_id] = { count: 0, names: [] };
+    const bespokeDueByShop: Record<string, { count: number; names: string[] }> = {};
+    const rtwDueByShop: Record<string, { count: number; styles: string[] }> = {};
+
+    for (const o of todayOrders) {
+      if (o.is_internal_batch) {
+        if (!rtwDueByShop[o.shop_id]) rtwDueByShop[o.shop_id] = { count: 0, styles: [] };
+        rtwDueByShop[o.shop_id].count++;
+        const label = o.style_name || o.order_details;
+        if (rtwDueByShop[o.shop_id].styles.length < 2 && label) {
+          rtwDueByShop[o.shop_id].styles.push(label);
         }
-        shopOrdersMap[o.shop_id].count++;
-        if (shopOrdersMap[o.shop_id].names.length < 2 && o.customer_name) {
-          shopOrdersMap[o.shop_id].names.push(o.customer_name);
+      } else {
+        if (!bespokeDueByShop[o.shop_id]) bespokeDueByShop[o.shop_id] = { count: 0, names: [] };
+        bespokeDueByShop[o.shop_id].count++;
+        if (bespokeDueByShop[o.shop_id].names.length < 2 && o.customer_name) {
+          bespokeDueByShop[o.shop_id].names.push(o.customer_name);
         }
-      }
-
-      for (const [shopId, data] of Object.entries(shopOrdersMap)) {
-        const title = `Today's Deliveries: ${data.count} order${data.count === 1 ? '' : 's'} due`;
-        const alertKey = `production:${shopId}:${title}`;
-        const nameSnippet = data.names.join(' and ');
-        const extra = data.count > data.names.length ? ` plus ${data.count - data.names.length} more` : '';
-
-        enqueueForShop(shopId, {
-          alertKey,
-          metricKey: 'morningDeliveriesNotified',
-          params: {
-            shopId,
-            category: 'production',
-            tone: 'alert',
-            badgeIcon: 'schedule',
-            badgeBg: '#FEE2E2',
-            badgeColor: '#DC2626',
-            title,
-            subtitle: `${nameSnippet}${extra}. Tap to review today's workshop schedule.`,
-            actionLabel: 'View Schedule',
-            actionHref: '/production',
-          },
-        });
       }
     }
 
-    // Priority 2: Calendar Appointments & Client Fittings for Today
+    for (const [shopId, data] of Object.entries(bespokeDueByShop)) {
+      const title = `Today's Deliveries: ${data.count} client order${data.count === 1 ? '' : 's'} due`;
+      const alertKey = `production:${shopId}:${title}`;
+      const nameSnippet = data.names.join(' and ');
+      const extra = data.count > data.names.length ? ` plus ${data.count - data.names.length} more` : '';
+
+      enqueueForShop(shopId, {
+        alertKey,
+        track: 'bespoke',
+        basePriority: 10,
+        metricKey: 'morningDeliveriesNotified',
+        params: {
+          shopId,
+          category: 'production',
+          tone: 'alert',
+          badgeIcon: 'schedule',
+          badgeBg: '#FEE2E2',
+          badgeColor: '#DC2626',
+          title,
+          subtitle: `${nameSnippet}${extra}. Tap to review today's delivery schedule.`,
+          actionLabel: 'View Schedule',
+          actionHref: '/production',
+        },
+      });
+    }
+
+    for (const [shopId, data] of Object.entries(rtwDueByShop)) {
+      const title = `RTW Batch Target: ${data.count} production run${data.count === 1 ? '' : 's'} due today`;
+      const alertKey = `production:${shopId}:${title}`;
+      const styleSnippet = data.styles.join(' and ');
+      const extra = data.count > data.styles.length ? ` plus ${data.count - data.styles.length} more` : '';
+
+      enqueueForShop(shopId, {
+        alertKey,
+        track: 'rtw',
+        basePriority: 10,
+        metricKey: 'morningDeliveriesNotified',
+        params: {
+          shopId,
+          category: 'production',
+          tone: 'alert',
+          badgeIcon: 'storefront',
+          badgeBg: '#FEE2E2',
+          badgeColor: '#DC2626',
+          title,
+          subtitle: `${styleSnippet}${extra} scheduled to finish today for your stock rack.`,
+          actionLabel: 'Open Production',
+          actionHref: '/production',
+        },
+      });
+    }
+
+    // B. Calendar Appointments & Client Fittings for Today (Bespoke track)
     const { data: todayEvents } = await admin
       .from('calendar_events')
       .select('shop_id')
@@ -199,11 +299,13 @@ export async function GET(request: NextRequest) {
       }
 
       for (const [shopId, count] of Object.entries(shopEventCounts)) {
-        const title = "Today's Schedule";
+        const title = "Today's Fitting & Client Schedule";
         const alertKey = `system:${shopId}:${title}`;
 
         enqueueForShop(shopId, {
           alertKey,
+          track: 'bespoke',
+          basePriority: 20,
           metricKey: 'calendarEventsNotified',
           params: {
             shopId,
@@ -221,34 +323,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Priority 3: Morning Workshop Kickstart & Streak Motivation
-    const { data: activeShops } = await admin
-      .from('shops')
-      .select('id, name, streak_current, streak_last_counted_at')
-      .order('updated_at', { ascending: false })
-      .limit(100);
+    // C. Morning Kickstart & Streak Motivation (Tailored separately for Bespoke vs RTW!)
+    for (const shop of allShops || []) {
+      const mode = shopModeMap.get(shop.id) || 'bespoke';
+      const currentStreak = shop.streak_current || 0;
 
-    for (const shop of activeShops || []) {
-      const { count: wipCount } = await admin
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('shop_id', shop.id)
-        .in('status', ['Documented', 'Cutting', 'Sewing', 'Fitting']);
+      const shopActiveOrders = (allActiveOrders || []).filter((o) => o.shop_id === shop.id);
+      const bespokeWipCount = shopActiveOrders.filter((o) => !o.is_internal_batch).length;
+      const rtwBatchWipCount = shopActiveOrders.filter((o) => o.is_internal_batch).length;
+      const shopStockItems = (allFinishedGoods || []).filter((fg) => fg.shop_id === shop.id && fg.quantity > 0);
+      const totalStockUnits = shopStockItems.reduce((sum, fg) => sum + fg.quantity, 0);
 
-      if ((wipCount || 0) > 0) {
-        const currentStreak = shop.streak_current || 0;
+      // Bespoke Morning Kickstart
+      if ((mode === 'bespoke' || mode === 'hybrid') && bespokeWipCount > 0) {
         let title = 'Good morning! Workshop Kickstart';
-        let subtitle = `You have ${wipCount} active job${wipCount === 1 ? '' : 's'} on the rack. Ready to make today count?`;
+        let subtitle = `You have ${bespokeWipCount} custom client job${bespokeWipCount === 1 ? '' : 's'} on the rack. Ready to make today count?`;
 
         if (currentStreak >= 2) {
           title = `Good morning! Keep your ${currentStreak}-day streak alive`;
-          subtitle = `You have ${wipCount} active garments in progress. Log your first cut or update today to maintain your streak.`;
+          subtitle = `You have ${bespokeWipCount} client garments in progress. Log your first cut or stage update today to maintain your streak.`;
         }
 
         const alertKey = `system:${shop.id}:${title}`;
-
         enqueueForShop(shop.id, {
           alertKey,
+          track: 'bespoke',
+          basePriority: 30,
           metricKey: 'morningKickstartsNotified',
           params: {
             shopId: shop.id,
@@ -264,154 +364,274 @@ export async function GET(request: NextRequest) {
           },
         });
       }
+
+      // RTW Morning Kickstart
+      if ((mode === 'rtw' || mode === 'hybrid') && (rtwBatchWipCount > 0 || totalStockUnits > 0)) {
+        let title = 'Good morning! Ready-to-Wear Storefront';
+        let subtitle =
+          totalStockUnits > 0
+            ? `You have ${totalStockUnits} ready-made piece${totalStockUnits === 1 ? '' : 's'} in stock${rtwBatchWipCount > 0 ? ` and ${rtwBatchWipCount} batch run in production` : ''}. Log today's POS sales or stock updates!`
+            : `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} on the production floor. Keep moving batches to Stock!`;
+
+        if (currentStreak >= 2) {
+          title = `Good morning! Keep your ${currentStreak}-day brand streak alive`;
+          subtitle = `Log a POS sale, restock an item, or advance an RTW batch today to extend your ${currentStreak}-day streak.`;
+        }
+
+        const alertKey = `system:${shop.id}:${title}`;
+        enqueueForShop(shop.id, {
+          alertKey,
+          track: 'rtw',
+          basePriority: 30,
+          metricKey: 'morningKickstartsNotified',
+          params: {
+            shopId: shop.id,
+            category: 'system',
+            tone: 'info',
+            badgeIcon: currentStreak >= 2 ? 'local_fire_department' : 'storefront',
+            badgeBg: currentStreak >= 2 ? '#FFEDD5' : '#E0F2FE',
+            badgeColor: currentStreak >= 2 ? '#EA580C' : '#0284C7',
+            title,
+            subtitle,
+            actionLabel: 'Open Stock / POS',
+            actionHref: '/stock',
+          },
+        });
+      }
     }
   }
 
   // =========================================================================
-  // 2. MIDDAY / AFTERNOON PRIORITY QUEUE (1:00 PM, 1:30 PM, 2:00 PM, 2:30 PM, 3:00 PM WAT)
-  // Priority 1: Stuck orders due tomorrow (still in Documented or Cutting)
-  // Priority 2: WIP Bottlenecks (stagnant >72h in Cutting or Sewing)
-  // Priority 3: Capital on the Rack (Ready orders with unpaid balance >48h)
-  // Priority 4: Weekly Backlog Digest (Mondays)
-  // Priority 5: Customer Birthdays Tomorrow
+  // 2. MIDDAY / AFTERNOON PRIORITY QUEUE (1:00 PM – 3:00 PM WAT)
   // =========================================================================
   if (runMidday) {
-    // Priority 1: Stuck orders due tomorrow
-    const { data: stuckOrders, error: orderError } = await admin
-      .from('orders')
-      .select('id, shop_id, customer_name, status')
-      .in('status', ['Documented', 'Cutting'])
-      .gte('due_date', `${tomorrowStr}T00:00:00Z`)
-      .lt('due_date', `${tomorrowStr}T23:59:59Z`);
+    // Priority 1: Stuck orders due tomorrow (Separated by Bespoke vs RTW Batch)
+    const tomorrowStart = `${tomorrowStr}T00:00:00Z`;
+    const tomorrowEnd = `${tomorrowStr}T23:59:59Z`;
 
-    if (!orderError && stuckOrders) {
-      for (const order of stuckOrders) {
-        const alertKey = `production:${order.id}`;
-        enqueueForShop(order.shop_id, {
-          alertKey,
-          metricKey: 'stuckOrdersNotified',
-          params: {
-            shopId: order.shop_id,
-            category: 'production',
-            tone: 'alert',
-            badgeIcon: 'warning',
-            badgeBg: '#FEE2E2',
-            badgeColor: '#DC2626',
-            title: `${order.customer_name}'s order is due tomorrow`,
-            subtitle: `Still in ${order.status}. Tap to advance order on your board.`,
-            actionLabel: 'View Order',
-            actionHref: `/production/${order.id}`,
-            orderId: order.id,
-          },
-        });
+    const stuckOrders = (allActiveOrders || []).filter(
+      (o) =>
+        (o.status === 'Documented' || o.status === 'Cutting') &&
+        o.due_date &&
+        o.due_date >= tomorrowStart &&
+        o.due_date <= tomorrowEnd
+    );
+
+    for (const order of stuckOrders) {
+      const alertKey = `production:${order.id}`;
+      const isRtw = Boolean(order.is_internal_batch);
+      const slugHref = `/production/${toOrderSlug({
+        id: order.id,
+        customerName: order.customer_name,
+        styleName: order.style_name,
+        orderDetails: order.order_details,
+      })}`;
+
+      enqueueForShop(order.shop_id, {
+        alertKey,
+        track: isRtw ? 'rtw' : 'bespoke',
+        basePriority: 10,
+        metricKey: 'stuckOrdersNotified',
+        params: {
+          shopId: order.shop_id,
+          category: 'production',
+          tone: 'alert',
+          badgeIcon: 'warning',
+          badgeBg: '#FEE2E2',
+          badgeColor: '#DC2626',
+          title: isRtw
+            ? `RTW Batch "${order.style_name || order.order_details}" is due tomorrow`
+            : `${order.customer_name}'s order is due tomorrow`,
+          subtitle: `Still in ${order.status}. Tap to advance on your production board.`,
+          actionLabel: 'View Order',
+          actionHref: slugHref,
+          orderId: order.id,
+        },
+      });
+    }
+
+    // Priority 2A (RTW Track): Low Stock / Sold-Out Sizes Alert for RTW & Hybrid shops
+    const lowStockByShop: Record<string, { lowCount: number; sampleNames: string[] }> = {};
+    for (const fg of allFinishedGoods || []) {
+      if (fg.quantity <= 2) {
+        if (!lowStockByShop[fg.shop_id]) {
+          lowStockByShop[fg.shop_id] = { lowCount: 0, sampleNames: [] };
+        }
+        lowStockByShop[fg.shop_id].lowCount++;
+        const label = `${fg.name} (${fg.size})`;
+        if (lowStockByShop[fg.shop_id].sampleNames.length < 2) {
+          lowStockByShop[fg.shop_id].sampleNames.push(label);
+        }
       }
     }
 
-    // Priority 2: WIP Bottlenecks (>72h in Cutting or Sewing without update)
+    for (const [shopId, info] of Object.entries(lowStockByShop)) {
+      const title = `Restock Alert: ${info.lowCount} RTW size${info.lowCount === 1 ? '' : 's'} running low`;
+      const alertKey = `production:${shopId}:${title}`;
+      const sampleText = info.sampleNames.join(', ');
+      const extra = info.lowCount > info.sampleNames.length ? ` +${info.lowCount - info.sampleNames.length} more` : '';
+
+      enqueueForShop(shopId, {
+        alertKey,
+        track: 'rtw',
+        basePriority: 18,
+        metricKey: 'lowStockNotified',
+        params: {
+          shopId,
+          category: 'production',
+          tone: 'warning',
+          badgeIcon: 'storefront',
+          badgeBg: '#FEF3C7',
+          badgeColor: '#D97706',
+          title,
+          subtitle: `${sampleText}${extra} ${info.lowCount === 1 ? 'has' : 'have'} 2 or fewer units left. Start a batch run or update stock.`,
+          actionLabel: 'Manage Stock',
+          actionHref: '/stock',
+        },
+      });
+    }
+
+    // Priority 2B: WIP Bottlenecks (>72h in Cutting or Sewing without update, separated by track)
     const threeDaysAgo = new Date(now.getTime() - 72 * 60 * 60 * 1000).toISOString();
-    const { data: stagnantOrders } = await admin
-      .from('orders')
-      .select('id, shop_id, customer_name, status, updated_at')
-      .in('status', ['Cutting', 'Sewing'])
-      .lt('updated_at', threeDaysAgo);
+    const stagnantOrders = (allActiveOrders || []).filter(
+      (o) => (o.status === 'Cutting' || o.status === 'Sewing') && o.updated_at && o.updated_at < threeDaysAgo
+    );
 
-    if (stagnantOrders) {
-      for (const order of stagnantOrders) {
-        const alertKey = `production:${order.id}`;
-        enqueueForShop(order.shop_id, {
-          alertKey,
-          metricKey: 'stagnantOrdersNotified',
-          params: {
-            shopId: order.shop_id,
-            category: 'production',
-            tone: 'warning',
-            badgeIcon: 'schedule',
-            badgeBg: '#FEE2E2',
-            badgeColor: '#DC2626',
-            title: `${order.customer_name}'s order delayed in ${order.status}`,
-            subtitle: `In ${order.status} for over 3 days without updates. Inspect workshop progress.`,
-            actionLabel: 'View Order',
-            actionHref: `/production/${order.id}`,
-            orderId: order.id,
-          },
-        });
-      }
+    for (const order of stagnantOrders) {
+      const alertKey = `production:${order.id}`;
+      const isRtw = Boolean(order.is_internal_batch);
+      const slugHref = `/production/${toOrderSlug({
+        id: order.id,
+        customerName: order.customer_name,
+        styleName: order.style_name,
+        orderDetails: order.order_details,
+      })}`;
+
+      enqueueForShop(order.shop_id, {
+        alertKey,
+        track: isRtw ? 'rtw' : 'bespoke',
+        basePriority: 20,
+        metricKey: 'stagnantOrdersNotified',
+        params: {
+          shopId: order.shop_id,
+          category: 'production',
+          tone: 'warning',
+          badgeIcon: 'schedule',
+          badgeBg: '#FEE2E2',
+          badgeColor: '#DC2626',
+          title: isRtw
+            ? `RTW Batch "${order.style_name || order.order_details}" delayed in ${order.status}`
+            : `${order.customer_name}'s order delayed in ${order.status}`,
+          subtitle: `In ${order.status} for over 3 days without updates. Inspect workshop progress.`,
+          actionLabel: 'View Order',
+          actionHref: slugHref,
+          orderId: order.id,
+        },
+      });
     }
 
-    // Priority 3: Capital on the Rack (Ready orders with unpaid balance >48h)
+    // Priority 3 (Bespoke Track): Capital on the Rack (Ready custom orders with unpaid balance >48h)
     const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
-    const { data: readyOrders } = await admin
-      .from('orders')
-      .select('id, shop_id, customer_name, total_bill, deposit_paid, updated_at')
-      .eq('status', 'Ready')
-      .lt('updated_at', twoDaysAgo);
+    const readyOrders = (allActiveOrders || []).filter(
+      (o) => !o.is_internal_batch && o.status === 'Ready' && o.updated_at && o.updated_at < twoDaysAgo
+    );
 
-    if (readyOrders) {
-      for (const order of readyOrders) {
-        const balance = (order.total_bill || 0) - (order.deposit_paid || 0);
-        if (balance <= 0) continue;
+    for (const order of readyOrders) {
+      const balance = (order.total_bill || 0) - (order.deposit_paid || 0);
+      if (balance <= 0) continue;
 
-        const alertKey = `payments:${order.id}`;
-        enqueueForShop(order.shop_id, {
-          alertKey,
-          metricKey: 'readyBalanceNotified',
-          params: {
-            shopId: order.shop_id,
-            category: 'payments',
-            tone: 'warning',
-            badgeIcon: 'account_balance_wallet',
-            badgeBg: '#FEF3C7',
-            badgeColor: '#D97706',
-            title: `${order.customer_name}'s order is ready for pickup`,
-            subtitle: `Balance of ₦${balance.toLocaleString()} pending collection. Notify customer.`,
-            actionLabel: 'View Order',
-            actionHref: `/production/${order.id}`,
-            orderId: order.id,
-          },
-        });
-      }
+      const alertKey = `payments:${order.id}`;
+      const slugHref = `/production/${toOrderSlug({
+        id: order.id,
+        customerName: order.customer_name,
+        styleName: order.style_name,
+        orderDetails: order.order_details,
+      })}`;
+
+      enqueueForShop(order.shop_id, {
+        alertKey,
+        track: 'bespoke',
+        basePriority: 30,
+        metricKey: 'readyBalanceNotified',
+        params: {
+          shopId: order.shop_id,
+          category: 'payments',
+          tone: 'warning',
+          badgeIcon: 'account_balance_wallet',
+          badgeBg: '#FEF3C7',
+          badgeColor: '#D97706',
+          title: `${order.customer_name}'s order is ready for pickup`,
+          subtitle: `Balance of ₦${balance.toLocaleString()} pending collection. Send their digital receipt to collect payment.`,
+          actionLabel: 'View Order',
+          actionHref: slugHref,
+          orderId: order.id,
+        },
+      });
     }
 
-    // Priority 4: Weekly Backlog Digest (Mondays)
+    // Priority 4: Weekly Backlog Digest (Mondays — separated by Bespoke vs RTW)
     const isMonday = now.getDay() === 1;
     if (isMonday) {
-      const { data: overdueOrders } = await admin
-        .from('orders')
-        .select('shop_id')
-        .lt('due_date', todayStartStr)
-        .neq('status', 'Delivered');
+      const overdueOrders = (allActiveOrders || []).filter((o) => o.due_date && o.due_date < todayStartStr);
+      const bespokeOverdue: Record<string, number> = {};
+      const rtwOverdue: Record<string, number> = {};
 
-      if (overdueOrders) {
-        const shopOverdueCounts: Record<string, number> = {};
-        for (const order of overdueOrders) {
-          shopOverdueCounts[order.shop_id] = (shopOverdueCounts[order.shop_id] || 0) + 1;
+      for (const order of overdueOrders) {
+        if (order.is_internal_batch) {
+          rtwOverdue[order.shop_id] = (rtwOverdue[order.shop_id] || 0) + 1;
+        } else {
+          bespokeOverdue[order.shop_id] = (bespokeOverdue[order.shop_id] || 0) + 1;
         }
+      }
 
-        for (const [shopId, count] of Object.entries(shopOverdueCounts)) {
-          const title = 'Weekly Backlog Digest';
-          const alertKey = `system:${shopId}:${title}`;
+      for (const [shopId, count] of Object.entries(bespokeOverdue)) {
+        const title = 'Weekly Client Backlog Digest';
+        const alertKey = `system:${shopId}:${title}`;
+        enqueueForShop(shopId, {
+          alertKey,
+          track: 'bespoke',
+          basePriority: 40,
+          metricKey: 'overdueDigestsSent',
+          params: {
+            shopId,
+            category: 'system',
+            tone: 'warning',
+            badgeIcon: 'warning',
+            badgeBg: '#FEF3C7',
+            badgeColor: '#D97706',
+            title,
+            subtitle: `You have ${count} overdue client order${count === 1 ? '' : 's'} to clear this week. Tap to review.`,
+            actionLabel: 'View Backlog',
+            actionHref: '/production',
+          },
+        });
+      }
 
-          enqueueForShop(shopId, {
-            alertKey,
-            metricKey: 'overdueDigestsSent',
-            params: {
-              shopId,
-              category: 'system',
-              tone: 'warning',
-              badgeIcon: 'warning',
-              badgeBg: '#FEF3C7',
-              badgeColor: '#D97706',
-              title,
-              subtitle: `You have ${count} overdue order${count === 1 ? '' : 's'} to clear this week. Tap to review.`,
-              actionLabel: 'View Backlog',
-              actionHref: '/production',
-            },
-          });
-        }
+      for (const [shopId, count] of Object.entries(rtwOverdue)) {
+        const title = 'Weekly RTW Batch Backlog';
+        const alertKey = `system:${shopId}:${title}`;
+        enqueueForShop(shopId, {
+          alertKey,
+          track: 'rtw',
+          basePriority: 40,
+          metricKey: 'overdueDigestsSent',
+          params: {
+            shopId,
+            category: 'system',
+            tone: 'warning',
+            badgeIcon: 'warning',
+            badgeBg: '#FEF3C7',
+            badgeColor: '#D97706',
+            title,
+            subtitle: `You have ${count} overdue RTW batch run${count === 1 ? '' : 's'} to complete for stock this week.`,
+            actionLabel: 'View Batches',
+            actionHref: '/production',
+          },
+        });
       }
     }
 
-    // Priority 5: Customer Birthdays Tomorrow
+    // Priority 5 (Bespoke Track): Customer Birthdays Tomorrow
     const { data: birthdayCustomers, error: customerError } = await admin
       .from('customers')
       .select('id, shop_id, full_name, birthdate')
@@ -421,9 +641,15 @@ export async function GET(request: NextRequest) {
       for (const customer of birthdayCustomers) {
         const title = `${customer.full_name}'s birthday is tomorrow!`;
         const alertKey = `clients:${customer.shop_id}:${title}`;
+        const customerSlugHref = `/customers/${toCustomerSlug({
+          id: customer.id,
+          fullName: customer.full_name,
+        })}`;
 
         enqueueForShop(customer.shop_id, {
           alertKey,
+          track: 'bespoke',
+          basePriority: 50,
           metricKey: 'birthdaysNotified',
           params: {
             shopId: customer.shop_id,
@@ -436,7 +662,250 @@ export async function GET(request: NextRequest) {
             title,
             subtitle: 'Reach out to wish them well and build lasting client loyalty.',
             actionLabel: 'View Client',
-            actionHref: `/customers/${customer.id}`,
+            actionHref: customerSlugHref,
+          },
+        });
+      }
+    }
+
+    // =========================================================================
+    // Priority 6: FEATURE DISCOVERY NUDGES (Unused Feature Adoption)
+    // Automatically steps into empty afternoon slots when urgent alerts aren't triggered!
+    // Strictly separated by Bespoke vs RTW vs Universal, and max 1 feature nudge per shop per day.
+    // =========================================================================
+    const [
+      { data: customerRows },
+      { data: catalogueRows },
+      { data: inventoryRows },
+      { data: sizeChartRows },
+      { data: outfitRows },
+      { data: expenseRows },
+      { data: calendarAllRows },
+    ] = await Promise.all([
+      admin.from('customers').select('shop_id, measurements, fabrics').neq('full_name', 'Retail Walk-In'),
+      admin.from('style_catalogues').select('shop_id'),
+      admin.from('inventory').select('shop_id'),
+      admin.from('size_charts').select('shop_id'),
+      admin.from('portfolio_outfits').select('shop_id'),
+      admin.from('expenses').select('shop_id').limit(1000),
+      admin.from('calendar_events').select('shop_id, type').limit(1000),
+    ]);
+
+    const shopsWithMeasurements = new Set<string>();
+    const shopsWithFabrics = new Set<string>();
+    const shopsWithCustomers = new Set<string>();
+
+    for (const c of customerRows || []) {
+      shopsWithCustomers.add(c.shop_id);
+      if (c.measurements && Object.keys(c.measurements).length > 0) {
+        shopsWithMeasurements.add(c.shop_id);
+      }
+      if (Array.isArray(c.fabrics) && c.fabrics.length > 0) {
+        shopsWithFabrics.add(c.shop_id);
+      }
+    }
+    for (const inv of inventoryRows || []) {
+      shopsWithFabrics.add(inv.shop_id);
+    }
+
+    const shopsWithCatalogues = new Set((catalogueRows || []).map((r) => r.shop_id));
+    const shopsWithSizeCharts = new Set((sizeChartRows || []).map((r) => r.shop_id));
+    const shopsWithPortfolio = new Set((outfitRows || []).map((r) => r.shop_id));
+    const shopsWithExpenses = new Set((expenseRows || []).map((r) => r.shop_id));
+    const shopsWithCalendarFittings = new Set(
+      (calendarAllRows || [])
+        .filter((r) => r.type === 'fitting' || r.type === 'meeting' || r.type === 'task')
+        .map((r) => r.shop_id)
+    );
+    const shopsWithFinishedGoods = new Set((allFinishedGoods || []).map((r) => r.shop_id));
+    const shopsWithRtwBatches = new Set(
+      (allActiveOrders || []).filter((o) => o.is_internal_batch).map((o) => o.shop_id)
+    );
+
+    for (const shop of allShops || []) {
+      if (shopsWithFeatureNudgeToday.has(shop.id)) continue;
+
+      const candidateFeatures: {
+        track: AlertTrack;
+        title: string;
+        subtitle: string;
+        badgeIcon: string;
+        actionLabel: string;
+        actionHref: string;
+      }[] = [];
+
+      // --- BESPOKE FEATURE NUDGES ---
+      if (!shopsWithMeasurements.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'bespoke',
+          title: 'Feature Tip: 3D Client Body Model',
+          subtitle:
+            'Log a client’s measurements to unlock their live 3D body shape so you can visualize posture and prevent costly fit alterations.',
+          badgeIcon: 'straighten',
+          actionLabel: 'Try 3D Measurements',
+          actionHref: '/customers',
+        });
+      }
+
+      if (!shopsWithFabrics.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'bespoke',
+          title: 'Feature Tip: Client Fabric Vault',
+          subtitle:
+            'Snap and log client fabric drop-offs with yardage and notes so no material ever gets mixed up on your cutting table.',
+          badgeIcon: 'palette',
+          actionLabel: 'Open Fabric Vault',
+          actionHref: '/fabrics',
+        });
+      }
+
+      if (!shopsWithCalendarFittings.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'bespoke',
+          title: 'Feature Tip: Fitting & Delivery Calendar',
+          subtitle:
+            'Schedule client fittings, fabric pick-ups, and delivery dates on your Workshop Calendar so you never double-book a busy week.',
+          badgeIcon: 'calendar_month',
+          actionLabel: 'Open Calendar',
+          actionHref: '/calendar',
+        });
+      }
+
+      candidateFeatures.push({
+        track: 'bespoke',
+        title: 'Feature Tip: Instant WhatsApp Price Quotes',
+        subtitle:
+          'Build a clean, itemized price breakdown for fabric, lining, and embroidery—and send it on WhatsApp so clients pay deposits faster.',
+        badgeIcon: 'receipt_long',
+        actionLabel: 'Create a Quote',
+        actionHref: '/quotes',
+      });
+
+      // --- RTW FEATURE NUDGES ---
+      if (!shopsWithFinishedGoods.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'rtw',
+          title: 'Feature Tip: Ready-to-Wear Stock & POS',
+          subtitle:
+            'List your ready-made pieces by size and price to record instant walk-in POS sales and track exactly which sizes sell fastest.',
+          badgeIcon: 'storefront',
+          actionLabel: 'Set Up Stock & POS',
+          actionHref: '/stock',
+        });
+      }
+
+      if (!shopsWithSizeCharts.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'rtw',
+          title: 'Feature Tip: Custom Brand Size Charts',
+          subtitle:
+            'Standardize your S, M, L, XL, and XXL body specs once so your production team cuts every ready-to-wear batch to exact brand sizing.',
+          badgeIcon: 'straighten',
+          actionLabel: 'Create Size Chart',
+          actionHref: '/settings/size-charts',
+        });
+      }
+
+      if (!shopsWithRtwBatches.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'rtw',
+          title: 'Feature Tip: Multi-Size Batch Production',
+          subtitle:
+            'Produce multiple sizes of a single style in one batch run—when completed, every piece flows straight into your Stock & POS automatically.',
+          badgeIcon: 'layers',
+          actionLabel: 'Start Batch Run',
+          actionHref: '/orders/new',
+        });
+      }
+
+      // --- UNIVERSAL FEATURE NUDGES (Helpful to Bespoke, RTW, and Hybrid) ---
+      if (!shopsWithCatalogues.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'universal',
+          title: 'Feature Tip: Shareable Digital Lookbooks',
+          subtitle:
+            'Stop scrolling through messy phone galleries when buyers ask what styles you have. Create a clean lookbook link to share on WhatsApp in 60 seconds.',
+          badgeIcon: 'collections_bookmark',
+          actionLabel: 'Create Lookbook',
+          actionHref: '/catalogues',
+        });
+      }
+
+      if (!shopsWithPortfolio.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'universal',
+          title: 'Feature Tip: Public Studio Storefront',
+          subtitle:
+            'Publish your finest finished pieces to your Studio link and put it on your Instagram and WhatsApp bio to win high-paying clients 24/7.',
+          badgeIcon: 'auto_awesome',
+          actionLabel: 'Set Up Studio',
+          actionHref: '/settings/portfolio',
+        });
+      }
+
+      if (!shopsWithExpenses.has(shop.id)) {
+        candidateFeatures.push({
+          track: 'universal',
+          title: 'Feature Tip: Shop Expenses & Profit Tracker',
+          subtitle:
+            'Log daily shop expenses like thread, lining, fuel, and artisan payouts alongside order revenue so you see your true take-home profit.',
+          badgeIcon: 'account_balance',
+          actionLabel: 'Log Shop Expense',
+          actionHref: '/reconciliation',
+        });
+      }
+
+      candidateFeatures.push({
+        track: 'universal',
+        title: 'Feature Tip: Workshop Notes & Market List',
+        subtitle:
+          'Keep your haberdashery market list, machinist instructions, and client callbacks organized in one checklist before heading to the market.',
+        badgeIcon: 'notes',
+        actionLabel: 'Open Workshop Notes',
+        actionHref: '/notes',
+      });
+
+      // Filter candidates to those matching the shop's business mode & not sent in the last 7 days
+      const eligibleFeatures = candidateFeatures.filter(
+        (f) =>
+          canShopReceiveTrack(shop.id, f.track) &&
+          !sentWeekFeatureKeys.has(`${shop.id}:${f.title}`)
+      );
+
+      // Sort for Hybrid shops based on their usage before picking the top 1 feature nudge for today
+      const mode = shopModeMap.get(shop.id) || 'bespoke';
+      if (mode === 'hybrid') {
+        const bScore = shopBespokeScore.get(shop.id) || 0;
+        const rScore = shopRtwScore.get(shop.id) || 0;
+        eligibleFeatures.sort((a, b) => {
+          const weight = (t: AlertTrack) => {
+            if (rScore > bScore) return t === 'rtw' ? 0 : t === 'bespoke' ? 1 : 2;
+            return t === 'bespoke' ? 0 : t === 'rtw' ? 1 : 2;
+          };
+          return weight(a.track) - weight(b.track);
+        });
+      }
+
+      // Enqueue at most 1 feature discovery nudge per shop per day so we never spam feature tips
+      const chosenFeature = eligibleFeatures[0];
+      if (chosenFeature) {
+        const alertKey = `system:${shop.id}:${chosenFeature.title}`;
+        enqueueForShop(shop.id, {
+          alertKey,
+          track: chosenFeature.track,
+          basePriority: 60,
+          metricKey: 'featureDiscoveryNotified',
+          params: {
+            shopId: shop.id,
+            category: 'system',
+            tone: 'info',
+            badgeIcon: chosenFeature.badgeIcon,
+            badgeBg: '#EEF2FF',
+            badgeColor: '#4F46E5',
+            title: chosenFeature.title,
+            subtitle: chosenFeature.subtitle,
+            actionLabel: chosenFeature.actionLabel,
+            actionHref: chosenFeature.actionHref,
           },
         });
       }
@@ -445,46 +914,49 @@ export async function GET(request: NextRequest) {
 
   // =========================================================================
   // 3. EVENING PRIORITY QUEUE (8:00 PM, 8:30 PM WAT)
-  // Priority 1: Streak Protection Nudge (if streak > 0 and no activity logged today)
-  // Priority 2: Closing-Day "Well Done" Message from MyTailorBook Team (if ≥2 craft actions today)
+  // Priority 1: Streak Protection Nudge
+  // Priority 2: Closing-Day "Well Done" Message from MyTailorBook Team
   // =========================================================================
   if (runEvening) {
-    // Priority 1: Streak Protection Nudge
-    const { data: atRiskShops, error: streakError } = await admin
-      .from('shops')
-      .select('id, name, streak_current, streak_last_counted_at')
-      .gt('streak_current', 0);
+    // Priority 1: Streak Protection Nudge (tailored copy for Bespoke vs RTW!)
+    for (const shop of allShops || []) {
+      if ((shop.streak_current || 0) <= 0) continue;
 
-    if (streakError) {
-      console.error('Error fetching streak shops:', streakError);
-    } else if (atRiskShops) {
-      for (const shop of atRiskShops) {
-        const lastCountedStr = shop.streak_last_counted_at
-          ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
-          : null;
+      const lastCountedStr = shop.streak_last_counted_at
+        ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
+        : null;
 
-        if (lastCountedStr === todayStr) continue;
+      if (lastCountedStr === todayStr) continue;
 
-        const title = 'Protect your workshop streak!';
-        const alertKey = `system:${shop.id}:${title}`;
+      const mode = shopModeMap.get(shop.id) || 'bespoke';
+      const title = 'Protect your workshop streak!';
+      const subtitle =
+        mode === 'rtw'
+          ? `You have an active ${shop.streak_current}-day streak at risk. Log a POS sale, stock update, or batch progress before midnight.`
+          : mode === 'hybrid'
+          ? `You have an active ${shop.streak_current}-day streak at risk. Log a cut, POS sale, payment, or measurement before midnight.`
+          : `You have an active ${shop.streak_current}-day streak at risk. Log a cut, payment, or measurement before midnight.`;
 
-        enqueueForShop(shop.id, {
-          alertKey,
-          metricKey: 'streakRemindersSent',
-          params: {
-            shopId: shop.id,
-            category: 'system',
-            tone: 'info',
-            badgeIcon: 'local_fire_department',
-            badgeBg: '#FFEDD5',
-            badgeColor: '#EA580C',
-            title,
-            subtitle: `You have an active ${shop.streak_current}-day streak at risk. Log a cut, payment, or measurement before midnight.`,
-            actionLabel: 'Open Dashboard',
-            actionHref: '/dashboard',
-          },
-        });
-      }
+      const alertKey = `system:${shop.id}:${title}`;
+
+      enqueueForShop(shop.id, {
+        alertKey,
+        track: 'universal',
+        basePriority: 10,
+        metricKey: 'streakRemindersSent',
+        params: {
+          shopId: shop.id,
+          category: 'system',
+          tone: 'info',
+          badgeIcon: 'local_fire_department',
+          badgeBg: '#FFEDD5',
+          badgeColor: '#EA580C',
+          title,
+          subtitle,
+          actionLabel: 'Open Dashboard',
+          actionHref: '/dashboard',
+        },
+      });
     }
 
     // Priority 2: Closing-Day "Well Done" Message for active shops today
@@ -525,6 +997,8 @@ export async function GET(request: NextRequest) {
 
         enqueueForShop(shopId, {
           alertKey,
+          track: 'universal',
+          basePriority: 20,
           metricKey: 'closingDayMessagesSent',
           params: {
             shopId,
@@ -544,8 +1018,8 @@ export async function GET(request: NextRequest) {
   }
 
   // =========================================================================
-  // 4. DISPATCHER: Pop ONLY the #1 highest-priority unsent alert per shop
-  // (Unless ?segment=all or ?type=all was passed for full batch testing)
+  // 4. DISPATCHER: Sort each shop's queue by priority (with Hybrid usage-based tie-breaking)
+  // and pop ONLY the #1 highest-priority unsent alert per shop per time slot!
   // =========================================================================
   const metrics: Record<QueuedAlert['metricKey'], number> = {
     morningDeliveriesNotified: 0,
@@ -554,22 +1028,44 @@ export async function GET(request: NextRequest) {
     stuckOrdersNotified: 0,
     stagnantOrdersNotified: 0,
     readyBalanceNotified: 0,
+    lowStockNotified: 0,
     overdueDigestsSent: 0,
     birthdaysNotified: 0,
+    featureDiscoveryNotified: 0,
     streakRemindersSent: 0,
     closingDayMessagesSent: 0,
   };
 
-  for (const [, queue] of shopQueues.entries()) {
+  for (const [shopId, queue] of shopQueues.entries()) {
     if (queue.length === 0) continue;
 
-    // In standard staggered cron mode, deliver ONLY the top-priority item for this shop in this slot.
-    // The next slot 25-30 mins later will automatically promote the next item in line!
+    const mode = shopModeMap.get(shopId) || 'bespoke';
+    const bScore = shopBespokeScore.get(shopId) || 0;
+    const rScore = shopRtwScore.get(shopId) || 0;
+    const prefersRtw = mode === 'hybrid' && rScore > bScore;
+
+    queue.sort((a, b) => {
+      if (a.basePriority !== b.basePriority) {
+        return a.basePriority - b.basePriority;
+      }
+      // For Hybrid shops: break priority ties using their dominant usage track!
+      if (mode === 'hybrid' && a.track !== b.track) {
+        if (prefersRtw) {
+          if (a.track === 'rtw') return -1;
+          if (b.track === 'rtw') return 1;
+        } else {
+          if (a.track === 'bespoke') return -1;
+          if (b.track === 'bespoke') return 1;
+        }
+      }
+      return 0;
+    });
+
     const itemsToSend = isBatchAll ? queue : [queue[0]];
 
     for (const item of itemsToSend) {
       await createAtelierNotification(item.params);
-      sentAlertKeys.add(item.alertKey);
+      sentTodayAlertKeys.add(item.alertKey);
       metrics[item.metricKey]++;
     }
   }

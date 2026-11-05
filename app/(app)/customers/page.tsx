@@ -165,7 +165,7 @@ export default function CustomersPage() {
   // Pre-fetch customer profile routes
   useEffect(() => {
     if (!isLoaded) return;
-    customers.slice(0, 60).forEach((c) => router.prefetch(ROUTES.customerDetail(c.id)));
+    customers.slice(0, 60).forEach((c) => router.prefetch(ROUTES.customerDetail(c)));
   }, [isLoaded, customers, router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -816,7 +816,7 @@ export default function CustomersPage() {
                 <div
                   key={c.id}
                   className={styles.customerRow}
-                  onClick={() => router.push(ROUTES.customerDetail(c.id))}
+                  onClick={() => router.push(ROUTES.customerDetail(c))}
                 >
                   <div className={styles.avatarWrap}>
                     <Avatar name={c.fullName} size="lg" shape="circle" className={styles.circleAvatar} />
@@ -894,7 +894,7 @@ export default function CustomersPage() {
         onCustomerCreated={(newCust) => {
           setIsAddSheetOpen(false);
           setSearch('');
-          router.push(ROUTES.customerDetail(newCust.id));
+          router.push(ROUTES.customerDetail(newCust));
         }}
       />
     </PageLayout>

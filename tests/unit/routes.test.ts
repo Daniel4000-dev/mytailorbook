@@ -94,13 +94,44 @@ describe('SEARCH_DISALLOW (robots.txt)', () => {
 });
 
 describe('route builders produce the expected path shape', () => {
-  it('builds dynamic detail routes', () => {
+  it('builds dynamic detail routes with both raw IDs and clean human-readable slugs', () => {
     expect(ROUTES.customerDetail('abc123')).toBe('/customers/abc123');
     expect(ROUTES.productionOrder('order-9')).toBe('/production/order-9');
     expect(ROUTES.track('order-9')).toBe('/track/order-9');
     expect(ROUTES.receipt('order-9')).toBe('/receipt/order-9');
     expect(ROUTES.studio('adire-atelier')).toBe('/studio/adire-atelier');
     expect(ROUTES.blogPost('some-post')).toBe('/blog/some-post');
+
+    // Clean slug generation from entity objects
+    expect(
+      ROUTES.customerDetail({
+        id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+        fullName: 'Chief Adebayo Okafor',
+      })
+    ).toBe('/customers/chief-adebayo-okafor-9b1deb');
+
+    expect(
+      ROUTES.productionOrder({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        customerName: 'Chief Adebayo',
+        styleName: 'Senator Suit',
+      })
+    ).toBe('/production/chief-adebayo-senator-suit-550e84');
+
+    expect(
+      ROUTES.track({
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        customerName: 'Chief Adebayo',
+        styleName: 'Senator Suit',
+      })
+    ).toBe('/track/chief-adebayo-senator-suit-550e8400e29b41d4a716446655440000');
+
+    expect(
+      ROUTES.catalogueDetail({
+        id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+        title: 'Eid 2026 Collection',
+      })
+    ).toBe('/catalogues/eid-2026-collection-7c9e66');
   });
 
   it('URL-encodes style names with spaces/special characters', () => {

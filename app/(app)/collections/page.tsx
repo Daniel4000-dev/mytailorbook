@@ -158,7 +158,7 @@ export default function CollectionsPage() {
   const buildReminderMessage = (debtor: DebtorOrder) => {
     const shopName = currentShop?.name || 'our atelier';
     const amount = formatCurrency(debtor.balance, currency);
-    const receiptUrl = `https://mytailorbook.com/receipt/${debtor.order.id}`;
+    const receiptUrl = `https://mytailorbook.com${ROUTES.receipt(debtor.order)}`;
 
     let stageContext = 'currently in production';
     if (debtor.order.status === 'Delivered') {
@@ -232,7 +232,7 @@ export default function CollectionsPage() {
           ? {
               label: 'WhatsApp Receipt',
               onClick: () => {
-                const receiptUrl = `https://mytailorbook.com/receipt/${debtorSnapshot.order.id}`;
+                const receiptUrl = `https://mytailorbook.com${ROUTES.receipt(debtorSnapshot.order)}`;
                 const receiptMsg = `Hello ${debtorSnapshot.customer.fullName},\n\nWe have received your payment of ${formatCurrency(numAmount, currency)} for "${debtorSnapshot.order.orderDetails}". Thank you!\n\nView updated digital receipt:\n${receiptUrl}`;
                 window.open(getWhatsAppLink(debtorSnapshot.customer.whatsappNumber, receiptMsg), '_blank');
               },
@@ -410,7 +410,7 @@ export default function CollectionsPage() {
                       <div className={styles.customerMeta}>
                         <div className={styles.nameRow}>
                           <Link
-                            href={ROUTES.customerDetail(debtor.customer.id)}
+                            href={ROUTES.customerDetail(debtor.customer)}
                             className={styles.customerNameLink}
                           >
                             {debtor.customer.fullName}

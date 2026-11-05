@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { isOverdue, getBalanceOwed } from '@/lib/types';
 import type { Order, Customer, ShopException } from '@/lib/types';
 import { STYLE_MEASUREMENTS } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
 
 export interface OpenLoop {
   id: string;
@@ -84,7 +85,7 @@ export function useOpenLoops(orders: Order[], customers: Customer[], exceptions:
           ? `${customer?.fullName || 'A customer'} is missing measurements`
           : `${missingCount} active customers are missing measurements`,
         actionText: 'Update Profile',
-        href: `/customers/${firstCustomerOrder.customerId}`,
+        href: ROUTES.customerDetail(customer || firstCustomerOrder.customerId || ''),
         urgency: 'high',
       });
     }

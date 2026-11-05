@@ -7,6 +7,7 @@ import { createAtelierNotification } from '@/lib/notifications';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
 import { isOrgPremiumByOrgId } from '@/lib/subscription';
+import { extractCanonicalId, toOrderSlug } from '@/lib/slugs';
 
 // A real customer refreshing their own tracking page a few times is
 // normal; a scraper hitting many different order/shop IDs from one IP in
@@ -23,7 +24,7 @@ const WRITE_LIMIT = { limit: 5, windowSeconds: 3600 };
  * only ever used for an exact single-order lookup by ID — never a list or
  * search — which keeps the exposure limited to "if you have the link."
  */
-export async function getPublicOrderView(orderId: string): Promise<{
+export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
   order: Order;
   customer: Customer | null;
   shop: Shop | null;
@@ -33,14 +34,38 @@ export async function getPublicOrderView(orderId: string): Promise<{
   if (!allowed) return null;
 
   const admin = createAdminClient();
+  const orderId = extractCanonicalId(orderIdOrSlug);
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
-  const { data: rows, error } = isUuid
-    ? await admin.from('orders').select('*').or(`id.eq.${orderId},batch_id.eq.${orderId}`).order('created_at', { ascending: true }).limit(1)
-    : await admin.from('orders').select('*').eq('id', orderId).limit(1);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let row: any = null;
+  if (isUuid) {
+    const { data: rows } = await admin
+      .from('orders')
+      .select('*')
+      .or(`id.eq.${orderId},batch_id.eq.${orderId}`)
+      .order('created_at', { ascending: true })
+      .limit(1);
+    row = rows?.[0];
+  } else {
+    // Try stored `slug` column first (from migration 0067), fallback to id match
+    const { data: slugRows } = await admin
+      .from('orders')
+      .select('*')
+      .eq('slug', orderIdOrSlug)
+      .limit(1);
+    row = slugRows?.[0];
+    if (!row) {
+      const { data: idRows } = await admin
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .limit(1);
+      row = idRows?.[0];
+    }
+  }
 
-  const row = rows?.[0];
-  if (error || !row) return null;
+  if (!row) return null;
 
   const order: Order = {
     id: row.id,
@@ -111,7 +136,8 @@ export async function getPublicOrderView(orderId: string): Promise<{
 
 /** Comments a customer has left on their order, for display on the public
  *  tracking page (read-back of what they've written so far). */
-export async function getPublicOrderComments(orderId: string): Promise<OrderComment[]> {
+export async function getPublicOrderComments(orderIdOrSlug: string): Promise<OrderComment[]> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('order_comments')
@@ -135,7 +161,8 @@ export async function getPublicOrderComments(orderId: string): Promise<OrderComm
  * One-directional (the tailor reads it in the Order Detail Sheet; any
  * reply happens over WhatsApp, same as everywhere else in this app).
  */
-export async function submitOrderComment(orderId: string, message: string): Promise<{ success: boolean; error?: string }> {
+export async function submitOrderComment(orderIdOrSlug: string, message: string): Promise<{ success: boolean; error?: string }> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const trimmed = message.trim();
   if (!trimmed) return { success: false, error: 'Comment cannot be empty.' };
   if (trimmed.length > 1000) return { success: false, error: 'Comment is too long.' };
@@ -173,7 +200,7 @@ export async function submitOrderComment(orderId: string, message: string): Prom
     title: `${order.customer_name} left a comment`,
     subtitle: trimmed.length > 80 ? trimmed.slice(0, 80) + '...' : trimmed,
     actionLabel: 'Reply',
-    actionHref: `/production/${orderId}`,
+    actionHref: `/production/${toOrderSlug({ id: order.id, customerName: order.customer_name })}`,
     orderId,
   }).catch(() => {});
 
@@ -186,7 +213,8 @@ export async function submitOrderComment(orderId: string, message: string): Prom
  * here server-side (client-side disabling is just for immediate UX
  * feedback, not the real guard) rather than trusting the caller.
  */
-export async function submitOrderReminder(orderId: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
+export async function submitOrderReminder(orderIdOrSlug: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const ip = await getRequestIp();
   const { allowed } = await checkRateLimit(`reminder:${ip}`, WRITE_LIMIT);
   if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
@@ -215,7 +243,7 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
     title: `${order.customer_name} sent a reminder about their order`,
     subtitle: `Status: ${order.status}`,
     actionLabel: 'Send WhatsApp',
-    actionHref: `/production/${orderId}`,
+    actionHref: `/production/${toOrderSlug({ id: order.id, customerName: order.customer_name })}`,
     orderId,
   }).catch(() => {});
 
@@ -225,7 +253,8 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
 /** Whether this order already has a rating — the tracking page uses this to
  *  decide between showing the "leave a review" prompt or a thank-you state,
  *  since the table's unique constraint means only one is ever possible. */
-export async function hasOrderRatingAction(orderId: string): Promise<boolean> {
+export async function hasOrderRatingAction(orderIdOrSlug: string): Promise<boolean> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
   const { count } = await admin
     .from('order_ratings')
@@ -242,10 +271,11 @@ export async function hasOrderRatingAction(orderId: string): Promise<boolean> {
  * in Settings → Manage Portfolio. Never shown publicly until approved.
  */
 export async function submitOrderRatingAction(
-  orderId: string,
+  orderIdOrSlug: string,
   rating: number,
   comment?: string
 ): Promise<{ success: boolean; error?: string }> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return { success: false, error: 'Rating must be between 1 and 5 stars.' };
   }
@@ -306,9 +336,10 @@ export async function submitOrderRatingAction(
  *  any one tracking link can reach all of their items — without this, batch
  *  grouping exists only on the tailor's side and a 3-garment drop-off means
  *  juggling 3 unrelated links. Minimal fields only: no financials exposed. */
-export async function getPublicBatchSiblings(orderId: string): Promise<
+export async function getPublicBatchSiblings(orderIdOrSlug: string): Promise<
   { id: string; orderDetails: string; status: Order['status'] }[]
 > {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
 
   const { data: order } = await admin.from('orders').select('batch_id').eq('id', orderId).single();
@@ -583,7 +614,8 @@ function mapEventRow(row: any): CalendarEvent {
   };
 }
 
-export const getPublicOrderEvents = cache(async (orderId: string): Promise<CalendarEvent[]> => {
+export const getPublicOrderEvents = cache(async (orderIdOrSlug: string): Promise<CalendarEvent[]> => {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const supabase = createAdminClient();
   
   const { data, error } = await supabase

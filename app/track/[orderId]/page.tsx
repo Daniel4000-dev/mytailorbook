@@ -222,7 +222,11 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             <h3 className={styles.sectionTitle}>Also From Your Visit</h3>
             <div className={styles.siblingList}>
               {batchSiblings.map((sibling) => (
-                <Link key={sibling.id} href={ROUTES.track(sibling.id)} className={styles.siblingRow}>
+                <Link
+                  key={sibling.id}
+                  href={ROUTES.track({ id: sibling.id, customerName: order.customerName, orderDetails: sibling.orderDetails })}
+                  className={styles.siblingRow}
+                >
                   <span className={styles.siblingDetails}>
                     {sibling.orderDetails.length > 60 ? sibling.orderDetails.slice(0, 60) + '…' : sibling.orderDetails}
                   </span>
@@ -237,7 +241,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         <section className={styles.card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
             <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Order Summary</h3>
-            <Link href={ROUTES.receipt(order.id)} className={styles.receiptLink}>
+            <Link href={ROUTES.receipt(order)} className={styles.receiptLink}>
               <Symbol name="receipt_long" size={15} />
               <span>Digital Receipt</span>
             </Link>

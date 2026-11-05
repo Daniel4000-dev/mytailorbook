@@ -80,7 +80,8 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     const staffId = searchParams.get('staff');
 
     if (orderId) {
-      router.replace(ROUTES.productionOrder(orderId));
+      const targetOrder = orders.find((o) => o.id === orderId);
+      router.replace(ROUTES.productionOrder(targetOrder || orderId));
       return;
     }
     if (staffId && isOwnerLikeRole(userRole)) {
@@ -101,7 +102,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   useEffect(() => {
     if (!isLoaded) return;
     const active = orders.filter((o) => o.status !== 'Delivered').slice(0, 40);
-    active.forEach((o) => router.prefetch(`/production/${o.id}`));
+    active.forEach((o) => router.prefetch(ROUTES.productionOrder(o)));
   }, [isLoaded, orders, router]);
 
   const performDelivery = useCallback(async (orderId: string) => {
@@ -111,7 +112,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     updateOrderStatus(orderId, 'Delivered', user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
-      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
         customerName: customer.fullName,
@@ -189,7 +190,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
-      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
         customerName: customer.fullName,
@@ -256,7 +257,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
-      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
         customerName: customer.fullName,
@@ -343,7 +344,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       showToast('No customer phone number available', 'error');
       return;
     }
-    const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order.id)}`;
+    const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
     const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
     const msg = getOrderProgressMessage({
       customerName: customer.fullName,
@@ -515,7 +516,13 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     setStageVisibleCounts((prev) => ({ ...prev, [status]: (prev[status] ?? STAGE_PAGE_SIZE) + STAGE_PAGE_SIZE }));
   }, []);
 
-  const handleOpen = useCallback((orderId: string) => router.push(ROUTES.productionOrder(orderId)), [router]);
+  const handleOpen = useCallback(
+    (orderId: string) => {
+      const targetOrder = orders.find((o) => o.id === orderId);
+      router.push(ROUTES.productionOrder(targetOrder || orderId));
+    },
+    [orders, router]
+  );
 
   if (!isLoaded) {
     return <ProductionBoardSkeleton />;
@@ -905,7 +912,8 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           setAmendmentOrder(null);
           await performDelivery(orderToDeliver.id);
           if (orderToDeliver.customerId) {
-            router.push(ROUTES.customerDetail(orderToDeliver.customerId));
+            const targetCust = customers.find((c) => c.id === orderToDeliver.customerId);
+            router.push(ROUTES.customerDetail(targetCust || orderToDeliver.customerId));
           }
         }}
         title="Any Fit Amendments?"

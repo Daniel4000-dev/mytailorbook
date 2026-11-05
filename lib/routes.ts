@@ -64,6 +64,9 @@
  * the APP_PREFIXES redirect (auth pages are the example of that).
  */
 
+import { toCustomerSlug, toOrderSlug, toCatalogueSlug } from './slugs';
+import type { Customer, Order, StyleCatalogue } from './types';
+
 export const ROUTES = {
   // ---- Marketing / public (bare domain) ----
   home: '/',
@@ -92,7 +95,8 @@ export const ROUTES = {
   dashboard: '/dashboard',
   customers: '/customers',
   customerNew: '/customers',
-  customerDetail: (id: string) => `/customers/${id}`,
+  customerDetail: (customerOrId: string | (Pick<Customer, 'id'> & { fullName?: string | null })) =>
+    `/customers/${toCustomerSlug(customerOrId)}`,
   orderNew: '/orders/new',
   orderNewForCustomer: (customerId: string) => `/orders/new?customer=${customerId}`,
   /** No bare /orders page exists — this is a prefix-only entry (used by
@@ -100,7 +104,18 @@ export const ROUTES = {
    *  grouped as one auth/domain rule in proxy.ts. */
   ordersPrefix: '/orders',
   production: '/production',
-  productionOrder: (orderId: string) => `/production/${orderId}`,
+  productionOrder: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => `/production/${toOrderSlug(orderOrId)}`,
+  catalogues: '/catalogues',
+  catalogueDetail: (catalogueOrId: string | (Pick<StyleCatalogue, 'id'> & { title?: string | null })) =>
+    `/catalogues/${toCatalogueSlug(catalogueOrId)}`,
   /** Was missing from every classification list below until this refactor
    *  found it (proxy.ts's default-protect-everything-not-public behavior
    *  meant it was still auth-gated, but it stayed on the marketing domain
@@ -142,8 +157,24 @@ export const ROUTES = {
   admin: '/admin',
 
   // ---- Public-by-link (bare domain, not indexed) ----
-  track: (orderId: string) => `/track/${orderId}`,
-  receipt: (orderId: string) => `/receipt/${orderId}`,
+  track: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => `/track/${toOrderSlug(orderOrId, { publicToken: true })}`,
+  receipt: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => `/receipt/${toOrderSlug(orderOrId, { publicToken: true })}`,
 
   // ---- Public tenant content (bare domain, indexed) ----
   studio: (slug: string) => `/studio/${slug}`,
