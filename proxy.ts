@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES, isPublicPath, isAppPath, MARKETING_PATHS } from '@/lib/routes';
 
-const ROOT_DOMAIN = APP_CONFIG.domain;
+const ROOT_DOMAIN = APP_CONFIG.domain.replace(/^(dev\.app\.|app\.|dev\.)/, '');
 const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
 
 // Keeps app.<domain> and the bare marketing domain each showing only their
@@ -12,6 +12,8 @@ const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
 function crossDomainRedirect(request: NextRequest): NextResponse | null {
   const host = request.headers.get('host');
   const { pathname, search } = request.nextUrl;
+
+  if (!host || host.startsWith('dev.')) return null;
 
   if (host === ROOT_DOMAIN && isAppPath(pathname)) {
     return NextResponse.redirect(new URL(`https://${APP_DOMAIN}${pathname}${search}`), 308);
