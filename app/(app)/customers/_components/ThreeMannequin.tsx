@@ -2,85 +2,87 @@
 
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import styles from './ThreeMannequin.module.css';
 
 export interface MeasurementPoint3D {
   id: string;
   name: string;
-  // 3D coordinates on the mannequin: [-1 to 1] range
+  // 3D coordinates on the human body mesh (centered at y=0, height 1.80m)
   x: number;
   y: number;
   z: number;
-  // For spans
+  // For measurement spans connecting two anatomical points
   endX?: number;
   endY?: number;
   endZ?: number;
 }
 
-// Exact 3D anatomical coordinates for tailoring landmarks
+// Snapped 3D surface coordinates on the realistic human female mesh
 export const FEMALE_LANDMARKS_3D: MeasurementPoint3D[] = [
-  // Front Landmarks (z > 0)
-  { id: 'neck', name: 'Neck', x: 0, y: 1.62, z: 0.16 },
-  { id: 'shoulder', name: 'Shoulder', x: -0.62, y: 1.48, z: 0.02 },
-  { id: 'crossFront', name: 'Across Front', x: 0, y: 1.34, z: 0.28 },
-  { id: 'bust', name: 'Bust', x: 0, y: 1.18, z: 0.35 },
-  { id: 'underBust', name: 'Under Bust', x: 0, y: 1.02, z: 0.27 },
-  { id: 'waist', name: 'Waist', x: 0, y: 0.82, z: 0.24 },
-  { id: 'hips', name: 'Hips', x: 0, y: 0.42, z: 0.32 },
-  { id: 'crotch', name: 'Crotch', x: -0.15, y: 0.26, z: 0.08 },
-  { id: 'thigh', name: 'Thigh', x: -0.28, y: 0.08, z: 0.20 },
-  { id: 'knee', name: 'Knee', x: -0.28, y: -0.32, z: 0.16 },
-  { id: 'calf', name: 'Calf', x: -0.28, y: -0.62, z: 0.15 },
-  { id: 'ankle', name: 'Ankle', x: -0.26, y: -0.92, z: 0.10 },
-  { id: 'armhole', name: 'Armhole', x: -0.58, y: 1.28, z: 0.12 },
-  { id: 'bicep', name: 'Bicep', x: -0.68, y: 1.12, z: 0.06 },
-  { id: 'sleeveLength', name: 'Sleeve Length', x: -0.74, y: 0.65, z: 0.04 },
-  { id: 'wrist', name: 'Wrist', x: -0.78, y: 0.25, z: 0.02 },
-  { id: 'frontLength', name: 'Front Length', x: 0, y: 0.22, z: 0.28 },
-  { id: 'dressLength', name: 'Dress Length', x: 0, y: -0.25, z: 0.22 },
-  { id: 'gownLength', name: 'Gown Length', x: 0, y: -0.85, z: 0.16 },
-  { id: 'trouserLength', name: 'Trouser Length', x: -0.45, y: -0.80, z: 0.12 },
-  { id: 'inseam', name: 'Inseam', x: -0.12, y: -0.40, z: 0.05 },
-  { id: 'outseam', name: 'Outseam', x: -0.48, y: -0.32, z: 0.05 },
-  { id: 'halfLength', name: 'Half Length', x: -0.52, y: 0.0, z: 0.12 },
+  // Front Landmarks
+  { id: 'neck', name: 'Neck', x: 0, y: 0.595, z: 0.071 },
+  { id: 'shoulder', name: 'Shoulder', x: -0.24, y: 0.528, z: 0.044 },
+  { id: 'crossFront', name: 'Across Front', x: 0, y: 0.44, z: 0.15 },
+  { id: 'bust', name: 'Bust', x: 0, y: 0.347, z: 0.164 },
+  { id: 'underBust', name: 'Under Bust', x: 0, y: 0.24, z: 0.16 },
+  { id: 'waist', name: 'Waist', x: 0, y: 0.154, z: 0.162 },
+  { id: 'hips', name: 'Hips', x: 0, y: 0.004, z: 0.129 },
+  { id: 'crotch', name: 'Crotch', x: -0.005, y: -0.065, z: 0.039 },
+  { id: 'thigh', name: 'Thigh', x: -0.122, y: -0.251, z: 0.144 },
+  { id: 'knee', name: 'Knee', x: -0.109, y: -0.42, z: 0.08 },
+  { id: 'calf', name: 'Calf', x: -0.131, y: -0.594, z: 0.047 },
+  { id: 'ankle', name: 'Ankle', x: -0.164, y: -0.802, z: 0.038 },
+  { id: 'armhole', name: 'Armhole', x: -0.247, y: 0.415, z: 0.061 },
+  { id: 'bicep', name: 'Bicep', x: -0.334, y: 0.289, z: 0.05 },
+  { id: 'sleeveLength', name: 'Sleeve Length', x: -0.434, y: 0.217, z: 0.117 },
+  { id: 'wrist', name: 'Wrist', x: -0.538, y: 0.073, z: 0.232 },
+  { id: 'frontLength', name: 'Front Length', x: 0, y: -0.05, z: 0.13 },
+  { id: 'dressLength', name: 'Dress Length', x: 0, y: -0.40, z: 0.08 },
+  { id: 'gownLength', name: 'Gown Length', x: 0, y: -0.78, z: 0.04 },
+  { id: 'trouserLength', name: 'Trouser Length', x: -0.164, y: -0.802, z: 0.038 },
+  { id: 'inseam', name: 'Inseam', x: -0.08, y: -0.40, z: 0.02 },
+  { id: 'outseam', name: 'Outseam', x: -0.19, y: -0.35, z: 0.04 },
+  { id: 'halfLength', name: 'Half Length', x: -0.18, y: 0.10, z: 0.12 },
 
-  // Back Landmarks (z < 0) - Only visible when turned around!
-  { id: 'crossBack', name: 'Across Back', x: 0, y: 1.34, z: -0.28 },
-  { id: 'napeToWaist', name: 'Nape to Waist', x: 0, y: 0.85, z: -0.26 },
+  // Back Landmarks (z < 0) - Only visible when rotated
+  { id: 'crossBack', name: 'Across Back', x: 0, y: 0.445, z: -0.051 },
+  { id: 'napeToWaist', name: 'Nape to Waist', x: 0, y: 0.135, z: -0.054 },
 
   // Spans
-  { id: 'shoulderToBustPoint', name: 'Shoulder to Bust Point', x: -0.52, y: 1.48, z: 0.08, endX: -0.22, endY: 1.18, endZ: 0.35 },
-  { id: 'nippleToNipple', name: 'Nipple to Nipple', x: -0.22, y: 1.18, z: 0.35, endX: 0.22, endY: 1.18, endZ: 0.35 },
-  { id: 'shoulderToWaist', name: 'Shoulder to Waist', x: 0.45, y: 1.48, z: 0.08, endX: 0.35, endY: 0.82, endZ: 0.24 },
-  { id: 'shoulderToHips', name: 'Shoulder to Hips', x: 0.48, y: 1.48, z: 0.08, endX: 0.45, endY: 0.42, endZ: 0.32 },
+  { id: 'shoulderToBustPoint', name: 'Shoulder to Bust Point', x: -0.24, y: 0.528, z: 0.044, endX: -0.09, endY: 0.347, endZ: 0.164 },
+  { id: 'nippleToNipple', name: 'Nipple to Nipple', x: -0.09, y: 0.347, z: 0.164, endX: 0.09, endY: 0.347, endZ: 0.164 },
+  { id: 'shoulderToWaist', name: 'Shoulder to Waist', x: 0.24, y: 0.528, z: 0.044, endX: 0.14, endY: 0.154, endZ: 0.162 },
+  { id: 'shoulderToHips', name: 'Shoulder to Hips', x: 0.24, y: 0.528, z: 0.044, endX: 0.18, endY: 0.004, endZ: 0.129 },
 ];
 
+// Snapped 3D surface coordinates on the realistic human male mesh
 export const MALE_LANDMARKS_3D: MeasurementPoint3D[] = [
   // Front Landmarks
-  { id: 'neck', name: 'Neck', x: 0, y: 1.62, z: 0.18 },
-  { id: 'shoulder', name: 'Shoulder', x: -0.72, y: 1.50, z: 0.02 },
-  { id: 'crossFront', name: 'Across Front', x: 0, y: 1.35, z: 0.30 },
-  { id: 'chest', name: 'Chest', x: 0, y: 1.20, z: 0.36 },
-  { id: 'stomach', name: 'Stomach', x: 0, y: 0.95, z: 0.30 },
-  { id: 'waist', name: 'Waist', x: 0, y: 0.75, z: 0.26 },
-  { id: 'hips', name: 'Hips', x: 0, y: 0.42, z: 0.30 },
-  { id: 'crotch', name: 'Crotch', x: 0, y: 0.26, z: 0.12 },
-  { id: 'thigh', name: 'Thigh', x: -0.28, y: 0.08, z: 0.22 },
-  { id: 'knee', name: 'Knee', x: -0.28, y: -0.32, z: 0.18 },
-  { id: 'calf', name: 'Calf', x: -0.28, y: -0.62, z: 0.17 },
-  { id: 'ankle', name: 'Ankle', x: -0.26, y: -0.92, z: 0.12 },
-  { id: 'armhole', name: 'Armhole', x: -0.66, y: 1.30, z: 0.12 },
-  { id: 'bicep', name: 'Bicep', x: -0.78, y: 1.12, z: 0.06 },
-  { id: 'sleeveLength', name: 'Sleeve Length', x: -0.84, y: 0.65, z: 0.04 },
-  { id: 'wrist', name: 'Wrist', x: -0.88, y: 0.25, z: 0.02 },
-  { id: 'shirtLength', name: 'Shirt Length', x: 0, y: 0.35, z: 0.30 },
-  { id: 'trouserLength', name: 'Trouser Length', x: -0.46, y: -0.80, z: 0.12 },
-  { id: 'inseam', name: 'Inseam', x: -0.12, y: -0.40, z: 0.06 },
-  { id: 'outseam', name: 'Outseam', x: -0.48, y: -0.32, z: 0.06 },
+  { id: 'neck', name: 'Neck', x: 0, y: 0.596, z: 0.08 },
+  { id: 'shoulder', name: 'Shoulder', x: -0.259, y: 0.542, z: 0.025 },
+  { id: 'crossFront', name: 'Across Front', x: -0.012, y: 0.428, z: 0.139 },
+  { id: 'chest', name: 'Chest', x: 0, y: 0.357, z: 0.146 },
+  { id: 'stomach', name: 'Stomach', x: 0, y: 0.216, z: 0.138 },
+  { id: 'waist', name: 'Waist', x: 0, y: 0.107, z: 0.14 },
+  { id: 'hips', name: 'Hips', x: 0, y: 0.012, z: 0.122 },
+  { id: 'crotch', name: 'Crotch', x: -0.021, y: -0.079, z: 0.032 },
+  { id: 'thigh', name: 'Thigh', x: -0.141, y: -0.23, z: 0.115 },
+  { id: 'knee', name: 'Knee', x: -0.139, y: -0.407, z: 0.059 },
+  { id: 'calf', name: 'Calf', x: -0.134, y: -0.568, z: 0.03 },
+  { id: 'ankle', name: 'Ankle', x: -0.178, y: -0.81, z: 0.033 },
+  { id: 'armhole', name: 'Armhole', x: -0.262, y: 0.42, z: 0.059 },
+  { id: 'bicep', name: 'Bicep', x: -0.353, y: 0.297, z: 0.051 },
+  { id: 'sleeveLength', name: 'Sleeve Length', x: -0.445, y: 0.242, z: 0.114 },
+  { id: 'wrist', name: 'Wrist', x: -0.57, y: 0.089, z: 0.274 },
+  { id: 'shirtLength', name: 'Shirt Length', x: 0, y: -0.008, z: 0.105 },
+  { id: 'trouserLength', name: 'Trouser Length', x: -0.178, y: -0.81, z: 0.033 },
+  { id: 'inseam', name: 'Inseam', x: -0.104, y: -0.388, z: 0.018 },
+  { id: 'outseam', name: 'Outseam', x: -0.202, y: -0.346, z: 0.034 },
 
   // Back Landmarks (z < 0)
-  { id: 'crossBack', name: 'Across Back', x: 0, y: 1.35, z: -0.30 },
-  { id: 'backLength', name: 'Back Length', x: 0, y: 0.75, z: -0.28 },
+  { id: 'crossBack', name: 'Across Back', x: 0, y: 0.441, z: -0.067 },
+  { id: 'backLength', name: 'Back Length', x: 0, y: 0.121, z: -0.074 },
 ];
 
 interface ThreeMannequinProps {
@@ -97,6 +99,7 @@ export default function ThreeMannequin({
   onPointSelect,
 }: ThreeMannequinProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [projectedPoints, setProjectedPoints] = useState<Array<{
     point: MeasurementPoint3D;
     screenX: number;
@@ -114,11 +117,10 @@ export default function ThreeMannequin({
     [gender]
   );
 
-  // References to three objects to control updates and render on demand
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const mannequinGroupRef = useRef<THREE.Group | null>(null);
+  const bodyGroupRef = useRef<THREE.Group | null>(null);
   const needsRenderRef = useRef<boolean>(true);
 
   // Smooth rotation target and damping
@@ -146,56 +148,127 @@ export default function ThreeMannequin({
     const container = mountRef.current;
     if (!container) return;
 
-    // Scene
+    // ── 1. Three.js Scene Setup ─────────────────────────────
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // Camera
     const aspect = container.clientWidth / container.clientHeight;
-    const camera = new THREE.PerspectiveCamera(38, aspect, 0.1, 100);
-    camera.position.set(0, 0.35, 4.4);
+    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 50);
+    camera.position.set(0, 0.05, 2.7);
     cameraRef.current = camera;
 
-    // Renderer (Mobile Optimized)
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
       powerPreference: 'high-performance',
     });
-    // Cap pixel ratio to 1.5 to prevent low-end GPU throttling
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // Lighting (Studio Atelier Setup)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    // ── 2. Studio Lighting (Warm Key, Cool Fill, Golden Rim) ──
+    const ambientLight = new THREE.AmbientLight(0xfff7f0, 1.3);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff7ed, 1.2);
-    keyLight.position.set(3, 4, 3);
+    const keyLight = new THREE.DirectionalLight(0xfff0e4, 2.0);
+    keyLight.position.set(2.5, 3.2, 2.8);
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xe0e7ff, 0.6);
-    fillLight.position.set(-3, 2, 2);
+    const fillLight = new THREE.DirectionalLight(0xe4edff, 1.1);
+    fillLight.position.set(-2.5, 1.8, 1.8);
     scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffffff, 0.9);
-    rimLight.position.set(0, 3, -4);
+    const rimLight = new THREE.DirectionalLight(0xffdfc4, 2.4);
+    rimLight.position.set(0, 2.2, -3.0);
     scene.add(rimLight);
 
-    // Group holding the mannequin and base
-    const mannequinGroup = new THREE.Group();
-    scene.add(mannequinGroup);
-    mannequinGroupRef.current = mannequinGroup;
+    // Floor shadow disc (soft circular grounding)
+    const floorGeo = new THREE.CircleGeometry(0.55, 32);
+    const floorMat = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.15,
+    });
+    const floorDisc = new THREE.Mesh(floorGeo, floorMat);
+    floorDisc.rotation.x = -Math.PI / 2;
+    floorDisc.position.y = -0.905;
+    scene.add(floorDisc);
 
-    // ── Build Anatomically Accurate Mannequin Mesh ─────────────
-    buildMannequinForm(mannequinGroup, gender);
+    // Body container group
+    const bodyGroup = new THREE.Group();
+    scene.add(bodyGroup);
+    bodyGroupRef.current = bodyGroup;
 
-    // Initial render
-    needsRenderRef.current = true;
+    // ── 3. Realistic Skin Material ───────────────────────────
+    const skinMaterial = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(gender === 'female' ? '#b8856c' : '#a8755c'),
+      roughness: 0.52,
+      metalness: 0.02,
+      clearcoat: 0.12,
+      clearcoatRoughness: 0.35,
+      sheen: 0.38,
+      sheenColor: new THREE.Color('#dfb098'),
+      reflectivity: 0.5,
+    });
 
-    // Touch & Mouse Drag Interaction (Orbiting)
+    // Load micro-pore normal map texture
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      '/models/skin-normal.png',
+      (normalMap) => {
+        normalMap.wrapS = THREE.RepeatWrapping;
+        normalMap.wrapT = THREE.RepeatWrapping;
+        normalMap.repeat.set(8, 8);
+        skinMaterial.normalMap = normalMap;
+        skinMaterial.normalScale.set(0.2, 0.2);
+        skinMaterial.needsUpdate = true;
+        requestRender();
+      },
+      undefined,
+      () => {
+        // Fallback gracefully without normal map
+      }
+    );
+
+    // ── 4. Load High-End CC0 Anatomical Human Body Mesh ───────
+    setIsLoading(true);
+    const loader = new GLTFLoader();
+    const modelUrl = gender === 'female' ? '/models/female.glb' : '/models/male.glb';
+
+    loader.load(
+      modelUrl,
+      (gltf) => {
+        // Clear previous meshes
+        while (bodyGroup.children.length > 0) {
+          bodyGroup.remove(bodyGroup.children[0]);
+        }
+
+        const model = gltf.scene;
+        // Center the 1.80m body at y=0
+        model.position.set(0, -0.90, 0);
+
+        model.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.material = skinMaterial;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+          }
+        });
+
+        bodyGroup.add(model);
+        setIsLoading(false);
+        needsRenderRef.current = true;
+      },
+      undefined,
+      (err) => {
+        console.error('Error loading 3D human body model:', err);
+        setIsLoading(false);
+      }
+    );
+
+    // ── 5. Touch & Mouse Drag (360° Smooth Orbit) ────────────
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
@@ -218,8 +291,8 @@ export default function ThreeMannequin({
       prevMouseY = clientY;
 
       targetRotationYRef.current += deltaX * 0.008;
-      // Clamp pitch between -0.25 and 0.25 rad to prevent flipping
-      targetRotationXRef.current = Math.max(-0.25, Math.min(0.25, targetRotationXRef.current + deltaY * 0.005));
+      // Clamp pitch between -0.20 and 0.20 rad
+      targetRotationXRef.current = Math.max(-0.20, Math.min(0.20, targetRotationXRef.current + deltaY * 0.005));
 
       needsRenderRef.current = true;
     };
@@ -237,27 +310,27 @@ export default function ThreeMannequin({
     window.addEventListener('touchmove', onPointerMove, { passive: true });
     window.addEventListener('touchend', onPointerUp);
 
-    // Animation & Demand Render Loop
+    // ── 6. Animation & Demand-Driven Render Loop ──────────────
     let animationFrameId: number;
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      // Smooth inertia damping
+      // Smooth rotation interpolation
       const rotYDiff = targetRotationYRef.current - currentRotationYRef.current;
       const rotXDiff = targetRotationXRef.current - currentRotationXRef.current;
 
       if (Math.abs(rotYDiff) > 0.0005 || Math.abs(rotXDiff) > 0.0005) {
-        currentRotationYRef.current += rotYDiff * 0.12;
-        currentRotationXRef.current += rotXDiff * 0.12;
-        if (mannequinGroupRef.current) {
-          mannequinGroupRef.current.rotation.y = currentRotationYRef.current;
-          mannequinGroupRef.current.rotation.x = currentRotationXRef.current;
+        currentRotationYRef.current += rotYDiff * 0.14;
+        currentRotationXRef.current += rotXDiff * 0.14;
+        if (bodyGroupRef.current) {
+          bodyGroupRef.current.rotation.y = currentRotationYRef.current;
+          bodyGroupRef.current.rotation.x = currentRotationXRef.current;
         }
         needsRenderRef.current = true;
       }
 
-      // Update projected 2D HTML pin coordinates when rotation changes
-      if (needsRenderRef.current && cameraRef.current && mannequinGroupRef.current && container) {
+      // Update projected 2D HTML pins when rotation changes
+      if (needsRenderRef.current && cameraRef.current && bodyGroupRef.current && container) {
         renderer.render(scene, cameraRef.current);
         needsRenderRef.current = false;
 
@@ -266,14 +339,13 @@ export default function ThreeMannequin({
 
         const projected = points3D.map((p) => {
           const v = new THREE.Vector3(p.x, p.y, p.z);
-          v.applyMatrix4(mannequinGroupRef.current!.matrixWorld);
+          v.applyMatrix4(bodyGroupRef.current!.matrixWorld);
 
-          // Normal direction check: is this point facing the camera?
+          // Compute surface normal orientation relative to camera
           const cameraDir = new THREE.Vector3();
           cameraRef.current!.getWorldDirection(cameraDir);
-          
-          // Compute surface normal roughly by vector from central spine
-          const spinePos = new THREE.Vector3(0, p.y, 0).applyMatrix4(mannequinGroupRef.current!.matrixWorld);
+
+          const spinePos = new THREE.Vector3(0, p.y, 0).applyMatrix4(bodyGroupRef.current!.matrixWorld);
           const surfaceNormal = new THREE.Vector3().subVectors(v, spinePos).normalize();
           const dot = surfaceNormal.dot(cameraDir.negate());
 
@@ -285,7 +357,7 @@ export default function ThreeMannequin({
           let endScreenY: number | undefined;
           if (p.endX !== undefined && p.endY !== undefined && p.endZ !== undefined) {
             const endV = new THREE.Vector3(p.endX, p.endY, p.endZ);
-            endV.applyMatrix4(mannequinGroupRef.current!.matrixWorld);
+            endV.applyMatrix4(bodyGroupRef.current!.matrixWorld);
             endV.project(cameraRef.current!);
             endScreenX = (endV.x * 0.5 + 0.5) * width;
             endScreenY = (-(endV.y * 0.5) + 0.5) * height;
@@ -295,7 +367,7 @@ export default function ThreeMannequin({
             point: p,
             screenX,
             screenY,
-            visible: dot > -0.15, // Smooth visibility threshold
+            visible: dot > -0.15,
             isSpan: p.endX !== undefined,
             endScreenX,
             endScreenY,
@@ -310,12 +382,12 @@ export default function ThreeMannequin({
 
     // Resize observer
     const resizeObserver = new ResizeObserver(() => {
-      if (!container || !renderer || !camera) return;
+      if (!container || !rendererRef.current || !cameraRef.current) return;
       const w = container.clientWidth;
       const h = container.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      cameraRef.current.aspect = w / h;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(w, h);
       needsRenderRef.current = true;
     });
     resizeObserver.observe(container);
@@ -331,249 +403,111 @@ export default function ThreeMannequin({
       window.removeEventListener('touchend', onPointerUp);
 
       renderer.dispose();
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+      if (domElement.parentElement) {
+        domElement.parentElement.removeChild(domElement);
       }
     };
-  }, [gender, points3D]);
+  }, [gender, points3D, requestRender]);
 
   return (
-    <div className={styles.canvasContainer}>
-      <div ref={mountRef} className={styles.threeCanvas} />
+    <div className={styles.container}>
+      {/* 360° Quick Angle Selector */}
+      <div className={styles.angleToolbar} role="group" aria-label="Viewing angles">
+        <button
+          type="button"
+          className={`${styles.angleBtn} ${currentViewAngle === 'front' ? styles.angleBtnActive : ''}`}
+          onClick={() => setAnglePreset('front')}
+        >
+          Front
+        </button>
+        <button
+          type="button"
+          className={`${styles.angleBtn} ${currentViewAngle === 'back' ? styles.angleBtnActive : ''}`}
+          onClick={() => setAnglePreset('back')}
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          className={`${styles.angleBtn} ${currentViewAngle === 'left' ? styles.angleBtnActive : ''}`}
+          onClick={() => setAnglePreset('left')}
+        >
+          Left
+        </button>
+        <button
+          type="button"
+          className={`${styles.angleBtn} ${currentViewAngle === 'right' ? styles.angleBtnActive : ''}`}
+          onClick={() => setAnglePreset('right')}
+        >
+          Right
+        </button>
+      </div>
 
-      {/* SVG Canvas for Projected Span Calipers */}
-      <svg className={styles.spansOverlay}>
+      {/* Loading Skeleton */}
+      {isLoading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner} />
+          <span className={styles.loadingText}>Loading 3D anatomy...</span>
+        </div>
+      )}
+
+      {/* 3D Canvas Mount Point */}
+      <div ref={mountRef} className={styles.canvasMount} />
+
+      {/* 2D SVG Span Lines Connecting Landmarks */}
+      <svg className={styles.spanSvgOverlay} preserveAspectRatio="none">
         {projectedPoints
           .filter((p) => p.isSpan && p.visible && p.endScreenX !== undefined && p.endScreenY !== undefined)
           .map((p) => (
             <line
-              key={`${p.point.id}-span`}
+              key={`span-${p.point.id}`}
               x1={p.screenX}
               y1={p.screenY}
               x2={p.endScreenX}
               y2={p.endScreenY}
-              className={`${styles.spanLine3D} ${measurements[p.point.id] ? styles.spanLineFilled3D : ''}`}
+              className={`${styles.spanLine} ${measurements[p.point.id] ? styles.spanLineFilled : ''}`}
             />
           ))}
       </svg>
 
-      {/* Projected Interactive 3D Pins */}
-      <div className={styles.pinsOverlay}>
-        {projectedPoints.map((p) => {
-          const hasVal = !!measurements[p.point.id];
-          const isSelected = selectedPointId === p.point.id;
+      {/* Interactive Surface Measurement Pins */}
+      <div className={styles.pinsLayer}>
+        {projectedPoints.map(({ point, screenX, screenY, visible, isSpan, endScreenX, endScreenY }) => {
+          const hasVal = !!measurements[point.id];
+          const isSelected = selectedPointId === point.id;
+
+          // For spans, position marker halfway between the two endpoints
+          const posX = isSpan && endScreenX !== undefined ? (screenX + endScreenX) / 2 : screenX;
+          const posY = isSpan && endScreenY !== undefined ? (screenY + endScreenY) / 2 : screenY;
 
           return (
             <button
-              key={p.point.id}
+              key={point.id}
               type="button"
-              className={`${styles.pin3D} ${hasVal ? styles.pinFilled3D : ''} ${isSelected ? styles.pinSelected3D : ''} ${!p.visible ? styles.pinOccluded : ''}`}
+              className={`${styles.pin} ${hasVal ? styles.pinFilled : ''} ${
+                isSelected ? styles.pinSelected : ''
+              } ${!visible ? styles.pinOccluded : ''}`}
               style={{
-                left: `${p.screenX}px`,
-                top: `${p.screenY}px`,
-                opacity: p.visible ? 1 : 0.12,
-                pointerEvents: p.visible ? 'auto' : 'none',
+                transform: `translate3d(${posX}px, ${posY}px, 0)`,
               }}
-              onClick={() => onPointSelect({ id: p.point.id, name: p.point.name })}
-              title={`${p.point.name}: ${measurements[p.point.id] || 'Not recorded'}`}
+              onClick={() => onPointSelect({ id: point.id, name: point.name })}
+              title={`${point.name}${hasVal ? `: ${measurements[point.id]}` : ''}`}
+              tabIndex={visible ? 0 : -1}
+              aria-label={`${point.name}${hasVal ? `: ${measurements[point.id]}` : ''}`}
             >
               <span className={styles.pinDot} />
-              <span className={styles.pinTag}>
-                {hasVal ? `${measurements[p.point.id]}"` : p.point.name}
+              <span className={styles.pinPill}>
+                {hasVal ? `${point.name}: ${measurements[point.id]}` : point.name}
               </span>
             </button>
           );
         })}
       </div>
 
-      {/* Quick 360 Camera Controls */}
-      <div className={styles.angleToolbar}>
-        {(['front', 'back', 'left', 'right'] as const).map((angle) => (
-          <button
-            key={angle}
-            type="button"
-            className={`${styles.angleBtn} ${currentViewAngle === angle ? styles.angleBtnActive : ''}`}
-            onClick={() => setAnglePreset(angle)}
-          >
-            {angle.charAt(0).toUpperCase() + angle.slice(1)}
-          </button>
-        ))}
+      {/* Interactive Helper Hint */}
+      <div className={styles.rotationHint}>
+        <span>Drag to rotate 360° · Tap any anatomical landmark</span>
       </div>
-
-      <p className={styles.dragHint}>Drag to rotate 360° • Tap any landmark to measure</p>
     </div>
   );
 }
-
-/**
- * Builds a realistic, anatomically sculpted tailor dress form in Three.js
- */
-function buildMannequinForm(group: THREE.Group, gender: 'male' | 'female') {
-  const isFemale = gender === 'female';
-
-  // Materials: Premium Tailor Canvas Linen Finish
-  const bodyMaterial = new THREE.MeshStandardMaterial({
-    color: 0xefede8, // Warm ecru tailor cloth
-    roughness: 0.65,
-    metalness: 0.05,
-    flatShading: false,
-  });
-
-  const standMaterial = new THREE.MeshStandardMaterial({
-    color: 0x27272a, // Matte black tailor stand
-    roughness: 0.4,
-    metalness: 0.8,
-  });
-
-  const brassMaterial = new THREE.MeshStandardMaterial({
-    color: 0xd97706, // Antique brass finial and neck cap
-    roughness: 0.35,
-    metalness: 0.7,
-  });
-
-  const seamMaterial = new THREE.LineBasicMaterial({
-    color: 0xa1a1aa,
-    transparent: true,
-    opacity: 0.5,
-  });
-
-  // 1. Stand Base & Pole
-  const baseGeo = new THREE.CylinderGeometry(0.55, 0.6, 0.08, 32);
-  const baseMesh = new THREE.Mesh(baseGeo, standMaterial);
-  baseMesh.position.y = -1.25;
-  group.add(baseMesh);
-
-  const poleGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.2, 16);
-  const poleMesh = new THREE.Mesh(poleGeo, standMaterial);
-  poleMesh.position.y = -0.65;
-  group.add(poleMesh);
-
-  // 2. Head / Finial Cap
-  const finialGeo = new THREE.CylinderGeometry(0.12, 0.16, 0.14, 24);
-  const finialMesh = new THREE.Mesh(finialGeo, brassMaterial);
-  finialMesh.position.y = 1.82;
-  group.add(finialMesh);
-
-  const finialKnobGeo = new THREE.SphereGeometry(0.09, 16, 16);
-  const finialKnobMesh = new THREE.Mesh(finialKnobGeo, brassMaterial);
-  finialKnobMesh.position.y = 1.93;
-  group.add(finialKnobMesh);
-
-  // 3. Neck
-  const neckRadiusTop = isFemale ? 0.16 : 0.19;
-  const neckRadiusBottom = isFemale ? 0.20 : 0.24;
-  const neckGeo = new THREE.CylinderGeometry(neckRadiusTop, neckRadiusBottom, 0.25, 24);
-  const neckMesh = new THREE.Mesh(neckGeo, bodyMaterial);
-  neckMesh.position.y = 1.62;
-  group.add(neckMesh);
-
-  // 4. Anatomical Torso (Lofted Spline Mesh via Lathe & Hull Curves)
-  // Define realistic contours for chest, waist, and hips
-  const torsoPoints: THREE.Vector2[] = [];
-  if (isFemale) {
-    // Elegant tailored female silhouette
-    torsoPoints.push(new THREE.Vector2(0.20, 1.50)); // Neck base
-    torsoPoints.push(new THREE.Vector2(0.52, 1.45)); // Shoulder slope
-    torsoPoints.push(new THREE.Vector2(0.48, 1.30)); // Underarm
-    torsoPoints.push(new THREE.Vector2(0.50, 1.18)); // Bust projection
-    torsoPoints.push(new THREE.Vector2(0.40, 1.02)); // Underbust
-    torsoPoints.push(new THREE.Vector2(0.34, 0.82)); // Natural waist (narrowed)
-    torsoPoints.push(new THREE.Vector2(0.44, 0.60)); // High hip
-    torsoPoints.push(new THREE.Vector2(0.54, 0.42)); // Full hip (curved)
-    torsoPoints.push(new THREE.Vector2(0.48, 0.26)); // Low pelvis
-    torsoPoints.push(new THREE.Vector2(0.15, 0.20)); // Base of torso
-  } else {
-    // Athletic tailored male silhouette
-    torsoPoints.push(new THREE.Vector2(0.24, 1.50)); // Neck base
-    torsoPoints.push(new THREE.Vector2(0.64, 1.48)); // Broad shoulder
-    torsoPoints.push(new THREE.Vector2(0.58, 1.32)); // Upper chest
-    torsoPoints.push(new THREE.Vector2(0.56, 1.20)); // Chest / Pecs
-    torsoPoints.push(new THREE.Vector2(0.50, 0.98)); // Ribcage
-    torsoPoints.push(new THREE.Vector2(0.44, 0.75)); // Tailored waist
-    torsoPoints.push(new THREE.Vector2(0.48, 0.52)); // Hips
-    torsoPoints.push(new THREE.Vector2(0.46, 0.30)); // Pelvis
-    torsoPoints.push(new THREE.Vector2(0.18, 0.22)); // Base of torso
-  }
-
-  // Create Torso Geometry
-  const torsoGeo = new THREE.LatheGeometry(torsoPoints, 32);
-  // Slightly flatten in Z to mimic human depth vs width (width > depth)
-  torsoGeo.scale(1.0, 1.0, isFemale ? 0.72 : 0.68);
-  const torsoMesh = new THREE.Mesh(torsoGeo, bodyMaterial);
-  group.add(torsoMesh);
-
-  // Female Bust Enhancements (Natural dual chest volume)
-  if (isFemale) {
-    const bustGeo = new THREE.SphereGeometry(0.17, 24, 24);
-    bustGeo.scale(1.0, 0.9, 0.75);
-
-    const leftBust = new THREE.Mesh(bustGeo, bodyMaterial);
-    leftBust.position.set(-0.20, 1.18, 0.22);
-    group.add(leftBust);
-
-    const rightBust = new THREE.Mesh(bustGeo, bodyMaterial);
-    rightBust.position.set(0.20, 1.18, 0.22);
-    group.add(rightBust);
-  }
-
-  // 5. Tailored Legs
-  const legRadiusTop = isFemale ? 0.20 : 0.22;
-  const legRadiusKnee = isFemale ? 0.14 : 0.16;
-  const legRadiusAnkle = isFemale ? 0.10 : 0.12;
-
-  // Left Leg
-  const leftLegCurve = new THREE.CurvePath<THREE.Vector3>();
-  leftLegCurve.add(new THREE.LineCurve3(
-    new THREE.Vector3(-0.24, 0.22, 0),
-    new THREE.Vector3(-0.24, -0.92, 0)
-  ));
-  const legUpperGeo = new THREE.CylinderGeometry(legRadiusTop, legRadiusKnee, 0.55, 20);
-  legUpperGeo.scale(1, 1, 0.85);
-  const leftLegUpper = new THREE.Mesh(legUpperGeo, bodyMaterial);
-  leftLegUpper.position.set(-0.24, -0.05, 0);
-  group.add(leftLegUpper);
-
-  const legLowerGeo = new THREE.CylinderGeometry(legRadiusKnee, legRadiusAnkle, 0.60, 20);
-  legLowerGeo.scale(1, 1, 0.85);
-  const leftLegLower = new THREE.Mesh(legLowerGeo, bodyMaterial);
-  leftLegLower.position.set(-0.24, -0.62, 0);
-  group.add(leftLegLower);
-
-  // Right Leg
-  const rightLegUpper = new THREE.Mesh(legUpperGeo, bodyMaterial);
-  rightLegUpper.position.set(0.24, -0.05, 0);
-  group.add(rightLegUpper);
-
-  const rightLegLower = new THREE.Mesh(legLowerGeo, bodyMaterial);
-  rightLegLower.position.set(0.24, -0.62, 0);
-  group.add(rightLegLower);
-
-  // 6. Draped Arms
-  const armRadiusTop = isFemale ? 0.12 : 0.14;
-  const armRadiusWrist = isFemale ? 0.08 : 0.09;
-  const armGeo = new THREE.CylinderGeometry(armRadiusTop, armRadiusWrist, 1.25, 20);
-  armGeo.scale(1, 1, 0.8);
-
-  const armOffsetX = isFemale ? 0.62 : 0.75;
-  const leftArm = new THREE.Mesh(armGeo, bodyMaterial);
-  leftArm.position.set(-armOffsetX, 0.88, 0);
-  leftArm.rotation.z = isFemale ? 0.14 : 0.16;
-  group.add(leftArm);
-
-  const rightArm = new THREE.Mesh(armGeo, bodyMaterial);
-  rightArm.position.set(armOffsetX, 0.88, 0);
-  rightArm.rotation.z = isFemale ? -0.14 : -0.16;
-  group.add(rightArm);
-
-  // 7. Tailor Construction Seams (Center Front and Waist line)
-  const cfPoints = [
-    new THREE.Vector3(0, 1.50, isFemale ? 0.18 : 0.22),
-    new THREE.Vector3(0, 1.18, isFemale ? 0.32 : 0.36),
-    new THREE.Vector3(0, 0.82, isFemale ? 0.24 : 0.26),
-    new THREE.Vector3(0, 0.26, isFemale ? 0.20 : 0.22),
-  ];
-  const cfGeo = new THREE.BufferGeometry().setFromPoints(cfPoints);
-  const cfLine = new THREE.Line(cfGeo, seamMaterial);
-  group.add(cfLine);
-}
-
