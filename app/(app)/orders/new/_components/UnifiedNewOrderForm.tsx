@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
-import { GARMENT_STYLES, STYLE_MEASUREMENTS, type StyleMeasurePoint } from '@/lib/constants';
+import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -670,8 +670,17 @@ export default function UnifiedNewOrderForm() {
 
       const createdIds = await addOrderBatch(garmentsPayload);
 
-      // Update customer style measurements in profile
+      // Update customer style measurements & auto-record preferred styles in profile
+      const nextPreferredStyles = new Set<string>(selectedCustomer.preferredStyles || []);
+      let preferredStylesChanged = false;
+
       for (const g of garments) {
+        const canonicalStyle = resolveCanonicalStyleName(g.styleName, selectedCustomer.gender);
+        if (canonicalStyle && !nextPreferredStyles.has(canonicalStyle)) {
+          nextPreferredStyles.add(canonicalStyle);
+          preferredStylesChanged = true;
+        }
+
         const parsedNumericMeasures: Record<string, number> = {};
         for (const [k, v] of Object.entries(g.measures)) {
           const parsed = parseMeasurementValue(v);
@@ -684,6 +693,12 @@ export default function UnifiedNewOrderForm() {
         if (g.measurementNotes.trim() && g.measurementNotes !== selectedCustomer.measurementNotes) {
           await updateCustomerProfile(selectedCustomer.id, { measurementNotes: g.measurementNotes.trim() }).catch(() => {});
         }
+      }
+
+      if (preferredStylesChanged) {
+        await updateCustomerProfile(selectedCustomer.id, {
+          preferredStyles: Array.from(nextPreferredStyles),
+        }).catch(() => {});
       }
 
       // Auto-sync physical fabric photos to client's stash

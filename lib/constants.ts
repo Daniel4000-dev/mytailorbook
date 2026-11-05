@@ -186,6 +186,30 @@ export const GARMENT_STYLES: GarmentStyle[] = [
   { name: 'Gathers Dress', subtitle: 'Flared gathered dress', keywords: ['gathers', 'gather dress', 'gathered'], gender: 'female', photoUrl: '/images/garments/gathers-dress-female.jpg' },
 ];
 
+/**
+ * Normalizes any garment title or custom style string (e.g. "Royal 3-Piece Agbada",
+ * "Senator Suit", "Ankara Mermaid Gown") to its canonical GARMENT_STYLES name if matched,
+ * or returns the trimmed title.
+ */
+export function resolveCanonicalStyleName(rawStyle: string, gender?: 'male' | 'female'): string {
+  const trimmed = rawStyle.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'custom outfit' || trimmed.toLowerCase() === 'custom garment') {
+    return '';
+  }
+  const lower = trimmed.toLowerCase();
+
+  const exact = GARMENT_STYLES.find((g) => g.name.toLowerCase() === lower);
+  if (exact) return exact.name;
+
+  const pool = gender ? GARMENT_STYLES.filter((g) => g.gender === gender) : GARMENT_STYLES;
+  const keywordMatch = pool.find((g) =>
+    g.keywords.some((kw) => lower.includes(kw.toLowerCase()))
+  );
+  if (keywordMatch) return keywordMatch.name;
+
+  return trimmed;
+}
+
 /* ── Style-specific measurement intake ─────────────────────────
    Each garment style measures different points, in the order a tailor
    actually works. `hint` is plain language so a non-tailor can follow;

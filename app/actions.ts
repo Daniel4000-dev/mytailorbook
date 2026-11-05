@@ -16,6 +16,7 @@ const STAGE_BADGE_ICON: Record<OrderStatus, string> = {
   Delivered: 'inventory_2',
 };
 import { formatCurrency } from '@/lib/formatters';
+import { resolveCanonicalStyleName } from '@/lib/constants';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem, CalendarEvent, CalendarEventType } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
@@ -902,7 +903,7 @@ export async function updateCustomerStyleProfileAction(
   const supabase = await createClient();
   const { data: current, error: fetchError } = await supabase
     .from('customers')
-    .select('style_measurements')
+    .select('style_measurements, preferred_styles, gender')
     .eq('id', customerId)
     .single();
   if (fetchError) return { error: fetchError.message };
@@ -932,7 +933,18 @@ export async function updateCustomerStyleProfileAction(
       ...(notes !== undefined && { notes })
     },
   };
-  const { error } = await supabase.from('customers').update({ style_measurements: updated }).eq('id', customerId);
+
+  const currentPreferred = Array.isArray(current?.preferred_styles) ? (current.preferred_styles as string[]) : [];
+  const canonicalStyle = resolveCanonicalStyleName(styleName, current?.gender as 'male' | 'female' | undefined);
+  const nextPreferred =
+    canonicalStyle && !currentPreferred.includes(canonicalStyle)
+      ? [...currentPreferred, canonicalStyle]
+      : currentPreferred;
+
+  const { error } = await supabase
+    .from('customers')
+    .update({ style_measurements: updated, preferred_styles: nextPreferred })
+    .eq('id', customerId);
   if (error) return { error: error.message };
   return getCustomers(orgId);
 }

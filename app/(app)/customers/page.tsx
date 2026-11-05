@@ -19,7 +19,7 @@ import Button from '@/components/ui/Button/Button';
 import { formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getInitials } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Customer, Order } from '@/lib/types';
-import { GARMENT_STYLES } from '@/lib/constants';
+import { GARMENT_STYLES, resolveCanonicalStyleName } from '@/lib/constants';
 import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
 import type { StylePhotoSubmission } from '@/lib/types';
 import { shareStylePhoto } from '@/lib/share-outreach';
@@ -133,7 +133,7 @@ export default function CustomersPage() {
   // Derive order stats and identify active & latest garment per customer
   const customerStats = useMemo(() => {
     const stats: Record<string, CustomerStatDetail> = {};
-    
+
     customers.forEach(c => {
       stats[c.id] = { totalOrders: 0, activeOrders: 0, totalSpend: 0, totalBalance: 0 };
     });
@@ -188,11 +188,10 @@ export default function CustomersPage() {
     });
     orders.forEach((o) => {
       if (o.customerId && o.styleName && map[o.customerId]) {
-        const rawStyle = o.styleName.trim();
-        const matchedCatalog = GARMENT_STYLES.find(
-          (g) => g.name.toLowerCase() === rawStyle.toLowerCase()
-        );
-        map[o.customerId].add(matchedCatalog ? matchedCatalog.name : rawStyle);
+        const canonical = resolveCanonicalStyleName(o.styleName);
+        if (canonical) {
+          map[o.customerId].add(canonical);
+        }
       }
     });
     return map;
@@ -1036,14 +1035,14 @@ export default function CustomersPage() {
               // Contextual WhatsApp greeting (automatically switches to Outbound Style Pitch when a style filter is active)
               const whatsappGreeting = styleFilter
                 ? (noteText || getDefaultOutreachNote(styleFilter)).replace(
-                    /\{name\}/g,
-                    c.fullName.split(' ')[0]
-                  )
+                  /\{name\}/g,
+                  c.fullName.split(' ')[0]
+                )
                 : isReady
-                ? `Hello ${c.fullName}, your ${stats?.activeOrder?.styleName || 'outfit'} is ready for pickup at our workshop! Looking forward to seeing you.`
-                : hasBalance
-                ? `Hello ${c.fullName}, friendly reminder regarding your pending balance of ₦${Math.round(stats.totalBalance).toLocaleString()} at our shop. Thank you!`
-                : `Hello ${c.fullName}!`;
+                  ? `Hello ${c.fullName}, your ${stats?.activeOrder?.styleName || 'outfit'} is ready for pickup at our workshop! Looking forward to seeing you.`
+                  : hasBalance
+                    ? `Hello ${c.fullName}, friendly reminder regarding your pending balance of ₦${Math.round(stats.totalBalance).toLocaleString()} at our shop. Thank you!`
+                    : `Hello ${c.fullName}!`;
 
               return (
                 <div

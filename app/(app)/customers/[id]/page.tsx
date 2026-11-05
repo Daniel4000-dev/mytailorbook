@@ -164,7 +164,30 @@ function CustomerProfileContent({
   });
 
   const [notes, setNotes] = useState(customer.measurementNotes || '');
+  const [preferredStyles, setPreferredStyles] = useState<string[]>(customer.preferredStyles || []);
+  const [showQuickStyles, setShowQuickStyles] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
+
+  const [prevCustomerStyles, setPrevCustomerStyles] = useState(customer.preferredStyles);
+  if (customer.preferredStyles !== prevCustomerStyles) {
+    setPrevCustomerStyles(customer.preferredStyles);
+    setPreferredStyles(customer.preferredStyles || []);
+  }
+
+  const genderStylePresets = useMemo(
+    () => GARMENT_STYLES.filter((s) => s.gender === (customer.gender || 'male')).map((s) => s.name),
+    [customer.gender]
+  );
+
+  const handleToggleQuickStyle = async (styleName: string) => {
+    const exists = preferredStyles.includes(styleName);
+    const next = exists
+      ? preferredStyles.filter((s) => s !== styleName)
+      : [...preferredStyles, styleName];
+    setPreferredStyles(next);
+    await updateCustomerProfile(customer.id, { preferredStyles: next });
+    showToast(exists ? `Removed ${styleName}` : `Added ${styleName} to client styles`, 'info');
+  };
   const [currentValue, setCurrentValue] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [styleSheet, setStyleSheet] = useState<{ open: boolean; style: string | null }>({ open: false, style: null });
@@ -495,7 +518,42 @@ function CustomerProfileContent({
                     Credit: {formatCurrency(customer.wallet_balance)}
                   </span>
                 )}
+
+                {preferredStyles.map((styleName) => (
+                  <span key={styleName} className={styles.heroStyleBadge}>
+                    {styleName}
+                  </span>
+                ))}
+
+                <button
+                  type="button"
+                  className={`${styles.quickStyleToggleBtn} ${showQuickStyles ? styles.quickStyleToggleBtnActive : ''}`}
+                  onClick={() => setShowQuickStyles((v) => !v)}
+                  title="Tag client style preferences for outbound leads"
+                >
+                  <Symbol name={showQuickStyles ? 'close' : 'add'} size={11} />
+                  <span>{preferredStyles.length === 0 ? 'Add Style' : 'Style'}</span>
+                </button>
               </div>
+
+              {showQuickStyles && (
+                <div className={styles.quickStylePickerTray}>
+                  {genderStylePresets.map((styleName) => {
+                    const active = preferredStyles.includes(styleName);
+                    return (
+                      <button
+                        key={styleName}
+                        type="button"
+                        className={`${styles.quickStyleChip} ${active ? styles.quickStyleChipActive : ''}`}
+                        onClick={() => handleToggleQuickStyle(styleName)}
+                      >
+                        {active && <Symbol name="check" size={11} />}
+                        <span>{styleName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {FEATURE_FLAGS.customerAddress && customer.address && (
                 <div className={styles.customerAddress}>

@@ -18,7 +18,7 @@ import { isXpSystemEnabled } from '@/lib/xp';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
-import { isMockDataAllowed } from '@/lib/constants';
+import { isMockDataAllowed, resolveCanonicalStyleName } from '@/lib/constants';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_STAFF, MOCK_EXCEPTIONS } from '@/lib/mockData';
 import {
   getShopBundle,
@@ -531,8 +531,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 measurements: currentStyleData.measurements,
               });
             }
+            const canonicalStyle = resolveCanonicalStyleName(styleName, c.gender);
+            const currentPreferred = c.preferredStyles || [];
+            const nextPreferred =
+              canonicalStyle && !currentPreferred.includes(canonicalStyle)
+                ? [...currentPreferred, canonicalStyle]
+                : currentPreferred;
             return {
               ...c,
+              preferredStyles: nextPreferred,
               styleMeasurements: {
                 ...existing,
                 [styleName]: {
@@ -564,8 +571,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
               ...state,
               customers: state.customers.map((c) => {
                 if (c.id !== customerId) return c;
+                const canonicalStyle = resolveCanonicalStyleName(styleName, c.gender);
+                const currentPreferred = c.preferredStyles || [];
+                const nextPreferred =
+                  canonicalStyle && !currentPreferred.includes(canonicalStyle)
+                    ? [...currentPreferred, canonicalStyle]
+                    : currentPreferred;
                 return {
                   ...c,
+                  preferredStyles: nextPreferred,
                   styleMeasurements: {
                     ...(c.styleMeasurements || {}),
                     [styleName]: {

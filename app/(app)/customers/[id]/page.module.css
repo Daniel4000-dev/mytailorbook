@@ -214,6 +214,74 @@
   font-weight: 700;
 }
 
+.heroStyleBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.045);
+  color: var(--sf-text-secondary);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.quickStyleToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  border: 1px dashed rgba(79, 70, 229, 0.35);
+  background: rgba(79, 70, 229, 0.04);
+  color: var(--sf-brand-indigo, #4F46E5);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickStyleToggleBtn:hover,
+.quickStyleToggleBtnActive {
+  background: rgba(79, 70, 229, 0.12);
+  border-style: solid;
+}
+
+.quickStylePickerTray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.quickStyleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickStyleChip:active {
+  transform: scale(0.96);
+}
+
+.quickStyleChipActive {
+  background: var(--sf-brand-indigo, #4F46E5);
+  border-color: var(--sf-brand-indigo, #4F46E5);
+  color: #FFFFFF;
+}
+
 /* ── 2. Inset 3-Metric Executive Stats Strip ─────────────────── */
 .statsTray {
   display: flex;

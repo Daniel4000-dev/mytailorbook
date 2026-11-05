@@ -9,6 +9,7 @@ import Avatar from '@/components/ui/Avatar/Avatar';
 import MoneyInput from '@/components/ui/MoneyInput/MoneyInput';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
+import { resolveCanonicalStyleName } from '@/lib/constants';
 import type { Customer } from '@/lib/types';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
@@ -123,7 +124,7 @@ const QUICK_COST_BENCHMARKS = [15000, 22000, 30000, 45000, 60000, 85000];
 
 export default function QuoteEstimatorPage() {
   const router = useRouter();
-  const { currentShop, customers } = useData();
+  const { currentShop, customers, updateCustomerProfile } = useData();
   const { showToast } = useToast();
 
   const currency = currentShop?.currency || 'NGN';
@@ -426,8 +427,22 @@ export default function QuoteEstimatorPage() {
     }
   };
 
+  // Auto-tag style interest on the customer record when a quote is prepared/shared for them
+  const autoTagCustomerStyle = () => {
+    if (!selectedCustomer || !garmentTitle.trim()) return;
+    const canonical = resolveCanonicalStyleName(garmentTitle, selectedCustomer.gender);
+    if (!canonical) return;
+    const existing = selectedCustomer.preferredStyles || [];
+    if (!existing.includes(canonical)) {
+      const updated = [...existing, canonical];
+      setSelectedCustomer({ ...selectedCustomer, preferredStyles: updated });
+      void updateCustomerProfile(selectedCustomer.id, { preferredStyles: updated }).catch(() => {});
+    }
+  };
+
   // Convert Quote into Order (Zero retyping for customer)
   const handleConvertToOrder = () => {
+    autoTagCustomerStyle();
     const custId = selectedCustomer?.id || '';
     const styleQuery = encodeURIComponent(garmentTitle.trim() || 'Custom Outfit');
     const priceQuery = encodeURIComponent(recommendedPrice.toString());
@@ -543,6 +558,7 @@ ${shopName}`;
 
   // Send via WhatsApp
   const handleSendWhatsApp = () => {
+    autoTagCustomerStyle();
     recordRecentQuote({
       id: `quote-${Date.now()}`,
       clientName: activeCustomerName || 'Walk-in Client',
@@ -567,6 +583,7 @@ ${shopName}`;
 
   // Copy Quote Text to Clipboard
   const handleCopyQuote = () => {
+    autoTagCustomerStyle();
     const text = generateQuoteMessage();
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(text);
