@@ -443,74 +443,95 @@ function CustomerProfileContent({
       }
     >
       <div className={styles.profileBar}>
-        {/* ── 1. Luxury Profile Header (Instagram Profile Style) ── */}
-        <section className={styles.profileHeader}>
-          {/* Clean Elevated Avatar */}
-          <div className={styles.avatarWrap}>
-            <Avatar name={customer.fullName} size="xl" shape="circle" />
-            {hasReadyOrder ? (
-              <span className={styles.onlineBadge} title="Ready for pickup" />
-            ) : hasActiveOrder ? (
-              <span className={styles.activeBadge} title="Garment in production" />
-            ) : null}
+        {/* ── 1. Executive Workshop Client Dossier ── */}
+        <section className={styles.executiveCard}>
+          <div className={styles.cardMainRow}>
+            <div className={styles.avatarWrap}>
+              <Avatar name={customer.fullName} size="xl" shape="circle" className={styles.mainAvatar} />
+              {hasReadyOrder ? (
+                <span className={styles.onlineBadge} title="Ready for pickup" />
+              ) : hasActiveOrder ? (
+                <span className={styles.activeBadge} title="Garment in production" />
+              ) : null}
+            </div>
+
+            <div className={styles.profileDetails}>
+              <div className={styles.nameActionRow}>
+                <h2 className={styles.name}>{customer.fullName}</h2>
+                <button
+                  type="button"
+                  className={styles.inlineEditBtn}
+                  onClick={() => setEditOpen(true)}
+                  aria-label="Edit customer profile"
+                >
+                  <Symbol name="edit" size={15} />
+                </button>
+              </div>
+
+              <div className={styles.metaRow}>
+                <span className={styles.phoneText}>{formatPhone(customer.whatsappNumber)}</span>
+                <button
+                  type="button"
+                  className={styles.copyPhoneBtn}
+                  onClick={() => {
+                    navigator.clipboard.writeText(customer.whatsappNumber);
+                    showToast('Phone number copied', 'info');
+                  }}
+                  title="Copy phone number"
+                >
+                  <Symbol name="content_copy" size={12} />
+                </button>
+                {customer.gender && (
+                  <span className={styles.genderBadge}>
+                    {customer.gender === 'female' ? 'Women' : 'Men'}
+                  </span>
+                )}
+                {hasReadyOrder && <span className={styles.readyBadge}>Ready</span>}
+                {hasActiveOrder && !hasReadyOrder && <span className={styles.inProdBadge}>In Production</span>}
+              </div>
+
+              {FEATURE_FLAGS.customerAddress && customer.address && (
+                <div className={styles.customerAddress}>
+                  <Symbol name="storefront" size={13} /> {customer.address}
+                </div>
+              )}
+
+              {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
+                <div className={styles.storeCreditBadge}>
+                  <Symbol name="account_balance_wallet" size={13} />
+                  Store Credit: {formatCurrency(customer.wallet_balance)}
+                </div>
+              )}
+            </div>
           </div>
 
-          <h2 className={styles.name}>{customer.fullName}</h2>
-
-          <div className={styles.metaRow}>
-            <span className={styles.phoneText}>{formatPhone(customer.whatsappNumber)}</span>
-            {customer.gender && (
-              <button
-                type="button"
-                className={styles.genderTag}
-                onClick={() => setEditOpen(true)}
-                title="Tap to edit gender"
-              >
-                {customer.gender}
-              </button>
-            )}
-          </div>
-
-          {FEATURE_FLAGS.customerAddress && customer.address && (
-            <span className={styles.customerAddress}>
-              <Symbol name="storefront" size={12} /> {customer.address}
-            </span>
-          )}
-
-          {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
-            <div className={styles.storeCreditBadge}>
-              <Symbol name="account_balance_wallet" size={14} />
-              Store Credit: {formatCurrency(customer.wallet_balance)}
+          {/* Inset 3-Metric Executive Stats Tray */}
+          <div className={styles.statsTray}>
+            <div className={styles.statBox} onClick={() => setActiveTab('orders')} title="View orders">
+              <span className={styles.statBoxVal}>{custOrders.length}</span>
+              <span className={styles.statBoxLabel}>Total Orders</span>
             </div>
-          )}
-
-          {/* Borderless Instagram-Style 3-Metric Pulse */}
-          <div className={styles.metricStrip}>
-            <div className={styles.metricItem} onClick={() => setActiveTab('orders')} title="View orders">
-              <span className={styles.metricVal}>{custOrders.length}</span>
-              <span className={styles.metricLabel}>Orders</span>
+            <div className={styles.statBoxDivider} />
+            <div className={styles.statBox} onClick={() => setActiveTab('orders')} title="View total spent">
+              <span className={styles.statBoxVal}>{formatCurrency(totalSpend)}</span>
+              <span className={styles.statBoxLabel}>Total Billed</span>
             </div>
-            <div className={styles.metricDivider} />
-            <div className={styles.metricItem} onClick={() => setActiveTab('orders')} title="View total spent">
-              <span className={styles.metricVal}>{formatCurrency(totalSpend)}</span>
-              <span className={styles.metricLabel}>Total Spent</span>
-            </div>
-            <div className={styles.metricDivider} />
-            <div className={styles.metricItem} onClick={() => setActiveTab('orders')} title="View balance due">
-              <span className={`${styles.metricVal} ${totalOwed > 0 ? styles.warn : ''}`}>
-                {formatCurrency(totalOwed)}
+            <div className={styles.statBoxDivider} />
+            <div className={styles.statBox} onClick={() => setActiveTab('orders')} title="View balance due">
+              <span className={`${styles.statBoxVal} ${totalOwed > 0 ? styles.warn : ''}`}>
+                {totalOwed > 0 ? formatCurrency(totalOwed) : '₦0'}
               </span>
-              <span className={styles.metricLabel}>
-                {totalOwed > 0 ? 'Balance Due' : 'Zero Debt'}
+              <span className={`${styles.statBoxBadge} ${totalOwed > 0 ? styles.statBoxBadgeWarn : styles.statBoxBadgeClean}`}>
+                {totalOwed > 0 ? 'Pending' : 'Settled'}
               </span>
             </div>
           </div>
 
-          {/* Apple Contacts Action Strip */}
-          <div className={styles.appleActionStrip}>
+          {/* Action Command Strip */}
+          <div className={styles.actionCommandStrip}>
             <button
               type="button"
-              className={styles.applePrimaryActionBtn}
+              className={styles.primaryOrderBtn}
               onClick={() => router.push(ROUTES.orderNewForCustomer(customer.id))}
             >
               <Symbol name="add_circle" size={17} />
@@ -518,9 +539,9 @@ function CustomerProfileContent({
             </button>
             <button
               type="button"
-              className={styles.appleSecondaryActionBtn}
+              className={styles.secondaryActionBtn}
               onClick={() => router.push(`/quotes?customer=${customer.id}`)}
-              title="Calculate quick quote for this customer"
+              title="Calculate quick quote"
             >
               <Symbol name="calculate" size={16} />
               <span>Quote</span>
@@ -536,58 +557,101 @@ function CustomerProfileContent({
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.appleSecondaryActionBtn}
+              className={styles.secondaryActionBtnWhatsApp}
+              title="Message on WhatsApp"
             >
               <WhatsappIcon size={16} />
               <span>WhatsApp</span>
             </a>
-            <a href={`tel:+${customer.whatsappNumber}`} className={styles.appleSecondaryActionBtn}>
+            <a
+              href={`tel:+${customer.whatsappNumber}`}
+              className={styles.secondaryActionBtn}
+              title="Call customer"
+            >
               <Symbol name="call" size={16} />
               <span>Call</span>
             </a>
           </div>
-
-          {/* ── 2. Profile Navigation Tabs ── */}
-          <div className={styles.igTabBar}>
-            <button
-              type="button"
-              className={`${styles.igTabBtn} ${activeTab === 'measurements' ? styles.igTabActive : ''}`}
-              onClick={() => setActiveTab('measurements')}
-            >
-              <Symbol name="straighten" size={16} />
-              <span>Measurements</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.igTabBtn} ${activeTab === 'orders' ? styles.igTabActive : ''}`}
-              onClick={() => setActiveTab('orders')}
-            >
-              <Symbol name="inventory_2" size={16} />
-              <span>Orders ({custOrders.length})</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.igTabBtn} ${activeTab === 'fabrics' ? styles.igTabActive : ''}`}
-              onClick={() => setActiveTab('fabrics')}
-            >
-              <Symbol name="texture" size={16} />
-              <span>Fabrics ({(customer.fabrics || []).length})</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.igTabBtn} ${activeTab === 'fits' ? styles.igTabActive : ''}`}
-              onClick={() => setActiveTab('fits')}
-            >
-              <Symbol name="checkroom" size={16} />
-              <span>Style Fits ({profileEntries.length})</span>
-            </button>
-          </div>
         </section>
+
+        {/* ── 2. Segmented Rail Tab Bar ── */}
+        <div className={styles.segmentTabBar} role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'measurements'}
+            className={`${styles.segmentTabBtn} ${activeTab === 'measurements' ? styles.segmentTabActive : ''}`}
+            onClick={() => setActiveTab('measurements')}
+          >
+            <Symbol name="straighten" size={15} />
+            <span>Measurements</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'orders'}
+            className={`${styles.segmentTabBtn} ${activeTab === 'orders' ? styles.segmentTabActive : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            <Symbol name="inventory_2" size={15} />
+            <span>Orders {custOrders.length > 0 ? `(${custOrders.length})` : ''}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'fabrics'}
+            className={`${styles.segmentTabBtn} ${activeTab === 'fabrics' ? styles.segmentTabActive : ''}`}
+            onClick={() => setActiveTab('fabrics')}
+          >
+            <Symbol name="texture" size={15} />
+            <span>Fabrics {(customer.fabrics || []).length > 0 ? `(${(customer.fabrics || []).length})` : ''}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'fits'}
+            className={`${styles.segmentTabBtn} ${activeTab === 'fits' ? styles.segmentTabActive : ''}`}
+            onClick={() => setActiveTab('fits')}
+          >
+            <Symbol name="checkroom" size={15} />
+            <span>Style Fits {profileEntries.length > 0 ? `(${profileEntries.length})` : ''}</span>
+          </button>
+        </div>
       </div>
 
       {/* ── TAB 1: MEASUREMENTS ── */}
       {activeTab === 'measurements' && (
         <div className={styles.tabContent}>
+          {/* Baseline Measurements Glance Tray */}
+          <div className={styles.baselineTray}>
+            <div className={styles.baselineItem}>
+              <span className={styles.baselineLabel}>{customer.gender === 'female' ? 'Bust' : 'Chest'}</span>
+              <span className={styles.baselineValue}>
+                {measurements[customer.gender === 'female' ? 'bust' : 'chest'] ? `${measurements[customer.gender === 'female' ? 'bust' : 'chest']}"` : '--'}
+              </span>
+            </div>
+            <div className={styles.baselineDivider} />
+            <div className={styles.baselineItem}>
+              <span className={styles.baselineLabel}>Waist</span>
+              <span className={styles.baselineValue}>
+                {measurements.waist ? `${measurements.waist}"` : '--'}
+              </span>
+            </div>
+            <div className={styles.baselineDivider} />
+            <div className={styles.baselineItem}>
+              <span className={styles.baselineLabel}>Hips</span>
+              <span className={styles.baselineValue}>
+                {measurements.hips ? `${measurements.hips}"` : '--'}
+              </span>
+            </div>
+            <div className={styles.baselineDivider} />
+            <div className={styles.baselineItem}>
+              <span className={styles.baselineLabel}>{customer.gender === 'female' ? 'Dress L.' : 'Trouser L.'}</span>
+              <span className={styles.baselineValue}>
+                {measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength'] ? `${measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength']}"` : '--'}
+              </span>
+            </div>
+          </div>
           {/* Full-body reference profile */}
           <section className={styles.section}>
             <div className={styles.sectionTitleRow}>

@@ -42,48 +42,81 @@
   transform: scale(0.9);
 }
 
-/* ── 1. Luxury Profile Header ────────────────────────────────── */
-.profileHeader {
+/* ── 1. Executive Workshop Client Dossier ─────────────────────── */
+.executiveCard {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-xl, 18px);
+  padding: 20px 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  width: 100%;
+}
+
+.cardMainRow {
+  display: flex;
   align-items: center;
-  text-align: center;
-  gap: 6px;
-  padding-bottom: var(--sf-space-md);
+  gap: 16px;
+  width: 100%;
 }
 
 .avatarWrap {
   position: relative;
-  width: 72px;
-  height: 72px;
-  margin-bottom: 4px;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.mainAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .onlineBadge {
   position: absolute;
-  bottom: 0px;
-  right: 0px;
-  width: 15px;
-  height: 15px;
+  bottom: 1px;
+  right: 1px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #10B981;
-  border: 2.5px solid var(--sf-bg-primary, #FFFFFF);
+  border: 2.5px solid var(--sf-bg-surface, #FFFFFF);
   z-index: 2;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
 }
 
 .activeBadge {
   position: absolute;
-  bottom: 0px;
-  right: 0px;
-  width: 15px;
-  height: 15px;
+  bottom: 1px;
+  right: 1px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: var(--sf-brand-indigo);
-  border: 2.5px solid var(--sf-bg-primary, #FFFFFF);
+  background: var(--sf-brand-indigo, #4F46E5);
+  border: 2.5px solid var(--sf-bg-surface, #FFFFFF);
   z-index: 2;
+}
+
+.profileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nameActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .name {
@@ -91,35 +124,92 @@
   font-size: 20px;
   font-weight: 700;
   color: var(--sf-text-primary);
-  margin-top: 4px;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inlineEditBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.inlineEditBtn:hover {
+  background: rgba(67, 56, 202, 0.1);
+  color: var(--sf-brand-indigo);
 }
 
 .metaRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-  justify-content: center;
 }
 
 .phoneText {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--sf-text-secondary);
   font-weight: 500;
 }
 
-.genderTag {
-  font-size: 11px;
-  font-weight: 600;
+.copyPhoneBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-tertiary);
+  cursor: pointer;
+  transition: color var(--sf-transition-fast);
+  padding: 0;
+}
+
+.copyPhoneBtn:hover {
+  color: var(--sf-brand-indigo);
+}
+
+.genderBadge {
+  font-size: 10.5px;
+  font-weight: 700;
   color: var(--sf-brand-indigo);
   background: rgba(67, 56, 202, 0.08);
-  padding: 2px 10px;
-  border: none;
-  border-radius: 999px;
-  text-transform: capitalize;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  padding: 1.5px 7px;
+  border-radius: var(--sf-radius-full);
+}
+
+.readyBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 1.5px 7px;
+  border-radius: var(--sf-radius-full);
+}
+
+.inProdBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--sf-brand-indigo);
+  background: rgba(67, 56, 202, 0.1);
+  padding: 1.5px 7px;
+  border-radius: var(--sf-radius-full);
 }
 
 .customerAddress {
@@ -128,132 +218,265 @@
   gap: 4px;
   font-size: 12px;
   color: var(--sf-text-tertiary);
-  text-align: center;
+  margin-top: 2px;
 }
 
 .storeCreditBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: rgba(245, 158, 11, 0.12);
   color: #B45309;
   border: 1px solid rgba(245, 158, 11, 0.25);
-  padding: 4px 14px;
+  padding: 3px 10px;
   border-radius: var(--sf-radius-full);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: 2px;
+  width: fit-content;
 }
 
-/* ── 2. Borderless Instagram 3-Metric Pulse ─────────────────── */
-.metricStrip {
+/* ── 2. Inset 3-Metric Executive Stats Tray ──────────────────── */
+.statsTray {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
+  background: var(--sf-bg-surface-elevated, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md, 10px);
+  padding: 10px 14px;
   width: 100%;
-  max-width: 440px;
-  background: transparent;
-  padding: 12px 8px;
-  margin: 6px 0 2px;
-  user-select: none;
 }
 
-.metricItem {
+.statBox {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  cursor: pointer;
+  gap: 2px;
   flex: 1;
+  cursor: pointer;
   transition: transform var(--sf-transition-fast);
 }
 
-.metricItem:active {
-  transform: scale(0.96);
+.statBox:active {
+  transform: scale(0.97);
 }
 
-.metricVal {
+.statBoxVal {
   font-family: var(--sf-font-heading);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--sf-text-primary);
-  font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
-.metricLabel {
-  font-size: 10.5px;
+.statBoxLabel {
+  font-size: 10px;
   font-weight: 600;
   color: var(--sf-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
+  letter-spacing: 0.04em;
 }
 
-.metricDivider {
+.statBoxDivider {
   width: 1px;
-  height: 22px;
+  height: 24px;
   background: var(--sf-border-light);
-  opacity: 0.8;
+}
+
+.statBoxBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--sf-radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.statBoxBadgeClean {
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.statBoxBadgeWarn {
+  color: #D97706;
+  background: rgba(245, 158, 11, 0.12);
 }
 
 .warn {
   color: #D97706;
 }
 
-/* ── 3. Apple Contacts Action Strip ────────────────────────── */
-.appleActionStrip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── 3. Action Command Strip ────────────────────────────────── */
+.actionCommandStrip {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.3fr 1fr;
   gap: 8px;
   width: 100%;
-  max-width: 420px;
-  margin-top: 6px;
 }
 
-.applePrimaryActionBtn {
-  flex: 1.2;
+.primaryOrderBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 10px 16px;
-  background: var(--sf-brand-indigo);
+  padding: 10px 12px;
+  background: var(--sf-brand-indigo, #4F46E5);
   color: #FFFFFF;
   border: none;
   border-radius: var(--sf-radius-full);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
-  transition: transform var(--sf-transition-fast), opacity var(--sf-transition-fast);
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
 }
 
-.applePrimaryActionBtn:active {
-  transform: scale(0.96);
-  opacity: 0.9;
+.primaryOrderBtn:active {
+  transform: scale(0.97);
+  box-shadow: none;
 }
 
-.appleSecondaryActionBtn {
+.secondaryActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 10px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+}
+
+.secondaryActionBtn:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.secondaryActionBtn:active {
+  transform: scale(0.97);
+}
+
+.secondaryActionBtnWhatsApp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 10px;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.25);
+  border-radius: var(--sf-radius-full);
+  color: #15803D;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+}
+
+.secondaryActionBtnWhatsApp:hover {
+  background: rgba(37, 211, 102, 0.2);
+}
+
+.secondaryActionBtnWhatsApp:active {
+  transform: scale(0.97);
+}
+
+/* ── 4. Segmented Rail Tab Bar ──────────────────────────────── */
+.segmentTabBar {
+  display: flex;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  border-radius: var(--sf-radius-full);
+  gap: 2px;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.segmentTabBar::-webkit-scrollbar {
+  display: none;
+}
+
+.segmentTabBtn {
   flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 10px 14px;
-  background: rgba(0, 0, 0, 0.04);
+  padding: 8px 12px;
+  background: transparent;
   border: none;
   border-radius: var(--sf-radius-full);
-  color: var(--sf-text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform var(--sf-transition-fast), background-color var(--sf-transition-fast);
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.appleSecondaryActionBtn:active {
-  transform: scale(0.96);
-  background: rgba(0, 0, 0, 0.08);
+.segmentTabBtn:active {
+  transform: scale(0.97);
+}
+
+.segmentTabActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-brand-indigo);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── 5. Baseline Measurements Glance Tray ───────────────────── */
+.baselineTray {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg, 12px);
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  width: 100%;
+}
+
+.baselineItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.baselineLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.baselineValue {
+  font-family: var(--sf-font-heading);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--sf-brand-indigo, #4F46E5);
+  line-height: 1.2;
+}
+
+.baselineDivider {
+  width: 1px;
+  height: 22px;
+  background: var(--sf-border-light);
 }
 
 /* ── 4. Saved Style Profiles (Elevated Fit Cards) ─────────────── */
@@ -1048,6 +1271,28 @@
   border-color: rgba(220, 38, 38, 0.3);
 }
 
+:global([data-theme='dark']) .executiveCard,
+:global([data-theme='dark']) .baselineTray {
+  background: #161526;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .statsTray {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .segmentTabBar {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:global([data-theme='dark']) .segmentTabActive {
+  background: #1f1d33;
+  color: #a5b4fc;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* ── 11. Dark Mode Overrides (prefers-color-scheme: dark) ─────── */
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .avatarInner {
@@ -1161,5 +1406,27 @@
   :global(:root:not([data-theme="light"])) .dangerZone {
     background: rgba(220, 38, 38, 0.06);
     border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .executiveCard,
+  :global(:root:not([data-theme="light"])) .baselineTray {
+    background: #161526;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .statsTray {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentTabBar {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentTabActive {
+    background: #1f1d33;
+    color: #a5b4fc;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   }
 }

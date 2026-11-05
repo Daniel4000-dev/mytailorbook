@@ -845,8 +845,8 @@ export default function CustomersPage() {
                         ₦{Math.round(stats.totalBalance).toLocaleString()}
                       </span>
                     )}
-                    {hasActive && !hasBalance && (
-                      <span className={styles.activeDot} />
+                    {isReady && !hasBalance && (
+                      <span className={styles.readyPill}>Ready</span>
                     )}
                     <div className={styles.quickActionIcons} onClick={(e) => e.stopPropagation()}>
                       <a
@@ -855,7 +855,7 @@ export default function CustomersPage() {
                         aria-label={`Call ${c.fullName}`}
                         title={`Call ${c.fullName}`}
                       >
-                        <Symbol name="call" size={16} />
+                        <Symbol name="call" size={15} />
                       </a>
                       <a
                         href={getWhatsAppLink(c.whatsappNumber, whatsappGreeting)}
@@ -865,9 +865,10 @@ export default function CustomersPage() {
                         aria-label={`WhatsApp ${c.fullName}`}
                         title={`WhatsApp ${c.fullName}`}
                       >
-                        <WhatsappIcon size={18} />
+                        <WhatsappIcon size={16} />
                       </a>
                     </div>
+                    <Symbol name="chevron_right" size={18} className={styles.rowChevron} />
                   </div>
                 </div>
               );
