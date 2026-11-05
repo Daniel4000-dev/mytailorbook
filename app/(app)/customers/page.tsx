@@ -171,17 +171,55 @@ export default function CustomersPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setVisibleCount(PAGE_SIZE), [search, clientFilter, styleFilter]);
 
+  // Map every customer to all garment styles they prefer, have custom fit profiles for, or have ordered
+  const customerStylesMap = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+    customers.forEach((c) => {
+      const set = new Set<string>();
+      c.preferredStyles?.forEach((s) => {
+        if (s) set.add(s);
+      });
+      if (c.styleMeasurements) {
+        Object.keys(c.styleMeasurements).forEach((s) => {
+          if (s) set.add(s);
+        });
+      }
+      map[c.id] = set;
+    });
+    orders.forEach((o) => {
+      if (o.customerId && o.styleName && map[o.customerId]) {
+        const rawStyle = o.styleName.trim();
+        const matchedCatalog = GARMENT_STYLES.find(
+          (g) => g.name.toLowerCase() === rawStyle.toLowerCase()
+        );
+        map[o.customerId].add(matchedCatalog ? matchedCatalog.name : rawStyle);
+      }
+    });
+    return map;
+  }, [customers, orders]);
+
   const availableStyles = useMemo(() => {
     const scoped = (clientFilter === 'male' || clientFilter === 'female')
       ? customers.filter((c) => c.gender === clientFilter)
       : customers;
-    const names = new Set<string>();
-    scoped.forEach((c) => c.preferredStyles?.forEach((s) => names.add(s)));
-    return Array.from(names)
-      .filter((name) => approvedStyleNames.has(name))
-      .sort((a, b) => a.localeCompare(b))
-      .map((name) => ({ name, photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl }));
-  }, [customers, clientFilter, approvedStyleNames]);
+    const counts = new Map<string, number>();
+    scoped.forEach((c) => {
+      customerStylesMap[c.id]?.forEach((s) => {
+        counts.set(s, (counts.get(s) || 0) + 1);
+      });
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => {
+        if (b[1] !== a[1]) return b[1] - a[1];
+        return a[0].localeCompare(b[0]);
+      })
+      .map(([name, count]) => ({
+        name,
+        count,
+        hasApprovedPhoto: approvedStyleNames.has(name),
+        photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl,
+      }));
+  }, [customers, clientFilter, customerStylesMap, approvedStyleNames]);
 
   // Filtered customer list
   const filtered = useMemo(() => {
@@ -195,19 +233,22 @@ export default function CustomersPage() {
       if (clientFilter === 'ready' && stats?.activeOrder?.status !== 'Ready') return false;
       if (clientFilter === 'active' && (!stats || stats.activeOrders <= 0)) return false;
       if (clientFilter === 'owing' && (!stats || stats.totalBalance <= 0)) return false;
-      if (styleFilter && !c.preferredStyles?.includes(styleFilter)) return false;
+      if (styleFilter && !customerStylesMap[c.id]?.has(styleFilter)) return false;
       if (!rawSearch) return true;
 
       const nameMatches = c.fullName.toLowerCase().includes(rawSearch);
       const phoneMatches = c.whatsappNumber.includes(rawSearch);
+      const styleMatches = Array.from(customerStylesMap[c.id] || []).some((s) =>
+        s.toLowerCase().includes(rawSearch)
+      );
       const phoneDigitsMatches =
         searchDigits.length >= 3 &&
         (c.whatsappNumber.replace(/\D/g, '').includes(searchDigits) ||
           (searchDigits.startsWith('0') && c.whatsappNumber.replace(/\D/g, '').includes(searchDigits.slice(1))));
 
-      return nameMatches || phoneMatches || phoneDigitsMatches;
+      return nameMatches || phoneMatches || styleMatches || phoneDigitsMatches;
     });
-  }, [customers, clientFilter, styleFilter, search, customerStats]);
+  }, [customers, clientFilter, styleFilter, search, customerStats, customerStylesMap]);
 
   const { totalCustomers, activeCustomers, owingCount, readyCount, totalBalanceOwed, maleCount, femaleCount } = useMemo(() => {
     let active = 0;
@@ -240,13 +281,30 @@ export default function CustomersPage() {
     };
   }, [customers, customerStats]);
 
-  const openOutreachSheet = () => {
-    setOutreachStep('compose');
+  const getDefaultOutreachNote = useCallback(
+    (styleName: string | null) =>
+      currentShop?.outreachTemplate ||
+      `Hi {name}, we just finished some fresh ${styleName || 'bespoke'} designs at our workshop that would fit your measurements really well. Would you like me to send you pictures?`,
+    [currentShop?.outreachTemplate]
+  );
+
+  const openOutreachSheet = (directToQueue = false) => {
+    const defaultNote = getDefaultOutreachNote(styleFilter);
+    setNoteText((prev) => prev || defaultNote);
     setSelectedPhoto(savedPhotos[0] || null);
-    setNoteText(currentShop?.outreachTemplate || `Hi {name}, thought you'd love this ${styleFilter} style!`);
     setIncludeContacted(false);
     setSelectionMode('everyone');
     setSelectedCustomerIds(new Set());
+
+    if (directToQueue) {
+      const notYetContacted = filtered.filter((c) => !outreachMap[c.id]);
+      const targets = notYetContacted.length > 0 ? notYetContacted : filtered;
+      setQueueList(targets);
+      setQueueIndex(0);
+      setOutreachStep('queue');
+    } else {
+      setOutreachStep('compose');
+    }
     setIsOutreachSheetOpen(true);
   };
 
@@ -271,36 +329,69 @@ export default function CustomersPage() {
     setQueueIndex(0);
   };
 
+  const markCustomerContacted = useCallback(
+    async (customerId: string) => {
+      const nowIso = new Date().toISOString();
+      setOutreachMap((prev) => ({ ...prev, [customerId]: nowIso }));
+      if (styleFilter && currentShop?.id && user) {
+        await logOutreachContactAction(currentShop.id, customerId, styleFilter, user.uid);
+      }
+    },
+    [styleFilter, currentShop?.id, user]
+  );
+
+  const handleSendWhatsAppInQueue = useCallback(async () => {
+    const customer = queueList[queueIndex];
+    if (!customer || !styleFilter) return;
+    const personalNote = (noteText || getDefaultOutreachNote(styleFilter)).replace(
+      /\{name\}/g,
+      customer.fullName.split(' ')[0]
+    );
+    window.open(getWhatsAppLink(customer.whatsappNumber, personalNote), '_blank');
+    await markCustomerContacted(customer.id);
+    showToast(`Opened WhatsApp for ${customer.fullName.split(' ')[0]}`, 'success');
+    setQueueIndex((i) => i + 1);
+  }, [queueList, queueIndex, styleFilter, noteText, getDefaultOutreachNote, markCustomerContacted, showToast]);
+
   const handleShareToCurrent = useCallback(async () => {
     const customer = queueList[queueIndex];
-    if (!customer || !selectedPhoto || !styleFilter || !currentShop?.id || !user) return;
+    if (!customer || !styleFilter) return;
+    const personalNote = (noteText || getDefaultOutreachNote(styleFilter)).replace(
+      /\{name\}/g,
+      customer.fullName.split(' ')[0]
+    );
+
+    if (!selectedPhoto) {
+      await handleSendWhatsAppInQueue();
+      return;
+    }
+
     setSharing(true);
     try {
-      const personalNote = noteText.replace(/\{name\}/g, customer.fullName.split(' ')[0]);
       const result = await shareStylePhoto(selectedPhoto.photoUrl, personalNote);
       if (result === 'shared') {
-        await logOutreachContactAction(currentShop.id, customer.id, styleFilter, user.uid);
-        setOutreachMap((prev) => ({ ...prev, [customer.id]: new Date().toISOString() }));
+        await markCustomerContacted(customer.id);
         showToast(`Shared with ${customer.fullName}`, 'success');
         setQueueIndex((i) => i + 1);
       } else if (result === 'unsupported') {
         window.open(getWhatsAppLink(customer.whatsappNumber, personalNote), '_blank');
-        showToast('Photo sharing isn’t supported here — sent the note only. Attach the photo yourself, then mark as sent.', 'info');
+        await markCustomerContacted(customer.id);
+        showToast('Opened WhatsApp with your note — attach the photo in chat.', 'info');
+        setQueueIndex((i) => i + 1);
       }
     } catch {
       showToast('Could not open the share sheet', 'error');
     } finally {
       setSharing(false);
     }
-  }, [queueList, queueIndex, selectedPhoto, styleFilter, currentShop, user, noteText, showToast]);
+  }, [queueList, queueIndex, selectedPhoto, styleFilter, noteText, getDefaultOutreachNote, handleSendWhatsAppInQueue, markCustomerContacted, showToast]);
 
   const handleMarkSentManually = useCallback(async () => {
     const customer = queueList[queueIndex];
-    if (!customer || !styleFilter || !currentShop?.id || !user) return;
-    await logOutreachContactAction(currentShop.id, customer.id, styleFilter, user.uid);
-    setOutreachMap((prev) => ({ ...prev, [customer.id]: new Date().toISOString() }));
+    if (!customer || !styleFilter) return;
+    await markCustomerContacted(customer.id);
     setQueueIndex((i) => i + 1);
-  }, [queueList, queueIndex, styleFilter, currentShop, user]);
+  }, [queueList, queueIndex, styleFilter, markCustomerContacted]);
 
   const topBar = (
     <TopBar
@@ -505,40 +596,53 @@ export default function CustomersPage() {
         <button
           type="button"
           className={`${styles.filterActionBtn} ${styleFilter ? styles.filterActionBtnActive : ''}`}
-          onClick={() => {
-            if (styleFilter) setStyleFilter(null);
-            else setIsStyleSheetOpen(true);
-          }}
-          title={styleFilter ? `Clear ${styleFilter} filter` : 'Filter styles'}
+          onClick={() => setIsStyleSheetOpen(true)}
+          title="Browse styles & outbound leads"
         >
-          <Symbol name={styleFilter ? 'close' : 'tune'} size={14} />
-          <span>{styleFilter || 'Style'}</span>
+          <Symbol name="campaign" size={15} />
+          <span>{styleFilter ? `Lead: ${styleFilter}` : 'Style Leads'}</span>
         </button>
       </div>
 
-      {/* Active style filter chip */}
-      {styleFilter && (
-        <div className={styles.activeFilterChipRow}>
-          <span className={styles.activeFilterChip}>
-            Style: <strong>{styleFilter}</strong>
-            <button
-              type="button"
-              onClick={() => setStyleFilter(null)}
-              className={styles.activeFilterChipClose}
-              aria-label={`Remove ${styleFilter} filter`}
-            >
-              <Symbol name="close" size={12} />
-            </button>
-          </span>
+      {/* ── 2b. Zero-Friction 1-Tap Style & Outbound Leads Pill Rail ── */}
+      {availableStyles.length > 0 && (
+        <div className={styles.styleLeadRail} role="region" aria-label="Filter clients by garment style">
+          <button
+            type="button"
+            className={`${styles.styleLeadPill} ${!styleFilter ? styles.styleLeadPillActive : ''}`}
+            onClick={() => setStyleFilter(null)}
+          >
+            <span>All Styles</span>
+          </button>
+          {availableStyles.map((s) => {
+            const active = styleFilter === s.name;
+            return (
+              <button
+                key={s.name}
+                type="button"
+                className={`${styles.styleLeadPill} ${active ? styles.styleLeadPillActive : ''}`}
+                onClick={() => setStyleFilter(active ? null : s.name)}
+              >
+                <span>{s.name}</span>
+                <span className={styles.styleLeadCount}>{s.count}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Style Filter BottomSheet */}
-      <BottomSheet isOpen={isStyleSheetOpen} onClose={() => setIsStyleSheetOpen(false)} title="Filter by Style">
+      <BottomSheet
+        isOpen={isStyleSheetOpen}
+        onClose={() => setIsStyleSheetOpen(false)}
+        title="Reach Clients by Style"
+      >
+        <p className={styles.sheetSubtitle}>
+          Pick a garment style to see every client who loves or wears it, then send them new designs on WhatsApp.
+        </p>
         {availableStyles.length === 0 ? (
           <p className={styles.noStylesHint}>
-            No styles to filter by yet — a style shows up here once it has both an approved Style Gallery photo
-            and at least one customer who prefers it.
+            No client styles recorded yet — styles appear automatically as you add client orders or preferred styles.
           </p>
         ) : (
           <div className={styles.styleFilterGrid}>
@@ -557,53 +661,141 @@ export default function CustomersPage() {
                     <Image src={s.photoUrl} alt="" width={200} height={200} />
                   </div>
                 ) : (
-                  <div className={styles.styleFilterPhoto} aria-hidden="true" />
+                  <div className={styles.styleFilterPhoto} aria-hidden="true">
+                    <Symbol name="checkroom" size={24} />
+                  </div>
                 )}
-                <span>{s.name}</span>
+                <span className={styles.styleCardName}>{s.name}</span>
+                <span className={styles.styleCardMeta}>
+                  {s.count} {s.count === 1 ? 'client' : 'clients'}
+                </span>
               </button>
             ))}
           </div>
         )}
       </BottomSheet>
 
-      {/* Outreach Action Bar */}
-      {styleFilter && (
-        savedPhotos.length > 0 ? (
-          <button type="button" className={styles.reachOutBar} onClick={openOutreachSheet}>
-            <Symbol name="ios_share" size={18} />
-            <span>Message {filtered.length} {filtered.length === 1 ? 'customer' : 'customers'} about {styleFilter}</span>
-          </button>
-        ) : (
-          <a href={ROUTES.styleDetail(styleFilter)} className={styles.reachOutHint}>
-            No approved photos yet for {styleFilter} — add one in Style Gallery
-          </a>
-        )
-      )}
+      {/* ── 3. Guided Outbound Style Leads Card ── */}
+      {styleFilter && (() => {
+        const notYetContactedCount = filtered.filter((c) => !outreachMap[c.id]).length;
+        const contactedCount = filtered.length - notYetContactedCount;
+        const targetCount = notYetContactedCount > 0 ? notYetContactedCount : filtered.length;
+
+        return (
+          <div className={styles.outboundLeadCard}>
+            <div className={styles.outboundLeadHeader}>
+              <div className={styles.outboundLeadTitleGroup}>
+                <div className={styles.outboundLeadBadgeIcon}>
+                  <Symbol name="campaign" size={18} />
+                </div>
+                <div className={styles.outboundLeadTextCol}>
+                  <div className={styles.outboundLeadTitleRow}>
+                    <span className={styles.outboundLeadTitle}>{styleFilter} Outbound Leads</span>
+                    <span className={styles.outboundLeadCountPill}>
+                      {filtered.length} {filtered.length === 1 ? 'client' : 'clients'}
+                    </span>
+                  </div>
+                  <p className={styles.outboundLeadSub}>
+                    {notYetContactedCount > 0
+                      ? `${notYetContactedCount} ready to message${contactedCount > 0 ? ` · ${contactedCount} already messaged` : ''}`
+                      : `All ${filtered.length} matching clients have been messaged`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={styles.outboundClearBtn}
+                onClick={() => setStyleFilter(null)}
+                aria-label={`Clear ${styleFilter} filter`}
+              >
+                <Symbol name="close" size={14} />
+              </button>
+            </div>
+
+            {filtered.length > 0 && (
+              <>
+                <div className={styles.outboundLeadActions}>
+                  <button
+                    type="button"
+                    className={styles.outboundPrimaryBtn}
+                    onClick={() => openOutreachSheet(true)}
+                  >
+                    <WhatsappIcon size={16} />
+                    <span>
+                      {notYetContactedCount > 0
+                        ? `Start WhatsApp Queue (${targetCount})`
+                        : `Message Again (${targetCount})`}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.outboundSecondaryBtn}
+                    onClick={() => openOutreachSheet(false)}
+                  >
+                    <Symbol name="edit" size={15} />
+                    <span>Customize</span>
+                  </button>
+                </div>
+                <p className={styles.outboundQuickTip}>
+                  Tip: Tap <strong>Start WhatsApp Queue</strong> to message clients one by one, or tap the green WhatsApp button on any client row below.
+                </p>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Outreach Sheet */}
       <BottomSheet
         isOpen={isOutreachSheetOpen}
         onClose={closeOutreachSheet}
-        title={outreachStep === 'compose' ? `Message Customers — ${styleFilter}` : undefined}
+        title={outreachStep === 'compose' ? `${styleFilter} Outbound Leads` : `${styleFilter} Outreach Queue`}
       >
         {outreachStep === 'compose' ? (
           <div className={styles.composeWrap}>
-            <span className={styles.composeLabel}>Choose a photo</span>
-            <div className={styles.styleFilterGrid}>
-              {savedPhotos.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`${styles.styleFilterCard} ${selectedPhoto?.id === p.id ? styles.styleFilterCardSelected : ''}`}
-                  onClick={() => setSelectedPhoto(p)}
-                >
-                  <div className={styles.styleFilterPhoto}>
-                    <Image src={p.photoUrl} alt="" width={200} height={200} />
-                  </div>
-                </button>
-              ))}
+            <div className={styles.composeSectionHeader}>
+              <span className={styles.composeLabel}>1. Photo Attachment (Optional)</span>
+              <a href={styleFilter ? ROUTES.styleDetail(styleFilter) : '#'} className={styles.manageGalleryLink}>
+                + Add shop photo
+              </a>
             </div>
-            <span className={styles.composeLabel}>Note (use {'{name}'} to insert each customer&apos;s first name)</span>
+            {savedPhotos.length > 0 ? (
+              <div className={styles.styleFilterGrid}>
+                <button
+                  type="button"
+                  className={`${styles.styleFilterCard} ${selectedPhoto === null ? styles.styleFilterCardSelected : ''}`}
+                  onClick={() => setSelectedPhoto(null)}
+                >
+                  <div className={`${styles.styleFilterPhoto} ${styles.textOnlyCardBox}`}>
+                    <Symbol name="chat" size={22} />
+                  </div>
+                  <span>Message Only</span>
+                </button>
+                {savedPhotos.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`${styles.styleFilterCard} ${selectedPhoto?.id === p.id ? styles.styleFilterCardSelected : ''}`}
+                    onClick={() => setSelectedPhoto(p)}
+                  >
+                    <div className={styles.styleFilterPhoto}>
+                      <Image src={p.photoUrl} alt="" width={200} height={200} />
+                    </div>
+                    <span>Shop Photo</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.noPhotoCallout}>
+                <Symbol name="chat" size={16} />
+                <span>
+                  Sending personalized WhatsApp note directly. You can also{' '}
+                  <a href={styleFilter ? ROUTES.styleDetail(styleFilter) : '#'}>add a {styleFilter} photo</a> in Style Gallery anytime.
+                </span>
+              </div>
+            )}
+
+            <span className={styles.composeLabel}>2. Personalized WhatsApp Message (uses {'{name}'} automatically)</span>
             <textarea
               className={styles.noteInput}
               value={noteText}
@@ -611,27 +803,27 @@ export default function CustomersPage() {
               rows={3}
             />
 
-            <span className={styles.composeLabel}>Send to</span>
+            <span className={styles.composeLabel}>3. Recipients</span>
             <div className={styles.pillTrack}>
               <button
                 type="button"
                 className={`${styles.softPill} ${selectionMode === 'everyone' ? styles.softPillActive : ''}`}
                 onClick={() => setSelectionMode('everyone')}
               >
-                <span>Everyone</span>
+                <span>All Matching ({filtered.length})</span>
               </button>
               <button
                 type="button"
                 className={`${styles.softPill} ${selectionMode === 'choose' ? styles.softPillActive : ''}`}
                 onClick={() => setSelectionMode('choose')}
               >
-                <span>Choose People</span>
+                <span>Pick Specific Clients</span>
               </button>
             </div>
 
             {(() => {
               const notYetContacted = filtered.filter((c) => !outreachMap[c.id]);
-              const everyoneTarget = includeContacted ? filtered : notYetContacted;
+              const everyoneTarget = includeContacted || notYetContacted.length === 0 ? filtered : notYetContacted;
               const chosenTarget = filtered.filter((c) => selectedCustomerIds.has(c.id));
               const queueTarget = selectionMode === 'everyone' ? everyoneTarget : chosenTarget;
 
@@ -647,19 +839,19 @@ export default function CustomersPage() {
                             onChange={() => toggleCustomerSelection(c.id)}
                           />
                           <span>{c.fullName}</span>
-                          {outreachMap[c.id] && <span className={styles.pickContactedTag}>Already contacted</span>}
+                          {outreachMap[c.id] && <span className={styles.pickContactedTag}>Messaged</span>}
                         </label>
                       ))}
                     </div>
                     <button
                       type="button"
                       className={styles.startBtn}
-                      disabled={!selectedPhoto || queueTarget.length === 0}
+                      disabled={queueTarget.length === 0}
                       onClick={() => startQueue(queueTarget)}
                     >
                       {queueTarget.length === 0
-                        ? 'Select at least one customer'
-                        : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
+                        ? 'Select at least one client'
+                        : `Start Queue (${queueTarget.length} ${queueTarget.length === 1 ? 'client' : 'clients'})`}
                     </button>
                   </>
                 );
@@ -667,25 +859,23 @@ export default function CustomersPage() {
 
               return (
                 <>
-                  {filtered.length > notYetContacted.length && (
+                  {filtered.length > notYetContacted.length && notYetContacted.length > 0 && (
                     <label className={styles.includeContactedRow}>
                       <input
                         type="checkbox"
                         checked={includeContacted}
                         onChange={(e) => setIncludeContacted(e.target.checked)}
                       />
-                      Include the {filtered.length - notYetContacted.length} already contacted
+                      Include {filtered.length - notYetContacted.length} already messaged
                     </label>
                   )}
                   <button
                     type="button"
                     className={styles.startBtn}
-                    disabled={!selectedPhoto || queueTarget.length === 0}
+                    disabled={queueTarget.length === 0}
                     onClick={() => startQueue(queueTarget)}
                   >
-                    {queueTarget.length === 0
-                      ? 'Everyone here has already been contacted'
-                      : `Start (${queueTarget.length} ${queueTarget.length === 1 ? 'customer' : 'customers'})`}
+                    {`Start WhatsApp Queue (${queueTarget.length} ${queueTarget.length === 1 ? 'client' : 'clients'})`}
                   </button>
                 </>
               );
@@ -696,12 +886,23 @@ export default function CustomersPage() {
             {queueIndex >= queueList.length ? (
               <div className={styles.queueDone}>
                 <Symbol name="check_circle" size={40} />
-                <p>All done — messaged everyone on this list.</p>
-                <button type="button" className={styles.startBtn} onClick={closeOutreachSheet}>Close</button>
+                <p>All done — you have reached out to everyone in this queue.</p>
+                <button type="button" className={styles.startBtn} onClick={closeOutreachSheet}>Done</button>
               </div>
             ) : (
               <>
-                <p className={styles.queuePosition}>Customer {queueIndex + 1} of {queueList.length}</p>
+                <div className={styles.queueTopMeta}>
+                  <span className={styles.queuePosition}>
+                    Client {queueIndex + 1} of {queueList.length}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.queueEditNoteBtn}
+                    onClick={() => setOutreachStep('compose')}
+                  >
+                    <Symbol name="edit" size={13} /> Edit message
+                  </button>
+                </div>
                 <div className={styles.queueCard}>
                   <Avatar name={queueList[queueIndex].fullName} size="md" shape="circle" />
                   <div>
@@ -709,7 +910,7 @@ export default function CustomersPage() {
                     <p className={styles.queuePhone}>{formatPhone(queueList[queueIndex].whatsappNumber)}</p>
                     {outreachMap[queueList[queueIndex].id] && (
                       <span className={styles.contactedTag}>
-                        Already messaged {formatDate(outreachMap[queueList[queueIndex].id])}
+                        Messaged {formatDate(outreachMap[queueList[queueIndex].id])}
                       </span>
                     )}
                   </div>
@@ -720,21 +921,28 @@ export default function CustomersPage() {
                   </div>
                 )}
                 <p className={styles.queueNotePreview}>
-                  {noteText.replace(/\{name\}/g, queueList[queueIndex].fullName.split(' ')[0])}
+                  {(noteText || getDefaultOutreachNote(styleFilter)).replace(
+                    /\{name\}/g,
+                    queueList[queueIndex].fullName.split(' ')[0]
+                  )}
                 </p>
                 <div className={styles.queueActions}>
                   <button type="button" className={styles.skipBtn} onClick={() => setQueueIndex((i) => i + 1)}>
                     Skip
                   </button>
                   <button type="button" className={styles.shareBtn} disabled={sharing} onClick={handleShareToCurrent}>
-                    <>
-                      {sharing && <Symbol name="progress_activity" className="global-spinner" />}
-                      <Symbol name="ios_share" size={18} /> Share
-                    </>
+                    {sharing ? (
+                      <Symbol name="progress_activity" className="global-spinner" />
+                    ) : selectedPhoto ? (
+                      <Symbol name="ios_share" size={17} />
+                    ) : (
+                      <WhatsappIcon size={16} />
+                    )}
+                    <span>{selectedPhoto ? 'Share Photo & Note' : 'Send on WhatsApp'}</span>
                   </button>
                 </div>
                 <button type="button" className={styles.markSentLink} onClick={handleMarkSentManually}>
-                  Already sent — mark as sent
+                  Already messaged — mark as contacted & next
                 </button>
               </>
             )}
@@ -823,8 +1031,15 @@ export default function CustomersPage() {
                 subtitle = `Client · ${formatPhone(c.whatsappNumber)}`;
               }
 
-              // Contextual WhatsApp greeting to remove typing friction for tailors
-              const whatsappGreeting = isReady
+              const isContactedForStyle = Boolean(styleFilter && outreachMap[c.id]);
+
+              // Contextual WhatsApp greeting (automatically switches to Outbound Style Pitch when a style filter is active)
+              const whatsappGreeting = styleFilter
+                ? (noteText || getDefaultOutreachNote(styleFilter)).replace(
+                    /\{name\}/g,
+                    c.fullName.split(' ')[0]
+                  )
+                : isReady
                 ? `Hello ${c.fullName}, your ${stats?.activeOrder?.styleName || 'outfit'} is ready for pickup at our workshop! Looking forward to seeing you.`
                 : hasBalance
                 ? `Hello ${c.fullName}, friendly reminder regarding your pending balance of ₦${Math.round(stats.totalBalance).toLocaleString()} at our shop. Thank you!`
@@ -850,6 +1065,15 @@ export default function CustomersPage() {
                       <span className={styles.customerName}>{c.fullName}</span>
                       {c.gender && (
                         <span className={styles.genderSubtle}>{c.gender === 'female' ? 'F' : 'M'}</span>
+                      )}
+                      {styleFilter && (
+                        isContactedForStyle ? (
+                          <span className={styles.contactedLeadPill}>
+                            <Symbol name="check_circle" size={11} /> Messaged
+                          </span>
+                        ) : (
+                          <span className={styles.leadMatchPill}>{styleFilter}</span>
+                        )
                       )}
                     </div>
                     <div className={styles.customerSubtitle}>
@@ -881,7 +1105,16 @@ export default function CustomersPage() {
                         rel="noopener noreferrer"
                         className={styles.whatsappActionBtn}
                         aria-label={`WhatsApp ${c.fullName}`}
-                        title={`WhatsApp ${c.fullName}`}
+                        title={
+                          styleFilter
+                            ? `Send ${styleFilter} outreach message to ${c.fullName}`
+                            : `WhatsApp ${c.fullName}`
+                        }
+                        onClick={() => {
+                          if (styleFilter) {
+                            void markCustomerContacted(c.id);
+                          }
+                        }}
                       >
                         <WhatsappIcon size={16} />
                       </a>

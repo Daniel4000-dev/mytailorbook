@@ -686,7 +686,85 @@
   background: rgba(67, 56, 202, 0.12);
 }
 
-/* ── 5. Style Filter BottomSheet ─────────────────────────────── */
+/* ── 5. Style Filter & Outbound Leads ─────────────────────────────── */
+.styleLeadRail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: var(--sf-space-sm);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.styleLeadRail::-webkit-scrollbar {
+  display: none;
+}
+
+.styleLeadPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.styleLeadPill:hover {
+  border-color: rgba(79, 70, 229, 0.3);
+  color: var(--sf-text-primary);
+}
+
+.styleLeadPill:active {
+  transform: scale(0.96);
+}
+
+.styleLeadPillActive {
+  background: var(--sf-brand-indigo, #4338CA);
+  border-color: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
+}
+
+.styleLeadCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--sf-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.styleLeadPillActive .styleLeadCount {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.sheetSubtitle {
+  margin: 0 0 var(--sf-space-md);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sf-text-secondary);
+}
+
 .noStylesHint {
   padding: var(--sf-space-lg);
   text-align: center;
@@ -705,7 +783,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: none;
   border: none;
   cursor: pointer;
@@ -719,6 +797,19 @@
   text-align: center;
 }
 
+.styleCardName {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  line-height: 1.25;
+}
+
+.styleCardMeta {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: var(--sf-text-tertiary) !important;
+}
+
 .styleFilterPhoto {
   width: 100%;
   aspect-ratio: 1;
@@ -727,6 +818,15 @@
   background: var(--sf-surface-container-highest);
   border: 2px solid transparent;
   transition: border-color var(--sf-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-tertiary);
+}
+
+.textOnlyCardBox {
+  background: rgba(79, 70, 229, 0.06);
+  color: var(--sf-brand-indigo);
 }
 
 .styleFilterPhoto img {
@@ -744,56 +844,229 @@
   transform: scale(0.96);
 }
 
-/* ── 6. Outreach Flow ────────────────────────────────────────── */
-.reachOutBar {
+/* ── 6. Outbound Leads Card & Outreach Flow ────────────────────────── */
+.outboundLeadCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(145deg, rgba(79, 70, 229, 0.06) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: var(--sf-space-md);
+}
+
+.outboundLeadHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.outboundLeadTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.outboundLeadBadgeIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.12);
+  color: var(--sf-brand-indigo, #4338CA);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.outboundLeadTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.outboundLeadTitleRow {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  background: var(--sf-brand-indigo);
-  color: var(--sf-text-on-accent);
-  border: none;
+  flex-wrap: wrap;
+}
+
+.outboundLeadTitle {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.outboundLeadCountPill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
-  padding: 12px 18px;
-  margin-bottom: var(--sf-space-md);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
+  background: rgba(79, 70, 229, 0.12);
+  color: var(--sf-brand-indigo, #4338CA);
+}
+
+.outboundLeadSub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--sf-text-secondary);
+}
+
+.outboundClearBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
+  flex-shrink: 0;
 }
 
-.reachOutBar:hover {
-  opacity: 0.95;
+.outboundLeadActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.reachOutBar:active {
+.outboundPrimaryBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 11px;
+  border: none;
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+  transition: all var(--sf-transition-fast);
+}
+
+.outboundPrimaryBtn:active {
   transform: scale(0.98);
 }
 
-.reachOutHint {
-  display: block;
-  background: var(--sf-brand-indigo-glow);
-  color: var(--sf-brand-indigo);
-  border-radius: var(--sf-radius-full);
-  padding: 10px 16px;
-  margin-bottom: var(--sf-space-md);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-  text-decoration: none;
-  text-align: center;
+.outboundSecondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--sf-transition-fast);
 }
 
-.contactBadge {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-semibold);
+.outboundSecondaryBtn:active {
+  transform: scale(0.97);
+}
+
+.outboundQuickTip {
+  margin: 0;
+  font-size: 11.5px;
   color: var(--sf-text-tertiary);
+  line-height: 1.35;
 }
 
-.contactBadgeDone {
+.contactedLeadPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 1px 7px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+}
+
+.leadMatchPill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: rgba(79, 70, 229, 0.1);
+  padding: 1px 7px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+}
+
+.composeSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: var(--sf-space-xs);
+}
+
+.manageGalleryLink {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--sf-brand-indigo);
+  text-decoration: none;
+}
+
+.noPhotoCallout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.06);
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.noPhotoCallout a {
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.queueTopMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.queueEditNoteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--sf-brand-indigo);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .composeWrap,
