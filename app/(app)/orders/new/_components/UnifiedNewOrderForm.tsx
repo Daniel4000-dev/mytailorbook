@@ -241,7 +241,7 @@ export default function UnifiedNewOrderForm() {
     }));
     const custom = (currentShop?.customStyles || []).map((s) => ({
       name: s.name,
-      subtitle: 'Custom Studio Style',
+      subtitle: 'Custom Shop Style',
       gender: s.gender || 'male',
       photoUrl: s.photoUrl,
     }));
@@ -1295,7 +1295,7 @@ export default function UnifiedNewOrderForm() {
                           onClick={() => updateGarment(garment.id, { showTweakMeasurements: true })}
                         >
                           <Symbol name="tune" size={16} />
-                          <span>Adjust / Tweak Values</span>
+                          <span>Adjust Measurements</span>
                         </button>
                       </div>
                     );
@@ -1309,7 +1309,7 @@ export default function UnifiedNewOrderForm() {
                           <div>
                             <strong>{filledCount} of {totalCount} measurements loaded</strong>
                             <p>
-                              Missing: {missingPoints.map((p) => p.label).join(', ')}. Please tape and enter remaining measurements below to prevent workshop delay.
+                              Missing: {missingPoints.map((p) => p.label).join(', ')}. Please enter the remaining measurements below for a perfect fit.
                             </p>
                           </div>
                         </div>
@@ -1323,7 +1323,7 @@ export default function UnifiedNewOrderForm() {
                             onClick={() => updateGarment(garment.id, { showTweakMeasurements: false })}
                             className={styles.collapseTweakBtn}
                           >
-                            Done Tweaking
+                            Done Editing
                           </button>
                         </div>
                       )}
@@ -1572,7 +1572,7 @@ export default function UnifiedNewOrderForm() {
                     <input
                       type="text"
                       className={styles.input}
-                      placeholder="e.g. 3.5 yards brought, client supplied buttons/lining"
+                      placeholder="e.g. 3.5 yards brought, customer provided buttons/lining"
                       value={garment.fabricNotes}
                       onChange={(e) => updateGarment(garment.id, { fabricNotes: e.target.value })}
                     />
@@ -1975,11 +1975,11 @@ export default function UnifiedNewOrderForm() {
         )}
       </BottomSheet>
 
-      {/* ── WORKSHOP CUTTING SLIP BOTTOMSHEET ── */}
+      {/* ── CUTTING SLIP BOTTOMSHEET ── */}
       <BottomSheet
         isOpen={cuttingSlipOpen}
         onClose={() => setCuttingSlipOpen(false)}
-        title="Workshop Cutting Slip"
+        title="Cutting Slip"
       >
         {completedBatch && selectedCustomer && (
           <div className={styles.cuttingSlipContainer}>

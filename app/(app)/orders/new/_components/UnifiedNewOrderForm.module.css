@@ -2179,6 +2179,17 @@
   text-transform: uppercase;
 }
 
+:global([data-theme='dark']) .partialFitBanner strong,
+:global([data-theme='dark']) .measureLabelMissing {
+  color: #fbbf24;
+}
+
+:global([data-theme='dark']) .partialWarningIcon,
+:global([data-theme='dark']) .neededTag {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.2);
+}
+
 /* ── Apple HIG Spring Tap Micro-Physics ── */
 .styleCard:active,
 .shortcutBtn:active,
