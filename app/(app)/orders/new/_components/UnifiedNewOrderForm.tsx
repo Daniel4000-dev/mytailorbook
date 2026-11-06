@@ -253,6 +253,72 @@ export default function UnifiedNewOrderForm() {
     return allStyles.filter((s) => !s.gender || s.gender === styleGenderFilter);
   }, [allStyles, styleGenderFilter]);
 
+  // Last two unique outfits made by the selected customer
+  const customerRecentStyles = useMemo(() => {
+    if (!selectedCustomer) return [];
+    const custOrders = orders
+      .filter((o) => o.customerId === selectedCustomer.id && o.styleName && o.styleName.trim() !== '')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const unique: string[] = [];
+    for (const o of custOrders) {
+      if (!o.styleName) continue;
+      const trimmed = o.styleName.trim();
+      if (!trimmed) continue;
+      const canonical = resolveCanonicalStyleName(trimmed, selectedCustomer.gender);
+      const target = canonical || trimmed;
+      if (target && !unique.some((u) => u.toLowerCase() === target.toLowerCase())) {
+        unique.push(target);
+      }
+      if (unique.length >= 2) break;
+    }
+    // Fallback: check saved styleProfiles / styleMeasurements on customer
+    if (unique.length < 2 && selectedCustomer.styleMeasurements) {
+      for (const styleName of Object.keys(selectedCustomer.styleMeasurements)) {
+        if (styleName && !unique.some((u) => u.toLowerCase() === styleName.toLowerCase())) {
+          unique.push(styleName);
+        }
+        if (unique.length >= 2) break;
+      }
+    }
+    return unique;
+  }, [selectedCustomer, orders]);
+
+  // Styles ordered with the customer's top two outfits first
+  const orderedDisplayedStyles = useMemo(() => {
+    if (customerRecentStyles.length === 0) {
+      return displayedStyles;
+    }
+    const matched: typeof displayedStyles = [];
+    for (const recentName of customerRecentStyles) {
+      const match = displayedStyles.find(
+        (s) => s.name.toLowerCase() === recentName.toLowerCase()
+      );
+      if (match && !matched.some((m) => m.name.toLowerCase() === match.name.toLowerCase())) {
+        matched.push(match);
+      } else if (!match) {
+        matched.push({
+          name: recentName,
+          subtitle: 'Previous Customer Outfit',
+          gender: selectedCustomer?.gender || 'male',
+          photoUrl: '',
+        });
+      }
+    }
+    const remaining = displayedStyles.filter(
+      (s) => !matched.some((m) => m.name.toLowerCase() === s.name.toLowerCase())
+    );
+    return [...matched, ...remaining];
+  }, [displayedStyles, customerRecentStyles, selectedCustomer?.gender]);
+
+  const [expandedStylesByGarment, setExpandedStylesByGarment] = useState<Record<string, boolean>>({});
+
+  const toggleExpandStyles = (garmentId: string) => {
+    setExpandedStylesByGarment((prev) => ({
+      ...prev,
+      [garmentId]: !prev[garmentId],
+    }));
+  };
+
   // Helper to get measurement points spec for a style
   const getSpecPointsForStyle = (styleName: string): StyleMeasurePoint[] => {
     if (!styleName) return DEFAULT_POINTS;
@@ -1159,66 +1225,115 @@ export default function UnifiedNewOrderForm() {
                   </div>
                 </div>
 
-                <div className={styles.styleGrid}>
-                  {displayedStyles.map((style) => {
-                    const isSelected = !garment.isCustomStyle && garment.styleName === style.name;
-                    return (
-                      <button
-                        key={style.name}
-                        type="button"
-                        className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
-                        onClick={() => handleStyleChange(garment.id, style.name, false)}
-                      >
-                        <div className={styles.styleThumbWrap}>
-                          {style.photoUrl ? (
-                            <Image
-                              src={style.photoUrl}
-                              alt={style.name}
-                              width={120}
-                              height={150}
-                              className={styles.styleImg}
-                            />
-                          ) : (
-                            <div className={styles.stylePlaceholder}>
-                              <Symbol name="checkroom" size={26} />
-                            </div>
-                          )}
-                          {isSelected && (
-                            <div className={styles.styleActiveBadge}>
-                              <Symbol name="check" size={14} />
-                            </div>
-                          )}
-                        </div>
-                        <div className={styles.styleCardInfo}>
-                          <span className={styles.styleName}>{style.name}</span>
-                          {style.subtitle && <span className={styles.styleSubtitle}>{style.subtitle}</span>}
-                        </div>
-                      </button>
-                    );
-                  })}
+                {(() => {
+                  const isSelectedOutsideTopTwo = Boolean(
+                    garment.styleName &&
+                    !garment.isCustomStyle &&
+                    !orderedDisplayedStyles.slice(0, 2).some((s) => s.name.toLowerCase() === garment.styleName.toLowerCase())
+                  );
+                  const isExpanded = Boolean(expandedStylesByGarment[garment.id]) || isSelectedOutsideTopTwo || garment.isCustomStyle;
+                  const visibleStyles = isExpanded ? orderedDisplayedStyles : orderedDisplayedStyles.slice(0, 2);
+                  const remainingCount = Math.max(0, orderedDisplayedStyles.length - 2);
 
-                  {/* + Custom Style Button */}
-                  <button
-                    type="button"
-                    className={`${styles.styleCard} ${styles.customStyleBtnCard} ${garment.isCustomStyle ? styles.styleCardActive : ''}`}
-                    onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
-                  >
-                    <div className={styles.styleThumbWrap}>
-                      <div className={styles.customStyleThumb}>
-                        <Symbol name="edit" size={24} />
+                  return (
+                    <>
+                      <div className={styles.styleGrid}>
+                        {visibleStyles.map((style) => {
+                          const isSelected = !garment.isCustomStyle && garment.styleName === style.name;
+                          const isCustomerRecent = customerRecentStyles.some(
+                            (r) => r.toLowerCase() === style.name.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={style.name}
+                              type="button"
+                              className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
+                              onClick={() => handleStyleChange(garment.id, style.name, false)}
+                            >
+                              <div className={styles.styleThumbWrap}>
+                                {style.photoUrl ? (
+                                  <Image
+                                    src={style.photoUrl}
+                                    alt={style.name}
+                                    width={120}
+                                    height={150}
+                                    className={styles.styleImg}
+                                  />
+                                ) : (
+                                  <div className={styles.stylePlaceholder}>
+                                    <Symbol name="checkroom" size={26} />
+                                  </div>
+                                )}
+                                {isCustomerRecent && (
+                                  <span className={styles.recentStylePill}>Recent</span>
+                                )}
+                                {isSelected && (
+                                  <div className={styles.styleActiveBadge}>
+                                    <Symbol name="check" size={14} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className={styles.styleCardInfo}>
+                                <span className={styles.styleName}>{style.name}</span>
+                                {style.subtitle && <span className={styles.styleSubtitle}>{style.subtitle}</span>}
+                              </div>
+                            </button>
+                          );
+                        })}
+
+                        {/* + Custom Style Button when expanded */}
+                        {isExpanded && (
+                          <button
+                            type="button"
+                            className={`${styles.styleCard} ${styles.customStyleBtnCard} ${garment.isCustomStyle ? styles.styleCardActive : ''}`}
+                            onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
+                          >
+                            <div className={styles.styleThumbWrap}>
+                              <div className={styles.customStyleThumb}>
+                                <Symbol name="edit" size={24} />
+                              </div>
+                              {garment.isCustomStyle && (
+                                <div className={styles.styleActiveBadge}>
+                                  <Symbol name="check" size={14} />
+                                </div>
+                              )}
+                            </div>
+                            <div className={styles.styleCardInfo}>
+                              <span className={styles.styleName}>+ Custom Style</span>
+                              <span className={styles.styleSubtitle}>Custom Design</span>
+                            </div>
+                          </button>
+                        )}
                       </div>
-                      {garment.isCustomStyle && (
-                        <div className={styles.styleActiveBadge}>
-                          <Symbol name="check" size={14} />
-                        </div>
-                      )}
-                    </div>
-                    <div className={styles.styleCardInfo}>
-                      <span className={styles.styleName}>+ Custom Style</span>
-                      <span className={styles.styleSubtitle}>Custom Design</span>
-                    </div>
-                  </button>
-                </div>
+
+                      {/* Indication to See More / Show Fewer & Custom Style */}
+                      <div className={styles.styleControlsRow}>
+                        {remainingCount > 0 && (
+                          <button
+                            type="button"
+                            className={styles.seeMoreBtn}
+                            onClick={() => toggleExpandStyles(garment.id)}
+                            aria-expanded={isExpanded}
+                          >
+                            <Symbol name={isExpanded ? 'expand_less' : 'expand_more'} size={18} />
+                            <span>{isExpanded ? 'Show fewer styles' : `See more styles (${remainingCount})`}</span>
+                          </button>
+                        )}
+
+                        {!isExpanded && (
+                          <button
+                            type="button"
+                            className={`${styles.customStyleQuickBtn} ${garment.isCustomStyle ? styles.customStyleQuickBtnActive : ''}`}
+                            onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
+                          >
+                            <Symbol name="edit" size={14} />
+                            <span>+ Custom Style</span>
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Inline Custom Style Name Input */}
                 {garment.isCustomStyle && (

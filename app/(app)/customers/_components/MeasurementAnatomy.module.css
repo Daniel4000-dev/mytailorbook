@@ -228,9 +228,32 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.categoryHeader:hover {
+  opacity: 0.85;
+}
+
+.categoryHeaderExpanded {
   margin-bottom: 14px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--sf-border-light);
+}
+
+.categoryChevron {
+  color: var(--sf-text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .categoryTitleWrap {

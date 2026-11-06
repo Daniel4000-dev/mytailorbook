@@ -693,41 +693,6 @@ function CustomerProfileContent({
       {/* ── TAB 1: MEASUREMENTS ── */}
       {activeTab === 'measurements' && (
         <div className={styles.tabContent}>
-          {/* Key Baseline Measurements Glance Tray */}
-          <div className={styles.baselineTray}>
-            <div className={styles.baselineItem}>
-              <span className={styles.baselineLabel}>{customer.gender === 'female' ? 'Bust' : 'Chest'}</span>
-              <span className={styles.baselineValue}>
-                {measurements[customer.gender === 'female' ? 'bust' : 'chest']
-                  ? `${measurements[customer.gender === 'female' ? 'bust' : 'chest']}"`
-                  : '--'}
-              </span>
-            </div>
-            <div className={styles.baselineDivider} />
-            <div className={styles.baselineItem}>
-              <span className={styles.baselineLabel}>Waist</span>
-              <span className={styles.baselineValue}>
-                {measurements.waist ? `${measurements.waist}"` : '--'}
-              </span>
-            </div>
-            <div className={styles.baselineDivider} />
-            <div className={styles.baselineItem}>
-              <span className={styles.baselineLabel}>Hips</span>
-              <span className={styles.baselineValue}>
-                {measurements.hips ? `${measurements.hips}"` : '--'}
-              </span>
-            </div>
-            <div className={styles.baselineDivider} />
-            <div className={styles.baselineItem}>
-              <span className={styles.baselineLabel}>{customer.gender === 'female' ? 'Dress L.' : 'Trouser L.'}</span>
-              <span className={styles.baselineValue}>
-                {measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength']
-                  ? `${measurements[customer.gender === 'female' ? 'dressLength' : 'trouserLength']}"`
-                  : '--'}
-              </span>
-            </div>
-          </div>
-
           {/* Measurements Card */}
           <section className={styles.measurementDossierCard}>
             <div className={styles.dossierHeaderRow}>

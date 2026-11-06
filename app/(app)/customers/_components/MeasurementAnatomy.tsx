@@ -146,10 +146,18 @@ export default function MeasurementAnatomy({
   onValueChange,
   onValueBlur,
 }: MeasurementAnatomyProps) {
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual');
+  const [viewMode, setViewMode] = useState<'visual' | 'list'>('list');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [isFullscreenStudio, setIsFullscreenStudio] = useState(false);
   const [studioZone, setStudioZone] = useState<AnatomyZone>('all');
   const [studioActivePointId, setStudioActivePointId] = useState<string | undefined>(selectedPointId);
+
+  const toggleSection = (key: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   const points = gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
 
@@ -229,22 +237,22 @@ export default function MeasurementAnatomy({
           <button
             type="button"
             role="tab"
-            aria-selected={viewMode === 'visual'}
-            className={`${styles.segBtn} ${viewMode === 'visual' ? styles.segBtnActive : ''}`}
-            onClick={() => setViewMode('visual')}
-          >
-            <Symbol name="person" size={14} />
-            <span>3D View</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
             aria-selected={viewMode === 'list'}
             className={`${styles.segBtn} ${viewMode === 'list' ? styles.segBtnActive : ''}`}
             onClick={() => setViewMode('list')}
           >
             <Symbol name="checklist" size={14} />
             <span>List View</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'visual'}
+            className={`${styles.segBtn} ${viewMode === 'visual' ? styles.segBtnActive : ''}`}
+            onClick={() => setViewMode('visual')}
+          >
+            <Symbol name="person" size={14} />
+            <span>3D View</span>
           </button>
         </div>
 
@@ -282,65 +290,82 @@ export default function MeasurementAnatomy({
       ) : (
         /* ── View Mode 2: Categorized Input Grid ──────────────── */
         <div className={styles.categoriesStack}>
-          {categorizedGroups.map((group) => (
-            <div key={group.key} className={styles.categoryCard}>
-              <div className={styles.categoryHeader}>
-                <h4 className={styles.categoryTitle}>{group.title}</h4>
-                <span
-                  className={`${styles.categoryCountPill} ${
-                    group.filledCount === group.points.length ? styles.categoryCountComplete : ''
-                  }`}
+          {categorizedGroups.map((group) => {
+            const isExpanded = Boolean(expandedSections[group.key]);
+            return (
+              <div key={group.key} className={styles.categoryCard}>
+                <button
+                  type="button"
+                  className={`${styles.categoryHeader} ${styles.categoryHeaderBtn} ${isExpanded ? styles.categoryHeaderExpanded : ''}`}
+                  onClick={() => toggleSection(group.key)}
+                  aria-expanded={isExpanded}
                 >
-                  {group.filledCount}/{group.points.length}
-                </span>
-              </div>
-
-              <div className={styles.categoryGrid}>
-                {group.points.map((point) => {
-                  const val = measurements[point.id] || '';
-                  const hasValue = val.trim() !== '';
-                  const globalIdx = points.findIndex((p) => p.id === point.id);
-
-                  return (
-                    <div
-                      key={point.id}
-                      className={`${styles.fieldCell} ${hasValue ? styles.fieldCellFilled : ''}`}
+                  <div className={styles.categoryTitleWrap}>
+                    <h4 className={styles.categoryTitle}>{group.title}</h4>
+                    <span
+                      className={`${styles.categoryCountPill} ${
+                        group.filledCount === group.points.length ? styles.categoryCountComplete : ''
+                      }`}
                     >
-                      <label htmlFor={`list-${point.id}`} className={styles.fieldLabel}>
-                        <span className={styles.fieldDot} />
-                        <span className={styles.fieldName}>{point.name}</span>
-                      </label>
-                      <div className={styles.fieldInputWrap}>
-                        <input
-                          id={`list-${point.id}`}
-                          type="text"
-                          inputMode="decimal"
-                          enterKeyHint={globalIdx < points.length - 1 ? 'next' : 'done'}
-                          className={styles.fieldInput}
-                          placeholder="--"
-                          value={val}
-                          onChange={(e) => onValueChange?.(point.id, e.target.value)}
-                          onBlur={(e) => onValueBlur?.(point.id, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const nextPoint = points[globalIdx + 1];
-                              if (nextPoint) {
-                                document.getElementById(`list-${nextPoint.id}`)?.focus();
-                              } else {
-                                (e.target as HTMLInputElement).blur();
-                              }
-                            }
-                          }}
-                        />
-                        <span className={styles.fieldUnit}>in</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                      {group.filledCount}/{group.points.length}
+                    </span>
+                  </div>
+                  <Symbol
+                    name={isExpanded ? 'expand_less' : 'expand_more'}
+                    size={20}
+                    className={styles.categoryChevron}
+                  />
+                </button>
+
+                {isExpanded && (
+                  <div className={styles.categoryGrid}>
+                    {group.points.map((point) => {
+                      const val = measurements[point.id] || '';
+                      const hasValue = val.trim() !== '';
+                      const globalIdx = points.findIndex((p) => p.id === point.id);
+
+                      return (
+                        <div
+                          key={point.id}
+                          className={`${styles.fieldCell} ${hasValue ? styles.fieldCellFilled : ''}`}
+                        >
+                          <label htmlFor={`list-${point.id}`} className={styles.fieldLabel}>
+                            <span className={styles.fieldDot} />
+                            <span className={styles.fieldName}>{point.name}</span>
+                          </label>
+                          <div className={styles.fieldInputWrap}>
+                            <input
+                              id={`list-${point.id}`}
+                              type="text"
+                              inputMode="decimal"
+                              enterKeyHint={globalIdx < points.length - 1 ? 'next' : 'done'}
+                              className={styles.fieldInput}
+                              placeholder="--"
+                              value={val}
+                              onChange={(e) => onValueChange?.(point.id, e.target.value)}
+                              onBlur={(e) => onValueBlur?.(point.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const nextPoint = points[globalIdx + 1];
+                                  if (nextPoint) {
+                                    document.getElementById(`list-${nextPoint.id}`)?.focus();
+                                  } else {
+                                    (e.target as HTMLInputElement).blur();
+                                  }
+                                }
+                              }}
+                            />
+                            <span className={styles.fieldUnit}>in</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -574,6 +574,72 @@
   color: var(--sf-brand-indigo);
 }
 
+.recentStylePill {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 2;
+  background: rgba(16, 185, 129, 0.95);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.styleControlsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.seeMoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-brand-indigo);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.seeMoreBtn:hover {
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+}
+
+.customStyleQuickBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full);
+  background: transparent;
+  border: 1px dashed var(--sf-border);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.customStyleQuickBtn:hover,
+.customStyleQuickBtnActive {
+  color: var(--sf-brand-indigo);
+  border-color: var(--sf-brand-indigo);
+  background: var(--sf-brand-indigo-glow);
+}
+
 /* ── Measurements (Apple Health Metric Ledger) ── */
 .fitLoadedBox {
   display: flex;

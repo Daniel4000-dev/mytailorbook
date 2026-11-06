@@ -169,7 +169,19 @@ export default function OwnerDashboard({
               <span className={styles.metricLabel}>Overdue payment</span>
             </button>
 
-            {/* Row 2: Overdue, Ready (2 wide cards, balanced) */}
+            {/* Row 2: Ready, Overdue (2 wide cards, balanced) */}
+            <button
+              type="button"
+              className={`${styles.operationsCard} ${styles.operationsCardWide}`}
+              onClick={() => onNavigate('/production?status=Ready')}
+              aria-label="View ready garments for pickup"
+            >
+              <div className={styles.metricTop}>
+                <span className={styles.metricNum}>{readyCount}</span>
+              </div>
+              <span className={styles.metricLabel}>Ready</span>
+            </button>
+
             <button
               type="button"
               className={`${styles.operationsCard} ${styles.operationsCardWide} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
@@ -181,18 +193,6 @@ export default function OwnerDashboard({
                 {urgentCount > 0 && <span className={styles.metricAlertDot} />}
               </div>
               <span className={styles.metricLabel}>Overdue</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.operationsCard} ${styles.operationsCardWide}`}
-              onClick={() => onNavigate('/production?status=Ready')}
-              aria-label="View ready garments for pickup"
-            >
-              <div className={styles.metricTop}>
-                <span className={styles.metricNum}>{readyCount}</span>
-              </div>
-              <span className={styles.metricLabel}>Ready</span>
             </button>
           </div>
         ) : (
