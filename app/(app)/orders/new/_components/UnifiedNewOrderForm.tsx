@@ -23,16 +23,16 @@ import type { Customer, Order, Priority } from '@/lib/types';
 import styles from './UnifiedNewOrderForm.module.css';
 
 const DEFAULT_POINTS: StyleMeasurePoint[] = [
-  { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 0, gy: 0 },
-  { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across back', gx: 0, gy: 0 },
-  { key: 'chest', label: 'Chest / Bust', hint: 'Fullest part, arms down', gx: 0, gy: 0 },
-  { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 0, gy: 0 },
-  { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 0, gy: 0 },
-  { key: 'shirtLength', label: 'Top / Shirt Length', hint: 'Shoulder to top hem', gx: 0, gy: 0 },
-  { key: 'trouserLength', label: 'Trouser / Dress Length', hint: 'Waist or shoulder to hem', gx: 0, gy: 0 },
-  { key: 'hips', label: 'Hips', hint: 'Widest point around seat', gx: 0, gy: 0 },
-  { key: 'thigh', label: 'Thigh', hint: 'Widest part of upper leg', gx: 0, gy: 0 },
-  { key: 'ankle', label: 'Ankle / Bottom', hint: 'Around the bottom hem', gx: 0, gy: 0 },
+  { key: 'neck', label: 'Neck', hint: '', gx: 0, gy: 0 },
+  { key: 'shoulder', label: 'Shoulder', hint: '', gx: 0, gy: 0 },
+  { key: 'chest', label: 'Chest', hint: '', gx: 0, gy: 0 },
+  { key: 'sleeveLength', label: 'Sleeve', hint: '', gx: 0, gy: 0 },
+  { key: 'waist', label: 'Waist', hint: '', gx: 0, gy: 0 },
+  { key: 'shirtLength', label: 'Top Length', hint: '', gx: 0, gy: 0 },
+  { key: 'trouserLength', label: 'Trouser Length', hint: '', gx: 0, gy: 0 },
+  { key: 'hips', label: 'Hips', hint: '', gx: 0, gy: 0 },
+  { key: 'thigh', label: 'Thigh', hint: '', gx: 0, gy: 0 },
+  { key: 'ankle', label: 'Ankle', hint: '', gx: 0, gy: 0 },
 ];
 
 export interface GarmentDraft {
@@ -255,6 +255,7 @@ export default function UnifiedNewOrderForm() {
 
   // Helper to get measurement points spec for a style
   const getSpecPointsForStyle = (styleName: string): StyleMeasurePoint[] => {
+    if (!styleName) return DEFAULT_POINTS;
     const spec = STYLE_MEASUREMENTS[styleName];
     if (spec && spec.points.length > 0) return spec.points;
     const customMatch = currentShop?.customStyles?.find((cs) => cs.name === styleName);
@@ -262,7 +263,7 @@ export default function UnifiedNewOrderForm() {
       return customMatch.measurementFields.map((f) => ({
         key: f.id,
         label: f.label,
-        hint: f.label,
+        hint: '',
         gx: 0,
         gy: 0,
       }));
@@ -277,10 +278,12 @@ export default function UnifiedNewOrderForm() {
   ): { measures: Record<string, string>; isFitLoaded: boolean; notes: string } => {
     if (!cust) return { measures: {}, isFitLoaded: false, notes: '' };
 
-    const styleProfile = cust.styleMeasurements?.[styleName]?.measurements;
-    const pastSameOrder = orders
-      .filter((o) => o.customerId === cust.id && o.styleName === styleName && o.measurements)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    const styleProfile = styleName ? cust.styleMeasurements?.[styleName]?.measurements : undefined;
+    const pastSameOrder = styleName
+      ? orders
+          .filter((o) => o.customerId === cust.id && o.styleName === styleName && o.measurements)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+      : undefined;
     const bodyMeasurements = cust.measurements;
 
     // Merge baseline body measurements with style-specific measurements
@@ -307,13 +310,13 @@ export default function UnifiedNewOrderForm() {
   const [garments, setGarments] = useState<GarmentDraft[]>([
     {
       id: 'g-1',
-      styleName: 'Senator',
+      styleName: '',
       isCustomStyle: false,
       price: '',
       measures: {},
       measurementNotes: '',
       isFitLoaded: false,
-      showTweakMeasurements: false,
+      showTweakMeasurements: true,
       fabricImage: null,
       styleReferenceImage: null,
       uploadingFabric: false,
@@ -347,13 +350,18 @@ export default function UnifiedNewOrderForm() {
   };
 
   const handleStyleChange = (garmentId: string, newStyle: string, isCustom = false) => {
-    const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, newStyle);
-    const spec = getSpecPointsForStyle(newStyle);
+    const current = garments.find((g) => g.id === garmentId);
+    const isCurrentlySelected = isCustom ? current?.isCustomStyle : current?.styleName === newStyle;
+    const finalStyle = isCurrentlySelected ? '' : newStyle;
+    const finalIsCustom = isCurrentlySelected ? false : isCustom;
+
+    const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, finalStyle);
+    const spec = getSpecPointsForStyle(finalStyle);
     const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
     const isComplete = spec.length > 0 && filledCount === spec.length;
     updateGarment(garmentId, {
-      styleName: newStyle,
-      isCustomStyle: isCustom,
+      styleName: finalStyle,
+      isCustomStyle: finalIsCustom,
       measures,
       isFitLoaded,
       measurementNotes: notes,
@@ -369,11 +377,9 @@ export default function UnifiedNewOrderForm() {
 
   const handleAddGarment = () => {
     const nextNum = garments.length + 1;
-    const defaultNextStyle = selectedCustomer?.gender === 'female' ? 'Ankara Gown' : 'Kaftan';
+    const defaultNextStyle = '';
     const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, defaultNextStyle);
     const spec = getSpecPointsForStyle(defaultNextStyle);
-    const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
-    const isComplete = spec.length > 0 && filledCount === spec.length;
 
     setGarments((prev) => [
       ...prev,
@@ -385,7 +391,7 @@ export default function UnifiedNewOrderForm() {
         measures,
         measurementNotes: notes,
         isFitLoaded,
-        showTweakMeasurements: !isFitLoaded || !isComplete,
+        showTweakMeasurements: true,
         fabricImage: null,
         styleReferenceImage: null,
         uploadingFabric: false,
@@ -881,7 +887,6 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.sectionEyebrow}>Customer</span>
                 <h2 className={styles.cardTitle}>Customer Information</h2>
                 <p className={styles.cardSubtitle}>Select an existing customer or add a new one</p>
               </div>
@@ -1117,14 +1122,13 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Style` : 'Garment Style'}</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Style & Design` : 'Style & Design'}
                       </h2>
                       <p className={styles.cardSubtitle}>Choose a style or enter a custom design</p>
                     </div>
                   </div>
-                  <span className={styles.activeStyleTag}>{garment.styleName}</span>
+                  {garment.styleName ? <span className={styles.activeStyleTag}>{garment.styleName}</span> : null}
                 </div>
 
                 {/* Gender filter tabs */}
@@ -1237,12 +1241,11 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Measurements` : 'Measurements'}</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Body Measurements` : 'Body Measurements'}
                       </h2>
                       <p className={styles.cardSubtitle}>
-                        {garment.styleName} measurements in inches (″)
+                        {garment.styleName ? `${garment.styleName} measurements in inches (″)` : 'Measurements in inches (″)'}
                       </p>
                     </div>
                   </div>
@@ -1253,17 +1256,14 @@ export default function UnifiedNewOrderForm() {
                   const filledCount = filledPoints.length;
                   const totalCount = specPoints.length;
                   const isCompleteFit = totalCount > 0 && filledCount === totalCount;
-                  const isPartialFit = garment.isFitLoaded && filledCount > 0 && !isCompleteFit;
-                  const missingPoints = specPoints.filter((pt) => !garment.measures[pt.key] || !parseMeasurementValue(garment.measures[pt.key]));
 
                   if (garment.isFitLoaded && isCompleteFit && !garment.showTweakMeasurements) {
                     return (
                       <div className={styles.fitLoadedBox}>
                         <div className={styles.fitBanner}>
-                          <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
+                          <Symbol name="check_circle" size={18} className={styles.sparkleIcon} />
                           <div>
-                            <strong>Saved measurements loaded (All {totalCount} points ready)</strong>
-                            <p>Measurements automatically loaded for {selectedCustomer?.fullName}.</p>
+                            <strong>Saved measurements loaded</strong>
                           </div>
                         </div>
 
@@ -1294,90 +1294,69 @@ export default function UnifiedNewOrderForm() {
 
                   return (
                     <div>
-                      {isPartialFit && (
-                        <div className={styles.partialFitBanner}>
-                          <Symbol name="warning" size={20} className={styles.partialWarningIcon} />
-                          <div>
-                            <strong>{filledCount} of {totalCount} measurements loaded</strong>
-                            <p>
-                              Missing: {missingPoints.map((p) => p.label).join(', ')}. Please enter the remaining measurements below for a perfect fit.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
                       {garment.isFitLoaded && isCompleteFit && garment.showTweakMeasurements && (
                         <div className={styles.editingNotice}>
-                          <span>Editing measurements for this outfit:</span>
+                          <span>Adjusting measurements:</span>
                           <button
                             type="button"
                             onClick={() => updateGarment(garment.id, { showTweakMeasurements: false })}
                             className={styles.collapseTweakBtn}
                           >
-                            Done Editing
+                            Done
                           </button>
                         </div>
                       )}
 
                       <div className={styles.measureGrid}>
-                        {specPoints.map((pt, ptIdx) => {
-                          const hasVal = Boolean(garment.measures[pt.key] && parseMeasurementValue(garment.measures[pt.key]));
-                          const isMissing = isPartialFit && !hasVal;
-
-                          return (
-                            <div key={pt.key} className={styles.measureInputWrap}>
-                              <div className={styles.measureLabelWrap}>
-                                <span className={styles.measureIndex}>{ptIdx + 1}</span>
-                                <label className={`${styles.measureLabel} ${isMissing ? styles.measureLabelMissing : ''}`}>
-                                  {pt.label}
-                                  {isMissing && <span className={styles.neededTag}>* Needed</span>}
-                                </label>
-                              </div>
-                              <div className={`${styles.measureField} ${isMissing ? styles.measureFieldMissing : ''}`}>
-                                <input
-                                  id={`m-${garment.id}-${pt.key}`}
-                                  ref={(el) => {
-                                    if (!measureInputRefs.current[garment.id]) measureInputRefs.current[garment.id] = {};
-                                    measureInputRefs.current[garment.id][pt.key] = el;
-                                  }}
-                                  type="text"
-                                  inputMode="text"
-                                  enterKeyHint={ptIdx < specPoints.length - 1 ? 'next' : 'done'}
-                                  placeholder="0.0 or 15 1/2"
-                                  className={styles.measureInput}
-                                  value={garment.measures[pt.key] || ''}
-                                  onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      const nextPoint = specPoints[ptIdx + 1];
-                                      if (nextPoint && measureInputRefs.current[garment.id]?.[nextPoint.key]) {
-                                        measureInputRefs.current[garment.id][nextPoint.key]?.focus();
+                        {specPoints.map((pt, ptIdx) => (
+                          <div key={pt.key} className={styles.measureInputWrap}>
+                            <label htmlFor={`m-${garment.id}-${pt.key}`} className={styles.measureLabel}>
+                              {pt.label}
+                            </label>
+                            <div className={styles.measureField}>
+                              <input
+                                id={`m-${garment.id}-${pt.key}`}
+                                ref={(el) => {
+                                  if (!measureInputRefs.current[garment.id]) measureInputRefs.current[garment.id] = {};
+                                  measureInputRefs.current[garment.id][pt.key] = el;
+                                }}
+                                type="text"
+                                inputMode="text"
+                                enterKeyHint={ptIdx < specPoints.length - 1 ? 'next' : 'done'}
+                                placeholder="—"
+                                className={styles.measureInput}
+                                value={garment.measures[pt.key] || ''}
+                                onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const nextPoint = specPoints[ptIdx + 1];
+                                    if (nextPoint && measureInputRefs.current[garment.id]?.[nextPoint.key]) {
+                                      measureInputRefs.current[garment.id][nextPoint.key]?.focus();
+                                    } else {
+                                      const notesEl = document.getElementById(`notes-${garment.id}`);
+                                      if (notesEl) {
+                                        notesEl.focus();
                                       } else {
-                                        const notesEl = document.getElementById(`notes-${garment.id}`);
-                                        if (notesEl) {
-                                          notesEl.focus();
-                                        } else {
-                                          e.currentTarget.blur();
-                                        }
+                                        e.currentTarget.blur();
                                       }
                                     }
-                                  }}
-                                />
-                                <span className={styles.inchSymbol}>IN</span>
-                              </div>
+                                  }
+                                }}
+                              />
+                              <span className={styles.inchSymbol}>IN</span>
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
 
                       <div className={styles.notesWrap}>
-                        <label className={styles.label}>Fitting &amp; Style Notes (Optional)</label>
+                        <label htmlFor={`notes-${garment.id}`} className={styles.label}>Fitting &amp; Style Notes (Optional)</label>
                         <textarea
                           id={`notes-${garment.id}`}
                           className={styles.textarea}
                           rows={2}
-                          placeholder="e.g. Likes snug chest, dropped shoulder, loose fit"
+                          placeholder="Notes on posture, fit, or styling..."
                           value={garment.measurementNotes}
                           onChange={(e) => updateGarment(garment.id, { measurementNotes: e.target.value })}
                         />
@@ -1392,7 +1371,6 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Fabric` : 'Fabric & Photos'}</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Style Photos'}
                       </h2>
@@ -1563,7 +1541,7 @@ export default function UnifiedNewOrderForm() {
                     <input
                       type="text"
                       className={styles.input}
-                      placeholder="e.g. 3.5 yards brought, customer provided buttons/lining"
+                      placeholder="Fabric & yardage details (optional)"
                       value={garment.fabricNotes}
                       onChange={(e) => updateGarment(garment.id, { fabricNotes: e.target.value })}
                     />
@@ -1573,7 +1551,7 @@ export default function UnifiedNewOrderForm() {
                 {/* Individual Garment Price if Multiple */}
                 {isMultiple && (
                   <div className={styles.singleGarmentPriceWrap}>
-                    <label className={styles.label}>Price for this {garment.styleName} ({currencySymbol})</label>
+                    <label className={styles.label}>Price for this {garment.styleName || 'Outfit'} ({currencySymbol})</label>
                     <div className={styles.inputPrefixWrap}>
                       <span className={styles.currencyPrefix}>{currencySymbol}</span>
                       <input
@@ -1607,7 +1585,6 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.sectionEyebrow}>Payment &amp; Delivery</span>
                 <h2 className={styles.cardTitle}>Price &amp; Delivery Date</h2>
                 <p className={styles.cardSubtitle}>Total bill, deposit received, and delivery date</p>
               </div>
