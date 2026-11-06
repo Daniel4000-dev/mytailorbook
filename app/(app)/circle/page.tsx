@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { Suspense, useEffect, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -34,7 +34,7 @@ interface SaluteState {
   };
 }
 
-export default function AtelierCirclePage() {
+function AtelierCircleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
@@ -791,5 +791,23 @@ export default function AtelierCirclePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AtelierCirclePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.pageContainer}>
+          <div className={styles.content}>
+            <div className={styles.emptyState}>
+              <p className={styles.emptyText}>Loading Tailor Circle...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <AtelierCircleContent />
+    </Suspense>
   );
 }
