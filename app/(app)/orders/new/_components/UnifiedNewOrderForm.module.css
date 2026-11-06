@@ -1403,7 +1403,6 @@
   cursor: pointer;
   text-decoration: none;
   box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.4);
-  margin-bottom: 10px;
   transition: all 0.2s ease;
 }
 
@@ -1957,6 +1956,7 @@
   .container {
     display: none !important;
   }
+
   .printableSlip {
     position: fixed;
     left: 0;
@@ -1970,6 +1970,7 @@
     box-shadow: none;
     z-index: 999999;
   }
+
   .slipActionsRow {
     display: none !important;
   }
@@ -2351,6 +2352,3 @@
     border-color: rgba(16, 185, 129, 0.25);
   }
 }
-
-
-

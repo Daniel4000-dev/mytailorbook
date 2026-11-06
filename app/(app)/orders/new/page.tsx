@@ -16,7 +16,7 @@ function OrderTypeSelector({ onSelect }: { onSelect: (type: 'bespoke' | 'rtw') =
   const router = useRouter();
   
   return (
-    <PageLayout width="narrow" padding="none" header={<TopBar title="New Intake" showBack onBack={() => router.push(ROUTES.production)} />}>
+    <PageLayout width="narrow" padding="none" header={<TopBar title="New Order" showBack onBack={() => router.push(ROUTES.production)} />}>
       <div className={styles.selectorContainer}>
         <h2 className={styles.selectorTitle}>What are you creating?</h2>
         <p className={styles.selectorSubtitle}>Select the production workflow for this order</p>
@@ -30,8 +30,8 @@ function OrderTypeSelector({ onSelect }: { onSelect: (type: 'bespoke' | 'rtw') =
             <Symbol name="person" size={24} />
           </div>
           <div className={styles.typeTextWrap}>
-            <h3 className={styles.typeOptionTitle}>Custom Order (Bespoke)</h3>
-            <p className={styles.typeOptionDesc}>For a specific customer with unique measurements and style choices.</p>
+            <h3 className={styles.typeOptionTitle}>Custom Order</h3>
+            <p className={styles.typeOptionDesc}>For a specific customer with custom measurements and styles.</p>
           </div>
           <Symbol name="chevron_right" size={20} className={styles.typeChevron} />
         </button>
@@ -45,8 +45,8 @@ function OrderTypeSelector({ onSelect }: { onSelect: (type: 'bespoke' | 'rtw') =
             <Symbol name="precision_manufacturing" size={24} />
           </div>
           <div className={styles.typeTextWrap}>
-            <h3 className={styles.typeOptionTitle}>Production Batch (RTW)</h3>
-            <p className={styles.typeOptionDesc}>Create a batch of standard sizes for your shop floor or retail inventory.</p>
+            <h3 className={styles.typeOptionTitle}>Ready-to-Wear (RTW)</h3>
+            <p className={styles.typeOptionDesc}>Create standard sizes (S, M, L, XL) for shop inventory.</p>
           </div>
           <Symbol name="chevron_right" size={20} className={styles.typeChevron} />
         </button>

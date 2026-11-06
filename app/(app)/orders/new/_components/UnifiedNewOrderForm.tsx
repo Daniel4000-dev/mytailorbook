@@ -555,7 +555,7 @@ export default function UnifiedNewOrderForm() {
       setShowInlineNewCustomer(false);
       setNewCustomerName('');
       setNewCustomerPhone('');
-      showToast(`Added client ${created.fullName}`, 'success');
+      showToast(`Added customer ${created.fullName}`, 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to add customer', 'error');
     } finally {
@@ -598,7 +598,7 @@ export default function UnifiedNewOrderForm() {
         setShowInlineNewCustomer(false);
         activeCustomer = created;
       } catch (err: any) {
-        showToast(err.message || 'Failed to save walk-in client details', 'error');
+        showToast(err.message || 'Failed to save customer details', 'error');
         return;
       } finally {
         setSavingCustomer(false);
@@ -606,7 +606,7 @@ export default function UnifiedNewOrderForm() {
     }
 
     if (!activeCustomer) {
-      showToast('Please select or add a client first', 'error');
+      showToast('Please select or add a customer first', 'error');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -771,7 +771,7 @@ export default function UnifiedNewOrderForm() {
       });
 
       setReceiptSheetOpen(true);
-      showToast(garments.length > 1 ? `${garments.length} outfits queued into production!` : 'Order created successfully!', 'success');
+      showToast(garments.length > 1 ? `${garments.length} outfits saved!` : 'Order created successfully!', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to create order', 'error');
     } finally {
@@ -781,7 +781,7 @@ export default function UnifiedNewOrderForm() {
 
   const getWhatsAppReceiptText = () => {
     if (!completedBatch || !selectedCustomer) return '';
-    const shopName = currentShop?.name || 'Our Studio';
+    const shopName = currentShop?.name || 'Tailor Shop';
     const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}${ROUTES.track(completedBatch.firstOrderId)}` : '';
     const formattedDate = formatSafeDate(completedBatch.dueDate);
 
@@ -810,14 +810,14 @@ export default function UnifiedNewOrderForm() {
 
   const getCuttingSlipText = () => {
     if (!completedBatch || !selectedCustomer) return '';
-    const shopName = currentShop?.name || 'Tailor Studio';
+    const shopName = currentShop?.name || 'Tailor Shop';
     const formattedDate = formatSafeDate(completedBatch.dueDate);
 
     const lines = [
-      `WORKSHOP CUTTING SLIP`,
-      `Studio: ${shopName}`,
+      `CUTTING SLIP`,
+      `Shop: ${shopName}`,
       `Order: #${completedBatch.firstOrderId.slice(-8).toUpperCase()}`,
-      `Client: ${selectedCustomer.fullName} (${formatPhone(selectedCustomer.whatsappNumber)})`,
+      `Customer: ${selectedCustomer.fullName} (${formatPhone(selectedCustomer.whatsappNumber)})`,
       `Ready By: ${formattedDate} ${completedBatch.priority === 'urgent' ? '[URGENT / RUSH]' : ''}`,
       `==============================`,
     ];
@@ -826,7 +826,7 @@ export default function UnifiedNewOrderForm() {
       lines.push(
         ``,
         `OUTFIT #${i + 1}: ${g.styleName.toUpperCase()}`,
-        `Fabric: ${g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Client Fabric'}${g.fabricNotes ? ` (${g.fabricNotes})` : ''}`,
+        `Fabric: ${g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Customer Fabric'}${g.fabricNotes ? ` (${g.fabricNotes})` : ''}`,
         `MEASUREMENTS:`
       );
       const points = getSpecPointsForStyle(g.styleName);
@@ -861,8 +861,8 @@ export default function UnifiedNewOrderForm() {
       padding="none"
       header={
         <TopBar
-          title="New Commission"
-          subtitle="Bespoke order ledger & client fitting"
+          title="New Order"
+          subtitle="Record customer order and measurements"
           showBack
           onBack={() => {
             const custIdParam = searchParams.get('customer');
@@ -876,14 +876,14 @@ export default function UnifiedNewOrderForm() {
       }
     >
       <div className={styles.container}>
-        {/* Sartorial Commission Ribbon */}
+        {/* Order Banner */}
         <div className={styles.commissionBanner}>
           <div className={styles.commissionBadge}>
-            <Symbol name="verified" size={13} />
-            <span>Haute Bespoke Commission</span>
+            <Symbol name="check_circle" size={13} />
+            <span>New Custom Order</span>
           </div>
           <span className={styles.commissionId}>
-            {currentShop?.name || 'Studio'} · Fitting Ledger
+            {currentShop?.name || 'Shop'} · Order Form
           </span>
         </div>
 
@@ -892,9 +892,9 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.sectionEyebrow}>Client Dossier</span>
-                <h2 className={styles.cardTitle}>Client Profile &amp; Sizing</h2>
-                <p className={styles.cardSubtitle}>Select registered client or intake a walk-in</p>
+                <span className={styles.sectionEyebrow}>Customer</span>
+                <h2 className={styles.cardTitle}>Customer Information</h2>
+                <p className={styles.cardSubtitle}>Select an existing customer or add a new one</p>
               </div>
             </div>
             {selectedCustomer && (
@@ -959,7 +959,7 @@ export default function UnifiedNewOrderForm() {
                   {filteredCustomers.length === 0 && customerSearch.trim() && (
                     <div className={styles.noSearchMatch}>
                       <p className={styles.noSearchMatchText}>
-                        No client found for &ldquo;{customerSearch.trim()}&rdquo;
+                        No customer found for &ldquo;{customerSearch.trim()}&rdquo;
                       </p>
                       <button
                         type="button"
@@ -967,7 +967,7 @@ export default function UnifiedNewOrderForm() {
                         onClick={handleOpenNewCustomerForm}
                       >
                         <Symbol name="person_add" size={18} />
-                        <span>Register &ldquo;{customerSearch.trim()}&rdquo; as new client</span>
+                        <span>Add &ldquo;{customerSearch.trim()}&rdquo; as new customer</span>
                       </button>
                     </div>
                   )}
@@ -979,7 +979,7 @@ export default function UnifiedNewOrderForm() {
                       onClick={handleOpenNewCustomerForm}
                     >
                       <Symbol name="person_add" size={20} />
-                      <span>New Walk-in Client? Register in 10s</span>
+                      <span>New Customer? Add in seconds</span>
                     </button>
                     {isContactPickerSupported && (
                       <button
@@ -997,7 +997,7 @@ export default function UnifiedNewOrderForm() {
               ) : (
                 <form onSubmit={handleCreateCustomer} className={styles.inlineForm}>
                   <div className={styles.inlineHeaderRow}>
-                    <span className={styles.inlineTitle}>New Walk-in Client</span>
+                    <span className={styles.inlineTitle}>New Customer</span>
                     {isContactPickerSupported && (
                       <button
                         type="button"
@@ -1063,7 +1063,7 @@ export default function UnifiedNewOrderForm() {
                       className={styles.primaryInlineBtn}
                       disabled={savingCustomer}
                     >
-                      {savingCustomer ? 'Adding…' : 'Add Client & Select'}
+                      {savingCustomer ? 'Adding…' : 'Save Customer & Continue'}
                     </button>
                   </div>
                 </form>
@@ -1084,7 +1084,7 @@ export default function UnifiedNewOrderForm() {
                     </span>
                     {customerPastOrders.length > 0 ? (
                       <span className={styles.repeatBadge}>
-                        <Symbol name="check_circle" size={14} /> Repeat Client ({customerPastOrders.length} orders)
+                        <Symbol name="check_circle" size={14} /> Returning Customer ({customerPastOrders.length} orders)
                       </span>
                     ) : (
                       <span className={styles.newBadge}>First Order</span>
@@ -1126,11 +1126,11 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Silhouette` : 'Garment Silhouette'}</span>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Style` : 'Garment Style'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Cut & Style` : 'Couture Silhouette & Cut'}
+                        {isMultiple ? `Outfit #${idx + 1} Style & Design` : 'Style & Design'}
                       </h2>
-                      <p className={styles.cardSubtitle}>Select garment cut or customize bespoke styling</p>
+                      <p className={styles.cardSubtitle}>Choose a style or enter a custom design</p>
                     </div>
                   </div>
                   <span className={styles.activeStyleTag}>{garment.styleName}</span>
@@ -1220,7 +1220,7 @@ export default function UnifiedNewOrderForm() {
                     </div>
                     <div className={styles.styleCardInfo}>
                       <span className={styles.styleName}>+ Custom Style</span>
-                      <span className={styles.styleSubtitle}>Studio Bespoke</span>
+                      <span className={styles.styleSubtitle}>Custom Design</span>
                     </div>
                   </button>
                 </div>
@@ -1246,12 +1246,12 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Fit Ledger` : 'Bespoke Fit Ledger'}</span>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Measurements` : 'Measurements'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Measurements` : 'Fitting Specifications'}
+                        {isMultiple ? `Outfit #${idx + 1} Body Measurements` : 'Body Measurements'}
                       </h2>
                       <p className={styles.cardSubtitle}>
-                        {garment.styleName} tailored points in inches (″)
+                        {garment.styleName} measurements in inches (″)
                       </p>
                     </div>
                   </div>
@@ -1271,7 +1271,7 @@ export default function UnifiedNewOrderForm() {
                         <div className={styles.fitBanner}>
                           <Symbol name="auto_awesome" size={20} className={styles.sparkleIcon} />
                           <div>
-                            <strong>Saved fit loaded from client profile (All {totalCount} points ready)</strong>
+                            <strong>Saved measurements loaded (All {totalCount} points ready)</strong>
                             <p>Measurements automatically loaded for {selectedCustomer?.fullName}.</p>
                           </div>
                         </div>
@@ -1381,12 +1381,12 @@ export default function UnifiedNewOrderForm() {
                       </div>
 
                       <div className={styles.notesWrap}>
-                        <label className={styles.label}>Fit & Posture Notes (Optional)</label>
+                        <label className={styles.label}>Fitting &amp; Style Notes (Optional)</label>
                         <textarea
                           id={`notes-${garment.id}`}
                           className={styles.textarea}
                           rows={2}
-                          placeholder="e.g. Client likes snug chest, dropped left shoulder, high armhole"
+                          placeholder="e.g. Likes snug chest, dropped shoulder, loose fit"
                           value={garment.measurementNotes}
                           onChange={(e) => updateGarment(garment.id, { measurementNotes: e.target.value })}
                         />
@@ -1401,20 +1401,20 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Material` : 'Material & Swatches'}</span>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Fabric` : 'Fabric & Photos'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Inspiration'}
+                        {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Style Photos'}
                       </h2>
-                      <p className={styles.cardSubtitle}>Physical cloth photos and styling references</p>
+                      <p className={styles.cardSubtitle}>Fabric photos and style sample images</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Customer Fabric Stash Quick Selector */}
+                {/* Customer Fabric Quick Selector */}
                 {selectedCustomer?.fabrics && selectedCustomer.fabrics.length > 0 && (
                   <div className={styles.stashPickerWrap}>
                     <span className={styles.stashPickerTitle}>
-                      <Symbol name="inventory_2" size={15} /> Select from {selectedCustomer.fullName.split(' ')[0]}&apos;s Fabric Stash:
+                      <Symbol name="inventory_2" size={15} /> Select from {selectedCustomer.fullName.split(' ')[0]}&apos;s saved fabrics:
                     </span>
                     <div className={styles.stashSwatchesRow}>
                       {selectedCustomer.fabrics.map((swatch, sIdx) => {
@@ -1451,9 +1451,9 @@ export default function UnifiedNewOrderForm() {
                   {/* Fabric Photo */}
                   <div className={styles.photoBox}>
                     <span className={styles.photoBoxTitle}>
-                      <Symbol name="texture" size={16} /> Fabric Material
+                      <Symbol name="texture" size={16} /> Fabric Photo
                     </span>
-                    <p className={styles.photoBoxDesc}>Photograph client&apos;s physical cloth</p>
+                    <p className={styles.photoBoxDesc}>Photo of customer&apos;s fabric</p>
 
                     {garment.fabricImage ? (
                       <div className={styles.photoPreviewWrap}>
@@ -1489,7 +1489,7 @@ export default function UnifiedNewOrderForm() {
                           <Symbol name="add_a_photo" size={22} />
                         </div>
                         <span className={styles.photoUploadMain}>
-                          {garment.uploadingFabric ? 'Uploading…' : 'Snap Physical Cloth'}
+                          {garment.uploadingFabric ? 'Uploading…' : 'Take Fabric Photo'}
                         </span>
                         <span className={styles.photoUploadSub}>Camera or Gallery</span>
                       </label>
@@ -1499,9 +1499,9 @@ export default function UnifiedNewOrderForm() {
                   {/* Style Reference Photo */}
                   <div className={styles.photoBox}>
                     <span className={styles.photoBoxTitle}>
-                      <Symbol name="photo_library" size={16} /> Style Reference
+                      <Symbol name="photo_library" size={16} /> Style Photo
                     </span>
-                    <p className={styles.photoBoxDesc}>Design or catalog inspiration</p>
+                    <p className={styles.photoBoxDesc}>Design sample or catalog photo</p>
 
                     {garment.styleReferenceImage ? (
                       <div className={styles.photoPreviewWrap}>
@@ -1539,7 +1539,7 @@ export default function UnifiedNewOrderForm() {
                         <span className={styles.photoUploadMain}>
                           {garment.uploadingStyleRef ? 'Uploading…' : 'Add Style Photo'}
                         </span>
-                        <span className={styles.photoUploadSub}>Catalog or Inspiration</span>
+                        <span className={styles.photoUploadSub}>Catalog or Photo</span>
                       </label>
                     )}
                   </div>
@@ -1548,21 +1548,21 @@ export default function UnifiedNewOrderForm() {
                 {/* Fabric Sourcing & Yardage Notes */}
                 <div className={styles.fabricSourceWrap}>
                   <div className={styles.formRow}>
-                    <label className={styles.label}>Fabric Sourcing</label>
+                    <label className={styles.label}>Fabric Provided By</label>
                     <div className={styles.segmented}>
                       <button
                         type="button"
                         className={`${styles.segBtn} ${garment.materialSuppliedBy === 'customer' ? styles.segActive : ''}`}
                         onClick={() => updateGarment(garment.id, { materialSuppliedBy: 'customer' })}
                       >
-                        Client Supplied
+                        Customer
                       </button>
                       <button
                         type="button"
                         className={`${styles.segBtn} ${garment.materialSuppliedBy === 'shop' ? styles.segActive : ''}`}
                         onClick={() => updateGarment(garment.id, { materialSuppliedBy: 'shop' })}
                       >
-                        Shop Sourced
+                        Shop
                       </button>
                     </div>
                   </div>
@@ -1616,9 +1616,9 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.sectionEyebrow}>Financial Settlement</span>
-                <h2 className={styles.cardTitle}>Investment &amp; Delivery</h2>
-                <p className={styles.cardSubtitle}>Total bill, deposit, and promised collection date</p>
+                <span className={styles.sectionEyebrow}>Payment &amp; Delivery</span>
+                <h2 className={styles.cardTitle}>Price &amp; Delivery Date</h2>
+                <p className={styles.cardSubtitle}>Total bill, deposit received, and delivery date</p>
               </div>
             </div>
           </div>
@@ -1768,7 +1768,7 @@ export default function UnifiedNewOrderForm() {
                     ? 'No other orders due on this day (Great date!)'
                     : `${ordersDueOnDate} active ${ordersDueOnDate === 1 ? 'order' : 'orders'} already due on this day${
                         ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
-                          ? ` — studio capacity (${currentShop?.dailyCapacity || 5}) reached!`
+                          ? ` — shop daily capacity (${currentShop?.dailyCapacity || 5}) reached!`
                           : ''
                       }`}
                 </span>
@@ -1841,13 +1841,13 @@ export default function UnifiedNewOrderForm() {
               onClick={handleCreateOrder}
             >
               {submitting ? (
-                <span>Queueing Order…</span>
+                <span>Saving Order…</span>
               ) : (
                 <>
                   <span>
                     {garments.length > 1
-                      ? `Queue ${garments.length} Outfits`
-                      : 'Queue Order'}
+                      ? `Create ${garments.length} Outfits`
+                      : 'Create Order'}
                   </span>
                   <Symbol name="arrow_forward" size={15} />
                 </>
@@ -1864,7 +1864,7 @@ export default function UnifiedNewOrderForm() {
           setReceiptSheetOpen(false);
           router.replace(ROUTES.production);
         }}
-        title="Bespoke Receipt"
+        title="Order Receipt"
       >
         {completedBatch && selectedCustomer && (
           <div className={styles.receiptModal}>
@@ -1872,16 +1872,16 @@ export default function UnifiedNewOrderForm() {
               <Symbol name="verified" size={32} className={styles.successIcon} />
             </div>
 
-            <h3 className={styles.receiptTitle}>Commission Confirmed</h3>
+            <h3 className={styles.receiptTitle}>Order Created Successfully</h3>
             <p className={styles.receiptDesc}>
               {completedBatch.garments.length > 1
-                ? `${completedBatch.garments.length} bespoke outfits for ${selectedCustomer.fullName} queued for cutting and sewing.`
-                : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} queued for cutting and sewing.`}
+                ? `${completedBatch.garments.length} outfits for ${selectedCustomer.fullName} have been saved and sent to production.`
+                : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} has been saved and sent to production.`}
             </p>
 
             <div className={styles.receiptSummaryCard}>
               <div className={styles.receiptRow}>
-                <span className={styles.receiptMuted}>Client</span>
+                <span className={styles.receiptMuted}>Customer</span>
                 <span className={styles.receiptBold}>{selectedCustomer.fullName}</span>
               </div>
 
@@ -1946,7 +1946,7 @@ export default function UnifiedNewOrderForm() {
               onClick={() => setCuttingSlipOpen(true)}
             >
               <Symbol name="content_cut" size={18} />
-              <span>Print / View Workshop Cutting Slip</span>
+              <span>Print / View Cutting Slip</span>
             </button>
 
             <button
@@ -1969,7 +1969,7 @@ export default function UnifiedNewOrderForm() {
                 router.replace(ROUTES.production);
               }}
             >
-              Go to Production Queue
+              View Active Orders
             </button>
           </div>
         )}
@@ -2005,8 +2005,8 @@ export default function UnifiedNewOrderForm() {
             <div className={styles.printableSlip} id="cutting-slip-view">
               <div className={styles.slipHeader}>
                 <div>
-                  <h3 className={styles.slipShopTitle}>{currentShop?.name || 'Tailor Studio'}</h3>
-                  <span className={styles.slipSubtitle}>WORKSHOP CUTTING SLIP</span>
+                  <h3 className={styles.slipShopTitle}>{currentShop?.name || 'Tailor Shop'}</h3>
+                  <span className={styles.slipSubtitle}>CUTTING SLIP</span>
                 </div>
                 <div className={styles.slipHeaderBadgeWrap}>
                   <span className={styles.slipOrderId}>#{completedBatch.firstOrderId.slice(-8).toUpperCase()}</span>
@@ -2021,7 +2021,7 @@ export default function UnifiedNewOrderForm() {
 
               <div className={styles.slipClientCard}>
                 <div className={styles.slipInfoRow}>
-                  <span className={styles.slipInfoLabel}>Client:</span>
+                  <span className={styles.slipInfoLabel}>Customer:</span>
                   <span className={styles.slipInfoValue}>{selectedCustomer.fullName}</span>
                 </div>
                 <div className={styles.slipInfoRow}>
@@ -2045,7 +2045,7 @@ export default function UnifiedNewOrderForm() {
                         Outfit #{idx + 1}: <strong>{g.styleName}</strong>
                       </span>
                       <span className={styles.slipSourceBadge}>
-                        {g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Client Fabric'}
+                        {g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Customer Fabric'}
                       </span>
                     </div>
 
