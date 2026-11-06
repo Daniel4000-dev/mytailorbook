@@ -138,7 +138,7 @@ export default function UnifiedNewOrderForm() {
       const match = customers.find((c) => c.id === custId);
       if (match) setSelectedCustomer(match);
     } else if (!custId && !selectedCustomer) {
-      const nameParam = searchParams.get('clientName');
+      const nameParam = searchParams.get('customerName') || searchParams.get('clientName');
       const phoneParam = searchParams.get('phone');
       if (nameParam || phoneParam) {
         setShowInlineNewCustomer(true);
@@ -801,7 +801,7 @@ export default function UnifiedNewOrderForm() {
       `• *Balance Due:* ${currencySymbol}${formatNumber(completedBatch.balanceDue)}`,
       `• *Ready By:* ${formattedDate}`,
       ``,
-      `Track your outfit's progress here:`,
+      `Track your order's progress here:`,
       trackingUrl,
       ``,
       `Thank you for your business!`,
@@ -816,7 +816,7 @@ export default function UnifiedNewOrderForm() {
     const lines = [
       `CUTTING SLIP`,
       `Shop: ${shopName}`,
-      `Order: #${completedBatch.firstOrderId.slice(-8).toUpperCase()}`,
+      `Order: #${completedBatch.firstOrderId.slice(-6).toUpperCase()}`,
       `Customer: ${selectedCustomer.fullName} (${formatPhone(selectedCustomer.whatsappNumber)})`,
       `Ready By: ${formattedDate} ${completedBatch.priority === 'urgent' ? '[URGENT / RUSH]' : ''}`,
       `==============================`,
@@ -876,18 +876,7 @@ export default function UnifiedNewOrderForm() {
       }
     >
       <div className={styles.container}>
-        {/* Order Banner */}
-        <div className={styles.commissionBanner}>
-          <div className={styles.commissionBadge}>
-            <Symbol name="check_circle" size={13} />
-            <span>New Custom Order</span>
-          </div>
-          <span className={styles.commissionId}>
-            {currentShop?.name || 'Shop'} · Order Form
-          </span>
-        </div>
-
-        {/* ── CARD 1: CLIENT SELECTION ── */}
+        {/* ── CARD 1: CUSTOMER SELECTION ── */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
@@ -1079,12 +1068,14 @@ export default function UnifiedNewOrderForm() {
                     {formatPhone(selectedCustomer.whatsappNumber)}
                   </p>
                   <div className={styles.clientBadges}>
-                    <span className={styles.genderBadge}>
-                      {selectedCustomer.gender === 'female' ? 'Female' : 'Male'}
-                    </span>
+                    {selectedCustomer.gender && (
+                      <span className={styles.genderBadge}>
+                        {selectedCustomer.gender === 'female' ? 'Female' : selectedCustomer.gender === 'male' ? 'Male' : selectedCustomer.gender}
+                      </span>
+                    )}
                     {customerPastOrders.length > 0 ? (
                       <span className={styles.repeatBadge}>
-                        <Symbol name="check_circle" size={14} /> Returning Customer ({customerPastOrders.length} orders)
+                        <Symbol name="check_circle" size={14} /> Returning Customer ({customerPastOrders.length} {customerPastOrders.length === 1 ? 'order' : 'orders'})
                       </span>
                     ) : (
                       <span className={styles.newBadge}>First Order</span>
@@ -1291,7 +1282,7 @@ export default function UnifiedNewOrderForm() {
 
                         <button
                           type="button"
-                          className={styles.tweakBtn}
+                          className={styles.adjustMeasureBtn}
                           onClick={() => updateGarment(garment.id, { showTweakMeasurements: true })}
                         >
                           <Symbol name="tune" size={16} />
@@ -1414,7 +1405,7 @@ export default function UnifiedNewOrderForm() {
                 {selectedCustomer?.fabrics && selectedCustomer.fabrics.length > 0 && (
                   <div className={styles.stashPickerWrap}>
                     <span className={styles.stashPickerTitle}>
-                      <Symbol name="inventory_2" size={15} /> Select from {selectedCustomer.fullName.split(' ')[0]}&apos;s saved fabrics:
+                      <Symbol name="inventory_2" size={15} /> Select from {(selectedCustomer.fullName || 'Customer').trim().split(' ')[0]}&apos;s saved fabrics:
                     </span>
                     <div className={styles.stashSwatchesRow}>
                       {selectedCustomer.fabrics.map((swatch, sIdx) => {
@@ -1667,21 +1658,21 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.depositShortcuts}>
                   <button
                     type="button"
-                    className={styles.shortcutBtn}
+                    className={`${styles.shortcutBtn} ${numericTotal > 0 && numericDeposit === Math.round(numericTotal / 2) ? styles.shortcutBtnActive : ''}`}
                     onClick={() => handleQuickDeposit('50')}
                   >
                     50% ({currencySymbol}{formatNumber(Math.round(numericTotal / 2))})
                   </button>
                   <button
                     type="button"
-                    className={styles.shortcutBtn}
+                    className={`${styles.shortcutBtn} ${numericTotal > 0 && numericDeposit === numericTotal ? styles.shortcutBtnActive : ''}`}
                     onClick={() => handleQuickDeposit('full')}
                   >
                     Paid in Full ({currencySymbol}{formatNumber(numericTotal)})
                   </button>
                   <button
                     type="button"
-                    className={styles.shortcutBtn}
+                    className={`${styles.shortcutBtn} ${numericTotal > 0 && numericDeposit === 0 && depositPaid === '0' ? styles.shortcutBtnActive : ''}`}
                     onClick={() => handleQuickDeposit('zero')}
                   >
                     Zero Deposit
@@ -2009,7 +2000,7 @@ export default function UnifiedNewOrderForm() {
                   <span className={styles.slipSubtitle}>CUTTING SLIP</span>
                 </div>
                 <div className={styles.slipHeaderBadgeWrap}>
-                  <span className={styles.slipOrderId}>#{completedBatch.firstOrderId.slice(-8).toUpperCase()}</span>
+                  <span className={styles.slipOrderId}>#{completedBatch.firstOrderId.slice(-6).toUpperCase()}</span>
                   {completedBatch.priority === 'urgent' && (
                     <span className={styles.slipUrgentBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                       <Symbol name="bolt" size={11} />

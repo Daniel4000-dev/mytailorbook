@@ -1,5 +1,5 @@
 .container {
-  padding: 12px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 14px calc(80px + env(safe-area-inset-bottom, 0px));
   max-width: 680px;
   width: 100%;
   margin: 0 auto;
@@ -11,43 +11,9 @@
 
 @media (min-width: 768px) {
   .container {
-    padding: 24px 20px calc(32px + env(safe-area-inset-bottom, 0px));
+    padding: 24px 20px calc(96px + env(safe-area-inset-bottom, 0px));
     gap: 16px;
   }
-}
-
-/* ── Haute Sartorial Commission Ribbon ── */
-.commissionBanner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  border-radius: 14px;
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.16);
-  margin-bottom: 2px;
-}
-
-:global([data-theme='dark']) .commissionBanner {
-  background: rgba(99, 102, 241, 0.12);
-  border-color: rgba(99, 102, 241, 0.24);
-}
-
-.commissionBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--sf-brand-indigo);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.commissionId {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--sf-text-secondary);
 }
 
 /* ── Card Styles (Apple Inset Grouped Surface) ── */
@@ -681,7 +647,7 @@
   color: var(--sf-text-primary);
 }
 
-.tweakBtn {
+.adjustMeasureBtn {
   align-self: flex-start;
   display: flex;
   align-items: center;
@@ -1341,7 +1307,7 @@
   box-shadow: none;
 }
 
-/* ── Receipt Modal (Embossed Atelier Slip) ── */
+/* ── Receipt Modal (Order Receipt) ── */
 .receiptModal {
   padding: 16px 18px 32px;
   display: flex;
@@ -1675,6 +1641,18 @@
 
 .shortcutBtn:active {
   transform: scale(0.96);
+}
+
+.shortcutBtnActive {
+  background: var(--sf-brand-indigo);
+  color: #fff;
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 2px 8px var(--sf-brand-indigo-glow);
+}
+
+.shortcutBtnActive:hover {
+  background: #3730A3;
+  color: #fff;
 }
 
 /* ── Workload & Capacity Awareness ── */
@@ -2198,10 +2176,11 @@
 .addGarmentBanner:active,
 .newClientBanner:active,
 .importContactBtn:active,
-.tweakBtn:active,
+.adjustMeasureBtn:active,
 .changeClientBtn:active,
 .cuttingSlipBtn:active,
 .segBtn:active,
+.genderPill:active,
 .stashSwatchBtn:active,
 .whatsappReceiptBtn:active,
 .viewOrderBtn:active,
@@ -2306,6 +2285,30 @@
   border-color: rgba(16, 185, 129, 0.25);
 }
 
+:global([data-theme='dark']) .balanceValue,
+:global([data-theme='dark']) .receiptHighlight,
+:global([data-theme='dark']) .successIcon {
+  color: #34d399;
+}
+
+:global([data-theme='dark']) .workloadGood {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+:global([data-theme='dark']) .workloadNormal {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+}
+
+:global([data-theme='dark']) .workloadHeavy {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .card {
     background: rgba(255, 255, 255, 0.035);
@@ -2400,5 +2403,29 @@
   :global(:root:not([data-theme="light"])) .balanceBar {
     background: rgba(16, 185, 129, 0.12);
     border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  :global(:root:not([data-theme="light"])) .balanceValue,
+  :global(:root:not([data-theme="light"])) .receiptHighlight,
+  :global(:root:not([data-theme="light"])) .successIcon {
+    color: #34d399;
+  }
+
+  :global(:root:not([data-theme="light"])) .workloadGood {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #6ee7b7;
+  }
+
+  :global(:root:not([data-theme="light"])) .workloadNormal {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.35);
+    color: #a5b4fc;
+  }
+
+  :global(:root:not([data-theme="light"])) .workloadHeavy {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
   }
 }
