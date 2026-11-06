@@ -1403,27 +1403,17 @@
   cursor: pointer;
   text-decoration: none;
   box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.4);
-  transition: all 0.2s ease;
-}
-
-.whatsappReceiptBtn:active {
-  transform: scale(0.98);
-}
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-decoration: none;
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
   margin-bottom: 10px;
-  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .whatsappReceiptBtn:hover {
-  background: #20bd5a;
+  background: linear-gradient(135deg, #22bf5b 0%, #0f7a6e 100%);
   transform: translateY(-1px);
+}
+
+.whatsappReceiptBtn:active {
+  transform: scale(0.98);
 }
 
 .viewOrderBtn {
