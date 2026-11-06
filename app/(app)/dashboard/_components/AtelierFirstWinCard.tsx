@@ -2,6 +2,7 @@
 
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
+import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './AtelierFirstWinCard.module.css';
 
 interface AtelierFirstWinCardProps {
@@ -13,6 +14,8 @@ export default function AtelierFirstWinCard({
   shopName,
   onNavigate,
 }: AtelierFirstWinCardProps) {
+  const xpEnabled = isXpSystemEnabled();
+
   return (
     <div className={styles.card} role="region" aria-label="Shop Quick Launch">
       <div className={styles.pickStitchBorder} aria-hidden="true" />
@@ -24,14 +27,14 @@ export default function AtelierFirstWinCard({
             <span>Quick Start</span>
           </span>
           <span className={styles.xpBonusPill}>
-            <Symbol name="workspace_premium" size={13} />
-            <span>Master Tailor · 50 XP Unlocked</span>
+            <Symbol name={xpEnabled ? 'workspace_premium' : 'verified'} size={13} />
+            <span>{xpEnabled ? 'Master Tailor · 50 XP Unlocked' : 'Workspace Ready'}</span>
           </span>
         </div>
 
         <h2 className={styles.title}>Welcome to {shopName || 'Your Shop'}</h2>
         <p className={styles.subtitle}>
-          Your digital workspace is ready. Take your first craft action to build momentum and start your shop streak:
+          Your digital workspace is ready. Take your first craft action to {xpEnabled ? 'build momentum and start your shop streak:' : 'start managing your shop orders:'}
         </p>
       </div>
 
@@ -51,8 +54,8 @@ export default function AtelierFirstWinCard({
               <div className={styles.actionMetaTop}>
                 <h3 className={styles.actionTitleHero}>Create First Order &amp; Measure Client</h3>
                 <span className={styles.rewardTag}>
-                  <Symbol name="bolt" size={11} />
-                  <span>+25 Craft XP</span>
+                  <Symbol name={xpEnabled ? 'bolt' : 'star'} size={11} />
+                  <span>{xpEnabled ? '+25 Craft XP' : 'Step 1'}</span>
                 </span>
               </div>
               <p className={styles.actionDescHero}>
