@@ -585,7 +585,27 @@ export default function UnifiedNewOrderForm() {
   };
 
   const handleCreateOrder = async () => {
-    if (!selectedCustomer) {
+    let activeCustomer = selectedCustomer;
+    if (!activeCustomer && newCustomerName.trim() && newCustomerPhone.trim()) {
+      try {
+        setSavingCustomer(true);
+        const created = await addCustomer({
+          fullName: newCustomerName.trim(),
+          whatsappNumber: normalizePhone(newCustomerPhone.trim()),
+          gender: newCustomerGender,
+        });
+        setSelectedCustomer(created);
+        setShowInlineNewCustomer(false);
+        activeCustomer = created;
+      } catch (err: any) {
+        showToast(err.message || 'Failed to save walk-in client details', 'error');
+        return;
+      } finally {
+        setSavingCustomer(false);
+      }
+    }
+
+    if (!activeCustomer) {
       showToast('Please select or add a client first', 'error');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -638,11 +658,11 @@ export default function UnifiedNewOrderForm() {
           const garmentName = g.styleName.trim() || 'Custom Outfit';
           const details = orderNotes.trim()
             ? `${orderNotes.trim()}${fabricNotePrefix}`
-            : `${garmentName} (${idx + 1} of ${garmentCount}) for ${selectedCustomer.fullName}${fabricNotePrefix}`;
+            : `${garmentName} (${idx + 1} of ${garmentCount}) for ${activeCustomer.fullName}${fabricNotePrefix}`;
 
           return {
-            customerId: selectedCustomer.id,
-            customerName: selectedCustomer.fullName,
+            customerId: activeCustomer.id,
+            customerName: activeCustomer.fullName,
             orderDetails: details,
             totalBill: unitPrice,
             depositPaid: allocatedDeposit,
@@ -676,11 +696,11 @@ export default function UnifiedNewOrderForm() {
       const createdIds = await addOrderBatch(garmentsPayload);
 
       // Update customer style measurements & auto-record preferred styles in profile
-      const nextPreferredStyles = new Set<string>(selectedCustomer.preferredStyles || []);
+      const nextPreferredStyles = new Set<string>(activeCustomer.preferredStyles || []);
       let preferredStylesChanged = false;
 
       for (const g of garments) {
-        const canonicalStyle = resolveCanonicalStyleName(g.styleName, selectedCustomer.gender);
+        const canonicalStyle = resolveCanonicalStyleName(g.styleName, activeCustomer.gender);
         if (canonicalStyle && !nextPreferredStyles.has(canonicalStyle)) {
           nextPreferredStyles.add(canonicalStyle);
           preferredStylesChanged = true;
@@ -692,16 +712,16 @@ export default function UnifiedNewOrderForm() {
           if (parsed !== null && parsed > 0) parsedNumericMeasures[k] = parsed;
         }
         if (Object.keys(parsedNumericMeasures).length > 0) {
-          await updateCustomerStyleProfile(selectedCustomer.id, g.styleName || 'Custom Outfit', parsedNumericMeasures).catch(() => {});
-          await updateCustomerMeasurements(selectedCustomer.id, parsedNumericMeasures).catch(() => {});
+          await updateCustomerStyleProfile(activeCustomer.id, g.styleName || 'Custom Outfit', parsedNumericMeasures).catch(() => {});
+          await updateCustomerMeasurements(activeCustomer.id, parsedNumericMeasures).catch(() => {});
         }
-        if (g.measurementNotes.trim() && g.measurementNotes !== selectedCustomer.measurementNotes) {
-          await updateCustomerProfile(selectedCustomer.id, { measurementNotes: g.measurementNotes.trim() }).catch(() => {});
+        if (g.measurementNotes.trim() && g.measurementNotes !== activeCustomer.measurementNotes) {
+          await updateCustomerProfile(activeCustomer.id, { measurementNotes: g.measurementNotes.trim() }).catch(() => {});
         }
       }
 
       if (preferredStylesChanged) {
-        await updateCustomerProfile(selectedCustomer.id, {
+        await updateCustomerProfile(activeCustomer.id, {
           preferredStyles: Array.from(nextPreferredStyles),
         }).catch(() => {});
       }
@@ -712,20 +732,20 @@ export default function UnifiedNewOrderForm() {
         .map((g) => g.fabricImage as string);
 
       if (newPhysicalFabrics.length > 0) {
-        const existingStashUrls = (selectedCustomer.fabrics || []).map((f) =>
+        const existingStashUrls = (activeCustomer.fabrics || []).map((f) =>
           typeof f === 'string' ? f : f?.url
         );
         const uniqueToAdd = newPhysicalFabrics.filter((url) => !existingStashUrls.includes(url));
         if (uniqueToAdd.length > 0) {
           const updatedFabrics = [
-            ...(selectedCustomer.fabrics || []),
+            ...(activeCustomer.fabrics || []),
             ...uniqueToAdd.map((url) => ({
               url,
               stage: 'Documented' as const,
               uploadedAt: new Date().toISOString(),
             })),
           ];
-          await updateCustomerProfile(selectedCustomer.id, { fabrics: updatedFabrics }).catch(() => {});
+          await updateCustomerProfile(activeCustomer.id, { fabrics: updatedFabrics }).catch(() => {});
         }
       }
 
