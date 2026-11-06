@@ -136,6 +136,7 @@ interface MeasurementAnatomyProps {
   onPointSelect: (point: MeasurementPoint) => void;
   onValueChange?: (pointId: string, value: string) => void;
   onValueBlur?: (pointId: string, value: string) => void;
+  notesContent?: React.ReactNode;
 }
 
 export default function MeasurementAnatomy({
@@ -145,8 +146,9 @@ export default function MeasurementAnatomy({
   onPointSelect,
   onValueChange,
   onValueBlur,
+  notesContent,
 }: MeasurementAnatomyProps) {
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'visual' | 'list' | 'notes'>('list');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [isFullscreenStudio, setIsFullscreenStudio] = useState(false);
   const [studioZone, setStudioZone] = useState<AnatomyZone>('all');
@@ -254,6 +256,18 @@ export default function MeasurementAnatomy({
             <Symbol name="person" size={14} />
             <span>3D View</span>
           </button>
+          {notesContent !== undefined && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'notes'}
+              className={`${styles.segBtn} ${viewMode === 'notes' ? styles.segBtnActive : ''}`}
+              onClick={() => setViewMode('notes')}
+            >
+              <Symbol name="notes" size={14} />
+              <span>Notes</span>
+            </button>
+          )}
         </div>
 
         <div className={styles.controlBarRight}>
@@ -286,6 +300,11 @@ export default function MeasurementAnatomy({
               }}
             />
           </div>
+        </div>
+      ) : viewMode === 'notes' ? (
+        /* ── View Mode 3: Fit & Posture Notes ────────────────── */
+        <div className={styles.notesContainer}>
+          {notesContent}
         </div>
       ) : (
         /* ── View Mode 2: Categorized Input Grid ──────────────── */

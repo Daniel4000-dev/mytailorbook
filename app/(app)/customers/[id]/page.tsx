@@ -734,84 +734,89 @@ function CustomerProfileContent({
               onPointSelect={handlePointSelect}
               onValueChange={handleMeasurementChange}
               onValueBlur={handleMeasurementBlur}
-            />
-          </section>
+              notesContent={
+                <div className={styles.postureSection}>
+                  <div className={styles.postureHeaderRow}>
+                    <div>
+                      <h3 className={styles.postureCardTitle}>Fit Notes</h3>
+                      <p className={styles.postureCardSub}>
+                        Posture tags and tailoring adjustments for {customer.fullName}
+                      </p>
+                    </div>
+                    <span className={styles.autoSavePill}>
+                      <Symbol name="check_circle" size={12} />
+                      <span>Saved</span>
+                    </span>
+                  </div>
 
-          {/* Fit Notes Card */}
-          <section className={styles.postureDossierCard}>
-            <div className={styles.postureHeaderRow}>
-              <h3 className={styles.postureCardTitle}>Fit Notes</h3>
-              <span className={styles.autoSavePill}>
-                <Symbol name="check_circle" size={12} />
-                <span>Saved</span>
-              </span>
-            </div>
-
-            {/* Interactive Toggleable Posture Chips */}
-            <div className={styles.postureTagsGrid}>
-              {(customer.gender === 'female'
-                ? [
-                    'Corset Fit',
-                    'High Waist',
-                    'Full Bust',
-                    'Sloping Shoulder',
-                    'Hourglass Fit',
-                    'Wide Hips',
-                    'Petite Fit',
-                    'Modest Neckline',
-                  ]
-                : [
-                    'Sloping Shoulder',
-                    'Broad Shoulder',
-                    'Erect Posture',
-                    'Prominent Belly',
-                    'Drop Crotch',
-                    'Slim Fitted',
-                    'Regular Fit',
-                    'Extra Length',
-                  ]
-              ).map((tag) => {
-                const isTagActive = notes.toLowerCase().includes(tag.toLowerCase());
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`${styles.postureChip} ${isTagActive ? styles.postureChipActive : ''}`}
-                    onClick={() => {
-                      let nextNotes: string;
-                      if (isTagActive) {
-                        const parts = notes
-                          .split(',')
-                          .map((s) => s.trim())
-                          .filter((s) => s && s.toLowerCase() !== tag.toLowerCase());
-                        nextNotes = parts.join(', ');
-                      } else {
-                        nextNotes = notes.trim() ? `${notes.trim()}, ${tag}` : tag;
-                      }
-                      setNotes(nextNotes);
-                      updateCustomerProfile(customer.id, { measurementNotes: nextNotes });
-                      showToast(
-                        isTagActive ? `Removed "${tag}"` : `Added "${tag}" to fit notes`,
-                        'info'
+                  {/* Interactive Toggleable Posture Chips */}
+                  <div className={styles.postureTagsGrid}>
+                    {(customer.gender === 'female'
+                      ? [
+                          'Corset Fit',
+                          'High Waist',
+                          'Full Bust',
+                          'Sloping Shoulder',
+                          'Hourglass Fit',
+                          'Wide Hips',
+                          'Petite Fit',
+                          'Modest Neckline',
+                        ]
+                      : [
+                          'Sloping Shoulder',
+                          'Broad Shoulder',
+                          'Erect Posture',
+                          'Prominent Belly',
+                          'Drop Crotch',
+                          'Slim Fitted',
+                          'Regular Fit',
+                          'Extra Length',
+                        ]
+                    ).map((tag) => {
+                      const isTagActive = notes.toLowerCase().includes(tag.toLowerCase());
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          className={`${styles.postureChip} ${isTagActive ? styles.postureChipActive : ''}`}
+                          onClick={() => {
+                            let nextNotes: string;
+                            if (isTagActive) {
+                              const parts = notes
+                                .split(',')
+                                .map((s) => s.trim())
+                                .filter((s) => s && s.toLowerCase() !== tag.toLowerCase());
+                              nextNotes = parts.join(', ');
+                            } else {
+                              nextNotes = notes.trim() ? `${notes.trim()}, ${tag}` : tag;
+                            }
+                            setNotes(nextNotes);
+                            updateCustomerProfile(customer.id, { measurementNotes: nextNotes });
+                            showToast(
+                              isTagActive ? `Removed "${tag}"` : `Added "${tag}" to fit notes`,
+                              'info'
+                            );
+                          }}
+                        >
+                          <Symbol name={isTagActive ? 'check' : 'add'} size={12} />
+                          <span>{tag}</span>
+                        </button>
                       );
-                    }}
-                  >
-                    <Symbol name={isTagActive ? 'check' : 'add'} size={12} />
-                    <span>{tag}</span>
-                  </button>
-                );
-              })}
-            </div>
+                    })}
+                  </div>
 
-            <div className={styles.notesPadWrap}>
-              <textarea
-                className={styles.notesTextarea}
-                placeholder="Record shoulder slope, ease allowance preferences, fabric drape notes, or alteration reminders..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                onBlur={handleSaveNotes}
-              />
-            </div>
+                  <div className={styles.notesPadWrap}>
+                    <textarea
+                      className={styles.notesTextarea}
+                      placeholder="Record shoulder slope, ease allowance preferences, fabric drape notes, or alteration reminders..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      onBlur={handleSaveNotes}
+                    />
+                  </div>
+                </div>
+              }
+            />
           </section>
         </div>
       )}

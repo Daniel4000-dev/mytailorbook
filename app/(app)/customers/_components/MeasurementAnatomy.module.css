@@ -208,6 +208,12 @@
   text-decoration: underline;
 }
 
+/* ── 2b. Customer Fit Notes View ────────────────────────────── */
+.notesContainer {
+  width: 100%;
+  padding-top: 4px;
+}
+
 /* ── 3. Categorized Luxury Measurement Grid (List View) ─────── */
 .categoriesStack {
   display: flex;
