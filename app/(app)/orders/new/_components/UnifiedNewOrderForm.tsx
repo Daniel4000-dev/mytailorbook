@@ -1321,7 +1321,7 @@ export default function UnifiedNewOrderForm() {
                                   measureInputRefs.current[garment.id][pt.key] = el;
                                 }}
                                 type="text"
-                                inputMode="text"
+                                inputMode="decimal"
                                 enterKeyHint={ptIdx < specPoints.length - 1 ? 'next' : 'done'}
                                 placeholder="—"
                                 className={styles.measureInput}
