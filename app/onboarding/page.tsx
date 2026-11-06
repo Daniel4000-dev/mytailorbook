@@ -65,8 +65,9 @@ export default function OnboardingPage() {
   const [apiError, setApiError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // 0, 1 = Welcome Carousel; 2 = Studio Identity; 3 = Operating Model; 4 = Operations & Focus
-  const [step, setStep] = useState(0);
+  // 0, 1 = Optional Welcome Carousel; 2 = Shop Name; 3 = What You Make; 4 = Sales Target & Goals
+  // Default directly to Step 2 so tailors start immediately without carousel friction
+  const [step, setStep] = useState(2);
 
   useEffect(() => {
     scrollContentToTop();
@@ -85,7 +86,7 @@ export default function OnboardingPage() {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       shopName: '',
-      name: '',
+      name: googleUserInfo?.name || '',
       businessMode: 'bespoke',
       weeklyCapacity: '20',
       rtwSourcingMethod: 'in-house',
@@ -104,14 +105,12 @@ export default function OnboardingPage() {
   const watchedMonthlyRevenueTarget = watch('monthlyRevenueTarget') || 1500000;
   const watchedTeamSize = watch('teamSize') || '1-2';
 
-  // Google gives us no signup form, so pre-fill from Google profile
-  const [prefilledGoogleName, setPrefilledGoogleName] = useState<string | null>(null);
-  if (googleUserInfo?.name && googleUserInfo.name !== prefilledGoogleName) {
-    setPrefilledGoogleName(googleUserInfo.name);
-    if (isGoogleAccount) {
+  // Google gives us no signup form, so silently pre-fill from Google profile
+  useEffect(() => {
+    if (isGoogleAccount && googleUserInfo?.name) {
       setValue('name', googleUserInfo.name);
     }
-  }
+  }, [isGoogleAccount, googleUserInfo?.name, setValue]);
 
   // Redirect to login if user lands here without needing onboarding
   const initialCheckDone = useRef(false);
@@ -317,7 +316,7 @@ export default function OnboardingPage() {
                 </p>
 
                 <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {isGoogleAccount && (
+                  {isGoogleAccount && !googleUserInfo?.name && (
                     <div>
                       <AuthInput
                         id="name"
@@ -380,10 +379,11 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     className={styles.backBtn}
-                    onClick={() => setStep(1)}
+                    onClick={() => setStep(0)}
+                    title="View optional tour"
                   >
-                    <Symbol name="arrow_back" size={16} />
-                    <span>Back</span>
+                    <Symbol name="visibility" size={16} />
+                    <span>Quick Tour</span>
                   </button>
                   <button
                     type="button"
@@ -391,7 +391,7 @@ export default function OnboardingPage() {
                     onClick={handleProceedFromIdentity}
                     disabled={!watchedShopName.trim() || watchedShopName.trim().length < 2}
                   >
-                    <span>Continue to Operating Model</span>
+                    <span>Next: What You Make</span>
                     <Symbol name="arrow_forward" size={18} />
                   </button>
                 </div>
@@ -524,14 +524,14 @@ export default function OnboardingPage() {
                     className={styles.primaryBtn}
                     onClick={handleProceedFromCraftMode}
                   >
-                    <span>Continue to Operations</span>
+                    <span>Continue to Goals</span>
                     <Symbol name="arrow_forward" size={18} />
                   </button>
                 </div>
               </motion.div>
             )}
 
-            {/* ── STEP 4: Operations & Brand Reputation ── */}
+            {/* ── STEP 4: Goals & Sales Target ── */}
             {step === 4 && (
               <motion.div
                 key="step-operations"
@@ -540,120 +540,12 @@ export default function OnboardingPage() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.22, ease: 'easeOut' }}
               >
-                <h2 className={styles.cardTitle}>Fine-tune your operations</h2>
+                <h2 className={styles.cardTitle}>Set your shop goals</h2>
                 <p className={styles.cardSubtitle}>
-                  Set your weekly rhythm and the core reputation you want clients to praise you for.
+                  Choose the core reputation you want clients to praise you for and your monthly target.
                 </p>
 
-                {/* Section A: Weekly Capacity (Bespoke or Hybrid) */}
-                {(watchedBusinessMode === 'bespoke' || watchedBusinessMode === 'hybrid') && (
-                  <div className={styles.sectionBlock}>
-                    <div className={styles.sectionHeader}>
-                      <Symbol name="speed" size={18} />
-                      <span>Weekly Garment Production Capacity</span>
-                    </div>
-                    <p className={styles.sectionSubtext}>
-                      Helps your calendar warn your cutting room before you overbook.
-                    </p>
-
-                    <div className={styles.capacityGrid}>
-                      {[
-                        { val: '5', label: '1 – 5', desc: 'Solo Tailor' },
-                        { val: '20', label: '6 – 20', desc: 'Active Studio' },
-                        { val: '50', label: '21 – 50', desc: 'Growing Team' },
-                        { val: '100', label: '51 – 100', desc: 'Production' },
-                        { val: '500', label: '100+', desc: 'High Volume' },
-                      ].map((item) => (
-                        <div
-                          key={item.val}
-                          role="button"
-                          tabIndex={0}
-                          className={`${styles.capacityChip} ${
-                            watchedWeeklyCapacity === item.val ? styles.capacityChipActive : ''
-                          }`}
-                          onClick={() => setValue('weeklyCapacity', item.val, { shouldValidate: true })}
-                          onKeyDown={(e) => {
-                            if (e.key === ' ' || e.key === 'Enter') {
-                              e.preventDefault();
-                              setValue('weeklyCapacity', item.val, { shouldValidate: true });
-                            }
-                          }}
-                        >
-                          <span className={styles.capacityNum}>{item.label}</span>
-                          <span className={styles.capacityDesc}>{item.desc}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Section B: RTW Sourcing Method (RTW or Hybrid) */}
-                {(watchedBusinessMode === 'rtw' || watchedBusinessMode === 'hybrid') && (
-                  <div className={styles.sectionBlock}>
-                    <div className={styles.sectionHeader}>
-                      <Symbol name="inventory_2" size={18} />
-                      <span>Ready-to-Wear Sourcing Method</span>
-                    </div>
-                    <p className={styles.sectionSubtext}>
-                      Configures stock replenishment and inventory tracking.
-                    </p>
-
-                    <div className={styles.cardsGrid} style={{ marginTop: '4px' }}>
-                      {[
-                        {
-                          val: 'in-house',
-                          icon: 'precision_manufacturing',
-                          title: 'Manufacture in-house',
-                          desc: 'Cut & sew your standard sizes internally.',
-                        },
-                        {
-                          val: 'wholesale',
-                          icon: 'storefront',
-                          title: 'Source externally',
-                          desc: 'Procure ready-made inventory from trusted vendors.',
-                        },
-                        {
-                          val: 'both',
-                          icon: 'layers',
-                          title: 'Both methods',
-                          desc: 'In-house production combined with wholesale inventory.',
-                        },
-                      ].map((sourcing) => (
-                        <div
-                          key={sourcing.val}
-                          role="button"
-                          tabIndex={0}
-                          className={`${styles.selectionCard} ${
-                            watchedRtwSourcing === sourcing.val ? styles.selectionCardActive : ''
-                          }`}
-                          style={{ minHeight: '60px', padding: '10px 14px' }}
-                          onClick={() => setValue('rtwSourcingMethod', sourcing.val as 'in-house' | 'wholesale' | 'both', { shouldValidate: true })}
-                          onKeyDown={(e) => {
-                            if (e.key === ' ' || e.key === 'Enter') {
-                              e.preventDefault();
-                              setValue('rtwSourcingMethod', sourcing.val as 'in-house' | 'wholesale' | 'both', { shouldValidate: true });
-                            }
-                          }}
-                        >
-                          <div className={styles.cardIconBox} style={{ width: '38px', height: '38px' }}>
-                            <Symbol name={sourcing.icon} size={20} />
-                          </div>
-                          <div className={styles.cardContent}>
-                            <h4 className={styles.cardHeading} style={{ fontSize: 'var(--sf-text-sm)' }}>
-                              {sourcing.title}
-                            </h4>
-                            <p className={styles.cardDescription}>{sourcing.desc}</p>
-                          </div>
-                          <div className={styles.checkIndicator}>
-                            {watchedRtwSourcing === sourcing.val && <Symbol name="check" size={14} />}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Section C: Studio Reputation / Main Goal */}
+                {/* Section A: Studio Reputation / Main Goal */}
                 <div className={styles.sectionBlock}>
                   <div className={styles.sectionHeader}>
                     <Symbol name="auto_awesome" size={18} />

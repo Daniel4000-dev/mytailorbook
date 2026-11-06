@@ -126,74 +126,81 @@ export default function OwnerDashboard({
           </div>
         ) : null}
 
-        {/* Operations Dashboard Grid — Elevated Atelier Cockpit Deck */}
-        <div className={styles.operationsGrid}>
-          {/* Row 1: Sewing, Cutting, Overdue Payment (3 cards) */}
-          <button
-            type="button"
-            className={styles.operationsCard}
-            onClick={() => onNavigate('/production')}
-            aria-label="View active sewing production queue"
-          >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{inProductionCount}</span>
-            </div>
-            <span className={styles.metricLabel}>Sewing</span>
-          </button>
+        {/* Operations Dashboard Grid — Elevated Cockpit Deck */}
+        {orders.length > 0 ? (
+          <div className={styles.operationsGrid}>
+            {/* Row 1: Sewing, Cutting, Overdue Payment (3 cards) */}
+            <button
+              type="button"
+              className={styles.operationsCard}
+              onClick={() => onNavigate('/production')}
+              aria-label="View active sewing production queue"
+            >
+              <div className={styles.metricTop}>
+                <span className={styles.metricNum}>{inProductionCount}</span>
+              </div>
+              <span className={styles.metricLabel}>Sewing</span>
+            </button>
 
-          <button
-            type="button"
-            className={styles.operationsCard}
-            onClick={() => onNavigate('/fabrics')}
-            aria-label="View uncut fabrics on cutting table"
-          >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{uncutFabricsCount}</span>
-              {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
-            </div>
-            <span className={styles.metricLabel}>Cutting</span>
-          </button>
+            <button
+              type="button"
+              className={styles.operationsCard}
+              onClick={() => onNavigate('/fabrics')}
+              aria-label="View uncut fabrics on cutting table"
+            >
+              <div className={styles.metricTop}>
+                <span className={styles.metricNum}>{uncutFabricsCount}</span>
+                {uncutFabricsCount > 0 && <span className={styles.metricAlertDot} />}
+              </div>
+              <span className={styles.metricLabel}>Cutting</span>
+            </button>
 
-          <button
-            type="button"
-            className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
-            onClick={() => onNavigate('/collections')}
-            aria-label="View uncollected debtor balances"
-          >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>
-                {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
-              </span>
-            </div>
-            <span className={styles.metricLabel}>Overdue payment</span>
-          </button>
+            <button
+              type="button"
+              className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+              onClick={() => onNavigate('/collections')}
+              aria-label="View uncollected debtor balances"
+            >
+              <div className={styles.metricTop}>
+                <span className={styles.metricNum}>
+                  {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+                </span>
+              </div>
+              <span className={styles.metricLabel}>Overdue payment</span>
+            </button>
 
-          {/* Row 2: Overdue, Ready (2 wide cards, balanced) */}
-          <button
-            type="button"
-            className={`${styles.operationsCard} ${styles.operationsCardWide} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
-            onClick={() => onNavigate('/production')}
-            aria-label="View overdue and urgent orders"
-          >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{urgentCount}</span>
-              {urgentCount > 0 && <span className={styles.metricAlertDot} />}
-            </div>
-            <span className={styles.metricLabel}>Overdue</span>
-          </button>
+            {/* Row 2: Overdue, Ready (2 wide cards, balanced) */}
+            <button
+              type="button"
+              className={`${styles.operationsCard} ${styles.operationsCardWide} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
+              onClick={() => onNavigate('/production')}
+              aria-label="View overdue and urgent orders"
+            >
+              <div className={styles.metricTop}>
+                <span className={styles.metricNum}>{urgentCount}</span>
+                {urgentCount > 0 && <span className={styles.metricAlertDot} />}
+              </div>
+              <span className={styles.metricLabel}>Overdue</span>
+            </button>
 
-          <button
-            type="button"
-            className={`${styles.operationsCard} ${styles.operationsCardWide}`}
-            onClick={() => onNavigate('/production?status=Ready')}
-            aria-label="View ready garments for pickup"
-          >
-            <div className={styles.metricTop}>
-              <span className={styles.metricNum}>{readyCount}</span>
-            </div>
-            <span className={styles.metricLabel}>Ready</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              className={`${styles.operationsCard} ${styles.operationsCardWide}`}
+              onClick={() => onNavigate('/production?status=Ready')}
+              aria-label="View ready garments for pickup"
+            >
+              <div className={styles.metricTop}>
+                <span className={styles.metricNum}>{readyCount}</span>
+              </div>
+              <span className={styles.metricLabel}>Ready</span>
+            </button>
+          </div>
+        ) : (
+          <div className={styles.dayOneBanner}>
+            <Symbol name="straighten" size={18} />
+            <span>Ready for Day 1 — Create your first order below to start tracking your cutting and sewing board.</span>
+          </div>
+        )}
       </section>
 
       {/* 2. Shop First-Win Launchpad (Shown when shop is new with 0 orders) */}
@@ -207,7 +214,7 @@ export default function OwnerDashboard({
       {/* 3. Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
       <ProfileSetupProgress onNavigate={onNavigate} />
 
-      {/* 3. Quick Nav (Master Actions & Atelier Switchboard) */}
+      {/* 4. Quick Nav (Master Actions & Atelier Switchboard) */}
       <QuickCommandHub
         onNavigate={onNavigate}
         uncutFabricsCount={uncutFabricsCount}
@@ -218,104 +225,104 @@ export default function OwnerDashboard({
         debtTotal={debtTotal}
       />
 
-      {/* Pod Co-Op Streak & Peer Status Banner */}
-      <PodCoOpBanner />
-
-      {/* 4. Today's Workshop Priorities & Schedule */}
-      <TodayPrioritiesWidget
-        loops={openLoops}
-        onNavigate={onNavigate}
-      />
-
-      {/* 5. Artisan Bench — Team Craft Workload */}
-      {teamSnapshot.length === 0 ? (
-        <div className={styles.teamInviteCard}>
-          <div className={styles.teamInviteLeft}>
-            <div className={styles.teamInviteIconWrap}>
-              <Symbol name="group_add" size={18} />
-            </div>
-            <div>
-              <span className={styles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
-              <span className={styles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={styles.teamInviteBtn}
-            onClick={() => onNavigate('/settings/staff')}
-          >
-            Add Team
-          </button>
-        </div>
-      ) : (
-        <div className={styles.teamBenchCard}>
-          <div className={styles.teamBenchHeader}>
-            <div className={styles.teamBenchTitleRow}>
-              <Symbol name="group" size={16} className={styles.teamBenchIcon} />
-              <span className={styles.teamBenchTitle}>Team Workload</span>
-              <span className={styles.teamBenchBadge}>
-                {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
-              </span>
-            </div>
-            <button
-              type="button"
-              className={styles.teamBenchLink}
-              onClick={() => onNavigate('/settings/staff')}
-            >
-              <span>Manage</span>
-              <Symbol name="chevron_right" size={14} />
-            </button>
-          </div>
-          <div className={styles.teamGrid}>
-            {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+      {/* 5. Active Shop Sections (Unlocked once orders are live) */}
+      {orders.length > 0 && (
+        <>
+          <PodCoOpBanner />
+          <TodayPrioritiesWidget
+            loops={openLoops}
+            onNavigate={onNavigate}
+          />
+          {teamSnapshot.length === 0 ? (
+            <div className={styles.teamInviteCard}>
+              <div className={styles.teamInviteLeft}>
+                <div className={styles.teamInviteIconWrap}>
+                  <Symbol name="group_add" size={18} />
+                </div>
+                <div>
+                  <span className={styles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
+                  <span className={styles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
+                </div>
+              </div>
               <button
-                key={staff.uid}
-                className={styles.teamCard}
-                onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
                 type="button"
+                className={styles.teamInviteBtn}
+                onClick={() => onNavigate('/settings/staff')}
               >
-                <div className={styles.teamCardLeft}>
-                  {staff.avatarUrl ? (
-                    <Image
-                      src={staff.avatarUrl}
-                      alt=""
-                      width={38}
-                      height={38}
-                      className={styles.teamAvatarImage}
-                    />
-                  ) : (
-                    <div className={styles.teamAvatar}>{staff.name[0]}</div>
-                  )}
-                  <div className={styles.teamInfo}>
-                    <div className={styles.teamNameRow}>
-                      <span className={styles.teamName}>{staff.name}</span>
-                      <span className={styles.craftBadge}>
-                        {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
-                      </span>
-                    </div>
-                    <span className={styles.teamCompletedNote}>
-                      {completed} completed piece{completed === 1 ? '' : 's'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.teamCardRight}>
-                  <div className={styles.teamBadges}>
-                    <span className={styles.teamActiveBadge}>
-                      {active} Active
-                    </span>
-                    {overdue > 0 && (
-                      <span className={styles.teamOverdueBadge}>
-                        {overdue} Overdue
-                      </span>
-                    )}
-                  </div>
-                  <Symbol name="chevron_right" size={16} className={styles.teamChevron} />
-                </div>
+                Add Team
               </button>
-            ))}
-          </div>
-        </div>
+            </div>
+          ) : (
+            <div className={styles.teamBenchCard}>
+              <div className={styles.teamBenchHeader}>
+                <div className={styles.teamBenchTitleRow}>
+                  <Symbol name="group" size={16} className={styles.teamBenchIcon} />
+                  <span className={styles.teamBenchTitle}>Team Workload</span>
+                  <span className={styles.teamBenchBadge}>
+                    {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className={styles.teamBenchLink}
+                  onClick={() => onNavigate('/settings/staff')}
+                >
+                  <span>Manage</span>
+                  <Symbol name="chevron_right" size={14} />
+                </button>
+              </div>
+              <div className={styles.teamGrid}>
+                {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+                  <button
+                    key={staff.uid}
+                    className={styles.teamCard}
+                    onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
+                    type="button"
+                  >
+                    <div className={styles.teamCardLeft}>
+                      {staff.avatarUrl ? (
+                        <Image
+                          src={staff.avatarUrl}
+                          alt=""
+                          width={38}
+                          height={38}
+                          className={styles.teamAvatarImage}
+                        />
+                      ) : (
+                        <div className={styles.teamAvatar}>{staff.name[0]}</div>
+                      )}
+                      <div className={styles.teamInfo}>
+                        <div className={styles.teamNameRow}>
+                          <span className={styles.teamName}>{staff.name}</span>
+                          <span className={styles.craftBadge}>
+                            {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                          </span>
+                        </div>
+                        <span className={styles.teamCompletedNote}>
+                          {completed} completed piece{completed === 1 ? '' : 's'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={styles.teamCardRight}>
+                      <div className={styles.teamBadges}>
+                        <span className={styles.teamActiveBadge}>
+                          {active} Active
+                        </span>
+                        {overdue > 0 && (
+                          <span className={styles.teamOverdueBadge}>
+                            {overdue} Overdue
+                          </span>
+                        )}
+                      </div>
+                      <Symbol name="chevron_right" size={16} className={styles.teamChevron} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </>
   );

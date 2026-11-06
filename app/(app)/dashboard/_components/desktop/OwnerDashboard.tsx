@@ -254,106 +254,108 @@ export default function OwnerDashboard({
         debtTotal={debtTotal}
       />
 
-      {/* 2-Column Command Workspace */}
-      <div className={styles.twoCol}>
-        <div className={styles.mainCol}>
-          {/* Artisan Bench — Team Craft Workload */}
-          {teamSnapshot.length === 0 ? (
-            <div className={pageStyles.teamInviteCard}>
-              <div className={pageStyles.teamInviteLeft}>
-                <div className={pageStyles.teamInviteIconWrap}>
-                  <Symbol name="group_add" size={18} />
-                </div>
-                <div>
-                  <span className={pageStyles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
-                  <span className={pageStyles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                className={pageStyles.teamInviteBtn}
-                onClick={() => onNavigate('/settings/staff')}
-              >
-                Add Team
-              </button>
-            </div>
-          ) : (
-            <div className={pageStyles.teamBenchCard}>
-              <div className={pageStyles.teamBenchHeader}>
-                <div className={pageStyles.teamBenchTitleRow}>
-                  <Symbol name="group" size={16} className={pageStyles.teamBenchIcon} />
-                  <span className={pageStyles.teamBenchTitle}>Team Workload</span>
-                  <span className={pageStyles.teamBenchBadge}>
-                    {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
-                  </span>
+      {/* 2-Column Command Workspace (Unlocked when orders are active) */}
+      {orders.length > 0 && (
+        <div className={styles.twoCol}>
+          <div className={styles.mainCol}>
+            {/* Artisan Bench — Team Craft Workload */}
+            {teamSnapshot.length === 0 ? (
+              <div className={pageStyles.teamInviteCard}>
+                <div className={pageStyles.teamInviteLeft}>
+                  <div className={pageStyles.teamInviteIconWrap}>
+                    <Symbol name="group_add" size={18} />
+                  </div>
+                  <div>
+                    <span className={pageStyles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
+                    <span className={pageStyles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  className={pageStyles.teamBenchLink}
+                  className={pageStyles.teamInviteBtn}
                   onClick={() => onNavigate('/settings/staff')}
                 >
-                  <span>Manage</span>
-                  <Symbol name="chevron_right" size={14} />
+                  Add Team
                 </button>
               </div>
-              <div className={styles.teamGrid}>
-                {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+            ) : (
+              <div className={pageStyles.teamBenchCard}>
+                <div className={pageStyles.teamBenchHeader}>
+                  <div className={pageStyles.teamBenchTitleRow}>
+                    <Symbol name="group" size={16} className={pageStyles.teamBenchIcon} />
+                    <span className={pageStyles.teamBenchTitle}>Team Workload</span>
+                    <span className={pageStyles.teamBenchBadge}>
+                      {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
                   <button
-                    key={staff.uid}
-                    className={pageStyles.teamCard}
-                    onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
                     type="button"
+                    className={pageStyles.teamBenchLink}
+                    onClick={() => onNavigate('/settings/staff')}
                   >
-                    <div className={pageStyles.teamCardLeft}>
-                      {staff.avatarUrl ? (
-                        <Image
-                          src={staff.avatarUrl}
-                          alt=""
-                          width={38}
-                          height={38}
-                          className={pageStyles.teamAvatarImage}
-                        />
-                      ) : (
-                        <div className={pageStyles.teamAvatar}>{staff.name[0]}</div>
-                      )}
-                      <div className={pageStyles.teamInfo}>
-                        <div className={pageStyles.teamNameRow}>
-                          <span className={pageStyles.teamName}>{staff.name}</span>
-                          <span className={pageStyles.craftBadge}>
-                            {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                    <span>Manage</span>
+                    <Symbol name="chevron_right" size={14} />
+                  </button>
+                </div>
+                <div className={styles.teamGrid}>
+                  {teamSnapshot.map(({ staff, active, overdue, completed }) => (
+                    <button
+                      key={staff.uid}
+                      className={pageStyles.teamCard}
+                      onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
+                      type="button"
+                    >
+                      <div className={pageStyles.teamCardLeft}>
+                        {staff.avatarUrl ? (
+                          <Image
+                            src={staff.avatarUrl}
+                            alt=""
+                            width={38}
+                            height={38}
+                            className={pageStyles.teamAvatarImage}
+                          />
+                        ) : (
+                          <div className={pageStyles.teamAvatar}>{staff.name[0]}</div>
+                        )}
+                        <div className={pageStyles.teamInfo}>
+                          <div className={pageStyles.teamNameRow}>
+                            <span className={pageStyles.teamName}>{staff.name}</span>
+                            <span className={pageStyles.craftBadge}>
+                              {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                            </span>
+                          </div>
+                          <span className={pageStyles.teamCompletedNote}>
+                            {completed} completed piece{completed === 1 ? '' : 's'}
                           </span>
                         </div>
-                        <span className={pageStyles.teamCompletedNote}>
-                          {completed} completed piece{completed === 1 ? '' : 's'}
-                        </span>
                       </div>
-                    </div>
 
-                    <div className={pageStyles.teamCardRight}>
-                      <div className={pageStyles.teamBadges}>
-                        <span className={pageStyles.teamActiveBadge}>
-                          {active} Active
-                        </span>
-                        {overdue > 0 && (
-                          <span className={pageStyles.teamOverdueBadge}>
-                            {overdue} Overdue
+                      <div className={pageStyles.teamCardRight}>
+                        <div className={pageStyles.teamBadges}>
+                          <span className={pageStyles.teamActiveBadge}>
+                            {active} Active
                           </span>
-                        )}
+                          {overdue > 0 && (
+                            <span className={pageStyles.teamOverdueBadge}>
+                              {overdue} Overdue
+                            </span>
+                          )}
+                        </div>
+                        <Symbol name="chevron_right" size={16} className={pageStyles.teamChevron} />
                       </div>
-                      <Symbol name="chevron_right" size={16} className={pageStyles.teamChevron} />
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className={styles.rail}>
-          {/* Today's Schedule & Workshop Priorities */}
-          <TodayPrioritiesWidget loops={openLoops} onNavigate={onNavigate} />
+          <div className={styles.rail}>
+            {/* Today's Schedule & Workshop Priorities */}
+            <TodayPrioritiesWidget loops={openLoops} onNavigate={onNavigate} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
