@@ -10,6 +10,7 @@ import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import ProfileSetupProgress from '../ProfileSetupProgress';
+import AtelierFirstWinCard from '../AtelierFirstWinCard';
 import pageStyles from '../../page.module.css';
 import styles from './OwnerDashboard.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -230,6 +231,14 @@ export default function OwnerDashboard({
           )}
         </div>
       </div>
+
+      {/* Atelier First-Win Launchpad (Shown when atelier is new with 0 orders) */}
+      {orders.length === 0 && (
+        <AtelierFirstWinCard
+          shopName={currentShop?.name || 'Your Atelier'}
+          onNavigate={onNavigate}
+        />
+      )}
 
       {/* Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
       <ProfileSetupProgress onNavigate={onNavigate} />

@@ -234,18 +234,38 @@ export default function OnboardingPage() {
           </div>
 
           <div className={styles.tourActions}>
-            <button type="button" className={styles.skipBtn} onClick={() => setStep(2)}>
-              Skip Tour
-            </button>
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              style={{ maxWidth: '240px' }}
-              onClick={() => setStep(step === 0 ? 1 : 2)}
-            >
-              <span>{step === 0 ? 'Next Feature' : 'Begin Studio Setup'}</span>
-              <Symbol name="arrow_forward" size={18} />
-            </button>
+            {step === 0 ? (
+              <>
+                <button type="button" className={styles.skipBtn} onClick={() => setStep(2)}>
+                  Skip to Setup
+                </button>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  style={{ maxWidth: '240px' }}
+                  onClick={() => setStep(1)}
+                >
+                  <span>Next</span>
+                  <Symbol name="arrow_forward" size={18} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" className={styles.skipBtn} onClick={() => setStep(0)}>
+                  <Symbol name="arrow_back" size={16} />
+                  <span>Back</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  style={{ maxWidth: '240px' }}
+                  onClick={() => setStep(2)}
+                >
+                  <span>Create My Atelier</span>
+                  <Symbol name="workspace_premium" size={18} />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -261,9 +281,9 @@ export default function OnboardingPage() {
       <div className={styles.glassCard}>
         {/* Top Stepper */}
         <div className={styles.stepMeta}>
-          <span>Shop Setup</span>
+          <span>Atelier Setup</span>
           <span>
-            Step {step - 1} of 3 • {step === 2 ? 'Shop Name' : step === 3 ? 'What You Make' : 'Sales Target & Team'}
+            Step {step - 1} of 3 • {step === 2 ? 'Studio Identity' : step === 3 ? 'Craft Model' : 'Operations & Rhythm'}
           </span>
         </div>
 
@@ -345,7 +365,7 @@ export default function OnboardingPage() {
                         {watchedShopName.trim() || 'Your Shop'}
                       </h3>
                       <p className={styles.previewSlug}>
-                        mystitchbook.com/studio/{slugify(watchedShopName)}
+                        mytailorbook.com/studio/{slugify(watchedShopName)}
                       </p>
                     </div>
                   </div>
@@ -732,65 +752,6 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Section E: Workshop Apprentices & Team */}
-                <div className={styles.sectionBlock}>
-                  <div className={styles.sectionHeader}>
-                    <Symbol name="group" size={18} />
-                    <span>Tailors &amp; Apprentices</span>
-                  </div>
-                  <p className={styles.sectionSubtext}>
-                    Add your team size to track who cuts and sews each garment.
-                  </p>
-
-                  <div className={styles.capacityGrid}>
-                    {[
-                      { val: 'solo', label: 'Solo', desc: 'Just Me' },
-                      { val: '1-2', label: '1 – 2', desc: 'Apprentices' },
-                      { val: '3-5', label: '3 – 5', desc: 'Tailors' },
-                      { val: '6+', label: '6+', desc: 'Full Team' },
-                    ].map((item) => (
-                      <div
-                        key={item.val}
-                        role="button"
-                        tabIndex={0}
-                        className={`${styles.capacityChip} ${
-                          watchedTeamSize === item.val ? styles.capacityChipActive : ''
-                        }`}
-                        onClick={() => setValue('teamSize', item.val, { shouldValidate: true })}
-                        onKeyDown={(e) => {
-                          if (e.key === ' ' || e.key === 'Enter') {
-                            e.preventDefault();
-                            setValue('teamSize', item.val, { shouldValidate: true });
-                          }
-                        }}
-                      >
-                        <span className={styles.capacityNum}>{item.label}</span>
-                        <span className={styles.capacityDesc}>{item.desc}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {watchedTeamSize !== 'solo' && (
-                    <div style={{ marginTop: '12px' }}>
-                      <input
-                        type="text"
-                        placeholder="Apprentice / Tailor names (optional, e.g. Tunde, Chidi, Fatima)"
-                        {...register('apprenticeNames')}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          borderRadius: 'var(--sf-radius-sm)',
-                          border: '1px solid var(--sf-border-light)',
-                          background: 'var(--sf-bg-surface)',
-                          fontSize: 'var(--sf-text-sm)',
-                          color: 'var(--sf-text-primary)',
-                          outline: 'none',
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-
                 <div className={styles.actionsRow}>
                   <button
                     type="button"
@@ -809,11 +770,11 @@ export default function OnboardingPage() {
                     {submitting ? (
                       <>
                         <Symbol name="progress_activity" size={18} className="global-spinner" />
-                        <span>Setting up your shop...</span>
+                        <span>Setting up your atelier...</span>
                       </>
                     ) : (
                       <>
-                        <span>Open My Shop</span>
+                        <span>Open My Atelier</span>
                         <Symbol name="workspace_premium" size={18} />
                       </>
                     )}

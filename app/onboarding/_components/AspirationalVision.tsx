@@ -2,7 +2,16 @@
 
 import { motion } from 'framer-motion';
 import PortfolioTemplate from '@/components/studio/PortfolioView/PortfolioTemplate';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './AspirationalVision.module.css';
+
+function getMonogram(name: string): string {
+  const clean = name.trim();
+  if (!clean) return 'SB';
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
 
 const PREMIUM_MOCKS = [
   {
@@ -120,16 +129,21 @@ export default function AspirationalVision({ shopName, onFinish }: { shopName: s
         className={styles.overlay}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 1.5 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
       >
         <div className={styles.messageBox}>
-          <h2 className={styles.title}>Your Digital Storefront Awaits.</h2>
+          <div className={styles.monogram}>{getMonogram(shopName)}</div>
+          <div className={styles.xpPill}>
+            <Symbol name="workspace_premium" size={15} />
+            <span>+50 Craft XP Unlocked · Master Tailor</span>
+          </div>
+          <h2 className={styles.title}>Your Digital Atelier is Ready</h2>
           <p className={styles.subtitle}>
-            Every order you complete automatically builds a world-class portfolio right here. 
-            Clear your board today to start building your legacy.
+            Welcome to <strong>{shopName || 'Your Atelier'}</strong>. Every order and measurement you record automatically builds your digital portfolio, keeps cutting tables organized, and sends live tracking to your clients.
           </p>
           <button className={styles.finishBtn} onClick={onFinish}>
-            Enter Dashboard
+            <span>Enter Atelier Dashboard</span>
+            <Symbol name="arrow_forward" size={18} />
           </button>
         </div>
       </motion.div>

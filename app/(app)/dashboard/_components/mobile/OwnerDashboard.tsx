@@ -11,6 +11,7 @@ import QuickCommandHub from '../QuickCommandHub';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import ProfileSetupProgress from '../ProfileSetupProgress';
 import PodCoOpBanner from '../PodCoOpBanner';
+import AtelierFirstWinCard from '../AtelierFirstWinCard';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
 import styles from '../../page.module.css';
@@ -195,7 +196,15 @@ export default function OwnerDashboard({
         </div>
       </section>
 
-      {/* 2. Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
+      {/* 2. Atelier First-Win Launchpad (Shown when atelier is new with 0 orders) */}
+      {orders.length === 0 && (
+        <AtelierFirstWinCard
+          shopName={currentShop?.name || 'Your Atelier'}
+          onNavigate={onNavigate}
+        />
+      )}
+
+      {/* 3. Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
       <ProfileSetupProgress onNavigate={onNavigate} />
 
       {/* 3. Quick Nav (Master Actions & Atelier Switchboard) */}
