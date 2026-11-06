@@ -74,7 +74,7 @@ export default function OwnerDashboard({
 
         <div className={styles.heroHeader}>
           <div className={styles.heroIdentity}>
-            <h1 className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</h1>
+            <h1 className={styles.heroShopName}>{currentShop?.name || 'My Shop'}</h1>
           </div>
           <div className={styles.heroRevenueBlock}>
             <div className={styles.heroRevenueHeader}>
@@ -196,10 +196,10 @@ export default function OwnerDashboard({
         </div>
       </section>
 
-      {/* 2. Atelier First-Win Launchpad (Shown when atelier is new with 0 orders) */}
+      {/* 2. Shop First-Win Launchpad (Shown when shop is new with 0 orders) */}
       {orders.length === 0 && (
         <AtelierFirstWinCard
-          shopName={currentShop?.name || 'Your Atelier'}
+          shopName={currentShop?.name || 'Your Shop'}
           onNavigate={onNavigate}
         />
       )}

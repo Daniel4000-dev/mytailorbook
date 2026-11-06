@@ -137,12 +137,12 @@ export default function AspirationalVision({ shopName, onFinish }: { shopName: s
             <Symbol name="workspace_premium" size={15} />
             <span>+50 Craft XP Unlocked · Master Tailor</span>
           </div>
-          <h2 className={styles.title}>Your Digital Atelier is Ready</h2>
+          <h2 className={styles.title}>Your Shop is Ready</h2>
           <p className={styles.subtitle}>
-            Welcome to <strong>{shopName || 'Your Atelier'}</strong>. Every order and measurement you record automatically builds your digital portfolio, keeps cutting tables organized, and sends live tracking to your clients.
+            Welcome to <strong>{shopName || 'Your Shop'}</strong>. Every order and measurement you record automatically builds your shop portfolio, keeps cutting tables organized, and sends live tracking to your clients.
           </p>
           <button className={styles.finishBtn} onClick={onFinish}>
-            <span>Enter Atelier Dashboard</span>
+            <span>Enter Dashboard</span>
             <Symbol name="arrow_forward" size={18} />
           </button>
         </div>

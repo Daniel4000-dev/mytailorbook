@@ -153,7 +153,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
                   rel="noopener noreferrer"
                   className={styles.waLink}
                 >
-                  <Symbol name="chat" size={14} /> Contact Atelier on WhatsApp
+                  <Symbol name="chat" size={14} /> Contact Tailor on WhatsApp
                 </a>
               </p>
             )}

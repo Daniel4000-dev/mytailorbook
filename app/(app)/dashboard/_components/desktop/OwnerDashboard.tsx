@@ -73,7 +73,7 @@ export default function OwnerDashboard({
 
         <div className={styles.heroTop}>
           <div className={styles.heroIdentity}>
-            <span className={styles.heroShopName}>{currentShop?.name || 'Bespoke Atelier'}</span>
+            <span className={styles.heroShopName}>{currentShop?.name || 'My Shop'}</span>
           </div>
           <div className={styles.heroPrimaryStat}>
             <div className={styles.heroPrimaryLabelRow}>
@@ -205,7 +205,7 @@ export default function OwnerDashboard({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ color: '#ffffff' }}>
                 <span style={{ display: 'block', fontWeight: 500, fontSize: '14px' }}>
-                  Set Atelier Monthly Goal
+                  Set Monthly Sales Goal
                 </span>
                 <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
                   Track target revenue directly on your dashboard.
@@ -232,10 +232,10 @@ export default function OwnerDashboard({
         </div>
       </div>
 
-      {/* Atelier First-Win Launchpad (Shown when atelier is new with 0 orders) */}
+      {/* Shop First-Win Launchpad (Shown when shop is new with 0 orders) */}
       {orders.length === 0 && (
         <AtelierFirstWinCard
-          shopName={currentShop?.name || 'Your Atelier'}
+          shopName={currentShop?.name || 'Your Shop'}
           onNavigate={onNavigate}
         />
       )}

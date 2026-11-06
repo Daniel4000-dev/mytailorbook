@@ -14,14 +14,14 @@ export default function AtelierFirstWinCard({
   onNavigate,
 }: AtelierFirstWinCardProps) {
   return (
-    <div className={styles.card} role="region" aria-label="Atelier Quick Launch">
+    <div className={styles.card} role="region" aria-label="Shop Quick Launch">
       <div className={styles.pickStitchBorder} aria-hidden="true" />
 
       <div className={styles.header}>
         <div className={styles.headerTopRow}>
           <span className={styles.badge}>
             <Symbol name="auto_awesome" size={13} />
-            <span>Atelier Launchpad</span>
+            <span>Quick Start</span>
           </span>
           <span className={styles.xpBonusPill}>
             <Symbol name="workspace_premium" size={13} />
@@ -29,9 +29,9 @@ export default function AtelierFirstWinCard({
           </span>
         </div>
 
-        <h2 className={styles.title}>Welcome to {shopName || 'Your Atelier'}</h2>
+        <h2 className={styles.title}>Welcome to {shopName || 'Your Shop'}</h2>
         <p className={styles.subtitle}>
-          Your bespoke digital workshop is ready. Take your first craft action to build momentum and start your studio streak:
+          Your digital workspace is ready. Take your first craft action to build momentum and start your shop streak:
         </p>
       </div>
 
@@ -117,3 +117,4 @@ export default function AtelierFirstWinCard({
     </div>
   );
 }
+

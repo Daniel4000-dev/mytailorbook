@@ -261,8 +261,8 @@ export default function OnboardingPage() {
                   style={{ maxWidth: '240px' }}
                   onClick={() => setStep(2)}
                 >
-                  <span>Create My Atelier</span>
-                  <Symbol name="workspace_premium" size={18} />
+                  <span>Start Shop Setup</span>
+                  <Symbol name="arrow_forward" size={18} />
                 </button>
               </>
             )}
@@ -281,9 +281,9 @@ export default function OnboardingPage() {
       <div className={styles.glassCard}>
         {/* Top Stepper */}
         <div className={styles.stepMeta}>
-          <span>Atelier Setup</span>
+          <span>Shop Setup</span>
           <span>
-            Step {step - 1} of 3 • {step === 2 ? 'Studio Identity' : step === 3 ? 'Craft Model' : 'Operations & Rhythm'}
+            Step {step - 1} of 3 • {step === 2 ? 'Shop Name' : step === 3 ? 'What You Make' : 'Sales Target & Goals'}
           </span>
         </div>
 
@@ -770,11 +770,11 @@ export default function OnboardingPage() {
                     {submitting ? (
                       <>
                         <Symbol name="progress_activity" size={18} className="global-spinner" />
-                        <span>Setting up your atelier...</span>
+                        <span>Setting up your shop...</span>
                       </>
                     ) : (
                       <>
-                        <span>Open My Atelier</span>
+                        <span>Open My Shop</span>
                         <Symbol name="workspace_premium" size={18} />
                       </>
                     )}
