@@ -43,6 +43,7 @@ import OrderExpenses from './_components/OrderExpenses';
 import OrderPayments from './_components/OrderPayments';
 import OrderMaterials from './_components/OrderMaterials';
 import OrderEmbellishmentTracker from './_components/OrderEmbellishmentTracker';
+import CuttingSlipModal from '../_components/CuttingSlipModal';
 import ScheduleFittingPromptModal from '../_components/ScheduleFittingPromptModal';
 import { createCalendarEvent } from '@/app/actions/calendar';
 import { publishOrderStoryToPortfolioAction } from '@/app/(app)/settings/portfolio/actions';
@@ -87,6 +88,7 @@ export default function OrderDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(false);
   const [editingMeasurements, setEditingMeasurements] = useState(false);
+  const [cuttingSlipOpen, setCuttingSlipOpen] = useState(false);
   const [stagePickerOpen, setStagePickerOpen] = useState(false);
   const [isFittingPromptOpen, setIsFittingPromptOpen] = useState(false);
   const [alterationModalOpen, setAlterationModalOpen] = useState(false);
@@ -623,6 +625,25 @@ export default function OrderDetailPage() {
         ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
       );
 
+  const BASELINE_KEYS = [
+    'chest', 'bust', 'waist', 'hips', 'shoulder', 'dressLength',
+    'trouserLength', 'shirtLength', 'length', 'gownLength', 'sleeveLength', 'sleeve'
+  ];
+  const baselineMeasurements = measurementEntries.filter(([k]) =>
+    BASELINE_KEYS.some((b) => b.toLowerCase() === k.toLowerCase())
+  );
+  const detailedMeasurements = measurementEntries.filter(
+    ([k]) => !BASELINE_KEYS.some((b) => b.toLowerCase() === k.toLowerCase())
+  );
+
+  const fabricPhotoUrl =
+    (order.images || []).find((img) => img.stage === 'Documented')?.url ||
+    (order as any).fabricImage ||
+    null;
+  const primaryInspoUrl = (order.inspirationImages || [])[0] || null;
+  const progressPhotos = (order.images || []).filter((img) => img.stage !== 'Documented');
+  const latestProgressPhoto = progressPhotos.length > 0 ? progressPhotos[progressPhotos.length - 1] : null;
+
   const handleCopyMeasurements = () => {
     if (measurementEntries.length === 0) return;
     const lines = [
@@ -749,16 +770,28 @@ export default function OrderDetailPage() {
               {customer && (
                 <div className={styles.quickContactGroup}>
                   {customer.whatsappNumber && (
-                    <button
-                      type="button"
-                      className={styles.heroWhatsappBtn}
-                      onClick={() => setWhatsAppSheetOpen(true)}
-                      aria-label={`WhatsApp ${customer.fullName}`}
-                      title="Send WhatsApp update"
-                    >
-                      <WhatsappIcon size={14} />
-                      <span>WhatsApp</span>
-                    </button>
+                    <div className={styles.heroWhatsappGroup}>
+                      <a
+                        href={getWhatsAppLink(customer.whatsappNumber, whatsAppMessage)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.heroWhatsappBtn}
+                        aria-label={`Send 1-tap ${STATUS_CONFIG[order.status].label} update to ${customer.fullName}`}
+                        title="Send WhatsApp update directly in 1 tap"
+                      >
+                        <WhatsappIcon size={14} />
+                        <span>Update Client</span>
+                      </a>
+                      <button
+                        type="button"
+                        className={styles.heroWhatsappOptionsBtn}
+                        onClick={() => setWhatsAppSheetOpen(true)}
+                        aria-label="More WhatsApp options"
+                        title="More WhatsApp options (lookbook photo request, custom chat)"
+                      >
+                        <Symbol name="expand_more" size={13} />
+                      </button>
+                    </div>
                   )}
                   <a
                     className={styles.heroCallBtn}
@@ -888,6 +921,81 @@ export default function OrderDetailPage() {
           {/* ── PILLAR 1: CRAFT SPEC ── */}
           {activeTab === 'spec' && (
             <div className={styles.tabContentGroup}>
+              {/* Visual Reference & Progress Tray (Zero tab-switching) */}
+              <section className={styles.visualGlanceStripCard}>
+                <div className={styles.visualGlanceHeader}>
+                  <div className={styles.sectionTitleGroup}>
+                    <h3 className={styles.sectionTitle}>Visual Reference &amp; Workbench</h3>
+                    <span className={styles.measureSubtitle}>Fabric swatch, style inspiration, and latest progress at a glance</span>
+                  </div>
+                  <label className={styles.actionPillBtn} title="Snap workshop progress photo">
+                    <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                    <Symbol name="add_a_photo" size={14} />
+                    <span>{uploadingPhoto ? 'Uploading…' : 'Snap Progress'}</span>
+                  </label>
+                </div>
+
+                <div className={styles.visualGlanceRow}>
+                  {/* Fabric Swatch */}
+                  {fabricPhotoUrl ? (
+                    <div
+                      className={styles.visualGlanceTile}
+                      onClick={(e) => setLightbox({ src: fabricPhotoUrl, rect: e.currentTarget.getBoundingClientRect() })}
+                      title="Tap to view full fabric photo"
+                    >
+                      <Image src={fabricPhotoUrl} alt="Fabric swatch" width={220} height={220} className={styles.visualGlanceImg} />
+                      <span className={styles.visualGlanceBadge}>
+                        <Symbol name="texture" size={11} /> Fabric Swatch
+                      </span>
+                    </div>
+                  ) : (
+                    <div className={styles.visualGlanceEmptyTile}>
+                      <Symbol name="texture" size={20} />
+                      <span>No Fabric Photo</span>
+                    </div>
+                  )}
+
+                  {/* Style Inspiration */}
+                  {primaryInspoUrl ? (
+                    <div
+                      className={styles.visualGlanceTile}
+                      onClick={(e) => setLightbox({ src: primaryInspoUrl, rect: e.currentTarget.getBoundingClientRect() })}
+                      title="Tap to view design reference"
+                    >
+                      <Image src={primaryInspoUrl} alt="Style reference" width={220} height={220} className={styles.visualGlanceImg} />
+                      <span className={styles.visualGlanceBadge}>
+                        <Symbol name="photo_library" size={11} /> Design Inspo
+                      </span>
+                    </div>
+                  ) : (
+                    <div className={styles.visualGlanceEmptyTile}>
+                      <Symbol name="photo_library" size={20} />
+                      <span>No Style Photo</span>
+                    </div>
+                  )}
+
+                  {/* Latest Workbench Progress */}
+                  {latestProgressPhoto ? (
+                    <div
+                      className={styles.visualGlanceTile}
+                      onClick={(e) => setLightbox({ src: latestProgressPhoto.url, rect: e.currentTarget.getBoundingClientRect() })}
+                      title="Tap to view latest progress photo"
+                    >
+                      <Image src={latestProgressPhoto.url} alt={`${latestProgressPhoto.stage} progress`} width={220} height={220} className={styles.visualGlanceImg} />
+                      <span className={`${styles.visualGlanceBadge} ${styles.visualGlanceBadgeProgress}`}>
+                        <Symbol name="checkroom" size={11} /> {latestProgressPhoto.stage} Progress
+                      </span>
+                    </div>
+                  ) : (
+                    <label className={`${styles.visualGlanceEmptyTile} ${styles.visualGlanceUploadTile}`}>
+                      <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                      <Symbol name="add_a_photo" size={20} />
+                      <span>{uploadingPhoto ? 'Uploading…' : 'Snap 1st Progress'}</span>
+                    </label>
+                  )}
+                </div>
+              </section>
+
               {/* Measurements — Craft Spec Section */}
               <section className={styles.card + ' ' + styles.gaMeasure}>
                 <div className={styles.sectionHeaderRow}>
@@ -900,6 +1008,15 @@ export default function OrderDetailPage() {
                     </span>
                   </div>
                   <div className={styles.sectionActions}>
+                    <button
+                      type="button"
+                      className={styles.cuttingSlipBtn}
+                      onClick={() => setCuttingSlipOpen(true)}
+                      title="Open full-screen cutter slip"
+                    >
+                      <Symbol name="receipt_long" size={13} />
+                      <span>Cutting Slip</span>
+                    </button>
                     {measurementEntries.length > 0 && (
                       <button
                         type="button"
@@ -926,14 +1043,42 @@ export default function OrderDetailPage() {
                   <p className={styles.emptyNote}>No measurements on file for this order or customer yet.</p>
                 ) : (
                   <>
-                    <div className={styles.measureGrid}>
-                      {measurementEntries.map(([key, value]) => (
-                        <div key={key} className={styles.measureRow}>
-                          <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
-                          <span className={styles.measureValue}>{value}&quot;</span>
+                    {/* High-Contrast Cutting Table Baseline Glance Grid */}
+                    {baselineMeasurements.length > 0 && (
+                      <div className={styles.cutterGlanceSection}>
+                        <span className={styles.cutterGlanceHeaderTitle}>Baseline Cutting Dimensions</span>
+                        <div className={styles.cutterGlanceGrid}>
+                          {baselineMeasurements.map(([key, value]) => (
+                            <div key={key} className={styles.cutterGlanceCard}>
+                              <span className={styles.cutterGlanceLabel}>
+                                {MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}
+                              </span>
+                              <span className={styles.cutterGlanceValue}>
+                                {value}<strong>&quot;</strong>
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* Detailed Secondary Measurements */}
+                    {detailedMeasurements.length > 0 && (
+                      <div className={styles.detailedMeasureSection}>
+                        {baselineMeasurements.length > 0 && (
+                          <span className={styles.cutterGlanceHeaderTitle}>Additional Tailoring Dimensions</span>
+                        )}
+                        <div className={styles.measureGrid}>
+                          {detailedMeasurements.map(([key, value]) => (
+                            <div key={key} className={styles.measureRow}>
+                              <span className={styles.measureLabel}>{MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}</span>
+                              <span className={styles.measureValue}>{value}&quot;</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {!usingOrderMeasurements && (
                       <p className={styles.emptyNote}>No measurements were recorded for this specific order — showing the customer&apos;s general body profile instead.</p>
                     )}
@@ -1558,6 +1703,13 @@ export default function OrderDetailPage() {
         </div>
       </BottomSheet>
 
+
+      <CuttingSlipModal
+        isOpen={cuttingSlipOpen}
+        onClose={() => setCuttingSlipOpen(false)}
+        order={order}
+        customer={customer}
+      />
 
       <ScheduleFittingPromptModal
         isOpen={isFittingPromptOpen}

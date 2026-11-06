@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Link from 'next/link';
 import { ORDER_STATUSES, STATUS_CONFIG } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
@@ -61,6 +62,15 @@ export default function StageList({
   isFiltered,
   onPreviewSample,
 }: StageListProps) {
+  const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
+
+  const toggleStageCollapse = (status: OrderStatus) => {
+    setCollapsedStages((prev) => ({
+      ...prev,
+      [status]: !prev[status],
+    }));
+  };
+
   return (
     <>
       <div className={styles.stageSegmentedWrap}>
@@ -147,38 +157,50 @@ export default function StageList({
         visibleStages.map((status) => {
           const stageOrders = getOrdersByStatus(status);
           if (stageOrders.length === 0) return null;
+          const isCollapsible = stageFilter === ALL_FILTER;
+          const isCollapsed = Boolean(isCollapsible && collapsedStages[status]);
           const visibleCount = stageVisibleCounts[status] ?? stagePageSize;
           const shown = stageOrders.slice(0, visibleCount);
           return (
             <section key={status} className={styles.stageSection}>
-              <StageBanner status={status} count={stageOrders.length} />
-              <div className={styles.cardList}>
-                {shown.map((order, i) => (
-                  <OrderListCard
-                    key={order.id}
-                    order={order}
-                    userRole={userRole}
-                    index={i}
-                    onOpen={() => onOpen(order.id)}
-                    onAdvance={() => onAdvance(order.id)}
-                    onRevert={() => onRevert(order.id)}
-                    staffMembers={staffMembers}
-                    onReassign={onReassign}
-                    onBatchClick={onBatchClick}
-                    onViewCuttingSlip={onViewCuttingSlip}
-                    onWhatsApp={onWhatsApp}
-                  />
-                ))}
-              </div>
-              {stageOrders.length > visibleCount && (
-                <button
-                  type="button"
-                  className={styles.showMoreBtn}
-                  onClick={() => onShowMore(status)}
-                >
-                  Show {Math.min(stagePageSize, stageOrders.length - visibleCount)} more (
-                  {stageOrders.length - visibleCount} remaining)
-                </button>
+              <StageBanner
+                status={status}
+                count={stageOrders.length}
+                isCollapsible={isCollapsible}
+                isCollapsed={isCollapsed}
+                onToggleCollapse={() => toggleStageCollapse(status)}
+              />
+              {!isCollapsed && (
+                <>
+                  <div className={styles.cardList}>
+                    {shown.map((order, i) => (
+                      <OrderListCard
+                        key={order.id}
+                        order={order}
+                        userRole={userRole}
+                        index={i}
+                        onOpen={() => onOpen(order.id)}
+                        onAdvance={() => onAdvance(order.id)}
+                        onRevert={() => onRevert(order.id)}
+                        staffMembers={staffMembers}
+                        onReassign={onReassign}
+                        onBatchClick={onBatchClick}
+                        onViewCuttingSlip={onViewCuttingSlip}
+                        onWhatsApp={onWhatsApp}
+                      />
+                    ))}
+                  </div>
+                  {stageOrders.length > visibleCount && (
+                    <button
+                      type="button"
+                      className={styles.showMoreBtn}
+                      onClick={() => onShowMore(status)}
+                    >
+                      Show {Math.min(stagePageSize, stageOrders.length - visibleCount)} more (
+                      {stageOrders.length - visibleCount} remaining)
+                    </button>
+                  )}
+                </>
               )}
             </section>
           );

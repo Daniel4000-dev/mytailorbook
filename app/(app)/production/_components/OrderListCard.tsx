@@ -271,6 +271,12 @@ export default function OrderListCard({
                 <span>{activeException.reason ? truncateText(activeException.reason, 14) : 'ON HOLD'}</span>
               </span>
             )}
+            {isOverdue(order) && (
+              <span className={styles.overdueBadge}>
+                <Symbol name="warning" size={10} fill />
+                <span>OVERDUE</span>
+              </span>
+            )}
             {order.priority === 'rush' && (
               <span className={styles.rushBadge}>
                 <Symbol name="bolt" size={10} fill />
@@ -410,7 +416,12 @@ export default function OrderListCard({
             <span className={styles.metaRight}>
               <span className={styles.orderRef}>#{order.id.slice(0, 4).toUpperCase()}</span>
               {isOwnerLikeRole(userRole) && onReassign && staffMembers ? (
-                <span className={styles.assignee} onClick={(e) => e.stopPropagation()}>
+                <span className={styles.assignee} onClick={(e) => e.stopPropagation()} title={`Assigned: ${order.assignedToName || 'Unassigned'}`}>
+                  {order.assignedToName && (
+                    <span className={styles.assigneeAvatar}>
+                      {order.assignedToName.slice(0, 1).toUpperCase()}
+                    </span>
+                  )}
                   <span className={styles.assigneeName}>{order.assignedToName?.split(' ')[0] || 'Unassigned'}</span>
                   <Symbol name="edit" size={11} />
                   <select

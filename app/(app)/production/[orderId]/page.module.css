@@ -232,6 +232,13 @@
   gap: 6px;
 }
 
+.heroWhatsappGroup {
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.28);
+  border-radius: var(--sf-radius-full);
+}
+
 .heroWhatsappBtn {
   display: inline-flex;
   align-items: center;
@@ -239,17 +246,35 @@
   padding: 6px 12px;
   background: #25D366;
   color: #FFFFFF;
+  text-decoration: none;
   border: none;
-  border-radius: var(--sf-radius-full);
+  border-radius: var(--sf-radius-full) 0 0 var(--sf-radius-full);
   font-size: var(--sf-text-xs);
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.28);
   transition: transform var(--sf-transition-fast), filter var(--sf-transition-fast);
 }
 
 .heroWhatsappBtn:active {
   transform: scale(0.96);
+}
+
+.heroWhatsappOptionsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 7px;
+  background: #1EBE5D;
+  color: #FFFFFF;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0 var(--sf-radius-full) var(--sf-radius-full) 0;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.heroWhatsappOptionsBtn:hover {
+  background: #18A34F;
 }
 
 .heroCallBtn {
@@ -1009,6 +1034,211 @@
 
 .copySpecBtn:active {
   transform: scale(0.96);
+}
+
+.cuttingSlipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cuttingSlipBtn:hover {
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+}
+
+.cuttingSlipBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── Unified Visual Reference & Progress Tray ───────────────────────── */
+.visualGlanceStripCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.visualGlanceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.visualGlanceRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .visualGlanceRow {
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+  }
+}
+
+.visualGlanceTile {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+  background: var(--sf-surface-container-high, #f1f5f9);
+  cursor: zoom-in;
+  border: 1px solid var(--sf-border-light);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.visualGlanceTile:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.visualGlanceImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.visualGlanceBadge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: var(--sf-radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.visualGlanceBadgeProgress {
+  background: rgba(16, 185, 129, 0.9);
+}
+
+.visualGlanceEmptyTile {
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-md);
+  border: 1px dashed var(--sf-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--sf-text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px;
+  background: var(--sf-bg-surface-elevated, rgba(15, 23, 42, 0.02));
+}
+
+.visualGlanceUploadTile {
+  cursor: pointer;
+  color: var(--sf-brand-indigo);
+  border-color: rgba(79, 70, 229, 0.3);
+  transition: all 0.15s ease;
+}
+
+.visualGlanceUploadTile:hover {
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+}
+
+/* ── Cutting Table Baseline Glance Grid ────────────────────────────── */
+.cutterGlanceSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.cutterGlanceHeaderTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sf-brand-indigo);
+}
+
+.cutterGlanceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  gap: 10px;
+}
+
+.cutterGlanceCard {
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s ease;
+}
+
+.cutterGlanceCard:hover {
+  border-color: var(--sf-brand-indigo);
+}
+
+.cutterGlanceLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cutterGlanceValue {
+  font-family: var(--sf-font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.cutterGlanceValue strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  margin-left: 2px;
+}
+
+.detailedMeasureSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
 }
 
 .roundIconBtn {
@@ -2644,6 +2874,32 @@
 
 :global([data-theme='dark']) .actionPillBtn:hover {
   background: rgba(99, 102, 241, 0.25);
+}
+
+:global([data-theme='dark']) .visualGlanceStripCard {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .visualGlanceTile {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .visualGlanceEmptyTile {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .cutterGlanceCard {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .cuttingSlipBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-primary);
 }
 
 

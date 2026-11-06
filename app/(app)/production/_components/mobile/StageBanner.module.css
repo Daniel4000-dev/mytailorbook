@@ -5,12 +5,38 @@
   padding: 14px 4px 10px 4px;
   margin-bottom: 12px;
   border-bottom: 1px solid var(--sf-border-light);
+  width: 100%;
+}
+
+.bannerClickable {
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s ease;
+}
+
+.bannerClickable:hover {
+  opacity: 0.85;
 }
 
 .bannerLeft {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.bannerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapseChevron {
+  color: var(--sf-text-secondary);
+  transition: transform 0.2s ease;
 }
 
 .stageIconWrap {
