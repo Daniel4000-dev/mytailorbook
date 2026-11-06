@@ -159,49 +159,107 @@ export async function POST(req: Request) {
       }
     }
 
+    // Auto-wake from sabbatical if tailor performs real craft work
+    if (shop.vacation_mode && action !== 'daily_login') {
+      await admin.from('shops').update({ vacation_mode: false }).eq('id', shop.id);
+      try {
+        await admin.from('circle_members').update({
+          status: 'active',
+          sabbatical_reason: null,
+          sabbatical_started_at: null,
+        }).eq('shop_id', shop.id);
+      } catch {
+        // ignore fallback
+      }
+    }
+
     // -------------------------------------------------------------
-    // 4. Studio Buddy Co-Op Streak & XP Check
+    // 4. Atelier Circle Multi-Peer Streak & XP Check (with Diminishing Tiers & Sabbatical Rules)
     // -------------------------------------------------------------
     let buddySynced = false;
     let buddyStreakCount = shop.buddy_streak_count || 0;
-    if (shop.buddy_shop_id) {
-      const { data: buddyShop } = await admin
-        .from('shops')
-        .select('id, streak_last_counted_at, buddy_streak_count')
-        .eq('id', shop.buddy_shop_id)
-        .single();
+    const activeBuddyIds: string[] = [];
 
-      if (buddyShop?.streak_last_counted_at) {
-        const buddyActiveToday = buddyShop.streak_last_counted_at.startsWith(todayStr);
+    // Check circle_members table
+    try {
+      const { data: circleRows } = await admin
+        .from('circle_members')
+        .select('buddy_shop_id, status')
+        .eq('shop_id', shop.id);
+
+      if (circleRows && circleRows.length > 0) {
+        circleRows.forEach((r) => {
+          if (r.status === 'active') {
+            activeBuddyIds.push(r.buddy_shop_id);
+          }
+        });
+      }
+    } catch {
+      // Fallback
+    }
+
+    if (activeBuddyIds.length === 0 && shop.buddy_shop_id && !shop.vacation_mode) {
+      activeBuddyIds.push(shop.buddy_shop_id);
+    }
+
+    // Total pod size = me (1) + active buddies
+    const totalPodSize = activeBuddyIds.length + 1;
+
+    // Apply Diminishing Benefits Schedule:
+    // 1-4 members: 15 XP
+    // 5-8 members: 5 XP
+    // 9+ members: 0 XP (disabled)
+    let peerXpReward = 0;
+    if (totalPodSize <= 4) {
+      peerXpReward = 15;
+    } else if (totalPodSize <= 8) {
+      peerXpReward = 5;
+    } else {
+      peerXpReward = 0;
+    }
+
+    if (activeBuddyIds.length > 0 && peerXpReward > 0) {
+      const { data: buddyShops } = await admin
+        .from('shops')
+        .select('id, name, streak_last_counted_at, buddy_streak_count, vacation_mode')
+        .in('id', activeBuddyIds);
+
+      if (buddyShops && buddyShops.length > 0) {
+        // Any active non-vacation peer who has worked today
+        const workingBuddiesToday = buddyShops.filter(
+          (b) => !b.vacation_mode && b.streak_last_counted_at?.startsWith(todayStr)
+        );
+
         const shopBuddyActiveToday = shop.buddy_last_active_at?.startsWith(todayStr);
 
-        // If buddy is active today and we haven't synced buddy streak yet today
-        if (buddyActiveToday && !shopBuddyActiveToday) {
+        if (workingBuddiesToday.length > 0 && !shopBuddyActiveToday) {
           buddySynced = true;
           buddyStreakCount += 1;
-          earnedXp += 15; // Co-Op Buddy Bonus!
+          earnedXp += peerXpReward;
 
-          // Update both shops
+          // Update my shop
           await admin.from('shops').update({
             buddy_streak_count: buddyStreakCount,
             buddy_last_active_at: now.toISOString(),
           }).eq('id', shop.id);
 
-          await admin.from('shops').update({
-            buddy_streak_count: buddyStreakCount,
-            buddy_last_active_at: now.toISOString(),
-          }).eq('id', buddyShop.id);
+          // Update all active peers who worked today
+          for (const wb of workingBuddiesToday) {
+            await admin.from('shops').update({
+              buddy_streak_count: buddyStreakCount,
+              buddy_last_active_at: now.toISOString(),
+            }).eq('id', wb.id);
 
-          // Give buddy +15 XP too!
-          const { data: buddyFresh } = await admin.from('shops').select('xp').eq('id', buddyShop.id).single();
-          if (buddyFresh) {
-            await admin.from('shops').update({ xp: (buddyFresh.xp || 0) + 15 }).eq('id', buddyShop.id);
-            await admin.from('xp_ledger').insert({
-              shop_id: buddyShop.id,
-              amount: 15,
-              action_type: 'buddy_coop_bonus',
-              description: `Buddy Co-Op Bonus with ${shop.name}!`,
-            });
+            const { data: bFresh } = await admin.from('shops').select('xp').eq('id', wb.id).single();
+            if (bFresh) {
+              await admin.from('shops').update({ xp: (bFresh.xp || 0) + peerXpReward }).eq('id', wb.id);
+              await admin.from('xp_ledger').insert({
+                shop_id: wb.id,
+                amount: peerXpReward,
+                action_type: 'buddy_coop_bonus',
+                description: `Circle Co-Op Bonus with ${shop.name}! (${totalPodSize}-tailor pod)`,
+              });
+            }
           }
         }
       }

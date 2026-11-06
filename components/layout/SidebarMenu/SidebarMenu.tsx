@@ -89,7 +89,7 @@ export default function SidebarMenu() {
   };
 
   const mainGroup = visibleNavItems.filter(i => ['/dashboard', '/calendar', '/production', '/stock'].includes(i.href));
-  const workspaceGroup = visibleNavItems.filter(i => ['/customers', '/fabrics'].includes(i.href));
+  const workspaceGroup = visibleNavItems.filter(i => ['/customers', '/fabrics', '/circle'].includes(i.href));
   const marketingGroup = visibleNavItems.filter(i => ['/catalogues'].includes(i.href));
   const financeGroup = visibleNavItems.filter(i => ['/collections', '/reconciliation'].includes(i.href));
 
@@ -147,6 +147,10 @@ export default function SidebarMenu() {
         <Link href={ROUTES.catalogues} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
           <CustomNavIcon name="collections_bookmark" className={styles.menuIcon} />
           <span className={styles.menuText}>Lookbooks</span>
+        </Link>
+        <Link href={ROUTES.circle} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+          <CustomNavIcon name="groups" className={styles.menuIcon} />
+          <span className={styles.menuText}>Tailor Circle</span>
         </Link>
         {isOwner && (
           <Link href={ROUTES.collections} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
