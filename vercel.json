@@ -14,15 +14,15 @@
     },
     {
       "path": "/api/cron/smart-alerts?segment=morning&slot=1",
-      "schedule": "0 8 * * *"
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/smart-alerts?segment=morning&slot=2",
-      "schedule": "25 8 * * *"
+      "schedule": "25 7 * * *"
     },
     {
       "path": "/api/cron/smart-alerts?segment=morning&slot=3",
-      "schedule": "50 8 * * *"
+      "schedule": "50 7 * * *"
     },
     {
       "path": "/api/cron/smart-alerts?segment=midday&slot=1",

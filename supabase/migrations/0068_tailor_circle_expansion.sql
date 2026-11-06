@@ -32,3 +32,4 @@ SELECT id, buddy_shop_id, 'active'
 FROM shops
 WHERE buddy_shop_id IS NOT NULL
 ON CONFLICT (shop_id, buddy_shop_id) DO NOTHING;
+
