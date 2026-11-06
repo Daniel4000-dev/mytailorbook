@@ -278,42 +278,36 @@ function AtelierCircleContent() {
                 </span>
               </div>
               <span className={styles.gaugeMemberBadge}>
-                {benefits.activeMemberCount} of {benefits.maxRecommended} Active Spots
+                +{benefits.dailyXpRate} XP / Day Co-Op
               </span>
             </div>
 
-            <div className={styles.gaugeProgressBar}>
-              <div
-                className={`${styles.gaugeProgressFill} ${
-                  benefits.tierNumber === 1
-                    ? styles.gaugeFillTier1
-                    : benefits.tierNumber === 2
-                    ? styles.gaugeFillTier2
-                    : styles.gaugeFillTier3
-                }`}
-                style={{
-                  width: `${Math.min(100, Math.round((benefits.activeMemberCount / benefits.maxRecommended) * 100))}%`,
-                }}
-              />
+            {/* Visual 4-Node Pod Gauge */}
+            <div className={styles.podNodesRow}>
+              <div className={styles.nodesList}>
+                {[0, 1, 2, 3].map((nodeIdx) => {
+                  const isFilled = nodeIdx < benefits.activeMemberCount;
+                  return (
+                    <div
+                      key={nodeIdx}
+                      className={`${styles.podNode} ${
+                        isFilled ? styles.podNodeFilled : styles.podNodeEmpty
+                      }`}
+                      title={isFilled ? `Spot ${nodeIdx + 1}: Active Artisan` : `Spot ${nodeIdx + 1}: Available`}
+                    >
+                      {isFilled ? (
+                        <Symbol name="check" size={12} />
+                      ) : (
+                        <span className={styles.podNodeDot} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <span className={styles.podNodesSubtitle}>
+                {benefits.activeMemberCount} of {benefits.maxRecommended} Artisans Active in Pod
+              </span>
             </div>
-
-            <p className={styles.gaugeDescription}>
-              {benefits.tierNumber === 1 && (
-                <>
-                  Earn <strong>+{benefits.dailyXpRate} XP every day</strong> your pod crafts together. Keeping your circle tight (1–4 artisans) guarantees peak co-op streak power.
-                </>
-              )}
-              {benefits.tierNumber === 2 && (
-                <>
-                  Circle expanded to {benefits.activeMemberCount} tailors. Peer benefits operate at <strong>+{benefits.dailyXpRate} XP/day</strong> (Craft Cluster rate).
-                </>
-              )}
-              {benefits.tierNumber === 3 && (
-                <>
-                  Circles with 9+ tailors operate as an informal public directory. Co-op streak points are paused to preserve authentic peer accountability.
-                </>
-              )}
-            </p>
 
             {benefits.isDormantWarning && (
               <div className={styles.dormantAlertBanner}>
@@ -352,6 +346,12 @@ function AtelierCircleContent() {
                 .slice(0, 2)
                 .join('')
                 .toUpperCase();
+              const todayStr = new Date().toISOString().split('T')[0];
+              const isTodayActive = Boolean(
+                buddy.status === 'active' &&
+                  buddy.lastActiveAt &&
+                  buddy.lastActiveAt.startsWith(todayStr)
+              );
 
               return (
                 <div
@@ -369,9 +369,11 @@ function AtelierCircleContent() {
                   title={`Tap to view ${buddy.name}'s atelier profile`}
                 >
                   <div
-                    className={styles.avatarRing}
-                    style={{ borderColor: buddy.tierColor }}
-                    title={`Tier: ${buddy.tierName}`}
+                    className={`${styles.avatarRing} ${
+                      isTodayActive ? styles.avatarRingActive : ''
+                    }`}
+                    style={{ borderColor: isTodayActive ? '#10B981' : buddy.tierColor }}
+                    title={`Tier: ${buddy.tierName}${isTodayActive ? ' · Active Today' : ''}`}
                   >
                     <div className={styles.avatarInner}>
                       {buddy.logoUrl ? (
@@ -380,6 +382,9 @@ function AtelierCircleContent() {
                         <span>{initials}</span>
                       )}
                     </div>
+                    {isTodayActive && (
+                      <span className={styles.todayCraftDot} title="Crafting Today" />
+                    )}
                   </div>
 
                   <div className={styles.buddyName} title={buddy.name}>

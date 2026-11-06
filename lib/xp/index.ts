@@ -84,6 +84,24 @@ export async function emitXpEvent(
     });
     const data = await res.json();
 
+    if (data.success && typeof window !== 'undefined') {
+      const awardedXp = typeof data.xp_awarded === 'number' ? data.xp_awarded : xpReward;
+      if (awardedXp > 0 || data.streak_bumped || triggerCelebration) {
+        window.dispatchEvent(
+          new CustomEvent('atelier-craft-spark', {
+            detail: {
+              xpAwarded: awardedXp,
+              streakCurrent: data.streak_current,
+              streakBumped: data.streak_bumped,
+              buddySynced: data.buddy_synced,
+              buddyStreakCount: data.buddy_streak_count,
+              actionName,
+            },
+          })
+        );
+      }
+    }
+
     if (data.success && (triggerCelebration || data.buddy_synced)) {
       const duration = 2000;
       const end = Date.now() + duration;

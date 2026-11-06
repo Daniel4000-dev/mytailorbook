@@ -10,6 +10,7 @@ import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import QuickCommandHub from '../QuickCommandHub';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import ProfileSetupProgress from '../ProfileSetupProgress';
+import PodCoOpBanner from '../PodCoOpBanner';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ROUTES } from '@/lib/routes';
 import styles from '../../page.module.css';
@@ -207,6 +208,9 @@ export default function OwnerDashboard({
         debtorsCount={debtorsCount}
         debtTotal={debtTotal}
       />
+
+      {/* Pod Co-Op Streak & Peer Status Banner */}
+      <PodCoOpBanner />
 
       {/* 4. Today's Workshop Priorities & Schedule */}
       <TodayPrioritiesWidget

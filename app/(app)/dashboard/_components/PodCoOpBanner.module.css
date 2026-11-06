@@ -1,0 +1,120 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--sf-radius-md, 12px);
+  text-align: left;
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  text-decoration: none;
+  background: var(--sf-bg-surface);
+  transition: transform var(--sf-transition-fast), border-color var(--sf-transition-fast), background var(--sf-transition-fast);
+  margin-bottom: 12px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.banner:active {
+  transform: scale(0.985);
+}
+
+.bannerSecured {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(234, 88, 12, 0.04));
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.bannerPending {
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-border-light);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full, 9999px);
+  flex-shrink: 0;
+}
+
+.iconWrapSecured {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+:global([data-theme='dark']) .iconWrapSecured {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+}
+
+.iconWrapPending {
+  background: var(--sf-bg-page, #F3F4F6);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .iconWrapPending {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+.textArea {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--sf-text-primary);
+  line-height: 1.25;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #D97706;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.subtext {
+  font-size: 11.5px;
+  color: var(--sf-text-secondary);
+  line-height: 1.3;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rightArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-tertiary);
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+

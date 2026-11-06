@@ -172,6 +172,51 @@
   animation: buddyRadarPing 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+.buddyPulsePingGold {
+  background: #F59E0B;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+}
+
+.buddyPulsePingGold::after {
+  border-color: #F59E0B;
+}
+
+.buddyAvatarActive {
+  border-color: #10B981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.45);
+}
+
+.buddyAvatarEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sf-bg-surface, rgba(255, 255, 255, 0.08));
+  border: 1px dashed var(--sf-border-focus, #6366F1);
+  color: var(--sf-color-accent, #6366F1);
+  position: relative;
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.buddyAvatarPlus {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #6366F1;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 @keyframes buddyRadarPing {
   0% {
     transform: scale(0.6);

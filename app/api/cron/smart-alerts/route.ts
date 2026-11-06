@@ -1197,6 +1197,20 @@ export async function GET(request: NextRequest) {
     const itemsToSend = isBatchAll ? queue : [queue[0]];
 
     for (const item of itemsToSend) {
+      if (item.metricKey === 'morningKickstartsNotified' || item.metricKey === 'closingDayMessagesSent') {
+        // Auto-cleanup stale daily briefing notifications older than 24h so notification trays never clutter
+        try {
+          await admin
+            .from('atelier_notifications')
+            .delete()
+            .eq('shop_id', shopId)
+            .eq('title', item.params.title)
+            .lt('created_at', todayStartStr);
+        } catch {
+          // ignore cleanup failures
+        }
+      }
+
       const pushRes = await createAtelierNotification(item.params);
       pushDevicesSent += pushRes.pushSentCount || 0;
       dispatchedAlerts.push({
