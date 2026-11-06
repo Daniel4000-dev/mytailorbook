@@ -16,19 +16,50 @@
   }
 }
 
+/* ── Haute Sartorial Commission Ribbon ── */
+.commissionBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%);
+  border: 1px dashed rgba(67, 56, 202, 0.22);
+  margin-bottom: 2px;
+}
+
+.commissionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--sf-brand-indigo);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.commissionId {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
 /* ── Card Styles ── */
 .card {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: 16px 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: box-shadow var(--sf-transition-fast);
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  border-radius: 20px;
+  padding: 18px 16px;
+  box-shadow: 0 4px 20px -2px rgba(28, 26, 40, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: box-shadow var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
 @media (min-width: 768px) {
   .card {
-    padding: 20px;
+    padding: 24px;
+    border-radius: 24px;
   }
 }
 
@@ -47,21 +78,21 @@
 
 .sectionEyebrow {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: var(--sf-tracking-caps);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   color: var(--sf-brand-indigo);
   text-transform: uppercase;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .cardTitle {
   margin: 0;
-  font-family: var(--sf-font-heading);
-  font-size: 18px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 20px;
   font-weight: 700;
   color: var(--sf-text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .cardSubtitle {
@@ -244,14 +275,15 @@
 
 /* Selected Client Card */
 .selectedClientCard {
-  background: var(--sf-surface-variant);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.05) 0%, rgba(99, 102, 241, 0.02) 100%);
+  border: 1px solid rgba(67, 56, 202, 0.18);
+  border-radius: 16px;
   padding: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  box-shadow: 0 2px 10px rgba(67, 56, 202, 0.04);
 }
 
 .selectedClientHeader {
@@ -269,14 +301,17 @@
 
 .selectedClientName {
   margin: 0;
-  font-size: 16px;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 18px;
   font-weight: 700;
   color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .selectedClientPhone {
   margin: 2px 0 6px 0;
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 500;
   color: var(--sf-text-secondary);
 }
 
@@ -289,12 +324,13 @@
 
 .genderBadge {
   font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
+  font-weight: 700;
+  padding: 3px 10px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface);
-  color: var(--sf-text-secondary);
-  border: 1px solid var(--sf-border-light);
+  background: #FFFFFF;
+  color: var(--sf-brand-indigo);
+  border: 1px solid rgba(67, 56, 202, 0.16);
+  letter-spacing: 0.03em;
 }
 
 .repeatBadge {
@@ -458,25 +494,26 @@
   flex-direction: column;
   padding: 0;
   background: var(--sf-bg-surface);
-  border: 1.5px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
+  border: 1.5px solid rgba(67, 56, 202, 0.12);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .styleCard:hover {
   border-color: var(--sf-brand-indigo);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px var(--sf-brand-indigo-glow);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -4px rgba(67, 56, 202, 0.2);
 }
 
 .styleCardActive {
   border-color: var(--sf-brand-indigo);
-  background: var(--sf-brand-indigo-glow);
-  box-shadow: 0 0 0 1.5px var(--sf-brand-indigo), 0 8px 20px var(--sf-brand-indigo-glow);
+  background: rgba(67, 56, 202, 0.04);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo), 0 12px 28px -4px rgba(67, 56, 202, 0.25);
+  transform: translateY(-2px);
 }
 
 .styleThumbWrap {
@@ -699,9 +736,9 @@
 }
 
 .measureLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -715,13 +752,13 @@
 
 .measureInput {
   width: 100%;
-  height: 42px;
-  padding: 8px 30px 8px 12px;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
+  height: 44px;
+  padding: 8px 32px 8px 14px;
+  background: rgba(67, 56, 202, 0.02);
+  border: 1px solid rgba(67, 56, 202, 0.15);
+  border-radius: 12px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--sf-font-mono, monospace);
   color: var(--sf-text-primary);
   outline: none;
@@ -730,8 +767,8 @@
 
 .measureInput:focus {
   border-color: var(--sf-brand-indigo);
-  background: var(--sf-bg-surface);
-  box-shadow: 0 0 0 3px var(--sf-brand-indigo-glow);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
 }
 
 .inchSymbol {
@@ -1007,27 +1044,27 @@
 }
 
 .balanceBar {
-  margin: 14px 0 16px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.22);
-  border-radius: var(--sf-radius-md);
-  padding: 12px 16px;
+  margin: 16px 0 18px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.03) 100%);
+  border: 1px dashed rgba(16, 185, 129, 0.28);
+  border-radius: 16px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .balanceLabel {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--sf-text-secondary);
 }
 
 .balanceValue {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: var(--sf-success);
+  color: #047857;
   letter-spacing: -0.02em;
 }
 
@@ -1271,9 +1308,9 @@
   box-shadow: none;
 }
 
-/* ── Receipt Modal ── */
+/* ── Receipt Modal (Embossed Atelier Slip) ── */
 .receiptModal {
-  padding: 12px 16px 28px;
+  padding: 16px 18px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1281,10 +1318,11 @@
 }
 
 .successIconWrap {
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: var(--sf-radius-full);
-  background: rgba(16, 185, 129, 0.12);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(5, 150, 105, 0.08) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1292,33 +1330,36 @@
 }
 
 .successIcon {
-  color: var(--sf-success);
+  color: #059669;
 }
 
 .receiptTitle {
   margin: 0;
-  font-family: var(--sf-font-heading);
-  font-size: 22px;
-  font-weight: 800;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--sf-text-primary);
+  letter-spacing: -0.015em;
 }
 
 .receiptDesc {
-  margin: 4px 0 16px 0;
-  font-size: 13px;
+  margin: 4px 0 18px 0;
+  font-size: 13.5px;
   color: var(--sf-text-secondary);
+  line-height: 1.45;
 }
 
 .receiptSummaryCard {
   width: 100%;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: 16px;
+  background: linear-gradient(180deg, #FFFFFF 0%, rgba(67, 56, 202, 0.02) 100%);
+  border: 1px dashed rgba(67, 56, 202, 0.22);
+  border-radius: 18px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px -2px rgba(67, 56, 202, 0.05);
 }
 
 .receiptRow {
@@ -1329,28 +1370,45 @@
 }
 
 .receiptMuted {
+  font-size: 13px;
+  font-weight: 600;
   color: var(--sf-text-secondary);
 }
 
 .receiptBold {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--sf-text-primary);
 }
 
 .receiptHighlight {
+  font-size: 17px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: var(--sf-success);
+  color: #059669;
 }
 
 .whatsappReceiptBtn {
   width: 100%;
-  padding: 14px;
-  background: #25D366; /* Official WhatsApp Green */
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
   color: #fff;
   border: none;
-  border-radius: var(--sf-radius-md);
-  font-size: 15px;
+  border-radius: 16px;
+  font-size: 15.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.4);
+  transition: all 0.2s ease;
+}
+
+.whatsappReceiptBtn:active {
+  transform: scale(0.98);
+}
   font-weight: 700;
   display: flex;
   align-items: center;

@@ -861,8 +861,8 @@ export default function UnifiedNewOrderForm() {
       padding="none"
       header={
         <TopBar
-          title="New Order"
-          subtitle="Progressive bespoke order intake"
+          title="New Commission"
+          subtitle="Bespoke order ledger & client fitting"
           showBack
           onBack={() => {
             const custIdParam = searchParams.get('customer');
@@ -876,14 +876,25 @@ export default function UnifiedNewOrderForm() {
       }
     >
       <div className={styles.container}>
+        {/* Sartorial Commission Ribbon */}
+        <div className={styles.commissionBanner}>
+          <div className={styles.commissionBadge}>
+            <Symbol name="verified" size={13} />
+            <span>Haute Bespoke Commission</span>
+          </div>
+          <span className={styles.commissionId}>
+            {currentShop?.name || 'Studio'} · Fitting Ledger
+          </span>
+        </div>
+
         {/* ── CARD 1: CLIENT SELECTION ── */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.sectionEyebrow}>01 • CLIENT PROFILE</span>
-                <h2 className={styles.cardTitle}>Client Record</h2>
-                <p className={styles.cardSubtitle}>Select client or register a walk-in</p>
+                <span className={styles.sectionEyebrow}>Client Dossier</span>
+                <h2 className={styles.cardTitle}>Client Profile &amp; Sizing</h2>
+                <p className={styles.cardSubtitle}>Select registered client or intake a walk-in</p>
               </div>
             </div>
             {selectedCustomer && (
@@ -1115,11 +1126,11 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `02 • OUTFIT #${idx + 1} SILHOUETTE` : '02 • STYLE SELECTION'}</span>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Silhouette` : 'Garment Silhouette'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Style` : 'Garment & Style'}
+                        {isMultiple ? `Outfit #${idx + 1} Cut & Style` : 'Couture Silhouette & Cut'}
                       </h2>
-                      <p className={styles.cardSubtitle}>Choose garment silhouette & cut</p>
+                      <p className={styles.cardSubtitle}>Select garment cut or customize bespoke styling</p>
                     </div>
                   </div>
                   <span className={styles.activeStyleTag}>{garment.styleName}</span>
@@ -1235,12 +1246,12 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `03 • OUTFIT #${idx + 1} FIT` : '03 • MEASUREMENTS & FIT'}</span>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Fit Ledger` : 'Bespoke Fit Ledger'}</span>
                       <h2 className={styles.cardTitle}>
-                        {isMultiple ? `Outfit #${idx + 1} Measurements` : 'Bespoke Fit Ledger'}
+                        {isMultiple ? `Outfit #${idx + 1} Measurements` : 'Fitting Specifications'}
                       </h2>
                       <p className={styles.cardSubtitle}>
-                        {garment.styleName} fit specifications (inches)
+                        {garment.styleName} tailored points in inches (″)
                       </p>
                     </div>
                   </div>
@@ -1390,11 +1401,11 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.sectionEyebrow}>{isMultiple ? `04 • OUTFIT #${idx + 1} FABRIC` : '04 • MATERIAL & INSPIRATION'}</span>
+                      <span className={styles.sectionEyebrow}>{isMultiple ? `Outfit #${idx + 1} Material` : 'Material & Swatches'}</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Inspiration'}
                       </h2>
-                      <p className={styles.cardSubtitle}>Snap physical cloth & style inspiration</p>
+                      <p className={styles.cardSubtitle}>Physical cloth photos and styling references</p>
                     </div>
                   </div>
                 </div>
@@ -1605,9 +1616,9 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.sectionEyebrow}>05 • PRICING & SCHEDULE</span>
-                <h2 className={styles.cardTitle}>Pricing & Delivery</h2>
-                <p className={styles.cardSubtitle}>Price, deposit and delivery timeline</p>
+                <span className={styles.sectionEyebrow}>Financial Settlement</span>
+                <h2 className={styles.cardTitle}>Investment &amp; Delivery</h2>
+                <p className={styles.cardSubtitle}>Total bill, deposit, and promised collection date</p>
               </div>
             </div>
           </div>
@@ -1853,19 +1864,19 @@ export default function UnifiedNewOrderForm() {
           setReceiptSheetOpen(false);
           router.replace(ROUTES.production);
         }}
-        title="Order Created"
+        title="Bespoke Receipt"
       >
         {completedBatch && selectedCustomer && (
           <div className={styles.receiptModal}>
             <div className={styles.successIconWrap}>
-              <Symbol name="check_circle" size={48} className={styles.successIcon} />
+              <Symbol name="verified" size={32} className={styles.successIcon} />
             </div>
 
-            <h3 className={styles.receiptTitle}>Order Logged Successfully!</h3>
+            <h3 className={styles.receiptTitle}>Commission Confirmed</h3>
             <p className={styles.receiptDesc}>
               {completedBatch.garments.length > 1
-                ? `${completedBatch.garments.length} outfits for ${selectedCustomer.fullName} have been queued into production.`
-                : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} has been queued into production.`}
+                ? `${completedBatch.garments.length} bespoke outfits for ${selectedCustomer.fullName} queued for cutting and sewing.`
+                : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} queued for cutting and sewing.`}
             </p>
 
             <div className={styles.receiptSummaryCard}>
