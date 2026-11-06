@@ -66,6 +66,7 @@ export default function UnifiedNewOrderForm() {
     updateCustomerStyleProfile,
     updateCustomerMeasurements,
     updateCustomerProfile,
+    isLoaded,
   } = useData();
   const { showToast } = useToast();
 
@@ -81,6 +82,7 @@ export default function UnifiedNewOrderForm() {
   const [newCustomerGender, setNewCustomerGender] = useState<'male' | 'female'>('male');
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [isContactPickerSupported, setIsContactPickerSupported] = useState(false);
+  const hasAutoOpenedInlineRef = useRef(false);
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && 'contacts' in navigator) {
@@ -142,9 +144,12 @@ export default function UnifiedNewOrderForm() {
         setShowInlineNewCustomer(true);
         if (nameParam) setNewCustomerName(nameParam);
         if (phoneParam) setNewCustomerPhone(phoneParam);
+      } else if (isLoaded && customers.length === 0 && !hasAutoOpenedInlineRef.current) {
+        hasAutoOpenedInlineRef.current = true;
+        setShowInlineNewCustomer(true);
       }
     }
-  }, [searchParams, customers, selectedCustomer]);
+  }, [searchParams, customers, selectedCustomer, isLoaded]);
 
   // Pre-populate style, price, style reference image, and quote specifications if passed from Quotes or Inspiration
   useEffect(() => {

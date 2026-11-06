@@ -129,7 +129,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const studioHandle = currentShop?.socialLinks?.instagram || currentShop?.name?.toLowerCase().replace(/\s+/g, '_') || 'mystitchbook_atelier';
+  const studioHandle = currentShop?.socialLinks?.instagram || currentShop?.name?.toLowerCase().replace(/\s+/g, '_') || 'mystitchbook_studio';
   const cleanHandle = studioHandle.startsWith('@') ? studioHandle.slice(1) : studioHandle;
 
   return (
