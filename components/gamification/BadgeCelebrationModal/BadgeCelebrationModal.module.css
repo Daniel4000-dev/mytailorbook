@@ -20,9 +20,12 @@
 }
 
 @keyframes floatIcon {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-6px);
   }
@@ -112,4 +115,31 @@
 
 .whatsappPrimaryBtn:active {
   transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .iconGlowWrapper {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .badgeTitle {
+    font-size: 19px;
+  }
+
+  .badgeTagline {
+    font-size: 13px;
+  }
+
+  .rewardCallout {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .whatsappPrimaryBtn {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
 }

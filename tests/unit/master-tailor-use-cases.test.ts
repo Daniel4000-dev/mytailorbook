@@ -528,7 +528,7 @@ describe('Master Tailor Atelier — 100% Comprehensive Use-Case Engine', () => {
 
       // Kenyan Shilling
       expect(getCurrencySymbol('KES')).toBe('KES');
-      expect(formatCurrency(5000, 'KES').replace(/\s+/g, ' ')).toBe('KES 5,000');
+      expect(formatCurrency(5000, 'KES').replace(/\u00a0/g, ' ')).toBe('KES 5,000');
     });
   });
 

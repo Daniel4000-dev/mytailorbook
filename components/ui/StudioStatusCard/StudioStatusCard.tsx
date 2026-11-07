@@ -20,7 +20,7 @@ interface StudioStatusCardProps {
 }
 
 export default function StudioStatusCard({ isOpen, onClose, celebratedBadge }: StudioStatusCardProps) {
-  const { currentShop, customers, orders, mutate } = useData();
+  const { currentShop, customers, orders, refreshShop } = useData();
   const { showToast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
@@ -57,7 +57,7 @@ export default function StudioStatusCard({ isOpen, onClose, celebratedBadge }: S
       const res = await logStreakAction('shared_status', 15, true);
       if (res?.xp_awarded && res.xp_awarded > 0) {
         showToast(`+${res.xp_awarded} Points earned for sharing your shop status!`, 'success');
-        mutate();
+        refreshShop();
       }
     } catch {
       // quiet fallback
