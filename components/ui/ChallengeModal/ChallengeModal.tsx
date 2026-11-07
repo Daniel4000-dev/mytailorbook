@@ -90,15 +90,15 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   const handleShareReferral = () => {
     const code = currentShop?.referralCode || APP_CONFIG.name.toUpperCase();
     const text = encodeURIComponent(
-      `Hello colleague! Join me on ${APP_CONFIG.name} to organize customer measurements and orders. They are giving out 3 Industrial Direct-Drive Sewing Machines to top active designers right now! Sign up with my studio code "${code}" so we both earn +100 bonus Craft Points: ${APP_CONFIG.baseUrl}`
+      `Hello my friend! Join me on ${APP_CONFIG.name} to organize customer measurements and orders. They are giving out 3 Industrial Sewing Machines to active tailors right now! Sign up with my shop code "${code}" so we both get +100 bonus points: ${APP_CONFIG.baseUrl}`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const handleShareBadge = (badge: AtelierBadge) => {
-    const shopName = currentShop?.name || 'My Atelier';
+    const shopName = currentShop?.name || 'Our Shop';
     const text = encodeURIComponent(
-      `Proud milestone for ${shopName}!\n\nWe just unlocked the "${badge.name}" Badge on ${APP_CONFIG.name}!\nStatus: ${badge.tagline}\nCraft Points: ${xp.toLocaleString()} XP (${currentTier.name})\n\nElevating our craft and honoring every client measurement.`
+      `Proud milestone for ${shopName}!\n\nWe just unlocked the "${badge.name}" Badge on ${APP_CONFIG.name}!\n\nWhat it means: ${badge.tagline}\nShop Rank: ${currentTier.name} (${xp.toLocaleString()} Points)\n\nDelivering quality clothes on time for our customers.`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -106,7 +106,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   const handleNudgeBuddy = () => {
     if (!buddyInfo) return;
     const text = encodeURIComponent(
-      `Good day colleague! My studio has completed our orders on ${APP_CONFIG.name} today. Update your cutting and sewing on the app so our Co-Op Buddy Streak continues and we earn +15 bonus points!`
+      `Good day my friend! I have updated my orders on ${APP_CONFIG.name} today. Update your cutting or sewing so our Tailor Partner streak continues and we both get +15 bonus points!`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -114,14 +114,14 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Equipment Grant Challenge">
+    <Modal isOpen={isOpen} onClose={onClose} title="Sewing Machine Challenge">
       <div className={styles.container}>
         {/* Banner */}
         <div className={styles.banner}>
           <div className={styles.bannerHeader}>
             <span className={styles.grantTitle}>
               <Symbol name="emoji_events" size={18} style={{ color: '#eab308' }} />
-              Annual Equipment Grant
+              Tailor Machine Giveaway
             </span>
             <span className={styles.prizeCounter}>
               {machinesRemaining} / 3 Machines Left
@@ -129,20 +129,20 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
           </div>
           <h2 className={styles.mainTitle}>Master Tailor Challenge</h2>
           <p className={styles.subtitle}>
-            First 3 designers to reach 5,000 Craft Points win an Industrial Sewing Machine! 
-            Every verified measurement, cut, payment, and delivery moves you closer.
+            The first 3 tailors to reach 5,000 Points win an Industrial Sewing Machine!
+            Every measurement, cut, payment, and delivery brings you closer.
           </p>
 
           <div className={styles.progressSection}>
             <div className={styles.progressTop}>
-              <span className={styles.xpScore}>{xp.toLocaleString()} / 5,000 XP</span>
+              <span className={styles.xpScore}>{xp.toLocaleString()} / 5,000 Points</span>
               {isPremium ? (
                 <span className={styles.multiplierBadge}>
-                  <Symbol name="bolt" size={14} style={{ color: '#ffd700' }} /> 2x Double XP Active
+                  <Symbol name="bolt" size={14} style={{ color: '#ffd700' }} /> 2x Double Points Active
                 </span>
               ) : (
                 <span style={{ fontSize: '12px', color: 'var(--sf-text-secondary)' }}>
-                  Upgrade for 2x XP
+                  Upgrade for 2x Points
                 </span>
               )}
             </div>
@@ -151,7 +151,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '12px', color: 'var(--sf-text-secondary)' }}>
               <span>Your Rank: #{userRank}</span>
-              <span style={{ color: currentTier.color, fontWeight: 'bold' }}>Tier: {currentTier.name}</span>
+              <span style={{ color: currentTier.color, fontWeight: 'bold' }}>Rank: {currentTier.name}</span>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
             className={`${styles.tabBtn} ${activeTab === 'buddy' ? styles.tabBtnActive : ''}`}
             onClick={() => setActiveTab('buddy')}
           >
-            <Symbol name="group" size={16} /> Studio Buddy
+            <Symbol name="group" size={16} /> Tailor Partner
           </button>
           <button
             type="button"
@@ -231,10 +231,10 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div>
                 <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--sf-text-primary)' }}>
-                  Atelier Crests ({evaluatedBadges.filter((b) => b.unlocked).length} Unlocked)
+                  Shop Badges ({evaluatedBadges.filter((b) => b.unlocked).length} Unlocked)
                 </span>
                 <p style={{ fontSize: '11px', color: 'var(--sf-text-secondary)', margin: '2px 0 0 0' }}>
-                  Milestones that prove craft discipline to your clients
+                  Milestones that prove your reliability to customers
                 </p>
               </div>
               <button
@@ -312,18 +312,18 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                   <div className={styles.buddyDetails}>
                     <div className={styles.buddyTitle}>{buddyInfo.name}</div>
                     <div className={styles.buddyStatus}>
-                      Connected Tailor Friend. You both earn +15 bonus points when both active today!
+                      Linked Tailor Partner. You both earn +15 bonus points when both active today!
                     </div>
                   </div>
                   <button type="button" className={styles.nudgeBtn} onClick={handleNudgeBuddy}>
-                    <Symbol name="chat" size={16} /> Nudge
+                    <Symbol name="chat" size={16} /> Remind
                   </button>
                 </div>
               ) : (
                 <div>
                   <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '6px' }}>Connect with a Tailor Friend</h4>
                   <p style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', marginBottom: '14px', lineHeight: 1.4 }}>
-                    Connect with a fellow tailor. When you both finish cutting or sewing on the same day, you both earn an extra +15 bonus points!
+                    Connect with a fellow tailor friend. When you both record cutting or sewing on the same day, you both earn an extra +15 bonus points!
                   </p>
                   <div className={styles.linkBuddyForm}>
                     <input
@@ -333,7 +333,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                       value={buddyCodeInput}
                       onChange={(e) => setBuddyCodeInput(e.target.value)}
                     />
-                    <Button variant="primary" onClick={handleLinkBuddy}>Link Studio</Button>
+                    <Button variant="primary" onClick={handleLinkBuddy}>Link Partner</Button>
                   </div>
                   {linkError && <p style={{ color: 'var(--sf-error)', fontSize: '12px', marginTop: '6px' }}>{linkError}</p>}
                   {linkSuccess && <p style={{ color: 'var(--sf-success)', fontSize: '12px', marginTop: '6px' }}>{linkSuccess}</p>}
@@ -357,7 +357,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                       <span className={styles.taskDesc}>{task.description}</span>
                     </div>
                   </div>
-                  <span className={styles.taskBadge}>+{task.xpReward} XP</span>
+                  <span className={styles.taskBadge}>+{task.xpReward} Pts</span>
                 </div>
               ))}
             </div>
@@ -367,10 +367,10 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
         {/* Viral Referral Banner */}
         <div className={styles.referralCard}>
           <div className={styles.refText}>
-            <span className={styles.refTitle}>Your Studio Referral Code</span>
+            <span className={styles.refTitle}>Your Shop Invite Code</span>
             <span className={styles.refCode}>{currentShop?.referralCode || 'STITCH-PRO'}</span>
             <span style={{ fontSize: '11px', color: 'var(--sf-text-secondary)' }}>
-              Earn +100 XP when a colleague joins & logs their 1st real order!
+              Earn +100 Points when a tailor joins & records their first order!
             </span>
           </div>
           <button type="button" className={styles.shareRefBtn} onClick={handleShareReferral}>

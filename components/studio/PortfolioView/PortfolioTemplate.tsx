@@ -192,7 +192,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', margin: '4px auto 12px auto', padding: '4px 12px', borderRadius: '100px', background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
               <Symbol name="workspace_premium" size={14} style={{ color: getTierForXp(shop.xp).color }} />
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffffff', letterSpacing: '0.04em' }}>
-                Craft Certified: {getTierForXp(shop.xp).name}
+                {getTierForXp(shop.xp).name} Tailor
               </span>
             </div>
           )}
@@ -201,7 +201,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             <a
               href={getWhatsAppLink(
                 shop.phone,
-                `Hello ${shop.name}, I am viewing your portfolio and would like to inquire about a bespoke commission.`
+                `Hello ${shop.name}, I saw your portfolio and I would like to sew an outfit with you.`
               )}
               target="_blank"
               rel="noopener noreferrer"
@@ -304,7 +304,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
                     type="button"
                     className={styles.outfitTileBtn}
                     onClick={() => setStoryOutfit(o)}
-                    aria-label={`View bespoke commission: ${o.title || 'outfit'}`}
+                    aria-label={`View outfit: ${o.title || 'outfit'}`}
                     layoutId={`outfit-container-${o.id}`}
                   >
                     <motion.div

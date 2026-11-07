@@ -1003,17 +1003,17 @@ export async function GET(request: NextRequest) {
 
         // Tailor-first authentic closing ritual messages
         let title = 'Machines off for the night?';
-        let subtitle = `Before packing up the atelier, protect your ${streakDays}-day streak. Log today's cutting, fabric intake, or deposit in 1 tap.`;
+        let subtitle = `Before closing your shop, protect your ${streakDays}-day streak. Record today's cutting, fabric, or payment in 1 tap.`;
 
         if (hasBuddy) {
-          title = 'Protect your Atelier Circle streak!';
-          subtitle = `Your colleague is counting on your studio. Keep your ${streakDays}-day Co-Op streak burning before closing up for the night.`;
+          title = 'Protect your Tailor Partner streak!';
+          subtitle = `Your tailor friend is counting on you. Keep your ${streakDays}-day streak going before closing shop tonight.`;
         } else if (mode === 'rtw') {
-          title = 'Closing the showroom?';
-          subtitle = `Keep your ${streakDays}-day studio streak alive. Log a quick sale or garment batch update before midnight.`;
+          title = 'Closing the shop?';
+          subtitle = `Keep your ${streakDays}-day streak going. Record today's sale or finished clothes before midnight.`;
         } else if (streakDays >= 7) {
           title = 'Saturday is coming fast, Master Tailor!';
-          subtitle = `You've held an unshakable ${streakDays}-day momentum. Record today's progress so your upcoming fittings stay stress-free.`;
+          subtitle = `You have worked ${streakDays} days in a row! Record today's work so your weekend deliveries stay stress-free.`;
         }
 
         const alertKey = `system:${shop.id}:${title}`;

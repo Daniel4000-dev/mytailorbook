@@ -75,7 +75,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <Symbol name="search" size={40} className={styles.errorIcon} />
           <h2 className={styles.errorTitle}>Order Not Found</h2>
           <p className={styles.errorText}>
-            We could not locate this bespoke order. Please verify the tracking link provided by your tailor or contact the studio directly.
+            We could not locate this order. Please check the tracking link sent by your tailor or contact them directly.
           </p>
           <Link href="/" className={styles.ctaButton} style={{ marginTop: '16px' }}>
             Go to Homepage
@@ -149,7 +149,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <span className={styles.atelierBadge}>
                 <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
-                Bespoke Atelier
+                Verified Tailor
               </span>
               {shop && shop.xp !== undefined && shop.xp > 0 && (
                 <span
@@ -165,7 +165,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                     color: getTierForXp(shop.xp).color,
                     border: `1px solid ${getTierForXp(shop.xp).color}40`,
                   }}
-                  title={`Craft Certified: ${getTierForXp(shop.xp).name}`}
+                  title={`Rank: ${getTierForXp(shop.xp).name}`}
                 >
                   <Symbol name="workspace_premium" size={12} />
                   {getTierForXp(shop.xp).name}
@@ -185,7 +185,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
               title={`Message ${shop.name} on WhatsApp`}
             >
               <WhatsappIcon size={14} />
-              <span className={styles.headerChatText}>Chat Studio</span>
+              <span className={styles.headerChatText}>Chat on WhatsApp</span>
             </a>
           )}
           <span className={styles.liveBadge}>

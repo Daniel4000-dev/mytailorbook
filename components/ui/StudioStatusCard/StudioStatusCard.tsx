@@ -24,7 +24,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
   const xp = currentShop?.xp || 0;
   const streak = currentShop?.streakCurrent || 0;
   const tier = getTierForXp(xp);
-  const shopName = currentShop?.name || 'Bespoke Atelier';
+  const shopName = currentShop?.name || 'Tailor Studio';
 
   const onTimeCount = countOnTimeDeliveries(orders || []);
   const measuredCount = countMeasuredCustomers(customers || []);
@@ -60,14 +60,14 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
 
       if (!blob) throw new Error('Export failed');
 
-      const file = new File([blob], `${shopName.toLowerCase().replace(/\s+/g, '-')}-atelier-status.png`, {
+      const file = new File([blob], `${shopName.toLowerCase().replace(/\s+/g, '-')}-status.png`, {
         type: 'image/png',
       });
 
       if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `${shopName} Atelier Status`,
+          title: `${shopName} Status`,
           text: `Proud milestone from ${shopName} on ${APP_CONFIG.name}!`,
         });
       } else {
@@ -88,13 +88,13 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
 
   const handleShareWhatsAppStatus = () => {
     const text = encodeURIComponent(
-      `Atelier Craft Update — ${shopName}\n\n` +
-      `Studio Streak: ${streak} Days Active\n` +
-      `Certified Rank: ${tier.name} (${xp.toLocaleString()} Craft XP)\n` +
-      `Verified Client Profiles: ${measuredCount}\n` +
-      `On-Time Delivery Record: ${onTimeCount} Pieces\n` +
-      `Atelier Badges Unlocked: ${unlockedBadges.length} Badges\n\n` +
-      `Bespoke precision powered by ${APP_CONFIG.name}.`
+      `Tailor Shop Update — ${shopName}\n\n` +
+      `Active Streak: ${streak} Days Working\n` +
+      `Shop Rank: ${tier.name} (${xp.toLocaleString()} Points)\n` +
+      `Customers Measured: ${measuredCount}\n` +
+      `On-Time Deliveries: ${onTimeCount} Clothes\n` +
+      `Badges Unlocked: ${unlockedBadges.length} Badges\n\n` +
+      `Delivering quality clothes on time with ${APP_CONFIG.name}.`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -102,7 +102,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Share Atelier Status">
+    <Modal isOpen={isOpen} onClose={onClose} title="Share Shop Status">
       <div className={styles.container}>
         {/* The 9:16 Story Card Canvas */}
         <div ref={cardRef} className={styles.storyCard}>
@@ -110,11 +110,11 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
           <div className={styles.cardHeader}>
             <div className={styles.brandBadge}>
               <Symbol name="checkroom" size={14} />
-              <span>MYSTITCHBOOK ATELIER</span>
+              <span>MYSTITCHBOOK TAILOR</span>
             </div>
             <div className={styles.verifiedPill}>
               <Symbol name="verified" size={12} />
-              <span>VERIFIED CRAFT</span>
+              <span>VERIFIED TAILOR</span>
             </div>
           </div>
 
@@ -145,7 +145,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
               </div>
               <div className={styles.bentoContent}>
                 <span className={styles.bentoNum}>{streak}</span>
-                <span className={styles.bentoLabel}>Day Studio Streak</span>
+                <span className={styles.bentoLabel}>Days Working Streak</span>
               </div>
             </div>
 
@@ -155,7 +155,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
               </div>
               <div className={styles.bentoContent}>
                 <span className={styles.bentoNum}>{xp.toLocaleString()}</span>
-                <span className={styles.bentoLabel}>Craft XP Points</span>
+                <span className={styles.bentoLabel}>Shop Points</span>
               </div>
             </div>
 
@@ -175,7 +175,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
               </div>
               <div className={styles.bentoContent}>
                 <span className={styles.bentoNum}>{measuredCount}</span>
-                <span className={styles.bentoLabel}>Client Anatomies</span>
+                <span className={styles.bentoLabel}>Customers Measured</span>
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
           {/* Unlocked Badges Row */}
           {unlockedBadges.length > 0 && (
             <div className={styles.badgesSection}>
-              <span className={styles.badgesTitle}>UNLOCKED ATELIER CRESTS</span>
+              <span className={styles.badgesTitle}>UNLOCKED BADGES</span>
               <div className={styles.badgeRow}>
                 {unlockedBadges.slice(0, 4).map((b) => (
                   <div key={b.id} className={styles.badgeItem} title={b.name}>
@@ -206,7 +206,7 @@ export default function StudioStatusCard({ isOpen, onClose }: StudioStatusCardPr
 
           {/* Card Footer Watermark */}
           <div className={styles.cardFooter}>
-            <span>Crafting with discipline on MyStitchBook</span>
+            <span>Sewing quality clothes on time with MyStitchBook</span>
             <span className={styles.watermarkTag}>mystitchbook.com</span>
           </div>
         </div>
