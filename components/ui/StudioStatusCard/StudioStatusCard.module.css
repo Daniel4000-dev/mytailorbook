@@ -328,3 +328,57 @@
   opacity: 0.9;
 }
 
+/* Mobile & Small Screen Refinements */
+@media (max-width: 480px) {
+  .container {
+    gap: 14px;
+  }
+
+  .storyCard {
+    padding: 18px 14px;
+    border-radius: 20px;
+    max-height: 520px;
+  }
+
+  .studioMonogram {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .studioName {
+    font-size: 18px;
+  }
+
+  .bentoCell {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .bentoNum {
+    font-size: 14px;
+  }
+
+  .bentoLabel {
+    font-size: 9px;
+  }
+
+  .inviteBanner {
+    padding: 6px 10px;
+  }
+
+  .inviteCodePill {
+    font-size: 10px;
+  }
+
+  .inviteSubtext {
+    font-size: 8px;
+  }
+
+  .whatsappStatusBtn {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+}
+
