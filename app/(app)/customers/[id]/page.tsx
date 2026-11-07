@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -27,7 +28,7 @@ import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
 import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
 import { getStoredMockCustomers, saveMockCustomers, MOCK_CUSTOMERS, MOCK_ORDERS } from '@/lib/mockCustomers';
-import { formatCurrency, formatPhone, getWhatsAppLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements, Customer, Order, OrderPhoto } from '@/lib/types';
 import { compressImage } from '@/lib/compressImage';
@@ -47,7 +48,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   const { id } = React.use(params);
   const router = useRouter();
   const { isOwner, loading: authLoading } = useAuth();
-  const { customers, orders, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer, isDemoMode } = useData();
+  const { customers, orders, currentShop, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer, isDemoMode } = useData();
 
   if (authLoading || !isLoaded) {
     return (
@@ -129,6 +130,7 @@ function CustomerProfileContent({
 }) {
   const { showToast } = useToast();
   const router = useRouter();
+  const { currentShop } = useData();
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingCustomer, setDeletingCustomer] = useState(false);
@@ -614,8 +616,8 @@ function CustomerProfileContent({
                 hasReadyOrder
                   ? `Hello ${customer.fullName}, your outfit is ready for pickup at our workshop! Looking forward to seeing you.`
                   : totalOwed > 0
-                  ? `Hello ${customer.fullName}, friendly reminder regarding your pending balance of ${formatCurrency(totalOwed)}. Thank you!`
-                  : `Hello ${customer.fullName}!`
+                    ? `Hello ${customer.fullName}, friendly reminder regarding your pending balance of ${formatCurrency(totalOwed, currentShop?.currency)}. Thank you!`
+                    : `Hello ${customer.fullName}!`
               )}
               target="_blank"
               rel="noopener noreferrer"
@@ -635,7 +637,7 @@ function CustomerProfileContent({
               <span>Quote</span>
             </button>
             <a
-              href={`tel:+${customer.whatsappNumber}`}
+              href={getTelLink(customer.whatsappNumber)}
               className={styles.secondaryActionBtn}
               title="Call customer"
             >
@@ -753,25 +755,25 @@ function CustomerProfileContent({
                   <div className={styles.postureTagsGrid}>
                     {(customer.gender === 'female'
                       ? [
-                          'Corset Fit',
-                          'High Waist',
-                          'Full Bust',
-                          'Sloping Shoulder',
-                          'Hourglass Fit',
-                          'Wide Hips',
-                          'Petite Fit',
-                          'Modest Neckline',
-                        ]
+                        'Corset Fit',
+                        'High Waist',
+                        'Full Bust',
+                        'Sloping Shoulder',
+                        'Hourglass Fit',
+                        'Wide Hips',
+                        'Petite Fit',
+                        'Modest Neckline',
+                      ]
                       : [
-                          'Sloping Shoulder',
-                          'Broad Shoulder',
-                          'Erect Posture',
-                          'Prominent Belly',
-                          'Drop Crotch',
-                          'Slim Fitted',
-                          'Regular Fit',
-                          'Extra Length',
-                        ]
+                        'Sloping Shoulder',
+                        'Broad Shoulder',
+                        'Erect Posture',
+                        'Prominent Belly',
+                        'Drop Crotch',
+                        'Slim Fitted',
+                        'Regular Fit',
+                        'Extra Length',
+                      ]
                     ).map((tag) => {
                       const isTagActive = notes.toLowerCase().includes(tag.toLowerCase());
                       return (
@@ -882,7 +884,7 @@ function CustomerProfileContent({
                 <a
                   href={getWhatsAppLink(
                     customer.whatsappNumber,
-                    `Hello ${customer.fullName}, friendly reminder from your tailor regarding your pending balance of ${formatCurrency(totalOwed)}. Thank you!`
+                    `Hello ${customer.fullName}, friendly reminder from ${currentShop?.name || 'your tailor'} regarding your pending balance of ${formatCurrency(totalOwed, currentShop?.currency)}. Thank you!`
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -896,12 +898,12 @@ function CustomerProfileContent({
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Total Spent</span>
-                <span className={styles.statValue}>{formatCurrency(totalSpend)}</span>
+                <span className={styles.statValue}>{formatCurrency(totalSpend, currentShop?.currency)}</span>
               </div>
               <div className={styles.statCard}>
                 <span className={styles.statLabel}>Pending Balance</span>
                 <span className={`${styles.statValue} ${totalOwed > 0 ? styles.warn : ''}`}>
-                  {formatCurrency(totalOwed)}
+                  {formatCurrency(totalOwed, currentShop?.currency)}
                 </span>
               </div>
               <div className={`${styles.statCard} ${styles.statCardWide}`}>

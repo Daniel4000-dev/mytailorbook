@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { compressImage } from '@/lib/compressImage';
 import { createClient } from '@/lib/supabase/client';
-import { getWhatsAppLink } from '@/lib/formatters';
+import { getWhatsAppLink, getTelLink, formatPhone } from '@/lib/formatters';
 import { MEASUREMENT_LABELS } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './FabricDetailSheet.module.css';
@@ -294,13 +294,13 @@ export default function FabricDetailSheet({
               <Symbol name="person" size={18} className={styles.rowIcon} />
               <div>
                 <span className={styles.customerName}>{clientName}</span>
-                {clientPhone && <div className={styles.customerPhoneText}>+{clientPhone}</div>}
+                {clientPhone && <div className={styles.customerPhoneText}>{formatPhone(clientPhone)}</div>}
               </div>
             </div>
 
             {clientPhone && (
               <a
-                href={`tel:${clientPhone}`}
+                href={getTelLink(clientPhone)}
                 className={styles.callBtn}
                 aria-label={`Call ${clientName}`}
               >

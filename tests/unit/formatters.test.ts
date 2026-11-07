@@ -10,6 +10,7 @@ import {
   formatMonthYear,
   formatShortMonthYear,
   getWhatsAppLink,
+  getTelLink,
   getOrderProgressMessage,
   parseMeasurementValue,
   formatMeasurementsSummary,
@@ -131,6 +132,20 @@ describe('getWhatsAppLink', () => {
   it('URL-encodes a pre-filled message', () => {
     const link = getWhatsAppLink('08012345678', 'Hi there!');
     expect(link).toBe('https://wa.me/2348012345678?text=Hi%20there!');
+  });
+});
+
+describe('getTelLink', () => {
+  it('builds normalized tel: link from 080... format', () => {
+    expect(getTelLink('08012345678')).toBe('tel:+2348012345678');
+  });
+
+  it('builds normalized tel: link from +234 format without double plus', () => {
+    expect(getTelLink('+2348012345678')).toBe('tel:+2348012345678');
+  });
+
+  it('returns # when phone is empty', () => {
+    expect(getTelLink('')).toBe('#');
   });
 });
 

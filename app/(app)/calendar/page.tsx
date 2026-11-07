@@ -15,7 +15,7 @@ import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import AddEventSheet from './_components/AddEventSheet';
 import FittingVerdictModal from './_components/FittingVerdictModal';
 import { getCalendarEvents, updateEventStatus, recordFittingVerdict } from '@/app/actions/calendar';
-import { getWhatsAppLink, formatPhone } from '@/lib/formatters';
+import { getWhatsAppLink, getTelLink, formatPhone } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import type { CalendarEvent, Order } from '@/lib/types';
 import styles from './page.module.css';
@@ -626,7 +626,7 @@ function CalendarContent() {
 
                             {customer?.whatsappNumber && (
                               <a
-                                href={`tel:${customer.whatsappNumber}`}
+                                href={getTelLink(customer.whatsappNumber)}
                                 className={styles.callClientChip}
                                 title="Call client"
                               >
@@ -766,7 +766,7 @@ function CalendarContent() {
 
                               {customer?.whatsappNumber && (
                                 <a
-                                  href={`tel:${customer.whatsappNumber}`}
+                                  href={getTelLink(customer.whatsappNumber)}
                                   className={styles.callClientChip}
                                   title="Call client"
                                 >

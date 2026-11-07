@@ -17,7 +17,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { scrollContentToTop } from '@/lib/scrollToTop';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
-import { formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getInitials } from '@/lib/formatters';
+import { formatCurrency, formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getTelLink, getInitials } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Customer, Order, StyleCatalogue } from '@/lib/types';
 import { GARMENT_STYLES, resolveCanonicalStyleName, isMockDataAllowed } from '@/lib/constants';
@@ -1260,7 +1260,7 @@ export default function CustomersPage() {
                   <div className={styles.rightActionCol}>
                     {hasBalance && (
                       <span className={styles.owesPill}>
-                        ₦{Math.round(stats.totalBalance).toLocaleString()}
+                        {formatCurrency(stats.totalBalance, currentShop?.currency)}
                       </span>
                     )}
                     {isReady && !hasBalance && (
@@ -1268,7 +1268,7 @@ export default function CustomersPage() {
                     )}
                     <div className={styles.quickActionIcons} onClick={(e) => e.stopPropagation()}>
                       <a
-                        href={`tel:+${c.whatsappNumber}`}
+                        href={getTelLink(c.whatsappNumber)}
                         className={styles.callActionBtn}
                         aria-label={`Call ${c.fullName}`}
                         title={`Call ${c.fullName}`}

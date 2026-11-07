@@ -27,7 +27,7 @@ import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import { findByIdOrSlug } from '@/lib/slugs';
-import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getOrderProgressMessage } from '@/lib/formatters';
+import { formatCurrency, formatNumber, formatDate, getWhatsAppLink, getTelLink, getOrderProgressMessage } from '@/lib/formatters';
 import { getBalanceOwed, getMargin, hasCostData, isOverdue, hasUnreadComment, isOwnerLikeRole } from '@/lib/types';
 import { getOrderCommentsAction, getBatchOrdersAction } from '@/app/actions';
 import { addPayment } from '@/app/actions/order_payments';
@@ -911,7 +911,7 @@ export default function OrderDetailPage() {
                   )}
                   <a
                     className={styles.heroCallBtn}
-                    href={`tel:+${customer.whatsappNumber}`}
+                    href={getTelLink(customer.whatsappNumber)}
                     aria-label={`Call ${customer.fullName}`}
                     title="Call client"
                   >

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { formatCurrency, formatPhone, getWhatsAppLink } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
@@ -417,7 +417,7 @@ export default function CollectionsPage() {
                           </Link>
                           {debtor.customer.whatsappNumber && (
                             <a
-                              href={`tel:${debtor.customer.whatsappNumber}`}
+                              href={getTelLink(debtor.customer.whatsappNumber)}
                               className={styles.phoneChip}
                               title="Call customer directly"
                             >

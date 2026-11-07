@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Avatar from '@/components/ui/Avatar/Avatar';
@@ -853,7 +854,7 @@ export default function UnifiedNewOrderForm() {
 
   const getWhatsAppReceiptText = () => {
     if (!completedBatch || !selectedCustomer) return '';
-    const shopName = currentShop?.name || 'Tailor Shop';
+    const shopName = currentShop?.name || APP_CONFIG.name;
     const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}${ROUTES.track(completedBatch.firstOrderId)}` : '';
     const formattedDate = formatSafeDate(completedBatch.dueDate);
 
@@ -882,7 +883,7 @@ export default function UnifiedNewOrderForm() {
 
   const getCuttingSlipText = () => {
     if (!completedBatch || !selectedCustomer) return '';
-    const shopName = currentShop?.name || 'Tailor Shop';
+    const shopName = currentShop?.name || APP_CONFIG.name;
     const formattedDate = formatSafeDate(completedBatch.dueDate);
 
     const lines = [
@@ -2012,15 +2013,27 @@ export default function UnifiedNewOrderForm() {
             </div>
 
             {/* 1-Tap WhatsApp Receipt Button */}
-            <a
-              href={getWhatsAppLink(selectedCustomer.whatsappNumber, getWhatsAppReceiptText())}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.whatsappReceiptBtn}
-            >
-              <WhatsappIcon size={20} />
-              <span>Send Receipt via WhatsApp</span>
-            </a>
+            {selectedCustomer.whatsappNumber ? (
+              <a
+                href={getWhatsAppLink(selectedCustomer.whatsappNumber, getWhatsAppReceiptText())}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.whatsappReceiptBtn}
+              >
+                <WhatsappIcon size={20} />
+                <span>Send Receipt via WhatsApp</span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                className={styles.whatsappReceiptBtn}
+                disabled
+                style={{ opacity: 0.6, cursor: 'not-allowed' }}
+              >
+                <WhatsappIcon size={20} />
+                <span>No WhatsApp on File</span>
+              </button>
+            )}
 
             {/* Workshop Cutting Slip Action */}
             <button

@@ -92,6 +92,16 @@ export function isValidPhone(phone: string): boolean {
 }
 
 /**
+ * Generates a clean tel: URI for phone dialers.
+ * Guarantees a single leading '+' and country code normalization.
+ */
+export function getTelLink(phone: string): string {
+  if (!phone) return '#';
+  const normalized = normalizePhone(phone);
+  return `tel:+${normalized}`;
+}
+
+/**
  * Truncates text to a max length with ellipsis.
  */
 export function truncateText(text: string, maxLength: number): string {

@@ -6,7 +6,8 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { MEASUREMENT_LABELS } from '@/lib/constants';
-import { getWhatsAppLink } from '@/lib/formatters';
+import { getWhatsAppLink, getTelLink, formatPhone } from '@/lib/formatters';
+import { APP_CONFIG } from '@/lib/config';
 import { useToast } from '@/contexts/ToastContext';
 import type { Order, Customer } from '@/lib/types';
 import styles from './CuttingSlipModal.module.css';
@@ -63,7 +64,7 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
       `===============================`,
       `Ref: #${order.id.slice(0, 4).toUpperCase()} | ${order.styleName || 'Custom Bespoke'}`,
       `Client: ${customerName}`,
-      customerPhone ? `Contact: +${customerPhone}` : null,
+      customerPhone ? `Contact: ${formatPhone(customerPhone)}` : null,
       fabricNote ? `Fabric: ${fabricNote}` : null,
       yardage ? `Yardage: ${yardage}` : null,
       isClientFabric ? `Material Source: Client Provided` : isShopFabric ? `Material Source: Shop Stock` : null,
@@ -75,7 +76,7 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
       ...measurementEntries.map(([key, val]) => `• ${MEASUREMENT_LABELS[key] || key}: ${val}"`),
       cleanOrderDetails ? `\n--- TAILOR NOTES & CUTTING SPEC ---\n${cleanOrderDetails}` : null,
       `===============================`,
-      `MyTailorBook Atelier OS`,
+      `${APP_CONFIG.name} Atelier OS`,
     ];
     return lines.filter(Boolean).join('\n');
   };
@@ -188,7 +189,7 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
           {customerPhone && (
             <div className={styles.customerActions}>
               <a
-                href={`tel:+${customerPhone}`}
+                href={getTelLink(customerPhone)}
                 className={styles.actionIconBtn}
                 aria-label={`Call ${customerName}`}
               >

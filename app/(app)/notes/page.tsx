@@ -9,6 +9,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { useToast } from '@/contexts/ToastContext';
+import { getTelLink } from '@/lib/formatters';
 import styles from './page.module.css';
 
 export type NoteCategory = 'shopping' | 'craft' | 'client' | 'general';
@@ -392,11 +393,10 @@ export default function WorkshopNotesPage() {
       <>
         {parts.map((part, index) => {
           if (validPhones.includes(part)) {
-            const cleanDigits = part.replace(/\D/g, '');
             return (
               <a
                 key={index}
-                href={`tel:${cleanDigits}`}
+                href={getTelLink(part)}
                 className={styles.phoneChip}
                 onClick={(e) => e.stopPropagation()}
                 title={`Call ${part}`}
