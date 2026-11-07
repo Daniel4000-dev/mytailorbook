@@ -425,8 +425,8 @@ function CalendarContent() {
               className={`${styles.craftFilterBtn} ${craftFilter === 'dispatch' ? styles.craftFilterBtnActive : ''}`}
               onClick={() => setCraftFilter('dispatch')}
             >
-              <Symbol name="local_shipping" size={15} />
-              <span>Dispatches</span>
+              <Symbol name="inventory_2" size={15} />
+              <span>Deliveries</span>
               <span className={styles.filterBadge}>{monthCounts.dispatches}</span>
             </button>
 

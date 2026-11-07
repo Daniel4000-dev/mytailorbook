@@ -72,8 +72,8 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
       const file = new File([blob], `${fileName}.png`, { type: 'image/png' });
       await shareOrDownload(file, `${fileName}.png`);
     } catch {
-      // Rendering the receipt is best-effort — a failure here shouldn't
-      // block the tailor from still printing or trying again.
+      // Fall back to native print/save dialog if image canvas fails
+      window.print();
     } finally {
       setBusy(null);
     }
@@ -110,7 +110,8 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
       const file = new File([pdfBlob], `${fileName}.pdf`, { type: 'application/pdf' });
       await shareOrDownload(file, `${fileName}.pdf`);
     } catch {
-      // Same best-effort reasoning as the image path.
+      // Fall back to native print/save dialog if PDF synthesis fails
+      window.print();
     } finally {
       setBusy(null);
     }
@@ -119,10 +120,10 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
   return (
     <div className={`${styles.actions} noPrint`}>
       <button type="button" className={styles.actionBtn} onClick={handleShareImage} disabled={busy !== null}>
-        <Symbol name="image" /> {busy === 'image' && <Symbol name="progress_activity" className="global-spinner" />} Image
+        {busy === 'image' ? <Symbol name="progress_activity" className="global-spinner" /> : <Symbol name="image" />} Image
       </button>
       <button type="button" className={styles.actionBtn} onClick={handleSharePdf} disabled={busy !== null}>
-        <Symbol name="picture_as_pdf" /> {busy === 'pdf' && <Symbol name="progress_activity" className="global-spinner" />} PDF
+        {busy === 'pdf' ? <Symbol name="progress_activity" className="global-spinner" /> : <Symbol name="picture_as_pdf" />} PDF
       </button>
       <button type="button" className={styles.printBtn} onClick={() => window.print()} disabled={busy !== null}>
         <Symbol name="print" /> Print

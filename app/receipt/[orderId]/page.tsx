@@ -32,13 +32,26 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
   const { order, customer, shop } = view;
   const balanceOwed = getBalanceOwed(order);
-  const issuedDate = new Date().toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
+  const issuedDate = new Date(order.createdAt || Date.now()).toLocaleDateString('en-NG', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const clientStageLabel =
+    {
+      Documented: 'Order Confirmed',
+      Cutting: 'Fabric & Cutting',
+      Sewing: 'Tailoring & Stitching',
+      Ready: 'Ready for Collection',
+      Delivered: 'Completed & Received',
+    }[order.status] || STATUS_CONFIG[order.status]?.label || order.status;
 
   return (
     <div className={styles.page}>
       <div className={`${styles.actionsBar} noPrint`}>
         <Link href={ROUTES.track(order)} className={styles.trackPill}>
-          <Symbol name="local_shipping" size={16} />
+          <Symbol name="visibility" size={16} />
           <span>Track Garment</span>
         </Link>
         <ReceiptActions fileName={`receipt-${order.id.slice(-8).toUpperCase()}`} />
@@ -87,7 +100,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
                 <tr>
                   <td className={styles.lineItemDesc}>
                     {order.orderDetails}
-                    <span className={styles.lineItemMeta}>{STATUS_CONFIG[order.status].label}</span>
+                    <span className={styles.lineItemMeta}>{clientStageLabel}</span>
                   </td>
                   <td className={styles.amountCol}>{formatCurrency(order.totalBill, shop?.currency)}</td>
                 </tr>

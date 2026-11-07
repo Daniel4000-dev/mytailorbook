@@ -188,7 +188,10 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
           {shop.tagline && <p className={styles.heroTagline}>{shop.tagline}</p>}
           {whatsappHref && (
             <a
-              href={whatsappHref}
+              href={getWhatsAppLink(
+                shop.phone,
+                `Hello ${shop.name}, I am viewing your portfolio and would like to inquire about a bespoke commission.`
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className={`${styles.ctaPrimary} ${styles.heroMobileOnly}`}
@@ -375,9 +378,10 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             {whatsappHref && (
               <div className={styles.commissionDirect}>
                 <a
-                  href={`${whatsappHref}&text=${encodeURIComponent(
+                  href={getWhatsAppLink(
+                    shop.phone,
                     `Hello ${shop.name}, I would like to inquire about commissioning a bespoke garment.`
-                  )}`}
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.ctaPrimary}
@@ -402,7 +406,10 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
       {whatsappHref && (
         <FixedBottomPortal>
           <a
-            href={whatsappHref}
+            href={getWhatsAppLink(
+              shop.phone,
+              `Hello ${shop.name}, I would like to inquire about commissioning a bespoke garment.`
+            )}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.whatsappFab}
@@ -515,9 +522,10 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
 
                 {whatsappHref && (
                   <a
-                    href={`${whatsappHref}&text=${encodeURIComponent(
-                      `Hello ${shop.name}, I'm interested in commissioning something similar to '${storyOutfit.title}'.`
-                    )}`}
+                    href={getWhatsAppLink(
+                      shop.phone,
+                      `Hello ${shop.name}, I'm interested in commissioning something similar to '${storyOutfit.title || 'this bespoke garment'}'.`
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles.caseStudyCta}
@@ -545,9 +553,10 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
                   ((storyOutfit.storyPhotos && storyOutfit.storyPhotos.length > 0) ||
                     storyOutfit.storyCaption) && (
                     <a
-                      href={`${whatsappHref}&text=${encodeURIComponent(
-                        `Hello ${shop.name}, I'm interested in commissioning something similar to '${storyOutfit.title}'.`
-                      )}`}
+                      href={getWhatsAppLink(
+                        shop.phone,
+                        `Hello ${shop.name}, I'm interested in commissioning something similar to '${storyOutfit.title || 'this bespoke garment'}'.`
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`${styles.caseStudyCta} ${styles.caseStudyCtaBottom}`}

@@ -25,7 +25,7 @@ interface AddEventSheetProps {
 
 const EVENT_TYPES: { value: CalendarEventType; label: string }[] = [
   { value: 'fitting', label: 'Bespoke Fitting (Try-on)' },
-  { value: 'dispatch', label: 'Garment Delivery / Dispatch' },
+  { value: 'dispatch', label: 'Garment Delivery & Collection' },
   { value: 'meeting', label: 'Client Consultation / Design' },
   { value: 'fabric_delivery', label: 'Fabric / Material Drop-off' },
   { value: 'market_run', label: 'Fabric Market Run (Balogun / Tejuosho)' },

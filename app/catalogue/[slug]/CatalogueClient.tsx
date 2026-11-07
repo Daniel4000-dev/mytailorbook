@@ -6,6 +6,8 @@ import { StyleCatalogue, StyleCataloguePhoto } from '@/lib/types';
 import { getStoredMockCatalogues } from '@/lib/mockCatalogues';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
+import { getWhatsAppLink } from '@/lib/formatters';
+import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
 interface EnrichedPhoto extends StyleCataloguePhoto {
@@ -47,14 +49,24 @@ export default function CatalogueClient({
     }
   }, [initialAlbumId]);
 
-  // Handle escape key to close lightbox
+  // Handle escape key and body scroll lock for lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setSelectedPhoto(null);
     };
     window.addEventListener('keydown', handleKeyDown);
+
+    if (selectedPhoto) {
+      const priorOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = priorOverflow;
+      };
+    }
+
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [selectedPhoto]);
 
   const [effectiveCatalogues, setEffectiveCatalogues] = useState<StyleCatalogue[]>(catalogues || []);
 
@@ -95,8 +107,7 @@ export default function CatalogueClient({
   const handleSewThis = (photo: EnrichedPhoto) => {
     if (!shopPhone) return;
     const text = `Hi ${shopName}! I saw this ${photo.albumTitle} design in your catalogue and would love to commission something like this. Reference Photo: ${photo.imageUrl}`;
-    const cleanPhone = shopPhone.replace(/\D/g, '');
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getWhatsAppLink(shopPhone, text), '_blank');
   };
 
   const handleCopyPhotoLink = (photo: EnrichedPhoto) => {
@@ -137,9 +148,10 @@ export default function CatalogueClient({
 
           {shopPhone && (
             <a
-              href={`https://wa.me/${shopPhone.replace(/\D/g, '')}?text=${encodeURIComponent(
+              href={getWhatsAppLink(
+                shopPhone,
                 `Hello ${shopName}, I am browsing your inspiration lookbook and would like to inquire about a custom order.`
-              )}`}
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.headerContactBtn}
@@ -340,7 +352,7 @@ export default function CatalogueClient({
             <span>{shopName}</span>
           </div>
           <p className={styles.footerNote}>
-            Powered by MyTailorBook • Tailoring & Fashion Business Management
+            Powered by {APP_CONFIG.name} · Bespoke Tailoring & Atelier Management
           </p>
         </div>
       </footer>
