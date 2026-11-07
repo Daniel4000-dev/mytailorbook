@@ -24,6 +24,7 @@ import { MOCK_STAFF } from '@/lib/mockData';
 import { isMockDataAllowed } from '@/lib/constants';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
+import { formatCurrency } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import RunPayrollSheet from './_components/RunPayrollSheet';
 import styles from './page.module.css';
@@ -271,9 +272,9 @@ export default function StaffSettingsPage() {
                     </span>
                     <span className={styles.subtitle}>
                       {staff.payrollType === 'piece_rate' && staff.payrollAmount
-                        ? `₦${staff.payrollAmount.toLocaleString()} / piece`
+                        ? `${formatCurrency(staff.payrollAmount, currentShop?.currency)} / piece`
                         : staff.payrollType === 'salary' && staff.payrollAmount
-                        ? `₦${staff.payrollAmount.toLocaleString()} / wk`
+                        ? `${formatCurrency(staff.payrollAmount, currentShop?.currency)} / wk`
                         : staff.craftRole === 'apprentice'
                         ? 'Apprentice Stipend'
                         : staff.role} · {staff.email}

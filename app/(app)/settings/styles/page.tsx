@@ -19,6 +19,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
 import GarmentSilhouette from '@/components/ui/GarmentSilhouette/GarmentSilhouette';
+import { formatCurrency } from '@/lib/formatters';
 import { MOCK_ATELIER_STYLES } from '@/lib/mockCustomStyles';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
@@ -204,7 +205,7 @@ export default function CustomStylesSettingsPage() {
                   )}
                   {s.basePrice ? (
                     <span className={styles.priceTag}>
-                      ₦{s.basePrice.toLocaleString()}
+                      {formatCurrency(s.basePrice, currentShop?.currency)}
                     </span>
                   ) : (
                     <span className={styles.priceTag}>Bespoke</span>

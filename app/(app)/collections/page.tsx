@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, getCurrencySymbol } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
@@ -281,7 +281,7 @@ export default function CollectionsPage() {
 
           <div className={styles.heroAmountRow}>
             <span className={styles.heroCurrencySymbol}>
-              {currency === 'NGN' ? '₦' : currency}
+              {getCurrencySymbol(currency)}
             </span>
             <span className={styles.heroAmountValue}>
               {totalOutstanding.toLocaleString()}

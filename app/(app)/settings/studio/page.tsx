@@ -17,6 +17,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { compressImage } from '@/lib/compressImage';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
+import { getCurrencySymbol } from '@/lib/formatters';
 import SettingsSkeleton from '../_components/SettingsSkeleton';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
@@ -266,14 +267,7 @@ export default function StudioSettingsPage() {
 
   const initial = currentShop?.name?.charAt(0)?.toUpperCase() || 'M';
   const currencyCode = currentShop?.currency || 'NGN';
-  const currencySymbol =
-    (0)
-      .toLocaleString('en', {
-        style: 'currency',
-        currency: currencyCode,
-        currencyDisplay: 'narrowSymbol',
-      })
-      .replace(/[0-9.,\s]/g, '') || '₦';
+  const currencySymbol = getCurrencySymbol(currencyCode);
 
   return (
     <PageLayout width="narrow" header={<TopBar title="Profile" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
