@@ -698,11 +698,35 @@ function CalendarContent() {
                                   )}
                                 </div>
                               </div>
-                              <span className={styles.timeTag}>
-                                {evt.startTime
-                                  ? `${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ''}`
-                                  : 'All day'}
-                              </span>
+                              <div className={styles.timeAndStatus}>
+                                <span className={styles.timeTag}>
+                                  {evt.startTime
+                                    ? `${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ''}`
+                                    : 'All day'}
+                                </span>
+
+                                {isFitting && (
+                                  <span
+                                    className={`${styles.fittingBadge} ${
+                                      isCompleted ? styles.fittingBadgeDone : styles.fittingBadgePending
+                                    }`}
+                                  >
+                                    {isCompleted ? 'Fitted' : 'Pending'}
+                                  </span>
+                                )}
+
+                                {!isDeadline && (
+                                  <button
+                                    type="button"
+                                    className={`${styles.statusCheckBtn} ${isCompleted ? styles.statusCheckBtnDone : ''}`}
+                                    onClick={() => handleToggleEventStatus(evt)}
+                                    title={isCompleted ? 'Mark pending' : 'Mark completed'}
+                                    aria-label="Toggle completion"
+                                  >
+                                    <Symbol name="check" size={14} />
+                                  </button>
+                                )}
+                              </div>
                             </div>
 
                             <div className={styles.agendaActionStrip}>
@@ -733,11 +757,23 @@ function CalendarContent() {
                                   type="button"
                                   className={styles.whatsAppReminderBtn}
                                   onClick={() => handleWhatsAppFittingReminder(evt)}
+                                  title="Send WhatsApp appointment reminder to client"
                                 >
                                   <WhatsappIcon size={14} />
-                                  <span>WhatsApp</span>
+                                  <span>Remind on WhatsApp</span>
                                 </button>
                               ) : null}
+
+                              {customer?.whatsappNumber && (
+                                <a
+                                  href={`tel:${customer.whatsappNumber}`}
+                                  className={styles.callClientChip}
+                                  title="Call client"
+                                >
+                                  <Symbol name="call" size={12} />
+                                  <span>{formatPhone(customer.whatsappNumber)}</span>
+                                </a>
+                              )}
                             </div>
                           </div>
                         </article>
