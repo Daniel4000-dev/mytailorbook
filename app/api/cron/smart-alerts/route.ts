@@ -112,6 +112,7 @@ export async function GET(request: NextRequest) {
     business_mode?: string | null;
     streak_current?: number | null;
     streak_last_counted_at?: string | null;
+    buddy_shop_id?: string | null;
   }> | null = null;
   let shopsError: { message: string } | null = null;
 
@@ -1001,17 +1002,17 @@ export async function GET(request: NextRequest) {
         const streakDays = shop.streak_current || 1;
 
         // Tailor-first authentic closing ritual messages
-        let title = 'Machines off for the night? ✂️';
+        let title = 'Machines off for the night?';
         let subtitle = `Before packing up the atelier, protect your ${streakDays}-day streak. Log today's cutting, fabric intake, or deposit in 1 tap.`;
 
         if (hasBuddy) {
-          title = 'Protect your Atelier Circle streak! 🔥';
+          title = 'Protect your Atelier Circle streak!';
           subtitle = `Your colleague is counting on your studio. Keep your ${streakDays}-day Co-Op streak burning before closing up for the night.`;
         } else if (mode === 'rtw') {
-          title = 'Closing the showroom? 👗';
+          title = 'Closing the showroom?';
           subtitle = `Keep your ${streakDays}-day studio streak alive. Log a quick sale or garment batch update before midnight.`;
         } else if (streakDays >= 7) {
-          title = 'Saturday is coming fast, Master Tailor! 🪡';
+          title = 'Saturday is coming fast, Master Tailor!';
           subtitle = `You've held an unshakable ${streakDays}-day momentum. Record today's progress so your upcoming fittings stay stress-free.`;
         }
 
