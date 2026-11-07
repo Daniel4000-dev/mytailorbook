@@ -1,38 +1,42 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import type { OrderStatus, OrderPhoto } from '@/lib/types';
 import styles from '../page.module.css';
 
 const STAGE_ICONS: Record<OrderStatus, string> = {
-  Documented: 'assignment',
+  Documented: 'verified',
   Cutting: 'content_cut',
   Sewing: 'apparel',
-  Ready: 'inventory_2',
+  Ready: 'checkroom',
   Delivered: 'check_circle',
 };
 
-const STAGE_HEADLINES: Record<OrderStatus, string> = {
-  Documented: 'Documented',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
-  Ready: 'Ready',
-  Delivered: 'Delivered',
+export const CLIENT_STAGE_HEADLINES: Record<OrderStatus, string> = {
+  Documented: 'Order Confirmed',
+  Cutting: 'Fabric & Cutting',
+  Sewing: 'Tailoring & Stitching',
+  Ready: 'Ready for Try-On',
+  Delivered: 'Completed & Received',
 };
 
 const STAGE_STORIES: Record<OrderStatus, string> = {
-  Documented: 'Your order has been carefully logged — specifications and measurements recorded.',
+  Documented: 'Your order details, fabric choice, and bespoke measurements are safely confirmed.',
   Cutting: 'Patterns drafted and your fabric precision-cut to your exact measurements.',
-  Sewing: 'On the machine — every seam stitched with care by your tailor.',
-  Ready: 'Finished, pressed and packaged. Ready for pickup or delivery!',
-  Delivered: 'Delivered. Thank you for trusting us with your style!',
+  Sewing: 'On the workbench — every seam and detail stitched with care by your tailor.',
+  Ready: 'Finished, pressed, and waiting for your try-on session or collection.',
+  Delivered: 'Delivered and fitted. Thank you for trusting us with your bespoke style!',
 };
 
 const PENDING_NOTES: Record<OrderStatus, string> = {
-  Documented: 'Awaiting intake.',
-  Cutting: 'Awaiting pattern drafting and fabric cutting.',
-  Sewing: 'Awaiting the sewing bench.',
-  Ready: 'Awaiting final finishing and quality checks.',
-  Delivered: 'Awaiting handover.',
+  Documented: 'Order details confirmed and queued for crafting.',
+  Cutting: 'Scheduled for pattern drafting and fabric cutting.',
+  Sewing: 'Scheduled for tailoring and machine stitching.',
+  Ready: 'Scheduled for final pressing and quality inspection.',
+  Delivered: 'Scheduled for your try-on session or collection.',
 };
 
 function formatStageDate(d: Date): string {
@@ -63,81 +67,123 @@ export default function TimelineStage({
   dueDate,
   assignedToName,
 }: TimelineStageProps) {
+  const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
   const photo = photos[photos.length - 1];
 
-  return (
-    <article className={`${styles.stage} ${isCurrent ? styles.stageCurrent : ''} ${isPending ? styles.stagePending : ''}`}>
-      <div className={styles.stageMeta}>
-        <div className={`${styles.stageNode} ${isCompleted ? styles.nodeDone : isCurrent ? styles.nodeNow : styles.nodeWait}`}>
-          <Symbol
-            name={isCompleted ? 'check' : STAGE_ICONS[status]}
-            size={isCurrent ? 24 : 20}
-            fill={isCompleted}
-            className={isCurrent ? styles.nodePulse : undefined}
-          />
-        </div>
-        <div className={styles.stageText}>
-          <span className={styles.stageDate}>
-            {isCurrent
-              ? date ? formatStageDate(date) : 'Today'
-              : isCompleted && date
-                ? formatStageDate(date)
-                : status === 'Ready' && dueDate
-                  ? `Est. ${new Date(dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
-                  : 'Up next'}
-          </span>
-          <h3 className={styles.stageTitle}>{STAGE_HEADLINES[status]}</h3>
-          <span className={`${styles.stagePill} ${isCompleted ? styles.pillDone : isCurrent ? styles.pillNow : styles.pillWait}`}>
-            {isCompleted ? (status === 'Delivered' ? 'Delivered' : 'Completed') : isCurrent ? 'In Progress' : 'Pending'}
-          </span>
-        </div>
-      </div>
+  const handleOpenPhoto = (url: string, el: HTMLElement) => {
+    setLightbox({ src: url, rect: el.getBoundingClientRect() });
+  };
 
-      <div className={styles.stageBody}>
-        {isPending ? (
-          <div className={styles.pendingCard}>
-            <Symbol name="hourglass_empty" size={30} className={styles.pendingIcon} />
-            <p>{PENDING_NOTES[status]}</p>
+  return (
+    <>
+      <article className={`${styles.stage} ${isCurrent ? styles.stageCurrent : ''} ${isPending ? styles.stagePending : ''}`}>
+        <div className={styles.stageMeta}>
+          <div className={`${styles.stageNode} ${isCompleted ? styles.nodeDone : isCurrent ? styles.nodeNow : styles.nodeWait}`}>
+            <Symbol
+              name={isCompleted ? 'check' : STAGE_ICONS[status]}
+              size={isCurrent ? 24 : 20}
+              fill={isCompleted}
+              className={isCurrent ? styles.nodePulse : undefined}
+            />
           </div>
-        ) : photo ? (
-          <div className={`${styles.photoCard} ${isCurrent ? styles.photoCardCurrent : ''}`}>
-            {isCurrent && (
-              <span className={styles.liveTag}>
-                <span className={styles.liveTagDot} />
-                Live Update
-              </span>
-            )}
-            <Image src={photo.url} alt={`Your garment during ${status}`} width={800} height={600} className={styles.stagePhoto} />
-            <div className={styles.photoCaption}>
-              <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
-              {isCurrent && assignedToName && (
-                <p className={styles.captionSub}>{assignedToName} is personally working on your garment.</p>
+          <div className={styles.stageText}>
+            <span className={styles.stageDate}>
+              {isCurrent
+                ? date ? formatStageDate(date) : 'Today'
+                : isCompleted && date
+                  ? formatStageDate(date)
+                  : status === 'Ready' && dueDate
+                    ? `Target ${new Date(dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
+                    : 'Up next'}
+            </span>
+            <h3 className={styles.stageTitle}>{CLIENT_STAGE_HEADLINES[status]}</h3>
+            <span className={`${styles.stagePill} ${isCompleted ? styles.pillDone : isCurrent ? styles.pillNow : styles.pillWait}`}>
+              {isCompleted ? (status === 'Delivered' ? 'Delivered' : 'Completed') : isCurrent ? 'In Crafting' : 'Upcoming'}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.stageBody}>
+          {isPending ? (
+            <div className={styles.pendingCard}>
+              <Symbol name="schedule" size={26} className={styles.pendingIcon} />
+              <p>{PENDING_NOTES[status]}</p>
+            </div>
+          ) : photo ? (
+            <div className={`${styles.photoCard} ${isCurrent ? styles.photoCardCurrent : ''}`}>
+              {isCurrent && (
+                <span className={styles.liveTag}>
+                  <span className={styles.liveTagDot} />
+                  Live Update
+                </span>
+              )}
+              <div
+                className={styles.photoInteractiveWrap}
+                onClick={(e) => handleOpenPhoto(photo.url, e.currentTarget)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleOpenPhoto(photo.url, e.currentTarget);
+                  }
+                }}
+                aria-label={`View full size photo of ${CLIENT_STAGE_HEADLINES[status]}`}
+              >
+                <Image src={photo.url} alt={`Your garment during ${CLIENT_STAGE_HEADLINES[status]}`} width={800} height={600} className={styles.stagePhoto} />
+                <span className={styles.photoZoomBadge}>
+                  <Symbol name="visibility" size={14} />
+                  <span>Tap to expand</span>
+                </span>
+              </div>
+              <div className={styles.photoCaption}>
+                <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
+                {isCurrent && assignedToName && (
+                  <p className={styles.captionSub}>{assignedToName} is personally crafting your garment.</p>
+                )}
+              </div>
+              {photos.length > 1 && (
+                <div className={styles.photoStrip}>
+                  {photos.slice(0, -1).map((p, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={styles.photoStripThumb}
+                      onClick={(e) => handleOpenPhoto(p.url, e.currentTarget)}
+                      aria-label={`View earlier progress photo ${i + 1}`}
+                    >
+                      <Image src={p.url} alt={`${CLIENT_STAGE_HEADLINES[status]} progress ${i + 1}`} width={72} height={72} />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
-            {photos.length > 1 && (
-              <div className={styles.photoStrip}>
-                {photos.slice(0, -1).map((p, i) => (
-                  <Image key={i} src={p.url} alt={`${status} photo ${i + 1}`} width={72} height={72} />
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className={`${styles.storyCard} ${isCurrent ? styles.photoCardCurrent : ''}`}>
-            {isCurrent && (
-              <span className={styles.liveTag}>
-                <span className={styles.liveTagDot} />
-                Live Update
-              </span>
-            )}
-            <Symbol name={STAGE_ICONS[status]} size={30} className={styles.storyIcon} />
-            <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
-            {isCurrent && assignedToName && (
-              <p className={styles.captionSub}>{assignedToName} is personally working on your garment.</p>
-            )}
-          </div>
-        )}
-      </div>
-    </article>
+          ) : (
+            <div className={`${styles.storyCard} ${isCurrent ? styles.photoCardCurrent : ''}`}>
+              {isCurrent && (
+                <span className={styles.liveTag}>
+                  <span className={styles.liveTagDot} />
+                  Live Update
+                </span>
+              )}
+              <Symbol name={STAGE_ICONS[status]} size={28} className={styles.storyIcon} />
+              <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
+              {isCurrent && assignedToName && (
+                <p className={styles.captionSub}>{assignedToName} is personally crafting your garment.</p>
+              )}
+            </div>
+          )}
+        </div>
+      </article>
+
+      {lightbox && (
+        <PhotoLightbox
+          src={lightbox.src}
+          originRect={lightbox.rect}
+          alt={`Garment during ${CLIENT_STAGE_HEADLINES[status]}`}
+          onClose={() => setLightbox(null)}
+        />
+      )}
+    </>
   );
 }

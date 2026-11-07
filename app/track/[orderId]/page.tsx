@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+import Image from 'next/image';
 import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
@@ -11,9 +11,9 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import TimelineStage from './_components/TimelineStage';
+import TimelineStage, { CLIENT_STAGE_HEADLINES } from './_components/TimelineStage';
+import SelectedDesignCard from './_components/SelectedDesignCard';
 import RatingForm from './_components/RatingForm/RatingForm';
-import CopyDomain from './_components/CopyDomain';
 import ShareTrackButton from './_components/ShareTrackButton';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
@@ -22,23 +22,9 @@ import styles from './page.module.css';
 // show up in search results even though it's technically public/unauthed.
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-// A short cache window rather than none at all — this page gets repeat/
-// burst traffic (a shared link opened by several people around the same
-// time, or one customer refreshing to check status), and a stage change
-// only needs to show up within a minute, not instantly. Comments and
-// reminders are handled by their own client components with their own
-// optimistic UI, independent of this page-level cache.
 export const revalidate = 60;
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'];
-
-const STAGE_HEADLINES: Record<OrderStatus, string> = {
-  Documented: 'Documented',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
-  Ready: 'Ready',
-  Delivered: 'Delivered',
-};
 
 function stageDate(history: StatusChange[], status: OrderStatus): Date | null {
   const entries = history.filter((h) => h.to === status);
@@ -54,13 +40,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       <div className={styles.page}>
         <div className={styles.errorCard}>
           <h2 className={styles.errorTitle}>Order Not Found</h2>
-          <p className={styles.errorText}>Please double-check your tracking URL or contact the shop.</p>
+          <p className={styles.errorText}>Please double-check your tracking URL or contact your tailor.</p>
         </div>
       </div>
     );
   }
 
-  const { order, shop } = view;
+  const { order, customer, shop } = view;
   const isDelivered = order.status === 'Delivered';
   const [batchSiblings, alreadyRated, events] = await Promise.all([
     getPublicBatchSiblings(orderId),
@@ -73,12 +59,9 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   const todayStr = new Date().toISOString().split('T')[0];
   const upcomingAppointments = events.filter(e => 
     e.date >= todayStr && 
-    (e.type === 'fitting' || e.type === 'meeting') // Only show customer-facing events
+    (e.type === 'fitting' || e.type === 'meeting')
   );
 
-  // This is a Server Component rendered fresh per request, not a client
-  // component re-rendering in the browser — reading the real current time
-  // here is correct, not a hydration-purity concern the lint rule assumes.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const daysRemaining = order.dueDate
@@ -90,13 +73,11 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       : daysRemaining > 1
         ? `${daysRemaining} days to go`
         : daysRemaining === 1
-          ? 'Due tomorrow'
+          ? 'Target tomorrow'
           : daysRemaining === 0
-            ? 'Due today'
-            : `${Math.abs(daysRemaining)} day${Math.abs(daysRemaining) === 1 ? '' : 's'} overdue`;
+            ? 'Target today'
+            : 'Final touches in progress';
 
-  // The story stops at "Ready" until it's actually reached — an endless
-  // pending tail reads like a delay.
   const visibleStages = STATUS_ORDER.filter(
     (s, i) => s !== 'Delivered' || i <= currentStepIndex
   );
@@ -104,24 +85,49 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   const photosFor = (status: OrderStatus): OrderPhoto[] =>
     (order.images || []).filter((p) => p.stage === status);
 
+  const balanceOwed = getBalanceOwed(order);
+
   return (
     <div className={styles.page}>
-      {/* Brand header — deliberately MyStitchBook, not the shop: this page
-          is the app's main visibility channel to every shop's customers. */}
+      {/* Atelier-first header celebrating the tailoring studio */}
       <header className={styles.header}>
-        <div className={styles.brandBlock}>
-          <span className={styles.brandIcon}>
-            <BrandIcon />
-          </span>
-          <div className={styles.brandText}>
-            <span className={styles.brandName}>{APP_CONFIG.name}</span>
-            <CopyDomain domain="www.mystitchbooks.com" />
+        <div className={styles.atelierBlock}>
+          {shop?.logoUrl ? (
+            <div className={styles.atelierLogoWrap}>
+              <Image src={shop.logoUrl} alt={shop.name} width={38} height={38} className={styles.atelierLogo} />
+            </div>
+          ) : (
+            <div className={styles.atelierMonogram}>
+              {(shop?.name || APP_CONFIG.name).charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className={styles.atelierText}>
+            <span className={styles.atelierName}>{shop?.name || APP_CONFIG.name}</span>
+            <span className={styles.atelierBadge}>
+              <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
+              Bespoke Atelier
+            </span>
           </div>
         </div>
-        <span className={styles.liveBadge}>
-          <span className={styles.liveDot} />
-          Live
-        </span>
+
+        <div className={styles.headerActions}>
+          {shop?.phone && (
+            <a
+              href={`https://wa.me/${shop.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${shop.name}, I am tracking my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.headerChatBtn}
+              title={`Message ${shop.name} on WhatsApp`}
+            >
+              <WhatsappIcon size={14} />
+              <span className={styles.headerChatText}>Chat Studio</span>
+            </a>
+          )}
+          <span className={styles.liveBadge}>
+            <span className={styles.liveDot} />
+            Live
+          </span>
+        </div>
       </header>
 
       <main className={styles.main}>
@@ -129,7 +135,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         <section className={styles.hero}>
           <div className={styles.heroTopRow}>
             <span className={styles.orderChip}>
-              <Symbol name="verified" size={18} className={styles.orderChipIcon} />
+              <Symbol name="verified" size={16} className={styles.orderChipIcon} />
               Order #{order.id.slice(0, 4).toUpperCase()}
             </span>
             <ShareTrackButton orderTitle={order.orderDetails} shopName={shop?.name} />
@@ -137,17 +143,17 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <h2 className={styles.heroTitle}>Tracking your {order.orderDetails}</h2>
           <p className={styles.heroSub}>
             Hello {order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life
-            {shop ? ` at ${shop.name}` : ''}. Every major step of the process is documented here.
+            {shop ? ` at ${shop.name}` : ''}. Every milestone of your bespoke garment is documented here.
           </p>
           {order.dueDate && order.status !== 'Delivered' && (
             <div className={styles.dueRow}>
               <Symbol name="event" size={18} className={styles.dueIcon} />
               <span>
-                Expected{' '}
+                Target Completion:{' '}
                 {new Date(order.dueDate).toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric' })}
               </span>
               {daysRemainingLabel && (
-                <span className={`${styles.daysBadge} ${daysRemaining !== null && daysRemaining < 0 ? styles.daysBadgeOverdue : ''}`}>
+                <span className={`${styles.daysBadge} ${daysRemaining !== null && daysRemaining <= 0 ? styles.daysBadgeActive : ''}`}>
                   {daysRemainingLabel}
                 </span>
               )}
@@ -155,8 +161,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           )}
         </section>
 
-        {/* Visual progress story — once delivered, the story is over and
-            the ask shifts to feedback instead of "what's next." */}
+        {/* Selected design & fabric reference card */}
+        <SelectedDesignCard
+          inspirationImages={order.inspirationImages}
+          fabrics={customer?.fabrics}
+        />
+
+        {/* Visual progress story */}
         {isDelivered ? (
           <RatingForm orderId={order.id} shopName={shop?.name || APP_CONFIG.name} alreadyRated={alreadyRated} />
         ) : (
@@ -184,10 +195,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           </section>
         )}
 
-        {/* Customer Appointments / Calendar Events */}
+        {/* Customer Appointments / Fitting Sessions */}
         {upcomingAppointments.length > 0 && (
           <section className={styles.card}>
-            <h3 className={styles.sectionTitle}>Upcoming Appointments</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+              <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Try-On & Fitting Session</h3>
+              <span className={styles.fittingBadge}>Scheduled</span>
+            </div>
             <div className={styles.siblingList}>
               {upcomingAppointments.map(evt => {
                 const dateObj = new Date(evt.date);
@@ -213,13 +227,30 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                 );
               })}
             </div>
+            {shop?.address && (
+              <div className={styles.studioLocationBlock}>
+                <div className={styles.studioLocationInfo}>
+                  <Symbol name="location_on" size={16} className={styles.locationIcon} />
+                  <span className={styles.studioLocationText}>{shop.address}</span>
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${shop.name} ${shop.address}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.mapLinkBtn}
+                >
+                  <span>Get Directions</span>
+                  <Symbol name="arrow_forward" size={14} />
+                </a>
+              </div>
+            )}
           </section>
         )}
 
-        {/* Other garments from the same drop-off */}
+        {/* Other pieces in this order */}
         {batchSiblings.length > 0 && (
           <section className={styles.card}>
-            <h3 className={styles.sectionTitle}>Also From Your Visit</h3>
+            <h3 className={styles.sectionTitle}>Other Pieces in This Order</h3>
             <div className={styles.siblingList}>
               {batchSiblings.map((sibling) => (
                 <Link
@@ -230,7 +261,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                   <span className={styles.siblingDetails}>
                     {sibling.orderDetails.length > 60 ? sibling.orderDetails.slice(0, 60) + '…' : sibling.orderDetails}
                   </span>
-                  <span className={styles.siblingStatus}>{STAGE_HEADLINES[sibling.status]}</span>
+                  <span className={styles.siblingStatus}>{CLIENT_STAGE_HEADLINES[sibling.status]}</span>
                 </Link>
               ))}
             </div>
@@ -261,8 +292,29 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             </div>
             <div className={`${styles.billItem} ${styles.balanceItem}`}>
               <span className={styles.billLabel}>Balance Due</span>
-              <span className={styles.balanceVal}>{formatCurrency(getBalanceOwed(order), shop?.currency)}</span>
+              {balanceOwed <= 0 ? (
+                <span className={styles.paidInFullVal}>
+                  <Symbol name="check_circle" size={15} />
+                  <span>Paid in Full</span>
+                </span>
+              ) : (
+                <span className={styles.balanceVal}>{formatCurrency(balanceOwed, shop?.currency)}</span>
+              )}
             </div>
+          </div>
+
+          <div className={styles.balanceNotice}>
+            {balanceOwed > 0 ? (
+              <p className={styles.balanceNoticeText}>
+                <Symbol name="payments" size={16} className={styles.balanceNoticeIcon} />
+                <span>Balance is payable at your try-on session or upon collection.</span>
+              </p>
+            ) : (
+              <p className={styles.paidNoticeText}>
+                <Symbol name="verified" size={16} className={styles.paidNoticeIcon} />
+                <span>Your order is fully settled. No further payment required upon collection.</span>
+              </p>
+            )}
           </div>
 
           {shop?.phone && (
@@ -280,17 +332,17 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           )}
         </section>
 
-        {/* Send a reminder */}
+        {/* Courtesy workshop check-in */}
         {FEATURE_FLAGS.trackingPageReminder && (
           <ReminderButton orderId={order.id} initialLastReminderAt={order.lastReminderAt} />
         )}
 
-        {/* Promotional CTA */}
+        {/* Tailor CTA */}
         <section className={styles.ctaCard}>
           <Symbol name="auto_awesome" size={32} className={styles.ctaIcon} />
-          <h3 className={styles.ctaTitle}>Are you a tailor?</h3>
+          <h3 className={styles.ctaTitle}>Are you a bespoke tailor?</h3>
           <p className={styles.ctaText}>
-            Give your own customers this exact world-class tracking experience. Manage orders, sizes, and payments effortlessly.
+            Give your own customers this exact world-class live tracking experience. Manage orders, sizes, and payments effortlessly.
           </p>
           <a href="https://www.mystitchbooks.com" target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
             Get MyStitchBook
@@ -299,13 +351,13 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         </section>
       </main>
 
-      {shop?.subscriptionStatus !== 'active' && (
-        <footer className={styles.footer}>
-          <p>
-            Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
-          </p>
-        </footer>
-      )}
+      <footer className={styles.footer}>
+        <p>
+          Crafted with care at {shop?.name || APP_CONFIG.name}
+          <span className={styles.footerDivider}>•</span>
+          <span>Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span></span>
+        </p>
+      </footer>
     </div>
   );
 }

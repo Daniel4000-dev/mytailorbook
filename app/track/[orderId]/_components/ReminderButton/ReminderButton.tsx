@@ -26,7 +26,7 @@ export default function ReminderButton({ orderId, initialLastReminderAt }: Remin
     if (result.success) {
       setLastReminderAt(result.lastReminderAt);
     } else {
-      setError(result.error || 'Could not send your reminder. Please try again.');
+      setError(result.error || 'Could not send your check-in. Please try again.');
     }
     setSending(false);
   };
@@ -34,16 +34,16 @@ export default function ReminderButton({ orderId, initialLastReminderAt }: Remin
   return (
     <section className={styles.card}>
       <h3 className={styles.sectionTitle}>
-        <Symbol name="notifications" style={{ marginRight: 6 }} /> Nudge Your Tailor
+        <Symbol name="notifications" style={{ marginRight: 6 }} /> Workshop Check-In
       </h3>
       <p className={styles.hint}>
         {canSend
-          ? 'Waiting on an update? Send a quick reminder about your order.'
-          : 'Reminder sent — you can send another tomorrow.'}
+          ? 'Want an update from the cutting and tailoring table? Send a courteous check-in directly to the workshop.'
+          : 'Check-in sent — the workshop has been notified and you can send another tomorrow.'}
       </p>
       <button type="button" className={styles.sendBtn} onClick={handleClick} disabled={sending || !canSend}>
         {sending && <Symbol name="progress_activity" className="global-spinner" />}
-        {sending ? 'Sending...' : canSend ? 'Send Reminder' : 'Reminder Sent'}
+        {sending ? 'Sending...' : canSend ? 'Send Workshop Check-In' : 'Check-In Sent'}
       </button>
       {error && <p className={styles.error}>{error}</p>}
     </section>

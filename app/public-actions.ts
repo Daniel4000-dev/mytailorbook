@@ -104,6 +104,7 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
         whatsappNumber: customerRow.whatsapp_number,
         gender: customerRow.gender,
         measurements: customerRow.measurements || undefined,
+        fabrics: customerRow.fabrics || undefined,
         createdAt: customerRow.created_at,
       }
     : null;
