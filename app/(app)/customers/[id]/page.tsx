@@ -517,7 +517,7 @@ function CustomerProfileContent({
 
                 {customer.wallet_balance !== undefined && customer.wallet_balance > 0 && (
                   <span className={styles.storeCreditBadge}>
-                    Credit: {formatCurrency(customer.wallet_balance)}
+                    Credit: {formatCurrency(customer.wallet_balance, currentShop?.currency)}
                   </span>
                 )}
 
@@ -582,7 +582,7 @@ function CustomerProfileContent({
               className={styles.statBox}
               onClick={() => setActiveTab('orders')}
             >
-              <span className={styles.statBoxVal}>{formatCurrency(totalSpend)}</span>
+              <span className={styles.statBoxVal}>{formatCurrency(totalSpend, currentShop?.currency)}</span>
               <span className={styles.statBoxLabel}>Total Billed</span>
             </button>
             <div className={styles.statBoxDivider} />
@@ -592,7 +592,7 @@ function CustomerProfileContent({
               onClick={() => setActiveTab('orders')}
             >
               <span className={`${styles.statBoxVal} ${totalOwed > 0 ? styles.warn : styles.settledVal}`}>
-                {totalOwed > 0 ? formatCurrency(totalOwed) : '₦0'}
+                {totalOwed > 0 ? formatCurrency(totalOwed, currentShop?.currency) : formatCurrency(0, currentShop?.currency)}
               </span>
               <span className={styles.statBoxLabel}>
                 {totalOwed > 0 ? 'Balance Due' : 'All Settled'}
@@ -943,9 +943,9 @@ function CustomerProfileContent({
                     </div>
 
                     <div className={styles.orderFinancials}>
-                      <span className={styles.orderAmount}>{formatCurrency(o.totalBill)}</span>
+                      <span className={styles.orderAmount}>{formatCurrency(o.totalBill, currentShop?.currency)}</span>
                       {getBalanceOwed(o) > 0 && (
-                        <span className={styles.orderBalance}>Owes {formatCurrency(getBalanceOwed(o))}</span>
+                        <span className={styles.orderBalance}>Owes {formatCurrency(getBalanceOwed(o), currentShop?.currency)}</span>
                       )}
                     </div>
                   </div>

@@ -59,7 +59,7 @@ export default function OrderPayments({ orderId, customerId, walletBalance, tota
     if (numAmount <= 0) return;
 
     if (method === 'store_credit' && numAmount > walletBalance) {
-      showToast(`Insufficient store credit. Available: ₦${walletBalance}`, 'error');
+      showToast(`Insufficient store credit. Available: ${formatCurrency(walletBalance, currency)}`, 'error');
       return;
     }
 
@@ -81,7 +81,7 @@ export default function OrderPayments({ orderId, customerId, walletBalance, tota
         if (!walletRes.success) {
           showToast('Payment logged, but failed to add store credit.', 'error');
         } else {
-          showToast(`Payment logged! ₦${overpayment} added to customer's wallet as Store Credit.`, 'success');
+          showToast(`Payment logged! ${formatCurrency(overpayment, currency)} added to customer's wallet as Store Credit.`, 'success');
         }
       }
     }
@@ -160,7 +160,7 @@ export default function OrderPayments({ orderId, customerId, walletBalance, tota
                       { value: 'transfer', label: 'Bank Transfer' },
                       { value: 'cash', label: 'Cash' },
                       { value: 'pos', label: 'POS Terminal' },
-                      ...(walletBalance > 0 ? [{ value: 'store_credit', label: `Store Credit (₦${walletBalance})` }] : []),
+                      ...(walletBalance > 0 ? [{ value: 'store_credit', label: `Store Credit (${formatCurrency(walletBalance, currency)})` }] : []),
                     ]}
                   />
                 </div>

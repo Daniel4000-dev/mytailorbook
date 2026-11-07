@@ -466,7 +466,7 @@ export default function OrderEmbellishmentTracker({
               onChange={(e) => setFormDue(e.target.value)}
             />
             <MoneyInput
-              label="Agreed Specialist Fee (₦)"
+              label={`Agreed Specialist Fee (${currency || 'NGN'})`}
               value={formCost}
               onChange={setFormCost}
               placeholder="0"

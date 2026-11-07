@@ -11,7 +11,7 @@ import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { Order, OrderStatus, Role, PaymentMethod } from '@/lib/types';
 import { isOwnerLikeRole, getBalanceOwed, isOverdue, isDueSoon } from '@/lib/types';
-import { getOrderProgressMessage, getWhatsAppLink } from '@/lib/formatters';
+import { getOrderProgressMessage, getWhatsAppLink, formatCurrency } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import HandoverPaymentSheet from '../[orderId]/_components/HandoverPaymentSheet';
@@ -243,12 +243,12 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     if (data) {
       const newDeposit = handoverOrder.depositPaid + amount;
       updateOrder(handoverOrder.id, { depositPaid: newDeposit });
-      showToast(`₦${amount.toLocaleString()} payment recorded!`, 'success');
+      showToast(`${formatCurrency(amount, currentShop?.currency)} payment recorded!`, 'success');
     }
     const current = handoverOrder;
     setHandoverOrder(null);
     setAmendmentOrder(current);
-  }, [handoverOrder, updateOrder, showToast]);
+  }, [handoverOrder, updateOrder, showToast, currentShop?.currency]);
 
   const handleRecordSplitPaymentAndDeliver = useCallback(async (payments: Array<{ amount: number; method: PaymentMethod; note?: string }>) => {
     if (!handoverOrder) return;
@@ -264,12 +264,12 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     if (totalAdded > 0) {
       const newDeposit = handoverOrder.depositPaid + totalAdded;
       updateOrder(handoverOrder.id, { depositPaid: newDeposit });
-      showToast(`₦${totalAdded.toLocaleString()} split tender recorded!`, 'success');
+      showToast(`${formatCurrency(totalAdded, currentShop?.currency)} split tender recorded!`, 'success');
     }
     const current = handoverOrder;
     setHandoverOrder(null);
     setAmendmentOrder(current);
-  }, [handoverOrder, updateOrder, showToast]);
+  }, [handoverOrder, updateOrder, showToast, currentShop?.currency]);
 
   const handleDeliverWithBalanceDue = useCallback(async () => {
     if (!handoverOrder) return;

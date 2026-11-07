@@ -19,7 +19,7 @@ export default function TestSuitePage() {
   async function runTest() {
     if (!currentShop) return log('Error: No active shop context found.');
     setIsRunning(true);
-    setLogs(['🚀 Starting Master E2E Test Suite...']);
+    setLogs(['[START] Starting Master E2E Test Suite...']);
     const supabase = createClient();
     
     let bespokeCustomerId = '';
@@ -34,7 +34,7 @@ export default function TestSuitePage() {
       log('--- PART 1: BESPOKE & FINANCE ---');
       log('1. Setting Business Mode to Hybrid...');
       await updateShopAction(currentShop.id, { businessMode: 'hybrid' });
-      log('✅ Business mode updated.');
+      log('[PASS] Business mode updated.');
 
       log('2. Creating Bespoke Client...');
       let { data: bCust } = await supabase.from('customers')
@@ -52,7 +52,7 @@ export default function TestSuitePage() {
         bCust = newCust;
       }
       bespokeCustomerId = bCust.id;
-      log(`✅ Client ready (ID: ${bespokeCustomerId})`);
+      log(`[PASS] Client ready (ID: ${bespokeCustomerId})`);
 
       log('3. Creating Bespoke Order & Tracking Link...');
       const { data: bOrder, error: bOrderErr } = await supabase.from('orders').insert({
@@ -69,11 +69,11 @@ export default function TestSuitePage() {
       }).select('id').single();
       if (bOrderErr || !bOrder) throw new Error(bOrderErr?.message || 'Failed to create bespoke order');
       bespokeOrderId = bOrder.id;
-      log(`✅ Order created with Tracking URL (ID: ${bespokeOrderId})`);
+      log(`[PASS] Order created with Tracking URL (ID: ${bespokeOrderId})`);
 
       log('4. Logging Deposit Payment (Finance)...');
       await addPayment(bespokeOrderId, 50000, 'transfer', 'First half');
-      log('✅ ₦50k Payment logged successfully.');
+      log('[PASS] 50k Payment logged successfully.');
 
       log('5. Logging Production Expense (Finance)...');
       await addExpense({
@@ -85,14 +85,14 @@ export default function TestSuitePage() {
         date: new Date().toISOString(),
         method: 'cash'
       });
-      log('✅ ₦20k Expense logged successfully.');
+      log('[PASS] 20k Expense logged successfully.');
       
       log('6. Verifying Calendar Deadlines...');
       const { data: events } = await supabase.from('calendar_events').select('id').eq('related_order_id', bespokeOrderId);
       if (!events || events.length === 0) {
-        log('⚠️ Warning: Calendar event generation might run asynchronously or requires UI trigger.');
+        log('[WARN] Warning: Calendar event generation might run asynchronously or requires UI trigger.');
       } else {
-        log('✅ Calendar Event found for deadline.');
+        log('[PASS] Calendar Event found for deadline.');
       }
 
       log('7. Creating Portfolio Outfit...');
@@ -104,14 +104,14 @@ export default function TestSuitePage() {
       }).select('id').single();
       if (outfitErr || !outfit) throw new Error(outfitErr?.message || 'Failed to create portfolio outfit');
       catalogueId = outfit.id;
-      log('✅ Portfolio Outfit created.');
+      log('[PASS] Portfolio Outfit created.');
 
       log('--- PART 2: READY-TO-WEAR & POS ---');
       log('8. Creating Size Chart...');
       const chartResult = await createSizeChartAction(currentShop.id, 'E2E Chart', { 'S': 'Chest 40' });
       if ('error' in chartResult) throw new Error(chartResult.error);
       sizeChartId = chartResult.id || '';
-      log('✅ Size chart created.');
+      log('[PASS] Size chart created.');
 
       log('9. Creating Internal Factory Batch...');
       let { data: existingCust } = await supabase.from('customers')
@@ -131,7 +131,7 @@ export default function TestSuitePage() {
       }).select('id').single();
       if (rtwErr || !rtwOrder) throw new Error(rtwErr?.message || 'Failed to create RTW batch');
       rtwBatchId = rtwOrder.id;
-      log('✅ Internal Batch created.');
+      log('[PASS] Internal Batch created.');
 
       log('10. Auto-Stocking via Delivery...');
       await updateOrderStatusAction(rtwBatchId, 'Delivered', currentShop.ownerUid, 'Test Admin', currentShop.id);
@@ -140,7 +140,7 @@ export default function TestSuitePage() {
       const ourStock = (stockRes as any[]).filter(s => s.name === 'E2E Factory Shirt');
       if (ourStock.length === 0) throw new Error("Auto-stock failed");
       const targetStock = ourStock[0];
-      log(`✅ Stock generated: ${targetStock.quantity} items available.`);
+      log(`[PASS] Stock generated: ${targetStock.quantity} items available.`);
 
       log('11. Processing POS Walk-In Sale...');
       await supabase.from('finished_goods').update({ price: 5000 }).eq('id', targetStock.id);
@@ -148,14 +148,14 @@ export default function TestSuitePage() {
       
       const finalStockRes = await getStockAction(currentShop.id);
       const finalTarget = (finalStockRes as any[]).find(s => s.id === targetStock.id);
-      log(`✅ Stock successfully reduced to ${finalTarget?.quantity}`);
+      log(`[PASS] Stock successfully reduced to ${finalTarget?.quantity}`);
 
-      log('🎉 MASTER TEST SUITE PASSED PERFECTLY!');
+      log('[COMPLETE] MASTER TEST SUITE PASSED PERFECTLY!');
 
     } catch (err: any) {
-      log(`❌ TEST FAILED: ${err.message || String(err)}`);
+      log(`[FAIL] TEST FAILED: ${err.message || String(err)}`);
     } finally {
-      log('🧹 Cleaning up test data...');
+      log('[CLEANUP] Cleaning up test data...');
       if (bespokeOrderId) await deleteOrderAction(bespokeOrderId);
       if (rtwBatchId) await deleteOrderAction(rtwBatchId);
       if (bespokeCustomerId) await supabase.from('customers').delete().eq('id', bespokeCustomerId);
@@ -163,7 +163,7 @@ export default function TestSuitePage() {
       if (catalogueId) await supabase.from('portfolio_outfits').delete().eq('id', catalogueId);
       await supabase.from('finished_goods').delete().eq('name', 'E2E Factory Shirt');
       await supabase.from('orders').delete().like('order_details', '%E2E Factory Shirt%').eq('customer_name', 'Retail Walk-In');
-      log('✅ Cleanup complete.');
+      log('[PASS] Cleanup complete.');
       setIsRunning(false);
     }
   }

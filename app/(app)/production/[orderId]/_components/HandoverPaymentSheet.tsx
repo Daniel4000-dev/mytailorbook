@@ -127,13 +127,13 @@ export default function HandoverPaymentSheet({
     { value: 'transfer', label: 'Bank Transfer' },
     { value: 'cash', label: 'Cash' },
     { value: 'pos', label: 'POS Terminal' },
-    ...(walletBalance > 0 ? [{ value: 'store_credit', label: `Store Credit (₦${walletBalance.toLocaleString()})` }] : []),
+    ...(walletBalance > 0 ? [{ value: 'store_credit', label: `Store Credit (${formatCurrency(walletBalance, currency)})` }] : []),
   ];
 
   const canSubmit = isSplitMode ? totalSplit > 0 : parsedAmount > 0;
   const actionButtonLabel = isSplitMode
-    ? `Record ₦${totalSplit.toLocaleString()} (${parsedSplit1.toLocaleString()} + ${parsedSplit2.toLocaleString()}) & Deliver`
-    : `Record ₦${parsedAmount.toLocaleString()} & Deliver`;
+    ? `Record ${formatCurrency(totalSplit, currency)} (${formatCurrency(parsedSplit1, currency)} + ${formatCurrency(parsedSplit2, currency)}) & Deliver`
+    : `Record ${formatCurrency(parsedAmount, currency)} & Deliver`;
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} variant="modal" noPadding>
@@ -182,7 +182,7 @@ export default function HandoverPaymentSheet({
             <>
               <div className={styles.formGrid}>
                 <MoneyInput
-                  label="Amount (₦)"
+                  label={`Amount (${currency || 'NGN'})`}
                   value={amount}
                   onChange={setAmount}
                   required
@@ -208,7 +208,7 @@ export default function HandoverPaymentSheet({
                 <span className={styles.splitCardHeading}>Tender Part 1</span>
                 <div className={styles.formGrid}>
                   <MoneyInput
-                    label="Amount (₦)"
+                    label={`Amount (${currency || 'NGN'})`}
                     value={splitAmount1}
                     onChange={setSplitAmount1}
                     required
@@ -239,12 +239,12 @@ export default function HandoverPaymentSheet({
                     title="Calculate remaining balance automatically"
                   >
                     <Symbol name="calculate" size={13} />
-                    <span>Auto-balance (₦{Math.max(0, balanceOwed - parsedSplit1).toLocaleString()})</span>
+                    <span>Auto-balance ({formatCurrency(Math.max(0, balanceOwed - parsedSplit1), currency)})</span>
                   </button>
                 </div>
                 <div className={styles.formGrid}>
                   <MoneyInput
-                    label="Amount (₦)"
+                    label={`Amount (${currency || 'NGN'})`}
                     value={splitAmount2}
                     onChange={setSplitAmount2}
                     required
@@ -268,7 +268,7 @@ export default function HandoverPaymentSheet({
               <div className={styles.splitStatusRow}>
                 <div className={styles.splitStatusIndicator}>
                   <span className={styles.splitStatusLabel}>Total Tendered:</span>
-                  <strong className={styles.splitStatusAmount}>₦{totalSplit.toLocaleString()}</strong>
+                  <strong className={styles.splitStatusAmount}>{formatCurrency(totalSplit, currency)}</strong>
                 </div>
                 {totalSplit === balanceOwed ? (
                   <span className={styles.splitStatusExact}>
@@ -276,11 +276,11 @@ export default function HandoverPaymentSheet({
                   </span>
                 ) : totalSplit < balanceOwed ? (
                   <span className={styles.splitStatusPartial}>
-                    ₦{(balanceOwed - totalSplit).toLocaleString()} remains due on credit
+                    {formatCurrency(balanceOwed - totalSplit, currency)} remains due on credit
                   </span>
                 ) : (
                   <span className={styles.splitStatusExcess}>
-                    Exceeds balance by ₦{(totalSplit - balanceOwed).toLocaleString()}
+                    Exceeds balance by {formatCurrency(totalSplit - balanceOwed, currency)}
                   </span>
                 )}
               </div>
@@ -308,7 +308,7 @@ export default function HandoverPaymentSheet({
             disabled={isSubmitting}
             onClick={handleDeliverDue}
           >
-            Deliver with ₦{balanceOwed.toLocaleString()} Balance Due
+            Deliver with {formatCurrency(balanceOwed, currency)} Balance Due
           </Button>
           <p className={styles.trustNote}>
             For trusted clients trying clothes or paying later. Balance remains tracked on their profile.

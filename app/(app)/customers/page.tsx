@@ -628,7 +628,7 @@ export default function CustomersPage() {
           </div>
           <span className={styles.kpiLabel}>
             {totalBalanceOwed > 0
-              ? `Owing · ₦${Math.round(totalBalanceOwed / 1000)}k`
+              ? `Owing · ${formatCurrency(totalBalanceOwed, currentShop?.currency)}`
               : 'Owing Balance'}
           </span>
         </button>
@@ -1196,10 +1196,10 @@ export default function CustomersPage() {
                 const stage = stats.activeOrder.status === 'Ready' ? 'Ready for pickup' : `In ${stats.activeOrder.status}`;
                 subtitle = `${garment} · ${stage}`;
                 if (hasBalance) {
-                  subtitle += ` · ₦${Math.round(stats.totalBalance).toLocaleString()} due`;
+                  subtitle += ` · ${formatCurrency(stats.totalBalance, currentShop?.currency)} due`;
                 }
               } else if (hasBalance) {
-                subtitle = `₦${Math.round(stats.totalBalance).toLocaleString()} balance due · ${formatPhone(c.whatsappNumber)}`;
+                subtitle = `${formatCurrency(stats.totalBalance, currentShop?.currency)} balance due · ${formatPhone(c.whatsappNumber)}`;
               } else if (stats?.latestOrder) {
                 const garment = stats.latestOrder.styleName || 'Custom Order';
                 subtitle = `Last: ${garment} · ${formatShortMonthYear(stats.latestOrder.createdAt)}`;
@@ -1218,7 +1218,7 @@ export default function CustomersPage() {
                 : isReady
                   ? `Hello ${c.fullName}, your ${stats?.activeOrder?.styleName || 'outfit'} is ready for pickup at our workshop! Looking forward to seeing you.`
                   : hasBalance
-                    ? `Hello ${c.fullName}, friendly reminder regarding your pending balance of ₦${Math.round(stats.totalBalance).toLocaleString()} at our shop. Thank you!`
+                    ? `Hello ${c.fullName}, friendly reminder regarding your pending balance of ${formatCurrency(stats.totalBalance, currentShop?.currency)} at our shop. Thank you!`
                     : `Hello ${c.fullName}!`;
 
               return (

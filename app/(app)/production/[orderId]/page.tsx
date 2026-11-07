@@ -380,7 +380,7 @@ export default function OrderDetailPage() {
     if (data) {
       const newDeposit = order.depositPaid + amount;
       updateOrder(order.id, { depositPaid: newDeposit });
-      showToast(`₦${amount.toLocaleString()} payment recorded!`, 'success');
+      showToast(`${formatCurrency(amount, currentShop?.currency)} payment recorded!`, 'success');
     }
     setHandoverSheetOpen(false);
     setShowAmendmentPrompt(true);
@@ -399,7 +399,7 @@ export default function OrderDetailPage() {
     if (totalAdded > 0) {
       const newDeposit = order.depositPaid + totalAdded;
       updateOrder(order.id, { depositPaid: newDeposit });
-      showToast(`₦${totalAdded.toLocaleString()} split tender recorded!`, 'success');
+      showToast(`${formatCurrency(totalAdded, currentShop?.currency)} split tender recorded!`, 'success');
     }
     setHandoverSheetOpen(false);
     setShowAmendmentPrompt(true);
@@ -875,7 +875,7 @@ export default function OrderDetailPage() {
 
               {balanceOwed > 0 ? (
                 <span className={styles.balanceHeaderDue}>
-                  ₦{formatNumber(balanceOwed)} Due
+                  {formatCurrency(balanceOwed, currentShop?.currency)} Due
                 </span>
               ) : (
                 <span className={styles.balanceHeaderPaid}>
@@ -1551,7 +1551,7 @@ export default function OrderDetailPage() {
                   <div className={styles.staffPayHeader}>
                     <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Status</h3>
                     {balanceOwed > 0 ? (
-                      <span className={styles.balanceHeaderDue}>₦{formatNumber(balanceOwed)} Due</span>
+                      <span className={styles.balanceHeaderDue}>{formatCurrency(balanceOwed, currentShop?.currency)} Due</span>
                     ) : (
                       <span className={styles.balanceHeaderPaid}><Symbol name="check" size={14} /> Fully Paid</span>
                     )}
@@ -1657,7 +1657,7 @@ export default function OrderDetailPage() {
                         onChange={(e) => setEditAssignedTo(e.target.value)}
                       />
                       <MoneyInput
-                        label="Total Bill (₦)"
+                        label={`Total Bill (${currentShop?.currency || 'NGN'})`}
                         value={editTotalBill}
                         onChange={setEditTotalBill}
                       />

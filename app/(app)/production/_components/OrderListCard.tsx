@@ -8,7 +8,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscription';
-import { truncateText, formatNumber } from '@/lib/formatters';
+import { truncateText, formatNumber, formatCurrency } from '@/lib/formatters';
 import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole, getBalanceOwed, CRAFT_ROLE_LABELS } from '@/lib/types';
 import { getNextStatus, getPreviousStatus } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -387,7 +387,7 @@ export default function OrderListCard({
 
           <div className={styles.pillRow}>
             {balanceOwed > 0 ? (
-              <span className={styles.balanceDuePill}>₦{formatNumber(balanceOwed)} Due</span>
+              <span className={styles.balanceDuePill}>{formatCurrency(balanceOwed, currentShop?.currency)} Due</span>
             ) : (
               <span className={styles.paidPill}>
                 <Symbol name="check" size={11} /> Paid
