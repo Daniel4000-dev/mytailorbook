@@ -1,8 +1,9 @@
 .card {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: 20px;
+  border-radius: var(--sf-radius-xl);
+  padding: var(--sf-space-lg);
+  box-shadow: var(--sf-shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -12,7 +13,8 @@
 .sectionTitle {
   display: flex;
   align-items: center;
-  font-size: 15px;
+  font-family: var(--sf-font-heading);
+  font-size: 18px;
   font-weight: 700;
   color: var(--sf-text-primary);
   margin: 0;

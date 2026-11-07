@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -113,7 +113,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         <div className={styles.headerActions}>
           {shop?.phone && (
             <a
-              href={`https://wa.me/${shop.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${shop.name}, I am tracking my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}`}
+              href={getWhatsAppLink(shop.phone, `Hello ${shop.name}, I am tracking my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.headerChatBtn}
@@ -140,12 +140,26 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             </span>
             <ShareTrackButton orderTitle={order.orderDetails} shopName={shop?.name} />
           </div>
-          <h2 className={styles.heroTitle}>Tracking your {order.orderDetails}</h2>
+          <h2 className={styles.heroTitle}>
+            {isDelivered
+              ? `Your ${order.orderDetails} is complete`
+              : `Tracking your ${order.orderDetails}`}
+          </h2>
           <p className={styles.heroSub}>
-            Hello {order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life
-            {shop ? ` at ${shop.name}` : ''}. Every milestone of your bespoke garment is documented here.
+            {isDelivered
+              ? `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — thank you for trusting ${shop ? shop.name : 'our atelier'}! Your bespoke piece has been completed and received. You can review the full craft journey of your garment below.`
+              : `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life${shop ? ` at ${shop.name}` : ''}. Every milestone of your bespoke garment is documented here.`}
           </p>
-          {order.dueDate && order.status !== 'Delivered' && (
+          {isDelivered ? (
+            <div className={styles.dueRow}>
+              <Symbol name="check_circle" size={18} className={styles.dueIcon} />
+              <span>
+                Completed & Received
+                {stageDate(order.statusHistory, 'Delivered') &&
+                  ` on ${stageDate(order.statusHistory, 'Delivered')?.toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric' })}`}
+              </span>
+            </div>
+          ) : order.dueDate ? (
             <div className={styles.dueRow}>
               <Symbol name="event" size={18} className={styles.dueIcon} />
               <span>
@@ -158,7 +172,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                 </span>
               )}
             </div>
-          )}
+          ) : null}
         </section>
 
         {/* Selected design & fabric reference card */}
@@ -167,36 +181,36 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           fabrics={customer?.fabrics}
         />
 
-        {/* Visual progress story */}
-        {isDelivered ? (
+        {/* Visual progress story — rating shown first on delivery, but full story preserved */}
+        {isDelivered && (
           <RatingForm orderId={order.id} shopName={shop?.name || APP_CONFIG.name} alreadyRated={alreadyRated} />
-        ) : (
-          <section className={styles.timeline}>
-            <div className={styles.timelineRail} aria-hidden="true" />
-            {visibleStages.map((status, index) => {
-              const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Delivered');
-              const isCurrent = index === currentStepIndex && status !== 'Delivered';
-              const isPending = index > currentStepIndex;
-
-              return (
-                <TimelineStage
-                  key={status}
-                  status={status}
-                  isCompleted={isCompleted}
-                  isCurrent={isCurrent}
-                  isPending={isPending}
-                  date={stageDate(order.statusHistory, status)}
-                  photos={photosFor(status)}
-                  dueDate={order.dueDate}
-                  assignedToName={order.assignedToName}
-                />
-              );
-            })}
-          </section>
         )}
 
+        <section className={styles.timeline}>
+          <div className={styles.timelineRail} aria-hidden="true" />
+          {visibleStages.map((status, index) => {
+            const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Delivered');
+            const isCurrent = index === currentStepIndex && status !== 'Delivered';
+            const isPending = index > currentStepIndex;
+
+            return (
+              <TimelineStage
+                key={status}
+                status={status}
+                isCompleted={isCompleted}
+                isCurrent={isCurrent}
+                isPending={isPending}
+                date={stageDate(order.statusHistory, status)}
+                photos={photosFor(status)}
+                dueDate={order.dueDate}
+                assignedToName={order.assignedToName}
+              />
+            );
+          })}
+        </section>
+
         {/* Customer Appointments / Fitting Sessions */}
-        {upcomingAppointments.length > 0 && (
+        {(!isDelivered || batchSiblings.some(s => s.status !== 'Delivered')) && upcomingAppointments.length > 0 && (
           <section className={styles.card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
               <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Try-On & Fitting Session</h3>
@@ -320,7 +334,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           {shop?.phone && (
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sf-border-light)' }}>
               <a
-                href={`https://wa.me/${shop.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${shop.name}, I am checking in on my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}`}
+                href={getWhatsAppLink(shop.phone, `Hello ${shop.name}, I am checking in on my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.shopContactBtn}
@@ -332,8 +346,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           )}
         </section>
 
-        {/* Courtesy workshop check-in */}
-        {FEATURE_FLAGS.trackingPageReminder && (
+        {/* Courtesy workshop check-in — active only before delivery */}
+        {!isDelivered && FEATURE_FLAGS.trackingPageReminder && (
           <ReminderButton orderId={order.id} initialLastReminderAt={order.lastReminderAt} />
         )}
 

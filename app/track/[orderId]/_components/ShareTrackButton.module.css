@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: var(--sf-radius-full);
   background: var(--sf-surface-container-high, rgba(0, 0, 0, 0.04));
   border: 1px solid var(--sf-border-light);
@@ -12,7 +12,7 @@
   font-weight: var(--sf-weight-semibold);
   cursor: pointer;
   transition: all var(--sf-transition-fast);
-  min-height: 32px;
+  min-height: 36px;
   box-sizing: border-box;
 }
 
