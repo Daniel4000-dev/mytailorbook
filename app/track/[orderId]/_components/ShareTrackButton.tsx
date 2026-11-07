@@ -44,10 +44,12 @@ export default function ShareTrackButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [downloadNotice, setDownloadNotice] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
   const [canShareFiles, setCanShareFiles] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Check if native file sharing is supported on this device (iOS Safari, Android Chrome, etc.)
+  // Check if native file sharing is supported on this device
   useEffect(() => {
     if (typeof navigator !== 'undefined' && typeof navigator.canShare === 'function') {
       try {
@@ -68,9 +70,11 @@ export default function ShareTrackButton({
   useEffect(() => {
     if (isOpen) {
       document.documentElement.classList.add('no-scroll');
+      document.body.classList.add('no-scroll');
       window.addEventListener('keydown', handleKeyDown);
       return () => {
         document.documentElement.classList.remove('no-scroll');
+        document.body.classList.remove('no-scroll');
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
@@ -86,17 +90,36 @@ export default function ShareTrackButton({
       ? `Target • ${new Date(dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}`
       : 'In Craftsmanship';
 
-  /** Renders the story card DOM node into an ultra-sharp PNG Blob */
+  /** Renders the story card DOM node into an ultra-sharp PNG Blob with CORS self-healing */
   const generateCardBlob = async (): Promise<Blob> => {
-    if (!cardRef.current) throw new Error('Card not found');
+    if (!cardRef.current) throw new Error('Card element not found');
     const { toBlob } = await import('html-to-image');
-    const blob = await toBlob(cardRef.current, {
-      pixelRatio: 2.5,
-      backgroundColor: '#0c1017',
-      cacheBust: true,
-    });
-    if (!blob) throw new Error('Could not render story image');
-    return blob;
+
+    try {
+      const blob = await toBlob(cardRef.current, {
+        pixelRatio: 2.5,
+        backgroundColor: '#0c1017',
+        cacheBust: true,
+      });
+      if (!blob) throw new Error('Could not render image blob');
+      return blob;
+    } catch (firstErr) {
+      // Self-healing fallback: if remote photo threw a CORS or network error, switch to craft emblem and retry
+      if (!imgError && photoUrl) {
+        setImgError(true);
+        // Wait a tick for DOM to switch to fallback artwork
+        await new Promise((r) => setTimeout(r, 60));
+        if (cardRef.current) {
+          const fallbackBlob = await toBlob(cardRef.current, {
+            pixelRatio: 2.5,
+            backgroundColor: '#0c1017',
+            cacheBust: true,
+          });
+          if (fallbackBlob) return fallbackBlob;
+        }
+      }
+      throw firstErr;
+    }
   };
 
   /** Trigger direct image download without network navigation */
@@ -117,6 +140,7 @@ export default function ShareTrackButton({
     if (!cardRef.current || isCapturing) return;
     setIsCapturing(true);
     setDownloadNotice(false);
+    setErrorMessage(null);
 
     try {
       const blob = await generateCardBlob();
@@ -140,7 +164,8 @@ export default function ShareTrackButton({
       // Fallback for desktop or non-file share: direct download
       downloadBlob(blob);
     } catch {
-      // Quiet failover
+      setErrorMessage('Could not generate story card. Please try again.');
+      setTimeout(() => setErrorMessage(null), 4000);
     } finally {
       setIsCapturing(false);
     }
@@ -150,11 +175,15 @@ export default function ShareTrackButton({
   const handleDownloadOnly = async () => {
     if (!cardRef.current || isCapturing) return;
     setIsCapturing(true);
+    setDownloadNotice(false);
+    setErrorMessage(null);
+
     try {
       const blob = await generateCardBlob();
       downloadBlob(blob);
     } catch {
-      // Quiet failover
+      setErrorMessage('Could not save image. Please try again.');
+      setTimeout(() => setErrorMessage(null), 4000);
     } finally {
       setIsCapturing(false);
     }
@@ -166,7 +195,10 @@ export default function ShareTrackButton({
       <button
         type="button"
         className={styles.shareBtn}
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          setErrorMessage(null);
+        }}
         aria-label="Share progress card image"
       >
         <Symbol name="share" size={15} />
@@ -241,13 +273,14 @@ export default function ShareTrackButton({
 
                   {/* Centerpiece Image Frame */}
                   <div className={styles.cardVisualFrame}>
-                    {photoUrl ? (
+                    {photoUrl && !imgError ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={photoUrl}
                         alt={orderTitle}
                         className={styles.cardPhoto}
                         crossOrigin="anonymous"
+                        onError={() => setImgError(true)}
                       />
                     ) : (
                       <div className={styles.cardArtPlaceholder}>
@@ -287,7 +320,7 @@ export default function ShareTrackButton({
                 </div>
               </div>
 
-              {/* Action Buttons: Pure Image Share & Download (No server link spam) */}
+              {/* Action Buttons: Pure Image Share & Download */}
               <div className={styles.actionGroup}>
                 <button
                   type="button"
@@ -321,6 +354,13 @@ export default function ShareTrackButton({
                   <p className={styles.downloadNotice}>
                     <Symbol name="check_circle" size={14} />
                     <span>Story card saved to your device</span>
+                  </p>
+                )}
+
+                {errorMessage && (
+                  <p className={styles.errorMessage}>
+                    <Symbol name="error" size={14} />
+                    <span>{errorMessage}</span>
                   </p>
                 )}
               </div>

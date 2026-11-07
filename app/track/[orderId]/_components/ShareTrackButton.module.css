@@ -524,6 +524,19 @@
   animation: fadeIn 0.2s ease both;
 }
 
+.errorMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--sf-text-xs, 12px);
+  color: var(--sf-accent-red, #ef4444);
+  font-weight: var(--sf-weight-semibold);
+  margin: 0;
+  text-align: center;
+  animation: fadeIn 0.2s ease both;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -538,7 +551,8 @@
 @media (prefers-reduced-motion: reduce) {
   .modalOverlay,
   .modalContainer,
-  .downloadNotice {
+  .downloadNotice,
+  .errorMessage {
     animation: none;
   }
 }
