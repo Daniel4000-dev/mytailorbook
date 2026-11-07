@@ -16,7 +16,7 @@ import styles from './BadgeCelebrationModal.module.css';
 const STORAGE_KEY = 'unlocked_atelier_badge_ids';
 
 export default function BadgeCelebrationModal() {
-  const { currentShop, customers, orders, mutate } = useData();
+  const { currentShop, customers, orders, refreshShop } = useData();
   const { showToast } = useToast();
   const [celebratedBadge, setCelebratedBadge] = useState<AtelierBadge | null>(null);
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function BadgeCelebrationModal() {
           try {
             const audio = new Audio('/sounds/success.wav');
             audio.volume = 0.4;
-            audio.play().catch(() => {});
+            audio.play().catch(() => { });
           } catch {
             // ignore
           }
@@ -106,7 +106,7 @@ export default function BadgeCelebrationModal() {
     logStreakAction('shared_status', 15, true).then((res) => {
       if (res?.xp_awarded && res.xp_awarded > 0) {
         showToast(`+${res.xp_awarded} Points earned for sharing your milestone!`, 'success');
-        mutate();
+        refreshShop();
       }
     });
 
@@ -162,7 +162,7 @@ export default function BadgeCelebrationModal() {
             </button>
 
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={handleOpenStoryCard}
               style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
