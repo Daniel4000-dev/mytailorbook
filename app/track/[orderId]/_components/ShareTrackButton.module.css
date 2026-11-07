@@ -141,17 +141,64 @@
   background: linear-gradient(160deg, #131a26 0%, #090d13 100%);
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-  padding: 18px;
+  padding: 16px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   box-sizing: border-box;
   color: #f1f5f9;
   font-family: var(--sf-font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
 }
 
-/* Story Card Header */
-.cardTopBar {
+/* Top Co-Branded Header Bar */
+.cardEyebrowBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cardEyebrowLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #34d399;
+}
+
+.cardLiveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+}
+
+.cardEyebrowBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.cardBrandSparkle {
+  color: #38bdf8;
+}
+
+/* Atelier Row: Primary Dominant Hero */
+.cardAtelierRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -166,8 +213,8 @@
 }
 
 .cardLogoWrap {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -183,8 +230,8 @@
 }
 
 .cardMonogram {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #ffffff;
@@ -193,7 +240,7 @@
   justify-content: center;
   font-family: var(--sf-font-heading);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -205,7 +252,7 @@
 
 .cardAtelierName {
   font-family: var(--sf-font-heading);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   white-space: nowrap;
@@ -214,78 +261,30 @@
   letter-spacing: -0.01em;
 }
 
-.cardAtelierSub {
+.cardAtelierBadge {
   font-size: 10px;
   font-weight: 600;
   color: #94a3b8;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-}
-
-.cardLiveBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #34d399;
-  flex-shrink: 0;
-}
-
-.cardLiveDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
-}
-
-/* Story Card Garment Info */
-.cardGarmentBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .cardOrderCode {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: #38bdf8;
-}
-
-.cardGarmentTitle {
-  font-family: var(--sf-font-heading);
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: #ffffff;
-  margin: 0;
-  letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.cardClientLabel {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: #cbd5e1;
-  margin: 0;
+  flex-shrink: 0;
 }
 
 /* Visual Frame */
 .cardVisualFrame {
   width: 100%;
-  height: 200px;
+  height: 195px;
   border-radius: 14px;
   overflow: hidden;
   background: #05080c;
@@ -314,8 +313,8 @@
 }
 
 .cardArtIconWrap {
-  width: 60px;
-  height: 60px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.25);
@@ -341,20 +340,48 @@
   color: #94a3b8;
 }
 
+/* Garment Info */
+.cardGarmentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardGarmentTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardClientLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin: 0;
+}
+
 /* Milestone Capsule */
 .cardMilestoneCapsule {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .cardMilestoneIcon {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #10b981;
   color: #ffffff;
@@ -367,18 +394,18 @@
 .cardMilestoneInfo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 .cardMilestoneHeadline {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .cardMilestoneDate {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #94a3b8;
 }
 
@@ -394,22 +421,18 @@
   font-weight: 500;
 }
 
-.cardFooterBrand {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.cardFooterShop {
   color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
 }
 
-.cardFooterIcon {
-  color: #10b981;
-}
-
-.cardFooterWatermark {
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.cardFooterBrandLink {
+  letter-spacing: 0.04em;
   font-weight: 600;
-  color: #64748b;
+  color: #38bdf8;
 }
 
 /* ── Modal Action Group ────────────────────────────────────────── */
@@ -474,13 +497,18 @@
   min-height: 40px;
 }
 
-.secondaryActionBtn:hover {
+.secondaryActionBtn:hover:not(:disabled) {
   background: var(--sf-surface-variant);
   border-color: var(--sf-border);
 }
 
-.secondaryActionBtn:active {
+.secondaryActionBtn:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.secondaryActionBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .downloadNotice {

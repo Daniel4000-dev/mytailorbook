@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus } from '@/lib/types';
 import styles from './ShareTrackButton.module.css';
 
@@ -42,12 +43,11 @@ export default function ShareTrackButton({
 }: ShareTrackButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [downloadNotice, setDownloadNotice] = useState(false);
   const [canShareFiles, setCanShareFiles] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Check if native file sharing is supported on this browser/device
+  // Check if native file sharing is supported on this device (iOS Safari, Android Chrome, etc.)
   useEffect(() => {
     if (typeof navigator !== 'undefined' && typeof navigator.canShare === 'function') {
       try {
@@ -59,7 +59,6 @@ export default function ShareTrackButton({
     }
   }, []);
 
-  // Handle escape key to dismiss modal
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       setIsOpen(false);
@@ -87,90 +86,75 @@ export default function ShareTrackButton({
       ? `Target • ${new Date(dueDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}`
       : 'In Craftsmanship';
 
-  const handleCopyLink = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-      } else if (typeof document !== 'undefined') {
-        const input = document.createElement('input');
-        input.value = url;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-      }
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2200);
-    } catch {
-      // Best effort clipboard
-    }
+  /** Renders the story card DOM node into an ultra-sharp PNG Blob */
+  const generateCardBlob = async (): Promise<Blob> => {
+    if (!cardRef.current) throw new Error('Card not found');
+    const { toBlob } = await import('html-to-image');
+    const blob = await toBlob(cardRef.current, {
+      pixelRatio: 2.5,
+      backgroundColor: '#0c1017',
+      cacheBust: true,
+    });
+    if (!blob) throw new Error('Could not render story image');
+    return blob;
   };
 
+  /** Trigger direct image download without network navigation */
+  const downloadBlob = (blob: Blob) => {
+    const fileName = `${safeShopName}-Order-${orderShortCode}.png`;
+    const downloadUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = downloadUrl;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(downloadUrl);
+    setDownloadNotice(true);
+    setTimeout(() => setDownloadNotice(false), 3000);
+  };
+
+  /** Primary Action: Share image directly to Instagram Stories / WhatsApp Status / X */
   const handleShareStoryImage = async () => {
     if (!cardRef.current || isCapturing) return;
     setIsCapturing(true);
     setDownloadNotice(false);
 
-    const shareTitle = `Tracking: ${orderTitle} at ${shopName}`;
-    const shareText = `Watch the craftsmanship journey of this bespoke garment live at ${shopName}:`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-
     try {
-      const { toBlob } = await import('html-to-image');
-      const blob = await toBlob(cardRef.current, {
-        pixelRatio: 2.5,
-        backgroundColor: '#0c1017',
-        cacheBust: true,
-      });
-
-      if (!blob) throw new Error('Could not render story image');
-
+      const blob = await generateCardBlob();
       const fileName = `${safeShopName}-Order-${orderShortCode}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
 
-      // If device supports file sharing (iOS Safari, Android Chrome share sheet)
+      // If mobile supports native file sharing (no server link attached to preserve bandwidth and privacy)
       if (typeof navigator !== 'undefined' && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({
-            title: shareTitle,
-            text: shareText,
-            url: shareUrl,
+            title: `Bespoke Craftsmanship at ${shopName}`,
+            text: `Crafted at ${shopName} • Powered by ${APP_CONFIG.name}`,
             files: [file],
           });
           return;
         } catch (shareErr) {
           if (shareErr instanceof Error && shareErr.name === 'AbortError') return;
-          // Fall through to file download
         }
       }
 
-      // Fallback for desktop or browsers without file-share: direct download
-      const downloadUrl = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = downloadUrl;
-      anchor.download = fileName;
-      anchor.click();
-      URL.revokeObjectURL(downloadUrl);
+      // Fallback for desktop or non-file share: direct download
+      downloadBlob(blob);
+    } catch {
+      // Quiet failover
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
-      setDownloadNotice(true);
-      setTimeout(() => setDownloadNotice(false), 3000);
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return;
-      // Resilient fallback: share URL via web share or clipboard
-      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-        try {
-          await navigator.share({
-            title: shareTitle,
-            text: shareText,
-            url: shareUrl,
-          });
-        } catch {
-          await handleCopyLink();
-        }
-      } else {
-        await handleCopyLink();
-      }
+  /** Secondary Action: Save image directly to camera roll / downloads */
+  const handleDownloadOnly = async () => {
+    if (!cardRef.current || isCapturing) return;
+    setIsCapturing(true);
+    try {
+      const blob = await generateCardBlob();
+      downloadBlob(blob);
+    } catch {
+      // Quiet failover
     } finally {
       setIsCapturing(false);
     }
@@ -178,15 +162,15 @@ export default function ShareTrackButton({
 
   return (
     <>
-      {/* Trigger Button */}
+      {/* Trigger Button on Tracking Page */}
       <button
         type="button"
         className={styles.shareBtn}
         onClick={() => setIsOpen(true)}
-        aria-label="Share tracking progress card"
+        aria-label="Share progress card image"
       >
         <Symbol name="share" size={15} />
-        <span>Share</span>
+        <span>Share Image</span>
       </button>
 
       {/* Share Progress Card Modal */}
@@ -197,7 +181,7 @@ export default function ShareTrackButton({
             <div className={styles.modalHeader}>
               <div className={styles.modalHeaderInfo}>
                 <h3 className={styles.modalTitle}>Share Progress Card</h3>
-                <p className={styles.modalSubtitle}>High-resolution story card for Instagram, WhatsApp & X</p>
+                <p className={styles.modalSubtitle}>Story-ready card for WhatsApp Status, Instagram & X</p>
               </div>
               <button
                 type="button"
@@ -214,8 +198,20 @@ export default function ShareTrackButton({
               <div className={styles.cardPreviewWrapper}>
                 {/* Captured Story Card Node */}
                 <div ref={cardRef} className={styles.storyCard}>
-                  {/* Card Atelier Header */}
-                  <div className={styles.cardTopBar}>
+                  {/* Co-Branded Top Eyebrow Bar: MyStitchBook discovery header */}
+                  <div className={styles.cardEyebrowBar}>
+                    <div className={styles.cardEyebrowLive}>
+                      <span className={styles.cardLiveDot} />
+                      <span>LIVE CRAFT JOURNEY</span>
+                    </div>
+                    <div className={styles.cardEyebrowBrand}>
+                      <Symbol name="auto_awesome" size={11} className={styles.cardBrandSparkle} />
+                      <span>Powered by {APP_CONFIG.name}</span>
+                    </div>
+                  </div>
+
+                  {/* Atelier Header: Dominant focus celebrating the Tailor */}
+                  <div className={styles.cardAtelierRow}>
                     <div className={styles.cardAtelierBlock}>
                       {shopLogoUrl ? (
                         <div className={styles.cardLogoWrap}>
@@ -234,25 +230,16 @@ export default function ShareTrackButton({
                       )}
                       <div className={styles.cardAtelierText}>
                         <span className={styles.cardAtelierName}>{shopName}</span>
-                        <span className={styles.cardAtelierSub}>Bespoke Atelier</span>
+                        <span className={styles.cardAtelierBadge}>Bespoke Atelier</span>
                       </div>
                     </div>
-                    <div className={styles.cardLiveBadge}>
-                      <span className={styles.cardLiveDot} />
-                      <span>Live Track</span>
+
+                    <div className={styles.cardOrderCode}>
+                      #{orderShortCode}
                     </div>
                   </div>
 
-                  {/* Garment Identification */}
-                  <div className={styles.cardGarmentBlock}>
-                    <div className={styles.cardOrderCode}>Order #{orderShortCode}</div>
-                    <h4 className={styles.cardGarmentTitle}>{orderTitle}</h4>
-                    <p className={styles.cardClientLabel}>
-                      {customerFirstName ? `Handcrafted for ${customerFirstName}` : 'Handcrafted Bespoke Piece'}
-                    </p>
-                  </div>
-
-                  {/* Centerpiece Image Showcase */}
+                  {/* Centerpiece Image Frame */}
                   <div className={styles.cardVisualFrame}>
                     {photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -273,7 +260,15 @@ export default function ShareTrackButton({
                     )}
                   </div>
 
-                  {/* Milestone Progress Pill */}
+                  {/* Garment Identification */}
+                  <div className={styles.cardGarmentBlock}>
+                    <h4 className={styles.cardGarmentTitle}>{orderTitle}</h4>
+                    <p className={styles.cardClientLabel}>
+                      {customerFirstName ? `Handcrafted for ${customerFirstName}` : 'Handcrafted Bespoke Piece'}
+                    </p>
+                  </div>
+
+                  {/* Milestone Progress Capsule */}
                   <div className={styles.cardMilestoneCapsule}>
                     <div className={styles.cardMilestoneIcon}>
                       <Symbol name={STAGE_ICON_MAP[status] || 'verified'} size={15} />
@@ -284,18 +279,15 @@ export default function ShareTrackButton({
                     </div>
                   </div>
 
-                  {/* Card Luxury Footer */}
+                  {/* Card Luxury Footer: Balances Atelier credit and Platform URL */}
                   <div className={styles.cardFooter}>
-                    <div className={styles.cardFooterBrand}>
-                      <Symbol name="auto_awesome" size={13} className={styles.cardFooterIcon} />
-                      <span>Live Craftsmanship Journey</span>
-                    </div>
-                    <span className={styles.cardFooterWatermark}>MyTailorBook</span>
+                    <span className={styles.cardFooterShop}>Crafted at {shopName}</span>
+                    <span className={styles.cardFooterBrandLink}>{APP_CONFIG.domain}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons: Pure Image Share & Download (No server link spam) */}
               <div className={styles.actionGroup}>
                 <button
                   type="button"
@@ -308,24 +300,27 @@ export default function ShareTrackButton({
                     {isCapturing
                       ? 'Generating Story Card...'
                       : canShareFiles
-                        ? 'Share Story Card'
-                        : 'Save Story Card Image'}
+                        ? 'Share Story Image'
+                        : 'Save Story Image'}
                   </span>
                 </button>
 
-                <button
-                  type="button"
-                  className={styles.secondaryActionBtn}
-                  onClick={handleCopyLink}
-                >
-                  <Symbol name={copiedLink ? 'check' : 'content_copy'} size={16} />
-                  <span>{copiedLink ? 'Tracking Link Copied' : 'Copy Tracking Link'}</span>
-                </button>
+                {canShareFiles && (
+                  <button
+                    type="button"
+                    className={styles.secondaryActionBtn}
+                    onClick={handleDownloadOnly}
+                    disabled={isCapturing}
+                  >
+                    <Symbol name="download" size={16} />
+                    <span>Download to Camera Roll</span>
+                  </button>
+                )}
 
                 {downloadNotice && (
                   <p className={styles.downloadNotice}>
                     <Symbol name="check_circle" size={14} />
-                    <span>Story card image saved to your device</span>
+                    <span>Story card saved to your device</span>
                   </p>
                 )}
               </div>
