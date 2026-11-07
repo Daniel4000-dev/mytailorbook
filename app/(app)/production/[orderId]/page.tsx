@@ -88,6 +88,23 @@ export default function OrderDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deletingOrder, setDeletingOrder] = useState(false);
   const [editingMeasurements, setEditingMeasurements] = useState(false);
+  const [quickAdjustTarget, setQuickAdjustTarget] = useState<{ key: string; label: string; value: number } | null>(null);
+  const [quickAdjustVal, setQuickAdjustVal] = useState<number>(0);
+  const [savingQuickAdjust, setSavingQuickAdjust] = useState(false);
+
+  // Optimistic progress photos queue
+  const [pendingPhotos, setPendingPhotos] = useState<Array<{
+    id: string;
+    previewUrl: string;
+    file: File;
+    stage: OrderStatus;
+    status: 'uploading' | 'failed';
+    error?: string;
+  }>>([]);
+
+  // Batch bulk advance state
+  const [advancingBatch, setAdvancingBatch] = useState(false);
+
   const [cuttingSlipOpen, setCuttingSlipOpen] = useState(false);
   const [stagePickerOpen, setStagePickerOpen] = useState(false);
   const [isFittingPromptOpen, setIsFittingPromptOpen] = useState(false);
@@ -369,6 +386,68 @@ export default function OrderDetailPage() {
     setShowAmendmentPrompt(true);
   };
 
+  const handleRecordSplitPaymentAndDeliver = async (payments: Array<{ amount: number; method: PaymentMethod; note?: string }>) => {
+    let totalAdded = 0;
+    for (const p of payments) {
+      const { data, error } = await addPayment(order.id, p.amount, p.method, p.note);
+      if (error) {
+        showToast(error, 'error');
+        return;
+      }
+      if (data) totalAdded += p.amount;
+    }
+    if (totalAdded > 0) {
+      const newDeposit = order.depositPaid + totalAdded;
+      updateOrder(order.id, { depositPaid: newDeposit });
+      showToast(`₦${totalAdded.toLocaleString()} split tender recorded!`, 'success');
+    }
+    setHandoverSheetOpen(false);
+    setShowAmendmentPrompt(true);
+  };
+
+  const handleOpenQuickAdjust = (key: string, label: string, val?: number | string) => {
+    const num = typeof val === 'number' ? val : parseFloat(String(val || '0')) || 0;
+    setQuickAdjustTarget({ key, label, value: num });
+    setQuickAdjustVal(num);
+  };
+
+  const handleSaveQuickAdjust = async () => {
+    if (!quickAdjustTarget || !order) return;
+    setSavingQuickAdjust(true);
+    try {
+      const currentMeas = (order.measurements || (customer?.measurements as Record<string, number>)) || {};
+      const updated = {
+        ...currentMeas,
+        [quickAdjustTarget.key]: quickAdjustVal,
+      };
+      await updateOrder(order.id, { measurements: updated });
+      showToast(`${quickAdjustTarget.label} updated to ${quickAdjustVal}"`, 'success');
+      setQuickAdjustTarget(null);
+    } catch {
+      showToast('Failed to save adjustment', 'error');
+    } finally {
+      setSavingQuickAdjust(false);
+    }
+  };
+
+  const handleBatchAdvance = async (targetStage: OrderStatus) => {
+    if (!order || batchSiblings.length === 0) return;
+    setAdvancingBatch(true);
+    try {
+      updateOrderStatus(order.id, targetStage, user?.uid || '', user?.name || '');
+      for (const sibling of batchSiblings) {
+        if (sibling.status !== 'Delivered' && sibling.status !== targetStage) {
+          updateOrderStatus(sibling.id, targetStage, user?.uid || '', user?.name || '');
+        }
+      }
+      showToast(`All ${batchSiblings.length + 1} outfits moved to ${STATUS_CONFIG[targetStage].label}`, 'success');
+    } catch {
+      showToast('Failed to advance batch', 'error');
+    } finally {
+      setAdvancingBatch(false);
+    }
+  };
+
   const handleDeliverWithBalanceDue = async () => {
     setHandoverSheetOpen(false);
     setShowAmendmentPrompt(true);
@@ -482,22 +561,54 @@ export default function OrderDetailPage() {
       e.target.value = '';
       return;
     }
-    setUploadingPhoto(true);
-    try {
-      const uploaded: OrderPhoto[] = [];
-      for (const file of Array.from(files)) {
-        const url = await uploadToStorage(file, '');
-        // Tagged with the order's CURRENT stage — lets the tracking page
-        // show a real cutting -> sewing -> ready photo story.
-        uploaded.push({ url, stage: order.status, uploadedAt: new Date().toISOString() });
+
+    const newPending = Array.from(files).map((file) => ({
+      id: crypto.randomUUID(),
+      previewUrl: URL.createObjectURL(file),
+      file,
+      stage: order.status,
+      status: 'uploading' as const,
+    }));
+
+    setPendingPhotos((prev) => [...prev, ...newPending]);
+    e.target.value = '';
+
+    for (const pending of newPending) {
+      try {
+        const url = await uploadToStorage(pending.file, '');
+        const uploaded: OrderPhoto = { url, stage: pending.stage, uploadedAt: new Date().toISOString() };
+        await updateOrder(order.id, { images: [...(order.images || []), uploaded] });
+        setPendingPhotos((prev) => prev.filter((p) => p.id !== pending.id));
+        URL.revokeObjectURL(pending.previewUrl);
+        showToast('Photo added to workshop feed', 'success');
+      } catch (err) {
+        setPendingPhotos((prev) =>
+          prev.map((p) => (p.id === pending.id ? { ...p, status: 'failed', error: err instanceof Error ? err.message : 'Upload failed' } : p))
+        );
+        showToast(err instanceof Error ? err.message : 'Network issue uploading photo', 'error', {
+          label: 'Retry',
+          onClick: () => handleRetryPendingPhoto(pending.id),
+        });
       }
-      await updateOrder(order.id, { images: [...(order.images || []), ...uploaded] });
-      showToast(uploaded.length > 1 ? `${uploaded.length} photos added` : 'Photo added', 'success');
+    }
+  };
+
+  const handleRetryPendingPhoto = async (id: string) => {
+    const target = pendingPhotos.find((p) => p.id === id);
+    if (!target) return;
+    setPendingPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'uploading', error: undefined } : p)));
+    try {
+      const url = await uploadToStorage(target.file, '');
+      const uploaded: OrderPhoto = { url, stage: target.stage, uploadedAt: new Date().toISOString() };
+      await updateOrder(order.id, { images: [...(order.images || []), uploaded] });
+      setPendingPhotos((prev) => prev.filter((p) => p.id !== id));
+      URL.revokeObjectURL(target.previewUrl);
+      showToast('Photo uploaded successfully', 'success');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
-    } finally {
-      setUploadingPhoto(false);
-      e.target.value = '';
+      setPendingPhotos((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: 'failed', error: err instanceof Error ? err.message : 'Upload failed' } : p))
+      );
+      showToast('Retry failed — check connection', 'error');
     }
   };
 
@@ -642,7 +753,12 @@ export default function OrderDetailPage() {
     null;
   const primaryInspoUrl = (order.inspirationImages || [])[0] || null;
   const progressPhotos = (order.images || []).filter((img) => img.stage !== 'Documented');
-  const latestProgressPhoto = progressPhotos.length > 0 ? progressPhotos[progressPhotos.length - 1] : null;
+  const latestPending = pendingPhotos.length > 0 ? pendingPhotos[pendingPhotos.length - 1] : null;
+  const latestProgressPhoto = latestPending
+    ? { url: latestPending.previewUrl, stage: latestPending.stage, isPending: true, status: latestPending.status, id: latestPending.id }
+    : progressPhotos.length > 0
+    ? { ...progressPhotos[progressPhotos.length - 1], isPending: false }
+    : null;
 
   const handleCopyMeasurements = () => {
     if (measurementEntries.length === 0) return;
@@ -981,10 +1097,40 @@ export default function OrderDetailPage() {
                       onClick={(e) => setLightbox({ src: latestProgressPhoto.url, rect: e.currentTarget.getBoundingClientRect() })}
                       title="Tap to view latest progress photo"
                     >
-                      <Image src={latestProgressPhoto.url} alt={`${latestProgressPhoto.stage} progress`} width={220} height={220} className={styles.visualGlanceImg} />
+                      <Image
+                        src={latestProgressPhoto.url}
+                        alt={`${latestProgressPhoto.stage} progress`}
+                        width={220}
+                        height={220}
+                        className={styles.visualGlanceImg}
+                        unoptimized={Boolean((latestProgressPhoto as any).isPending)}
+                      />
                       <span className={`${styles.visualGlanceBadge} ${styles.visualGlanceBadgeProgress}`}>
                         <Symbol name="checkroom" size={11} /> {latestProgressPhoto.stage} Progress
                       </span>
+                      {(latestProgressPhoto as any).isPending && (
+                        (latestProgressPhoto as any).status === 'failed' ? (
+                          <div className={styles.optimisticUploadOverlay}>
+                            <span className={styles.optimisticErrorBadge}>Upload Failed</span>
+                            <button
+                              type="button"
+                              className={styles.retryUploadBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRetryPendingPhoto((latestProgressPhoto as any).id);
+                              }}
+                            >
+                              <Symbol name="cloud_sync" size={12} />
+                              <span>Retry</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={styles.optimisticUploadBadge}>
+                            <Symbol name="progress_activity" className="global-spinner" size={11} />
+                            <span>Uploading…</span>
+                          </span>
+                        )
+                      )}
                     </div>
                   ) : (
                     <label className={`${styles.visualGlanceEmptyTile} ${styles.visualGlanceUploadTile}`}>
@@ -1048,16 +1194,27 @@ export default function OrderDetailPage() {
                       <div className={styles.cutterGlanceSection}>
                         <span className={styles.cutterGlanceHeaderTitle}>Baseline Cutting Dimensions</span>
                         <div className={styles.cutterGlanceGrid}>
-                          {baselineMeasurements.map(([key, value]) => (
-                            <div key={key} className={styles.cutterGlanceCard}>
-                              <span className={styles.cutterGlanceLabel}>
-                                {MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}
-                              </span>
-                              <span className={styles.cutterGlanceValue}>
-                                {value}<strong>&quot;</strong>
-                              </span>
-                            </div>
-                          ))}
+                          {baselineMeasurements.map(([key, value]) => {
+                            const label = MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
+                            return (
+                              <div
+                                key={key}
+                                className={`${styles.cutterGlanceCard} ${styles.cutterGlanceCardClickable}`}
+                                onClick={() => handleOpenQuickAdjust(key, label, value ?? 0)}
+                                role="button"
+                                tabIndex={0}
+                                title={`Tap to quick-adjust ${label}`}
+                              >
+                                <div className={styles.cutterGlanceCardHeader}>
+                                  <span className={styles.cutterGlanceLabel}>{label}</span>
+                                  <Symbol name="tune" size={13} className={styles.cutterGlanceEditIcon} />
+                                </div>
+                                <span className={styles.cutterGlanceValue}>
+                                  {value}<strong>&quot;</strong>
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -1178,7 +1335,32 @@ export default function OrderDetailPage() {
                       <h3 className={styles.sectionTitle}>From the Same Drop-off ({batchSiblings.length + 1} items)</h3>
                       <span className={styles.measureSubtitle}>Sibling garments created in this same order batch</span>
                     </div>
-                    <Symbol name="layers" size={18} className={styles.capsIcon} />
+                    <div className={styles.sectionActions}>
+                      {next && (
+                        <button
+                          type="button"
+                          className={styles.batchPillActionBtn}
+                          onClick={() => handleBatchAdvance(next)}
+                          disabled={advancingBatch}
+                          title={`Advance entire batch to ${STATUS_CONFIG[next].label}`}
+                        >
+                          <Symbol name="arrow_forward" size={13} />
+                          <span>{advancingBatch ? 'Advancing…' : `Advance All to ${STATUS_CONFIG[next].label}`}</span>
+                        </button>
+                      )}
+                      {batchSiblings.some((s) => s.status !== order.status) && (
+                        <button
+                          type="button"
+                          className={styles.copySpecBtn}
+                          onClick={() => handleBatchAdvance(order.status)}
+                          disabled={advancingBatch}
+                          title={`Sync all batch garments to ${STATUS_CONFIG[order.status].label}`}
+                        >
+                          <Symbol name="layers" size={13} />
+                          <span>Sync to {STATUS_CONFIG[order.status].label}</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className={styles.batchList}>
                     {batchSiblings.map((sibling) => (
@@ -1236,13 +1418,36 @@ export default function OrderDetailPage() {
                     )}
                   </div>
                 </div>
-                {(order.images || []).length === 0 ? (
+                {(order.images || []).length === 0 && pendingPhotos.length === 0 ? (
                   <div className={styles.emptyPhotoHint}>
                     <Symbol name="add_a_photo" className={styles.emptyPhotoIcon} />
                     <span>No progress photos yet — snap one as the garment moves through Cutting, Sewing, or Fitting.</span>
                   </div>
                 ) : (
                   <div className={styles.galleryGrid}>
+                    {pendingPhotos.map((pending) => (
+                      <div key={pending.id} className={styles.galleryThumb}>
+                        <Image src={pending.previewUrl} alt={`${pending.stage} uploading`} width={400} height={400} unoptimized />
+                        {pending.status === 'uploading' ? (
+                          <div className={styles.optimisticUploadOverlay}>
+                            <span className={styles.optimisticUploadBadge}>
+                              <Symbol name="progress_activity" className="global-spinner" size={12} /> Uploading…
+                            </span>
+                          </div>
+                        ) : (
+                          <div className={styles.optimisticUploadOverlay}>
+                            <span className={styles.optimisticErrorBadge}>Failed</span>
+                            <button
+                              type="button"
+                              className={styles.retryUploadBtn}
+                              onClick={() => handleRetryPendingPhoto(pending.id)}
+                            >
+                              <Symbol name="cloud_sync" size={12} /> Retry
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                     {(order.images || []).map((photo, i) => (
                       <div key={i} className={styles.galleryThumb}>
                         <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
@@ -1777,8 +1982,93 @@ export default function OrderDetailPage() {
         currency={currentShop?.currency}
         walletBalance={customer?.wallet_balance || 0}
         onRecordPaymentAndDeliver={handleRecordPaymentAndDeliver}
+        onRecordSplitPaymentAndDeliver={handleRecordSplitPaymentAndDeliver}
         onDeliverWithBalanceDue={handleDeliverWithBalanceDue}
       />
+
+      {quickAdjustTarget && (
+        <BottomSheet
+          isOpen={!!quickAdjustTarget}
+          onClose={() => setQuickAdjustTarget(null)}
+          variant="modal"
+          noPadding
+        >
+          <div className={styles.quickAdjustContainer}>
+            <div className={styles.quickAdjustHeader}>
+              <div>
+                <h3 className={styles.quickAdjustTitle}>Adjust {quickAdjustTarget.label}</h3>
+                <p className={styles.quickAdjustSubtitle}>Quick cutting-table stepper adjustment</p>
+              </div>
+              <button
+                type="button"
+                className={styles.sheetCloseBtn}
+                onClick={() => setQuickAdjustTarget(null)}
+                aria-label="Close"
+              >
+                <Symbol name="close" size={18} />
+              </button>
+            </div>
+
+            <div className={styles.quickAdjustDisplayCard}>
+              <span className={styles.quickAdjustValueLarge}>
+                {quickAdjustVal}<strong>&quot;</strong>
+              </span>
+              <div className={styles.steppersRow}>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setQuickAdjustVal((prev) => Math.max(0, Math.round((prev - 1) * 10) / 10))}
+                >
+                  -1.0&quot;
+                </button>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setQuickAdjustVal((prev) => Math.max(0, Math.round((prev - 0.5) * 10) / 10))}
+                >
+                  -0.5&quot;
+                </button>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setQuickAdjustVal((prev) => Math.round((prev + 0.5) * 10) / 10)}
+                >
+                  +0.5&quot;
+                </button>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => setQuickAdjustVal((prev) => Math.round((prev + 1) * 10) / 10)}
+                >
+                  +1.0&quot;
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.quickAdjustManualInputRow}>
+              <label className={styles.quickAdjustInputLabel}>Or enter precise measurement</label>
+              <input
+                type="number"
+                step="0.125"
+                className={styles.quickAdjustInput}
+                value={quickAdjustVal}
+                onChange={(e) => setQuickAdjustVal(parseFloat(e.target.value) || 0)}
+              />
+            </div>
+
+            <div className={styles.quickAdjustActions}>
+              <Button
+                variant="primary"
+                fullWidth
+                loading={savingQuickAdjust}
+                onClick={handleSaveQuickAdjust}
+              >
+                Save {quickAdjustVal}&quot; to Cut
+              </Button>
+            </div>
+          </div>
+        </BottomSheet>
+      )}
 
       {loggingException && (
         <FixedBottomPortal>

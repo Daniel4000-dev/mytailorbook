@@ -93,6 +93,129 @@
   color: var(--sf-text-tertiary);
 }
 
+.sectionHeaderFlex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.splitToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--sf-radius-sm);
+  transition: color var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.splitToggleBtn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-surface-container-high);
+}
+
+.splitBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-sm);
+}
+
+.splitCard {
+  background: var(--sf-surface-container-high);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.splitCardHeaderFlex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.splitCardHeading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sf-text-secondary);
+}
+
+.autoBalanceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #059669;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.autoBalanceBtn:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.splitStatusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+  font-size: 12px;
+}
+
+.splitStatusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.splitStatusLabel {
+  color: var(--sf-text-secondary);
+}
+
+.splitStatusAmount {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--sf-font-mono, monospace);
+  color: var(--sf-text-primary);
+}
+
+.splitStatusExact {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #059669;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.splitStatusPartial {
+  color: #D97706;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.splitStatusExcess {
+  color: #DC2626;
+  font-weight: 600;
+  font-size: 11px;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

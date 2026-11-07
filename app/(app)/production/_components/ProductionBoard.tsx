@@ -41,21 +41,122 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [stageFilter, setStageFilter] = useState<StageFilter>(ALL_FILTER);
-  const [filterMyTasks, setFilterMyTasks] = useState(userRole === 'Staff');
-  const [staffFilterId, setStaffFilterId] = useState<string | null>(null);
-  const [batchFilterId, setBatchFilterId] = useState<string | null>(null);
-  const [opFilter, setOpFilter] = useState<OpFilter>('all');
+  const STORAGE_KEY = 'tb_production_board_state';
+
+  const initialStage = searchParams.get('stage') as StageFilter | null;
+  const initialOp = searchParams.get('op') as OpFilter | null;
+  const initialQ = searchParams.get('q') || '';
+  const initialStaff = searchParams.get('staff');
+  const initialBatch = searchParams.get('batch');
+  const initialMy = searchParams.get('my');
+
+  const [stageFilter, setStageFilter] = useState<StageFilter>(() => {
+    if (initialStage && (initialStage === ALL_FILTER || (ACTIVE_STATUSES as readonly string[]).includes(initialStage))) {
+      return initialStage;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+        if (saved.stageFilter && (saved.stageFilter === ALL_FILTER || (ACTIVE_STATUSES as readonly string[]).includes(saved.stageFilter))) {
+          return saved.stageFilter;
+        }
+      } catch {}
+    }
+    return ALL_FILTER;
+  });
+
+  const [filterMyTasks, setFilterMyTasks] = useState(() => {
+    if (initialMy !== null) return initialMy === '1';
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+        if (typeof saved.filterMyTasks === 'boolean') return saved.filterMyTasks;
+      } catch {}
+    }
+    return userRole === 'Staff';
+  });
+
+  const [staffFilterId, setStaffFilterId] = useState<string | null>(() => {
+    if (initialStaff) return initialStaff;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+        if (saved.staffFilterId) return saved.staffFilterId;
+      } catch {}
+    }
+    return null;
+  });
+
+  const [batchFilterId, setBatchFilterId] = useState<string | null>(() => {
+    if (initialBatch) return initialBatch;
+    return null;
+  });
+
+  const [opFilter, setOpFilter] = useState<OpFilter>(() => {
+    if (initialOp && ['all', 'rush', 'due', 'hold', 'unpaid'].includes(initialOp)) return initialOp;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+        if (saved.opFilter && ['all', 'rush', 'due', 'hold', 'unpaid'].includes(saved.opFilter)) return saved.opFilter;
+      } catch {}
+    }
+    return 'all';
+  });
+
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (initialQ) return initialQ;
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+        if (saved.searchQuery) return saved.searchQuery;
+      } catch {}
+    }
+    return '';
+  });
+
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
   const [handoverOrder, setHandoverOrder] = useState<Order | null>(null);
   const [amendmentOrder, setAmendmentOrder] = useState<Order | null>(null);
   const [fittingPromptOrder, setFittingPromptOrder] = useState<Order | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [stageVisibleCounts, setStageVisibleCounts] = useState<Partial<Record<OrderStatus, number>>>({});
   const isDesktop = useIsDesktop();
   const [draggedOrderId, setDraggedOrderId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<OrderStatus | null>(null);
+
+  // Sync state to URL and sessionStorage so returning to the board preserves exact view
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (stageFilter && stageFilter !== ALL_FILTER) params.set('stage', stageFilter);
+    else params.delete('stage');
+
+    if (opFilter && opFilter !== 'all') params.set('op', opFilter);
+    else params.delete('op');
+
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    else params.delete('q');
+
+    if (staffFilterId) params.set('staff', staffFilterId);
+    else params.delete('staff');
+
+    if (batchFilterId) params.set('batch', batchFilterId);
+    else params.delete('batch');
+
+    if (filterMyTasks) params.set('my', '1');
+    else params.delete('my');
+
+    const newSearch = params.toString();
+    const newUrl = `${window.location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+    window.history.replaceState(null, '', newUrl);
+
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ stageFilter, opFilter, searchQuery, staffFilterId, batchFilterId, filterMyTasks })
+      );
+    } catch {}
+  }, [stageFilter, opFilter, searchQuery, staffFilterId, batchFilterId, filterMyTasks]);
 
   // userRole falls back to 'Staff' for one tick while auth session loads; re-sync
   // once the real role is known so the Owner doesn't get stuck on "My Orders".
@@ -64,16 +165,13 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const [prevUserRole, setPrevUserRole] = useState(userRole);
   if (userRole !== prevUserRole) {
     setPrevUserRole(userRole);
-    setFilterMyTasks(userRole === 'Staff');
+    if (!initialMy) {
+      setFilterMyTasks(userRole === 'Staff');
+    }
   }
 
   // Deep-link support: /production?order=<id> forwards to the order's own
-  // page, /production?staff=<uid> filters the board to that staff member's
-  // orders. Must react to searchParams itself, not just isLoaded — the
-  // notification bell renders on this same page, so clicking a
-  // notification while already on /production is a same-route navigation
-  // (no remount, isLoaded never changes) and this effect needs to re-run
-  // on that new query string, not just once on mount.
+  // page, /production?staff=<uid> filters the board to that staff member's orders.
   useEffect(() => {
     if (!isLoaded) return;
     const orderId = searchParams.get('order');
@@ -84,14 +182,11 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       router.replace(ROUTES.productionOrder(targetOrder || orderId));
       return;
     }
-    if (staffId && isOwnerLikeRole(userRole)) {
-      Promise.resolve().then(() => {
-        setStaffFilterId(staffId);
-        setFilterMyTasks(false);
-      });
-      router.replace(ROUTES.production);
+    if (staffId && isOwnerLikeRole(userRole) && staffFilterId !== staffId) {
+      setStaffFilterId(staffId);
+      setFilterMyTasks(false);
     }
-  }, [isLoaded, searchParams, userRole, router]);
+  }, [isLoaded, searchParams, userRole, router, orders, staffFilterId]);
 
   // Order cards are plain divs (not <Link>), since each also hosts nested
   // interactive controls (reassign select, move back/forward buttons) that
@@ -149,6 +244,27 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       const newDeposit = handoverOrder.depositPaid + amount;
       updateOrder(handoverOrder.id, { depositPaid: newDeposit });
       showToast(`₦${amount.toLocaleString()} payment recorded!`, 'success');
+    }
+    const current = handoverOrder;
+    setHandoverOrder(null);
+    setAmendmentOrder(current);
+  }, [handoverOrder, updateOrder, showToast]);
+
+  const handleRecordSplitPaymentAndDeliver = useCallback(async (payments: Array<{ amount: number; method: PaymentMethod; note?: string }>) => {
+    if (!handoverOrder) return;
+    let totalAdded = 0;
+    for (const p of payments) {
+      const { data, error } = await addPayment(handoverOrder.id, p.amount, p.method, p.note);
+      if (error) {
+        showToast(error, 'error');
+        return;
+      }
+      if (data) totalAdded += p.amount;
+    }
+    if (totalAdded > 0) {
+      const newDeposit = handoverOrder.depositPaid + totalAdded;
+      updateOrder(handoverOrder.id, { depositPaid: newDeposit });
+      showToast(`₦${totalAdded.toLocaleString()} split tender recorded!`, 'success');
     }
     const current = handoverOrder;
     setHandoverOrder(null);
@@ -894,6 +1010,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           balanceOwed={getBalanceOwed(handoverOrder)}
           currency={currentShop?.currency}
           onRecordPaymentAndDeliver={handleRecordPaymentAndDeliver}
+          onRecordSplitPaymentAndDeliver={handleRecordSplitPaymentAndDeliver}
           onDeliverWithBalanceDue={handleDeliverWithBalanceDue}
         />
       )}
