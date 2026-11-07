@@ -9,6 +9,7 @@ import { getExpensesByDate, addExpense, deleteExpense, updateExpense } from '@/a
 import type { Expense, ExpenseCategory, PaymentMethod } from '@/lib/types';
 import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -22,12 +23,12 @@ const EXPENSE_CATEGORIES: {
   shortLabel: string;
   icon: string;
 }[] = [
-  { key: 'material', label: 'Sewing Materials (Threads, Zips, Linings)', shortLabel: 'Materials', icon: 'content_cut' },
-  { key: 'general', label: 'Generator Fuel & Workshop Power', shortLabel: 'Fuel & Power', icon: 'bolt' },
-  { key: 'labor', label: 'Staff & Tailor Wages (Daily / Weekly Pay)', shortLabel: 'Staff Wages', icon: 'payments' },
-  { key: 'outsourced', label: 'Machine Needles & Technician Repairs', shortLabel: 'Repairs', icon: 'build' },
-  { key: 'logistics', label: 'Delivery Courier & Transport Fare', shortLabel: 'Delivery', icon: 'local_shipping' },
-];
+    { key: 'material', label: 'Sewing Materials (Threads, Zips, Linings)', shortLabel: 'Materials', icon: 'content_cut' },
+    { key: 'general', label: 'Generator Fuel & Workshop Power', shortLabel: 'Fuel & Power', icon: 'bolt' },
+    { key: 'labor', label: 'Staff & Tailor Wages (Daily / Weekly Pay)', shortLabel: 'Staff Wages', icon: 'payments' },
+    { key: 'outsourced', label: 'Machine Needles & Technician Repairs', shortLabel: 'Repairs', icon: 'build' },
+    { key: 'logistics', label: 'Delivery Courier & Transport Fare', shortLabel: 'Delivery', icon: 'local_shipping' },
+  ];
 
 const getLocalDateString = (d: Date = new Date()) => {
   const year = d.getFullYear();
@@ -314,7 +315,7 @@ export default function ShopExpensesPage() {
           `• ${e.description || 'Cost'}: ${currencySymbol}${formatNumber(e.amount)} (${e.method === 'transfer' ? 'Transfer' : 'Cash'})`
       ),
       ``,
-      `Logged with MyTailorBook`,
+      `Logged with ${APP_CONFIG.name}`,
     ];
 
     const text = lines.join('\n');
@@ -505,63 +506,63 @@ export default function ShopExpensesPage() {
       <div className={styles.container}>
         {/* ── 1. CLEAN DATE STRIP ── */}
         <section className={styles.dateBar}>
-            <div className={styles.dateBarCenter}>
+          <div className={styles.dateBarCenter}>
+            <button
+              type="button"
+              className={styles.chevronBtn}
+              onClick={() => changeDate(-1)}
+              aria-label="Previous day"
+            >
+              <Symbol name="chevron_left" size={18} />
+            </button>
+
+            <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
+              <Symbol name="calendar_today" size={13} />
+              <span className={styles.displayDateLabel}>{displayDateText}</span>
+              <span className={styles.displayDateSub}>({date})</span>
+              <input
+                id="reconDateInput"
+                type="date"
+                className={styles.hiddenDateInput}
+                value={date}
+                onChange={(e) => e.target.value && setDate(e.target.value)}
+              />
+            </label>
+
+            <button
+              type="button"
+              className={styles.chevronBtn}
+              onClick={() => changeDate(1)}
+              aria-label="Next day"
+            >
+              <Symbol name="chevron_right" size={18} />
+            </button>
+          </div>
+
+          <div className={styles.dateBarRight}>
+            {!isToday && (
               <button
                 type="button"
-                className={styles.chevronBtn}
-                onClick={() => changeDate(-1)}
-                aria-label="Previous day"
+                className={styles.todayJumpBtn}
+                onClick={() => setDate(todayStr)}
               >
-                <Symbol name="chevron_left" size={18} />
+                Today
               </button>
+            )}
 
-              <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
-                <Symbol name="calendar_today" size={13} />
-                <span className={styles.displayDateLabel}>{displayDateText}</span>
-                <span className={styles.displayDateSub}>({date})</span>
-                <input
-                  id="reconDateInput"
-                  type="date"
-                  className={styles.hiddenDateInput}
-                  value={date}
-                  onChange={(e) => e.target.value && setDate(e.target.value)}
-                />
-              </label>
-
+            {expenses.length > 0 && (
               <button
                 type="button"
-                className={styles.chevronBtn}
-                onClick={() => changeDate(1)}
-                aria-label="Next day"
+                className={styles.shareSummaryBtn}
+                onClick={handleShareSummary}
+                title="Copy WhatsApp-ready reconciliation summary"
+                aria-label="Share summary on WhatsApp"
               >
-                <Symbol name="chevron_right" size={18} />
+                <Symbol name="share" size={13} />
+                <span>Share</span>
               </button>
-            </div>
-
-            <div className={styles.dateBarRight}>
-              {!isToday && (
-                <button
-                  type="button"
-                  className={styles.todayJumpBtn}
-                  onClick={() => setDate(todayStr)}
-                >
-                  Today
-                </button>
-              )}
-
-              {expenses.length > 0 && (
-                <button
-                  type="button"
-                  className={styles.shareSummaryBtn}
-                  onClick={handleShareSummary}
-                  title="Copy WhatsApp-ready reconciliation summary"
-                  aria-label="Share summary on WhatsApp"
-                >
-                  <Symbol name="share" size={13} />
-                  <span>Share</span>
-                </button>
-              )}
-            </div>
+            )}
+          </div>
         </section>
 
         {initialLoading ? (
@@ -847,8 +848,8 @@ export default function ShopExpensesPage() {
               {isSubmittingExpense
                 ? 'Saving…'
                 : editingExpenseId
-                ? 'Save Changes'
-                : 'Save Expense'}
+                  ? 'Save Changes'
+                  : 'Save Expense'}
             </button>
           </div>
         }

@@ -13,6 +13,8 @@ export const DEFAULT_MOCK_PORTFOLIO: PublicPortfolio = {
     foundedYear: 2014,
     address: '14 Victoria Island Boulevard, Lagos',
     phone: '+2348030000000',
+    xp: 2450,
+    streakCurrent: 14,
   },
   stats: {
     completed: 148,

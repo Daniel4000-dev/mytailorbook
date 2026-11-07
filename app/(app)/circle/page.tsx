@@ -8,6 +8,7 @@ import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { getWhatsAppLink } from '@/lib/formatters';
+import { APP_CONFIG } from '@/lib/config';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 import {
@@ -135,7 +136,7 @@ function AtelierCircleContent() {
     if (!data?.myShop.referralCode) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const shareUrl = `${origin}/circle?connect=${data.myShop.referralCode}`;
-    const msg = `Good day! Join my Tailor Circle on MyTailorBook so our workshops can keep our daily production streaks accountable (+15 XP Co-Op craft rewards). Tap this link to connect with me: ${shareUrl}`;
+    const msg = `Good day! Join my Tailor Circle on ${APP_CONFIG.name} so our workshops can keep our daily production streaks accountable (+15 XP Co-Op craft rewards). Tap this link to connect with me: ${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -263,13 +264,12 @@ function AtelierCircleContent() {
             <div className={styles.gaugeHeader}>
               <div className={styles.gaugeTitleRow}>
                 <span
-                  className={`${styles.gaugeTierPill} ${
-                    benefits.tierNumber === 1
+                  className={`${styles.gaugeTierPill} ${benefits.tierNumber === 1
                       ? styles.gaugeTier1
                       : benefits.tierNumber === 2
-                      ? styles.gaugeTier2
-                      : styles.gaugeTier3
-                  }`}
+                        ? styles.gaugeTier2
+                        : styles.gaugeTier3
+                    }`}
                 >
                   <Symbol name="groups" size={13} />
                   <span>
@@ -290,9 +290,8 @@ function AtelierCircleContent() {
                   return (
                     <div
                       key={nodeIdx}
-                      className={`${styles.podNode} ${
-                        isFilled ? styles.podNodeFilled : styles.podNodeEmpty
-                      }`}
+                      className={`${styles.podNode} ${isFilled ? styles.podNodeFilled : styles.podNodeEmpty
+                        }`}
                       title={isFilled ? `Spot ${nodeIdx + 1}: Active Artisan` : `Spot ${nodeIdx + 1}: Available`}
                     >
                       {isFilled ? (
@@ -349,8 +348,8 @@ function AtelierCircleContent() {
               const todayStr = new Date().toISOString().split('T')[0];
               const isTodayActive = Boolean(
                 buddy.status === 'active' &&
-                  buddy.lastActiveAt &&
-                  buddy.lastActiveAt.startsWith(todayStr)
+                buddy.lastActiveAt &&
+                buddy.lastActiveAt.startsWith(todayStr)
               );
 
               return (
@@ -369,9 +368,8 @@ function AtelierCircleContent() {
                   title={`Tap to view ${buddy.name}'s atelier profile`}
                 >
                   <div
-                    className={`${styles.avatarRing} ${
-                      isTodayActive ? styles.avatarRingActive : ''
-                    }`}
+                    className={`${styles.avatarRing} ${isTodayActive ? styles.avatarRingActive : ''
+                      }`}
                     style={{ borderColor: isTodayActive ? '#10B981' : buddy.tierColor }}
                     title={`Tier: ${buddy.tierName}${isTodayActive ? ' · Active Today' : ''}`}
                   >
@@ -518,9 +516,8 @@ function AtelierCircleContent() {
                   <div className={styles.pulseFooter}>
                     <button
                       type="button"
-                      className={`${styles.saluteBtn} ${
-                        currentSalute.userSaluted.flame ? styles.saluteBtnActive : ''
-                      }`}
+                      className={`${styles.saluteBtn} ${currentSalute.userSaluted.flame ? styles.saluteBtnActive : ''
+                        }`}
                       onClick={() => handleSalute(pulse.id, 'flame')}
                       title="Salute: Craft Fire"
                     >
@@ -530,9 +527,8 @@ function AtelierCircleContent() {
 
                     <button
                       type="button"
-                      className={`${styles.saluteBtn} ${
-                        currentSalute.userSaluted.needle ? styles.saluteBtnActive : ''
-                      }`}
+                      className={`${styles.saluteBtn} ${currentSalute.userSaluted.needle ? styles.saluteBtnActive : ''
+                        }`}
                       onClick={() => handleSalute(pulse.id, 'needle')}
                       title="Salute: Precision Cut"
                     >
@@ -542,9 +538,8 @@ function AtelierCircleContent() {
 
                     <button
                       type="button"
-                      className={`${styles.saluteBtn} ${
-                        currentSalute.userSaluted.respect ? styles.saluteBtnActive : ''
-                      }`}
+                      className={`${styles.saluteBtn} ${currentSalute.userSaluted.respect ? styles.saluteBtnActive : ''
+                        }`}
                       onClick={() => handleSalute(pulse.id, 'respect')}
                       title="Salute: Atelier Respect"
                     >
@@ -633,8 +628,8 @@ function AtelierCircleContent() {
                   {selectedBuddy.status === 'sabbatical'
                     ? 'Leave'
                     : selectedBuddy.status === 'dormant'
-                    ? 'Quiet'
-                    : 'Active'}
+                      ? 'Quiet'
+                      : 'Active'}
                 </span>
                 <span className={styles.profileStatLbl}>Status</span>
               </div>
@@ -784,9 +779,8 @@ function AtelierCircleContent() {
 
               {linkStatus && (
                 <div
-                  className={`${styles.statusMessage} ${
-                    linkStatus.success ? styles.statusSuccess : styles.statusError
-                  }`}
+                  className={`${styles.statusMessage} ${linkStatus.success ? styles.statusSuccess : styles.statusError
+                    }`}
                 >
                   {linkStatus.message}
                 </div>

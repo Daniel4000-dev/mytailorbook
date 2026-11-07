@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createAtelierNotification } from '@/lib/notifications';
 import { toOrderSlug, toCustomerSlug } from '@/lib/slugs';
 import { isXpSystemEnabled } from '@/lib/xp';
+import { APP_CONFIG } from '@/lib/config';
 
 type BusinessMode = 'bespoke' | 'rtw' | 'hybrid';
 type AlertTrack = 'bespoke' | 'rtw' | 'universal';
@@ -14,18 +15,18 @@ type QueuedAlert = {
   basePriority: number;
   params: Parameters<typeof createAtelierNotification>[0];
   metricKey:
-    | 'morningDeliveriesNotified'
-    | 'calendarEventsNotified'
-    | 'morningKickstartsNotified'
-    | 'stuckOrdersNotified'
-    | 'stagnantOrdersNotified'
-    | 'readyBalanceNotified'
-    | 'lowStockNotified'
-    | 'overdueDigestsSent'
-    | 'birthdaysNotified'
-    | 'featureDiscoveryNotified'
-    | 'streakRemindersSent'
-    | 'closingDayMessagesSent';
+  | 'morningDeliveriesNotified'
+  | 'calendarEventsNotified'
+  | 'morningKickstartsNotified'
+  | 'stuckOrdersNotified'
+  | 'stagnantOrdersNotified'
+  | 'readyBalanceNotified'
+  | 'lowStockNotified'
+  | 'overdueDigestsSent'
+  | 'birthdaysNotified'
+  | 'featureDiscoveryNotified'
+  | 'streakRemindersSent'
+  | 'closingDayMessagesSent';
 };
 
 export async function GET(request: NextRequest) {
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
 
   const primaryShopsRes = await admin
     .from('shops')
-    .select('id, name, business_mode, streak_current, streak_last_counted_at')
+    .select('id, name, business_mode, streak_current, streak_last_counted_at, buddy_shop_id')
     .order('created_at', { ascending: false })
     .limit(500);
 
@@ -434,8 +435,8 @@ export async function GET(request: NextRequest) {
           totalStockUnits > 0
             ? `You have ${totalStockUnits} ready-made piece${totalStockUnits === 1 ? '' : 's'} in stock${rtwBatchWipCount > 0 ? ` and ${rtwBatchWipCount} batch run in production` : ''}. Log today's POS sales or stock updates!`
             : rtwBatchWipCount > 0
-            ? `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} on the production floor. Keep moving batches to Stock!`
-            : `Start your brand day strong — add ready-made pieces to Stock & POS or launch a new multi-size batch run today.`;
+              ? `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} on the production floor. Keep moving batches to Stock!`
+              : `Start your brand day strong — add ready-made pieces to Stock & POS or launch a new multi-size batch run today.`;
 
         if (currentStreak >= 2) {
           title = `Good morning! Keep your ${currentStreak}-day brand streak alive`;
@@ -996,13 +997,23 @@ export async function GET(request: NextRequest) {
         if (lastCountedStr === todayStr) continue;
 
         const mode = shopModeMap.get(shop.id) || 'bespoke';
-        const title = 'Protect your workshop streak!';
-        const subtitle =
-          mode === 'rtw'
-            ? `You have an active ${shop.streak_current}-day streak at risk. Log a POS sale, stock update, or batch progress before midnight.`
-            : mode === 'hybrid'
-            ? `You have an active ${shop.streak_current}-day streak at risk. Log a cut, POS sale, payment, or measurement before midnight.`
-            : `You have an active ${shop.streak_current}-day streak at risk. Log a cut, payment, or measurement before midnight.`;
+        const hasBuddy = Boolean(shop.buddy_shop_id);
+        const streakDays = shop.streak_current || 1;
+
+        // Tailor-first authentic closing ritual messages
+        let title = 'Machines off for the night? ✂️';
+        let subtitle = `Before packing up the atelier, protect your ${streakDays}-day streak. Log today's cutting, fabric intake, or deposit in 1 tap.`;
+
+        if (hasBuddy) {
+          title = 'Protect your Atelier Circle streak! 🔥';
+          subtitle = `Your colleague is counting on your studio. Keep your ${streakDays}-day Co-Op streak burning before closing up for the night.`;
+        } else if (mode === 'rtw') {
+          title = 'Closing the showroom? 👗';
+          subtitle = `Keep your ${streakDays}-day studio streak alive. Log a quick sale or garment batch update before midnight.`;
+        } else if (streakDays >= 7) {
+          title = 'Saturday is coming fast, Master Tailor! 🪡';
+          subtitle = `You've held an unshakable ${streakDays}-day momentum. Record today's progress so your upcoming fittings stay stress-free.`;
+        }
 
         const alertKey = `system:${shop.id}:${title}`;
 
@@ -1068,13 +1079,13 @@ export async function GET(request: NextRequest) {
 
       if (activity.count >= 6) {
         title = 'What a day — incredible output!';
-        subtitle = `You logged ${activity.count} craft sessions today. The kind of hard work that builds great reputation. Rest well — from the MyTailorBook Team.`;
+        subtitle = `You logged ${activity.count} craft sessions today. The kind of hard work that builds great reputation. Rest well — from the ${APP_CONFIG.name} Team.`;
       } else if (activity.count >= 4) {
         title = "Solid day's work. Well done!";
-        subtitle = `${activity.count} workshop actions completed today. You're building something real. Keep showing up — from the MyTailorBook Team.`;
+        subtitle = `${activity.count} workshop actions completed today. You're building something real. Keep showing up — from the ${APP_CONFIG.name} Team.`;
       } else {
         title = 'Good effort today!';
-        subtitle = `You put in the work today and that's what it takes. Every stitch is progress. See you tomorrow — from the MyTailorBook Team.`;
+        subtitle = `You put in the work today and that's what it takes. Every stitch is progress. See you tomorrow — from the ${APP_CONFIG.name} Team.`;
       }
 
       const alertKey = `system:${shopId}:${title}`;
@@ -1116,8 +1127,8 @@ export async function GET(request: NextRequest) {
             ? `You have ${rtwBatchWipCount} RTW batch run${rtwBatchWipCount === 1 ? '' : 's'} in progress for tomorrow. Log any evening sales or stock updates before closing.`
             : 'Sold any ready-made pieces or restocked sizes today? Log them tonight so your inventory stays accurate for tomorrow.'
           : bespokeWipCount > 0
-          ? `You have ${bespokeWipCount} active client job${bespokeWipCount === 1 ? '' : 's'} on the rack for tomorrow. Log any new measurements or payments before closing up.`
-          : 'Took any client measurements, fabric drop-offs, or deposits today? Log them tonight so your workshop starts fresh tomorrow.';
+            ? `You have ${bespokeWipCount} active client job${bespokeWipCount === 1 ? '' : 's'} on the rack for tomorrow. Log any new measurements or payments before closing up.`
+            : 'Took any client measurements, fabric drop-offs, or deposits today? Log them tonight so your workshop starts fresh tomorrow.';
 
       const alertKey = `system:${shop.id}:${title}`;
       enqueueForShop(shop.id, {

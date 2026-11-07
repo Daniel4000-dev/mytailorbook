@@ -411,6 +411,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
           revalidate: false,
         }
       );
+
+      // GAMIFICATION TRIGGER: Payment Recorded
+      if (updates.payments && updates.payments.length > 0) {
+        logStreakAction('recorded_payment', 20, false).then((sRes) => {
+          if (sRes?.streak_bumped) mutate();
+        });
+      }
     },
     [activeBranchId, mutate, isDemoMode]
   );

@@ -10,6 +10,7 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { useToast } from '@/contexts/ToastContext';
 import { getTelLink } from '@/lib/formatters';
+import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
 export type NoteCategory = 'shopping' | 'craft' | 'client' | 'general';
@@ -31,35 +32,35 @@ const NOTE_CATEGORIES: {
   icon: string;
   placeholder: string;
 }[] = [
-  {
-    key: 'shopping',
-    label: 'Market & Haberdashery',
-    shortLabel: 'Market List',
-    icon: 'storefront',
-    placeholder: 'Add thread, hidden zips, collar canvas…',
-  },
-  {
-    key: 'craft',
-    label: 'Machinist & Craft',
-    shortLabel: 'Machinist',
-    icon: 'content_cut',
-    placeholder: 'Add stitching or pressing instruction…',
-  },
-  {
-    key: 'client',
-    label: 'Client Callbacks',
-    shortLabel: 'Callbacks',
-    icon: 'call',
-    placeholder: 'Add customer styling confirmation…',
-  },
-  {
-    key: 'general',
-    label: 'Workshop Tasks',
-    shortLabel: 'General',
-    icon: 'notes',
-    placeholder: 'Add general workshop errand or reminder…',
-  },
-];
+    {
+      key: 'shopping',
+      label: 'Market & Haberdashery',
+      shortLabel: 'Market List',
+      icon: 'storefront',
+      placeholder: 'Add thread, hidden zips, collar canvas…',
+    },
+    {
+      key: 'craft',
+      label: 'Machinist & Craft',
+      shortLabel: 'Machinist',
+      icon: 'content_cut',
+      placeholder: 'Add stitching or pressing instruction…',
+    },
+    {
+      key: 'client',
+      label: 'Client Callbacks',
+      shortLabel: 'Callbacks',
+      icon: 'call',
+      placeholder: 'Add customer styling confirmation…',
+    },
+    {
+      key: 'general',
+      label: 'Workshop Tasks',
+      shortLabel: 'General',
+      icon: 'notes',
+      placeholder: 'Add general workshop errand or reminder…',
+    },
+  ];
 
 const QUICK_PRESETS: { category: NoteCategory; text: string }[] = [
   { category: 'shopping', text: '5 cones matching thread (Black & Navy)' },
@@ -324,15 +325,15 @@ export default function WorkshopNotesPage() {
       activeTab === 'shopping'
         ? '*Workshop Market List*'
         : activeTab === 'craft'
-        ? '*Machinist Instructions*'
-        : activeTab === 'client'
-        ? '*Client Callbacks*'
-        : '*Workshop Action Items*';
+          ? '*Machinist Instructions*'
+          : activeTab === 'client'
+            ? '*Client Callbacks*'
+            : '*Workshop Action Items*';
 
     const text =
       `${listTitle} (${targetItems.length} items):\n\n` +
       targetItems.map((item, idx) => `${idx + 1}. ${item.text}`).join('\n') +
-      '\n\n— Sent from MyTailorBook Workshop';
+      `\n\n— Sent from ${APP_CONFIG.name} Workshop`;
 
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -353,15 +354,15 @@ export default function WorkshopNotesPage() {
       activeTab === 'shopping'
         ? 'Workshop Market List'
         : activeTab === 'craft'
-        ? 'Machinist Instructions'
-        : activeTab === 'client'
-        ? 'Client Callbacks'
-        : 'Workshop Action Items';
+          ? 'Machinist Instructions'
+          : activeTab === 'client'
+            ? 'Client Callbacks'
+            : 'Workshop Action Items';
 
     const text =
       `${listTitle} (${targetItems.length} items):\n\n` +
       targetItems.map((item, idx) => `${idx + 1}. ${item.text}`).join('\n') +
-      '\n\n— Sent from MyTailorBook Workshop';
+      `\n\n— Sent from ${APP_CONFIG.name} Workshop`;
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);

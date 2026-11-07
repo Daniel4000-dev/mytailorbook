@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 const LAST_UPDATED = 'August 1, 2026';
 const OPERATOR_NAME = 'DVCH';
-const CONTACT_EMAIL = 'support@mystitchbooks.com';
+const CONTACT_EMAIL = APP_CONFIG.supportEmail;
 
 export default function TermsOfServicePage() {
   return (

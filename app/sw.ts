@@ -2,6 +2,7 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
 import { Serwist } from "serwist";
+import { APP_CONFIG } from "@/lib/config";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -54,7 +55,7 @@ self.addEventListener('push', (event) => {
     return;
   }
 
-  const title = payload.title || 'MyTailorBook Atelier';
+  const title = payload.title || `${APP_CONFIG.name} Atelier`;
   const promises: Promise<unknown>[] = [
     self.registration.showNotification(title, {
       body: payload.body,
@@ -67,7 +68,7 @@ self.addEventListener('push', (event) => {
   // Update phone home screen icon badge count
   const nav = self.navigator as unknown as { setAppBadge?: (count?: number) => Promise<void> };
   if (nav && typeof nav.setAppBadge === 'function') {
-    promises.push(nav.setAppBadge(payload.badgeCount ?? 1).catch(() => {}));
+    promises.push(nav.setAppBadge(payload.badgeCount ?? 1).catch(() => { }));
   }
 
   event.waitUntil(Promise.all(promises));
@@ -81,7 +82,7 @@ self.addEventListener('notificationclick', (event) => {
   // Clear home screen icon badge on notification tap
   const nav = self.navigator as unknown as { clearAppBadge?: () => Promise<void> };
   if (nav && typeof nav.clearAppBadge === 'function') {
-    nav.clearAppBadge().catch(() => {});
+    nav.clearAppBadge().catch(() => { });
   }
 
   event.waitUntil(

@@ -6,6 +6,7 @@ import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPu
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
+import { getTierForXp } from '@/lib/xp';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ orderId: 
   const view = await getPublicOrderView(orderId);
   if (!view) {
     return {
-      title: 'Order Tracking | MyTailorBook',
+      title: `Order Tracking | ${APP_CONFIG.name}`,
       robots: { index: false, follow: false },
     };
   }
@@ -95,8 +96,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
 
   // We only show future appointments to the customer (e.g. Fittings)
   const todayStr = new Date().toISOString().split('T')[0];
-  const upcomingAppointments = events.filter(e => 
-    e.date >= todayStr && 
+  const upcomingAppointments = events.filter(e =>
+    e.date >= todayStr &&
     (e.type === 'fitting' || e.type === 'meeting')
   );
 
@@ -145,10 +146,32 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           )}
           <div className={styles.atelierText}>
             <span className={styles.atelierName}>{shop?.name || APP_CONFIG.name}</span>
-            <span className={styles.atelierBadge}>
-              <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
-              Bespoke Atelier
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span className={styles.atelierBadge}>
+                <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
+                Bespoke Atelier
+              </span>
+              {shop && shop.xp !== undefined && shop.xp > 0 && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '100px',
+                    backgroundColor: `${getTierForXp(shop.xp).color}1A`,
+                    color: getTierForXp(shop.xp).color,
+                    border: `1px solid ${getTierForXp(shop.xp).color}40`,
+                  }}
+                  title={`Craft Certified: ${getTierForXp(shop.xp).name}`}
+                >
+                  <Symbol name="workspace_premium" size={12} />
+                  {getTierForXp(shop.xp).name}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -412,8 +435,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <p className={styles.ctaText}>
             Give your own customers this exact world-class live tracking experience. Manage orders, sizes, and payments effortlessly.
           </p>
-          <a href="https://www.mystitchbooks.com" target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
-            Get MyStitchBook
+          <a href={APP_CONFIG.baseUrl} target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
+            Get {APP_CONFIG.name}
             <Symbol name="arrow_forward" size={16} />
           </a>
         </section>

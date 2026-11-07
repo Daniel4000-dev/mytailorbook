@@ -131,6 +131,9 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
         // on this public page; no other billing detail is exposed here.
         subscriptionStatus: isPremium ? 'active' : 'free',
         defaultTrackingLinkEnabled: shopRow.default_tracking_link_enabled ?? true,
+        xp: shopRow.xp ?? 0,
+        streakCurrent: shopRow.streak_current ?? 0,
+        streakBest: shopRow.streak_best ?? 0,
       }
     : null;
 
@@ -419,6 +422,8 @@ export interface PublicPortfolio {
     tagline?: string;
     bio?: string;
     foundedYear?: number;
+    xp?: number;
+    streakCurrent?: number;
   };
   outfits: PortfolioOutfit[];
   /** Every outfit's cover photo, cover-first — only used for the OG/
@@ -455,7 +460,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id, currency')
+    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id, currency, xp, streak_current')
     .eq('slug', slug)
     .single();
   if (shopErr || !shopRow) return null;
@@ -590,6 +595,8 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       tagline: settings.tagline || undefined,
       bio: settings.bio || undefined,
       foundedYear: settings.foundedYear || undefined,
+      xp: shopRow.xp ?? 0,
+      streakCurrent: shopRow.streak_current ?? 0,
     },
     outfits,
     photos,

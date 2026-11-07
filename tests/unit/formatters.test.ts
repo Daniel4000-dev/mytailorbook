@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { APP_CONFIG } from '@/lib/config';
 import {
   formatCurrency,
   formatNumber,
@@ -232,7 +233,7 @@ describe('formatMeasurementsSummary', () => {
     expect(text).toContain('• Waist: 30"');
     expect(text).toContain('• Hips: 42"');
     expect(text).toContain('*Notes:* Prefers slightly loose bust fitting');
-    expect(text).toContain('— via MyTailorBook');
+    expect(text).toContain(`— via ${APP_CONFIG.name}`);
   });
 
   it('handles empty measurements gracefully', () => {

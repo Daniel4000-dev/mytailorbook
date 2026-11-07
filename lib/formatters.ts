@@ -5,6 +5,7 @@
    ============================================================ */
 
 import { PHONE_PREFIX } from './constants';
+import { APP_CONFIG } from './config';
 import type { OrderStatus } from './types';
 
 /**
@@ -54,7 +55,7 @@ export function normalizePhone(phone: string): string {
   if (!phone) return '';
   const isExplicitInternational = phone.startsWith('+');
   let cleaned = phone.replace(/\D/g, '');
-  
+
   if (isExplicitInternational) {
     return cleaned;
   }
@@ -74,11 +75,11 @@ export function normalizePhone(phone: string): string {
 export function formatPhone(phone: string): string {
   if (!phone) return '';
   const normalized = normalizePhone(phone);
-  
+
   if (normalized.startsWith('234') && normalized.length === 13) {
     return `+${normalized.slice(0, 3)} ${normalized.slice(3, 6)} ${normalized.slice(6, 9)} ${normalized.slice(9)}`;
   }
-  
+
   // Generic international fallback format
   return `+${normalized}`;
 }
@@ -241,10 +242,10 @@ export function getOrderProgressMessage(params: {
 
   const formattedBank = bankDetails && (bankDetails.bankName || bankDetails.accountNumber)
     ? [
-        bankDetails.bankName ? `Bank: ${bankDetails.bankName}` : '',
-        bankDetails.accountNumber ? `Account: ${bankDetails.accountNumber}` : '',
-        bankDetails.accountName ? `Name: ${bankDetails.accountName}` : '',
-      ].filter(Boolean).join('\n')
+      bankDetails.bankName ? `Bank: ${bankDetails.bankName}` : '',
+      bankDetails.accountNumber ? `Account: ${bankDetails.accountNumber}` : '',
+      bankDetails.accountName ? `Name: ${bankDetails.accountName}` : '',
+    ].filter(Boolean).join('\n')
     : '';
 
   const cleanIg = instagram ? (instagram.startsWith('@') ? instagram : `@${instagram}`) : '';
@@ -328,7 +329,7 @@ export function formatMeasurementsSummary(params: {
   }
 
   lines.push('');
-  lines.push('— via MyTailorBook');
+  lines.push(`— via ${APP_CONFIG.name}`);
 
   return lines.join('\n');
 }

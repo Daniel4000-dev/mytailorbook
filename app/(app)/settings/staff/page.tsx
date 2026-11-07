@@ -26,6 +26,7 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { formatCurrency } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import RunPayrollSheet from './_components/RunPayrollSheet';
 import styles from './page.module.css';
 
@@ -96,7 +97,7 @@ export default function StaffSettingsPage() {
         showToast('Payroll structure updated', 'success');
         return;
       }
-      await updateStaff(activeStaff.uid, { 
+      await updateStaff(activeStaff.uid, {
         payrollType: editPayrollType,
         payrollAmount: editPayrollType === 'none' ? 0 : Number(editPayrollAmount) || 0
       });
@@ -274,10 +275,10 @@ export default function StaffSettingsPage() {
                       {staff.payrollType === 'piece_rate' && staff.payrollAmount
                         ? `${formatCurrency(staff.payrollAmount, currentShop?.currency)} / piece`
                         : staff.payrollType === 'salary' && staff.payrollAmount
-                        ? `${formatCurrency(staff.payrollAmount, currentShop?.currency)} / wk`
-                        : staff.craftRole === 'apprentice'
-                        ? 'Apprentice Stipend'
-                        : staff.role} · {staff.email}
+                          ? `${formatCurrency(staff.payrollAmount, currentShop?.currency)} / wk`
+                          : staff.craftRole === 'apprentice'
+                            ? 'Apprentice Stipend'
+                            : staff.role} · {staff.email}
                     </span>
                   </span>
                   <Symbol name="chevron_right" size={18} className={styles.chevron} />
@@ -392,8 +393,8 @@ export default function StaffSettingsPage() {
                 <Input
                   label={
                     editPayrollType === 'salary' ? 'Weekly Amount' :
-                    editPayrollType === 'piece_rate' ? 'Amount Per Garment' :
-                    'Percentage (%)'
+                      editPayrollType === 'piece_rate' ? 'Amount Per Garment' :
+                        'Percentage (%)'
                   }
                   type="number"
                   placeholder={editPayrollType === 'percentage' ? 'e.g. 15' : 'e.g. 5000'}
@@ -471,7 +472,7 @@ export default function StaffSettingsPage() {
       <BottomSheet isOpen={isAddSheetOpen} onClose={() => setIsAddSheetOpen(false)} title="Register Employee">
         <form onSubmit={handleAddStaff} className={styles.sheetBody}>
           <Input label="Full Name" placeholder="e.g. Chioma Eze" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input label="Email/Username" type="email" placeholder="e.g. chioma@mystitchbooks.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input label="Email/Username" type="email" placeholder={`e.g. chioma@${APP_CONFIG.domain}`} value={email} onChange={(e) => setEmail(e.target.value)} required />
           <Input label="Temporary Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label className={styles.label}>Role &amp; Specialty</label>
@@ -531,10 +532,10 @@ export default function StaffSettingsPage() {
           </Button>
         </div>
       </BottomSheet>
-      
-      <RunPayrollSheet 
-        isOpen={isPayrollSheetOpen} 
-        onClose={() => setIsPayrollSheetOpen(false)} 
+
+      <RunPayrollSheet
+        isOpen={isPayrollSheetOpen}
+        onClose={() => setIsPayrollSheetOpen(false)}
         staffMembers={staffMembers}
         orders={orders}
         currency={currentShop?.currency || 'NGN'}

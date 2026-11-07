@@ -409,3 +409,118 @@
   transition: opacity 0.2s;
   flex-shrink: 0;
 }
+
+
+/* Badges Tab Grid & Cards */
+.badgeGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.badgeCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.badgeCardUnlocked {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(16, 185, 129, 0.03));
+}
+
+.badgeCardLocked {
+  opacity: 0.72;
+}
+
+.badgeIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.badgeInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.badgeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.badgeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.badgeUnlockedPill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.badgeProgressPill {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
+}
+
+.badgeTagline {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.badgeProgressBar {
+  width: 100%;
+  height: 5px;
+  background: var(--sf-border-light);
+  border-radius: 100px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.badgeProgressFill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.3s ease;
+}
+
+
+.shareBadgeBtn {
+  background: rgba(37, 211, 102, 0.15);
+  color: #25d366;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  border-radius: 6px;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shareBadgeBtn:hover {
+  background: #25d366;
+  color: #ffffff;
+}

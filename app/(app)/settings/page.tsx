@@ -21,6 +21,7 @@ import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
 import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css';
@@ -173,10 +174,10 @@ export default function SettingsPage() {
             {currentShop?.vacationMode
               ? 'Vacation Mode Paused'
               : currentShop?.businessMode === 'rtw'
-              ? 'Ready-to-Wear Active'
-              : currentShop?.businessMode === 'hybrid'
-              ? 'Custom & Ready-Made Active'
-              : 'Custom Orders Active'}
+                ? 'Ready-to-Wear Active'
+                : currentShop?.businessMode === 'hybrid'
+                  ? 'Custom & Ready-Made Active'
+                  : 'Custom Orders Active'}
           </span>
         </div>
 
@@ -209,8 +210,8 @@ export default function SettingsPage() {
               {currentShop?.businessMode === 'rtw'
                 ? 'Ready-to-Wear'
                 : currentShop?.businessMode === 'hybrid'
-                ? 'Custom & Ready-to-Wear'
-                : 'Custom Tailoring'}
+                  ? 'Custom & Ready-to-Wear'
+                  : 'Custom Tailoring'}
             </span>
             {currentShop?.currency && (
               <span className={styles.heroCurrencyBadge}>{currentShop.currency}</span>
@@ -287,7 +288,7 @@ export default function SettingsPage() {
                         : (branch.address || 'Branch')
                     }
                     meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
-                    onClick={() => {}}
+                    onClick={() => { }}
                   />
                 ))}
                 <SettingsRow
@@ -309,7 +310,7 @@ export default function SettingsPage() {
                 <Symbol name="workspace_premium" size={21} className={billingRowStyles.iconGlyph} />
               </div>
               <span className={billingRowStyles.textCol}>
-                <span className={billingRowStyles.label}>MyTailorBook Pro</span>
+                <span className={billingRowStyles.label}>{APP_CONFIG.name} Pro</span>
                 <span className={billingRowStyles.subtitle}>
                   {currentShop?.subscriptionStatus === 'active' && 'Active Subscription'}
                   {currentShop?.subscriptionStatus === 'trialing' && 'Free Trial'}

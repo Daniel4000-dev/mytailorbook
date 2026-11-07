@@ -35,6 +35,7 @@ import {
   MOCK_ORDERS,
 } from '@/lib/mockCustomers';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
 const PAGE_SIZE = 40;
@@ -533,7 +534,7 @@ export default function CustomersPage() {
     );
   }
 
-  const shopInitials = getInitials(currentShop?.name || 'MyTailorBook');
+  const shopInitials = getInitials(currentShop?.name || APP_CONFIG.name);
 
   return (
     <PageLayout header={topBar}>

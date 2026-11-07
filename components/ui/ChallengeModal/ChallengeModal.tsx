@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import Modal from '@/components/ui/Modal/Modal';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
+import { APP_CONFIG } from '@/lib/config';
 import FlameIcon from '@/components/ui/FlameIcon/FlameIcon';
 import { useData } from '@/contexts/DataContext';
 import { getChallengeLeaderboardAction, linkStudioBuddyAction } from '@/app/actions';
 import { CHALLENGE_TASKS, CHALLENGE_GOAL_XP, getTierForXp } from '@/lib/gamification';
+import { evaluateAtelierBadges, countOnTimeDeliveries, countMeasuredCustomers, type AtelierBadge } from '@/lib/badges';
+import StudioStatusCard from '@/components/ui/StudioStatusCard/StudioStatusCard';
 import type { ChallengeLeaderboardEntry } from '@/lib/types';
 import styles from './ChallengeModal.module.css';
 
@@ -17,8 +20,8 @@ interface ChallengeModalProps {
 }
 
 export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps) {
-  const { currentShop } = useData();
-  const [activeTab, setActiveTab] = useState<'leaderboard' | 'buddy' | 'tasks'>('leaderboard');
+  const { currentShop, customers, orders } = useData();
+  const [activeTab, setActiveTab] = useState<'leaderboard' | 'badges' | 'buddy' | 'tasks'>('leaderboard');
   const [leaderboard, setLeaderboard] = useState<ChallengeLeaderboardEntry[]>([]);
   const [userRank, setUserRank] = useState<number>(1);
   const [machinesRemaining, setMachinesRemaining] = useState<number>(3);
@@ -27,11 +30,28 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   const [linkError, setLinkError] = useState<string | null>(null);
   const [linkSuccess, setLinkSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isStatusCardOpen, setIsStatusCardOpen] = useState(false);
 
   const xp = currentShop?.xp || 0;
   const currentTier = getTierForXp(xp);
   const progressPercent = Math.min(100, (xp / CHALLENGE_GOAL_XP) * 100);
   const isPremium = currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing';
+
+  // Compute live badges with strict on-time tracking & measured customer count
+  const evaluatedBadges = evaluateAtelierBadges({
+    xp,
+    streakCurrent: currentShop?.streakCurrent || 0,
+    streakBest: currentShop?.streakBest || 0,
+    totalCustomers: countMeasuredCustomers(customers || []),
+    totalOrders: orders?.length || 0,
+    ordersDelivered: orders?.filter((o) => o.status === 'Delivered').length || 0,
+    fullyPaidOrders: orders?.filter((o) => {
+      const totalPaid = (o.payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+      return totalPaid >= (o.totalBill || 0);
+    }).length || 0,
+    onTimeDeliveries: countOnTimeDeliveries(orders || []),
+    restDaysUsed: currentShop?.restDaysUsedThisWeek || 0,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -68,9 +88,17 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   };
 
   const handleShareReferral = () => {
-    const code = currentShop?.referralCode || 'MYSTITCHBOOK';
+    const code = currentShop?.referralCode || APP_CONFIG.name.toUpperCase();
     const text = encodeURIComponent(
-      `Hello colleague! Join me on MyStitchBook to organize customer measurements and orders. They are giving out 3 Industrial Direct-Drive Sewing Machines to top active designers right now! Sign up with my studio code "${code}" so we both earn +100 bonus Craft Points: https://mystitchbook.com`
+      `Hello colleague! Join me on ${APP_CONFIG.name} to organize customer measurements and orders. They are giving out 3 Industrial Direct-Drive Sewing Machines to top active designers right now! Sign up with my studio code "${code}" so we both earn +100 bonus Craft Points: ${APP_CONFIG.baseUrl}`
+    );
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+  const handleShareBadge = (badge: AtelierBadge) => {
+    const shopName = currentShop?.name || 'My Atelier';
+    const text = encodeURIComponent(
+      `Proud milestone for ${shopName}!\n\nWe just unlocked the "${badge.name}" Badge on ${APP_CONFIG.name}!\nStatus: ${badge.tagline}\nCraft Points: ${xp.toLocaleString()} XP (${currentTier.name})\n\nElevating our craft and honoring every client measurement.`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -78,7 +106,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   const handleNudgeBuddy = () => {
     if (!buddyInfo) return;
     const text = encodeURIComponent(
-      `Good day colleague! My studio has completed our orders on MyStitchBook today. Update your cutting and sewing on the app so our Co-Op Buddy Streak continues and we earn +15 bonus points!`
+      `Good day colleague! My studio has completed our orders on ${APP_CONFIG.name} today. Update your cutting and sewing on the app so our Co-Op Buddy Streak continues and we earn +15 bonus points!`
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
@@ -135,7 +163,14 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
             className={`${styles.tabBtn} ${activeTab === 'leaderboard' ? styles.tabBtnActive : ''}`}
             onClick={() => setActiveTab('leaderboard')}
           >
-            <Symbol name="leaderboard" size={16} /> Leaderboard
+            <Symbol name="leaderboard" size={16} /> Ranks
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'badges' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('badges')}
+          >
+            <Symbol name="emoji_events" size={16} /> Badges
           </button>
           <button
             type="button"
@@ -188,6 +223,80 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'badges' && (
+          <div className={styles.contentCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--sf-text-primary)' }}>
+                  Atelier Crests ({evaluatedBadges.filter((b) => b.unlocked).length} Unlocked)
+                </span>
+                <p style={{ fontSize: '11px', color: 'var(--sf-text-secondary)', margin: '2px 0 0 0' }}>
+                  Milestones that prove craft discipline to your clients
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.shareRefBtn}
+                style={{ padding: '6px 12px', fontSize: '12px' }}
+                onClick={() => setIsStatusCardOpen(true)}
+              >
+                <Symbol name="share" size={14} /> Story Card
+              </button>
+            </div>
+            <div className={styles.badgeGrid}>
+              {evaluatedBadges.map((b) => (
+                <div
+                  key={b.id}
+                  className={`${styles.badgeCard} ${b.unlocked ? styles.badgeCardUnlocked : styles.badgeCardLocked}`}
+                >
+                  <div
+                    className={styles.badgeIconWrap}
+                    style={{
+                      background: b.unlocked ? `${b.iconColor}22` : 'var(--sf-border-light)',
+                      color: b.unlocked ? b.iconColor : 'var(--sf-text-secondary)',
+                      border: b.unlocked ? `1px solid ${b.iconColor}55` : '1px solid var(--sf-border-light)',
+                    }}
+                  >
+                    <Symbol name={b.icon} size={22} style={{ fontVariationSettings: b.unlocked ? "'FILL' 1" : "'FILL' 0" }} />
+                  </div>
+                  <div className={styles.badgeInfo}>
+                    <div className={styles.badgeHeader}>
+                      <span className={styles.badgeName}>{b.name}</span>
+                      {b.unlocked ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className={styles.badgeUnlockedPill}>Unlocked</span>
+                          <button
+                            type="button"
+                            className={styles.shareBadgeBtn}
+                            onClick={() => handleShareBadge(b)}
+                            title="Share on WhatsApp Status"
+                          >
+                            <Symbol name="share" size={13} />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className={styles.badgeProgressPill}>
+                          {b.progress}/{b.maxProgress}
+                        </span>
+                      )}
+                    </div>
+                    <p className={styles.badgeTagline}>{b.tagline}</p>
+                    <div className={styles.badgeProgressBar}>
+                      <div
+                        className={styles.badgeProgressFill}
+                        style={{
+                          width: `${(b.progress / b.maxProgress) * 100}%`,
+                          backgroundColor: b.unlocked ? b.iconColor : 'var(--sf-accent-primary)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -269,6 +378,11 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
           </button>
         </div>
       </div>
+
+      <StudioStatusCard
+        isOpen={isStatusCardOpen}
+        onClose={() => setIsStatusCardOpen(false)}
+      />
     </Modal>
   );
 }

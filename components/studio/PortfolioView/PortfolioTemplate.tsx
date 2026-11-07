@@ -10,6 +10,7 @@ import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import type { PublicPortfolio, PortfolioOutfit } from '@/app/public-actions';
+import { getTierForXp } from '@/lib/xp';
 import { DEFAULT_MOCK_PORTFOLIO } from '@/lib/mockPortfolio';
 import styles from './PortfolioTemplate.module.css';
 
@@ -187,6 +188,14 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
           </div>
           <span className={styles.eyebrow}>Bespoke Tailoring{city ? ` · ${city}` : ''}</span>
           <h1 className={styles.heroName}>{shop.name}</h1>
+          {shop.xp !== undefined && shop.xp > 0 && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', margin: '4px auto 12px auto', padding: '4px 12px', borderRadius: '100px', background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+              <Symbol name="workspace_premium" size={14} style={{ color: getTierForXp(shop.xp).color }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#ffffff', letterSpacing: '0.04em' }}>
+                Craft Certified: {getTierForXp(shop.xp).name}
+              </span>
+            </div>
+          )}
           {shop.tagline && <p className={styles.heroTagline}>{shop.tagline}</p>}
           {whatsappHref && (
             <a
