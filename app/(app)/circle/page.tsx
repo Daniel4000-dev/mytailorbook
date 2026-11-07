@@ -6,7 +6,6 @@ import Link from 'next/link';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
-import { isXpSystemEnabled } from '@/lib/xp';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import { useToast } from '@/contexts/ToastContext';
@@ -89,10 +88,6 @@ function AtelierCircleContent() {
   };
 
   useEffect(() => {
-    if (!isXpSystemEnabled()) {
-      router.replace('/dashboard');
-      return;
-    }
     setLoading(true);
     loadData().finally(() => setLoading(false));
   }, []);
@@ -136,7 +131,7 @@ function AtelierCircleContent() {
     if (!data?.myShop.referralCode) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const shareUrl = `${origin}/circle?connect=${data.myShop.referralCode}`;
-    const msg = `Good day! Join my Tailor Circle on ${APP_CONFIG.name} so our workshops can keep our daily production streaks accountable (+15 XP Co-Op craft rewards). Tap this link to connect with me: ${shareUrl}`;
+    const msg = `Good day! Join my Tailor Circle on ${APP_CONFIG.name} so our workshops can keep our daily production streaks accountable. Tap this link to connect with me: ${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -190,7 +185,7 @@ function AtelierCircleContent() {
       if (res.success) {
         showToast(
           nextIsSabbatical
-            ? `${buddy.name} placed on Sabbatical (0 XP earned while away)`
+            ? `${buddy.name} placed on Sabbatical (streaks paused while away)`
             : `${buddy.name} reactivated in Tailor Circle!`,
           'info'
         );
@@ -278,7 +273,7 @@ function AtelierCircleContent() {
                 </span>
               </div>
               <span className={styles.gaugeMemberBadge}>
-                +{benefits.dailyXpRate} XP / Day Co-Op
+                {benefits.activeMemberCount > 1 ? 'Co-Op Streak Active' : 'Accountability Pod'}
               </span>
             </div>
 
@@ -640,7 +635,7 @@ function AtelierCircleContent() {
               <div className={styles.profileSabbaticalNotice}>
                 <strong>On Sabbatical:</strong> This workshop is temporarily on leave
                 {selectedBuddy.sabbaticalReason ? ` (${selectedBuddy.sabbaticalReason})` : ''}.
-                They earn 0 XP during leave to protect fair co-op streaks. They will resume immediately upon their next craft action.
+                Streaks are paused during leave to protect fair co-op consistency. They will resume immediately upon their next craft action.
               </div>
             )}
 

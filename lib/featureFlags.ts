@@ -33,5 +33,5 @@ export const FEATURE_FLAGS = {
    *  badges, leaderboards, and XP ledger dispatches are completely detached
    *  while core workshop operations, audit logs, and smart notifications run
    *  independently. Flip to true at any time to plug the XP system back in. */
-  xpSystem: true,
+  xpSystem: false,
 } as const;

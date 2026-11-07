@@ -1,7 +1,6 @@
 'use client';
 
 import useSWR from 'swr';
-import { isXpSystemEnabled } from '@/lib/xp';
 import {
   getCircleHubDataAction,
   type CircleHubData,
@@ -10,10 +9,8 @@ import {
 } from '@/app/actions/circle';
 
 export function useCircleHub() {
-  const isEnabled = isXpSystemEnabled();
-
   const { data: res, error, isLoading, mutate } = useSWR(
-    isEnabled ? 'circle-hub-data' : null,
+    'circle-hub-data',
     async () => {
       const result = await getCircleHubDataAction();
       if (result.error) throw new Error(result.error);

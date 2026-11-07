@@ -381,10 +381,9 @@ export async function GET(request: NextRequest) {
     }
 
     // C. Morning Kickstart & Streak Motivation (Tailored separately for Bespoke vs RTW!)
-    const xpEnabledForMorning = isXpSystemEnabled();
     for (const shop of allShops || []) {
       const mode = shopModeMap.get(shop.id) || 'bespoke';
-      const currentStreak = xpEnabledForMorning ? (shop.streak_current || 0) : 0;
+      const currentStreak = shop.streak_current || 0;
 
       const shopActiveOrders = (allActiveOrders || []).filter((o) => o.shop_id === shop.id);
       const bespokeWipCount = shopActiveOrders.filter((o) => !o.is_internal_batch).length;
@@ -986,57 +985,55 @@ export async function GET(request: NextRequest) {
   // Priority 2: Closing-Day "Well Done" Message from MyTailorBook Team (reads from audit_log)
   // =========================================================================
   if (runEvening) {
-    // Priority 1: Streak Protection Nudge (only active when XP/Streak module is enabled)
-    if (isXpSystemEnabled()) {
-      for (const shop of allShops || []) {
-        if ((shop.streak_current || 0) <= 0) continue;
+    // Priority 1: Streak Protection Nudge (independent of XP engine)
+    for (const shop of allShops || []) {
+      if ((shop.streak_current || 0) <= 0) continue;
 
-        const lastCountedStr = shop.streak_last_counted_at
-          ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
-          : null;
+      const lastCountedStr = shop.streak_last_counted_at
+        ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
+        : null;
 
-        if (lastCountedStr === todayStr) continue;
+      if (lastCountedStr === todayStr) continue;
 
-        const mode = shopModeMap.get(shop.id) || 'bespoke';
-        const hasBuddy = Boolean(shop.buddy_shop_id);
-        const streakDays = shop.streak_current || 1;
+      const mode = shopModeMap.get(shop.id) || 'bespoke';
+      const hasBuddy = Boolean(shop.buddy_shop_id);
+      const streakDays = shop.streak_current || 1;
 
-        // Tailor-first authentic closing ritual messages
-        let title = 'Machines off for the night?';
-        let subtitle = `Before closing your shop, protect your ${streakDays}-day streak. Record today's cutting, fabric, or payment in 1 tap.`;
+      // Tailor-first authentic closing ritual messages
+      let title = 'Machines off for the night?';
+      let subtitle = `Before closing your shop, protect your ${streakDays}-day streak. Record today's cutting, fabric, or payment in 1 tap.`;
 
-        if (hasBuddy) {
-          title = 'Protect your Tailor Partner streak!';
-          subtitle = `Your tailor friend is counting on you. Keep your ${streakDays}-day streak going before closing shop tonight.`;
-        } else if (mode === 'rtw') {
-          title = 'Closing the shop?';
-          subtitle = `Keep your ${streakDays}-day streak going. Record today's sale or finished clothes before midnight.`;
-        } else if (streakDays >= 7) {
-          title = 'Saturday is coming fast, Master Tailor!';
-          subtitle = `You have worked ${streakDays} days in a row! Record today's work so your weekend deliveries stay stress-free.`;
-        }
-
-        const alertKey = `system:${shop.id}:${title}`;
-
-        enqueueForShop(shop.id, {
-          alertKey,
-          track: 'universal',
-          basePriority: 10,
-          metricKey: 'streakRemindersSent',
-          params: {
-            shopId: shop.id,
-            category: 'system',
-            tone: 'info',
-            badgeIcon: 'local_fire_department',
-            badgeBg: '#FFEDD5',
-            badgeColor: '#EA580C',
-            title,
-            subtitle,
-            actionLabel: 'Open Dashboard',
-            actionHref: '/dashboard',
-          },
-        });
+      if (hasBuddy) {
+        title = 'Protect your Tailor Partner streak!';
+        subtitle = `Your tailor friend is counting on you. Keep your ${streakDays}-day streak going before closing shop tonight.`;
+      } else if (mode === 'rtw') {
+        title = 'Closing the shop?';
+        subtitle = `Keep your ${streakDays}-day streak going. Record today's sale or finished clothes before midnight.`;
+      } else if (streakDays >= 7) {
+        title = 'Saturday is coming fast, Master Tailor!';
+        subtitle = `You have worked ${streakDays} days in a row! Record today's work so your weekend deliveries stay stress-free.`;
       }
+
+      const alertKey = `system:${shop.id}:${title}`;
+
+      enqueueForShop(shop.id, {
+        alertKey,
+        track: 'universal',
+        basePriority: 10,
+        metricKey: 'streakRemindersSent',
+        params: {
+          shopId: shop.id,
+          category: 'system',
+          tone: 'info',
+          badgeIcon: 'local_fire_department',
+          badgeBg: '#FFEDD5',
+          badgeColor: '#EA580C',
+          title,
+          subtitle,
+          actionLabel: 'Open Dashboard',
+          actionHref: '/dashboard',
+        },
+      });
     }
 
     // Priority 2: Closing-Day "Well Done" Message for active shops today (decoupled via audit_log)

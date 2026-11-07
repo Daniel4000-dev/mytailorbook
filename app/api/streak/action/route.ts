@@ -6,13 +6,7 @@ import { createAtelierNotification } from '@/lib/notifications';
 import { getTierForXp, isXpSystemEnabled } from '@/lib/xp';
 
 export async function POST(req: Request) {
-  if (!isXpSystemEnabled()) {
-    return NextResponse.json({
-      success: true,
-      disabled: true,
-      streak_bumped: false,
-    });
-  }
+  const xpEnabled = isXpSystemEnabled();
 
   try {
     const supabase = await createClient();
@@ -129,7 +123,7 @@ export async function POST(req: Request) {
     // 2. Premium 2x Multiplier
     // -------------------------------------------------------------
     const isPremium = shop.subscription_status === 'active' || shop.subscription_status === 'trialing';
-    let earnedXp = isPremium ? baseReward * 2 : baseReward;
+    let earnedXp = xpEnabled ? (isPremium ? baseReward * 2 : baseReward) : 0;
 
     // -------------------------------------------------------------
     // 3. Referral Proof-of-Work Bonus (+100 XP each)
@@ -210,15 +204,15 @@ export async function POST(req: Request) {
     // 5-8 members: 5 XP
     // 9+ members: 0 XP (disabled)
     let peerXpReward = 0;
-    if (totalPodSize <= 4) {
-      peerXpReward = 15;
-    } else if (totalPodSize <= 8) {
-      peerXpReward = 5;
-    } else {
-      peerXpReward = 0;
+    if (xpEnabled) {
+      if (totalPodSize <= 4) {
+        peerXpReward = 15;
+      } else if (totalPodSize <= 8) {
+        peerXpReward = 5;
+      }
     }
 
-    if (activeBuddyIds.length > 0 && peerXpReward > 0) {
+    if (activeBuddyIds.length > 0) {
       const { data: buddyShops } = await admin
         .from('shops')
         .select('id, name, streak_last_counted_at, buddy_streak_count, vacation_mode')
@@ -235,7 +229,7 @@ export async function POST(req: Request) {
         if (workingBuddiesToday.length > 0 && !shopBuddyActiveToday) {
           buddySynced = true;
           buddyStreakCount += 1;
-          earnedXp += peerXpReward;
+          if (peerXpReward > 0) earnedXp += peerXpReward;
 
           // Update my shop
           await admin.from('shops').update({
@@ -250,15 +244,17 @@ export async function POST(req: Request) {
               buddy_last_active_at: now.toISOString(),
             }).eq('id', wb.id);
 
-            const { data: bFresh } = await admin.from('shops').select('xp').eq('id', wb.id).single();
-            if (bFresh) {
-              await admin.from('shops').update({ xp: (bFresh.xp || 0) + peerXpReward }).eq('id', wb.id);
-              await admin.from('xp_ledger').insert({
-                shop_id: wb.id,
-                amount: peerXpReward,
-                action_type: 'buddy_coop_bonus',
-                description: `Circle Co-Op Bonus with ${shop.name}! (${totalPodSize}-tailor pod)`,
-              });
+            if (peerXpReward > 0) {
+              const { data: bFresh } = await admin.from('shops').select('xp').eq('id', wb.id).single();
+              if (bFresh) {
+                await admin.from('shops').update({ xp: (bFresh.xp || 0) + peerXpReward }).eq('id', wb.id);
+                await admin.from('xp_ledger').insert({
+                  shop_id: wb.id,
+                  amount: peerXpReward,
+                  action_type: 'buddy_coop_bonus',
+                  description: `Circle Co-Op Bonus with ${shop.name}! (${totalPodSize}-tailor pod)`,
+                });
+              }
             }
           }
         }
@@ -376,11 +372,12 @@ export async function POST(req: Request) {
     // -------------------------------------------------------------
     // 8. Commit XP & Ledger Audit
     // -------------------------------------------------------------
-    const updateData: Record<string, unknown> = {
-      xp: totalXp,
-      daily_quests: questsState,
-      referral_reward_claimed: referralBonusAwarded ? true : shop.referral_reward_claimed,
-    };
+    const updateData: Record<string, unknown> = {};
+    if (xpEnabled) {
+      updateData.xp = totalXp;
+      updateData.daily_quests = questsState;
+      if (referralBonusAwarded) updateData.referral_reward_claimed = true;
+    }
 
     if (streakChanged) {
       updateData.streak_current = currentStreak;
@@ -390,9 +387,11 @@ export async function POST(req: Request) {
       updateData.vacation_mode = false;
     }
 
-    await admin.from('shops').update(updateData).eq('id', shop.id);
+    if (Object.keys(updateData).length > 0) {
+      await admin.from('shops').update(updateData).eq('id', shop.id);
+    }
 
-    if (earnedXp > 0) {
+    if (xpEnabled && earnedXp > 0) {
       await admin.from('xp_ledger').insert({
         shop_id: shop.id,
         amount: earnedXp,
@@ -406,7 +405,7 @@ export async function POST(req: Request) {
     // -------------------------------------------------------------
     // 9. Dispatch Rank & Milestone Push Notifications
     // -------------------------------------------------------------
-    if (rankMovedUp) {
+    if (xpEnabled && rankMovedUp) {
       createAtelierNotification({
         shopId: shop.id,
         recipientId: user.id,
@@ -422,7 +421,7 @@ export async function POST(req: Request) {
       }).catch(() => {});
     }
 
-    if (tierUnlocked) {
+    if (xpEnabled && tierUnlocked) {
       createAtelierNotification({
         shopId: shop.id,
         recipientId: user.id,
@@ -463,9 +462,9 @@ export async function POST(req: Request) {
         badgeBg: '#DCFCE7',
         badgeColor: '#16A34A',
         title: 'Studio Buddy Streak Synced!',
-        subtitle: `${shop.name} logged craft activity! Your shared streak is now ${buddyStreakCount} days (+15 XP).`,
-        actionLabel: 'View Leaderboard',
-        actionHref: '/dashboard',
+        subtitle: `${shop.name} logged craft activity! Your shared streak is now ${buddyStreakCount} days.`,
+        actionLabel: 'View Circle',
+        actionHref: '/circle',
       }).catch(() => {});
     }
 

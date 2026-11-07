@@ -47,15 +47,6 @@ export async function emitXpEvent(
   xpReward = 10,
   options?: boolean | XpEventOptions
 ) {
-  if (!isXpSystemEnabled()) {
-    return {
-      success: true,
-      disabled: true,
-      streak_bumped: false,
-      streak_current: undefined,
-    };
-  }
-
   try {
     let triggerCelebration = false;
     let orderData: Record<string, unknown> | undefined;
