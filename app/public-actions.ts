@@ -411,6 +411,7 @@ export interface PublicPortfolio {
     id: string;
     slug: string;
     name: string;
+    currency?: string;
     phone?: string;
     address?: string;
     logoUrl?: string;
@@ -454,7 +455,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id')
+    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id, currency')
     .eq('slug', slug)
     .single();
   if (shopErr || !shopRow) return null;
@@ -581,6 +582,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       id: shopRow.id,
       slug: shopRow.slug,
       name: shopRow.name,
+      currency: shopRow.currency || 'NGN',
       phone: shopRow.phone || undefined,
       address: shopRow.address || undefined,
       logoUrl: shopRow.logo_url || undefined,

@@ -5,7 +5,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
-import { formatCurrency, formatPhone } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import ReceiptActions from './_components/ReceiptActions';
@@ -23,8 +23,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
     return (
       <div className={styles.page}>
         <div className={styles.card}>
-          <h2>Receipt Not Found</h2>
-          <p>This order could not be located.</p>
+          <div className={styles.cardInner} style={{ textAlign: 'center' }}>
+            <h2>Receipt Not Found</h2>
+            <p style={{ marginTop: '8px', color: 'var(--receipt-muted)' }}>
+              This order receipt could not be located. Please check the link or contact your tailor.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -159,9 +163,10 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
             {shop?.phone && (
               <p className={styles.atelierContact}>
                 <a
-                  href={`https://wa.me/${shop.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                    `Hello ${shop.name}, I have a question regarding my receipt for order #${order.id.slice(-8).toUpperCase()}.`
-                  )}`}
+                  href={getWhatsAppLink(
+                    shop.phone,
+                    `Hello ${shop.name || APP_CONFIG.name}, I have a question regarding my receipt for order #${order.id.slice(-8).toUpperCase()}.`
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.waLink}

@@ -110,13 +110,25 @@ export default function CatalogueClient({
     window.open(getWhatsAppLink(shopPhone, text), '_blank');
   };
 
-  const handleCopyPhotoLink = (photo: EnrichedPhoto) => {
+  const handleCopyPhotoLink = async (photo: EnrichedPhoto) => {
     if (typeof window === 'undefined') return;
     const url = `${window.location.origin}${window.location.pathname}?album=${photo.catalogueId}`;
+    if (typeof navigator.canShare === 'function' && navigator.canShare({ url })) {
+      try {
+        await navigator.share({ title: `${shopName} Lookbook`, url });
+        return;
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+      }
+    }
     if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(url);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      } catch {
+        // Fallback
+      }
     }
   };
 

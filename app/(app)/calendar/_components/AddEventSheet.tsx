@@ -149,7 +149,14 @@ export default function AddEventSheet({
       if (sendWhatsAppNotice && selectedCustomer?.whatsappNumber) {
         const timeStr = startTime ? ` at ${startTime}` : '';
         const shopName = currentShop?.name || 'our shop';
-        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your fitting appointment scheduled for ${date}${timeStr}.\n\nShop Address: ${currentShop?.address || 'our shop'}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
+        const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-NG', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        const addrText = currentShop?.address ? `\n\nShop Address: ${currentShop.address}.` : '';
+        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your fitting appointment scheduled for ${formattedDate}${timeStr}.${addrText}\n\nPlease let us know if you need to adjust this timing. See you soon!`;
         window.open(getWhatsAppLink(selectedCustomer.whatsappNumber, msg), '_blank');
       }
 
@@ -181,7 +188,14 @@ export default function AddEventSheet({
       if (sendWhatsAppNotice && selectedCustomer?.whatsappNumber) {
         const timeStr = startTime ? ` at ${startTime}` : '';
         const shopName = currentShop?.name || 'our shop';
-        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your fitting appointment scheduled for ${date}${timeStr}.\n\nShop Address: ${currentShop?.address || 'our shop'}.\n\nPlease let us know if you need to adjust this timing. See you soon!`;
+        const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-NG', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        const addrText = currentShop?.address ? `\n\nShop Address: ${currentShop.address}.` : '';
+        const msg = `Hello ${selectedCustomer.fullName},\n\nWarm reminder from ${shopName} regarding your fitting appointment scheduled for ${formattedDate}${timeStr}.${addrText}\n\nPlease let us know if you need to adjust this timing. See you soon!`;
         window.open(getWhatsAppLink(selectedCustomer.whatsappNumber, msg), '_blank');
       }
 

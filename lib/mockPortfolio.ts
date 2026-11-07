@@ -6,6 +6,7 @@ export const DEFAULT_MOCK_PORTFOLIO: PublicPortfolio = {
     id: 'mock-shop',
     name: 'Savile Row Tailors',
     slug: 'savile-row',
+    currency: 'NGN',
     portfolioAccent: 'indigo',
     bio: 'Rooted in heritage pattern drafting and refined craftsmanship. We craft custom garments that command presence, drape impeccably, and outlive fast fashion cycles.',
     tagline: 'Expert Custom Tailoring & Impeccable Drape',

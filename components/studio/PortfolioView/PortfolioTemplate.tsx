@@ -73,6 +73,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
   const realShop = portfolio.shop;
   const shop = {
     ...realShop,
+    currency: realShop.currency || 'NGN',
     phone: realShop.phone || '+2348030000000',
     bio:
       realShop.bio ||
@@ -128,6 +129,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
 
   useEffect(() => {
     if (storyOutfit) {
+      const priorOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') setStoryOutfit(null);
@@ -137,7 +139,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
       window.addEventListener('keydown', handleKeyDown);
 
       return () => {
-        document.body.style.overflow = '';
+        document.body.style.overflow = priorOverflow;
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
@@ -325,7 +327,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
                     </div>
                     {o.startingPrice && (
                       <span className={styles.outfitTilePrice}>
-                        From {formatCurrency(o.startingPrice, 'NGN')}
+                        From {formatCurrency(o.startingPrice, shop.currency || 'NGN')}
                       </span>
                     )}
                   </div>
@@ -511,7 +513,7 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
                   <div className={styles.caseStudyMaterials}>
                     <span className={styles.caseStudyMetaLabel}>Starting Commission</span>
                     <p className={styles.caseStudyMetaValue}>
-                      {formatCurrency(storyOutfit.startingPrice, 'NGN')}
+                      {formatCurrency(storyOutfit.startingPrice, shop.currency || 'NGN')}
                     </p>
                   </div>
                 )}
