@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
-import { MEASUREMENT_LABELS } from '@/lib/constants';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -125,6 +124,10 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
     (order.images || []).filter((p) => p.stage === status);
 
   const balanceOwed = getBalanceOwed(order);
+  const latestPhoto = (order.images && order.images.length > 0)
+    ? order.images[order.images.length - 1].url
+    : (order.inspirationImages?.[0] || customer?.fabrics?.[0]?.url || null);
+  const deliveredDate = stageDate(order.statusHistory, 'Delivered');
 
   return (
     <div className={styles.page}>
@@ -177,7 +180,19 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
               <Symbol name="verified" size={16} className={styles.orderChipIcon} />
               Order #{order.id.slice(0, 4).toUpperCase()}
             </span>
-            <ShareTrackButton orderTitle={order.orderDetails} shopName={shop?.name} />
+            <ShareTrackButton
+              orderId={order.id}
+              orderTitle={order.orderDetails}
+              shopName={shop?.name || APP_CONFIG.name}
+              shopLogoUrl={shop?.logoUrl || null}
+              customerName={order.customerName}
+              stageHeadline={CLIENT_STAGE_HEADLINES[order.status]}
+              status={order.status}
+              photoUrl={latestPhoto}
+              dueDate={order.dueDate}
+              completedDate={deliveredDate ? deliveredDate.toISOString() : null}
+              isDelivered={isDelivered}
+            />
           </div>
           <h2 className={styles.heroTitle}>
             {isDelivered
@@ -369,29 +384,6 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
               </p>
             )}
           </div>
-
-          {/* Confirmed bespoke measurements disclosure */}
-          {order.measurements && Object.keys(order.measurements).length > 0 && (
-            <details className={styles.measurementsDisclosure}>
-              <summary className={styles.measurementsSummary}>
-                <div className={styles.measurementsSummaryLabel}>
-                  <Symbol name="straighten" size={15} className={styles.measurementsIcon} />
-                  <span>Bespoke Measurements Confirmed ({Object.keys(order.measurements).length})</span>
-                </div>
-                <Symbol name="expand_more" size={16} className={styles.disclosureChevron} />
-              </summary>
-              <div className={styles.measurementsGrid}>
-                {Object.entries(order.measurements).map(([key, val]) => (
-                  <div key={key} className={styles.measurementTile}>
-                    <span className={styles.measurementTileLabel}>
-                      {MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <span className={styles.measurementTileVal}>{val}&quot;</span>
-                  </div>
-                ))}
-              </div>
-            </details>
-          )}
 
           {shop?.phone && (
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sf-border-light)' }}>

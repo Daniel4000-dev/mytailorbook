@@ -1,3 +1,4 @@
+/* ── Share Trigger Button ───────────────────────────────────────── */
 .shareBtn {
   display: inline-flex;
   align-items: center;
@@ -24,4 +25,492 @@
 
 .shareBtn:active {
   transform: scale(0.96);
+}
+
+/* ── Modal Overlay & Container ─────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--sf-bg-overlay, rgba(0, 0, 0, 0.75));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: var(--sf-z-modal, 99999);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sf-space-md, 12px);
+  animation: fadeIn 0.2s ease both;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modalContainer {
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border, rgba(0, 0, 0, 0.12));
+  border-radius: var(--sf-radius-2xl, 24px);
+  width: 100%;
+  max-width: 410px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  animation: scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--sf-border-light);
+  flex-shrink: 0;
+}
+
+.modalHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modalTitle {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.modalCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-container-high, rgba(0, 0, 0, 0.05));
+  color: var(--sf-text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.modalCloseBtn:hover {
+  background: var(--sf-surface-variant);
+  color: var(--sf-text-primary);
+}
+
+.modalCloseBtn:active {
+  transform: scale(0.92);
+}
+
+.modalBody {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  max-height: calc(85dvh - 70px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* ── Story Card Preview Container ─────────────────────────────── */
+.cardPreviewWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Haute-Couture Captured Story Card ────────────────────────── */
+.storyCard {
+  width: 330px;
+  max-width: 100%;
+  border-radius: 20px;
+  background: #0d1117;
+  background: linear-gradient(160deg, #131a26 0%, #090d13 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+  color: #f1f5f9;
+  font-family: var(--sf-font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+}
+
+/* Story Card Header */
+.cardTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cardAtelierBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cardLogoWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.cardLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cardMonogram {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sf-font-heading);
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.cardAtelierText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cardAtelierName {
+  font-family: var(--sf-font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.cardAtelierSub {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cardLiveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #34d399;
+  flex-shrink: 0;
+}
+
+.cardLiveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+}
+
+/* Story Card Garment Info */
+.cardGarmentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cardOrderCode {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #38bdf8;
+}
+
+.cardGarmentTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardClientLabel {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+/* Visual Frame */
+.cardVisualFrame {
+  width: 100%;
+  height: 200px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #05080c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cardArtPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.cardArtIconWrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #34d399;
+}
+
+.cardArtIcon {
+  color: #34d399;
+}
+
+.cardArtTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cardArtSub {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+/* Milestone Capsule */
+.cardMilestoneCapsule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cardMilestoneIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardMilestoneInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cardMilestoneHeadline {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cardMilestoneDate {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+/* Card Luxury Footer */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 9.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.cardFooterBrand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #94a3b8;
+}
+
+.cardFooterIcon {
+  color: #10b981;
+}
+
+.cardFooterWatermark {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* ── Modal Action Group ────────────────────────────────────────── */
+.actionGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.primaryActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: var(--sf-radius-lg, 14px);
+  background: var(--sf-accent-emerald, #059669);
+  color: #ffffff;
+  border: none;
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-sm, 14px);
+  font-weight: var(--sf-weight-bold, 700);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+  min-height: 44px;
+}
+
+.primaryActionBtn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.primaryActionBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.primaryActionBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.secondaryActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: var(--sf-radius-lg, 14px);
+  background: var(--sf-surface-container-high, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-primary);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-xs, 13px);
+  font-weight: var(--sf-weight-semibold, 600);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  min-height: 40px;
+}
+
+.secondaryActionBtn:hover {
+  background: var(--sf-surface-variant);
+  border-color: var(--sf-border);
+}
+
+.secondaryActionBtn:active {
+  transform: scale(0.98);
+}
+
+.downloadNotice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: var(--sf-text-xs, 12px);
+  color: var(--sf-accent-emerald, #059669);
+  font-weight: var(--sf-weight-semibold);
+  margin: 0;
+  text-align: center;
+  animation: fadeIn 0.2s ease both;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modalOverlay,
+  .modalContainer,
+  .downloadNotice {
+    animation: none;
+  }
 }
