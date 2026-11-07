@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
+import { MEASUREMENT_LABELS } from '@/lib/constants';
 import { APP_CONFIG } from '@/lib/config';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -18,9 +19,41 @@ import ShareTrackButton from './_components/ShareTrackButton';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
-// Private-by-link customer page (real names, order details) — must never
-// show up in search results even though it's technically public/unauthed.
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+// Dynamic OpenGraph metadata for luxury social & WhatsApp message previews
+export async function generateMetadata({ params }: { params: Promise<{ orderId: string }> }): Promise<Metadata> {
+  const { orderId } = await params;
+  const view = await getPublicOrderView(orderId);
+  if (!view) {
+    return {
+      title: 'Order Tracking | MyTailorBook',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const { order, shop } = view;
+  const shopName = shop?.name || APP_CONFIG.name;
+  const title = `Tracking: ${order.orderDetails} | ${shopName}`;
+  const description = `Live craftsmanship updates and progress photos for your bespoke garment at ${shopName}.`;
+  const primaryImage = order.images?.[0]?.url || order.inspirationImages?.[0] || shop?.logoUrl;
+
+  return {
+    title,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      ...(primaryImage ? { images: [{ url: primaryImage }] } : {}),
+    },
+    twitter: {
+      card: primaryImage ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      ...(primaryImage ? { images: [primaryImage] } : {}),
+    },
+  };
+}
 
 export const revalidate = 60;
 
@@ -39,8 +72,14 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
     return (
       <div className={styles.page}>
         <div className={styles.errorCard}>
+          <Symbol name="search" size={40} className={styles.errorIcon} />
           <h2 className={styles.errorTitle}>Order Not Found</h2>
-          <p className={styles.errorText}>Please double-check your tracking URL or contact your tailor.</p>
+          <p className={styles.errorText}>
+            We could not locate this bespoke order. Please verify the tracking link provided by your tailor or contact the studio directly.
+          </p>
+          <Link href="/" className={styles.ctaButton} style={{ marginTop: '16px' }}>
+            Go to Homepage
+          </Link>
         </div>
       </div>
     );
@@ -49,9 +88,9 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   const { order, customer, shop } = view;
   const isDelivered = order.status === 'Delivered';
   const [batchSiblings, alreadyRated, events] = await Promise.all([
-    getPublicBatchSiblings(orderId),
-    isDelivered ? hasOrderRatingAction(orderId) : Promise.resolve(false),
-    getPublicOrderEvents(orderId),
+    getPublicBatchSiblings(order.id),
+    isDelivered ? hasOrderRatingAction(order.id) : Promise.resolve(false),
+    getPublicOrderEvents(order.id),
   ]);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
 
@@ -330,6 +369,29 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
               </p>
             )}
           </div>
+
+          {/* Confirmed bespoke measurements disclosure */}
+          {order.measurements && Object.keys(order.measurements).length > 0 && (
+            <details className={styles.measurementsDisclosure}>
+              <summary className={styles.measurementsSummary}>
+                <div className={styles.measurementsSummaryLabel}>
+                  <Symbol name="straighten" size={15} className={styles.measurementsIcon} />
+                  <span>Bespoke Measurements Confirmed ({Object.keys(order.measurements).length})</span>
+                </div>
+                <Symbol name="expand_more" size={16} className={styles.disclosureChevron} />
+              </summary>
+              <div className={styles.measurementsGrid}>
+                {Object.entries(order.measurements).map(([key, val]) => (
+                  <div key={key} className={styles.measurementTile}>
+                    <span className={styles.measurementTileLabel}>
+                      {MEASUREMENT_LABELS[key] || key.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                    <span className={styles.measurementTileVal}>{val}&quot;</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           {shop?.phone && (
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sf-border-light)' }}>

@@ -43,6 +43,10 @@ function formatStageDate(d: Date): string {
   const today = new Date();
   const sameDay = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
   if (sameDay) return 'Today';
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
+  if (isYesterday) return 'Yesterday';
   return d.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 

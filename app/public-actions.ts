@@ -84,6 +84,8 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
     inspirationImages: row.inspiration_images || [],
     statusHistory: row.status_history || [],
     payments: row.payments || [],
+    measurements: row.measurements || undefined,
+    styleName: row.style_name || undefined,
     lastReminderAt: row.last_reminder_at || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -343,14 +345,19 @@ export async function getPublicBatchSiblings(orderIdOrSlug: string): Promise<
   const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
 
-  const { data: order } = await admin.from('orders').select('batch_id').eq('id', orderId).single();
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+  const query = isUuid
+    ? admin.from('orders').select('id, batch_id').eq('id', orderId)
+    : admin.from('orders').select('id, batch_id').eq('slug', orderIdOrSlug);
+  const { data: orderRows } = await query.limit(1);
+  const order = orderRows?.[0];
   if (!order?.batch_id) return [];
 
   const { data: siblings } = await admin
     .from('orders')
     .select('id, order_details, status')
     .eq('batch_id', order.batch_id)
-    .neq('id', orderId)
+    .neq('id', order.id)
     .order('created_at', { ascending: true });
 
   return (siblings || []).map((row) => ({

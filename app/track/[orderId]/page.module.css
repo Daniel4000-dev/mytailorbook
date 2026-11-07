@@ -856,6 +856,86 @@
   flex-shrink: 0;
 }
 
+/* ── Confirmed Bespoke Measurements Disclosure ─────────────── */
+.measurementsDisclosure {
+  margin-top: 14px;
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-surface-container-low);
+  overflow: hidden;
+  transition: all var(--sf-transition-fast);
+}
+
+.measurementsSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  user-select: none;
+}
+
+.measurementsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.measurementsSummaryLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.measurementsIcon {
+  color: var(--sf-accent-emerald);
+}
+
+.disclosureChevron {
+  color: var(--sf-text-secondary);
+  transition: transform var(--sf-transition-fast);
+}
+
+.measurementsDisclosure[open] .disclosureChevron {
+  transform: rotate(180deg);
+}
+
+.measurementsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+}
+
+.measurementTile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-surface-variant);
+  border: 1px solid var(--sf-border-light);
+}
+
+.measurementTileLabel {
+  font-size: 10px;
+  font-weight: var(--sf-weight-semibold);
+  letter-spacing: var(--sf-tracking-caps);
+  text-transform: uppercase;
+  color: var(--sf-text-tertiary);
+}
+
+.measurementTileVal {
+  font-family: var(--sf-font-heading);
+  font-size: 13px;
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+}
+
 /* ── Selected Design & Fabric Reference ────────────────────── */
 .referenceHeader {
   display: flex;
@@ -1029,13 +1109,21 @@
 /* ── Error state ────────────────────────────────────────────── */
 .errorCard {
   max-width: 420px;
-  margin: 20vh auto 0;
+  margin: 15vh auto 0;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-xl);
   padding: var(--sf-space-xl);
   text-align: center;
   box-shadow: var(--sf-shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.errorIcon {
+  color: var(--sf-text-tertiary);
+  margin-bottom: 8px;
 }
 
 .errorTitle {
