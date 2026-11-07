@@ -61,6 +61,25 @@ export async function POST(req: Request) {
       baseReward = 0;
     }
 
+    // Daily Status Share (once per calendar day)
+    if (action === 'shared_status' || action === 'daily_share') {
+      const todayStart = new Date(todayStr + 'T00:00:00Z').toISOString();
+      const { data: existingShare } = await admin
+        .from('xp_ledger')
+        .select('id')
+        .eq('shop_id', shop.id)
+        .eq('action_type', 'shared_status')
+        .gte('created_at', todayStart)
+        .limit(1);
+
+      if (existingShare && existingShare.length > 0) {
+        baseReward = 0;
+        cheatFlagReason = 'daily_share_already_claimed';
+      } else {
+        baseReward = 15;
+      }
+    }
+
     // A. Order Intake Check
     if (action === 'created_order') {
       // Pacing check: ensure at least 45s between rapid order creations
@@ -427,7 +446,7 @@ export async function POST(req: Request) {
         recipientId: user.id,
         category: 'system',
         tone: 'info',
-        badgeIcon: 'military_tech',
+        badgeIcon: 'workspace_premium',
         badgeBg: '#EDE9FE',
         badgeColor: '#7C3AED',
         title: `Rank Unlocked: ${newTier.name}!`,

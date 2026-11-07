@@ -74,6 +74,14 @@ export const CHALLENGE_TASKS: ChallengeTask[] = [
     icon: 'spa',
   },
   {
+    id: 'daily_share',
+    category: 'daily',
+    title: 'Share Daily Status Card',
+    xpReward: 15,
+    description: 'Post your 9:16 shop status card to WhatsApp or Instagram (1x daily)',
+    icon: 'share',
+  },
+  {
     id: 'buddy_coop',
     category: 'growth',
     title: 'Tailor Partner Streak',
