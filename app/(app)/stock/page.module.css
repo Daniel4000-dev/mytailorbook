@@ -362,6 +362,11 @@
     padding: 24px;
     overflow-y: auto;
   }
+
+  .cartItems {
+    max-height: none;
+    overflow-y: visible;
+  }
 }
 
 .cartHeader {
@@ -405,6 +410,8 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .cartItem {

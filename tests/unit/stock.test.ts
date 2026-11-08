@@ -351,7 +351,11 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
               timestamp: expect.any(String),
               id: expect.any(String)
             })
-          ]
+          ],
+          metadata: expect.objectContaining({
+            channel: 'pos_counter',
+            order_type: 'rtw_counter_sale'
+          })
         })
       );
 
@@ -395,6 +399,21 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
         expect.objectContaining({
           customer_name: 'Senator Adeleke',
           order_details: expect.stringContaining('VIP customer fitting')
+        })
+      );
+    });
+
+    it('attaches client directly when customerId is provided', async () => {
+      const res = await processSaleAction('shop-123', sampleItems, 'pos', 'user-1', {
+        customerId: 'cust-direct-123',
+        customerName: 'Chief Okonkwo'
+      });
+
+      expect(res.success).toBe(true);
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customer_id: 'cust-direct-123',
+          customer_name: 'Chief Okonkwo'
         })
       );
     });

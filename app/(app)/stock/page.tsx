@@ -299,13 +299,15 @@ export default function StockPage() {
       return;
     }
 
+    const existing = cart.find(p => p.goodId === item.id);
+    if (existing && existing.quantity >= item.quantity) {
+      showToast(`Only ${item.quantity} available on rack`, 'error');
+      return;
+    }
+
     setCart(prev => {
-      const existing = prev.find(p => p.goodId === item.id);
-      if (existing) {
-        if (existing.quantity >= item.quantity) {
-          showToast(`Only ${item.quantity} available on rack`, 'error');
-          return prev;
-        }
+      const match = prev.find(p => p.goodId === item.id);
+      if (match) {
         return prev.map(p => p.goodId === item.id ? { ...p, quantity: p.quantity + 1 } : p);
       }
       return [...prev, { goodId: item.id, quantity: 1, priceAtSale: item.price, name: item.name, size: item.size }];
@@ -327,22 +329,21 @@ export default function StockPage() {
   };
 
   const updateCartQuantity = (goodId: string, delta: number) => {
-    setCart(prev => {
-      const existing = prev.find(p => p.goodId === goodId);
-      if (!existing) return prev;
-      const targetGood = stock.find(s => s.id === goodId);
-      const maxStock = targetGood ? targetGood.quantity : existing.quantity;
+    const existing = cart.find(p => p.goodId === goodId);
+    if (!existing) return;
+    const targetGood = stock.find(s => s.id === goodId);
+    const maxStock = targetGood ? targetGood.quantity : existing.quantity;
 
-      const newQty = existing.quantity + delta;
-      if (newQty <= 0) {
-        return prev.filter(p => p.goodId !== goodId);
-      }
-      if (newQty > maxStock) {
-        showToast('Not enough stock on rack', 'error');
-        return prev;
-      }
-      return prev.map(p => p.goodId === goodId ? { ...p, quantity: newQty } : p);
-    });
+    const newQty = existing.quantity + delta;
+    if (newQty <= 0) {
+      setCart(prev => prev.filter(p => p.goodId !== goodId));
+      return;
+    }
+    if (newQty > maxStock) {
+      showToast('Not enough stock on rack', 'error');
+      return;
+    }
+    setCart(prev => prev.map(p => p.goodId === goodId ? { ...p, quantity: newQty } : p));
   };
 
   const openEdit = (item: FinishedGood) => {
@@ -449,7 +450,7 @@ export default function StockPage() {
   };
 
   const handleCheckout = async () => {
-    if (!currentShop || !user || cart.length === 0) return;
+    if (!currentShop || !user || cart.length === 0 || processing) return;
 
     if (customerMode === 'attach' && !customerNameInput.trim()) {
       showToast('Please enter the client name or switch to Walk-in Guest', 'error');
@@ -457,7 +458,12 @@ export default function StockPage() {
     }
 
     setProcessing(true);
+    const matchedCustomer = customerMode === 'attach' && customerNameInput.trim()
+      ? (customers || []).find(c => c.fullName.toLowerCase() === customerNameInput.trim().toLowerCase())
+      : null;
+
     const saleOptions = {
+      customerId: matchedCustomer?.id,
       customerName: customerMode === 'attach' && customerNameInput.trim() ? customerNameInput.trim() : 'Retail Walk-In',
       customerPhone: customerMode === 'attach' && customerPhoneInput.trim() ? customerPhoneInput.trim() : undefined,
       discountAmount: cappedDiscount > 0 ? cappedDiscount : undefined,
@@ -955,6 +961,7 @@ export default function StockPage() {
       <BottomSheet
         isOpen={checkoutOpen}
         onClose={() => {
+          if (processing) return;
           if (completedSale) {
             handleNewSale();
           } else {
@@ -1200,6 +1207,7 @@ export default function StockPage() {
               <Button
                 variant="primary"
                 loading={processing}
+                disabled={processing}
                 onClick={handleCheckout}
                 style={{ width: '100%', marginTop: '8px' }}
               >

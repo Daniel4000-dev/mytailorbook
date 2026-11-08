@@ -264,6 +264,19 @@ export async function processSaleAction(
   let customerName = options?.customerName?.trim() || 'Retail Walk-In';
   let customerPhone = options?.customerPhone?.trim() || '';
 
+  // If customerId is directly passed, populate customer details if needed
+  if (customerId && (!customerPhone || customerName === 'Retail Walk-In')) {
+    const { data: directCust } = await supabase
+      .from('customers')
+      .select('id, full_name, whatsapp_number')
+      .eq('id', customerId)
+      .maybeSingle();
+    if (directCust) {
+      customerName = directCust.full_name;
+      customerPhone = directCust.whatsapp_number;
+    }
+  }
+
   // If customerId is not directly passed, look up or create client
   if (!customerId) {
     const rawName = options?.customerName?.trim();
@@ -354,6 +367,10 @@ export async function processSaleAction(
     }
   }
 
+  if (!customerId) {
+    return { error: 'Unable to assign customer to this showroom order. Please verify your shop settings.' };
+  }
+
   // Look up cashier display name
   let cashierName = 'Showroom Cashier';
   if (cashierId) {
@@ -405,7 +422,20 @@ export async function processSaleAction(
       timestamp: nowIso
     }],
     is_internal_batch: false,
-    payments: paymentRecords
+    payments: paymentRecords,
+    metadata: {
+      channel: 'pos_counter',
+      sales_channel: 'pos_counter',
+      order_type: 'rtw_counter_sale',
+      items: consolidatedItems.map(i => ({
+        goodId: i.goodId,
+        name: i.name,
+        size: i.size,
+        quantity: i.quantity,
+        priceAtSale: i.priceAtSale
+      })),
+      discountAmount: discount
+    }
   }).select('id').single();
 
   if (orderError) return { error: orderError.message };

@@ -92,7 +92,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
           <section className={styles.billTo}>
             <span className={styles.sectionLabel}>Billed To</span>
             <span className={styles.customerName}>{order.customerName}</span>
-            {customer && <span className={styles.customerPhone}>{formatPhone(customer.whatsappNumber)}</span>}
+            {customer &&
+              customer.whatsappNumber &&
+              !customer.whatsappNumber.startsWith('000000000') &&
+              !customer.whatsappNumber.startsWith('23400') && (
+                <span className={styles.customerPhone}>{formatPhone(customer.whatsappNumber)}</span>
+              )}
           </section>
 
           <div className={styles.dividerDashed} />
