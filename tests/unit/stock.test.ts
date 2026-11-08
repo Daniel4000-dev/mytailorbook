@@ -7,8 +7,10 @@ import {
   deleteStockGarmentAction,
   getStockAction,
   processSaleAction,
-  getShowroomFinancialsAction
+  getShowroomFinancialsAction,
+  getPublicShowroomStockAction
 } from '@/app/actions/stock';
+import { formatShowroomWhatsAppOrderMessage } from '@/lib/formatters';
 
 // Mock next/cache
 vi.mock('next/cache', () => ({
@@ -511,6 +513,57 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       expect(res.data?.totalPieces).toBe(4);
       expect(res.data?.retailValuation).toBe(140000); // 4 * 35000
       expect(res.data?.costValuation).toBe(72000); // 4 * 18000
+    });
+  });
+
+  describe('formatShowroomWhatsAppOrderMessage', () => {
+    it('formats a clean WhatsApp reservation message without accessories', () => {
+      const msg = formatShowroomWhatsAppOrderMessage({
+        shopName: 'Victoria Atelier',
+        styleName: 'Emerald Silk Boubou',
+        size: 'L',
+        price: 45000,
+        currency: 'NGN',
+        publicUrl: 'https://mytailorbook.com/catalogue/victoria?view=rack&item=item-1'
+      });
+
+      expect(msg).toContain('Victoria Atelier');
+      expect(msg).toContain('Emerald Silk Boubou (Size: L)');
+      expect(msg).toContain('45,000');
+      expect(msg).toContain('Ensemble Total: ₦45,000');
+      expect(msg).toContain('Reference: https://mytailorbook.com/catalogue/victoria?view=rack&item=item-1');
+      expect(msg).toContain('available for pickup or delivery?');
+    });
+
+    it('formats ensemble order with multiple paired accessories and dynamic sum', () => {
+      const msg = formatShowroomWhatsAppOrderMessage({
+        shopName: 'Kano Royal Tailors',
+        styleName: 'Navy Agbada 3-Piece',
+        size: 'XL',
+        price: 85000,
+        currency: 'NGN',
+        accessories: [
+          { name: 'Embroidered Fila Cap', price: 15000 },
+          { name: 'Coral Beads Wristlet', price: 10000 }
+        ]
+      });
+
+      expect(msg).toContain('Navy Agbada 3-Piece (Size: XL)');
+      expect(msg).toContain('Style With Accessories:');
+      expect(msg).toContain('+ Embroidered Fila Cap - ₦15,000');
+      expect(msg).toContain('+ Coral Beads Wristlet - ₦10,000');
+      // 85000 + 15000 + 10000 = 110000
+      expect(msg).toContain('Ensemble Total: ₦110,000');
+    });
+  });
+
+  describe('getPublicShowroomStockAction', () => {
+    it('validates missing slug or shop parameter', async () => {
+      const res = await getPublicShowroomStockAction('');
+      expect('error' in res).toBe(true);
+      if ('error' in res) {
+        expect(res.error).toContain('required');
+      }
     });
   });
 });

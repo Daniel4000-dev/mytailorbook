@@ -520,6 +520,32 @@ export default function StockPage() {
     window.open(ROUTES.receipt(completedSale.orderId), '_blank');
   };
 
+  const handleShareShowroom = async () => {
+    if (!currentShop) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const slug = currentShop.slug || currentShop.id;
+    const showroomUrl = `${origin}/catalogue/${slug}?view=rack`;
+    const shareText = `Browse in-stock Ready-to-Wear pieces and accessories on our live rack at ${currentShop.name}: ${showroomUrl}`;
+
+    if (typeof navigator.canShare === 'function' && navigator.canShare({ url: showroomUrl })) {
+      try {
+        await navigator.share({
+          title: `${currentShop.name} Showroom Rack`,
+          text: shareText,
+          url: showroomUrl
+        });
+        return;
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+      }
+    }
+
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(showroomUrl);
+      showToast('Showroom rack link copied to clipboard', 'success');
+    }
+  };
+
   if (!dataLoaded || authLoading || loading) return null;
 
   const currency = currentShop?.currency || 'NGN';
@@ -531,14 +557,24 @@ export default function StockPage() {
         <TopBar
           title="Showroom & Stock"
           rightAction={
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setAddGarmentOpen(true)}
-              icon={<Symbol name="add" size={16} />}
-            >
-              Add Garment
-            </Button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleShareShowroom}
+                icon={<Symbol name="share" size={16} />}
+              >
+                Share Rack
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setAddGarmentOpen(true)}
+                icon={<Symbol name="add" size={16} />}
+              >
+                Add Garment
+              </Button>
+            </div>
           }
         />
       }

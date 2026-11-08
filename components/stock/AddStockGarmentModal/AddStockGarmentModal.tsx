@@ -27,6 +27,7 @@ const PRESET_CATEGORIES = [
   'Two-Piece',
   'Dress',
   'Shirt',
+  'Accessory',
   'Traditional',
   'Casual'
 ];
@@ -53,6 +54,7 @@ export default function AddStockGarmentModal({
   const [fabric, setFabric] = useState('');
   const [rackLocation, setRackLocation] = useState('');
   const [sku, setSku] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [sizeMode, setSizeMode] = useState<'letter' | 'numeric' | 'free'>('letter');
   const [customSizes, setCustomSizes] = useState<string[]>([]);
   const [showAddCustomSize, setShowAddCustomSize] = useState(false);
@@ -79,6 +81,7 @@ export default function AddStockGarmentModal({
       setFabric('');
       setRackLocation('');
       setSku('');
+      setImageUrl('');
       setSizeMode('letter');
       setCustomSizes([]);
       setShowAddCustomSize(false);
@@ -255,6 +258,7 @@ export default function AddStockGarmentModal({
         fabric: fabric.trim() || undefined,
         rackLocation: rackLocation.trim() || undefined,
         sku: sku.trim() || undefined,
+        imageUrl: imageUrl.trim() || undefined,
         sizes: sizesToSubmit
       });
 
@@ -419,6 +423,14 @@ export default function AddStockGarmentModal({
             onChange={e => setSku(e.target.value)}
           />
         </div>
+
+        {/* Showroom Image URL */}
+        <Input
+          label="Showroom Photo URL (Optional)"
+          placeholder="https://... photo link for online showroom rack"
+          value={imageUrl}
+          onChange={e => setImageUrl(e.target.value)}
+        />
 
         {/* Showroom Sizing Matrix */}
         <div className={styles.section}>

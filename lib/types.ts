@@ -613,6 +613,8 @@ export interface FinishedGoodMetadata {
   rackLocation?: string;
   parentGarmentName?: string;
   sku?: string;
+  imageUrl?: string;
+  pairedAccessoryIds?: string[];
   [key: string]: any;
 }
 
@@ -638,7 +640,53 @@ export interface AddStockGarmentInput {
   fabric?: string;
   rackLocation?: string;
   sku?: string;
+  imageUrl?: string;
+  pairedAccessoryIds?: string[];
   sizes: Array<{ size: string; quantity: number }>;
+}
+
+export interface PublicShowroomSize {
+  id: string;
+  size: string;
+  quantity: number;
+}
+
+export interface PublicShowroomAccessory {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  quantity: number;
+  color?: string;
+}
+
+export interface PublicShowroomItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  color?: string;
+  fabric?: string;
+  rackLocation?: string;
+  imageUrl?: string;
+  totalQuantity: number;
+  sizes: PublicShowroomSize[];
+  isAccessory: boolean;
+  pairedAccessories?: PublicShowroomAccessory[];
+}
+
+export interface PublicShowroomPayload {
+  shop: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string | null;
+    phone?: string | null;
+    currency: string;
+    address?: string | null;
+  };
+  items: PublicShowroomItem[];
+  accessories: PublicShowroomAccessory[];
 }
 
 export interface PosSale {

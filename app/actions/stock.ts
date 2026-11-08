@@ -1,7 +1,15 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { FinishedGood, PosSale, AddStockGarmentInput, PaymentMethod } from '@/lib/types';
+import {
+  FinishedGood,
+  PosSale,
+  AddStockGarmentInput,
+  PaymentMethod,
+  PublicShowroomPayload,
+  PublicShowroomItem,
+  PublicShowroomAccessory
+} from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { normalizePhone } from '@/lib/formatters';
 import { logAudit } from '@/lib/audit';
@@ -78,6 +86,8 @@ export async function addStockGarmentsAction(
       costPrice: typeof input.costPrice === 'number' && input.costPrice >= 0 ? input.costPrice : undefined,
       rackLocation: input.rackLocation?.trim() || undefined,
       sku: input.sku?.trim() || undefined,
+      imageUrl: input.imageUrl?.trim() || undefined,
+      pairedAccessoryIds: Array.isArray(input.pairedAccessoryIds) ? input.pairedAccessoryIds : undefined,
       parentGarmentName: cleanName
     };
 
@@ -611,5 +621,179 @@ export async function getShowroomFinancialsAction(
   } catch (err: any) {
     console.error('getShowroomFinancialsAction error:', err);
     return { error: err.message || 'Failed to fetch showroom financials' };
+  }
+}
+
+export async function getPublicShowroomStockAction(
+  slugOrShopId: string
+): Promise<PublicShowroomPayload | { error: string }> {
+  try {
+    if (!slugOrShopId || !slugOrShopId.trim()) {
+      return { error: 'Shop slug or identifier is required' };
+    }
+
+    const cleanParam = slugOrShopId.trim();
+    const supabase = await createClient();
+
+    // Query shop by slug or ID
+    const { data: shopRow, error: shopErr } = await supabase
+      .from('shops')
+      .select('id, name, slug, logo_url, phone, currency, address')
+      .or(`slug.eq.${cleanParam},id.eq.${cleanParam}`)
+      .maybeSingle();
+
+    if (shopErr || !shopRow) {
+      return { error: 'Shop not found' };
+    }
+
+    // Fetch active showroom inventory
+    const { data: rawStock, error: stockErr } = await supabase
+      .from('finished_goods')
+      .select('*')
+      .eq('shop_id', shopRow.id)
+      .order('name', { ascending: true });
+
+    if (stockErr) {
+      return { error: stockErr.message };
+    }
+
+    const stockRows = rawStock || [];
+
+    const ACCESSORY_KEYWORDS = [
+      'accessory',
+      'accessories',
+      'cap',
+      'fila',
+      'aso-oke',
+      'cufflink',
+      'bead',
+      'stick',
+      'shoe',
+      'slide',
+      'sandal',
+      'pocket square',
+      'brooch'
+    ];
+
+    const isAccessoryItem = (category?: string, name?: string) => {
+      const cat = (category || '').toLowerCase();
+      const n = (name || '').toLowerCase();
+      return ACCESSORY_KEYWORDS.some(k => cat.includes(k) || n.includes(k));
+    };
+
+    // Group styles by name
+    const styleGroups = new Map<string, {
+      id: string;
+      name: string;
+      category: string;
+      price: number;
+      color?: string;
+      fabric?: string;
+      rackLocation?: string;
+      imageUrl?: string;
+      totalQuantity: number;
+      sizes: Array<{ id: string; size: string; quantity: number }>;
+      isAccessory: boolean;
+      pairedAccessoryIds?: string[];
+    }>();
+
+    for (const row of stockRows) {
+      const cleanName = (row.name || '').trim();
+      const key = cleanName.toLowerCase();
+      const rowPrice = Number(row.price) || 0;
+      const rowQty = Number(row.quantity) || 0;
+      const meta = row.metadata || {};
+      const cat = meta.category || (isAccessoryItem(meta.category, cleanName) ? 'Accessory' : 'Showroom Piece');
+      const isAcc = isAccessoryItem(cat, cleanName);
+
+      const existing = styleGroups.get(key);
+      if (existing) {
+        existing.totalQuantity += Math.max(0, rowQty);
+        existing.sizes.push({
+          id: row.id,
+          size: row.size || 'Free Size',
+          quantity: Math.max(0, rowQty)
+        });
+        if (!existing.imageUrl && meta.imageUrl) {
+          existing.imageUrl = meta.imageUrl;
+        }
+      } else {
+        styleGroups.set(key, {
+          id: row.id,
+          name: cleanName,
+          category: cat,
+          price: rowPrice,
+          color: meta.color || undefined,
+          fabric: meta.fabric || undefined,
+          rackLocation: meta.rackLocation || undefined,
+          imageUrl: meta.imageUrl || undefined,
+          totalQuantity: Math.max(0, rowQty),
+          sizes: [{
+            id: row.id,
+            size: row.size || 'Free Size',
+            quantity: Math.max(0, rowQty)
+          }],
+          isAccessory: isAcc,
+          pairedAccessoryIds: Array.isArray(meta.pairedAccessoryIds) ? meta.pairedAccessoryIds : undefined
+        });
+      }
+    }
+
+    // Separate apparel styles and standalone accessories
+    const allStyles = Array.from(styleGroups.values());
+    const accessories: PublicShowroomAccessory[] = allStyles
+      .filter(s => s.isAccessory)
+      .map(acc => ({
+        id: acc.id,
+        name: acc.name,
+        price: acc.price,
+        imageUrl: acc.imageUrl,
+        quantity: acc.totalQuantity,
+        color: acc.color
+      }));
+
+    const apparelItems: PublicShowroomItem[] = allStyles
+      .filter(s => !s.isAccessory)
+      .map(item => {
+        let paired: PublicShowroomAccessory[] = [];
+        if (item.pairedAccessoryIds && item.pairedAccessoryIds.length > 0) {
+          paired = accessories.filter(a => item.pairedAccessoryIds!.includes(a.id));
+        }
+        if (paired.length === 0 && accessories.length > 0) {
+          paired = accessories.slice(0, 3);
+        }
+
+        return {
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          price: item.price,
+          color: item.color,
+          fabric: item.fabric,
+          rackLocation: item.rackLocation,
+          imageUrl: item.imageUrl,
+          totalQuantity: item.totalQuantity,
+          sizes: item.sizes,
+          isAccessory: false,
+          pairedAccessories: paired
+        };
+      });
+
+    return {
+      shop: {
+        id: shopRow.id,
+        name: shopRow.name,
+        slug: shopRow.slug,
+        logoUrl: shopRow.logo_url,
+        phone: shopRow.phone,
+        currency: shopRow.currency || 'NGN',
+        address: shopRow.address
+      },
+      items: apparelItems,
+      accessories
+    };
+  } catch (err: any) {
+    console.error('getPublicShowroomStockAction error:', err);
+    return { error: err.message || 'Failed to fetch public showroom stock' };
   }
 }

@@ -434,4 +434,46 @@ export function getBirthdayGreeting(customerName: string, discountPercent: numbe
   );
 }
 
+/**
+ * Formats a WhatsApp order inquiry message for ready-to-wear showroom pieces with optional accessories.
+ */
+export function formatShowroomWhatsAppOrderMessage(params: {
+  shopName: string;
+  styleName: string;
+  size: string;
+  price: number;
+  currency?: string;
+  accessories?: Array<{ name: string; price: number }>;
+  publicUrl?: string;
+}): string {
+  const currencyCode = params.currency || 'NGN';
+  const formatAmt = (val: number) => formatCurrency(val, currencyCode);
+
+  let total = params.price;
+  const lines: string[] = [
+    `Hello ${params.shopName}, I am browsing your showroom rack!`,
+    '',
+    `I would like to reserve:`,
+    `* ${params.styleName} (Size: ${params.size}) - ${formatAmt(params.price)}`,
+  ];
+
+  if (params.accessories && params.accessories.length > 0) {
+    lines.push('', `Style With Accessories:`);
+    for (const acc of params.accessories) {
+      total += acc.price;
+      lines.push(`+ ${acc.name} - ${formatAmt(acc.price)}`);
+    }
+  }
+
+  lines.push('', `Ensemble Total: ${formatAmt(total)}`);
+
+  if (params.publicUrl) {
+    lines.push(`Reference: ${params.publicUrl}`);
+  }
+
+  lines.push('', `Is this ensemble currently available for pickup or delivery?`);
+
+  return lines.join('\n');
+}
+
 
