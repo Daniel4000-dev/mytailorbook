@@ -1,0 +1,26 @@
+# Native mobile platforms (built separately via Capacitor)
+android/
+ios/
+capacitor.config.ts
+
+# Local Python virtual environment
+venv/
+.venv/
+__pycache__/
+
+# Unit and integration tests
+tests/
+.github/
+
+# Local artifacts, logs, and demos
+demo-video/
+lint-errors.json
+*.log
+.DS_Store
+
+# Documentation & Markdown
+*.md
+docs/
+
+# Local env overrides
+.env*.local
