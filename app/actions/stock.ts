@@ -255,8 +255,8 @@ export async function processSaleAction(
     }
   }
 
-  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.priceAtSale), 0);
-  const discount = Math.max(0, options?.discountAmount || 0);
+  const subtotal = Math.round(items.reduce((sum, item) => sum + (item.quantity * item.priceAtSale), 0));
+  const discount = Math.min(subtotal, Math.max(0, Math.round(options?.discountAmount || 0)));
   const totalAmount = Math.max(0, subtotal - discount);
   const details = items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ');
 

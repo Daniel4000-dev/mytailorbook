@@ -76,8 +76,50 @@ export default function StockPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
   const [viewMode, setViewMode] = useState<'grouped' | 'all'>('grouped');
 
-  // Cart for POS
-  const [cart, setCart] = useState<ProcessSaleItem[]>([]);
+  // Cart for POS (persisted in sessionStorage to prevent loss on mobile screen lock/refresh)
+  const [cart, setCart] = useState<ProcessSaleItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = sessionStorage.getItem('mtb_pos_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (cart.length > 0) {
+        sessionStorage.setItem('mtb_pos_cart', JSON.stringify(cart));
+      } else {
+        sessionStorage.removeItem('mtb_pos_cart');
+      }
+    } catch {}
+  }, [cart]);
+
+  // Reconcile cart items against freshly loaded stock
+  useEffect(() => {
+    if (stock.length > 0 && cart.length > 0) {
+      setCart(prev => {
+        let changed = false;
+        const reconciled = prev.map(item => {
+          const live = stock.find(s => s.id === item.goodId);
+          if (!live || live.quantity <= 0) {
+            changed = true;
+            return null;
+          }
+          if (item.quantity > live.quantity) {
+            changed = true;
+            return { ...item, quantity: live.quantity };
+          }
+          return item;
+        }).filter(Boolean) as ProcessSaleItem[];
+
+        return changed ? reconciled : prev;
+      });
+    }
+  }, [stock]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pos');
   const [processing, setProcessing] = useState(false);
