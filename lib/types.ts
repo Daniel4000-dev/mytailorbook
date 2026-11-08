@@ -605,6 +605,17 @@ export interface SizeChart {
   updatedAt: string;
 }
 
+export interface FinishedGoodMetadata {
+  category?: string;
+  color?: string;
+  fabric?: string;
+  costPrice?: number;
+  rackLocation?: string;
+  parentGarmentName?: string;
+  sku?: string;
+  [key: string]: any;
+}
+
 export interface FinishedGood {
   id: string;
   shopId: string;
@@ -612,8 +623,22 @@ export interface FinishedGood {
   size: string;
   quantity: number;
   price: number;
+  sku?: string;
+  metadata?: FinishedGoodMetadata;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+}
+
+export interface AddStockGarmentInput {
+  name: string;
+  category?: string;
+  price: number;
+  costPrice?: number;
+  color?: string;
+  fabric?: string;
+  rackLocation?: string;
+  sku?: string;
+  sizes: Array<{ size: string; quantity: number }>;
 }
 
 export interface PosSale {

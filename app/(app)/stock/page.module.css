@@ -15,11 +15,88 @@
   flex: 1;
   padding: 16px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.controlsBar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filterChips {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.filterChips::-webkit-scrollbar {
+  display: none;
+}
+
+.filterChip {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: var(--sf-radius-full, 9999px);
+  border: 1px solid var(--sf-border-subtle);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterChip:hover {
+  border-color: var(--sf-border-light);
+  color: var(--sf-text-primary);
+}
+
+.filterChipActive {
+  background: var(--sf-text-primary);
+  border-color: var(--sf-text-primary);
+  color: var(--sf-bg-surface);
+}
+
+.categoryBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-accent-primary);
+  margin-bottom: 2px;
+}
+
+.metaRow {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+.badgeLowStock {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.badgeOutOfStock {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.editActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
 

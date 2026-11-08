@@ -1,29 +1,83 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { FinishedGood, PosSale } from '@/lib/types';
+import { FinishedGood, PosSale, AddStockGarmentInput } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 export async function getStockAction(shopId: string): Promise<FinishedGood[] | { error: string }> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('finished_goods').select('*').eq('shop_id', shopId).order('name', { ascending: true });
+  const { data, error } = await supabase
+    .from('finished_goods')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('created_at', { ascending: false });
+
   if (error) return { error: error.message };
-  return data.map(row => ({
+
+  return (data || []).map(row => ({
     id: row.id,
     shopId: row.shop_id,
     name: row.name,
     size: row.size,
     quantity: row.quantity,
-    price: row.price,
-    sku: row.sku || undefined,
+    price: Number(row.price) || 0,
+    sku: row.sku || row.metadata?.sku || undefined,
+    metadata: row.metadata || {},
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at || undefined
   }));
+}
+
+export async function addStockGarmentsAction(
+  shopId: string,
+  input: AddStockGarmentInput
+): Promise<{ success?: boolean; count?: number; error?: string }> {
+  if (!shopId) return { error: 'Shop ID is required' };
+  if (!input.name || !input.name.trim()) return { error: 'Garment style name is required' };
+  if (typeof input.price !== 'number' || input.price < 0) return { error: 'Valid selling price is required' };
+
+  const validSizes = (input.sizes || []).filter(s => s && s.size && s.size.trim() && s.quantity > 0);
+  if (validSizes.length === 0) {
+    return { error: 'Please specify at least one size with quantity greater than zero' };
+  }
+
+  const cleanName = input.name.trim();
+  const rows = validSizes.map(s => ({
+    shop_id: shopId,
+    name: cleanName,
+    size: s.size.trim(),
+    quantity: Math.max(0, Math.floor(s.quantity)),
+    price: input.price,
+    metadata: {
+      category: input.category?.trim() || undefined,
+      color: input.color?.trim() || undefined,
+      fabric: input.fabric?.trim() || undefined,
+      costPrice: typeof input.costPrice === 'number' && input.costPrice >= 0 ? input.costPrice : undefined,
+      rackLocation: input.rackLocation?.trim() || undefined,
+      sku: input.sku?.trim() || undefined,
+      parentGarmentName: cleanName
+    }
+  }));
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('finished_goods')
+    .insert(rows)
+    .select('id');
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/stock');
+  return { success: true, count: data?.length || rows.length };
 }
 
 export async function updateStockPriceAction(id: string, price: number): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { error } = await supabase.from('finished_goods').update({ price, updated_at: new Date().toISOString() }).eq('id', id);
+  const { error } = await supabase
+    .from('finished_goods')
+    .update({ price })
+    .eq('id', id);
+
   if (error) return { error: error.message };
   revalidatePath('/stock');
   return {};
@@ -31,10 +85,26 @@ export async function updateStockPriceAction(id: string, price: number): Promise
 
 export async function updateStockQuantityAction(id: string, quantity: number): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { error } = await supabase.from('finished_goods').update({ quantity, updated_at: new Date().toISOString() }).eq('id', id);
+  const { error } = await supabase
+    .from('finished_goods')
+    .update({ quantity: Math.max(0, quantity) })
+    .eq('id', id);
+
   if (error) return { error: error.message };
   revalidatePath('/stock');
   return {};
+}
+
+export async function deleteStockGarmentAction(id: string): Promise<{ success?: boolean; error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('finished_goods')
+    .delete()
+    .eq('id', id);
+
+  if (error) return { error: error.message };
+  revalidatePath('/stock');
+  return { success: true };
 }
 
 export async function processSaleAction(
