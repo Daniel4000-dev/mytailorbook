@@ -124,3 +124,189 @@ export function getNextTierProgress(xp: number) {
   
   return { nextTier, progress, xpNeeded };
 }
+
+export interface GrandChampionshipConfig {
+  id: string;
+  title: string;
+  durationDays: number;
+  grandPrize: string;
+  totalGrants: number;
+  requiredXp: number;
+  requiredBadgeIds: string[];
+}
+
+export const GRAND_CHAMPIONSHIP: GrandChampionshipConfig = {
+  id: 'grand_championship_90d',
+  title: '90-Day Master Tailor Championship',
+  durationDays: 90,
+  grandPrize: 'Industrial Sewing Machine',
+  totalGrants: 3,
+  requiredXp: 5000,
+  requiredBadgeIds: ['punctual_needle', 'master_tape', 'iron_discipline_30'],
+};
+
+export interface MonthlySprintConfig {
+  monthIndex: number;
+  name: string;
+  theme: string;
+  targetDeliveries: number;
+  rewards: {
+    physicalPack: string;
+    subscriptionBonus: string;
+    spotlightBadge: string;
+  };
+}
+
+export const MONTHLY_SPRINTS: MonthlySprintConfig[] = [
+  {
+    monthIndex: 0,
+    name: 'January Jumpstart',
+    theme: 'New Year Workshop Launch',
+    targetDeliveries: 10,
+    rewards: {
+      physicalPack: 'Pro Japanese Tailor Shears & Fiberglass Tape',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Top January Atelier',
+    },
+  },
+  {
+    monthIndex: 1,
+    name: 'February Speed Sprint',
+    theme: 'Couples & Valentine Elegance',
+    targetDeliveries: 12,
+    rewards: {
+      physicalPack: 'Box of Tailor Chalk & Magnetic Wrist Cushion',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Punctual February Atelier',
+    },
+  },
+  {
+    monthIndex: 2,
+    name: 'March Season Prep',
+    theme: 'Easter & Eid Preparation Sprint',
+    targetDeliveries: 15,
+    rewards: {
+      physicalPack: 'Groz-Beckert Needles & Heavy Rotary Cutter',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Festival Rush Champion',
+    },
+  },
+  {
+    monthIndex: 3,
+    name: 'April Festivities',
+    theme: 'Festival Rush & Timely Delivery',
+    targetDeliveries: 15,
+    rewards: {
+      physicalPack: 'Japanese Steel Shears & Precision French Curve',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Master of April Deliveries',
+    },
+  },
+  {
+    monthIndex: 4,
+    name: 'May Wedding Season',
+    theme: 'Aso-Ebi & Bridal Perfection',
+    targetDeliveries: 18,
+    rewards: {
+      physicalPack: 'Professional Steam Iron Shoe & Bobbin Case Set',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Bridal Atelier Star',
+    },
+  },
+  {
+    monthIndex: 5,
+    name: 'June Mid-Year Classic',
+    theme: 'Showroom & RTW Collection',
+    targetDeliveries: 15,
+    rewards: {
+      physicalPack: 'Tailor Wooden Clapper & High-Grade Scissors',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Mid-Year Quality Master',
+    },
+  },
+  {
+    monthIndex: 6,
+    name: 'July Summer Kaftans',
+    theme: 'Senator & Kaftan Precision',
+    targetDeliveries: 12,
+    rewards: {
+      physicalPack: 'Collar Stay Kit & Precision Measuring Gauges',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Senator Specialist',
+    },
+  },
+  {
+    monthIndex: 7,
+    name: 'August Back-to-School',
+    theme: 'Uniforms & High Volume Orders',
+    targetDeliveries: 20,
+    rewards: {
+      physicalPack: 'Bulk Groz-Beckert Needles & Industrial Machine Oil',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'High Volume Producer',
+    },
+  },
+  {
+    monthIndex: 8,
+    name: 'September Autumn Rush',
+    theme: 'Corporate Bespoke Suits',
+    targetDeliveries: 12,
+    rewards: {
+      physicalPack: 'German Canvas Interfacing & Shoulder Pads Set',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Bespoke Suiting Master',
+    },
+  },
+  {
+    monthIndex: 9,
+    name: 'October Independence Sprint',
+    theme: 'Cultural Attire & Heritage Prints',
+    targetDeliveries: 15,
+    rewards: {
+      physicalPack: 'Professional Tailoring Shears & Pattern Notcher',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Heritage Couturier',
+    },
+  },
+  {
+    monthIndex: 10,
+    name: 'November Pre-Holiday Rush',
+    theme: 'December Early Bird Deliveries',
+    targetDeliveries: 20,
+    rewards: {
+      physicalPack: 'Rotary Cutter Blades & Premium Tailor Tape Bundle',
+      subscriptionBonus: '3 Months Free StitchBook Pro',
+      spotlightBadge: 'Holiday Readiness Star',
+    },
+  },
+  {
+    monthIndex: 11,
+    name: 'December Grand Finale',
+    theme: 'Zero Delay Holiday Deliveries',
+    targetDeliveries: 25,
+    rewards: {
+      physicalPack: 'Complete Master Artisan Toolset & Tailor Shears',
+      subscriptionBonus: '6 Months Free StitchBook Pro',
+      spotlightBadge: 'Punctual Holiday Champion',
+    },
+  },
+];
+
+export function getCurrentMonthlySprint(): MonthlySprintConfig {
+  const currentMonth = new Date().getMonth();
+  return MONTHLY_SPRINTS[currentMonth] || MONTHLY_SPRINTS[0];
+}
+
+export function evaluateGrandChampionshipQualification(params: {
+  xp: number;
+  unlockedBadgeIds: string[];
+}): { qualified: boolean; xpProgress: number; missingBadges: string[] } {
+  const { xp, unlockedBadgeIds } = params;
+  const missingBadges = GRAND_CHAMPIONSHIP.requiredBadgeIds.filter(
+    (bId) => !unlockedBadgeIds.includes(bId)
+  );
+  const qualified = xp >= GRAND_CHAMPIONSHIP.requiredXp && missingBadges.length === 0;
+  const xpProgress = Math.min(100, Math.round((xp / GRAND_CHAMPIONSHIP.requiredXp) * 100));
+
+  return { qualified, xpProgress, missingBadges };
+}

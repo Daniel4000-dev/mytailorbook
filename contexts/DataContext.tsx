@@ -17,6 +17,7 @@ import { logStreakAction } from '@/lib/streakClient';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
+import { enqueueOfflineMutation } from '@/lib/offline/outbox';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
 import { isMockDataAllowed, resolveCanonicalStyleName } from '@/lib/constants';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_STAFF, MOCK_EXCEPTIONS } from '@/lib/mockData';
@@ -292,9 +293,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addOrder = useCallback(
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
       if (!activeBranchId) return;
-      const updated = await addOrderAction(activeBranchId, orderData);
-      if (updated && 'error' in updated) throw new Error(updated.error);
-      mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+      try {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+        const updated = await addOrderAction(activeBranchId, orderData);
+        if (updated && 'error' in updated) throw new Error(updated.error);
+        mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+      } catch (err: any) {
+        if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+          enqueueOfflineMutation('ADD_ORDER', { shopId: activeBranchId, order: orderData });
+          const offlineOrder: Order = {
+            ...orderData,
+            id: `offline_ord_${Date.now()}`,
+            shopId: activeBranchId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            priority: orderData.priority || 'normal',
+            statusHistory: [{ from: 'Documented' as OrderStatus, to: orderData.status, changedBy: 'self', changedByName: 'You', timestamp: new Date().toISOString() }],
+          };
+          mutate((current) => (current ? { ...current, orders: [offlineOrder, ...current.orders] } : current), { revalidate: false });
+        } else {
+          throw err;
+        }
+      }
 
       // GAMIFICATION TRIGGER: Order Intake
       logStreakAction('created_order', 20, {
@@ -306,6 +326,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         triggerCelebration: false,
       }).then((res) => {
         if (res?.streak_bumped) mutate();
+      }).catch(() => {
+        enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'created_order', xpAmount: 20 });
       });
     },
     [activeBranchId, mutate]
@@ -350,9 +372,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
-          if (updated && 'error' in updated) throw new Error(updated.error);
-          return { ...current, orders: updated as Order[] };
+          try {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+            const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
+            if (updated && 'error' in updated) throw new Error(updated.error);
+            return { ...current, orders: updated as Order[] };
+          } catch (err: any) {
+            if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+              enqueueOfflineMutation('UPDATE_ORDER_STATUS', {
+                orderId,
+                newStatus,
+                changedBy,
+                changedByName,
+                shopId: activeBranchId,
+              });
+              return {
+                ...current,
+                orders: current.orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
+              };
+            }
+            throw err;
+          }
         },
         {
           optimisticData: (current) => {
@@ -362,7 +402,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
               orders: state.orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
             };
           },
-          rollbackOnError: true,
+          rollbackOnError: false,
           revalidate: false,
         }
       );
@@ -371,13 +411,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const handleStreakBump = (sRes: any) => {
         if (sRes?.streak_bumped) mutate();
       };
-      if (newStatus === 'Ready' || newStatus === 'Delivered') {
-        logStreakAction('completed_order', 20, true).then(handleStreakBump);
-      } else if (newStatus === 'Cutting' || newStatus === 'Sewing') {
-        logStreakAction('updated_order', 15, false).then(handleStreakBump);
-      } else {
-        logStreakAction('updated_order', 10, false).then(handleStreakBump);
-      }
+      const streakAction = newStatus === 'Ready' || newStatus === 'Delivered' ? 'completed_order' : 'updated_order';
+      const streakXp = newStatus === 'Ready' || newStatus === 'Delivered' ? 20 : 15;
+      logStreakAction(streakAction, streakXp, false).then(handleStreakBump).catch(() => {
+        enqueueOfflineMutation('LOG_STREAK_ACTION', { action: streakAction, xpAmount: streakXp });
+      });
     },
     [activeBranchId, mutate, isDemoMode]
   );
@@ -395,9 +433,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateOrderAction(orderId, updates, activeBranchId);
-          if (updated && 'error' in updated) throw new Error(updated.error);
-          return { ...current, orders: updated as Order[] };
+          try {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+            const updated = await updateOrderAction(orderId, updates, activeBranchId);
+            if (updated && 'error' in updated) throw new Error(updated.error);
+            return { ...current, orders: updated as Order[] };
+          } catch (err: any) {
+            if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+              enqueueOfflineMutation('UPDATE_ORDER', {
+                orderId,
+                updates,
+                shopId: activeBranchId,
+              });
+              return {
+                ...current,
+                orders: current.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
+              };
+            }
+            throw err;
+          }
         },
         {
           optimisticData: (current) => {
@@ -407,7 +461,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
               orders: state.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
             };
           },
-          rollbackOnError: true,
+          rollbackOnError: false,
           revalidate: false,
         }
       );
@@ -416,6 +470,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (updates.payments && updates.payments.length > 0) {
         logStreakAction('recorded_payment', 20, false).then((sRes) => {
           if (sRes?.streak_bumped) mutate();
+        }).catch(() => {
+          enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'recorded_payment', xpAmount: 20 });
         });
       }
     },
@@ -447,14 +503,39 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
 
       if (!activeBranchId || !orgId) throw new Error('No active shop for the current user');
-      const res = await addCustomerAction(activeBranchId, orgId, {
-        ...customerData,
-        whatsappNumber: normalizedPhone,
-      });
-      if (res && 'error' in res) throw new Error(res.error);
-      const { newCustomer, customers: updated } = res as { newCustomer: Customer, customers: Customer[] };
-      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
-      return newCustomer;
+
+      try {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+        const res = await addCustomerAction(activeBranchId, orgId, {
+          ...customerData,
+          whatsappNumber: normalizedPhone,
+        });
+        if (res && 'error' in res) throw new Error(res.error);
+        const { newCustomer, customers: updated } = res as { newCustomer: Customer, customers: Customer[] };
+        mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+        return newCustomer;
+      } catch (err: any) {
+        if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+          const offlineCustomer: Customer = {
+            ...customerData,
+            id: `offline_cust_${Date.now()}`,
+            shopId: activeBranchId,
+            whatsappNumber: normalizedPhone,
+            createdAt: new Date().toISOString(),
+          };
+          enqueueOfflineMutation('ADD_CUSTOMER', {
+            customer: { ...customerData, whatsappNumber: normalizedPhone },
+            orgId,
+            shopId: activeBranchId,
+          });
+          mutate(
+            (current) => (current ? { ...current, customers: [offlineCustomer, ...current.customers] } : current),
+            { revalidate: false }
+          );
+          return offlineCustomer;
+        }
+        throw err;
+      }
     },
     [activeBranchId, orgId, mutate, isDemoMode]
   );
@@ -490,9 +571,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
-          if (updated && 'error' in updated) throw new Error(updated.error);
-          return { ...current, customers: updated as Customer[] };
+          try {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+            const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
+            if (updated && 'error' in updated) throw new Error(updated.error);
+            return { ...current, customers: updated as Customer[] };
+          } catch (err: any) {
+            if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+              enqueueOfflineMutation('UPDATE_CUSTOMER_MEASUREMENTS', {
+                customerId,
+                measurements,
+                orgId,
+              });
+              return {
+                ...current,
+                customers: current.customers.map((c) =>
+                  c.id === customerId ? { ...c, measurements: { ...c.measurements, ...measurements } } : c
+                ),
+              };
+            }
+            throw err;
+          }
         },
         {
           optimisticData: (current) => {
@@ -504,7 +603,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
               ),
             };
           },
-          rollbackOnError: true,
+          rollbackOnError: false,
           revalidate: false,
         }
       );
@@ -515,6 +614,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         triggerCelebration: false,
       }).then((sRes) => {
         if (sRes?.streak_bumped) mutate();
+      }).catch(() => {
+        enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'measurements_added', xpAmount: 15 });
       });
     },
     [orgId, mutate, isDemoMode]

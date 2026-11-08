@@ -19,6 +19,7 @@ import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import CraftSpark from '@/components/ui/CraftSpark/CraftSpark';
 import BadgeCelebrationModal from '@/components/gamification/BadgeCelebrationModal/BadgeCelebrationModal';
+import OfflineSyncManager from '@/components/pwa/OfflineSyncManager/OfflineSyncManager';
 import styles from './layout.module.css';
 
 /** Plays the 360ms entrance animation, then drops it entirely (not just
@@ -173,6 +174,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {!isMenuOpen && !isTransactional && <NotificationPrompt />}
       <CraftSpark />
       <BadgeCelebrationModal />
+      <OfflineSyncManager />
     </div>
   );
 }

@@ -127,6 +127,14 @@ function orderFromRow(row: any): Order {
     includeTrackingLink: row.include_tracking_link,
     isInternalBatch: row.is_internal_batch || false,
     batchSizes: row.batch_sizes || undefined,
+    fabricPreShrunk: row.metadata?.fabricPreShrunk ?? undefined,
+    remnantsReturned: row.metadata?.remnantsReturned ?? undefined,
+    artisanAssignments: row.metadata?.artisanAssignments ?? undefined,
+    isRescueJob: row.metadata?.isRescueJob ?? undefined,
+    requiresToile: row.metadata?.requiresToile ?? undefined,
+    customPockets: row.metadata?.customPockets ?? undefined,
+    courierDetails: row.metadata?.courierDetails ?? undefined,
+    shippingDetails: row.metadata?.shippingDetails ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -159,6 +167,18 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.includeTrackingLink !== undefined) row.include_tracking_link = o.includeTrackingLink;
   if (o.isInternalBatch !== undefined) row.is_internal_batch = o.isInternalBatch;
   if (o.batchSizes !== undefined) row.batch_sizes = o.batchSizes;
+
+  const metadata: Record<string, unknown> = {};
+  if (o.fabricPreShrunk !== undefined) metadata.fabricPreShrunk = o.fabricPreShrunk;
+  if (o.remnantsReturned !== undefined) metadata.remnantsReturned = o.remnantsReturned;
+  if (o.artisanAssignments !== undefined) metadata.artisanAssignments = o.artisanAssignments;
+  if (o.isRescueJob !== undefined) metadata.isRescueJob = o.isRescueJob;
+  if (o.requiresToile !== undefined) metadata.requiresToile = o.requiresToile;
+  if (o.customPockets !== undefined) metadata.customPockets = o.customPockets;
+  if (o.courierDetails !== undefined) metadata.courierDetails = o.courierDetails;
+  if (o.shippingDetails !== undefined) metadata.shippingDetails = o.shippingDetails;
+  if (Object.keys(metadata).length > 0) row.metadata = metadata;
+
   return row;
 }
 
@@ -189,6 +209,8 @@ function customerFromRow(row: any): Customer {
     styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
     fabrics: row.fabrics || undefined,
     address: row.address || undefined,
+    secondaryPhone: row.metadata?.secondaryPhone || undefined,
+    payerName: row.metadata?.payerName || undefined,
     birthdate: row.birthdate || undefined,
     wallet_balance: row.wallet_balance !== undefined && row.wallet_balance !== null ? Number(row.wallet_balance) : 0,
     createdAt: row.created_at,
@@ -805,6 +827,10 @@ export async function addCustomerAction(
   customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>
 ) {
   const supabase = await createClient();
+  const customerMeta: Record<string, unknown> = {};
+  if (customer.secondaryPhone) customerMeta.secondaryPhone = customer.secondaryPhone;
+  if (customer.payerName) customerMeta.payerName = customer.payerName;
+
   const { data, error } = await supabase
     .from('customers')
     .insert({
@@ -817,6 +843,7 @@ export async function addCustomerAction(
       measurement_notes: customer.measurementNotes || null,
       address: customer.address || null,
       birthdate: customer.birthdate || null,
+      metadata: Object.keys(customerMeta).length > 0 ? customerMeta : {},
     })
     .select()
     .single();
@@ -967,7 +994,7 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
 
 export async function updateCustomerProfileAction(
   customerId: string,
-  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>,
+  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate' | 'secondaryPhone' | 'payerName'>>,
   orgId: string
 ) {
   const supabase = await createClient();
@@ -980,6 +1007,14 @@ export async function updateCustomerProfileAction(
   if (updates.measurementNotes !== undefined) row.measurement_notes = updates.measurementNotes;
   if (updates.fabrics !== undefined) row.fabrics = updates.fabrics;
   if (updates.birthdate !== undefined) row.birthdate = updates.birthdate;
+
+  if (updates.secondaryPhone !== undefined || updates.payerName !== undefined) {
+    const { data: existingCust } = await supabase.from('customers').select('metadata').eq('id', customerId).single();
+    const meta = { ...((existingCust?.metadata as Record<string, unknown>) || {}) };
+    if (updates.secondaryPhone !== undefined) meta.secondaryPhone = updates.secondaryPhone;
+    if (updates.payerName !== undefined) meta.payerName = updates.payerName;
+    row.metadata = meta;
+  }
 
   if (Object.keys(row).length === 0) return null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
