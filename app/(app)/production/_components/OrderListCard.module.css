@@ -2,6 +2,8 @@
   position: relative;
   border-radius: var(--sf-radius-lg);
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
 }
 
 .swipeBackdropRight {

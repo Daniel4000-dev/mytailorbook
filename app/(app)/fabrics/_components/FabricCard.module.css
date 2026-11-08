@@ -9,6 +9,8 @@
   text-align: left;
   width: 100%;
   box-shadow: none;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 240px;
   transition:
     transform var(--sf-transition-fast),
     border-color var(--sf-transition-fast),

@@ -26,6 +26,7 @@ import {
   ProcessSaleItem
 } from '@/app/actions/stock';
 import { FinishedGood } from '@/lib/types';
+import { triggerHaptic } from '@/lib/haptics';
 import styles from './page.module.css';
 
 const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'Free Size'];
@@ -309,6 +310,7 @@ export default function StockPage() {
       }
       return [...prev, { goodId: item.id, quantity: 1, priceAtSale: item.price, name: item.name, size: item.size }];
     });
+    triggerHaptic('light');
     showToast(`Added ${item.name} (${item.size}) to cart`, 'success');
   };
 
@@ -466,6 +468,7 @@ export default function StockPage() {
     if (res.error) {
       showToast(res.error, 'error');
     } else if (res.orderId) {
+      triggerHaptic('success');
       showToast('Sale completed successfully!', 'success');
       setCompletedSale({
         orderId: res.orderId,

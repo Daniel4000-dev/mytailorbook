@@ -9,6 +9,9 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   images: {
+    // Deliver ultra-compressed modern AVIF images to modern iPhones & Android devices,
+    // with automatic WebP fallback, saving 25-35% image bandwidth.
+    formats: ['image/avif', 'image/webp'],
     // Every user-uploaded photo (garment progress shots, inspiration
     // images, avatars, shop logos, style-gallery submissions) lives in
     // Supabase Storage under this project — routing them through next/image

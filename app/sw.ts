@@ -1,7 +1,13 @@
 /// <reference lib="webworker" />
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import {
+  Serwist,
+  CacheFirst,
+  StaleWhileRevalidate,
+  ExpirationPlugin,
+  CacheableResponsePlugin,
+} from "serwist";
 import { APP_CONFIG } from "@/lib/config";
 
 declare global {
@@ -12,6 +18,73 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+const imageRuntimeCache = [
+  // 1. Supabase Storage User Uploads (avatars, fabric swatches, inspiration lookbooks)
+  // CacheFirst provides the 0ms instant Instagram feed experience once loaded
+  {
+    matcher({ url }: { url: URL }) {
+      return (
+        url.hostname.includes('supabase.co') &&
+        url.pathname.includes('/storage/v1/object/public/')
+      );
+    },
+    handler: new CacheFirst({
+      cacheName: 'supabase-storage-images',
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 200,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          purgeOnQuotaError: true,
+        }),
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+      ],
+    }),
+  },
+  // 2. Next.js Optimized Images (/_next/image)
+  {
+    matcher({ url }: { url: URL }) {
+      return url.pathname.startsWith('/_next/image');
+    },
+    handler: new StaleWhileRevalidate({
+      cacheName: 'next-optimized-images',
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 150,
+          maxAgeSeconds: 14 * 24 * 60 * 60, // 14 days
+          purgeOnQuotaError: true,
+        }),
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+      ],
+    }),
+  },
+  // 3. Static Local Image Assets & Icons
+  {
+    matcher({ request, url }: { request: Request; url: URL }) {
+      return (
+        request.destination === 'image' ||
+        /\.(?:png|jpg|jpeg|svg|webp|avif|ico)$/i.test(url.pathname)
+      );
+    },
+    handler: new StaleWhileRevalidate({
+      cacheName: 'static-image-assets',
+      plugins: [
+        new ExpirationPlugin({
+          maxEntries: 100,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          purgeOnQuotaError: true,
+        }),
+        new CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+      ],
+    }),
+  },
+];
+
 const serwist = new Serwist({
   // Injects the Webpack-generated list of files to precache (like CSS, JS chunks)
   precacheEntries: self.__SW_MANIFEST,
@@ -21,8 +94,8 @@ const serwist = new Serwist({
   clientsClaim: true,
   // Accelerates navigation requests
   navigationPreload: true,
-  // Optimized caching strategies designed specifically for Next.js 14+ (App Router)
-  runtimeCaching: defaultCache,
+  // Optimized caching strategies with prioritized local image caching
+  runtimeCaching: [...imageRuntimeCache, ...defaultCache],
   // Offline fallback configuration
   fallbacks: {
     entries: [

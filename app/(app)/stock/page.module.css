@@ -201,6 +201,8 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 180px;
 }
 
 .cardHeader {

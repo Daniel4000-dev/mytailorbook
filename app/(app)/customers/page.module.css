@@ -466,6 +466,8 @@
   transition: all var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
 }
 
 .customerRow:hover {

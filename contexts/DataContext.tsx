@@ -20,6 +20,7 @@ import { createClient } from '@/lib/supabase/client';
 import { enqueueOfflineMutation } from '@/lib/offline/outbox';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
 import { isMockDataAllowed, resolveCanonicalStyleName } from '@/lib/constants';
+import { triggerHaptic } from '@/lib/haptics';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_STAFF, MOCK_EXCEPTIONS } from '@/lib/mockData';
 import {
   getShopBundle,
@@ -361,6 +362,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
+      triggerHaptic('medium');
       if (isDemoMode) {
         setDemoOrders((prev) =>
           prev.map((o) =>
