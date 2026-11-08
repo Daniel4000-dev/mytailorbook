@@ -182,51 +182,113 @@ export async function deleteStockGarmentAction(id: string): Promise<{ success?: 
   return { success: true };
 }
 
+export interface ProcessSaleItem {
+  goodId: string;
+  quantity: number;
+  priceAtSale: number;
+  name: string;
+  size: string;
+}
+
+export interface ProcessSaleOptions {
+  customerId?: string;
+  customerName?: string;
+  customerPhone?: string;
+  discountAmount?: number;
+  notes?: string;
+}
+
 export async function processSaleAction(
   shopId: string, 
-  items: { goodId: string; quantity: number; priceAtSale: number; name: string; size: string }[], 
+  items: ProcessSaleItem[], 
   paymentMethod: string, 
-  cashierId: string
-): Promise<{ error?: string }> {
+  cashierId: string,
+  options?: ProcessSaleOptions
+): Promise<{ success?: boolean; orderId?: string; totalAmount?: number; error?: string }> {
+  if (!shopId) return { error: 'Shop ID is required' };
+  if (!items || items.length === 0) return { error: 'No items in cart to sell' };
+
   const supabase = await createClient();
   
-  const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.priceAtSale), 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.priceAtSale), 0);
+  const discount = Math.max(0, options?.discountAmount || 0);
+  const totalAmount = Math.max(0, subtotal - discount);
   const details = items.map(i => `${i.quantity}x ${i.name} (${i.size})`).join(', ');
 
-  // Get or create Retail Walk-In customer
-  let { data: retailCust } = await supabase.from('customers')
-    .select('id').eq('shop_id', shopId).eq('whatsapp_number', '0000000001').eq('full_name', 'Retail Walk-In').maybeSingle();
-    
-  if (!retailCust) {
-    // We'll need the org_id to insert a customer
-    const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
-    if (shopInfo) {
-      const { data: newCust } = await supabase.from('customers').insert({
-        shop_id: shopId,
-        org_id: shopInfo.org_id,
-        full_name: 'Retail Walk-In',
-        whatsapp_number: '0000000001',
-        gender: 'female' // generic fallback
-      }).select('id').single();
-      retailCust = newCust;
+  let customerId = options?.customerId || null;
+  let customerName = options?.customerName?.trim() || 'Retail Walk-In';
+  let customerPhone = options?.customerPhone?.trim() || '0000000001';
+
+  // If customerId is not directly passed, look up or create client
+  if (!customerId) {
+    if (options?.customerName?.trim() || options?.customerPhone?.trim()) {
+      const phoneSearch = options.customerPhone?.trim() || '0000000001';
+      const { data: existingCust } = await supabase
+        .from('customers')
+        .select('id, full_name, whatsapp_number')
+        .eq('shop_id', shopId)
+        .eq('whatsapp_number', phoneSearch)
+        .maybeSingle();
+
+      if (existingCust) {
+        customerId = existingCust.id;
+        customerName = existingCust.full_name;
+        customerPhone = existingCust.whatsapp_number;
+      } else {
+        const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
+        if (shopInfo) {
+          const { data: createdCust } = await supabase.from('customers').insert({
+            shop_id: shopId,
+            org_id: shopInfo.org_id,
+            full_name: customerName,
+            whatsapp_number: customerPhone,
+            gender: 'female'
+          }).select('id').single();
+          customerId = createdCust?.id || null;
+        }
+      }
+    } else {
+      // Default anonymous Retail Walk-In
+      let { data: retailCust } = await supabase.from('customers')
+        .select('id').eq('shop_id', shopId).eq('whatsapp_number', '0000000001').eq('full_name', 'Retail Walk-In').maybeSingle();
+        
+      if (!retailCust) {
+        const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
+        if (shopInfo) {
+          const { data: newCust } = await supabase.from('customers').insert({
+            shop_id: shopId,
+            org_id: shopInfo.org_id,
+            full_name: 'Retail Walk-In',
+            whatsapp_number: '0000000001',
+            gender: 'female'
+          }).select('id').single();
+          retailCust = newCust;
+        }
+      }
+      customerId = retailCust?.id || null;
     }
   }
 
+  const orderNote = [
+    discount > 0 ? `Discount: -${discount}` : null,
+    options?.notes?.trim() || null
+  ].filter(Boolean).join(' • ');
+
   const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
     shop_id: shopId,
-    customer_id: retailCust?.id || null, // Will hit NOT NULL if it failed above, but we tried
-    customer_name: 'Retail Walk-In',
-    order_details: `POS Sale: ${details}`,
+    customer_id: customerId,
+    customer_name: customerName,
+    order_details: `POS Sale: ${details}${orderNote ? ` (${orderNote})` : ''}`,
     total_bill: totalAmount,
     deposit_paid: totalAmount,
     status: 'Delivered',
-    is_internal_batch: false, // Keep false so it counts as standard completed revenue
+    is_internal_batch: false,
     payments: [{
       amount: totalAmount,
       method: paymentMethod,
       date: new Date().toISOString()
     }]
-  }).select().single();
+  }).select('id').single();
   
   if (orderError) return { error: orderError.message };
   
@@ -239,5 +301,5 @@ export async function processSaleAction(
   }
   
   revalidatePath('/stock');
-  return {};
+  return { success: true, orderId: newOrder?.id, totalAmount };
 }

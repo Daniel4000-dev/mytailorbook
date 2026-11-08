@@ -5,7 +5,8 @@ import {
   updateStockQuantityAction,
   quickRestockSizeAction,
   deleteStockGarmentAction,
-  getStockAction
+  getStockAction,
+  processSaleAction
 } from '@/app/actions/stock';
 
 // Mock next/cache
@@ -22,15 +23,65 @@ const mockEq = vi.fn();
 const mockIlike = vi.fn();
 const mockOrder = vi.fn();
 
+const createChainable = () => {
+  const chain: any = {
+    eq: vi.fn(() => chain),
+    ilike: mockIlike,
+    order: mockOrder.mockReturnValue({
+      data: [
+        {
+          id: 'item-1',
+          shop_id: 'shop-123',
+          name: 'Royal Blue Senator',
+          size: 'L',
+          quantity: 3,
+          price: 35000,
+          created_at: '2026-11-08T10:00:00Z',
+          metadata: {
+            category: 'Senator',
+            color: 'Royal Blue',
+            fabric: 'Cashmere',
+            costPrice: 18000,
+            rackLocation: 'Rack A1',
+            parentGarmentName: 'Royal Blue Senator'
+          }
+        }
+      ],
+      error: null
+    }),
+    single: vi.fn().mockResolvedValue({
+      data: { id: 'order-pos-123', quantity: 5, org_id: 'org-1' },
+      error: null
+    }),
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: null,
+      error: null
+    })
+  };
+  return chain;
+};
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => ({
     from: vi.fn((table: string) => {
       const builder: any = {};
-      builder.insert = mockInsert.mockReturnValue({
-        select: vi.fn().mockResolvedValue({
+      builder.insert = mockInsert.mockImplementation(() => {
+        const promise: any = Promise.resolve({
           data: [{ id: 'fg-1' }, { id: 'fg-2' }],
           error: null
-        })
+        });
+        promise.select = vi.fn().mockImplementation(() => {
+          const selectPromise: any = Promise.resolve({
+            data: [{ id: 'fg-1' }, { id: 'fg-2' }],
+            error: null
+          });
+          selectPromise.single = vi.fn().mockResolvedValue({
+            data: { id: 'order-pos-123' },
+            error: null
+          });
+          return selectPromise;
+        });
+        return promise;
       });
       builder.update = mockUpdate.mockReturnValue({
         eq: mockEq.mockResolvedValue({ error: null })
@@ -38,35 +89,7 @@ vi.mock('@/lib/supabase/server', () => ({
       builder.delete = mockDelete.mockReturnValue({
         eq: mockEq.mockResolvedValue({ error: null })
       });
-      builder.select = mockSelect.mockImplementation(() => {
-        return {
-          eq: vi.fn().mockReturnValue({
-            order: mockOrder.mockReturnValue({
-              data: [
-                {
-                  id: 'item-1',
-                  shop_id: 'shop-123',
-                  name: 'Royal Blue Senator',
-                  size: 'L',
-                  quantity: 3,
-                  price: 35000,
-                  created_at: '2026-11-08T10:00:00Z',
-                  metadata: {
-                    category: 'Senator',
-                    color: 'Royal Blue',
-                    fabric: 'Cashmere',
-                    costPrice: 18000,
-                    rackLocation: 'Rack A1',
-                    parentGarmentName: 'Royal Blue Senator'
-                  }
-                }
-              ],
-              error: null
-            }),
-            ilike: mockIlike
-          })
-        };
-      });
+      builder.select = mockSelect.mockImplementation(() => createChainable());
       builder.eq = mockEq.mockResolvedValue({ error: null });
       return builder;
     })
@@ -282,6 +305,80 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       const res = await deleteStockGarmentAction('fg-1');
       expect(res.success).toBe(true);
       expect(mockDelete).toHaveBeenCalled();
+    });
+  });
+
+  describe('processSaleAction (POS / Instant Counter Checkout)', () => {
+    const sampleItems = [
+      { goodId: 'fg-1', quantity: 2, priceAtSale: 25000, name: 'Senator Suit', size: 'L' }
+    ];
+
+    it('rejects sale with missing shop ID', async () => {
+      const res = await processSaleAction('', sampleItems, 'card', 'user-1');
+      expect(res.error).toBe('Shop ID is required');
+    });
+
+    it('rejects sale with no cart items', async () => {
+      const res = await processSaleAction('shop-123', [], 'card', 'user-1');
+      expect(res.error).toBe('No items in cart to sell');
+    });
+
+    it('processes standard retail walk-in sale and decrements finished_goods stock', async () => {
+      const res = await processSaleAction('shop-123', sampleItems, 'cash', 'user-1');
+
+      expect(res.success).toBe(true);
+      expect(res.orderId).toBe('order-pos-123');
+      expect(res.totalAmount).toBe(50000);
+
+      // Verify order creation
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          shop_id: 'shop-123',
+          customer_name: 'Retail Walk-In',
+          status: 'Delivered',
+          total_bill: 50000,
+          deposit_paid: 50000,
+          payments: [
+            expect.objectContaining({
+              amount: 50000,
+              method: 'cash'
+            })
+          ]
+        })
+      );
+    });
+
+    it('applies discount amount correctly to total bill and deposit paid', async () => {
+      const res = await processSaleAction('shop-123', sampleItems, 'transfer', 'user-1', {
+        discountAmount: 5000
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.totalAmount).toBe(45000);
+
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          total_bill: 45000,
+          deposit_paid: 45000,
+          order_details: expect.stringContaining('Discount: -5000')
+        })
+      );
+    });
+
+    it('attaches VIP client details when customer name and phone are provided', async () => {
+      const res = await processSaleAction('shop-123', sampleItems, 'card', 'user-1', {
+        customerName: 'Senator Adeleke',
+        customerPhone: '08031234567',
+        notes: 'VIP customer fitting'
+      });
+
+      expect(res.success).toBe(true);
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customer_name: 'Senator Adeleke',
+          order_details: expect.stringContaining('VIP customer fitting')
+        })
+      );
     });
   });
 });

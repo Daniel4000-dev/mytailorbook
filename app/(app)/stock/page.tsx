@@ -15,14 +15,15 @@ import Select from '@/components/ui/Select/Select';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import AddStockGarmentModal from '@/components/stock/AddStockGarmentModal/AddStockGarmentModal';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import {
   getStockAction,
   updateStockPriceAction,
   updateStockQuantityAction,
   quickRestockSizeAction,
   deleteStockGarmentAction,
-  processSaleAction
+  processSaleAction,
+  ProcessSaleItem
 } from '@/app/actions/stock';
 import { FinishedGood } from '@/lib/types';
 import styles from './page.module.css';
@@ -75,10 +76,25 @@ export default function StockPage() {
   const [viewMode, setViewMode] = useState<'grouped' | 'all'>('grouped');
 
   // Cart for POS
-  const [cart, setCart] = useState<{ goodId: string; quantity: number; priceAtSale: number; name: string; size: string }[]>([]);
+  const [cart, setCart] = useState<ProcessSaleItem[]>([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [processing, setProcessing] = useState(false);
+
+  // POS Checkout Options & e-Receipt state
+  const [discountInput, setDiscountInput] = useState('');
+  const [customerMode, setCustomerMode] = useState<'walkin' | 'attach'>('walkin');
+  const [customerNameInput, setCustomerNameInput] = useState('');
+  const [customerPhoneInput, setCustomerPhoneInput] = useState('');
+  const [notesInput, setNotesInput] = useState('');
+  const [completedSale, setCompletedSale] = useState<{
+    orderId: string;
+    totalAmount: number;
+    customerName: string;
+    customerPhone?: string;
+    paymentMethod: string;
+    itemCount: number;
+  } | null>(null);
 
   // Editing individual item
   const [editingItem, setEditingItem] = useState<FinishedGood | null>(null);
@@ -362,22 +378,68 @@ export default function StockPage() {
     setSavingGroup(false);
   };
 
+  const cartSubtotal = cart.reduce((sum, item) => sum + item.quantity * item.priceAtSale, 0);
+  const numericDiscount = Math.max(0, parseFloat(discountInput) || 0);
+  const cappedDiscount = Math.min(numericDiscount, cartSubtotal);
+  const cartTotal = Math.max(0, cartSubtotal - cappedDiscount);
+
+  const handleNewSale = () => {
+    setCompletedSale(null);
+    setCheckoutOpen(false);
+    setDiscountInput('');
+    setCustomerMode('walkin');
+    setCustomerNameInput('');
+    setCustomerPhoneInput('');
+    setNotesInput('');
+  };
+
   const handleCheckout = async () => {
     if (!currentShop || !user || cart.length === 0) return;
     setProcessing(true);
-    const res = await processSaleAction(currentShop.id, cart, paymentMethod, user.uid);
+    const saleOptions = {
+      customerName: customerMode === 'attach' && customerNameInput.trim() ? customerNameInput.trim() : 'Retail Walk-In',
+      customerPhone: customerMode === 'attach' && customerPhoneInput.trim() ? customerPhoneInput.trim() : undefined,
+      discountAmount: cappedDiscount > 0 ? cappedDiscount : undefined,
+      notes: customerMode === 'attach' && notesInput.trim() ? notesInput.trim() : undefined,
+    };
+
+    const res = await processSaleAction(currentShop.id, cart, paymentMethod, user.uid, saleOptions);
     if (res.error) {
       showToast(res.error, 'error');
-    } else {
+    } else if (res.orderId) {
       showToast('Sale completed successfully!', 'success');
+      setCompletedSale({
+        orderId: res.orderId,
+        totalAmount: res.totalAmount ?? cartTotal,
+        customerName: saleOptions.customerName,
+        customerPhone: saleOptions.customerPhone,
+        paymentMethod,
+        itemCount: cart.reduce((sum, item) => sum + item.quantity, 0),
+      });
       setCart([]);
-      setCheckoutOpen(false);
       loadStock();
     }
     setProcessing(false);
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.quantity * item.priceAtSale, 0);
+  const handleShareReceiptWhatsApp = () => {
+    if (!completedSale) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const receiptUrl = `${origin}${ROUTES.receipt(completedSale.orderId)}`;
+    const recipient = completedSale.customerName === 'Retail Walk-In' ? 'valued customer' : completedSale.customerName;
+    const msg = `Hello ${recipient}, thank you for your purchase at ${currentShop?.name || 'our boutique'}! Here is your official e-receipt: ${receiptUrl}`;
+
+    const waUrl = completedSale.customerPhone && completedSale.customerPhone !== '0000000001'
+      ? getWhatsAppLink(completedSale.customerPhone, msg)
+      : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+
+    window.open(waUrl, '_blank');
+  };
+
+  const handleViewReceipt = () => {
+    if (!completedSale) return;
+    window.open(ROUTES.receipt(completedSale.orderId), '_blank');
+  };
 
   if (!dataLoaded || authLoading || loading) return null;
 
@@ -825,35 +887,234 @@ export default function StockPage() {
       </div>
 
       {/* Complete Sale BottomSheet */}
-      <BottomSheet isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)}>
+      <BottomSheet
+        isOpen={checkoutOpen}
+        onClose={() => {
+          if (completedSale) {
+            handleNewSale();
+          } else {
+            setCheckoutOpen(false);
+          }
+        }}
+      >
         <div className={styles.sheetContent}>
-          <h2>Complete Sale</h2>
-          <div className={styles.summaryRow}>
-            <span>Amount Due</span>
-            <span style={{ fontSize: '24px', fontWeight: 600 }}>
-              {formatCurrency(cartTotal, currentShop?.currency || 'NGN')}
-            </span>
-          </div>
+          {completedSale ? (
+            /* Sale Success Screen */
+            <div className={styles.saleSuccessWrapper}>
+              <div className={styles.saleSuccessIcon}>
+                <Symbol name="check_circle" size={44} />
+              </div>
+              <h2 className={styles.saleSuccessTitle}>Sale Completed</h2>
+              <div className={styles.saleSuccessAmount}>
+                {formatCurrency(completedSale.totalAmount, currency)}
+              </div>
+              <p className={styles.saleSuccessSub}>
+                Payment recorded via{' '}
+                {completedSale.paymentMethod === 'card'
+                  ? 'Card / POS'
+                  : completedSale.paymentMethod === 'cash'
+                  ? 'Cash'
+                  : completedSale.paymentMethod === 'transfer'
+                  ? 'Bank Transfer'
+                  : 'Split Payment'}
+              </p>
 
-          <Select
-            label="Payment Method"
-            value={paymentMethod}
-            onChange={e => setPaymentMethod(e.target.value)}
-            options={[
-              { value: 'card', label: 'Card / POS' },
-              { value: 'cash', label: 'Cash' },
-              { value: 'transfer', label: 'Bank Transfer' }
-            ]}
-          />
+              <div className={styles.saleReceiptMeta}>
+                <div className={styles.saleMetaRow}>
+                  <span>Customer</span>
+                  <strong>{completedSale.customerName}</strong>
+                </div>
+                {completedSale.customerPhone && (
+                  <div className={styles.saleMetaRow}>
+                    <span>Phone</span>
+                    <strong>{completedSale.customerPhone}</strong>
+                  </div>
+                )}
+                <div className={styles.saleMetaRow}>
+                  <span>Units Sold</span>
+                  <strong>{completedSale.itemCount} pcs</strong>
+                </div>
+                <div className={styles.saleMetaRow}>
+                  <span>Receipt ID</span>
+                  <code>#{completedSale.orderId.slice(0, 8)}</code>
+                </div>
+              </div>
 
-          <Button
-            variant="primary"
-            loading={processing}
-            onClick={handleCheckout}
-            style={{ width: '100%', marginTop: '16px' }}
-          >
-            Confirm Payment
-          </Button>
+              <div className={styles.saleSuccessActions}>
+                <Button
+                  variant="primary"
+                  onClick={handleShareReceiptWhatsApp}
+                  icon={<Symbol name="chat" size={18} />}
+                  style={{ width: '100%', background: '#25D366', borderColor: '#25D366', color: '#fff' }}
+                >
+                  Share WhatsApp Receipt
+                </Button>
+                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <Button
+                    variant="secondary"
+                    onClick={handleViewReceipt}
+                    icon={<Symbol name="receipt_long" size={16} />}
+                    style={{ flex: 1 }}
+                  >
+                    View Receipt
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleNewSale}
+                    icon={<Symbol name="add" size={16} />}
+                    style={{ flex: 1 }}
+                  >
+                    New Sale
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Checkout Form */
+            <>
+              <h2>Complete Showroom Sale</h2>
+
+              {/* Compact Cart Summary */}
+              <div className={styles.checkoutItemsList}>
+                {cart.map(item => (
+                  <div key={item.goodId} className={styles.checkoutItemRow}>
+                    <div className={styles.checkoutItemName}>
+                      <span>{item.quantity}x {item.name}</span>
+                      <small>Size {item.size}</small>
+                    </div>
+                    <span className={styles.checkoutItemAmount}>
+                      {formatCurrency(item.quantity * item.priceAtSale, currency)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Discount Section */}
+              <div className={styles.discountSection}>
+                <div className={styles.discountHeader}>
+                  <label>Apply Discount (Optional)</label>
+                  <div className={styles.quickDiscountChips}>
+                    <button
+                      type="button"
+                      className={styles.quickDiscountChip}
+                      onClick={() => setDiscountInput(String(Math.round(cartSubtotal * 0.05)))}
+                    >
+                      5%
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickDiscountChip}
+                      onClick={() => setDiscountInput(String(Math.round(cartSubtotal * 0.10)))}
+                    >
+                      10%
+                    </button>
+                    {discountInput && (
+                      <button
+                        type="button"
+                        className={styles.quickDiscountChip}
+                        onClick={() => setDiscountInput('')}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  prefix={currency}
+                  value={discountInput}
+                  onChange={e => setDiscountInput(e.target.value)}
+                />
+              </div>
+
+              {/* Financial Breakdown */}
+              <div className={styles.breakdownBox}>
+                <div className={styles.breakdownRow}>
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(cartSubtotal, currency)}</span>
+                </div>
+                {cappedDiscount > 0 && (
+                  <div className={`${styles.breakdownRow} ${styles.discountText}`}>
+                    <span>Discount Applied</span>
+                    <span>-{formatCurrency(cappedDiscount, currency)}</span>
+                  </div>
+                )}
+                <div className={`${styles.breakdownRow} ${styles.breakdownTotal}`}>
+                  <span>Amount Due</span>
+                  <span>{formatCurrency(cartTotal, currency)}</span>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <Select
+                label="Payment Method"
+                value={paymentMethod}
+                onChange={e => setPaymentMethod(e.target.value)}
+                options={[
+                  { value: 'card', label: 'Card / POS' },
+                  { value: 'cash', label: 'Cash' },
+                  { value: 'transfer', label: 'Bank Transfer' },
+                  { value: 'split', label: 'Split Payment' }
+                ]}
+              />
+
+              {/* Customer Attribution Toggle */}
+              <div className={styles.customerToggleSection}>
+                <label className={styles.sectionLabel}>Customer Attribution</label>
+                <div className={styles.customerModeButtons}>
+                  <button
+                    type="button"
+                    className={`${styles.modeBtn} ${customerMode === 'walkin' ? styles.modeBtnActive : ''}`}
+                    onClick={() => setCustomerMode('walkin')}
+                  >
+                    <Symbol name="person" size={16} />
+                    Walk-in Guest
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.modeBtn} ${customerMode === 'attach' ? styles.modeBtnActive : ''}`}
+                    onClick={() => setCustomerMode('attach')}
+                  >
+                    <Symbol name="person_add" size={16} />
+                    VIP / Client
+                  </button>
+                </div>
+
+                {customerMode === 'attach' && (
+                  <div className={styles.attachCustomerFields}>
+                    <Input
+                      label="Customer Name"
+                      placeholder="e.g. Alhaji Babangida"
+                      value={customerNameInput}
+                      onChange={e => setCustomerNameInput(e.target.value)}
+                    />
+                    <Input
+                      label="Phone / WhatsApp"
+                      placeholder="e.g. 08012345678"
+                      value={customerPhoneInput}
+                      onChange={e => setCustomerPhoneInput(e.target.value)}
+                    />
+                    <Input
+                      label="Sale Memo / Note (Optional)"
+                      placeholder="e.g. In-store fitting approved"
+                      value={notesInput}
+                      onChange={e => setNotesInput(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <Button
+                variant="primary"
+                loading={processing}
+                onClick={handleCheckout}
+                style={{ width: '100%', marginTop: '8px' }}
+              >
+                Confirm Payment • {formatCurrency(cartTotal, currency)}
+              </Button>
+            </>
+          )}
         </div>
       </BottomSheet>
 
