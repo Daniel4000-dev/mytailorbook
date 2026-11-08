@@ -524,3 +524,241 @@
   background: #25d366;
   color: #ffffff;
 }
+
+/* Gateway Keys Grid */
+.gatewayGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.gatewayCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.gatewayCardUnlocked {
+  border-color: rgba(234, 179, 8, 0.4);
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.05), transparent);
+}
+
+.gatewayTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gatewayIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gatewayName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.gatewayTagline {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  line-height: 1.3;
+}
+
+/* Monthly Sprint */
+.sprintHero {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sprintMonthBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sf-accent-primary);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 4px 10px;
+  border-radius: 100px;
+  width: fit-content;
+}
+
+.sprintTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.sprintTheme {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.sprintFocus {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.sprintProgressCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.sprintProgressTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sprintDiscretionNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  line-height: 1.4;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+/* Badge Categories */
+.badgeCategoryTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sf-text-secondary);
+  margin-bottom: 10px;
+}
+
+/* Flier & Guild */
+.communitySection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flierCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flierHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.flierTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.flierBadgeLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #eab308;
+  letter-spacing: 0.08em;
+}
+
+.flierHeading {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.flierDesc {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.guildSection {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.socialButtonsRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.socialActionBtn {
+  flex: 1;
+  min-width: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  background: var(--sf-bg-surface-elevated, #1e293b);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-light);
+  transition: all 0.2s ease;
+}
+
+.socialActionBtn:hover {
+  border-color: var(--sf-accent-primary);
+  transform: translateY(-1px);
+}
+
+.claimFollowBtn {
+  background: transparent;
+  color: var(--sf-accent-primary);
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px;
+}
+
+.claimFollowBtn:disabled {
+  color: #10b981;
+  cursor: default;
+  text-decoration: none;
+}

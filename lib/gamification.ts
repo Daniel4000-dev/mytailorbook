@@ -150,11 +150,8 @@ export interface MonthlySprintConfig {
   name: string;
   theme: string;
   targetDeliveries: number;
-  rewards: {
-    physicalPack: string;
-    subscriptionBonus: string;
-    spotlightBadge: string;
-  };
+  focus: string;
+  distinction: string;
 }
 
 export const MONTHLY_SPRINTS: MonthlySprintConfig[] = [
@@ -163,132 +160,96 @@ export const MONTHLY_SPRINTS: MonthlySprintConfig[] = [
     name: 'January Jumpstart',
     theme: 'New Year Workshop Launch',
     targetDeliveries: 10,
-    rewards: {
-      physicalPack: 'Pro Japanese Tailor Shears & Fiberglass Tape',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Top January Atelier',
-    },
+    focus: 'Onboarding fresh walk-ins and logging initial orders',
+    distinction: 'Punctual New Year Couturier',
   },
   {
     monthIndex: 1,
     name: 'February Speed Sprint',
     theme: 'Couples & Valentine Elegance',
     targetDeliveries: 12,
-    rewards: {
-      physicalPack: 'Box of Tailor Chalk & Magnetic Wrist Cushion',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Punctual February Atelier',
-    },
+    focus: 'Rapid cutting and prompt fittings without delay',
+    distinction: 'Valentine Season Specialist',
   },
   {
     monthIndex: 2,
     name: 'March Season Prep',
     theme: 'Easter & Eid Preparation Sprint',
     targetDeliveries: 15,
-    rewards: {
-      physicalPack: 'Groz-Beckert Needles & Heavy Rotary Cutter',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Festival Rush Champion',
-    },
+    focus: 'Pre-season fabric sourcing and measurement precision',
+    distinction: 'Festival Preparation Master',
   },
   {
     monthIndex: 3,
     name: 'April Festivities',
     theme: 'Festival Rush & Timely Delivery',
     targetDeliveries: 15,
-    rewards: {
-      physicalPack: 'Japanese Steel Shears & Precision French Curve',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Master of April Deliveries',
-    },
+    focus: 'Zero-delay deliveries for holiday celebrations',
+    distinction: 'Punctual Holiday Couturier',
   },
   {
     monthIndex: 4,
     name: 'May Wedding Season',
     theme: 'Aso-Ebi & Bridal Perfection',
     targetDeliveries: 18,
-    rewards: {
-      physicalPack: 'Professional Steam Iron Shoe & Bobbin Case Set',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Bridal Atelier Star',
-    },
+    focus: 'Bridal party coordination and flawless fittings',
+    distinction: 'Bridal Atelier Star',
   },
   {
     monthIndex: 5,
     name: 'June Mid-Year Classic',
     theme: 'Showroom & RTW Collection',
     targetDeliveries: 15,
-    rewards: {
-      physicalPack: 'Tailor Wooden Clapper & High-Grade Scissors',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Mid-Year Quality Master',
-    },
+    focus: 'High-standard garment finishing and customer delight',
+    distinction: 'Mid-Year Quality Master',
   },
   {
     monthIndex: 6,
     name: 'July Summer Kaftans',
     theme: 'Senator & Kaftan Precision',
     targetDeliveries: 12,
-    rewards: {
-      physicalPack: 'Collar Stay Kit & Precision Measuring Gauges',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Senator Specialist',
-    },
+    focus: 'Sharp collar lines, clean hems, and exact pocket placements',
+    distinction: 'Senator Specialist',
   },
   {
     monthIndex: 7,
     name: 'August Back-to-School',
     theme: 'Uniforms & High Volume Orders',
     targetDeliveries: 20,
-    rewards: {
-      physicalPack: 'Bulk Groz-Beckert Needles & Industrial Machine Oil',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'High Volume Producer',
-    },
+    focus: 'Efficient batch cutting and organized bulk assembly',
+    distinction: 'High Volume Producer',
   },
   {
     monthIndex: 8,
-    name: 'September Autumn Rush',
+    name: 'September Corporate Rush',
     theme: 'Corporate Bespoke Suits',
     targetDeliveries: 12,
-    rewards: {
-      physicalPack: 'German Canvas Interfacing & Shoulder Pads Set',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Bespoke Suiting Master',
-    },
+    focus: 'Structured canvas chest pieces and executive trousers',
+    distinction: 'Bespoke Suiting Master',
   },
   {
     monthIndex: 9,
-    name: 'October Independence Sprint',
+    name: 'October Heritage Sprint',
     theme: 'Cultural Attire & Heritage Prints',
     targetDeliveries: 15,
-    rewards: {
-      physicalPack: 'Professional Tailoring Shears & Pattern Notcher',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Heritage Couturier',
-    },
+    focus: 'Traditional agbadas, caps, and intricate embroidery work',
+    distinction: 'Heritage Couturier',
   },
   {
     monthIndex: 10,
     name: 'November Pre-Holiday Rush',
     theme: 'December Early Bird Deliveries',
     targetDeliveries: 20,
-    rewards: {
-      physicalPack: 'Rotary Cutter Blades & Premium Tailor Tape Bundle',
-      subscriptionBonus: '3 Months Free StitchBook Pro',
-      spotlightBadge: 'Holiday Readiness Star',
-    },
+    focus: 'Beating December deadlines by completing early bookings',
+    distinction: 'Holiday Readiness Star',
   },
   {
     monthIndex: 11,
     name: 'December Grand Finale',
     theme: 'Zero Delay Holiday Deliveries',
     targetDeliveries: 25,
-    rewards: {
-      physicalPack: 'Complete Master Artisan Toolset & Tailor Shears',
-      subscriptionBonus: '6 Months Free StitchBook Pro',
-      spotlightBadge: 'Punctual Holiday Champion',
-    },
+    focus: 'Flawless execution during the peak tailoring season of the year',
+    distinction: 'Master of the Peak Season',
   },
 ];
 

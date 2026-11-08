@@ -87,9 +87,53 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
     measurements: row.measurements || undefined,
     styleName: row.style_name || undefined,
     lastReminderAt: row.last_reminder_at || undefined,
+    metadata: row.metadata || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+
+  // Automated Customer Receipt & Verification Ping:
+  // Award +15 XP and alert the shop the very first time their customer actually
+  // opens the live tracking link on their own phone.
+  const orderMetadata = (row.metadata as Record<string, unknown>) || {};
+  if (!orderMetadata.clientViewedAt && row.shop_id) {
+    const nowIso = new Date().toISOString();
+    const updatedMeta = {
+      ...orderMetadata,
+      clientViewedAt: nowIso,
+      clientViewsCount: 1,
+    };
+    order.metadata = updatedMeta;
+
+    // Asynchronously log to DB, award XP, and notify tailor
+    (async () => {
+      try {
+        await admin.from('orders').update({ metadata: updatedMeta }).eq('id', row.id);
+        const { data: currentShop } = await admin.from('shops').select('xp').eq('id', row.shop_id).single();
+        if (currentShop) {
+          await admin.from('shops').update({ xp: (currentShop.xp || 0) + 15 }).eq('id', row.shop_id);
+          await admin.from('xp_ledger').insert({
+            shop_id: row.shop_id,
+            action_type: 'verified_tracking_opened',
+            xp_awarded: 15,
+            order_id: row.id,
+          });
+          await createAtelierNotification({
+            shopId: row.shop_id,
+            category: 'clients',
+            tone: 'info',
+            title: 'Client Opened Live Tracker',
+            subtitle: `${row.customer_name || 'Your customer'} opened their live tracking link! (+15 XP)`,
+            orderId: row.id,
+            actionLabel: 'View Order',
+            actionHref: `/production/${row.id}`,
+          });
+        }
+      } catch (err) {
+        console.error('[track] Failed to record client view ping:', err);
+      }
+    })();
+  }
 
   const [{ data: customerRow }, { data: shopRow }] = await Promise.all([
     admin.from('customers').select('*').eq('id', order.customerId).single(),

@@ -25,16 +25,19 @@ export interface BadgeEvaluationContext {
   fullyPaidOrders: number;
   onTimeDeliveries: number;
   restDaysUsed: number;
+  verifiedTrackingViews?: number;
 }
 
 export const ATELIER_BADGES_CATALOG: Omit<AtelierBadge, 'unlocked' | 'progress'>[] = [
-  // 1. Client Trust & Punctuality
+  // -------------------------------------------------------------
+  // 1. Foundational Gateway Badges (Required for 90-Day Industrial Machine)
+  // -------------------------------------------------------------
   {
     id: 'punctual_needle',
     category: 'discipline',
     name: 'Always On Time',
-    tagline: 'Delivers customer clothes right on time',
-    description: 'Deliver 10 customer clothes on or before the agreed date.',
+    tagline: '10 customer clothes delivered on schedule',
+    description: 'Deliver 10 customer clothes strictly on or before the agreed date. (Gateway Badge 1 of 3 for 90-Day Challenge)',
     icon: 'verified',
     iconColor: '#10B981',
     tier: 1,
@@ -42,25 +45,11 @@ export const ATELIER_BADGES_CATALOG: Omit<AtelierBadge, 'unlocked' | 'progress'>
     clientVisible: true,
   },
   {
-    id: 'reliable_couture',
-    category: 'discipline',
-    name: 'Most Trusted Tailor',
-    tagline: '50 orders delivered without any delay',
-    description: 'Deliver 50 orders on time for your customers.',
-    icon: 'emoji_events',
-    iconColor: '#F59E0B',
-    tier: 3,
-    maxProgress: 50,
-    clientVisible: true,
-  },
-
-  // 2. Anatomical Precision & Measurements
-  {
     id: 'master_tape',
     category: 'milestone',
     name: 'Master of the Tape',
-    tagline: '20 customer measurements safely recorded',
-    description: 'Save complete body measurements for 20 different customers.',
+    tagline: '20 customer measurement profiles safely archived',
+    description: 'Record complete anatomical body measurements for 20 different customers. (Gateway Badge 2 of 3 for 90-Day Challenge)',
     icon: 'straighten',
     iconColor: '#6366F1',
     tier: 2,
@@ -68,37 +57,11 @@ export const ATELIER_BADGES_CATALOG: Omit<AtelierBadge, 'unlocked' | 'progress'>
     clientVisible: true,
   },
   {
-    id: 'grand_archivist',
-    category: 'milestone',
-    name: '100 Customer Book',
-    tagline: '100 customer measurements safely saved',
-    description: 'Record measurement details for 100 different customers.',
-    icon: 'inventory_2',
-    iconColor: '#8B5CF6',
-    tier: 4,
-    maxProgress: 100,
-    clientVisible: false,
-  },
-
-  // 3. Operational Discipline & Streaks
-  {
-    id: 'iron_discipline_7',
-    category: 'speed',
-    name: '7-Day Work Streak',
-    tagline: '7 straight days of active tailoring',
-    description: 'Keep your shop active and record work for 7 days in a row.',
-    icon: 'local_fire_department',
-    iconColor: '#EF4444',
-    tier: 1,
-    maxProgress: 7,
-    clientVisible: false,
-  },
-  {
     id: 'iron_discipline_30',
     category: 'speed',
     name: '30-Day Master Streak',
-    tagline: '30 straight days of consistent tailoring',
-    description: 'Keep your shop active and record updates for 30 straight work days.',
+    tagline: '30 consecutive days of active workshop craft',
+    description: 'Keep your workshop active and log tailoring progress for 30 consecutive work days. (Gateway Badge 3 of 3 for 90-Day Challenge)',
     icon: 'bolt',
     iconColor: '#F59E0B',
     tier: 3,
@@ -106,27 +69,99 @@ export const ATELIER_BADGES_CATALOG: Omit<AtelierBadge, 'unlocked' | 'progress'>
     clientVisible: true,
   },
 
-  // 4. Financial & Commercial Mastery
+  // -------------------------------------------------------------
+  // 2. Elite Master Atelier Badges (High-Value, Scarce, Tough)
+  // -------------------------------------------------------------
   {
-    id: 'debt_slayer',
-    category: 'milestone',
-    name: 'Zero Debt Shop',
-    tagline: '25 orders delivered with full payment collected',
-    description: 'Deliver 25 orders with the full balance collected and recorded.',
-    icon: 'payments',
-    iconColor: '#10B981',
-    tier: 2,
+    id: 'verified_communicator',
+    category: 'discipline',
+    name: 'Client Verified Atelier',
+    tagline: '25 live tracking links opened & verified by clients',
+    description: 'Share live order tracking links that have been opened and verified by at least 25 different customers.',
+    icon: 'share',
+    iconColor: '#06B6D4',
+    tier: 3,
     maxProgress: 25,
+    clientVisible: true,
+  },
+  {
+    id: 'reliable_couture',
+    category: 'discipline',
+    name: 'Most Trusted Tailor',
+    tagline: '50 orders delivered on schedule without delay',
+    description: 'Deliver 50 orders on time for your customers.',
+    icon: 'emoji_events',
+    iconColor: '#F59E0B',
+    tier: 3,
+    maxProgress: 50,
+    clientVisible: true,
+  },
+  {
+    id: 'centurion_cutter',
+    category: 'discipline',
+    name: 'Centurion Couturier',
+    tagline: '100 on-time bespoke deliveries',
+    description: 'Complete and deliver 100 customer garments strictly on or before the due date.',
+    icon: 'workspace_premium',
+    iconColor: '#EAB308',
+    tier: 4,
+    maxProgress: 100,
+    clientVisible: true,
+  },
+  {
+    id: 'grand_archivist',
+    category: 'milestone',
+    name: '100 Customer Vault',
+    tagline: '100 complete customer measurement profiles',
+    description: 'Safely archive complete measurements for 100 different customers.',
+    icon: 'inventory_2',
+    iconColor: '#8B5CF6',
+    tier: 4,
+    maxProgress: 100,
     clientVisible: false,
   },
-
-  // 5. Grand Master Craft Status
+  {
+    id: 'vault_of_250',
+    category: 'milestone',
+    name: 'Grand Master Vault (250)',
+    tagline: '250 customer measurement profiles locked in',
+    description: 'Store full measurement records for 250 customers. Elite enterprise atelier status.',
+    icon: 'lock',
+    iconColor: '#EC4899',
+    tier: 5,
+    maxProgress: 250,
+    clientVisible: true,
+  },
+  {
+    id: 'iron_discipline_100',
+    category: 'speed',
+    name: '100-Day Iron Discipline',
+    tagline: '100 consecutive active workshop days',
+    description: 'Maintain an unbroken 100-day operational streak in your atelier.',
+    icon: 'local_fire_department',
+    iconColor: '#EF4444',
+    tier: 5,
+    maxProgress: 100,
+    clientVisible: true,
+  },
+  {
+    id: 'golden_ledger',
+    category: 'milestone',
+    name: 'The Golden Ledger',
+    tagline: '50 orders 100% paid with zero debtor backlog',
+    description: 'Deliver 50 orders where the client bill is completely settled and recorded.',
+    icon: 'payments',
+    iconColor: '#10B981',
+    tier: 4,
+    maxProgress: 50,
+    clientVisible: false,
+  },
   {
     id: 'grand_master_5k',
     category: 'special',
-    name: 'Master Tailor',
+    name: 'Diamond Machine',
     tagline: '5,000 Points Master Tailor Milestone',
-    description: 'Reach Diamond Machine rank (5,000 Points). Qualify for the sewing machine giveaway!',
+    description: 'Reach Diamond Machine rank (5,000 Points). Qualifies for the 90-Day Industrial Sewing Machine grant.',
     icon: 'dry_cleaning',
     iconColor: '#38BDF8',
     tier: 5,
@@ -167,6 +202,16 @@ export function countMeasuredCustomers(customers: Customer[] = []): number {
 }
 
 /**
+ * Counts orders where a customer has verified opened the live tracking link
+ */
+export function countVerifiedTrackingViews(orders: Order[] = []): number {
+  return orders.filter((o) => {
+    const meta = o.metadata as Record<string, unknown> | undefined;
+    return Boolean(meta?.clientViewedAt || ((meta?.clientViewsCount as number) || 0) > 0);
+  }).length;
+}
+
+/**
  * Evaluates which badges a tailor has unlocked based on current studio statistics.
  */
 export function evaluateAtelierBadges(stats: BadgeEvaluationContext): AtelierBadge[] {
@@ -176,19 +221,22 @@ export function evaluateAtelierBadges(stats: BadgeEvaluationContext): AtelierBad
     switch (b.id) {
       case 'punctual_needle':
       case 'reliable_couture':
+      case 'centurion_cutter':
         progress = stats.onTimeDeliveries;
         break;
       case 'master_tape':
-        progress = stats.totalCustomers;
-        break;
       case 'grand_archivist':
+      case 'vault_of_250':
         progress = stats.totalCustomers;
         break;
-      case 'iron_discipline_7':
       case 'iron_discipline_30':
+      case 'iron_discipline_100':
         progress = Math.max(stats.streakCurrent, stats.streakBest);
         break;
-      case 'debt_slayer':
+      case 'verified_communicator':
+        progress = stats.verifiedTrackingViews || 0;
+        break;
+      case 'golden_ledger':
         progress = stats.fullyPaidOrders;
         break;
       case 'grand_master_5k':

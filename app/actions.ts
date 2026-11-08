@@ -135,6 +135,7 @@ function orderFromRow(row: any): Order {
     customPockets: row.metadata?.customPockets ?? undefined,
     courierDetails: row.metadata?.courierDetails ?? undefined,
     shippingDetails: row.metadata?.shippingDetails ?? undefined,
+    metadata: row.metadata || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

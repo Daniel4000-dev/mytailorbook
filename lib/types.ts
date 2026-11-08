@@ -483,6 +483,8 @@ export interface Order {
    *  public tracking link. undefined/null means "inherit the shop's
    *  defaultTrackingLinkEnabled" — most orders never set this explicitly. */
   includeTrackingLink?: boolean | null;
+  /** JSON metadata for extended workshop tracking (e.g. clientViewedAt, clientViewsCount, etc.) */
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
