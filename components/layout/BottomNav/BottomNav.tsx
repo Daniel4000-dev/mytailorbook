@@ -179,7 +179,7 @@ export default function BottomNav() {
             if (typeof window !== 'undefined' && 'vibrate' in navigator) {
               try {
                 navigator.vibrate(8);
-              } catch {}
+              } catch { }
             }
           }
           router.prefetch(item.href);

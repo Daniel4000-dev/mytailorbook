@@ -102,9 +102,9 @@ export default function SidebarMenu() {
       <div className={styles.topRow}>
         {/* Mobile Top Row (Profile Avatar and Close Button) */}
         <div className={styles.mobileTopRow}>
-          <CircleIconButton 
-            icon={<CustomNavIcon name="person" className={styles.iconUser} />} 
-            onClick={() => setShowProfile(true)} 
+          <CircleIconButton
+            icon={<CustomNavIcon name="person" className={styles.iconUser} />}
+            onClick={() => setShowProfile(true)}
             ariaLabel="Profile Settings"
           />
           <BrandIcon alt={shopName} className={styles.mobileLogo} />
@@ -235,8 +235,8 @@ export default function SidebarMenu() {
       {/* Mobile Footer */}
       <div className={styles.mobileFooter}>
         <OnlineIndicator className={styles.mobileOnlineIndicator} />
-        <button 
-          className={styles.logoutBtn} 
+        <button
+          className={styles.logoutBtn}
           onClick={handleLogout}
         >
           <CustomNavIcon name="logout" className={styles.logoutIcon} />
@@ -249,8 +249,8 @@ export default function SidebarMenu() {
         <OnlineIndicator className={styles.mobileOnlineIndicator} />
 
         {/* Profile Card / User Menu */}
-        <button 
-          className={styles.profileCard} 
+        <button
+          className={styles.profileCard}
           onClick={() => setShowProfileMenu(!showProfileMenu)}
           title={isCollapsed ? "User Menu" : undefined}
         >
@@ -266,8 +266,8 @@ export default function SidebarMenu() {
         {showProfileMenu && (
           <div className={styles.profileMenu}>
             {isOwner && (
-              <Link 
-                href={ROUTES.settings} 
+              <Link
+                href={ROUTES.settings}
                 className={styles.profileMenuItem}
                 onClick={() => { setShowProfileMenu(false); setMenuOpen(false); }}
               >
@@ -275,16 +275,16 @@ export default function SidebarMenu() {
                 Settings
               </Link>
             )}
-            <button 
-              className={styles.profileMenuItem} 
+            <button
+              className={styles.profileMenuItem}
               onClick={() => { setShowProfileMenu(false); setShowProfile(true); }}
             >
               <CustomNavIcon name="person" />
               Your Profile
             </button>
             <div className={styles.profileMenuDivider} />
-            <button 
-              className={`${styles.profileMenuItem} ${styles.danger}`} 
+            <button
+              className={`${styles.profileMenuItem} ${styles.danger}`}
               onClick={() => { setShowProfileMenu(false); handleLogout(); }}
             >
               <CustomNavIcon name="logout" />
@@ -293,7 +293,7 @@ export default function SidebarMenu() {
           </div>
         )}
 
-        <button 
+        <button
           className={styles.collapseToggle}
           onClick={toggleCollapse}
           title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
