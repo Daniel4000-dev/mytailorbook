@@ -84,6 +84,8 @@ describe('End-to-End Customer Lifecycle Simulation', () => {
       totalBill: 120000,
       depositPaid: 60000,
       status: 'Documented',
+      priority: 'normal',
+      statusHistory: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -117,9 +119,12 @@ describe('End-to-End Customer Lifecycle Simulation', () => {
       customerId: 'cust_e2e_001',
       customerName: customerInput.fullName,
       styleName: 'Senator Suit',
+      orderDetails: 'Navy Blue Wool Senator with Gold Stitching',
       totalBill: 120000,
       depositPaid: 60000,
       status: 'Documented',
+      priority: 'normal',
+      statusHistory: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -160,9 +165,12 @@ describe('End-to-End Customer Lifecycle Simulation', () => {
       shopId: 'shop_e2e_001',
       customerId: 'cust_e2e_001',
       customerName: customerInput.fullName,
+      orderDetails: 'Navy Blue Wool Senator with Gold Stitching',
       totalBill: 135000,
       depositPaid: 60000,
       status: 'Ready',
+      priority: 'normal',
+      statusHistory: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -239,6 +247,8 @@ describe('End-to-End Customer Lifecycle Simulation', () => {
       customerName: 'Internal Production',
       orderDetails: 'Factory Premium Kaftan',
       styleName: 'Kaftan',
+      priority: 'normal',
+      statusHistory: [],
       batchSizes: [
         { size: 'M', quantity: 10 },
         { size: 'L', quantity: 15 },
@@ -288,6 +298,8 @@ describe('End-to-End Customer Lifecycle Simulation', () => {
       totalBill: saleTotal,
       depositPaid: saleTotal,
       status: 'Delivered',
+      priority: 'normal',
+      statusHistory: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

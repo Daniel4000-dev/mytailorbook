@@ -252,6 +252,8 @@ export interface Measurements {
   calf?: number;
   ankle?: number;
   crotch?: number;
+  /** Shoe heel height offset in inches for evening gowns or wide trousers */
+  heelHeight?: number;
   notes?: string;
   /** Custom garment styles collect their own shop-defined field keys
    *  (see lib/constants.ts buildCustomStyleSpec) — these don't have a
@@ -303,6 +305,10 @@ export interface Customer {
   /** Uncut fabric photos dropped off by the customer (Stash). */
   fabrics?: OrderPhoto[];
   address?: string;
+  /** Secondary phone line or spouse/assistant contact */
+  secondaryPhone?: string;
+  /** Name of frequent third-party payer (e.g. spouse, assistant, parent) */
+  payerName?: string;
   /** Format: MM-DD for birthdays (no year to protect privacy/reduce friction) */
   birthdate?: string;
   createdAt: string;
@@ -397,6 +403,10 @@ export interface InventoryItem {
   quantity: number;
   unit: string;
   lowStockThreshold?: number;
+  /** True when inventory item is consigned by an external designer/artisan */
+  isConsignment?: boolean;
+  consignorName?: string;
+  consignorCutPercent?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -441,6 +451,31 @@ export interface Order {
   materialSuppliedBy?: 'shop' | 'customer';
   materialCost?: number;
   otherCosts?: number;
+  /** True when fabric was pre-treated (sponged/pre-shrunk) prior to cutting */
+  fabricPreShrunk?: boolean;
+  /** True when leftover fabric remnants/offcuts were returned to the customer upon collection */
+  remnantsReturned?: boolean;
+  /** Multi-artisan specialization handoff assignments for shared assembly */
+  artisanAssignments?: { role: AtelierCraftRole; staffId: string; staffName: string }[];
+  /** Flag for emergency rescue triage from a botched outside tailor */
+  isRescueJob?: boolean;
+  /** Flag for orders requiring a muslin/calico toile mockup fitting prior to luxury fabric cut */
+  requiresToile?: boolean;
+  /** Specialized ergonomic or security pockets requested by client */
+  customPockets?: string[];
+  /** Dispatch rider handover details for local motorcycle couriers */
+  courierDetails?: {
+    riderName: string;
+    riderPhone: string;
+    bikeNumber?: string;
+    feePaidBy: 'shop' | 'customer';
+  };
+  /** International diaspora air freight details */
+  shippingDetails?: {
+    airwayBill: string;
+    destinationCountry: string;
+    customsDeclaration: string;
+  };
   /** When a customer last clicked "Send a reminder" on the public tracking
    *  page — rate-limited server-side to once per calendar day per order. */
   lastReminderAt?: string;

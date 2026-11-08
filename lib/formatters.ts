@@ -6,7 +6,7 @@
 
 import { PHONE_PREFIX } from './constants';
 import { APP_CONFIG } from './config';
-import type { OrderStatus } from './types';
+import type { OrderStatus, Order, Customer } from './types';
 
 /**
  * Formats a number as currency with commas.
@@ -333,4 +333,105 @@ export function formatMeasurementsSummary(params: {
 
   return lines.join('\n');
 }
+
+/**
+ * Formats a digital receipt for standalone walk-in measurement consultations.
+ */
+export function formatMeasurementConsultationReceipt(consultation: {
+  customerName: string;
+  fee: number;
+  currency?: string;
+  shopName: string;
+}): string {
+  const { customerName, fee, currency = 'NGN', shopName } = consultation;
+  return (
+    `*Measurement Consultation Receipt*\n` +
+    `Client: ${customerName}\n` +
+    `Fee: ${formatCurrency(fee, currency)}\n` +
+    `Status: Paid\n\n` +
+    `Professional anatomical profile recorded for personal/diaspora tailoring.\n\n` +
+    `— ${shopName} via ${APP_CONFIG.name}`
+  );
+}
+
+/**
+ * Calculates net piece-rate earnings for an artisan based on completed garments and deductions.
+ */
+export function calculateArtisanPayout(
+  orders: Order[],
+  staffId: string,
+  ratePerGarment: number,
+  advancesDeducted: number = 0
+): { completedCount: number; grossEarnings: number; advancesDeducted: number; netPayout: number } {
+  const completedCount = orders.filter(
+    (o) =>
+      (o.assignedTo === staffId || o.artisanAssignments?.some((a) => a.staffId === staffId)) &&
+      (o.status === 'Ready' || o.status === 'Delivered')
+  ).length;
+  const grossEarnings = completedCount * ratePerGarment;
+  const netPayout = Math.max(0, grossEarnings - advancesDeducted);
+  return { completedCount, grossEarnings, advancesDeducted, netPayout };
+}
+
+/**
+ * Generates an automated WhatsApp invitation for live video-fittings.
+ */
+export function getVideoFittingMessage(customerName: string, garmentTitle: string, trackingUrl: string): string {
+  return (
+    `Good day ${customerName}! Your ${garmentTitle} is prepared on our atelier dress form for your virtual video fitting.\n\n` +
+    `View live progress: ${trackingUrl}\n` +
+    `Please let us know your availability for a 5-minute video call to confirm the drape before final closure.`
+  );
+}
+
+/**
+ * Compiles a running financial statement of account for high-volume or VIP clients.
+ */
+export function generateCustomerStatement(customer: Customer, orders: Order[], currency: string = 'NGN'): string {
+  const customerOrders = orders.filter((o) => o.customerId === customer.id);
+  const totalBilled = customerOrders.reduce((sum, o) => sum + (o.totalBill || 0), 0);
+  const totalPaid = customerOrders.reduce((sum, o) => sum + (o.depositPaid || 0), 0);
+  const balanceOwed = totalBilled - totalPaid;
+
+  const lines = [
+    `*Statement of Account: ${customer.fullName}*`,
+    `Total Orders: ${customerOrders.length}`,
+    `Total Billed: ${formatCurrency(totalBilled, currency)}`,
+    `Total Paid: ${formatCurrency(totalPaid, currency)}`,
+    `Outstanding Balance: ${formatCurrency(balanceOwed, currency)}`,
+    '',
+    '*Order Summary:*',
+    ...customerOrders.map(
+      (o, idx) =>
+        `${idx + 1}. ${o.orderDetails} (${o.status}) - ${formatCurrency(o.totalBill, currency)} [Balance: ${formatCurrency(o.totalBill - o.depositPaid, currency)}]`
+    ),
+    '',
+    `— Sent from ${APP_CONFIG.name}`,
+  ];
+  return lines.join('\n');
+}
+
+/**
+ * Generates garment identification bag tags for batch group orders (e.g. Aso Ebi, Wedding parties).
+ */
+export function generateBatchGarmentTags(
+  batchOrders: { customerName: string; role?: string; styleName: string; accessories?: string[] }[]
+): string[] {
+  return batchOrders.map((item, idx) => {
+    const roleStr = item.role ? ` [${item.role}]` : '';
+    const accStr = item.accessories && item.accessories.length > 0 ? `\nAccessories: ${item.accessories.join(', ')}` : '';
+    return `Tag #${idx + 1}: ${item.customerName}${roleStr}\nStyle: ${item.styleName}${accStr}`;
+  });
+}
+
+/**
+ * Generates a personalized birthday styling message.
+ */
+export function getBirthdayGreeting(customerName: string, discountPercent: number = 10): string {
+  return (
+    `Happy Birthday ${customerName.split(' ')[0]}! The team at our atelier wishes you joy, health, and elegance on your special day.\n\n` +
+    `As our gift to you, enjoy ${discountPercent}% off workmanship on your next bespoke order this month!`
+  );
+}
+
 
