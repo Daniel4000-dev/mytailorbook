@@ -78,6 +78,8 @@ export async function completeOnboarding(
     }
   }
 
+  const isBespoke = (businessMode || 'bespoke') === 'bespoke';
+
   const shopPayload: Record<string, unknown> = {
     name: shopName,
     onboarding_goal: goal || null,
@@ -85,7 +87,7 @@ export async function completeOnboarding(
     weekly_capacity: weeklyCapacity ? parseInt(weeklyCapacity, 10) : null,
     rtw_sourcing_method: rtwSourcingMethod || null,
     monthly_revenue_target: monthlyRevenueTarget && monthlyRevenueTarget > 0 ? monthlyRevenueTarget : null,
-    xp: 50, // Welcome bonus: profile completed!
+    xp: isBespoke ? 50 : 0, // Welcome craft bonus is reserved strictly for bespoke tailoring
   };
 
   if (referredByShopId) {
@@ -111,13 +113,15 @@ export async function completeOnboarding(
     orgId = shop.org_id;
   }
 
-  // Record Welcome XP in ledger (via standalone XP module — no-ops when xpSystem is false)
-  await recordServerXpLedger(admin, {
-    shop_id: shopId,
-    amount: 50,
-    action_type: 'onboarding_complete',
-    description: 'Welcome bonus: Studio profile completed (+50 XP)',
-  });
+  if (isBespoke) {
+    // Record Welcome XP in ledger (via standalone XP module — no-ops when xpSystem is false)
+    await recordServerXpLedger(admin, {
+      shop_id: shopId,
+      amount: 50,
+      action_type: 'onboarding_complete',
+      description: 'Welcome bonus: Studio profile completed (+50 XP)',
+    });
+  }
 
   const { error: profileError } = await admin
     .from('profiles')

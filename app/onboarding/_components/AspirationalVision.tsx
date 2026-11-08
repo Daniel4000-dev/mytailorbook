@@ -147,12 +147,12 @@ export default function AspirationalVision({
         <div className={styles.messageBox}>
           <div className={styles.monogram}>{getMonogram(shopName)}</div>
           <div className={styles.xpPill}>
-            <Symbol name="workspace_premium" size={15} />
+            <Symbol name={isRtw || isHybrid ? 'verified' : 'workspace_premium'} size={15} />
             <span>
               {isRtw
-                ? '+50 Craft XP Unlocked · Ready-to-Wear Brand'
+                ? 'Showroom Ready · Retail Brand'
                 : isHybrid
-                ? '+50 Craft XP Unlocked · Full-Suite Atelier'
+                ? 'Studio & Showroom Ready'
                 : '+50 Craft XP Unlocked · Master Tailor'}
             </span>
           </div>

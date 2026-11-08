@@ -380,10 +380,17 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  <div className={styles.xpBonusPill}>
-                    <Symbol name="workspace_premium" size={16} />
-                    <span>+50 Studio XP awarded upon completion</span>
-                  </div>
+                  {watchedBusinessMode === 'bespoke' ? (
+                    <div className={styles.xpBonusPill}>
+                      <Symbol name="workspace_premium" size={16} />
+                      <span>+50 Studio XP awarded upon completion</span>
+                    </div>
+                  ) : (
+                    <div className={styles.xpBonusPill}>
+                      <Symbol name="verified" size={16} />
+                      <span>Showroom &amp; POS Setup Ready</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.actionsRow}>

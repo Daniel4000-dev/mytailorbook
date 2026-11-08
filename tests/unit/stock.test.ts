@@ -12,6 +12,8 @@ import {
 } from '@/app/actions/stock';
 import { formatShowroomWhatsAppOrderMessage } from '@/lib/formatters';
 import { NAV_ITEMS } from '@/lib/constants';
+import { isXpSystemEnabled } from '@/lib/xp';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 
 // Mock next/cache
 vi.mock('next/cache', () => ({
@@ -570,7 +572,7 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
 
   describe('Business Mode Navigation & Flow Separation', () => {
     it('filters out Bespoke-only items (Fittings, Customers) and retains Stock/POS in pure RTW mode', () => {
-      const mode = 'rtw';
+      const mode: string = 'rtw';
       const visible = NAV_ITEMS.filter((item) => {
         if (item.hideFromBottomNav) return false;
         if (mode === 'bespoke' && item.rtwOnly) return false;
@@ -585,7 +587,7 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
     });
 
     it('filters out RTW-only items (Stock/POS) and retains Bespoke items (Fittings, Customers) in pure Bespoke mode', () => {
-      const mode = 'bespoke';
+      const mode: string = 'bespoke';
       const visible = NAV_ITEMS.filter((item) => {
         if (item.hideFromBottomNav) return false;
         if (mode === 'bespoke' && item.rtwOnly) return false;
@@ -600,7 +602,7 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
     });
 
     it('retains both Bespoke and RTW navigation items in Hybrid mode without collision', () => {
-      const mode = 'hybrid';
+      const mode: string = 'hybrid';
       const visible = NAV_ITEMS.filter((item) => {
         if (item.hideFromBottomNav) return false;
         if (mode === 'bespoke' && item.rtwOnly) return false;
@@ -612,6 +614,21 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       expect(labels).toContain('Stock / POS');
       expect(labels).toContain('Fittings');
       expect(labels).toContain('Customers');
+    });
+  });
+
+  describe('Mode Separation: XP and Streak System Isolation', () => {
+    it('strictly disables XP and gamification for ready-to-wear (rtw) mode', () => {
+      expect(isXpSystemEnabled('rtw')).toBe(false);
+    });
+
+    it('strictly disables XP and gamification for hybrid mode', () => {
+      expect(isXpSystemEnabled('hybrid')).toBe(false);
+    });
+
+    it('governs bespoke mode strictly by FEATURE_FLAGS.xpSystem', () => {
+      expect(isXpSystemEnabled('bespoke')).toBe(Boolean(FEATURE_FLAGS.xpSystem));
+      expect(isXpSystemEnabled()).toBe(Boolean(FEATURE_FLAGS.xpSystem));
     });
   });
 });

@@ -51,7 +51,7 @@ export default function TopBar({
 
   const finalRightAction = rightAction || actions;
 
-  const xpEnabled = isXpSystemEnabled();
+  const xpEnabled = isXpSystemEnabled(currentShop?.businessMode);
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
   const currentTier = getTierForXp(xp);
@@ -113,85 +113,89 @@ export default function TopBar({
               {leftAction}
             </div>
             <div className={styles.right}>
-              <Link
-                href="/circle"
-                className={styles.buddyPulseBtn}
-                title={
-                  peerBuddies.length > 0
-                    ? `Tailor Circle (${peerBuddies.length} Connected${isCoOpSecuredToday ? ' · Co-Op Secured!' : ''})`
-                    : 'Connect with a tailor in Tailor Circle'
-                }
-                aria-label="Tailor Circle"
-              >
-                {peerBuddies.length > 0 ? (
-                  <div className={styles.buddyAvatarStack}>
-                    {peerBuddies.slice(0, 3).map((buddy, idx) => {
-                      const initials = buddy.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join('')
-                        .toUpperCase();
-                      const todayStr = new Date().toISOString().split('T')[0];
-                      const isTodayActive = Boolean(
-                        buddy.status === 'active' &&
-                          buddy.lastActiveAt &&
-                          buddy.lastActiveAt.startsWith(todayStr)
-                      );
-                      const isLast = idx === Math.min(peerBuddies.length - 1, 2);
+              {xpEnabled && (
+                <Link
+                  href="/circle"
+                  className={styles.buddyPulseBtn}
+                  title={
+                    peerBuddies.length > 0
+                      ? `Tailor Circle (${peerBuddies.length} Connected${isCoOpSecuredToday ? ' · Co-Op Secured!' : ''})`
+                      : 'Connect with a tailor in Tailor Circle'
+                  }
+                  aria-label="Tailor Circle"
+                >
+                  {peerBuddies.length > 0 ? (
+                    <div className={styles.buddyAvatarStack}>
+                      {peerBuddies.slice(0, 3).map((buddy, idx) => {
+                        const initials = buddy.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase();
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const isTodayActive = Boolean(
+                          buddy.status === 'active' &&
+                            buddy.lastActiveAt &&
+                            buddy.lastActiveAt.startsWith(todayStr)
+                        );
+                        const isLast = idx === Math.min(peerBuddies.length - 1, 2);
 
-                      return (
-                        <span
-                          key={buddy.id}
-                          className={`${styles.buddyAvatar} ${
-                            isTodayActive ? styles.buddyAvatarActive : ''
-                          }`}
-                          style={{
-                            zIndex: idx + 1,
-                            backgroundColor: buddy.tierColor || '#4338CA',
-                          }}
-                          title={`${buddy.name} · ${isTodayActive ? 'Active Today' : 'Offline'}`}
-                        >
-                          {buddy.logoUrl ? (
-                            <img
-                              src={buddy.logoUrl}
-                              alt={buddy.name}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                borderRadius: '50%',
-                                objectFit: 'cover',
-                              }}
-                            />
-                          ) : (
-                            initials
-                          )}
-                          {isLast && (
-                            <span
-                              className={`${styles.buddyPulsePing} ${
-                                isCoOpSecuredToday ? styles.buddyPulsePingGold : ''
-                              }`}
-                              aria-hidden="true"
-                            />
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div
-                    className={styles.buddyAvatarEmpty}
-                    title="Connect with a tailor in Tailor Circle"
-                  >
-                    <Symbol name="groups" size={16} />
-                    <span className={styles.buddyAvatarPlus}>+</span>
-                  </div>
-                )}
-              </Link>
+                        return (
+                          <span
+                            key={buddy.id}
+                            className={`${styles.buddyAvatar} ${
+                              isTodayActive ? styles.buddyAvatarActive : ''
+                            }`}
+                            style={{
+                              zIndex: idx + 1,
+                              backgroundColor: buddy.tierColor || '#4338CA',
+                            }}
+                            title={`${buddy.name} · ${isTodayActive ? 'Active Today' : 'Offline'}`}
+                          >
+                            {buddy.logoUrl ? (
+                              <img
+                                src={buddy.logoUrl}
+                                alt={buddy.name}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                }}
+                              />
+                            ) : (
+                              initials
+                            )}
+                            {isLast && (
+                              <span
+                                className={`${styles.buddyPulsePing} ${
+                                  isCoOpSecuredToday ? styles.buddyPulsePingGold : ''
+                                }`}
+                                aria-hidden="true"
+                              />
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div
+                      className={styles.buddyAvatarEmpty}
+                      title="Connect with a tailor in Tailor Circle"
+                    >
+                      <Symbol name="groups" size={16} />
+                      <span className={styles.buddyAvatarPlus}>+</span>
+                    </div>
+                  )}
+                </Link>
+              )}
 
-              <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {streakIndicator}
-              </div>
+              {xpEnabled && (
+                <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {streakIndicator}
+                </div>
+              )}
 
               <NotificationBell />
 

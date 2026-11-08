@@ -35,12 +35,26 @@ export async function POST(req: Request) {
 
     const { data: shop } = await admin
       .from('shops')
-      .select('id, name, subscription_status, streak_current, streak_best, streak_last_counted_at, streak_freezes, work_days, vacation_mode, xp, daily_quests, buddy_shop_id, buddy_streak_count, buddy_last_active_at, referred_by_shop_id, referral_reward_claimed')
+      .select('id, name, subscription_status, streak_current, streak_best, streak_last_counted_at, streak_freezes, work_days, vacation_mode, xp, daily_quests, buddy_shop_id, buddy_streak_count, buddy_last_active_at, referred_by_shop_id, referral_reward_claimed, business_mode')
       .eq('id', profile.shop_id)
       .single();
 
     if (!shop) {
       return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
+    }
+
+    // XP, daily streaks, and craft badges are exclusively built for bespoke tailoring.
+    // RTW and Hybrid modes operate on inventory throughput and rack stock, where craft
+    // order streaks and gamification do not apply.
+    if (!xpEnabled || (shop.business_mode && shop.business_mode !== 'bespoke')) {
+      return NextResponse.json({
+        success: true,
+        xp_awarded: 0,
+        streak_bumped: false,
+        streak_current: shop.streak_current || 0,
+        streak_best: shop.streak_best || 0,
+        mode_disabled: true,
+      });
     }
 
     const now = new Date();

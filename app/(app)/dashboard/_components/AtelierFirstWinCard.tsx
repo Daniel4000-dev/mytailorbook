@@ -18,7 +18,7 @@ export default function AtelierFirstWinCard({
   businessMode = 'bespoke',
   shopSlug,
 }: AtelierFirstWinCardProps) {
-  const xpEnabled = isXpSystemEnabled();
+  const xpEnabled = isXpSystemEnabled(businessMode);
 
   if (businessMode === 'rtw') {
     return (

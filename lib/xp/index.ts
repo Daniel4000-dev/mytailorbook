@@ -32,8 +32,14 @@ export interface XpEventOptions {
 /**
  * Master check for whether the standalone XP / Streak / Tailor Circle engine
  * is currently plugged into the application.
+ * Restricted strictly to bespoke tailoring mode — Ready-to-Wear (RTW) and
+ * Hybrid modes operate on inventory throughput and rack stock, where craft
+ * order streaks and gamification do not apply.
  */
-export function isXpSystemEnabled(): boolean {
+export function isXpSystemEnabled(businessMode?: string): boolean {
+  if (businessMode && businessMode !== 'bespoke') {
+    return false;
+  }
   return Boolean(FEATURE_FLAGS.xpSystem);
 }
 

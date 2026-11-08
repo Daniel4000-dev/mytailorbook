@@ -18,7 +18,7 @@ export default function ShopTodayCard({
 }) {
   const { milestones } = useMilestones();
   const { calendarEvents } = useData();
-  const xpEnabled = isXpSystemEnabled();
+  const xpEnabled = isXpSystemEnabled(shop?.business_mode || shop?.businessMode);
   const isAllCaughtUp = loops.length === 0;
   const currentStreak = xpEnabled ? (shop?.streakCurrent || 0) : 0;
 
