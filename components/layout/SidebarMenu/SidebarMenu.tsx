@@ -169,6 +169,18 @@ export default function SidebarMenu() {
           <CustomNavIcon name="collections_bookmark" className={styles.menuIcon} />
           <span className={styles.menuText}>Lookbooks</span>
         </Link>
+        {isOwner && (mode === 'rtw' || mode === 'hybrid') && (
+          <Link
+            href={ROUTES.stock}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.stock)}
+          >
+            <CustomNavIcon name="storefront" className={styles.menuIcon} />
+            <span className={styles.menuText}>Stock / POS</span>
+          </Link>
+        )}
         <Link
           href={ROUTES.circle}
           prefetch={true}

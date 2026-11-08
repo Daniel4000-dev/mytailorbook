@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import type { Order } from '@/lib/types';
@@ -7,6 +8,7 @@ import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
+import { useShowroomStockMetrics } from '../../_hooks/useShowroomStockMetrics';
 import QuickCommandHub from '../QuickCommandHub';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import ProfileSetupProgress from '../ProfileSetupProgress';
@@ -30,6 +32,13 @@ export default function OwnerDashboard({
   onNavigate: (href: string) => void;
 }) {
   const { currentShop, customers, exceptions } = useData();
+  const businessMode = currentShop?.businessMode || 'bespoke';
+  const isRtw = businessMode === 'rtw';
+  const isHybrid = businessMode === 'hybrid';
+  const [hybridLens, setHybridLens] = useState<'bespoke' | 'rtw'>('bespoke');
+
+  const showroomMetrics = useShowroomStockMetrics(currentShop?.id, isRtw || isHybrid);
+
   const {
     hideCollected,
     hideProjected,
@@ -47,6 +56,12 @@ export default function OwnerDashboard({
   } = useOwnerDashboardData(orders, staffMembers);
 
   const openLoops = useOpenLoops(orders, customers, exceptions);
+
+  const isDayOne = isRtw
+    ? orders.length === 0 && showroomMetrics.totalPieces === 0
+    : isHybrid
+    ? orders.length === 0 && showroomMetrics.totalPieces === 0
+    : orders.length === 0;
 
   return (
     <>
@@ -126,8 +141,108 @@ export default function OwnerDashboard({
           </div>
         ) : null}
 
+        {/* Hybrid Segmented Lens Switcher */}
+        {isHybrid && (
+          <div className={styles.hybridToggleWrap}>
+            <div className={styles.hybridToggle} role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={hybridLens === 'bespoke'}
+                className={`${styles.hybridToggleBtn} ${hybridLens === 'bespoke' ? styles.hybridToggleBtnActive : ''}`}
+                onClick={() => setHybridLens('bespoke')}
+              >
+                Bespoke Studio
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={hybridLens === 'rtw'}
+                className={`${styles.hybridToggleBtn} ${hybridLens === 'rtw' ? styles.hybridToggleBtnActive : ''}`}
+                onClick={() => setHybridLens('rtw')}
+              >
+                Showroom Rack
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Operations Dashboard Grid — Elevated Cockpit Deck */}
-        {orders.length > 0 ? (
+        {isRtw || (isHybrid && hybridLens === 'rtw') ? (
+          showroomMetrics.totalPieces > 0 || orders.length > 0 ? (
+            <div className={styles.operationsGrid}>
+              {/* Row 1: On Rack, Low Stock, Overdue Payment */}
+              <button
+                type="button"
+                className={styles.operationsCard}
+                onClick={() => onNavigate(ROUTES.stock)}
+                aria-label="View garments in stock on rack"
+              >
+                <div className={styles.metricTop}>
+                  <span className={styles.metricNum}>{showroomMetrics.totalPieces}</span>
+                </div>
+                <span className={styles.metricLabel}>On Rack</span>
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.operationsCard} ${showroomMetrics.lowStockCount > 0 ? styles.metricAlertItem : ''}`}
+                onClick={() => onNavigate(ROUTES.stock)}
+                aria-label="View low stock alerts"
+              >
+                <div className={styles.metricTop}>
+                  <span className={styles.metricNum}>{showroomMetrics.lowStockCount}</span>
+                  {showroomMetrics.lowStockCount > 0 && <span className={styles.metricAlertDot} />}
+                </div>
+                <span className={styles.metricLabel}>Low Stock</span>
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+                onClick={() => onNavigate(ROUTES.collections)}
+                aria-label="View uncollected debtor balances"
+              >
+                <div className={styles.metricTop}>
+                  <span className={styles.metricNum}>
+                    {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+                  </span>
+                </div>
+                <span className={styles.metricLabel}>Overdue payment</span>
+              </button>
+
+              {/* Row 2: Counter POS, Public Showroom */}
+              <button
+                type="button"
+                className={`${styles.operationsCard} ${styles.operationsCardWide}`}
+                onClick={() => onNavigate(ROUTES.stock)}
+                aria-label="Open Counter POS"
+              >
+                <div className={styles.metricTop}>
+                  <span className={styles.metricNum}>POS</span>
+                </div>
+                <span className={styles.metricLabel}>Counter POS</span>
+              </button>
+
+              <button
+                type="button"
+                className={`${styles.operationsCard} ${styles.operationsCardWide}`}
+                onClick={() => onNavigate(currentShop?.slug ? `/catalogue/${currentShop.slug}?view=rack` : ROUTES.stock)}
+                aria-label="View Public Showroom Floor"
+              >
+                <div className={styles.metricTop}>
+                  <span className={styles.metricNum}>Live</span>
+                </div>
+                <span className={styles.metricLabel}>Showroom</span>
+              </button>
+            </div>
+          ) : (
+            <div className={styles.dayOneBanner}>
+              <Symbol name="storefront" size={18} />
+              <span>Ready for Day 1 — Add garments to your stock rack below to launch your digital showroom and start recording counter sales.</span>
+            </div>
+          )
+        ) : orders.length > 0 ? (
           <div className={styles.operationsGrid}>
             {/* Row 1: Sewing, Cutting, Overdue Payment (3 cards) */}
             <button
@@ -203,11 +318,13 @@ export default function OwnerDashboard({
         )}
       </section>
 
-      {/* 2. Shop First-Win Launchpad (Shown when shop is new with 0 orders) */}
-      {orders.length === 0 && (
+      {/* 2. Shop First-Win Launchpad (Shown when shop is new on Day 1) */}
+      {isDayOne && (
         <AtelierFirstWinCard
           shopName={currentShop?.name || 'Your Shop'}
           onNavigate={onNavigate}
+          businessMode={businessMode}
+          shopSlug={currentShop?.slug || currentShop?.id}
         />
       )}
 
@@ -223,6 +340,9 @@ export default function OwnerDashboard({
         customersCount={customers?.length || 0}
         debtorsCount={debtorsCount}
         debtTotal={debtTotal}
+        businessMode={businessMode}
+        shopSlug={currentShop?.slug || currentShop?.id}
+        stockCount={showroomMetrics.totalPieces}
       />
 
       {/* 5. Active Shop Sections (Unlocked once orders are live) */}

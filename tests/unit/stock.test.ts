@@ -11,6 +11,7 @@ import {
   getPublicShowroomStockAction
 } from '@/app/actions/stock';
 import { formatShowroomWhatsAppOrderMessage } from '@/lib/formatters';
+import { NAV_ITEMS } from '@/lib/constants';
 
 // Mock next/cache
 vi.mock('next/cache', () => ({
@@ -564,6 +565,53 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       if ('error' in res) {
         expect(res.error).toContain('required');
       }
+    });
+  });
+
+  describe('Business Mode Navigation & Flow Separation', () => {
+    it('filters out Bespoke-only items (Fittings, Customers) and retains Stock/POS in pure RTW mode', () => {
+      const mode = 'rtw';
+      const visible = NAV_ITEMS.filter((item) => {
+        if (item.hideFromBottomNav) return false;
+        if (mode === 'bespoke' && item.rtwOnly) return false;
+        if (mode === 'rtw' && item.bespokeOnly) return false;
+        return true;
+      });
+
+      const labels = visible.map((i) => i.label);
+      expect(labels).toContain('Stock / POS');
+      expect(labels).not.toContain('Fittings');
+      expect(labels).not.toContain('Customers');
+    });
+
+    it('filters out RTW-only items (Stock/POS) and retains Bespoke items (Fittings, Customers) in pure Bespoke mode', () => {
+      const mode = 'bespoke';
+      const visible = NAV_ITEMS.filter((item) => {
+        if (item.hideFromBottomNav) return false;
+        if (mode === 'bespoke' && item.rtwOnly) return false;
+        if (mode === 'rtw' && item.bespokeOnly) return false;
+        return true;
+      });
+
+      const labels = visible.map((i) => i.label);
+      expect(labels).not.toContain('Stock / POS');
+      expect(labels).toContain('Fittings');
+      expect(labels).toContain('Customers');
+    });
+
+    it('retains both Bespoke and RTW navigation items in Hybrid mode without collision', () => {
+      const mode = 'hybrid';
+      const visible = NAV_ITEMS.filter((item) => {
+        if (item.hideFromBottomNav) return false;
+        if (mode === 'bespoke' && item.rtwOnly) return false;
+        if (mode === 'rtw' && item.bespokeOnly) return false;
+        return true;
+      });
+
+      const labels = visible.map((i) => i.label);
+      expect(labels).toContain('Stock / POS');
+      expect(labels).toContain('Fittings');
+      expect(labels).toContain('Customers');
     });
   });
 });

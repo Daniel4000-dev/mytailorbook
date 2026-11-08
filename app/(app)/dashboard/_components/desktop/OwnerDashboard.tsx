@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import type { Order } from '@/lib/types';
@@ -7,6 +8,7 @@ import { CRAFT_ROLE_LABELS } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
+import { useShowroomStockMetrics } from '../../_hooks/useShowroomStockMetrics';
 import QuickCommandHub from '../QuickCommandHub';
 import TodayPrioritiesWidget from '../TodayPrioritiesWidget';
 import ProfileSetupProgress from '../ProfileSetupProgress';
@@ -30,6 +32,13 @@ export default function OwnerDashboard({
   onNavigate: (href: string) => void;
 }) {
   const { currentShop, customers, exceptions } = useData();
+  const businessMode = currentShop?.businessMode || 'bespoke';
+  const isRtw = businessMode === 'rtw';
+  const isHybrid = businessMode === 'hybrid';
+  const [hybridLens, setHybridLens] = useState<'bespoke' | 'rtw'>('bespoke');
+
+  const showroomMetrics = useShowroomStockMetrics(currentShop?.id, isRtw || isHybrid);
+
   const {
     hideCollected,
     hideProjected,
@@ -46,6 +55,12 @@ export default function OwnerDashboard({
   } = useOwnerDashboardData(orders, staffMembers);
 
   const openLoops = useOpenLoops(orders, customers, exceptions);
+
+  const isDayOne = isRtw
+    ? orders.length === 0 && showroomMetrics.totalPieces === 0
+    : isHybrid
+    ? orders.length === 0 && showroomMetrics.totalPieces === 0
+    : orders.length === 0;
 
   return (
     <div className={styles.content}>
@@ -102,56 +117,148 @@ export default function OwnerDashboard({
           </div>
         </div>
 
-        <div className={styles.heroMain}>
-          <div className={styles.heroStatRow}>
-            <div
-              className={styles.heroStat}
-              onClick={() => onNavigate('/collections')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className={styles.heroStatLabelRow}>
-                <span className={styles.heroStatLabel}>Uncollected Debt</span>
-                <Symbol name="account_balance_wallet" size={13} />
-              </div>
-              <span className={`${styles.heroStatValue} ${debtorsCount > 0 ? styles.heroStatDue : ''}`}>
-                {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
-              </span>
-            </div>
-
-            <div className={styles.heroStatDivider} />
-
-            <div
-              className={styles.heroStat}
-              onClick={() => onNavigate('/fabrics')}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className={styles.heroStatLabelRow}>
-                <span className={styles.heroStatLabel}>Uncut Fabrics</span>
-                <Symbol name="texture" size={13} />
-              </div>
-              <span className={`${styles.heroStatValue} ${uncutFabricsCount > 0 ? styles.heroStatDanger : ''}`}>
-                {uncutFabricsCount}
-              </span>
-            </div>
-
-            <div className={styles.heroStatDivider} />
-
-            <div className={styles.heroStat}>
-              <span className={styles.heroStatLabel}>Overdue & Rush</span>
-              <span className={`${styles.heroStatValue} ${urgentCount > 0 ? styles.heroStatDanger : ''}`}>
-                {urgentCount}
-              </span>
-            </div>
-
-            <div className={styles.heroStatDivider} />
-
-            <div className={styles.heroStat}>
-              <span className={styles.heroStatLabel}>Due Today</span>
-              <span className={`${styles.heroStatValue} ${dueTodayCount > 0 ? styles.heroStatDue : ''}`}>
-                {dueTodayCount}
-              </span>
+        {/* Hybrid Segmented Lens Switcher */}
+        {isHybrid && (
+          <div className={styles.hybridToggleWrap}>
+            <div className={styles.hybridToggle} role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={hybridLens === 'bespoke'}
+                className={`${styles.hybridToggleBtn} ${hybridLens === 'bespoke' ? styles.hybridToggleBtnActive : ''}`}
+                onClick={() => setHybridLens('bespoke')}
+              >
+                Bespoke Studio
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={hybridLens === 'rtw'}
+                className={`${styles.hybridToggleBtn} ${hybridLens === 'rtw' ? styles.hybridToggleBtnActive : ''}`}
+                onClick={() => setHybridLens('rtw')}
+              >
+                Showroom Rack
+              </button>
             </div>
           </div>
+        )}
+
+        <div className={styles.heroMain}>
+          {isRtw || (isHybrid && hybridLens === 'rtw') ? (
+            <div className={styles.heroStatRow}>
+              <div
+                className={styles.heroStat}
+                onClick={() => onNavigate(ROUTES.stock)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.heroStatLabelRow}>
+                  <span className={styles.heroStatLabel}>On Rack Stock</span>
+                  <Symbol name="storefront" size={13} />
+                </div>
+                <span className={styles.heroStatValue}>
+                  {showroomMetrics.totalPieces} pcs
+                </span>
+              </div>
+
+              <div className={styles.heroStatDivider} />
+
+              <div
+                className={styles.heroStat}
+                onClick={() => onNavigate(ROUTES.stock)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.heroStatLabelRow}>
+                  <span className={styles.heroStatLabel}>Low Stock Alerts</span>
+                  <Symbol name="warning" size={13} />
+                </div>
+                <span className={`${styles.heroStatValue} ${showroomMetrics.lowStockCount > 0 ? styles.heroStatDanger : ''}`}>
+                  {showroomMetrics.lowStockCount}
+                </span>
+              </div>
+
+              <div className={styles.heroStatDivider} />
+
+              <div
+                className={styles.heroStat}
+                onClick={() => onNavigate(ROUTES.collections)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.heroStatLabelRow}>
+                  <span className={styles.heroStatLabel}>Uncollected Debt</span>
+                  <Symbol name="account_balance_wallet" size={13} />
+                </div>
+                <span className={`${styles.heroStatValue} ${debtorsCount > 0 ? styles.heroStatDue : ''}`}>
+                  {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+                </span>
+              </div>
+
+              <div className={styles.heroStatDivider} />
+
+              <div
+                className={styles.heroStat}
+                onClick={() => onNavigate(ROUTES.stock)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.heroStatLabelRow}>
+                  <span className={styles.heroStatLabel}>Counter POS</span>
+                  <Symbol name="point_of_sale" size={13} />
+                </div>
+                <span className={styles.heroStatValue}>
+                  Open
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.heroStatRow}>
+              <div
+                className={styles.heroStat}
+                onClick={() => onNavigate('/collections')}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.heroStatLabelRow}>
+                  <span className={styles.heroStatLabel}>Uncollected Debt</span>
+                  <Symbol name="account_balance_wallet" size={13} />
+                </div>
+                <span className={`${styles.heroStatValue} ${debtorsCount > 0 ? styles.heroStatDue : ''}`}>
+                  {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+                </span>
+              </div>
+
+              <div className={styles.heroStatDivider} />
+
+              <div
+                className={styles.heroStat}
+                onClick={() => onNavigate('/fabrics')}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className={styles.heroStatLabelRow}>
+                  <span className={styles.heroStatLabel}>Uncut Fabrics</span>
+                  <Symbol name="texture" size={13} />
+                </div>
+                <span className={`${styles.heroStatValue} ${uncutFabricsCount > 0 ? styles.heroStatDanger : ''}`}>
+                  {uncutFabricsCount}
+                </span>
+              </div>
+
+              <div className={styles.heroStatDivider} />
+
+              <div className={styles.heroStat}>
+                <span className={styles.heroStatLabel}>Overdue & Rush</span>
+                <span className={`${styles.heroStatValue} ${urgentCount > 0 ? styles.heroStatDanger : ''}`}>
+                  {urgentCount}
+                </span>
+              </div>
+
+              <div className={styles.heroStatDivider} />
+
+              <div className={styles.heroStat}>
+                <span className={styles.heroStatLabel}>Due Today</span>
+                <span className={`${styles.heroStatValue} ${dueTodayCount > 0 ? styles.heroStatDue : ''}`}>
+                  {dueTodayCount}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Monthly Target Progress */}
@@ -232,18 +339,20 @@ export default function OwnerDashboard({
         </div>
       </div>
 
-      {/* Shop First-Win Launchpad (Shown when shop is new with 0 orders) */}
-      {orders.length === 0 && (
+      {/* Shop First-Win Launchpad (Shown when shop is new on Day 1) */}
+      {isDayOne && (
         <AtelierFirstWinCard
           shopName={currentShop?.name || 'Your Shop'}
           onNavigate={onNavigate}
+          businessMode={businessMode}
+          shopSlug={currentShop?.slug || currentShop?.id}
         />
       )}
 
       {/* Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
       <ProfileSetupProgress onNavigate={onNavigate} />
 
-      {/* OPay-Inspired Master Actions & Atelier Switchboard */}
+      {/* Master Actions & Atelier Switchboard */}
       <QuickCommandHub
         onNavigate={onNavigate}
         uncutFabricsCount={uncutFabricsCount}
@@ -252,6 +361,9 @@ export default function OwnerDashboard({
         customersCount={customers?.length || 0}
         debtorsCount={debtorsCount}
         debtTotal={debtTotal}
+        businessMode={businessMode}
+        shopSlug={currentShop?.slug || currentShop?.id}
+        stockCount={showroomMetrics.totalPieces}
       />
 
       {/* 2-Column Command Workspace (Unlocked when orders are active) */}

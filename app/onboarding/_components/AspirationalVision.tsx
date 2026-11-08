@@ -82,7 +82,18 @@ const PREMIUM_MOCKS = [
   }
 ];
 
-export default function AspirationalVision({ shopName, onFinish }: { shopName: string, onFinish: () => void }) {
+export default function AspirationalVision({
+  shopName,
+  businessMode = 'bespoke',
+  onFinish,
+}: {
+  shopName: string;
+  businessMode?: 'bespoke' | 'rtw' | 'hybrid';
+  onFinish: () => void;
+}) {
+  const isRtw = businessMode === 'rtw';
+  const isHybrid = businessMode === 'hybrid';
+
   const mockPortfolio = {
     shop: {
       id: 'mock',
@@ -98,7 +109,9 @@ export default function AspirationalVision({ shopName, onFinish }: { shopName: s
       streakLastCountedAt: null,
       portfolioTemplate: 'modern',
       portfolioAccent: 'indigo',
-      bio: 'Started in a single room, we have spent the last decade mastering the art of bespoke tailoring. Every stitch is a testament to our dedication to the craft, and every garment is a narrative woven for the wearer.',
+      bio: isRtw
+        ? 'Curated ready-to-wear collections in luxury African and contemporary styles. Hand-finished garments in standard sizes with off-the-rack availability.'
+        : 'Started in a single room, we have spent the last decade mastering the art of bespoke tailoring. Every stitch is a testament to our dedication to the craft, and every garment is a narrative woven for the wearer.',
       isPrimary: true,
       ownerUid: 'mock',
       createdAt: new Date().toISOString(),
@@ -135,11 +148,35 @@ export default function AspirationalVision({ shopName, onFinish }: { shopName: s
           <div className={styles.monogram}>{getMonogram(shopName)}</div>
           <div className={styles.xpPill}>
             <Symbol name="workspace_premium" size={15} />
-            <span>+50 Craft XP Unlocked · Master Tailor</span>
+            <span>
+              {isRtw
+                ? '+50 Craft XP Unlocked · Ready-to-Wear Brand'
+                : isHybrid
+                ? '+50 Craft XP Unlocked · Full-Suite Atelier'
+                : '+50 Craft XP Unlocked · Master Tailor'}
+            </span>
           </div>
-          <h2 className={styles.title}>Your Shop is Ready</h2>
+          <h2 className={styles.title}>
+            {isRtw
+              ? 'Your Showroom is Ready'
+              : isHybrid
+              ? 'Your Atelier & Showroom are Ready'
+              : 'Your Shop is Ready'}
+          </h2>
           <p className={styles.subtitle}>
-            Welcome to <strong>{shopName || 'Your Shop'}</strong>. Every order and measurement you record automatically builds your shop portfolio, keeps cutting tables organized, and sends live tracking to your clients.
+            {isRtw ? (
+              <>
+                Welcome to <strong>{shopName || 'Your Shop'}</strong>. Every garment you stock automatically syncs to your public showroom floor, enables 1-tap WhatsApp ensemble orders, and powers your counter POS.
+              </>
+            ) : isHybrid ? (
+              <>
+                Welcome to <strong>{shopName || 'Your Shop'}</strong>. Your custom cutting table and ready-to-wear showroom floor are live, with seamless live tracking and counter POS sales.
+              </>
+            ) : (
+              <>
+                Welcome to <strong>{shopName || 'Your Shop'}</strong>. Every order and measurement you record automatically builds your shop portfolio, keeps cutting tables organized, and sends live tracking to your clients.
+              </>
+            )}
           </p>
           <button className={styles.finishBtn} onClick={onFinish}>
             <span>Enter Dashboard</span>

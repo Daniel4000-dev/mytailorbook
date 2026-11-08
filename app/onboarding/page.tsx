@@ -143,6 +143,11 @@ export default function OnboardingPage() {
   // Handle moving from Step 3 (Craft Mode) to Step 4 (Operations)
   const handleProceedFromCraftMode = () => {
     setApiError('');
+    if (watchedBusinessMode === 'rtw' && watchedGoal === 'Always knowing what is happening with their order') {
+      setValue('goal', 'Instant off-the-rack availability', { shouldValidate: true });
+    } else if (watchedBusinessMode !== 'rtw' && watchedGoal === 'Instant off-the-rack availability') {
+      setValue('goal', 'Always knowing what is happening with their order', { shouldValidate: true });
+    }
     setStep(4);
   };
 
@@ -191,7 +196,13 @@ export default function OnboardingPage() {
   if (loading || !needsOnboarding) return null;
 
   if (showVision) {
-    return <AspirationalVision shopName={confirmedShopName} onFinish={() => router.push(ROUTES.dashboard)} />;
+    return (
+      <AspirationalVision
+        shopName={confirmedShopName}
+        businessMode={watchedBusinessMode}
+        onFinish={() => router.push(ROUTES.dashboard)}
+      />
+    );
   }
 
   // ── Welcome Tour Screens (Step 0 & 1) ──
@@ -556,7 +567,28 @@ export default function OnboardingPage() {
                   </p>
 
                   <div className={styles.goalGrid}>
-                    {[
+                    {(watchedBusinessMode === 'rtw' ? [
+                      {
+                        val: 'Instant off-the-rack availability',
+                        icon: 'checkroom',
+                        label: 'Always having popular sizes in stock',
+                      },
+                      {
+                        val: 'Fast delivery & instant WhatsApp ordering',
+                        icon: 'bolt',
+                        label: 'Fast delivery & instant WhatsApp ordering',
+                      },
+                      {
+                        val: 'High quality ready-to-wear finishes',
+                        icon: 'verified',
+                        label: 'High quality ready-to-wear finishes',
+                      },
+                      {
+                        val: 'Running a more organised business',
+                        icon: 'storefront',
+                        label: 'Running a more organised retail business',
+                      },
+                    ] : [
                       {
                         val: 'Always knowing what is happening with their order',
                         icon: 'visibility',
@@ -577,7 +609,7 @@ export default function OnboardingPage() {
                         icon: 'storefront',
                         label: 'Running a more organised business',
                       },
-                    ].map((g) => (
+                    ]).map((g) => (
                       <div
                         key={g.val}
                         role="button"

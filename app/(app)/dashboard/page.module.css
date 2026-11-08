@@ -1330,6 +1330,45 @@
   flex-shrink: 0;
 }
 
+.hybridToggleWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+  position: relative;
+  z-index: 3;
+}
+
+.hybridToggle {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.hybridToggleBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hybridToggleBtnActive {
+  background: #ffffff;
+  color: #1e1b4b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
 .workshopMetricStrip,
 .operationsGrid {
   display: grid;
