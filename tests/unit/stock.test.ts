@@ -6,7 +6,8 @@ import {
   quickRestockSizeAction,
   deleteStockGarmentAction,
   getStockAction,
-  processSaleAction
+  processSaleAction,
+  getShowroomFinancialsAction
 } from '@/app/actions/stock';
 
 // Mock next/cache
@@ -33,6 +34,7 @@ const createChainable = () => {
   const chain: any = {
     eq: vi.fn(() => chain),
     ilike: vi.fn(() => chain),
+    gte: vi.fn(() => chain),
     order: mockOrder.mockReturnValue({
       data: [
         {
@@ -70,6 +72,12 @@ const createChainable = () => {
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: 'user-1' } },
+        error: null
+      })
+    },
     from: vi.fn((table: string) => {
       const builder: any = {};
       builder.insert = mockInsert.mockImplementation(() => {
@@ -481,6 +489,28 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       ];
       const res = await processSaleAction('shop-123', duplicateLines, 'pos', 'user-1');
       expect(res.error).toContain('Insufficient stock');
+    });
+  });
+
+  describe('getShowroomFinancialsAction', () => {
+    it('returns structured stock valuation and showroom sales velocity metrics', async () => {
+      currentIlikeData = [
+        {
+          id: 'item-1',
+          name: 'Royal Blue Senator',
+          size: 'L',
+          quantity: 4,
+          price: 35000,
+          metadata: { costPrice: 18000 }
+        }
+      ];
+
+      const res = await getShowroomFinancialsAction('shop-123', 30);
+      expect(res).toBeDefined();
+      expect(res.data).toBeDefined();
+      expect(res.data?.totalPieces).toBe(4);
+      expect(res.data?.retailValuation).toBe(140000); // 4 * 35000
+      expect(res.data?.costValuation).toBe(72000); // 4 * 18000
     });
   });
 });

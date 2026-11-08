@@ -45,6 +45,14 @@ const MOCK_FINANCIAL_TOTALS: FinancialReport['totals'] = {
   ordersWithCostCount: 28,
   totalExpenses: 1550000,
   netProfit: 3300000,
+  bespokeRevenue: 3400000,
+  bespokeCollected: 3400000,
+  bespokeOutstanding: 620000,
+  bespokeOrdersCount: 22,
+  showroomRevenue: 1450000,
+  showroomCollected: 1450000,
+  showroomUnitsSold: 38,
+  showroomOrdersCount: 16,
   mostProfitableOrder: {
     id: 'ord-102',
     customerName: 'Chief Adebayo',
@@ -81,6 +89,14 @@ const EMPTY_FINANCIAL_TOTALS: FinancialReport['totals'] = {
   netProfit: 0,
   expenseBreakdown: [],
   trendData: [],
+  bespokeRevenue: 0,
+  bespokeCollected: 0,
+  bespokeOutstanding: 0,
+  bespokeOrdersCount: 0,
+  showroomRevenue: 0,
+  showroomCollected: 0,
+  showroomUnitsSold: 0,
+  showroomOrdersCount: 0,
 };
 
 export default function ReportsPage() {
@@ -119,6 +135,12 @@ export default function ReportsPage() {
     totals.revenueWithCostData > 0
       ? Math.round((totals.marginTotal / totals.revenueWithCostData) * 100)
       : null;
+
+  const totalSegregated = (totals.bespokeRevenue || 0) + (totals.showroomRevenue || 0);
+  const bespokeShare = totalSegregated > 0
+    ? Math.round(((totals.bespokeRevenue || 0) / totalSegregated) * 100)
+    : (totals.collected > 0 ? 100 : 0);
+  const showroomShare = totalSegregated > 0 ? 100 - bespokeShare : 0;
 
   return (
     <PageLayout
@@ -201,6 +223,74 @@ export default function ReportsPage() {
             </div>
             <span className={styles.metricValue}>{formatCurrency(totals.totalExpenses, currency)}</span>
             <span className={styles.metricSub}>Wages &amp; material cost</span>
+          </div>
+        </div>
+
+        {/* Revenue Channels: Bespoke Atelier vs Showroom RTW */}
+        <div className={styles.panelCard}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>
+              <Symbol name="bar_chart" size={18} />
+              Revenue Segregation: Bespoke vs Showroom
+            </span>
+            <span className={styles.metricSub}>
+              {totals.bespokeOrdersCount + totals.showroomOrdersCount} total orders
+            </span>
+          </div>
+
+          {/* Split Ratio Bar */}
+          <div
+            className={styles.channelSplitTrack}
+            role="progressbar"
+            aria-valuenow={bespokeShare}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            title={`Bespoke: ${bespokeShare}% | Showroom: ${showroomShare}%`}
+          >
+            <div className={styles.channelSplitBespoke} style={{ width: `${bespokeShare}%` }} />
+            <div className={styles.channelSplitShowroom} style={{ width: `${showroomShare}%` }} />
+          </div>
+
+          <div className={styles.channelsGrid}>
+            {/* Bespoke Commissions */}
+            <div className={styles.channelCard}>
+              <div className={styles.channelCardHeader}>
+                <div className={styles.channelTitleWrap}>
+                  <div className={styles.channelIconWrap}>
+                    <Symbol name="straighten" size={16} />
+                  </div>
+                  <span className={styles.channelTitle}>Bespoke Atelier</span>
+                </div>
+                <span className={styles.channelShareBadge}>{bespokeShare}% of sales</span>
+              </div>
+              <span className={styles.channelAmount}>
+                {formatCurrency(totals.bespokeRevenue || totals.collected, currency)}
+              </span>
+              <div className={styles.channelStatsRow}>
+                <span>{totals.bespokeOrdersCount} commissions</span>
+                <span>Collected: {formatCurrency(totals.bespokeCollected || totals.collected, currency)}</span>
+              </div>
+            </div>
+
+            {/* Showroom RTW Counter */}
+            <div className={styles.channelCard}>
+              <div className={styles.channelCardHeader}>
+                <div className={styles.channelTitleWrap}>
+                  <div className={styles.channelIconWrap}>
+                    <Symbol name="checkroom" size={16} />
+                  </div>
+                  <span className={styles.channelTitle}>Ready-to-Wear Showroom</span>
+                </div>
+                <span className={styles.channelShareBadge}>{showroomShare}% of sales</span>
+              </div>
+              <span className={styles.channelAmount}>
+                {formatCurrency(totals.showroomRevenue, currency)}
+              </span>
+              <div className={styles.channelStatsRow}>
+                <span>{totals.showroomUnitsSold} pieces sold ({totals.showroomOrdersCount} sales)</span>
+                <span>Collected: {formatCurrency(totals.showroomCollected, currency)}</span>
+              </div>
+            </div>
           </div>
         </div>
 

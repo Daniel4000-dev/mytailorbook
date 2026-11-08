@@ -23,7 +23,9 @@ import {
   quickRestockSizeAction,
   deleteStockGarmentAction,
   processSaleAction,
-  ProcessSaleItem
+  getShowroomFinancialsAction,
+  ProcessSaleItem,
+  ShowroomFinancials
 } from '@/app/actions/stock';
 import { FinishedGood } from '@/lib/types';
 import { triggerHaptic } from '@/lib/haptics';
@@ -69,6 +71,7 @@ export default function StockPage() {
   }, [dataLoaded, currentShop, router]);
 
   const [stock, setStock] = useState<FinishedGood[]>([]);
+  const [showroomFinancials, setShowroomFinancials] = useState<ShowroomFinancials | null>(null);
   const [loading, setLoading] = useState(true);
   const [addGarmentOpen, setAddGarmentOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,11 +164,17 @@ export default function StockPage() {
   const loadStock = async () => {
     if (!currentShop) return;
     setLoading(true);
-    const res = await getStockAction(currentShop.id);
+    const [res, finRes] = await Promise.all([
+      getStockAction(currentShop.id),
+      getShowroomFinancialsAction(currentShop.id, 30).catch(() => null),
+    ]);
     if ('error' in res) {
       showToast(res.error, 'error');
     } else {
       setStock(res);
+    }
+    if (finRes && !('error' in finRes) && finRes.data) {
+      setShowroomFinancials(finRes.data);
     }
     setLoading(false);
   };
@@ -574,6 +583,49 @@ export default function StockPage() {
                     {lowStockSizesCount} low • {outOfStockSizesCount} sold out
                   </span>
                 </div>
+              </div>
+
+              {/* Showroom Sales & Turnover Telemetry (30 Days) */}
+              <div className={styles.turnoverStrip}>
+                <div className={styles.turnoverLeft}>
+                  <span className={styles.turnoverPill}>
+                    <Symbol name="trending_up" size={15} />
+                    <span>30d Velocity:</span>
+                    <strong>{showroomFinancials?.unitsSold || 0} pieces sold</strong>
+                  </span>
+                  <span className={styles.turnoverPill}>
+                    <span>Revenue:</span>
+                    <strong>{formatCurrency(showroomFinancials?.revenue || 0, currency)}</strong>
+                  </span>
+                  <span className={styles.turnoverPill}>
+                    <span>Margin:</span>
+                    <strong style={{ color: '#047857' }}>
+                      {showroomFinancials?.grossMarginPercent || 0}%
+                    </strong>
+                  </span>
+                  {showroomFinancials && showroomFinancials.turnoverRate > 0 && (
+                    <span className={styles.turnoverPill}>
+                      <span>Turnover:</span>
+                      <strong>{(showroomFinancials.turnoverRate * 100).toFixed(0)}%</strong>
+                    </span>
+                  )}
+                  {showroomFinancials?.topStyles?.[0] && (
+                    <span className={styles.turnoverPill}>
+                      <span>Top Style:</span>
+                      <strong>{showroomFinancials.topStyles[0].name} ({showroomFinancials.topStyles[0].units})</strong>
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.turnoverActionBtn}
+                  onClick={() => router.push(ROUTES.reconciliation)}
+                  title="Open Daily Cash Register & Reconciliation"
+                >
+                  <Symbol name="point_of_sale" size={14} />
+                  <span>Daily Register</span>
+                </button>
               </div>
 
               {/* Controls, Filters & View Mode */}

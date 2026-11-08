@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { getExpensesByDate, addExpense, deleteExpense, updateExpense } from '@/app/actions/expenses';
+import { getDailyRegisterSummary, type DailyRegisterSummary, type PaymentEntrySummary } from '@/app/actions/reconciliation';
 import type { Expense, ExpenseCategory, PaymentMethod } from '@/lib/types';
 import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
@@ -55,6 +56,9 @@ export default function ShopExpensesPage() {
   // Selected date (Local YYYY-MM-DD)
   const [date, setDate] = useState<string>(() => getLocalDateString());
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [dailyRegister, setDailyRegister] = useState<DailyRegisterSummary | null>(null);
+  const [activeTab, setActiveTab] = useState<'register' | 'expenses'>('register');
+  const [physicalCount, setPhysicalCount] = useState<string>('');
   const [initialLoading, setInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -87,7 +91,7 @@ export default function ShopExpensesPage() {
     };
   }, [currentShop?.id]);
 
-  // Fetch expenses for selected date
+  // Fetch daily register and expenses for selected date
   useEffect(() => {
     if (!currentShop?.id) return;
     let isMounted = true;
@@ -97,12 +101,18 @@ export default function ShopExpensesPage() {
         setIsRefreshing(true);
       }
       try {
-        const expensesData = await getExpensesByDate(currentShop!.id, date);
+        const [expensesData, registerData] = await Promise.all([
+          getExpensesByDate(currentShop!.id, date),
+          getDailyRegisterSummary(currentShop!.id, date).catch(() => null),
+        ]);
         if (isMounted) {
           setExpenses(expensesData || []);
+          if (registerData) {
+            setDailyRegister(registerData);
+          }
         }
       } catch (err) {
-        console.error('Failed to fetch expenses', err);
+        console.error('Failed to fetch daily register and expenses', err);
       } finally {
         if (isMounted) {
           setInitialLoading(false);
@@ -294,22 +304,61 @@ export default function ShopExpensesPage() {
     setExpAmount(sanitized);
   };
 
+  // Drawer Inflows & Balancing Calculations
+  const drawerCashInflow = dailyRegister?.drawer.cashInflow || 0;
+  const drawerCashOutflow = dailyRegister?.drawer.cashOutflow || cashTotal;
+  const expectedDrawerCash = dailyRegister?.drawer.expectedCash ?? (drawerCashInflow - drawerCashOutflow);
+
+  const physicalCountNum = parseFloat(physicalCount.replace(/[^0-9.]/g, ''));
+  const hasCountInput = !isNaN(physicalCountNum) && physicalCount.trim() !== '';
+  const drawerDiff = hasCountInput ? physicalCountNum - expectedDrawerCash : 0;
+  const reconcileStatus = !hasCountInput
+    ? 'awaiting'
+    : drawerDiff === 0
+    ? 'balanced'
+    : drawerDiff > 0
+    ? 'surplus'
+    : 'shortfall';
+
   // 1-Tap Copy WhatsApp Daily Reconciliation Summary
   const handleShareSummary = () => {
+    const shopName = currentShop?.name || 'Workshop';
+    const statusText =
+      reconcileStatus === 'balanced'
+        ? 'Balanced'
+        : reconcileStatus === 'surplus'
+        ? `Surplus (+${currencySymbol}${formatNumber(drawerDiff)})`
+        : reconcileStatus === 'shortfall'
+        ? `Shortfall (-${currencySymbol}${formatNumber(Math.abs(drawerDiff))})`
+        : 'Not Counted';
+
     const lines = [
-      `Shop Expenses — ${displayDateText} (${date})`,
-      `Total Spent: ${currencySymbol}${formatNumber(totalDayExpense)}`,
-      `• Cash from Drawer: ${currencySymbol}${formatNumber(cashTotal)}`,
-      `• Bank Transfer / POS: ${currencySymbol}${formatNumber(transferTotal)}`,
+      `Daily Register & Cash Closing — ${displayDateText} (${date})`,
+      `${shopName}`,
       ``,
-      `Category Breakdown:`,
-      `• Materials: ${currencySymbol}${formatNumber(materialsTotal)}`,
-      `• Fuel & Power: ${currencySymbol}${formatNumber(fuelTotal)}`,
-      `• Staff Wages: ${currencySymbol}${formatNumber(wagesTotal)}`,
-      `• Repairs: ${currencySymbol}${formatNumber(repairsTotal)}`,
-      `• Delivery: ${currencySymbol}${formatNumber(deliveryTotal)}`,
+      `CASH IN DRAWER:`,
+      `• Expected Cash: ${currencySymbol}${formatNumber(expectedDrawerCash)}`,
+      ...(hasCountInput
+        ? [`• Counted Cash: ${currencySymbol}${formatNumber(physicalCountNum)} (${statusText})`]
+        : []),
+      `• Cash Inflow to Drawer: +${currencySymbol}${formatNumber(drawerCashInflow)}`,
+      `• Petty Cash Paid Out: -${currencySymbol}${formatNumber(drawerCashOutflow)}`,
       ``,
-      `Entries (${expenses.length}):`,
+      `COLLECTIONS & INFLOWS:`,
+      `• Showroom RTW Sales: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.total || 0)} (${dailyRegister?.inflows.showroom.orderCount || 0} sales)`,
+      `  - Cash: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.cash || 0)}`,
+      `  - POS / Card: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.pos || 0)}`,
+      `  - Transfer: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.transfer || 0)}`,
+      `• Bespoke Order Deposits: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.total || 0)} (${dailyRegister?.inflows.bespoke.orderCount || 0} commissions)`,
+      `  - Cash: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.cash || 0)}`,
+      `  - Transfer: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.transfer || 0)}`,
+      `• Total Daily Collections: ${currencySymbol}${formatNumber(dailyRegister?.inflows.total || 0)}`,
+      ``,
+      `EXPENSES & OUTFLOWS (${expenses.length}):`,
+      `• Cash from Drawer: ${currencySymbol}${formatNumber(drawerCashOutflow)}`,
+      `• Bank Transfers: ${currencySymbol}${formatNumber(transferTotal)}`,
+      `• Total Expenses: ${currencySymbol}${formatNumber(totalDayExpense)}`,
+      ``,
       ...expenses.map(
         (e) =>
           `• ${e.description || 'Cost'}: ${currencySymbol}${formatNumber(e.amount)} (${e.method === 'transfer' ? 'Transfer' : 'Cash'})`
@@ -321,7 +370,7 @@ export default function ShopExpensesPage() {
     const text = lines.join('\n');
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(text);
-      showToast('Daily summary copied! Ready to paste into WhatsApp', 'success');
+      showToast('Daily closing summary copied! Ready to paste into WhatsApp', 'success');
     } else {
       showToast('Could not access clipboard', 'error');
     }
@@ -485,8 +534,8 @@ export default function ShopExpensesPage() {
       padding="none"
       header={
         <TopBar
-          title="Shop Expenses"
-          subtitle="Daily supplies, generator fuel & workshop costs"
+          title="Daily Register & Expenses"
+          subtitle="Cash drawer balancing, showroom POS & shop expenses"
           showBack
           onBack={() => router.push(ROUTES.dashboard)}
           rightAction={
@@ -572,11 +621,11 @@ export default function ShopExpensesPage() {
           </div>
         ) : (
           <>
-            {/* ── 2. ELEVATED FINANCIAL HERO CARD ── */}
+            {/* ── 2. ELEVATED FINANCIAL HERO CARD: EXPECTED CASH IN DRAWER ── */}
             <section className={styles.summaryDeck}>
               <div className={styles.summaryDeckHeader}>
                 <span className={styles.summaryEyebrow}>
-                  Total Expenses · {displayDateText}
+                  Expected Cash in Drawer · {displayDateText}
                 </span>
                 {isRefreshing && (
                   <span className={styles.refreshPulse} title="Syncing...">
@@ -587,10 +636,10 @@ export default function ShopExpensesPage() {
 
               <div className={styles.mainAmountRow}>
                 <span className={styles.mainAmountNumeral}>
-                  {currencySymbol}{formatNumber(totalDayExpense)}
+                  {currencySymbol}{formatNumber(expectedDrawerCash)}
                 </span>
                 <span className={styles.countBadge}>
-                  {expenses.length} {expenses.length === 1 ? 'entry' : 'entries'}
+                  {dailyRegister?.payments.length || 0} collections · {expenses.length} expenses
                 </span>
               </div>
 
@@ -599,9 +648,9 @@ export default function ShopExpensesPage() {
                 <div className={styles.drawerSegment}>
                   <span className={styles.dotCash} />
                   <div className={styles.drawerTextCol}>
-                    <span className={styles.drawerLabel}>Cash in Drawer</span>
-                    <strong className={styles.drawerValue}>
-                      {currencySymbol}{formatNumber(cashTotal)}
+                    <span className={styles.drawerLabel}>Cash Inflow to Drawer</span>
+                    <strong className={styles.drawerValue} style={{ color: '#059669' }}>
+                      +{currencySymbol}{formatNumber(drawerCashInflow)}
                     </strong>
                   </div>
                 </div>
@@ -611,192 +660,414 @@ export default function ShopExpensesPage() {
                 <div className={styles.drawerSegment}>
                   <span className={styles.dotTransfer} />
                   <div className={styles.drawerTextCol}>
-                    <span className={styles.drawerLabel}>Bank Transfer / POS</span>
-                    <strong className={styles.drawerValue}>
-                      {currencySymbol}{formatNumber(transferTotal)}
+                    <span className={styles.drawerLabel}>Petty Cash Outflow</span>
+                    <strong className={styles.drawerValue} style={{ color: '#DC2626' }}>
+                      −{currencySymbol}{formatNumber(drawerCashOutflow)}
                     </strong>
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* ── 3. PRIMARY ACTION ── */}
-            <div className={styles.actionSection}>
+            {/* ── 2b. PHYSICAL CASH DRAWER RECONCILIATION ── */}
+            <section className={styles.drawerBalanceCard}>
+              <div className={styles.drawerBalanceHeader}>
+                <span className={styles.drawerBalanceTitle}>
+                  <Symbol name="point_of_sale" size={17} />
+                  <span>Physical Drawer Balancing</span>
+                </span>
+                <span
+                  className={`${styles.reconcileStatusBadge} ${
+                    reconcileStatus === 'balanced'
+                      ? styles.statusBalanced
+                      : reconcileStatus === 'surplus'
+                      ? styles.statusSurplus
+                      : reconcileStatus === 'shortfall'
+                      ? styles.statusShortfall
+                      : styles.statusAwaiting
+                  }`}
+                >
+                  <Symbol
+                    name={
+                      reconcileStatus === 'balanced'
+                        ? 'check_circle'
+                        : reconcileStatus === 'surplus'
+                        ? 'trending_up'
+                        : reconcileStatus === 'shortfall'
+                        ? 'warning'
+                        : 'calculate'
+                    }
+                    size={14}
+                  />
+                  <span>
+                    {reconcileStatus === 'balanced'
+                      ? 'Balanced'
+                      : reconcileStatus === 'surplus'
+                      ? `Surplus: +${currencySymbol}${formatNumber(drawerDiff)}`
+                      : reconcileStatus === 'shortfall'
+                      ? `Shortfall: -${currencySymbol}${formatNumber(Math.abs(drawerDiff))}`
+                      : 'Awaiting count'}
+                  </span>
+                </span>
+              </div>
+
+              <div className={styles.drawerBalanceInputRow}>
+                <div className={styles.drawerCountInputWrap}>
+                  <span className={styles.currencyPrefix}>{currencySymbol}</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Enter physical cash counted in drawer..."
+                    className={styles.drawerCountInput}
+                    value={physicalCount}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/[^0-9.]/g, '');
+                      const parts = clean.split('.');
+                      const sanitized = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+                      setPhysicalCount(sanitized);
+                    }}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* ── VIEW SWITCH: REGISTER & INFLOWS vs EXPENSES LEDGER ── */}
+            <div className={styles.viewSwitchBar} role="tablist" aria-label="Register navigation">
               <button
                 type="button"
-                className={styles.primaryActionBtn}
-                onClick={() => handleOpenCreateModal()}
+                role="tab"
+                aria-selected={activeTab === 'register'}
+                className={`${styles.viewSwitchBtn} ${activeTab === 'register' ? styles.viewSwitchBtnActive : ''}`}
+                onClick={() => setActiveTab('register')}
               >
-                <Symbol name="add" size={18} />
-                <span>Record Expense</span>
+                <Symbol name="payments" size={15} />
+                <span>Sales Register ({dailyRegister?.payments.length || 0})</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'expenses'}
+                className={`${styles.viewSwitchBtn} ${activeTab === 'expenses' ? styles.viewSwitchBtnActive : ''}`}
+                onClick={() => setActiveTab('expenses')}
+              >
+                <Symbol name="receipt_long" size={15} />
+                <span>Shop Expenses ({expenses.length})</span>
               </button>
             </div>
 
-            {/* ── 4. CATEGORY FILTER (Decluttered — only shown when entries exist) ── */}
-            {expenses.length > 0 && (
-              <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
-                <div className={styles.filterBar}>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={categoryFilter === 'all'}
-                    className={`${styles.filterPill} ${categoryFilter === 'all' ? styles.filterPillActive : ''}`}
-                    onClick={() => setCategoryFilter('all')}
-                  >
-                    <span>All</span>
-                    <span className={styles.filterCount}>{expenses.length}</span>
-                  </button>
-                  {EXPENSE_CATEGORIES.map((cat) => {
-                    const count = expenses.filter((e) => e.category === cat.key).length;
-                    const isActive = categoryFilter === cat.key;
-                    if (count === 0 && categoryFilter !== cat.key) return null;
-                    return (
-                      <button
-                        key={cat.key}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        className={`${styles.filterPill} ${isActive ? styles.filterPillActive : ''}`}
-                        onClick={() => setCategoryFilter(isActive ? 'all' : cat.key)}
-                      >
-                        <Symbol name={cat.icon} size={13} />
-                        <span>{cat.shortLabel}</span>
-                        {count > 0 && <span className={styles.filterCount}>{count}</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {activeTab === 'register' ? (
+              <>
+                {/* ── DAILY INFLOW CHANNELS (SHOWROOM VS BESPOKE) ── */}
+                <section className={styles.inflowsDeck}>
+                  {/* Showroom RTW Sales */}
+                  <div className={styles.inflowChannelCard}>
+                    <div className={styles.inflowCardHeader}>
+                      <span className={styles.inflowCardTitle}>
+                        <Symbol name="checkroom" size={16} />
+                        <span>Showroom RTW Sales</span>
+                      </span>
+                      <span className={styles.inflowCardBadge}>
+                        {dailyRegister?.inflows.showroom.orderCount || 0} sales
+                      </span>
+                    </div>
 
-            {/* ── 5. CLEAN LEDGER SECTION ── */}
-            <section className={styles.ledgerSection}>
-              {filteredExpenses.length === 0 ? (
-                <div className={styles.emptyContainer}>
-                  <EmptyState
-                    icon={<Symbol name="receipt_long" size={32} />}
-                    title={
-                      categoryFilter !== 'all' && expenses.length > 0
-                        ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel || ''} Expenses`
-                        : `No Expenses Logged on this Date`
-                    }
-                    description={
-                      categoryFilter !== 'all' && expenses.length > 0
-                        ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel.toLowerCase() || ''} expenses found for ${displayDateText}.`
-                        : `No workshop payouts or material purchases recorded for ${displayDateText}.`
-                    }
-                    action={{
-                      label: categoryFilter !== 'all' && expenses.length > 0 ? 'Show All Expenses' : 'Record Expense',
-                      onClick: categoryFilter !== 'all' && expenses.length > 0 ? () => setCategoryFilter('all') : () => handleOpenCreateModal(),
-                    }}
-                  />
+                    <div className={styles.inflowAmountRow}>
+                      <span className={styles.inflowAmountMain}>
+                        {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.total || 0)}
+                      </span>
+                    </div>
 
-                  {/* 1-Tap Quick Presets shown contextually in Empty State */}
-                  {categoryFilter === 'all' && (
-                    <div className={styles.emptyPresetsBlock}>
-                      <span className={styles.emptyPresetsTitle}>Quick 1-tap log:</span>
-                      <div className={styles.emptyPresetsGrid}>
-                        {workshopPresets.map((p, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            className={styles.emptyPresetBtn}
-                            onClick={() =>
-                              handleOpenCreateModal({
-                                amount: p.amount,
-                                category: p.category,
-                                description: p.description,
-                                method: p.method,
-                              })
-                            }
-                          >
-                            + {p.label}
-                          </button>
-                        ))}
+                    <div className={styles.inflowSplitList}>
+                      <div className={styles.inflowSplitItem}>
+                        <span>Cash to Drawer:</span>
+                        <span className={styles.inflowSplitVal}>
+                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.cash || 0)}
+                        </span>
+                      </div>
+                      <div className={styles.inflowSplitItem}>
+                        <span>POS / Card Terminal:</span>
+                        <span className={styles.inflowSplitVal}>
+                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.pos || 0)}
+                        </span>
+                      </div>
+                      <div className={styles.inflowSplitItem}>
+                        <span>Bank Transfer:</span>
+                        <span className={styles.inflowSplitVal}>
+                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.transfer || 0)}
+                        </span>
                       </div>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className={styles.ledgerCard}>
-                  {filteredExpenses.map((e) => {
-                    const catObj = EXPENSE_CATEGORIES.find((c) => c.key === e.category);
-                    const linkedOrder = e.orderId ? orders?.find((o) => o.id === e.orderId) : null;
+                  </div>
 
-                    return (
-                      <div
-                        key={e.id}
-                        className={styles.ledgerRow}
-                        onClick={() => handleOpenEditModal(e)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(evt) => {
-                          if (evt.key === 'Enter' || evt.key === ' ') {
-                            evt.preventDefault();
-                            handleOpenEditModal(e);
-                          }
-                        }}
-                      >
-                        <div className={styles.ledgerLeft}>
-                          <div className={`${styles.expenseItemIconWrap} ${styles['icon_' + e.category] || ''}`}>
-                            <Symbol name={catObj?.icon || 'receipt_long'} size={17} />
-                          </div>
-                          <div className={styles.ledgerDetails}>
-                            <span className={styles.ledgerTitle}>
-                              {e.description || catObj?.label || 'Shop Expense'}
-                            </span>
-                            <div className={styles.ledgerMeta}>
-                              <span className={styles.methodBadge}>
-                                {e.method === 'transfer' ? 'Transfer' : 'Cash'}
-                              </span>
-                              <span className={styles.metaDot}>·</span>
-                              <span className={`${styles.categoryBadge} ${styles['badge_' + e.category] || ''}`}>
-                                {catObj?.shortLabel || e.category}
-                              </span>
-                              {linkedOrder && (
-                                <>
+                  {/* Bespoke Atelier Orders */}
+                  <div className={styles.inflowChannelCard}>
+                    <div className={styles.inflowCardHeader}>
+                      <span className={styles.inflowCardTitle}>
+                        <Symbol name="straighten" size={16} />
+                        <span>Bespoke Order Deposits</span>
+                      </span>
+                      <span className={styles.inflowCardBadge}>
+                        {dailyRegister?.inflows.bespoke.orderCount || 0} commissions
+                      </span>
+                    </div>
+
+                    <div className={styles.inflowAmountRow}>
+                      <span className={styles.inflowAmountMain}>
+                        {currencySymbol}{formatNumber(dailyRegister?.inflows.bespoke.total || 0)}
+                      </span>
+                    </div>
+
+                    <div className={styles.inflowSplitList}>
+                      <div className={styles.inflowSplitItem}>
+                        <span>Cash to Drawer:</span>
+                        <span className={styles.inflowSplitVal}>
+                          {currencySymbol}{formatNumber(dailyRegister?.inflows.bespoke.cash || 0)}
+                        </span>
+                      </div>
+                      <div className={styles.inflowSplitItem}>
+                        <span>Bank Transfer / POS:</span>
+                        <span className={styles.inflowSplitVal}>
+                          {currencySymbol}{formatNumber((dailyRegister?.inflows.bespoke.transfer || 0) + (dailyRegister?.inflows.bespoke.pos || 0))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* ── COLLECTIONS & PAYMENTS LEDGER ── */}
+                <section className={styles.ledgerSection}>
+                  {(!dailyRegister?.payments || dailyRegister.payments.length === 0) ? (
+                    <div className={styles.emptyContainer}>
+                      <EmptyState
+                        icon={<Symbol name="payments" size={32} />}
+                        title="No Sales Logged Today"
+                        description={`No showroom counter checkouts or bespoke client payments were recorded for ${displayDateText}.`}
+                      />
+                    </div>
+                  ) : (
+                    <div className={styles.ledgerCard}>
+                      {dailyRegister.payments.map((p) => {
+                        const isPos = p.channel === 'pos_counter';
+                        return (
+                          <div key={p.id} className={styles.ledgerRow}>
+                            <div className={styles.ledgerLeft}>
+                              <div className={`${styles.expenseItemIconWrap} ${isPos ? styles.badgePos : styles.badgeBespoke}`}>
+                                <Symbol name={isPos ? 'checkroom' : 'straighten'} size={17} />
+                              </div>
+                              <div className={styles.ledgerDetails}>
+                                <span className={styles.ledgerTitle}>
+                                  {p.customerName || (isPos ? 'Walk-in Customer' : 'Client Payment')}
+                                </span>
+                                <div className={styles.ledgerMeta}>
+                                  <span className={styles.methodBadge}>
+                                    {p.method === 'transfer' ? 'Transfer' : p.method === 'pos' ? 'Card/POS' : 'Cash'}
+                                  </span>
                                   <span className={styles.metaDot}>·</span>
-                                  <button
-                                    type="button"
-                                    className={styles.orderBadgeBtn}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      router.push(ROUTES.productionOrder(linkedOrder));
-                                    }}
-                                    title={`View Order #${linkedOrder.id.slice(0, 6).toUpperCase()} in Production`}
-                                  >
-                                    Order #{linkedOrder.id.slice(0, 6).toUpperCase()} &rarr;
-                                  </button>
-                                </>
-                              )}
+                                  <span className={`${styles.paymentChannelBadge} ${isPos ? styles.badgePos : styles.badgeBespoke}`}>
+                                    {isPos ? 'Showroom RTW' : 'Bespoke Atelier'}
+                                  </span>
+                                  {p.referenceNote && (
+                                    <>
+                                      <span className={styles.metaDot}>·</span>
+                                      <span className={styles.metaOrderInfo}>{p.referenceNote}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className={styles.ledgerRight}>
+                              <span className={styles.ledgerAmount} style={{ color: '#059669' }}>
+                                +{currencySymbol}{formatNumber(p.amount)}
+                              </span>
                             </div>
                           </div>
-                        </div>
-
-                        <div className={styles.ledgerRight}>
-                          <span className={styles.ledgerAmount}>
-                            −{currencySymbol}{formatNumber(e.amount)}
-                          </span>
-
-                          <button
-                            type="button"
-                            className={styles.rowDeleteQuickBtn}
-                            onClick={(evt) => {
-                              evt.stopPropagation();
-                              handleDeleteExpense(e.id);
-                            }}
-                            aria-label="Delete expense"
-                            title="Delete expense"
-                          >
-                            <Symbol name="delete" size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              </>
+            ) : (
+              <>
+                {/* ── 3. PRIMARY ACTION ── */}
+                <div className={styles.actionSection}>
+                  <button
+                    type="button"
+                    className={styles.primaryActionBtn}
+                    onClick={() => handleOpenCreateModal()}
+                  >
+                    <Symbol name="add" size={18} />
+                    <span>Record Expense</span>
+                  </button>
                 </div>
-              )}
-            </section>
+
+                {/* ── 4. CATEGORY FILTER (Decluttered — only shown when entries exist) ── */}
+                {expenses.length > 0 && (
+                  <div className={styles.filterBarWrapper} role="tablist" aria-label="Filter expenses by category">
+                    <div className={styles.filterBar}>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={categoryFilter === 'all'}
+                        className={`${styles.filterPill} ${categoryFilter === 'all' ? styles.filterPillActive : ''}`}
+                        onClick={() => setCategoryFilter('all')}
+                      >
+                        <span>All</span>
+                        <span className={styles.filterCount}>{expenses.length}</span>
+                      </button>
+                      {EXPENSE_CATEGORIES.map((cat) => {
+                        const count = expenses.filter((e) => e.category === cat.key).length;
+                        const isActive = categoryFilter === cat.key;
+                        if (count === 0 && categoryFilter !== cat.key) return null;
+                        return (
+                          <button
+                            key={cat.key}
+                            type="button"
+                            role="tab"
+                            aria-selected={isActive}
+                            className={`${styles.filterPill} ${isActive ? styles.filterPillActive : ''}`}
+                            onClick={() => setCategoryFilter(isActive ? 'all' : cat.key)}
+                          >
+                            <Symbol name={cat.icon} size={13} />
+                            <span>{cat.shortLabel}</span>
+                            {count > 0 && <span className={styles.filterCount}>{count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── 5. CLEAN LEDGER SECTION ── */}
+                <section className={styles.ledgerSection}>
+                  {filteredExpenses.length === 0 ? (
+                    <div className={styles.emptyContainer}>
+                      <EmptyState
+                        icon={<Symbol name="receipt_long" size={32} />}
+                        title={
+                          categoryFilter !== 'all' && expenses.length > 0
+                            ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel || ''} Expenses`
+                            : `No Expenses Logged on this Date`
+                        }
+                        description={
+                          categoryFilter !== 'all' && expenses.length > 0
+                            ? `No ${EXPENSE_CATEGORIES.find((c) => c.key === categoryFilter)?.shortLabel.toLowerCase() || ''} expenses found for ${displayDateText}.`
+                            : `No workshop payouts or material purchases recorded for ${displayDateText}.`
+                        }
+                        action={{
+                          label: categoryFilter !== 'all' && expenses.length > 0 ? 'Show All Expenses' : 'Record Expense',
+                          onClick: categoryFilter !== 'all' && expenses.length > 0 ? () => setCategoryFilter('all') : () => handleOpenCreateModal(),
+                        }}
+                      />
+
+                      {/* 1-Tap Quick Presets shown contextually in Empty State */}
+                      {categoryFilter === 'all' && (
+                        <div className={styles.emptyPresetsBlock}>
+                          <span className={styles.emptyPresetsTitle}>Quick 1-tap log:</span>
+                          <div className={styles.emptyPresetsGrid}>
+                            {workshopPresets.map((p, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                className={styles.emptyPresetBtn}
+                                onClick={() =>
+                                  handleOpenCreateModal({
+                                    amount: p.amount,
+                                    category: p.category,
+                                    description: p.description,
+                                    method: p.method,
+                                  })
+                                }
+                              >
+                                + {p.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={styles.ledgerCard}>
+                      {filteredExpenses.map((e) => {
+                        const catObj = EXPENSE_CATEGORIES.find((c) => c.key === e.category);
+                        const linkedOrder = e.orderId ? orders?.find((o) => o.id === e.orderId) : null;
+
+                        return (
+                          <div
+                            key={e.id}
+                            className={styles.ledgerRow}
+                            onClick={() => handleOpenEditModal(e)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(evt) => {
+                              if (evt.key === 'Enter' || evt.key === ' ') {
+                                evt.preventDefault();
+                                handleOpenEditModal(e);
+                              }
+                            }}
+                          >
+                            <div className={styles.ledgerLeft}>
+                              <div className={`${styles.expenseItemIconWrap} ${styles['icon_' + e.category] || ''}`}>
+                                <Symbol name={catObj?.icon || 'receipt_long'} size={17} />
+                              </div>
+                              <div className={styles.ledgerDetails}>
+                                <span className={styles.ledgerTitle}>
+                                  {e.description || catObj?.label || 'Shop Expense'}
+                                </span>
+                                <div className={styles.ledgerMeta}>
+                                  <span className={styles.methodBadge}>
+                                    {e.method === 'transfer' ? 'Transfer' : 'Cash'}
+                                  </span>
+                                  <span className={styles.metaDot}>·</span>
+                                  <span className={`${styles.categoryBadge} ${styles['badge_' + e.category] || ''}`}>
+                                    {catObj?.shortLabel || e.category}
+                                  </span>
+                                  {linkedOrder && (
+                                    <>
+                                      <span className={styles.metaDot}>·</span>
+                                      <button
+                                        type="button"
+                                        className={styles.orderBadgeBtn}
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          router.push(ROUTES.productionOrder(linkedOrder));
+                                        }}
+                                        title={`View Order #${linkedOrder.id.slice(0, 6).toUpperCase()} in Production`}
+                                      >
+                                        Order #{linkedOrder.id.slice(0, 6).toUpperCase()} &rarr;
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className={styles.ledgerRight}>
+                              <span className={styles.ledgerAmount}>
+                                −{currencySymbol}{formatNumber(e.amount)}
+                              </span>
+
+                              <button
+                                type="button"
+                                className={styles.rowDeleteQuickBtn}
+                                onClick={(evt) => {
+                                  evt.stopPropagation();
+                                  handleDeleteExpense(e.id);
+                                }}
+                                aria-label="Delete expense"
+                                title="Delete expense"
+                              >
+                                <Symbol name="delete" size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
           </>
         )}
       </div>

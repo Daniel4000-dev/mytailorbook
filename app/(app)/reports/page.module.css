@@ -225,3 +225,103 @@
   color: var(--sf-text-secondary);
 }
 
+/* ── Revenue Channels Segregation (Bespoke vs Showroom) ── */
+.channelsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sf-space-md, 16px);
+}
+
+@media (min-width: 640px) {
+  .channelsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.channelCard {
+  background: var(--sf-bg-surface-sunken, #f9fafb);
+  border: 1px solid var(--sf-border-subtle, #f3f4f6);
+  border-radius: var(--sf-radius-md, 12px);
+  padding: var(--sf-space-md, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.channelCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.channelTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channelIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-bg-surface-elevated, #ffffff);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  color: var(--sf-text-primary);
+}
+
+.channelTitle {
+  font-size: var(--sf-text-sm, 14px);
+  font-weight: var(--sf-weight-semibold, 600);
+  color: var(--sf-text-primary);
+}
+
+.channelShareBadge {
+  font-size: var(--sf-text-xs, 11px);
+  font-weight: var(--sf-weight-semibold, 600);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--sf-bg-surface-elevated, #ffffff);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  color: var(--sf-text-secondary);
+}
+
+.channelAmount {
+  font-size: var(--sf-text-lg, 18px);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.channelStatsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--sf-border-subtle, #f3f4f6);
+  font-size: var(--sf-text-xs, 12px);
+  color: var(--sf-text-secondary);
+}
+
+.channelSplitTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sf-border-light, #e5e7eb);
+  overflow: hidden;
+  display: flex;
+  width: 100%;
+}
+
+.channelSplitBespoke {
+  height: 100%;
+  background: var(--sf-color-primary, #047857);
+}
+
+.channelSplitShowroom {
+  height: 100%;
+  background: #3b82f6;
+}
+
+

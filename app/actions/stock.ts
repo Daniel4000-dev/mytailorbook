@@ -486,3 +486,130 @@ export async function processSaleAction(
     customerPhone
   };
 }
+
+export interface ShowroomFinancials {
+  totalPieces: number;
+  retailValuation: number;
+  costValuation: number;
+  unitsSold: number;
+  revenue: number;
+  cogs: number;
+  grossProfit: number;
+  grossMarginPercent: number;
+  ordersCount: number;
+  turnoverRate: number;
+  topStyles: Array<{ name: string; units: number; revenue: number }>;
+}
+
+export async function getShowroomFinancialsAction(
+  shopId: string,
+  days = 30
+): Promise<{ data?: ShowroomFinancials; error?: string }> {
+  try {
+    const supabase = await createClient();
+    if (supabase.auth?.getUser) {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData?.user) return { error: 'Not authenticated' };
+    }
+
+    // 1. Fetch current stock
+    const { data: stockItems, error: stockError } = await supabase
+      .from('finished_goods')
+      .select('id, name, size, quantity, price, metadata')
+      .eq('shop_id', shopId);
+
+    if (stockError) return { error: stockError.message };
+
+    const items = stockItems || [];
+    let totalPieces = 0;
+    let retailValuation = 0;
+    let costValuation = 0;
+    const costPriceMap = new Map<string, number>();
+
+    for (const item of items) {
+      const q = Number(item.quantity) || 0;
+      const p = Number(item.price) || 0;
+      const c = Number(item.metadata?.costPrice) || 0;
+      totalPieces += q;
+      retailValuation += p * q;
+      costValuation += c * q;
+      if (c > 0) {
+        costPriceMap.set(item.id, c);
+        costPriceMap.set(item.name.toLowerCase(), c);
+      }
+    }
+
+    // 2. Fetch showroom orders in the period
+    const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const { data: posOrders, error: ordersError } = await supabase
+      .from('orders')
+      .select('id, total_bill, deposit_paid, metadata, created_at')
+      .eq('shop_id', shopId)
+      .gte('created_at', fromDate);
+
+    if (ordersError) return { error: ordersError.message };
+
+    let unitsSold = 0;
+    let revenue = 0;
+    let cogs = 0;
+    let ordersCount = 0;
+    const styleVolumeMap = new Map<string, { units: number; revenue: number }>();
+
+    for (const ord of (posOrders || [])) {
+      const isPos =
+        ord.metadata?.channel === 'pos_counter' ||
+        ord.metadata?.sales_channel === 'pos_counter' ||
+        ord.metadata?.order_type === 'rtw_counter_sale';
+
+      if (!isPos) continue;
+
+      ordersCount += 1;
+      revenue += Number(ord.total_bill) || Number(ord.deposit_paid) || 0;
+
+      const orderItems = Array.isArray(ord.metadata?.items) ? ord.metadata.items : [];
+      for (const it of orderItems) {
+        const itemQty = Number(it.quantity) || 1;
+        const itemPrice = Number(it.priceAtSale) || 0;
+        unitsSold += itemQty;
+
+        const unitCost = costPriceMap.get(it.goodId) || costPriceMap.get((it.name || '').toLowerCase()) || 0;
+        cogs += unitCost * itemQty;
+
+        const styleName = it.name || 'Showroom Garment';
+        const existing = styleVolumeMap.get(styleName) || { units: 0, revenue: 0 };
+        existing.units += itemQty;
+        existing.revenue += itemPrice * itemQty;
+        styleVolumeMap.set(styleName, existing);
+      }
+    }
+
+    const grossProfit = Math.max(0, revenue - cogs);
+    const grossMarginPercent = revenue > 0 ? Math.round((grossProfit / revenue) * 100) : 0;
+    const totalInventoryHandled = totalPieces + unitsSold;
+    const turnoverRate = totalInventoryHandled > 0 ? Number((unitsSold / totalInventoryHandled).toFixed(2)) : 0;
+
+    const topStyles = Array.from(styleVolumeMap.entries())
+      .map(([name, data]) => ({ name, units: data.units, revenue: data.revenue }))
+      .sort((a, b) => b.units - a.units)
+      .slice(0, 5);
+
+    return {
+      data: {
+        totalPieces,
+        retailValuation,
+        costValuation,
+        unitsSold,
+        revenue,
+        cogs,
+        grossProfit,
+        grossMarginPercent,
+        ordersCount,
+        turnoverRate,
+        topStyles,
+      }
+    };
+  } catch (err: any) {
+    console.error('getShowroomFinancialsAction error:', err);
+    return { error: err.message || 'Failed to fetch showroom financials' };
+  }
+}

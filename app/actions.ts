@@ -1905,6 +1905,15 @@ export interface FinancialReportBranch {
   trendData: { label: string; revenue: number; expenses: number }[];
   totalExpenses: number;
   netProfit: number;
+  // Showroom vs Bespoke Segregated Channels
+  bespokeRevenue: number;
+  bespokeCollected: number;
+  bespokeOutstanding: number;
+  bespokeOrdersCount: number;
+  showroomRevenue: number;
+  showroomCollected: number;
+  showroomUnitsSold: number;
+  showroomOrdersCount: number;
 }
 
 export interface FinancialReport {
@@ -1954,7 +1963,7 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 
   let ordersQuery = admin
     .from('orders')
-    .select('id, shop_id, customer_name, style_name, total_bill, deposit_paid, status, material_cost, other_costs, created_at')
+    .select('id, shop_id, customer_name, style_name, total_bill, deposit_paid, status, material_cost, other_costs, created_at, metadata')
     .in('shop_id', shops.map((s) => s.id));
   if (fromDate) ordersQuery = ordersQuery.gte('created_at', fromDate);
   const { data: orders, error: ordersError } = await ordersQuery;
@@ -1986,7 +1995,26 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 }
 
 function emptyTotals(): FinancialReport['totals'] {
-  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0, totalExpenses: 0, netProfit: 0, expenseBreakdown: [], trendData: [] };
+  return {
+    collected: 0,
+    outstanding: 0,
+    revenueWithCostData: 0,
+    costTotal: 0,
+    marginTotal: 0,
+    ordersWithCostCount: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    expenseBreakdown: [],
+    trendData: [],
+    bespokeRevenue: 0,
+    bespokeCollected: 0,
+    bespokeOutstanding: 0,
+    bespokeOrdersCount: 0,
+    showroomRevenue: 0,
+    showroomCollected: 0,
+    showroomUnitsSold: 0,
+    showroomOrdersCount: 0,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1996,6 +2024,15 @@ function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'sh
   let revenueWithCostData = 0;
   let costTotal = 0;
   let ordersWithCostCount = 0;
+
+  let bespokeRevenue = 0;
+  let bespokeCollected = 0;
+  let bespokeOutstanding = 0;
+  let bespokeOrdersCount = 0;
+  let showroomRevenue = 0;
+  let showroomCollected = 0;
+  let showroomUnitsSold = 0;
+  let showroomOrdersCount = 0;
 
   const expensesByOrder: Record<string, number> = {};
   for (const exp of expenses) {
@@ -2011,6 +2048,31 @@ function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'sh
   for (const row of orders) {
     collected += row.deposit_paid || 0;
     if (row.status !== 'Delivered') outstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
+
+    const isPosCounter =
+      row.metadata?.channel === 'pos_counter' ||
+      row.metadata?.sales_channel === 'pos_counter' ||
+      row.metadata?.order_type === 'rtw_counter_sale';
+
+    if (isPosCounter) {
+      showroomOrdersCount += 1;
+      showroomRevenue += row.total_bill || 0;
+      showroomCollected += row.deposit_paid || 0;
+      if (Array.isArray(row.metadata?.items)) {
+        for (const item of row.metadata.items) {
+          showroomUnitsSold += Number(item.quantity) || 1;
+        }
+      } else {
+        showroomUnitsSold += 1;
+      }
+    } else {
+      bespokeOrdersCount += 1;
+      bespokeRevenue += row.total_bill || 0;
+      bespokeCollected += row.deposit_paid || 0;
+      if (row.status !== 'Delivered') {
+        bespokeOutstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
+      }
+    }
 
     const oldMaterialCost = row.material_cost || 0;
     const oldOtherCosts = row.other_costs || 0;
@@ -2099,6 +2161,14 @@ function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'sh
     trendData,
     totalExpenses,
     netProfit,
+    bespokeRevenue,
+    bespokeCollected,
+    bespokeOutstanding,
+    bespokeOrdersCount,
+    showroomRevenue,
+    showroomCollected,
+    showroomUnitsSold,
+    showroomOrdersCount,
   };
 }
 
