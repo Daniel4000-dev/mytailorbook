@@ -589,7 +589,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Stock / POS', href: '/stock', icon: 'storefront', ownerOnly: true, rtwOnly: true, tourId: 'stock' },
   { label: 'Fittings', href: '/calendar?filter=fitting', icon: 'calendar_today', tourId: 'fittings', bespokeOnly: true },
   { label: 'Lookbooks', href: '/catalogues', icon: 'collections_bookmark', ownerOnly: true, hideFromBottomNav: true },
-  { label: 'Tailor Circle', href: '/circle', icon: 'groups', ownerOnly: true, tourId: 'circle', hideFromBottomNav: true },
+  { label: 'Tailor Circle', href: '/circle', icon: 'groups', ownerOnly: true, tourId: 'circle', hideFromBottomNav: true, bespokeOnly: true },
   { label: 'Fabrics', href: '/fabrics', icon: 'texture', tourId: 'fabrics', hideFromBottomNav: true },
   { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers', bespokeOnly: true },
   { label: 'Collections', href: '/collections', icon: 'account_balance_wallet', ownerOnly: true, hideFromBottomNav: true },

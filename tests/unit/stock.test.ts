@@ -615,6 +615,22 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       expect(labels).toContain('Fittings');
       expect(labels).toContain('Customers');
     });
+
+    it('filters out Tailor Circle for RTW in sidebar, but preserves it for Bespoke and Hybrid', () => {
+      const rtwSidebar = NAV_ITEMS.filter((item) => !(item.bespokeOnly && 'rtw' === 'rtw'));
+      expect(rtwSidebar.map((i) => i.label)).not.toContain('Tailor Circle');
+
+      const bespokeSidebar = NAV_ITEMS.filter((item) => !(item.rtwOnly && 'bespoke' === 'bespoke'));
+      expect(bespokeSidebar.map((i) => i.label)).toContain('Tailor Circle');
+
+      const hybridSidebar = NAV_ITEMS.filter((item) => {
+        const mode: string = 'hybrid';
+        if (item.bespokeOnly && mode === 'rtw') return false;
+        if (item.rtwOnly && mode === 'bespoke') return false;
+        return true;
+      });
+      expect(hybridSidebar.map((i) => i.label)).toContain('Tailor Circle');
+    });
   });
 
   describe('Mode Separation: XP and Streak System Isolation', () => {

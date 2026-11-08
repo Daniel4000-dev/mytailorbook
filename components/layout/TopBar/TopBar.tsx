@@ -51,6 +51,8 @@ export default function TopBar({
 
   const finalRightAction = rightAction || actions;
 
+  const businessMode = currentShop?.businessMode || 'bespoke';
+  const isBespokeOrHybrid = businessMode !== 'rtw';
   const xpEnabled = isXpSystemEnabled(currentShop?.businessMode);
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
@@ -113,7 +115,7 @@ export default function TopBar({
               {leftAction}
             </div>
             <div className={styles.right}>
-              {xpEnabled && (
+              {isBespokeOrHybrid && (
                 <Link
                   href="/circle"
                   className={styles.buddyPulseBtn}
