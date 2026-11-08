@@ -3,6 +3,7 @@ import {
   addStockGarmentsAction,
   updateStockPriceAction,
   updateStockQuantityAction,
+  quickRestockSizeAction,
   deleteStockGarmentAction,
   getStockAction
 } from '@/app/actions/stock';
@@ -238,6 +239,40 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       const res = await updateStockQuantityAction('fg-1', 5);
       expect(res.error).toBeUndefined();
       expect(mockUpdate).toHaveBeenCalledWith({ quantity: 5 });
+    });
+
+    it('quickRestockSizeAction increments existing rack stock', async () => {
+      mockSelect.mockImplementationOnce(() => ({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { quantity: 4 },
+            error: null
+          })
+        })
+      }));
+      mockEq.mockResolvedValue({ error: null });
+
+      const res = await quickRestockSizeAction('fg-1', 2);
+      expect(res.success).toBe(true);
+      expect(res.newQuantity).toBe(6);
+      expect(mockUpdate).toHaveBeenCalledWith({ quantity: 6 });
+    });
+
+    it('quickRestockSizeAction clamps at zero when decrementing beyond stock', async () => {
+      mockSelect.mockImplementationOnce(() => ({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { quantity: 1 },
+            error: null
+          })
+        })
+      }));
+      mockEq.mockResolvedValue({ error: null });
+
+      const res = await quickRestockSizeAction('fg-1', -5);
+      expect(res.success).toBe(true);
+      expect(res.newQuantity).toBe(0);
+      expect(mockUpdate).toHaveBeenCalledWith({ quantity: 0 });
     });
   });
 

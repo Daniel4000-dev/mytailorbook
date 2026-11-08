@@ -20,11 +20,39 @@ import {
   getStockAction,
   updateStockPriceAction,
   updateStockQuantityAction,
+  quickRestockSizeAction,
   deleteStockGarmentAction,
   processSaleAction
 } from '@/app/actions/stock';
 import { FinishedGood } from '@/lib/types';
 import styles from './page.module.css';
+
+const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', 'Free Size'];
+const sortSizes = (a: string, b: string) => {
+  const indexA = SIZE_ORDER.indexOf(a);
+  const indexB = SIZE_ORDER.indexOf(b);
+  if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+  if (indexA !== -1) return -1;
+  if (indexB !== -1) return 1;
+  const numA = parseInt(a, 10);
+  const numB = parseInt(b, 10);
+  if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+  return a.localeCompare(b);
+};
+
+interface StyleGroup {
+  key: string;
+  name: string;
+  category?: string;
+  color?: string;
+  fabric?: string;
+  rackLocation?: string;
+  price: number;
+  totalQuantity: number;
+  items: FinishedGood[];
+  hasLowStock: boolean;
+  isOutOfStock: boolean;
+}
 
 export default function StockPage() {
   const router = useRouter();
@@ -43,6 +71,8 @@ export default function StockPage() {
   const [addGarmentOpen, setAddGarmentOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
+  const [viewMode, setViewMode] = useState<'grouped' | 'all'>('grouped');
 
   // Cart for POS
   const [cart, setCart] = useState<{ goodId: string; quantity: number; priceAtSale: number; name: string; size: string }[]>([]);
@@ -50,12 +80,17 @@ export default function StockPage() {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [processing, setProcessing] = useState(false);
 
-  // Editing items
+  // Editing individual item
   const [editingItem, setEditingItem] = useState<FinishedGood | null>(null);
   const [editPrice, setEditPrice] = useState('');
   const [editQuantity, setEditQuantity] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingItem, setDeletingItem] = useState(false);
+
+  // Editing style group
+  const [editingGroup, setEditingGroup] = useState<StyleGroup | null>(null);
+  const [editGroupPrice, setEditGroupPrice] = useState('');
+  const [savingGroup, setSavingGroup] = useState(false);
 
   useEffect(() => {
     if (currentShop) {
@@ -75,6 +110,23 @@ export default function StockPage() {
     setLoading(false);
   };
 
+  // Metrics
+  const totalPieces = useMemo(() => {
+    return stock.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  }, [stock]);
+
+  const totalRetailValuation = useMemo(() => {
+    return stock.reduce((sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.price) || 0), 0);
+  }, [stock]);
+
+  const lowStockSizesCount = useMemo(() => {
+    return stock.filter(item => item.quantity > 0 && item.quantity <= 2).length;
+  }, [stock]);
+
+  const outOfStockSizesCount = useMemo(() => {
+    return stock.filter(item => item.quantity === 0).length;
+  }, [stock]);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
     stock.forEach(item => {
@@ -85,25 +137,102 @@ export default function StockPage() {
     return ['All', ...Array.from(set)];
   }, [stock]);
 
-  const filteredStock = useMemo(() => {
-    return stock.filter(item => {
+  const styleGroups = useMemo<StyleGroup[]>(() => {
+    const map = new Map<string, FinishedGood[]>();
+    stock.forEach(item => {
+      const key = item.name.trim().toLowerCase();
+      const list = map.get(key) || [];
+      list.push(item);
+      map.set(key, list);
+    });
+
+    const groups: StyleGroup[] = [];
+    map.forEach((items, key) => {
+      items.sort((a, b) => sortSizes(a.size, b.size));
+      const first = items[0];
+      const totalQuantity = items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0);
+      const hasLowStock = items.some(i => i.quantity > 0 && i.quantity <= 2);
+      const isOutOfStock = totalQuantity === 0;
+
+      groups.push({
+        key,
+        name: first.name,
+        category: first.metadata?.category,
+        color: first.metadata?.color,
+        fabric: first.metadata?.fabric,
+        rackLocation: first.metadata?.rackLocation,
+        price: first.price,
+        totalQuantity,
+        items,
+        hasLowStock,
+        isOutOfStock
+      });
+    });
+
+    return groups;
+  }, [stock]);
+
+  const filteredStyleGroups = useMemo(() => {
+    return styleGroups.filter(group => {
+      const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
-        searchQuery.trim() === '' ||
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.size.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.metadata?.color && item.metadata.color.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.metadata?.fabric && item.metadata.fabric.toLowerCase().includes(searchQuery.toLowerCase()));
+        q === '' ||
+        group.name.toLowerCase().includes(q) ||
+        (group.category && group.category.toLowerCase().includes(q)) ||
+        (group.color && group.color.toLowerCase().includes(q)) ||
+        (group.fabric && group.fabric.toLowerCase().includes(q)) ||
+        (group.rackLocation && group.rackLocation.toLowerCase().includes(q)) ||
+        group.items.some(i => i.size.toLowerCase().includes(q));
 
       const matchesCategory =
-        selectedCategory === 'All' ||
-        item.metadata?.category === selectedCategory;
+        selectedCategory === 'All' || group.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      let matchesStatus = true;
+      if (statusFilter === 'low_stock') {
+        matchesStatus = group.hasLowStock;
+      } else if (statusFilter === 'out_of_stock') {
+        matchesStatus = group.isOutOfStock;
+      } else if (statusFilter === 'in_stock') {
+        matchesStatus = group.totalQuantity > 0;
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [stock, searchQuery, selectedCategory]);
+  }, [styleGroups, searchQuery, selectedCategory, statusFilter]);
+
+  const filteredFlatStock = useMemo(() => {
+    return stock.filter(item => {
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        q === '' ||
+        item.name.toLowerCase().includes(q) ||
+        item.size.toLowerCase().includes(q) ||
+        (item.metadata?.category && item.metadata.category.toLowerCase().includes(q)) ||
+        (item.metadata?.color && item.metadata.color.toLowerCase().includes(q)) ||
+        (item.metadata?.fabric && item.metadata.fabric.toLowerCase().includes(q)) ||
+        (item.metadata?.rackLocation && item.metadata.rackLocation.toLowerCase().includes(q));
+
+      const matchesCategory =
+        selectedCategory === 'All' || item.metadata?.category === selectedCategory;
+
+      let matchesStatus = true;
+      if (statusFilter === 'low_stock') {
+        matchesStatus = item.quantity > 0 && item.quantity <= 2;
+      } else if (statusFilter === 'out_of_stock') {
+        matchesStatus = item.quantity === 0;
+      } else if (statusFilter === 'in_stock') {
+        matchesStatus = item.quantity > 0;
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [stock, searchQuery, selectedCategory, statusFilter]);
 
   const addToCart = (item: FinishedGood) => {
-    if (item.quantity <= 0) return;
+    if (item.quantity <= 0) {
+      showToast(`Size ${item.size} is out of stock. Tap + to restock`, 'info');
+      return;
+    }
     if (item.price <= 0) {
       showToast('Set a price before selling', 'error');
       openEdit(item);
@@ -114,13 +243,26 @@ export default function StockPage() {
       const existing = prev.find(p => p.goodId === item.id);
       if (existing) {
         if (existing.quantity >= item.quantity) {
-          showToast('Not enough stock on rack', 'error');
+          showToast(`Only ${item.quantity} available on rack`, 'error');
           return prev;
         }
         return prev.map(p => p.goodId === item.id ? { ...p, quantity: p.quantity + 1 } : p);
       }
       return [...prev, { goodId: item.id, quantity: 1, priceAtSale: item.price, name: item.name, size: item.size }];
     });
+    showToast(`Added ${item.name} (${item.size}) to cart`, 'success');
+  };
+
+  const handleQuickRestock = async (item: FinishedGood, delta: number) => {
+    const res = await quickRestockSizeAction(item.id, delta);
+    if (res.error) {
+      showToast(res.error, 'error');
+    } else {
+      showToast(`Size ${item.size} now has ${res.newQuantity} on rack`, 'success');
+      setStock(prev =>
+        prev.map(p => (p.id === item.id ? { ...p, quantity: res.newQuantity ?? p.quantity } : p))
+      );
+    }
   };
 
   const updateCartQuantity = (goodId: string, delta: number) => {
@@ -192,6 +334,34 @@ export default function StockPage() {
     setDeletingItem(false);
   };
 
+  const openStyleEdit = (group: StyleGroup) => {
+    setEditingGroup(group);
+    setEditGroupPrice(group.price > 0 ? group.price.toString() : '');
+  };
+
+  const handleSaveStyleEdit = async () => {
+    if (!editingGroup) return;
+    setSavingGroup(true);
+    const newPrice = Math.max(0, parseFloat(editGroupPrice) || 0);
+
+    let hasError = false;
+    if (newPrice !== editingGroup.price) {
+      for (const item of editingGroup.items) {
+        const res = await updateStockPriceAction(item.id, newPrice);
+        if (res.error) hasError = true;
+      }
+    }
+
+    if (hasError) {
+      showToast('Error updating style price', 'error');
+    } else {
+      showToast(`Updated showroom price for ${editingGroup.name}`, 'success');
+      setEditingGroup(null);
+      loadStock();
+    }
+    setSavingGroup(false);
+  };
+
   const handleCheckout = async () => {
     if (!currentShop || !user || cart.length === 0) return;
     setProcessing(true);
@@ -210,6 +380,9 @@ export default function StockPage() {
   const cartTotal = cart.reduce((sum, item) => sum + item.quantity * item.priceAtSale, 0);
 
   if (!dataLoaded || authLoading || loading) return null;
+
+  const currency = currentShop?.currency || 'NGN';
+  const hasItemsToShow = viewMode === 'grouped' ? filteredStyleGroups.length > 0 : filteredFlatStock.length > 0;
 
   return (
     <PageLayout
@@ -233,31 +406,141 @@ export default function StockPage() {
         {/* Main Stock Area */}
         <div className={styles.stockArea}>
           {stock.length > 0 && (
-            <div className={styles.controlsBar}>
-              <Input
-                placeholder="Search styles by name, color, or fabric..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                icon={<Symbol name="search" size={18} />}
-              />
+            <>
+              {/* Showroom Floor Metrics Bar */}
+              <div className={styles.metricsBar}>
+                <div className={styles.metricCard}>
+                  <span className={styles.metricLabel}>Total on Rack</span>
+                  <span className={styles.metricValue}>{totalPieces}</span>
+                  <span className={styles.metricSub}>Garment pieces</span>
+                </div>
+                <div className={styles.metricCard}>
+                  <span className={styles.metricLabel}>Rack Valuation</span>
+                  <span className={styles.metricValue}>{formatCurrency(totalRetailValuation, currency)}</span>
+                  <span className={styles.metricSub}>Retail stock value</span>
+                </div>
+                <div className={styles.metricCard}>
+                  <span className={styles.metricLabel}>Showroom Styles</span>
+                  <span className={styles.metricValue}>{styleGroups.length}</span>
+                  <span className={styles.metricSub}>Unique garment designs</span>
+                </div>
+                <div
+                  className={`${styles.metricCard} ${
+                    lowStockSizesCount + outOfStockSizesCount > 0 ? styles.metricAlert : ''
+                  }`}
+                  onClick={() => {
+                    if (lowStockSizesCount + outOfStockSizesCount > 0) {
+                      setStatusFilter(prev => (prev === 'low_stock' ? 'all' : 'low_stock'));
+                    }
+                  }}
+                  title={lowStockSizesCount + outOfStockSizesCount > 0 ? 'Click to filter low stock items' : ''}
+                >
+                  <span className={styles.metricLabel}>Stock Alerts</span>
+                  <span className={styles.metricValue}>
+                    {lowStockSizesCount + outOfStockSizesCount}
+                  </span>
+                  <span className={styles.metricSub}>
+                    {lowStockSizesCount} low • {outOfStockSizesCount} sold out
+                  </span>
+                </div>
+              </div>
 
-              {categories.length > 1 && (
-                <div className={styles.filterChips}>
-                  {categories.map(cat => (
+              {/* Controls, Filters & View Mode */}
+              <div className={styles.controlsBar}>
+                <Input
+                  placeholder="Search styles by name, size, color, or fabric..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  icon={<Symbol name="search" size={18} />}
+                />
+
+                <div className={styles.viewModeBar}>
+                  {/* Category Chips */}
+                  {categories.length > 1 && (
+                    <div className={styles.filterChips}>
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          className={`${styles.filterChip} ${
+                            selectedCategory === cat ? styles.filterChipActive : ''
+                          }`}
+                          onClick={() => setSelectedCategory(cat)}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* View Mode Switcher */}
+                  <div className={styles.viewModeToggle}>
                     <button
-                      key={cat}
+                      type="button"
+                      className={`${styles.viewModeBtn} ${
+                        viewMode === 'grouped' ? styles.viewModeBtnActive : ''
+                      }`}
+                      onClick={() => setViewMode('grouped')}
+                    >
+                      Grouped by Style
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.viewModeBtn} ${
+                        viewMode === 'all' ? styles.viewModeBtnActive : ''
+                      }`}
+                      onClick={() => setViewMode('all')}
+                    >
+                      All Units ({stock.length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* Status Chips */}
+                <div className={styles.filterChips}>
+                  <button
+                    type="button"
+                    className={`${styles.filterChip} ${
+                      statusFilter === 'all' ? styles.filterChipActive : ''
+                    }`}
+                    onClick={() => setStatusFilter('all')}
+                  >
+                    All Items
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.filterChip} ${
+                      statusFilter === 'in_stock' ? styles.filterChipActive : ''
+                    }`}
+                    onClick={() => setStatusFilter('in_stock')}
+                  >
+                    In Stock
+                  </button>
+                  {lowStockSizesCount > 0 && (
+                    <button
                       type="button"
                       className={`${styles.filterChip} ${
-                        selectedCategory === cat ? styles.filterChipActive : ''
+                        statusFilter === 'low_stock' ? styles.filterChipActive : ''
                       }`}
-                      onClick={() => setSelectedCategory(cat)}
+                      onClick={() => setStatusFilter('low_stock')}
                     >
-                      {cat}
+                      Low Stock ({lowStockSizesCount})
                     </button>
-                  ))}
+                  )}
+                  {outOfStockSizesCount > 0 && (
+                    <button
+                      type="button"
+                      className={`${styles.filterChip} ${
+                        statusFilter === 'out_of_stock' ? styles.filterChipActive : ''
+                      }`}
+                      onClick={() => setStatusFilter('out_of_stock')}
+                    >
+                      Out of Stock ({outOfStockSizesCount})
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            </>
           )}
 
           {stock.length === 0 ? (
@@ -270,22 +553,128 @@ export default function StockPage() {
                 onClick: () => setAddGarmentOpen(true)
               }}
             />
-          ) : filteredStock.length === 0 ? (
+          ) : !hasItemsToShow ? (
             <EmptyState
               icon={<Symbol name="search_off" size={32} />}
               title="No matching garments found"
-              description="Try adjusting your search terms or category filter."
+              description="Try adjusting your search terms, category, or stock status filter."
               action={{
                 label: 'Clear Filters',
                 onClick: () => {
                   setSearchQuery('');
                   setSelectedCategory('All');
+                  setStatusFilter('all');
                 }
               }}
             />
-          ) : (
+          ) : viewMode === 'grouped' ? (
+            /* Style-Grouped Showroom View */
             <div className={styles.grid}>
-              {filteredStock.map(item => {
+              {filteredStyleGroups.map(group => {
+                return (
+                  <div key={group.key} className={styles.card}>
+                    <div className={styles.cardHeader}>
+                      <div>
+                        {group.category && (
+                          <span className={styles.categoryBadge}>{group.category}</span>
+                        )}
+                        <h3 className={styles.name}>{group.name}</h3>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => openStyleEdit(group)}
+                        aria-label={`Edit ${group.name}`}
+                      >
+                        <Symbol name="edit" size={16} />
+                      </Button>
+                    </div>
+
+                    <div className={styles.details}>
+                      <div className={styles.stockSummaryRow}>
+                        <span>Total: <strong>{group.totalQuantity} pcs</strong></span>
+                        {' • '}
+                        <span
+                          className={
+                            group.totalQuantity === 0
+                              ? styles.badgeOutOfStock
+                              : group.hasLowStock
+                              ? styles.badgeLowStock
+                              : ''
+                          }
+                        >
+                          {group.totalQuantity === 0
+                            ? 'Out of stock'
+                            : `${group.items.length} size${group.items.length !== 1 ? 's' : ''} on rack`}
+                        </span>
+                      </div>
+
+                      {(group.color || group.fabric) && (
+                        <div className={styles.metaRow}>
+                          {[group.color, group.fabric].filter(Boolean).join(' • ')}
+                        </div>
+                      )}
+
+                      {group.rackLocation && (
+                        <div className={styles.metaRow}>
+                          Loc: {group.rackLocation}
+                        </div>
+                      )}
+
+                      <div className={styles.price}>
+                        {group.price > 0
+                          ? formatCurrency(group.price, currency)
+                          : 'No Price Set'}
+                      </div>
+
+                      {/* Interactive Size Pills */}
+                      <div className={styles.styleSizePills}>
+                        {group.items.map(item => {
+                          const isOut = item.quantity === 0;
+                          const isLow = item.quantity > 0 && item.quantity <= 2;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className={`${styles.sizePill} ${
+                                isOut ? styles.sizePillOut : isLow ? styles.sizePillLow : ''
+                              } ${!isOut ? styles.sizePillInteractive : ''}`}
+                              onClick={() => !isOut && addToCart(item)}
+                              title={
+                                isOut
+                                  ? `Size ${item.size} is out of stock`
+                                  : `Tap to sell Size ${item.size}`
+                              }
+                            >
+                              <span className={styles.sizePillName}>{item.size}:</span>
+                              <strong className={styles.sizePillQty}>
+                                {isOut ? '0' : item.quantity}
+                              </strong>
+                              <button
+                                type="button"
+                                className={styles.sizePillRestockBtn}
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleQuickRestock(item, 1);
+                                }}
+                                title={`Add 1 to Size ${item.size}`}
+                                aria-label={`Restock Size ${item.size}`}
+                              >
+                                <Symbol name="add" size={12} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Flat Individual Size Units View */
+            <div className={styles.grid}>
+              {filteredFlatStock.map(item => {
                 const isOutOfStock = item.quantity === 0;
                 const isLowStock = item.quantity > 0 && item.quantity <= 2;
 
@@ -345,7 +734,7 @@ export default function StockPage() {
 
                       <div className={styles.price}>
                         {item.price > 0
-                          ? formatCurrency(item.price, currentShop?.currency || 'NGN')
+                          ? formatCurrency(item.price, currency)
                           : 'No Price Set'}
                       </div>
                     </div>
@@ -465,6 +854,83 @@ export default function StockPage() {
           >
             Confirm Payment
           </Button>
+        </div>
+      </BottomSheet>
+
+      {/* Edit Style Group BottomSheet */}
+      <BottomSheet isOpen={!!editingGroup} onClose={() => setEditingGroup(null)}>
+        <div className={styles.sheetContent}>
+          <h2>Edit Showroom Style</h2>
+          {editingGroup && (
+            <p style={{ margin: '0 0 12px 0', color: 'var(--sf-text-secondary)', fontSize: '14px' }}>
+              {editingGroup.name} {editingGroup.category ? `• ${editingGroup.category}` : ''} ({editingGroup.totalQuantity} total pcs)
+            </p>
+          )}
+
+          <Input
+            type="number"
+            label="Retail Price (Applies to all sizes)"
+            prefix={currency}
+            value={editGroupPrice}
+            onChange={e => setEditGroupPrice(e.target.value)}
+          />
+
+          {editingGroup && (
+            <div style={{ marginTop: '8px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Stock by Size on Rack
+              </label>
+              <div className={styles.styleEditSizesList}>
+                {editingGroup.items.map(item => (
+                  <div key={item.id} className={styles.styleEditSizeRow}>
+                    <div className={styles.styleEditSizeInfo}>
+                      <span>Size {item.size}</span>
+                    </div>
+                    <div className={styles.styleEditSizeControls}>
+                      <div className={styles.cartStepper}>
+                        <button
+                          type="button"
+                          className={styles.cartStepperBtn}
+                          onClick={() => handleQuickRestock(item, -1)}
+                          disabled={item.quantity <= 0}
+                          aria-label={`Decrease Size ${item.size}`}
+                        >
+                          <Symbol name="remove" size={14} />
+                        </button>
+                        <span className={styles.cartQtyText}>{item.quantity}</span>
+                        <button
+                          type="button"
+                          className={styles.cartStepperBtn}
+                          onClick={() => handleQuickRestock(item, 1)}
+                          aria-label={`Increase Size ${item.size}`}
+                        >
+                          <Symbol name="add" size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className={styles.editActions}>
+            <Button
+              variant="secondary"
+              onClick={() => setEditingGroup(null)}
+              style={{ flex: 1 }}
+            >
+              Done
+            </Button>
+            <Button
+              variant="primary"
+              loading={savingGroup}
+              onClick={handleSaveStyleEdit}
+              style={{ flex: 1 }}
+            >
+              Save Price
+            </Button>
+          </div>
         </div>
       </BottomSheet>
 

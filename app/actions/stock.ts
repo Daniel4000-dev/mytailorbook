@@ -145,6 +145,31 @@ export async function updateStockQuantityAction(id: string, quantity: number): P
   return {};
 }
 
+export async function quickRestockSizeAction(
+  id: string,
+  delta: number
+): Promise<{ success?: boolean; newQuantity?: number; error?: string }> {
+  const supabase = await createClient();
+  const { data: current, error: fetchErr } = await supabase
+    .from('finished_goods')
+    .select('quantity')
+    .eq('id', id)
+    .single();
+
+  if (fetchErr || !current) return { error: fetchErr?.message || 'Item not found on rack' };
+
+  const newQuantity = Math.max(0, (Number(current.quantity) || 0) + delta);
+  const { error: updateErr } = await supabase
+    .from('finished_goods')
+    .update({ quantity: newQuantity })
+    .eq('id', id);
+
+  if (updateErr) return { error: updateErr.message };
+
+  revalidatePath('/stock');
+  return { success: true, newQuantity };
+}
+
 export async function deleteStockGarmentAction(id: string): Promise<{ success?: boolean; error?: string }> {
   const supabase = await createClient();
   const { error } = await supabase
