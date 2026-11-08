@@ -27,11 +27,12 @@ const mockSelect = vi.fn();
 const mockEq = vi.fn();
 const mockIlike = vi.fn();
 const mockOrder = vi.fn();
+let currentIlikeData: any[] = [];
 
 const createChainable = () => {
   const chain: any = {
     eq: vi.fn(() => chain),
-    ilike: mockIlike,
+    ilike: vi.fn(() => chain),
     order: mockOrder.mockReturnValue({
       data: [
         {
@@ -55,13 +56,14 @@ const createChainable = () => {
       error: null
     }),
     single: vi.fn().mockResolvedValue({
-      data: { id: 'order-pos-123', quantity: 5, org_id: 'org-1' },
+      data: { id: 'order-pos-123', quantity: 5, name: 'Senator Suit', size: 'L', org_id: 'org-1' },
       error: null
     }),
     maybeSingle: vi.fn().mockResolvedValue({
       data: null,
       error: null
-    })
+    }),
+    then: (resolve: any) => resolve({ data: currentIlikeData, error: null })
   };
   return chain;
 };
@@ -104,6 +106,7 @@ vi.mock('@/lib/supabase/server', () => ({
 describe('Ready-to-Wear Stock Management & Garment Intake', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    currentIlikeData = [];
     mockIlike.mockResolvedValue({ data: [], error: null });
   });
 
@@ -206,18 +209,15 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
     });
 
     it('intelligently restocks existing showroom items by incrementing quantities instead of creating duplicates', async () => {
-      mockIlike.mockResolvedValue({
-        data: [
-          {
-            id: 'existing-l-1',
-            name: 'Royal Blue Senator',
-            size: 'L',
-            quantity: 3,
-            metadata: { category: 'Senator', parentGarmentName: 'Royal Blue Senator' }
-          }
-        ],
-        error: null
-      });
+      currentIlikeData = [
+        {
+          id: 'existing-l-1',
+          name: 'Royal Blue Senator',
+          size: 'L',
+          quantity: 3,
+          metadata: { category: 'Senator', parentGarmentName: 'Royal Blue Senator' }
+        }
+      ];
 
       const res = await addStockGarmentsAction('shop-123', {
         name: 'Royal Blue Senator',
@@ -410,6 +410,47 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
           customer_name: 'Hajia Aisha'
         })
       );
+    });
+
+    it('rejects checkout when item has zero or negative quantity', async () => {
+      const invalidItems = [
+        { goodId: 'fg-1', quantity: 0, priceAtSale: 25000, name: 'Senator Suit', size: 'L' }
+      ];
+      const res = await processSaleAction('shop-123', invalidItems, 'pos', 'user-1');
+      expect(res.error).toContain('Invalid quantity');
+    });
+
+    it('rejects checkout when requested quantity exceeds available rack stock', async () => {
+      const excessItems = [
+        { goodId: 'fg-1', quantity: 999, priceAtSale: 25000, name: 'Senator Suit', size: 'L' }
+      ];
+      const res = await processSaleAction('shop-123', excessItems, 'pos', 'user-1');
+      expect(res.error).toContain('Insufficient stock');
+    });
+
+    it('safely handles 100% discount zero-amount sale without inserting zero-amount row into payments table', async () => {
+      mockInsert.mockClear();
+      const res = await processSaleAction('shop-123', sampleItems, 'pos', 'user-1', {
+        discountAmount: 50000 // 100% discount
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.totalAmount).toBe(0);
+
+      // Verify order created with 0 total bill and empty payments array
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          total_bill: 0,
+          deposit_paid: 0,
+          payments: []
+        })
+      );
+
+      // Verify payments table was NOT inserted with amount: 0
+      const paymentTableCalls = mockInsert.mock.calls.filter(
+        call => call[0] && call[0].amount !== undefined && call[0].order_id !== undefined
+      );
+      expect(paymentTableCalls.length).toBe(0);
     });
   });
 });

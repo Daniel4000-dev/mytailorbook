@@ -212,6 +212,30 @@ export async function processSaleAction(
 
   const supabase = await createClient();
   
+  // Validate items and verify inventory availability before creating order
+  for (const item of items) {
+    if (!item.goodId || typeof item.quantity !== 'number' || item.quantity <= 0) {
+      return { error: `Invalid quantity for item "${item.name || item.goodId}"` };
+    }
+    if (typeof item.priceAtSale !== 'number' || item.priceAtSale < 0) {
+      return { error: `Invalid price for item "${item.name || item.goodId}"` };
+    }
+    const { data: currentStock, error: stockFetchErr } = await supabase
+      .from('finished_goods')
+      .select('quantity, name, size')
+      .eq('id', item.goodId)
+      .single();
+
+    if (stockFetchErr || !currentStock) {
+      return { error: `Garment "${item.name} (${item.size})" was not found on the rack` };
+    }
+    if ((Number(currentStock.quantity) || 0) < item.quantity) {
+      return {
+        error: `Insufficient stock for "${currentStock.name} (${currentStock.size})". Only ${currentStock.quantity} piece(s) available on rack.`
+      };
+    }
+  }
+
   const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.priceAtSale), 0);
   const discount = Math.max(0, options?.discountAmount || 0);
   const totalAmount = Math.max(0, subtotal - discount);
@@ -255,12 +279,12 @@ export async function processSaleAction(
         }
       }
     } else if (rawName && rawName !== 'Retail Walk-In') {
-      // Customer name provided without a phone number
+      // Customer name provided without a phone number (case-insensitive search)
       const { data: existingCust } = await supabase
         .from('customers')
         .select('id, full_name, whatsapp_number')
         .eq('shop_id', shopId)
-        .eq('full_name', rawName)
+        .ilike('full_name', rawName)
         .maybeSingle();
 
       if (existingCust) {
@@ -335,6 +359,17 @@ export async function processSaleAction(
     paymentMethod === 'pos' || paymentMethod === 'cash' || paymentMethod === 'transfer' || paymentMethod === 'store_credit'
   ) ? (paymentMethod as PaymentMethod) : (paymentMethod === 'card' ? 'pos' : 'cash');
 
+  const paymentRecords = totalAmount > 0 ? [{
+    id: paymentId,
+    amount: totalAmount,
+    method: validPaymentMethod,
+    note: 'Showroom Counter Checkout',
+    recordedBy: cashierId || 'system',
+    recordedByName: cashierName,
+    timestamp: nowIso,
+    date: nowIso
+  }] : [];
+
   const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
     shop_id: shopId,
     customer_id: customerId,
@@ -343,17 +378,15 @@ export async function processSaleAction(
     total_bill: totalAmount,
     deposit_paid: totalAmount,
     status: 'Delivered',
+    status_history: [{
+      from: 'Documented',
+      to: 'Delivered',
+      changedBy: cashierId || 'system',
+      changedByName: cashierName,
+      timestamp: nowIso
+    }],
     is_internal_batch: false,
-    payments: [{
-      id: paymentId,
-      amount: totalAmount,
-      method: validPaymentMethod,
-      note: 'Showroom Counter Checkout',
-      recordedBy: cashierId || 'system',
-      recordedByName: cashierName,
-      timestamp: nowIso,
-      date: nowIso
-    }]
+    payments: paymentRecords
   }).select('id').single();
   
   if (orderError) return { error: orderError.message };
@@ -366,14 +399,16 @@ export async function processSaleAction(
     }
   }
 
-  // Insert into relational payments table for ledgers & daily registers
-  await supabase.from('payments').insert({
-    shop_id: shopId,
-    order_id: newOrder.id,
-    amount: totalAmount,
-    method: validPaymentMethod,
-    reference_note: `POS Sale: ${details}`
-  });
+  // Insert into relational payments table for ledgers & daily registers (only when amount > 0 per db check constraint)
+  if (totalAmount > 0) {
+    await supabase.from('payments').insert({
+      shop_id: shopId,
+      order_id: newOrder.id,
+      amount: totalAmount,
+      method: validPaymentMethod,
+      reference_note: `POS Sale: ${details}`
+    });
+  }
 
   // Best-effort audit log
   await logAudit({
@@ -392,5 +427,7 @@ export async function processSaleAction(
   });
   
   revalidatePath('/stock');
+  revalidatePath('/customers');
+  revalidatePath('/dashboard');
   return { success: true, orderId: newOrder?.id, totalAmount };
 }

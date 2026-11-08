@@ -57,7 +57,7 @@ interface StyleGroup {
 
 export default function StockPage() {
   const router = useRouter();
-  const { currentShop, isLoaded: dataLoaded } = useData();
+  const { currentShop, customers, refreshShop, isLoaded: dataLoaded } = useData();
   const { user, loading: authLoading } = useAuth();
   const { showToast } = useToast();
 
@@ -405,6 +405,12 @@ export default function StockPage() {
 
   const handleCheckout = async () => {
     if (!currentShop || !user || cart.length === 0) return;
+
+    if (customerMode === 'attach' && !customerNameInput.trim()) {
+      showToast('Please enter the client name or switch to Walk-in Guest', 'error');
+      return;
+    }
+
     setProcessing(true);
     const saleOptions = {
       customerName: customerMode === 'attach' && customerNameInput.trim() ? customerNameInput.trim() : 'Retail Walk-In',
@@ -428,6 +434,7 @@ export default function StockPage() {
       });
       setCart([]);
       loadStock();
+      refreshShop();
     }
     setProcessing(false);
   };
@@ -1104,8 +1111,27 @@ export default function StockPage() {
                       label="Customer Name"
                       placeholder="e.g. Alhaji Babangida"
                       value={customerNameInput}
-                      onChange={e => setCustomerNameInput(e.target.value)}
+                      list="vip-client-suggestions"
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCustomerNameInput(val);
+                        const matched = (customers || []).find(
+                          c => c.fullName.toLowerCase() === val.trim().toLowerCase()
+                        );
+                        if (matched && matched.whatsappNumber && !customerPhoneInput) {
+                          setCustomerPhoneInput(matched.whatsappNumber);
+                        }
+                      }}
                     />
+                    <datalist id="vip-client-suggestions">
+                      {(customers || [])
+                        .filter(c => c.fullName !== 'Retail Walk-In')
+                        .map(c => (
+                          <option key={c.id} value={c.fullName}>
+                            {c.whatsappNumber || ''}
+                          </option>
+                        ))}
+                    </datalist>
                     <Input
                       label="Phone / WhatsApp"
                       placeholder="e.g. 08012345678"
