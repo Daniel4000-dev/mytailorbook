@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useDeferredValue } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
+import { useDebounce } from '@/lib/hooks/useDebounce';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { Order, OrderStatus, Role, PaymentMethod } from '@/lib/types';
@@ -114,6 +115,11 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     return '';
   });
 
+  // Concurrent rendering: keeps input typing at 60fps while deferring heavy list filtering
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  // Debounce side-effects (URL state and sessionStorage) by 300ms to eliminate per-keystroke I/O
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
   const [handoverOrder, setHandoverOrder] = useState<Order | null>(null);
@@ -125,6 +131,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const [dragOverStatus, setDragOverStatus] = useState<OrderStatus | null>(null);
 
   // Sync state to URL and sessionStorage so returning to the board preserves exact view
+  // Uses debouncedSearchQuery (300ms) to avoid churning history.replaceState and sessionStorage on every keystroke
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -134,7 +141,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     if (opFilter && opFilter !== 'all') params.set('op', opFilter);
     else params.delete('op');
 
-    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (debouncedSearchQuery.trim()) params.set('q', debouncedSearchQuery.trim());
     else params.delete('q');
 
     if (staffFilterId) params.set('staff', staffFilterId);
@@ -153,10 +160,10 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     try {
       sessionStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ stageFilter, opFilter, searchQuery, staffFilterId, batchFilterId, filterMyTasks })
+        JSON.stringify({ stageFilter, opFilter, searchQuery: debouncedSearchQuery, staffFilterId, batchFilterId, filterMyTasks })
       );
     } catch {}
-  }, [stageFilter, opFilter, searchQuery, staffFilterId, batchFilterId, filterMyTasks]);
+  }, [stageFilter, opFilter, debouncedSearchQuery, staffFilterId, batchFilterId, filterMyTasks]);
 
   // userRole falls back to 'Staff' for one tick while auth session loads; re-sync
   // once the real role is known so the Owner doesn't get stuck on "My Orders".
@@ -509,7 +516,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       result = result.filter(o => getBalanceOwed(o) > 0);
     }
 
-    const query = searchQuery.trim().toLowerCase();
+    const query = deferredSearchQuery.trim().toLowerCase();
     if (query) {
       result = result.filter(
         (o) => (o.customerName || 'Batch').toLowerCase().includes(query) || o.orderDetails.toLowerCase().includes(query)
@@ -517,7 +524,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     }
 
     return result;
-  }, [orders, filterMyTasks, staffFilterId, batchFilterId, opFilter, searchQuery, user, userRole, exceptions]);
+  }, [orders, filterMyTasks, staffFilterId, batchFilterId, opFilter, deferredSearchQuery, user, userRole, exceptions]);
 
   const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Delivered'), [orders]);
   const totalOrdersCount = activeOrders.length;
@@ -621,7 +628,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   // now-irrelevant previous list. Adjusted during render (React's guidance
   // for resetting state in response to a prop/derived-value change) rather
   // than in an effect.
-  const filterKey = `${searchQuery}|${filterMyTasks}|${staffFilterId}|${batchFilterId}|${stageFilter}|${opFilter}`;
+  const filterKey = `${deferredSearchQuery}|${filterMyTasks}|${staffFilterId}|${batchFilterId}|${stageFilter}|${opFilter}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);

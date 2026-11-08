@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useNotifications, type NotificationItem, type NotificationCategory } from '@/lib/hooks/useNotifications';
@@ -61,6 +61,7 @@ export default function NotificationsPage() {
 
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [testingPush, setTestingPush] = useState(false);
 
@@ -96,8 +97,8 @@ export default function NotificationsPage() {
       list = list.filter((n) => n.category === activeTab);
     }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
+    if (deferredSearchQuery.trim()) {
+      const q = deferredSearchQuery.trim().toLowerCase();
       list = list.filter(
         (n) =>
           (n.title ?? '').toLowerCase().includes(q) ||
@@ -107,7 +108,7 @@ export default function NotificationsPage() {
     }
 
     return list;
-  }, [notifications, activeTab, searchQuery, readIds]);
+  }, [notifications, activeTab, deferredSearchQuery, readIds]);
 
   const groups = useMemo(() => {
     const map = new Map<string, NotificationItem[]>();

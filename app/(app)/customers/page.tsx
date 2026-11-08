@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -84,6 +84,7 @@ export default function CustomersPage() {
   const orders = isUsingMock ? (liveOrders.length > 0 ? liveOrders : MOCK_ORDERS) : liveOrders;
 
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [clientFilter, setClientFilter] = useState<ClientFilter>('all');
   const [styleFilter, setStyleFilter] = useState<string | null>(null);
@@ -267,7 +268,7 @@ export default function CustomersPage() {
   }, [isLoaded, customers, router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setVisibleCount(PAGE_SIZE), [search, clientFilter, styleFilter]);
+  useEffect(() => setVisibleCount(PAGE_SIZE), [deferredSearch, clientFilter, styleFilter]);
 
   // Map every customer to all garment styles they prefer, have custom fit profiles for, or have ordered
   const customerStylesMap = useMemo(() => {
@@ -318,9 +319,9 @@ export default function CustomersPage() {
       }));
   }, [customers, clientFilter, customerStylesMap, approvedStyleNames]);
 
-  // Filtered customer list
+  // Filtered customer list (uses deferredSearch to prevent input lag on mobile keyboards)
   const filtered = useMemo(() => {
-    const rawSearch = search.toLowerCase().trim();
+    const rawSearch = deferredSearch.toLowerCase().trim();
     const searchDigits = rawSearch.replace(/\D/g, '');
 
     return customers.filter((c) => {
@@ -345,7 +346,7 @@ export default function CustomersPage() {
 
       return nameMatches || phoneMatches || styleMatches || phoneDigitsMatches;
     });
-  }, [customers, clientFilter, styleFilter, search, customerStats, customerStylesMap]);
+  }, [customers, clientFilter, styleFilter, deferredSearch, customerStats, customerStylesMap]);
 
   const { totalCustomers, activeCustomers, owingCount, readyCount, totalBalanceOwed, maleCount, femaleCount } = useMemo(() => {
     let active = 0;

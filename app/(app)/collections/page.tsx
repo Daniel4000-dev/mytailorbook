@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import Link from 'next/link';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -37,6 +37,7 @@ export default function CollectionsPage() {
   const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortBy, setSortBy] = useState<SortOption>('highest_balance');
 
@@ -125,8 +126,8 @@ export default function CollectionsPage() {
       );
     }
 
-    // Text search query
-    const q = searchQuery.trim().toLowerCase();
+    // Text search query (uses deferredSearchQuery to prevent typing lag)
+    const q = deferredSearchQuery.trim().toLowerCase();
     if (q) {
       result = result.filter(
         (d) =>
@@ -152,7 +153,7 @@ export default function CollectionsPage() {
     });
 
     return result;
-  }, [allDebtors, statusFilter, searchQuery, sortBy]);
+  }, [allDebtors, statusFilter, deferredSearchQuery, sortBy]);
 
   // Courteous Nigerian atelier WhatsApp message builder
   const buildReminderMessage = (debtor: DebtorOrder) => {

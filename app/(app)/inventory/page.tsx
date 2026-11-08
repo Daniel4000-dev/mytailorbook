@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import { useData } from '@/contexts/DataContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
@@ -16,15 +16,16 @@ import styles from './page.module.css';
 export default function InventoryPage() {
   const { inventory, isLoaded } = useData();
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   
   // selectedItem can be null (closed), 'new' (add item), or an InventoryItem (edit)
   const [selectedItem, setSelectedItem] = useState<InventoryItem | 'new' | null>(null);
 
   const filtered = useMemo(() => {
     return inventory.filter((item) => 
-      item.itemName.toLowerCase().includes(search.toLowerCase())
+      item.itemName.toLowerCase().includes(deferredSearch.toLowerCase())
     );
-  }, [inventory, search]);
+  }, [inventory, deferredSearch]);
 
   return (
     <PageLayout

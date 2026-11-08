@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +34,7 @@ export default function FabricsPage() {
 
   const isMockAllowed = isMockDataAllowed(user?.email);
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [stageFilter, setStageFilter] = useState<FabricStageFilter>('uncut');
   const [showNoPhoto, setShowNoPhoto] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -78,8 +79,8 @@ export default function FabricsPage() {
   };
 
   const filtered = useMemo(() => {
-    return filterFabricOrders(activeOrders, { search, stageFilter, showNoPhoto });
-  }, [activeOrders, search, stageFilter, showNoPhoto]);
+    return filterFabricOrders(activeOrders, { search: deferredSearch, stageFilter, showNoPhoto });
+  }, [activeOrders, deferredSearch, stageFilter, showNoPhoto]);
 
   // Stage counts for badges & segmented control
   const uncutCount = useMemo(

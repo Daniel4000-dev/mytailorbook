@@ -195,25 +195,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // Push-based invalidation: any change to the active branch's orders/
   // profiles, or the org's customers (from this device or another),
   // re-fetches the bundle once, instead of polling on a timer regardless
-  // of whether anything changed.
+  // of whether anything changed. Coalesced with a 350ms debounce window
+  // so multi-row operations or batch creates trigger exactly ONE refetch.
   useEffect(() => {
     if (!activeBranchId || !orgId) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const debouncedMutate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        mutate();
+      }, 350);
+    };
+
     const supabase = createClient();
     const channel = supabase
       .channel(`shop-sync-${activeBranchId}-${orgId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
       // Picks up the Paystack webhook flipping subscription_status once a
       // payment (popup or otherwise) actually clears — without this, the
       // in-app UI would keep showing "Free" until something else happened
       // to trigger a refetch, even though billing already activated.
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'shops', filter: `id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'shops', filter: `id=eq.${activeBranchId}` }, debouncedMutate)
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [activeBranchId, orgId, mutate]);
