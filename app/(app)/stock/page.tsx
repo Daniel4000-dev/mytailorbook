@@ -78,7 +78,7 @@ export default function StockPage() {
   // Cart for POS
   const [cart, setCart] = useState<ProcessSaleItem[]>([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('pos');
   const [processing, setProcessing] = useState(false);
 
   // POS Checkout Options & e-Receipt state
@@ -379,9 +379,19 @@ export default function StockPage() {
   };
 
   const cartSubtotal = cart.reduce((sum, item) => sum + item.quantity * item.priceAtSale, 0);
-  const numericDiscount = Math.max(0, parseFloat(discountInput) || 0);
+  const numericDiscount = Math.max(0, parseFloat(discountInput.replace(/,/g, '')) || 0);
   const cappedDiscount = Math.min(numericDiscount, cartSubtotal);
   const cartTotal = Math.max(0, cartSubtotal - cappedDiscount);
+
+  const cartCostTotal = useMemo(() => {
+    return cart.reduce((sum, cartItem) => {
+      const originalItem = stock.find(s => s.id === cartItem.goodId);
+      const cost = originalItem?.metadata?.costPrice || 0;
+      return sum + (cost * cartItem.quantity);
+    }, 0);
+  }, [cart, stock]);
+
+  const isBelowCost = cartCostTotal > 0 && cartTotal < cartCostTotal;
 
   const handleNewSale = () => {
     setCompletedSale(null);
@@ -429,8 +439,9 @@ export default function StockPage() {
     const recipient = completedSale.customerName === 'Retail Walk-In' ? 'valued customer' : completedSale.customerName;
     const msg = `Hello ${recipient}, thank you for your purchase at ${currentShop?.name || 'our boutique'}! Here is your official e-receipt: ${receiptUrl}`;
 
-    const waUrl = completedSale.customerPhone && completedSale.customerPhone !== '0000000001'
-      ? getWhatsAppLink(completedSale.customerPhone, msg)
+    const isGenericPhone = !completedSale.customerPhone || completedSale.customerPhone === '0000000001' || completedSale.customerPhone.startsWith('23400');
+    const waUrl = !isGenericPhone
+      ? getWhatsAppLink(completedSale.customerPhone!, msg)
       : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
 
     window.open(waUrl, '_blank');
@@ -910,7 +921,7 @@ export default function StockPage() {
               </div>
               <p className={styles.saleSuccessSub}>
                 Payment recorded via{' '}
-                {completedSale.paymentMethod === 'card'
+                {completedSale.paymentMethod === 'pos' || completedSale.paymentMethod === 'card'
                   ? 'Card / POS'
                   : completedSale.paymentMethod === 'cash'
                   ? 'Cash'
@@ -1044,6 +1055,12 @@ export default function StockPage() {
                   <span>Amount Due</span>
                   <span>{formatCurrency(cartTotal, currency)}</span>
                 </div>
+                {isBelowCost && (
+                  <div className={styles.marginWarning}>
+                    <Symbol name="warning" size={14} />
+                    <span>Price is below atelier production cost ({formatCurrency(cartCostTotal, currency)})</span>
+                  </div>
+                )}
               </div>
 
               {/* Payment Method */}
@@ -1052,7 +1069,7 @@ export default function StockPage() {
                 value={paymentMethod}
                 onChange={e => setPaymentMethod(e.target.value)}
                 options={[
-                  { value: 'card', label: 'Card / POS' },
+                  { value: 'pos', label: 'Card / POS' },
                   { value: 'cash', label: 'Cash' },
                   { value: 'transfer', label: 'Bank Transfer' },
                   { value: 'split', label: 'Split Payment' }

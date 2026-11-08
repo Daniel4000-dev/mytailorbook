@@ -14,6 +14,11 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn()
 }));
 
+// Mock audit log
+vi.mock('@/lib/audit', () => ({
+  logAudit: vi.fn().mockResolvedValue(undefined)
+}));
+
 // Mock Supabase client
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
@@ -324,13 +329,13 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
     });
 
     it('processes standard retail walk-in sale and decrements finished_goods stock', async () => {
-      const res = await processSaleAction('shop-123', sampleItems, 'cash', 'user-1');
+      const res = await processSaleAction('shop-123', sampleItems, 'pos', 'user-1');
 
       expect(res.success).toBe(true);
       expect(res.orderId).toBe('order-pos-123');
       expect(res.totalAmount).toBe(50000);
 
-      // Verify order creation
+      // Verify order creation with valid receipt-compatible payment record
       expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           shop_id: 'shop-123',
@@ -341,9 +346,22 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
           payments: [
             expect.objectContaining({
               amount: 50000,
-              method: 'cash'
+              method: 'pos',
+              recordedByName: 'Showroom Cashier',
+              timestamp: expect.any(String),
+              id: expect.any(String)
             })
           ]
+        })
+      );
+
+      // Verify insertion into payments table
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          shop_id: 'shop-123',
+          order_id: 'order-pos-123',
+          amount: 50000,
+          method: 'pos'
         })
       );
     });
@@ -365,8 +383,8 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       );
     });
 
-    it('attaches VIP client details when customer name and phone are provided', async () => {
-      const res = await processSaleAction('shop-123', sampleItems, 'card', 'user-1', {
+    it('attaches VIP client details and normalizes phone number when provided', async () => {
+      const res = await processSaleAction('shop-123', sampleItems, 'pos', 'user-1', {
         customerName: 'Senator Adeleke',
         customerPhone: '08031234567',
         notes: 'VIP customer fitting'
@@ -377,6 +395,19 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
         expect.objectContaining({
           customer_name: 'Senator Adeleke',
           order_details: expect.stringContaining('VIP customer fitting')
+        })
+      );
+    });
+
+    it('attaches client by name without phone without colliding with retail walk-in placeholder', async () => {
+      const res = await processSaleAction('shop-123', sampleItems, 'cash', 'user-1', {
+        customerName: 'Hajia Aisha'
+      });
+
+      expect(res.success).toBe(true);
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customer_name: 'Hajia Aisha'
         })
       );
     });

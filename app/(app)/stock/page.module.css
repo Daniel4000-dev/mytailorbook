@@ -344,7 +344,7 @@
 .cartArea {
   background: var(--sf-bg-surface);
   border-top: 1px solid var(--sf-border-subtle);
-  padding: 24px;
+  padding: 16px 20px calc(88px + env(safe-area-inset-bottom, 0px)) 20px;
   position: sticky;
   bottom: 0;
   z-index: var(--sf-z-sticky);
@@ -357,6 +357,7 @@
     border-left: 1px solid var(--sf-border-subtle);
     height: calc(100vh - 64px);
     top: 64px;
+    padding: 24px;
     overflow-y: auto;
   }
 }
@@ -610,6 +611,20 @@
 .discountText {
   color: #10b981;
   font-weight: 500;
+}
+
+.marginWarning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--sf-warning-bg, #fffbeb);
+  border: 1px solid var(--sf-warning-border, #fef3c7);
+  color: var(--sf-warning-text, #b45309);
+  border-radius: var(--sf-radius-sm, 6px);
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
 }
 
 .breakdownTotal {

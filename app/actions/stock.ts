@@ -1,8 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { FinishedGood, PosSale, AddStockGarmentInput } from '@/lib/types';
+import { FinishedGood, PosSale, AddStockGarmentInput, PaymentMethod } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
+import { normalizePhone } from '@/lib/formatters';
+import { logAudit } from '@/lib/audit';
 
 export async function getStockAction(shopId: string): Promise<FinishedGood[] | { error: string }> {
   const supabase = await createClient();
@@ -217,17 +219,20 @@ export async function processSaleAction(
 
   let customerId = options?.customerId || null;
   let customerName = options?.customerName?.trim() || 'Retail Walk-In';
-  let customerPhone = options?.customerPhone?.trim() || '0000000001';
+  let customerPhone = options?.customerPhone?.trim() || '';
 
   // If customerId is not directly passed, look up or create client
   if (!customerId) {
-    if (options?.customerName?.trim() || options?.customerPhone?.trim()) {
-      const phoneSearch = options.customerPhone?.trim() || '0000000001';
+    const rawName = options?.customerName?.trim();
+    const rawPhone = options?.customerPhone?.trim();
+
+    if (rawPhone) {
+      const normalizedPhone = normalizePhone(rawPhone);
       const { data: existingCust } = await supabase
         .from('customers')
         .select('id, full_name, whatsapp_number')
         .eq('shop_id', shopId)
-        .eq('whatsapp_number', phoneSearch)
+        .eq('whatsapp_number', normalizedPhone)
         .maybeSingle();
 
       if (existingCust) {
@@ -240,17 +245,54 @@ export async function processSaleAction(
           const { data: createdCust } = await supabase.from('customers').insert({
             shop_id: shopId,
             org_id: shopInfo.org_id,
-            full_name: customerName,
-            whatsapp_number: customerPhone,
+            full_name: rawName || 'Showroom Customer',
+            whatsapp_number: normalizedPhone,
             gender: 'female'
           }).select('id').single();
           customerId = createdCust?.id || null;
+          customerName = rawName || 'Showroom Customer';
+          customerPhone = normalizedPhone;
+        }
+      }
+    } else if (rawName && rawName !== 'Retail Walk-In') {
+      // Customer name provided without a phone number
+      const { data: existingCust } = await supabase
+        .from('customers')
+        .select('id, full_name, whatsapp_number')
+        .eq('shop_id', shopId)
+        .eq('full_name', rawName)
+        .maybeSingle();
+
+      if (existingCust) {
+        customerId = existingCust.id;
+        customerName = existingCust.full_name;
+        customerPhone = existingCust.whatsapp_number;
+      } else {
+        const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
+        if (shopInfo) {
+          // Generate unique placeholder phone so it does not collide with unique_shop_whatsapp
+          const placeholderPhone = `23400${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 10)}`;
+          const { data: createdCust } = await supabase.from('customers').insert({
+            shop_id: shopId,
+            org_id: shopInfo.org_id,
+            full_name: rawName,
+            whatsapp_number: placeholderPhone,
+            gender: 'female'
+          }).select('id').single();
+          customerId = createdCust?.id || null;
+          customerName = rawName;
+          customerPhone = placeholderPhone;
         }
       }
     } else {
       // Default anonymous Retail Walk-In
+      customerName = 'Retail Walk-In';
+      customerPhone = '0000000001';
       let { data: retailCust } = await supabase.from('customers')
-        .select('id').eq('shop_id', shopId).eq('whatsapp_number', '0000000001').eq('full_name', 'Retail Walk-In').maybeSingle();
+        .select('id')
+        .eq('shop_id', shopId)
+        .eq('whatsapp_number', '0000000001')
+        .maybeSingle();
         
       if (!retailCust) {
         const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
@@ -269,10 +311,29 @@ export async function processSaleAction(
     }
   }
 
+  // Look up cashier display name
+  let cashierName = 'Showroom Cashier';
+  if (cashierId) {
+    const { data: cashierProfile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', cashierId)
+      .maybeSingle();
+    if (cashierProfile?.full_name) {
+      cashierName = cashierProfile.full_name;
+    }
+  }
+
   const orderNote = [
     discount > 0 ? `Discount: -${discount}` : null,
     options?.notes?.trim() || null
   ].filter(Boolean).join(' • ');
+
+  const paymentId = crypto.randomUUID();
+  const nowIso = new Date().toISOString();
+  const validPaymentMethod: PaymentMethod = (
+    paymentMethod === 'pos' || paymentMethod === 'cash' || paymentMethod === 'transfer' || paymentMethod === 'store_credit'
+  ) ? (paymentMethod as PaymentMethod) : (paymentMethod === 'card' ? 'pos' : 'cash');
 
   const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
     shop_id: shopId,
@@ -284,9 +345,14 @@ export async function processSaleAction(
     status: 'Delivered',
     is_internal_batch: false,
     payments: [{
+      id: paymentId,
       amount: totalAmount,
-      method: paymentMethod,
-      date: new Date().toISOString()
+      method: validPaymentMethod,
+      note: 'Showroom Counter Checkout',
+      recordedBy: cashierId || 'system',
+      recordedByName: cashierName,
+      timestamp: nowIso,
+      date: nowIso
     }]
   }).select('id').single();
   
@@ -299,6 +365,31 @@ export async function processSaleAction(
       await supabase.from('finished_goods').update({ quantity: Math.max(0, existing.quantity - item.quantity) }).eq('id', item.goodId);
     }
   }
+
+  // Insert into relational payments table for ledgers & daily registers
+  await supabase.from('payments').insert({
+    shop_id: shopId,
+    order_id: newOrder.id,
+    amount: totalAmount,
+    method: validPaymentMethod,
+    reference_note: `POS Sale: ${details}`
+  });
+
+  // Best-effort audit log
+  await logAudit({
+    shopId,
+    actorId: cashierId || null,
+    actorName: cashierName,
+    action: 'order.created',
+    entityType: 'order',
+    entityId: newOrder.id,
+    diff: {
+      totalBill: totalAmount,
+      channel: 'pos_counter',
+      itemsCount: items.reduce((s, i) => s + i.quantity, 0),
+      paymentMethod: validPaymentMethod,
+    }
+  });
   
   revalidatePath('/stock');
   return { success: true, orderId: newOrder?.id, totalAmount };
