@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +15,7 @@ import Select from '@/components/ui/Select/Select';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import AddStockGarmentModal from '@/components/stock/AddStockGarmentModal/AddStockGarmentModal';
-import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink } from '@/lib/formatters';
 import {
   getStockAction,
   updateStockPriceAction,
@@ -71,6 +71,7 @@ export default function StockPage() {
   const [loading, setLoading] = useState(true);
   const [addGarmentOpen, setAddGarmentOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
   const [viewMode, setViewMode] = useState<'grouped' | 'all'>('grouped');
@@ -190,7 +191,7 @@ export default function StockPage() {
 
   const filteredStyleGroups = useMemo(() => {
     return styleGroups.filter(group => {
-      const q = searchQuery.trim().toLowerCase();
+      const q = deferredSearchQuery.trim().toLowerCase();
       const matchesSearch =
         q === '' ||
         group.name.toLowerCase().includes(q) ||
@@ -214,11 +215,11 @@ export default function StockPage() {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [styleGroups, searchQuery, selectedCategory, statusFilter]);
+  }, [styleGroups, deferredSearchQuery, selectedCategory, statusFilter]);
 
   const filteredFlatStock = useMemo(() => {
     return stock.filter(item => {
-      const q = searchQuery.trim().toLowerCase();
+      const q = deferredSearchQuery.trim().toLowerCase();
       const matchesSearch =
         q === '' ||
         item.name.toLowerCase().includes(q) ||
@@ -242,7 +243,7 @@ export default function StockPage() {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [stock, searchQuery, selectedCategory, statusFilter]);
+  }, [stock, deferredSearchQuery, selectedCategory, statusFilter]);
 
   const addToCart = (item: FinishedGood) => {
     if (item.quantity <= 0) {
@@ -427,8 +428,8 @@ export default function StockPage() {
       setCompletedSale({
         orderId: res.orderId,
         totalAmount: res.totalAmount ?? cartTotal,
-        customerName: saleOptions.customerName,
-        customerPhone: saleOptions.customerPhone,
+        customerName: res.customerName || saleOptions.customerName,
+        customerPhone: res.customerPhone || saleOptions.customerPhone,
         paymentMethod,
         itemCount: cart.reduce((sum, item) => sum + item.quantity, 0),
       });
@@ -505,9 +506,8 @@ export default function StockPage() {
                   <span className={styles.metricSub}>Unique garment designs</span>
                 </div>
                 <div
-                  className={`${styles.metricCard} ${
-                    lowStockSizesCount + outOfStockSizesCount > 0 ? styles.metricAlert : ''
-                  }`}
+                  className={`${styles.metricCard} ${lowStockSizesCount + outOfStockSizesCount > 0 ? styles.metricAlert : ''
+                    }`}
                   onClick={() => {
                     if (lowStockSizesCount + outOfStockSizesCount > 0) {
                       setStatusFilter(prev => (prev === 'low_stock' ? 'all' : 'low_stock'));
@@ -542,9 +542,8 @@ export default function StockPage() {
                         <button
                           key={cat}
                           type="button"
-                          className={`${styles.filterChip} ${
-                            selectedCategory === cat ? styles.filterChipActive : ''
-                          }`}
+                          className={`${styles.filterChip} ${selectedCategory === cat ? styles.filterChipActive : ''
+                            }`}
                           onClick={() => setSelectedCategory(cat)}
                         >
                           {cat}
@@ -557,18 +556,16 @@ export default function StockPage() {
                   <div className={styles.viewModeToggle}>
                     <button
                       type="button"
-                      className={`${styles.viewModeBtn} ${
-                        viewMode === 'grouped' ? styles.viewModeBtnActive : ''
-                      }`}
+                      className={`${styles.viewModeBtn} ${viewMode === 'grouped' ? styles.viewModeBtnActive : ''
+                        }`}
                       onClick={() => setViewMode('grouped')}
                     >
                       Grouped by Style
                     </button>
                     <button
                       type="button"
-                      className={`${styles.viewModeBtn} ${
-                        viewMode === 'all' ? styles.viewModeBtnActive : ''
-                      }`}
+                      className={`${styles.viewModeBtn} ${viewMode === 'all' ? styles.viewModeBtnActive : ''
+                        }`}
                       onClick={() => setViewMode('all')}
                     >
                       All Units ({stock.length})
@@ -580,18 +577,16 @@ export default function StockPage() {
                 <div className={styles.filterChips}>
                   <button
                     type="button"
-                    className={`${styles.filterChip} ${
-                      statusFilter === 'all' ? styles.filterChipActive : ''
-                    }`}
+                    className={`${styles.filterChip} ${statusFilter === 'all' ? styles.filterChipActive : ''
+                      }`}
                     onClick={() => setStatusFilter('all')}
                   >
                     All Items
                   </button>
                   <button
                     type="button"
-                    className={`${styles.filterChip} ${
-                      statusFilter === 'in_stock' ? styles.filterChipActive : ''
-                    }`}
+                    className={`${styles.filterChip} ${statusFilter === 'in_stock' ? styles.filterChipActive : ''
+                      }`}
                     onClick={() => setStatusFilter('in_stock')}
                   >
                     In Stock
@@ -599,9 +594,8 @@ export default function StockPage() {
                   {lowStockSizesCount > 0 && (
                     <button
                       type="button"
-                      className={`${styles.filterChip} ${
-                        statusFilter === 'low_stock' ? styles.filterChipActive : ''
-                      }`}
+                      className={`${styles.filterChip} ${statusFilter === 'low_stock' ? styles.filterChipActive : ''
+                        }`}
                       onClick={() => setStatusFilter('low_stock')}
                     >
                       Low Stock ({lowStockSizesCount})
@@ -610,9 +604,8 @@ export default function StockPage() {
                   {outOfStockSizesCount > 0 && (
                     <button
                       type="button"
-                      className={`${styles.filterChip} ${
-                        statusFilter === 'out_of_stock' ? styles.filterChipActive : ''
-                      }`}
+                      className={`${styles.filterChip} ${statusFilter === 'out_of_stock' ? styles.filterChipActive : ''
+                        }`}
                       onClick={() => setStatusFilter('out_of_stock')}
                     >
                       Out of Stock ({outOfStockSizesCount})
@@ -679,8 +672,8 @@ export default function StockPage() {
                             group.totalQuantity === 0
                               ? styles.badgeOutOfStock
                               : group.hasLowStock
-                              ? styles.badgeLowStock
-                              : ''
+                                ? styles.badgeLowStock
+                                : ''
                           }
                         >
                           {group.totalQuantity === 0
@@ -716,9 +709,8 @@ export default function StockPage() {
                           return (
                             <div
                               key={item.id}
-                              className={`${styles.sizePill} ${
-                                isOut ? styles.sizePillOut : isLow ? styles.sizePillLow : ''
-                              } ${!isOut ? styles.sizePillInteractive : ''}`}
+                              className={`${styles.sizePill} ${isOut ? styles.sizePillOut : isLow ? styles.sizePillLow : ''
+                                } ${!isOut ? styles.sizePillInteractive : ''}`}
                               onClick={() => !isOut && addToCart(item)}
                               title={
                                 isOut
@@ -788,8 +780,8 @@ export default function StockPage() {
                             isOutOfStock
                               ? styles.badgeOutOfStock
                               : isLowStock
-                              ? styles.badgeLowStock
-                              : ''
+                                ? styles.badgeLowStock
+                                : ''
                           }
                         >
                           {isOutOfStock
@@ -838,10 +830,20 @@ export default function StockPage() {
         {(cart.length > 0 || checkoutOpen) && (
           <div className={styles.cartArea}>
             <div className={styles.cartHeader}>
-              <h3>Current Sale</h3>
-              <span className={styles.itemCount}>
-                {cart.reduce((sum, item) => sum + item.quantity, 0)} items
-              </span>
+              <div>
+                <h3>Current Sale</h3>
+                <span className={styles.itemCount}>
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                </span>
+              </div>
+              <button
+                type="button"
+                className={styles.cartClearBtn}
+                onClick={() => setCart([])}
+                title="Clear current cart"
+              >
+                Clear Cart
+              </button>
             </div>
 
             <div className={styles.cartItems}>
@@ -931,10 +933,10 @@ export default function StockPage() {
                 {completedSale.paymentMethod === 'pos' || completedSale.paymentMethod === 'card'
                   ? 'Card / POS'
                   : completedSale.paymentMethod === 'cash'
-                  ? 'Cash'
-                  : completedSale.paymentMethod === 'transfer'
-                  ? 'Bank Transfer'
-                  : 'Split Payment'}
+                    ? 'Cash'
+                    : completedSale.paymentMethod === 'transfer'
+                      ? 'Bank Transfer'
+                      : 'Split Payment'}
               </p>
 
               <div className={styles.saleReceiptMeta}>
@@ -942,12 +944,14 @@ export default function StockPage() {
                   <span>Customer</span>
                   <strong>{completedSale.customerName}</strong>
                 </div>
-                {completedSale.customerPhone && (
-                  <div className={styles.saleMetaRow}>
-                    <span>Phone</span>
-                    <strong>{completedSale.customerPhone}</strong>
-                  </div>
-                )}
+                {completedSale.customerPhone &&
+                  !completedSale.customerPhone.startsWith('000000000') &&
+                  !completedSale.customerPhone.startsWith('23400') && (
+                    <div className={styles.saleMetaRow}>
+                      <span>Phone</span>
+                      <strong>{formatPhone(completedSale.customerPhone)}</strong>
+                    </div>
+                  )}
                 <div className={styles.saleMetaRow}>
                   <span>Units Sold</span>
                   <strong>{completedSale.itemCount} pcs</strong>

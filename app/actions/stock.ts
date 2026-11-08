@@ -201,18 +201,26 @@ export interface ProcessSaleOptions {
 }
 
 export async function processSaleAction(
-  shopId: string, 
-  items: ProcessSaleItem[], 
-  paymentMethod: string, 
+  shopId: string,
+  items: ProcessSaleItem[],
+  paymentMethod: string,
   cashierId: string,
   options?: ProcessSaleOptions
-): Promise<{ success?: boolean; orderId?: string; totalAmount?: number; error?: string }> {
+): Promise<{
+  success?: boolean;
+  orderId?: string;
+  totalAmount?: number;
+  customerName?: string;
+  customerPhone?: string;
+  error?: string
+}> {
   if (!shopId) return { error: 'Shop ID is required' };
   if (!items || items.length === 0) return { error: 'No items in cart to sell' };
 
   const supabase = await createClient();
-  
-  // Validate items and verify inventory availability before creating order
+
+  // Validate and consolidate duplicate cart items
+  const consolidatedMap = new Map<string, ProcessSaleItem>();
   for (const item of items) {
     if (!item.goodId || typeof item.quantity !== 'number' || item.quantity <= 0) {
       return { error: `Invalid quantity for item "${item.name || item.goodId}"` };
@@ -220,6 +228,17 @@ export async function processSaleAction(
     if (typeof item.priceAtSale !== 'number' || item.priceAtSale < 0) {
       return { error: `Invalid price for item "${item.name || item.goodId}"` };
     }
+    const existing = consolidatedMap.get(item.goodId);
+    if (existing) {
+      existing.quantity += item.quantity;
+    } else {
+      consolidatedMap.set(item.goodId, { ...item });
+    }
+  }
+  const consolidatedItems = Array.from(consolidatedMap.values());
+
+  // Verify rack inventory availability against consolidated quantities
+  for (const item of consolidatedItems) {
     const { data: currentStock, error: stockFetchErr } = await supabase
       .from('finished_goods')
       .select('quantity, name, size')
@@ -317,7 +336,7 @@ export async function processSaleAction(
         .eq('shop_id', shopId)
         .eq('whatsapp_number', '0000000001')
         .maybeSingle();
-        
+
       if (!retailCust) {
         const { data: shopInfo } = await supabase.from('shops').select('org_id').eq('id', shopId).single();
         if (shopInfo) {
@@ -388,11 +407,11 @@ export async function processSaleAction(
     is_internal_batch: false,
     payments: paymentRecords
   }).select('id').single();
-  
+
   if (orderError) return { error: orderError.message };
-  
+
   // Deduct from stock
-  for (const item of items) {
+  for (const item of consolidatedItems) {
     const { data: existing } = await supabase.from('finished_goods').select('quantity').eq('id', item.goodId).single();
     if (existing) {
       await supabase.from('finished_goods').update({ quantity: Math.max(0, existing.quantity - item.quantity) }).eq('id', item.goodId);
@@ -425,9 +444,15 @@ export async function processSaleAction(
       paymentMethod: validPaymentMethod,
     }
   });
-  
+
   revalidatePath('/stock');
   revalidatePath('/customers');
   revalidatePath('/dashboard');
-  return { success: true, orderId: newOrder?.id, totalAmount };
+  return {
+    success: true,
+    orderId: newOrder?.id,
+    totalAmount,
+    customerName,
+    customerPhone
+  };
 }

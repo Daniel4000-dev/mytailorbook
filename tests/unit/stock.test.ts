@@ -452,5 +452,16 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
       );
       expect(paymentTableCalls.length).toBe(0);
     });
+
+    it('consolidates duplicate cart item lines before verifying rack availability', async () => {
+      // Mock rack stock has quantity: 5
+      // 2 items of quantity 3 each = 6, which should exceed 5
+      const duplicateLines = [
+        { goodId: 'fg-1', quantity: 3, priceAtSale: 25000, name: 'Senator Suit', size: 'L' },
+        { goodId: 'fg-1', quantity: 3, priceAtSale: 25000, name: 'Senator Suit', size: 'L' }
+      ];
+      const res = await processSaleAction('shop-123', duplicateLines, 'pos', 'user-1');
+      expect(res.error).toContain('Insufficient stock');
+    });
   });
 });
