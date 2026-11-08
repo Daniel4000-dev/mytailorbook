@@ -8,8 +8,7 @@ venv/
 .venv/
 __pycache__/
 
-# Unit and integration tests
-tests/
+# GitHub Actions workflows
 .github/
 
 # Local artifacts, logs, and demos
@@ -17,10 +16,6 @@ demo-video/
 lint-errors.json
 *.log
 .DS_Store
-
-# Documentation & Markdown
-*.md
-docs/
 
 # Local env overrides
 .env*.local
