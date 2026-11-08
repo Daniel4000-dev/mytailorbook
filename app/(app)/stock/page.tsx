@@ -123,6 +123,25 @@ export default function StockPage() {
     });
   };
 
+  const updateCartQuantity = (goodId: string, delta: number) => {
+    setCart(prev => {
+      const existing = prev.find(p => p.goodId === goodId);
+      if (!existing) return prev;
+      const targetGood = stock.find(s => s.id === goodId);
+      const maxStock = targetGood ? targetGood.quantity : existing.quantity;
+
+      const newQty = existing.quantity + delta;
+      if (newQty <= 0) {
+        return prev.filter(p => p.goodId !== goodId);
+      }
+      if (newQty > maxStock) {
+        showToast('Not enough stock on rack', 'error');
+        return prev;
+      }
+      return prev.map(p => p.goodId === goodId ? { ...p, quantity: newQty } : p);
+    });
+  };
+
   const openEdit = (item: FinishedGood) => {
     setEditingItem(item);
     setEditPrice(item.price.toString());
@@ -132,8 +151,8 @@ export default function StockPage() {
   const handleSaveEdit = async () => {
     if (!editingItem) return;
     setSavingEdit(true);
-    const price = parseFloat(editPrice) || 0;
-    const qty = parseInt(editQuantity) || 0;
+    const price = Math.max(0, parseFloat(editPrice) || 0);
+    const qty = Math.max(0, parseInt(editQuantity, 10) || 0);
 
     let hasError = false;
     if (price !== editingItem.price) {
@@ -364,17 +383,38 @@ export default function StockPage() {
                       {item.name} (Size {item.size})
                     </span>
                     <span className={styles.cartItemPrice}>
-                      {item.quantity} x{' '}
-                      {formatCurrency(item.priceAtSale, currentShop?.currency || 'NGN')}
+                      {formatCurrency(item.priceAtSale, currentShop?.currency || 'NGN')} each
                     </span>
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setCart(prev => prev.filter(p => p.goodId !== item.goodId))}
-                  >
-                    <Symbol name="close" size={16} />
-                  </Button>
+                  <div className={styles.cartItemControls}>
+                    <div className={styles.cartStepper}>
+                      <button
+                        type="button"
+                        className={styles.cartStepperBtn}
+                        onClick={() => updateCartQuantity(item.goodId, -1)}
+                        aria-label="Decrease quantity"
+                      >
+                        <Symbol name="remove" size={14} />
+                      </button>
+                      <span className={styles.cartQtyText}>{item.quantity}</span>
+                      <button
+                        type="button"
+                        className={styles.cartStepperBtn}
+                        onClick={() => updateCartQuantity(item.goodId, 1)}
+                        aria-label="Increase quantity"
+                      >
+                        <Symbol name="add" size={14} />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.cartRemoveBtn}
+                      onClick={() => setCart(prev => prev.filter(p => p.goodId !== item.goodId))}
+                      aria-label="Remove item"
+                    >
+                      <Symbol name="close" size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

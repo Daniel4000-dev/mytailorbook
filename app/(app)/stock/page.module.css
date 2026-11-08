@@ -210,6 +210,67 @@
   color: var(--sf-text-secondary);
 }
 
+.cartItemControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cartStepper {
+  display: inline-flex;
+  align-items: center;
+  background: var(--sf-surface-hover, #f3f4f6);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.cartStepperBtn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cartStepperBtn:hover {
+  background: var(--sf-bg-surface, #ffffff);
+}
+
+.cartQtyText {
+  min-width: 24px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  padding: 0 4px;
+}
+
+.cartRemoveBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cartRemoveBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .cartTotal {
   display: flex;
   justify-content: space-between;

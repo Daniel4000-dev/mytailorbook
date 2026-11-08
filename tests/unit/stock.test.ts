@@ -18,45 +18,64 @@ const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
+const mockIlike = vi.fn();
 const mockOrder = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => ({
-    from: vi.fn((table: string) => ({
-      insert: mockInsert.mockReturnThis(),
-      update: mockUpdate.mockReturnThis(),
-      delete: mockDelete.mockReturnThis(),
-      select: mockSelect.mockReturnThis(),
-      eq: mockEq.mockReturnThis(),
-      order: mockOrder.mockReturnValue({
-        data: [
-          {
-            id: 'item-1',
-            shop_id: 'shop-123',
-            name: 'Royal Blue Senator',
-            size: 'L',
-            quantity: 3,
-            price: 35000,
-            created_at: '2026-11-08T10:00:00Z',
-            metadata: {
-              category: 'Senator',
-              color: 'Royal Blue',
-              fabric: 'Cashmere',
-              costPrice: 18000,
-              rackLocation: 'Rack A1',
-              parentGarmentName: 'Royal Blue Senator'
-            }
-          }
-        ],
-        error: null
-      })
-    }))
+    from: vi.fn((table: string) => {
+      const builder: any = {};
+      builder.insert = mockInsert.mockReturnValue({
+        select: vi.fn().mockResolvedValue({
+          data: [{ id: 'fg-1' }, { id: 'fg-2' }],
+          error: null
+        })
+      });
+      builder.update = mockUpdate.mockReturnValue({
+        eq: mockEq.mockResolvedValue({ error: null })
+      });
+      builder.delete = mockDelete.mockReturnValue({
+        eq: mockEq.mockResolvedValue({ error: null })
+      });
+      builder.select = mockSelect.mockImplementation(() => {
+        return {
+          eq: vi.fn().mockReturnValue({
+            order: mockOrder.mockReturnValue({
+              data: [
+                {
+                  id: 'item-1',
+                  shop_id: 'shop-123',
+                  name: 'Royal Blue Senator',
+                  size: 'L',
+                  quantity: 3,
+                  price: 35000,
+                  created_at: '2026-11-08T10:00:00Z',
+                  metadata: {
+                    category: 'Senator',
+                    color: 'Royal Blue',
+                    fabric: 'Cashmere',
+                    costPrice: 18000,
+                    rackLocation: 'Rack A1',
+                    parentGarmentName: 'Royal Blue Senator'
+                  }
+                }
+              ],
+              error: null
+            }),
+            ilike: mockIlike
+          })
+        };
+      });
+      builder.eq = mockEq.mockResolvedValue({ error: null });
+      return builder;
+    })
   }))
 }));
 
 describe('Ready-to-Wear Stock Management & Garment Intake', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIlike.mockResolvedValue({ data: [], error: null });
   });
 
   describe('addStockGarmentsAction input validation', () => {
@@ -100,12 +119,7 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
     });
 
     it('successfully processes multi-size garment intake with rich metadata', async () => {
-      mockInsert.mockReturnValue({
-        select: vi.fn().mockResolvedValue({
-          data: [{ id: 'fg-1' }, { id: 'fg-2' }],
-          error: null
-        })
-      });
+      mockIlike.mockResolvedValue({ data: [], error: null });
 
       const res = await addStockGarmentsAction('shop-123', {
         name: 'Emerald Kaftan',
@@ -160,6 +174,40 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
           }
         }
       ]);
+    });
+
+    it('intelligently restocks existing showroom items by incrementing quantities instead of creating duplicates', async () => {
+      mockIlike.mockResolvedValue({
+        data: [
+          {
+            id: 'existing-l-1',
+            size: 'L',
+            quantity: 3,
+            metadata: { category: 'Senator', parentGarmentName: 'Royal Blue Senator' }
+          }
+        ],
+        error: null
+      });
+
+      const res = await addStockGarmentsAction('shop-123', {
+        name: 'Royal Blue Senator',
+        category: 'Senator',
+        price: 38000,
+        sizes: [
+          { size: 'L', quantity: 4 } // Adding 4 more to existing 3
+        ]
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.count).toBe(1);
+
+      // Verify update was called with merged quantity (3 + 4 = 7)
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          quantity: 7,
+          price: 38000
+        })
+      );
     });
   });
 

@@ -18,7 +18,7 @@ interface AddStockGarmentModalProps {
   onSuccess: () => void;
 }
 
-const CATEGORIES = [
+const PRESET_CATEGORIES = [
   'Senator',
   'Boubou',
   'Agbada',
@@ -45,11 +45,14 @@ export default function AddStockGarmentModal({
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Senator');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
   const [price, setPrice] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [color, setColor] = useState('');
   const [fabric, setFabric] = useState('');
   const [rackLocation, setRackLocation] = useState('');
+  const [sku, setSku] = useState('');
   const [sizeMode, setSizeMode] = useState<'letter' | 'numeric' | 'free'>('letter');
 
   // Map of size string -> quantity
@@ -71,7 +74,10 @@ export default function AddStockGarmentModal({
       : ['Free Size'];
 
   const totalQuantity = Object.values(sizeQuantities).reduce((sum, q) => sum + (q > 0 ? q : 0), 0);
-  const activeSizesCount = Object.values(sizeQuantities).filter(q => q > 0).length;
+  const activeSizes = Object.entries(sizeQuantities).filter(([_, qty]) => qty > 0);
+  const activeSizesCount = activeSizes.length;
+
+  const effectiveCategory = isCustomCategory ? customCategory.trim() || 'Custom' : category;
 
   const handleSizeClick = (size: string) => {
     setSizeQuantities(prev => {
@@ -102,14 +108,74 @@ export default function AddStockGarmentModal({
     });
   };
 
+  const handleQuantityDirectInput = (size: string, val: string) => {
+    const parsed = parseInt(val, 10);
+    setSizeQuantities(prev => {
+      if (isNaN(parsed) || parsed <= 0) {
+        const next = { ...prev };
+        delete next[size];
+        return next;
+      }
+      return { ...prev, [size]: Math.min(999, parsed) };
+    });
+  };
+
+  const handleRemoveSizeAllocation = (size: string) => {
+    setSizeQuantities(prev => {
+      const next = { ...prev };
+      delete next[size];
+      return next;
+    });
+  };
+
+  const handleQuickPreset = (qtyPerSize: number) => {
+    const updated: Record<string, number> = {};
+    currentSizeList.forEach(sz => {
+      updated[sz] = qtyPerSize;
+    });
+    setSizeQuantities(updated);
+  };
+
+  const handleClearSizes = () => {
+    setSizeQuantities({});
+  };
+
+  const handleSwitchSizeMode = (newMode: 'letter' | 'numeric' | 'free') => {
+    setSizeMode(newMode);
+    if (newMode === 'free') {
+      setSizeQuantities({ 'Free Size': 1 });
+    } else {
+      const allowed = newMode === 'letter' ? LETTER_SIZES : NUMERIC_SIZES;
+      const next: Record<string, number> = {};
+      Object.entries(sizeQuantities).forEach(([k, v]) => {
+        if (allowed.includes(k) && v > 0) {
+          next[k] = v;
+        }
+      });
+      if (Object.keys(next).length === 0) {
+        if (newMode === 'letter') {
+          next['M'] = 1;
+          next['L'] = 1;
+        } else {
+          next['40'] = 1;
+          next['42'] = 1;
+        }
+      }
+      setSizeQuantities(next);
+    }
+  };
+
   const handleResetForm = () => {
     setName('');
     setCategory('Senator');
+    setIsCustomCategory(false);
+    setCustomCategory('');
     setPrice('');
     setCostPrice('');
     setColor('');
     setFabric('');
     setRackLocation('');
+    setSku('');
     setSizeMode('letter');
     setSizeQuantities({ M: 1, L: 1 });
   };
@@ -127,9 +193,7 @@ export default function AddStockGarmentModal({
       return;
     }
 
-    const sizesToSubmit = Object.entries(sizeQuantities)
-      .filter(([_, qty]) => qty > 0)
-      .map(([size, quantity]) => ({ size, quantity }));
+    const sizesToSubmit = activeSizes.map(([size, quantity]) => ({ size, quantity }));
 
     if (sizesToSubmit.length === 0) {
       showToast('Please allocate at least one piece to a size', 'error');
@@ -140,12 +204,13 @@ export default function AddStockGarmentModal({
     try {
       const res = await addStockGarmentsAction(shopId, {
         name: name.trim(),
-        category,
+        category: effectiveCategory,
         price: parsedPrice,
         costPrice: parsedCost > 0 ? parsedCost : undefined,
         color: color.trim() || undefined,
         fabric: fabric.trim() || undefined,
         rackLocation: rackLocation.trim() || undefined,
+        sku: sku.trim() || undefined,
         sizes: sizesToSubmit
       });
 
@@ -153,7 +218,7 @@ export default function AddStockGarmentModal({
         showToast(res.error, 'error');
       } else {
         showToast(
-          `Successfully added ${totalQuantity} garment${totalQuantity > 1 ? 's' : ''} to showroom rack`,
+          `Successfully processed ${totalQuantity} garment${totalQuantity > 1 ? 's' : ''} for showroom rack`,
           'success'
         );
         handleResetForm();
@@ -175,6 +240,8 @@ export default function AddStockGarmentModal({
         }
       : null;
 
+  const totalRetailValue = totalQuantity * parsedPrice;
+
   return (
     <BottomSheet
       isOpen={isOpen}
@@ -187,30 +254,53 @@ export default function AddStockGarmentModal({
         <div className={styles.section}>
           <label className={styles.label}>Style Category</label>
           <div className={styles.categoryList}>
-            {CATEGORIES.map(cat => (
+            {PRESET_CATEGORIES.map(cat => (
               <button
                 key={cat}
                 type="button"
                 className={`${styles.categoryChip} ${
-                  category === cat ? styles.categoryChipActive : ''
+                  !isCustomCategory && category === cat ? styles.categoryChipActive : ''
                 }`}
-                onClick={() => setCategory(cat)}
+                onClick={() => {
+                  setCategory(cat);
+                  setIsCustomCategory(false);
+                }}
               >
                 {cat}
               </button>
             ))}
+            <button
+              type="button"
+              className={`${styles.categoryChip} ${
+                isCustomCategory ? styles.categoryChipActive : ''
+              }`}
+              onClick={() => setIsCustomCategory(true)}
+            >
+              + Custom
+            </button>
           </div>
+
+          {isCustomCategory && (
+            <div style={{ marginTop: '8px' }}>
+              <Input
+                placeholder="Enter custom category (e.g. Kimono, Cap, Wrapper)..."
+                value={customCategory}
+                onChange={e => setCustomCategory(e.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
         </div>
 
         {/* Style Name */}
         <div className={styles.section}>
           <Input
             label="Garment Style Name"
-            placeholder={`e.g. Royal Blue ${category}`}
+            placeholder={`e.g. Royal Blue ${effectiveCategory}`}
             value={name}
             onChange={e => setName(e.target.value)}
             required
-            autoFocus
+            autoFocus={!isCustomCategory}
           />
         </div>
 
@@ -260,13 +350,19 @@ export default function AddStockGarmentModal({
           />
         </div>
 
-        {/* Rack Location */}
-        <div className={styles.section}>
+        {/* Rack Location & SKU */}
+        <div className={styles.twoCol}>
           <Input
-            label="Rack Location / Section (Optional)"
-            placeholder="e.g. Showroom Rail 1, Window Display"
+            label="Rack Location (Optional)"
+            placeholder="e.g. Rail 1, Window Display"
             value={rackLocation}
             onChange={e => setRackLocation(e.target.value)}
+          />
+          <Input
+            label="SKU / Barcode (Optional)"
+            placeholder="e.g. SEN-NAV-01"
+            value={sku}
+            onChange={e => setSku(e.target.value)}
           />
         </div>
 
@@ -280,7 +376,7 @@ export default function AddStockGarmentModal({
                 className={`${styles.sizeModeBtn} ${
                   sizeMode === 'letter' ? styles.sizeModeBtnActive : ''
                 }`}
-                onClick={() => setSizeMode('letter')}
+                onClick={() => handleSwitchSizeMode('letter')}
               >
                 Letter
               </button>
@@ -289,7 +385,7 @@ export default function AddStockGarmentModal({
                 className={`${styles.sizeModeBtn} ${
                   sizeMode === 'numeric' ? styles.sizeModeBtnActive : ''
                 }`}
-                onClick={() => setSizeMode('numeric')}
+                onClick={() => handleSwitchSizeMode('numeric')}
               >
                 Numeric
               </button>
@@ -298,16 +394,41 @@ export default function AddStockGarmentModal({
                 className={`${styles.sizeModeBtn} ${
                   sizeMode === 'free' ? styles.sizeModeBtnActive : ''
                 }`}
-                onClick={() => {
-                  setSizeMode('free');
-                  setSizeQuantities({ 'Free Size': 1 });
-                }}
+                onClick={() => handleSwitchSizeMode('free')}
               >
                 Free Size
               </button>
             </div>
           </div>
 
+          {/* Quick Preset Buttons */}
+          {sizeMode !== 'free' && (
+            <div className={styles.quickPresetsBar}>
+              <button
+                type="button"
+                className={styles.presetBtn}
+                onClick={() => handleQuickPreset(1)}
+              >
+                1 of each
+              </button>
+              <button
+                type="button"
+                className={styles.presetBtn}
+                onClick={() => handleQuickPreset(2)}
+              >
+                2 of each
+              </button>
+              <button
+                type="button"
+                className={styles.presetBtn}
+                onClick={handleClearSizes}
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {/* Size Cards Grid */}
           <div className={styles.matrixGrid}>
             {currentSizeList.map(sz => {
               const qty = sizeQuantities[sz] || 0;
@@ -332,7 +453,14 @@ export default function AddStockGarmentModal({
                       >
                         -
                       </button>
-                      <span className={styles.counterQty}>{qty}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        className={styles.counterInput}
+                        value={qty}
+                        onChange={e => handleQuantityDirectInput(sz, e.target.value)}
+                        aria-label={`Quantity for ${sz}`}
+                      />
                       <button
                         type="button"
                         className={styles.counterBtn}
@@ -350,12 +478,39 @@ export default function AddStockGarmentModal({
             })}
           </div>
 
+          {/* Active Allocations Pills */}
+          {activeSizes.length > 0 && (
+            <div className={styles.activeAllocations}>
+              {activeSizes.map(([sz, qty]) => (
+                <span key={sz} className={styles.allocationChip}>
+                  <span>Size {sz}: <strong>{qty}</strong></span>
+                  <button
+                    type="button"
+                    className={styles.allocationChipRemove}
+                    onClick={() => handleRemoveSizeAllocation(sz)}
+                    aria-label={`Remove size ${sz}`}
+                  >
+                    <Symbol name="close" size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Real-time Summary Badge */}
           <div className={styles.summaryBadge}>
-            <span>Ready for Showroom Floor:</span>
-            <span>
-              {totalQuantity} piece{totalQuantity !== 1 ? 's' : ''} across {activeSizesCount} size
-              {activeSizesCount !== 1 ? 's' : ''}
-            </span>
+            <div className={styles.summaryRow}>
+              <span>Ready for Showroom Rack:</span>
+              <span>
+                {totalQuantity} piece{totalQuantity !== 1 ? 's' : ''} across {activeSizesCount} size
+                {activeSizesCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            {parsedPrice > 0 && totalQuantity > 0 && (
+              <div className={styles.totalValueText}>
+                Estimated Retail Inventory Value: {formatCurrency(totalRetailValue, currency)}
+              </div>
+            )}
           </div>
         </div>
 

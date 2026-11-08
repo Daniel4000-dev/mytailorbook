@@ -42,13 +42,31 @@ export async function addStockGarmentsAction(
   }
 
   const cleanName = input.name.trim();
-  const rows = validSizes.map(s => ({
-    shop_id: shopId,
-    name: cleanName,
-    size: s.size.trim(),
-    quantity: Math.max(0, Math.floor(s.quantity)),
-    price: input.price,
-    metadata: {
+  const supabase = await createClient();
+
+  // Check for existing items of this style name in the shop to merge inventory cleanly
+  const { data: existingRows } = await supabase
+    .from('finished_goods')
+    .select('id, size, quantity, metadata')
+    .eq('shop_id', shopId)
+    .ilike('name', cleanName);
+
+  const existingMap = new Map<string, { id: string; quantity: number; metadata: any }>();
+  (existingRows || []).forEach(row => {
+    existingMap.set(row.size.trim().toLowerCase(), {
+      id: row.id,
+      quantity: Number(row.quantity) || 0,
+      metadata: row.metadata || {}
+    });
+  });
+
+  const toInsert: any[] = [];
+  let totalProcessed = 0;
+
+  for (const s of validSizes) {
+    const sizeKey = s.size.trim().toLowerCase();
+    const existing = existingMap.get(sizeKey);
+    const itemMetadata = {
       category: input.category?.trim() || undefined,
       color: input.color?.trim() || undefined,
       fabric: input.fabric?.trim() || undefined,
@@ -56,19 +74,48 @@ export async function addStockGarmentsAction(
       rackLocation: input.rackLocation?.trim() || undefined,
       sku: input.sku?.trim() || undefined,
       parentGarmentName: cleanName
+    };
+
+    if (existing) {
+      // Restock existing showroom item by incrementing quantity and updating details
+      const { error: updateError } = await supabase
+        .from('finished_goods')
+        .update({
+          quantity: existing.quantity + Math.max(0, Math.floor(s.quantity)),
+          price: input.price,
+          metadata: {
+            ...existing.metadata,
+            ...itemMetadata
+          }
+        })
+        .eq('id', existing.id);
+
+      if (updateError) return { error: updateError.message };
+      totalProcessed++;
+    } else {
+      toInsert.push({
+        shop_id: shopId,
+        name: cleanName,
+        size: s.size.trim(),
+        quantity: Math.max(0, Math.floor(s.quantity)),
+        price: input.price,
+        metadata: itemMetadata
+      });
     }
-  }));
+  }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('finished_goods')
-    .insert(rows)
-    .select('id');
+  if (toInsert.length > 0) {
+    const { data: inserted, error: insertError } = await supabase
+      .from('finished_goods')
+      .insert(toInsert)
+      .select('id');
 
-  if (error) return { error: error.message };
+    if (insertError) return { error: insertError.message };
+    totalProcessed += inserted?.length || toInsert.length;
+  }
 
   revalidatePath('/stock');
-  return { success: true, count: data?.length || rows.length };
+  return { success: true, count: totalProcessed };
 }
 
 export async function updateStockPriceAction(id: string, price: number): Promise<{ error?: string }> {

@@ -181,14 +181,115 @@
   text-align: center;
 }
 
-.summaryBadge {
+.quickPresetsBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.presetBtn {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: var(--sf-radius-sm, 6px);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.presetBtn:hover {
+  border-color: var(--sf-border-light);
+  color: var(--sf-text-primary);
+}
+
+.counterInput {
+  width: 44px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--sf-border-subtle);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+
+.counterInput::-webkit-outer-spin-button,
+.counterInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.counterInput:focus {
+  outline: none;
+  border-color: var(--sf-accent-primary);
+}
+
+.activeAllocations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.allocationChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: var(--sf-radius-full, 9999px);
+  padding: 3px 8px 3px 10px;
+  font-size: 12px;
+  color: var(--sf-text-primary);
+  font-weight: 500;
+}
+
+.allocationChipRemove {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+}
+
+.allocationChipRemove:hover {
+  color: #ef4444;
+}
+
+.totalValueText {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+.summaryBadge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 12px 14px;
   background: rgba(var(--sf-accent-rgb, 79, 70, 229), 0.06);
   border: 1px solid rgba(var(--sf-accent-rgb, 79, 70, 229), 0.2);
   border-radius: var(--sf-radius-md, 8px);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 13px;
   font-weight: 600;
   color: var(--sf-accent-primary);
@@ -200,3 +301,4 @@
   gap: 12px;
   padding-top: 12px;
 }
+
