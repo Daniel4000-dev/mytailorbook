@@ -260,10 +260,10 @@ export default function CustomersPage() {
     return stats;
   }, [customers, orders]);
 
-  // Pre-fetch customer profile routes
+  // Pre-fetch top 10 visible customer profile routes without flooding cellular bandwidth
   useEffect(() => {
     if (!isLoaded) return;
-    customers.slice(0, 60).forEach((c) => router.prefetch(ROUTES.customerDetail(c)));
+    customers.slice(0, 10).forEach((c) => router.prefetch(ROUTES.customerDetail(c)));
   }, [isLoaded, customers, router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -1227,6 +1227,8 @@ export default function CustomersPage() {
                   key={c.id}
                   className={styles.customerRow}
                   onClick={() => router.push(ROUTES.customerDetail(c))}
+                  onTouchStart={() => router.prefetch(ROUTES.customerDetail(c))}
+                  onMouseEnter={() => router.prefetch(ROUTES.customerDetail(c))}
                 >
                   <div className={styles.avatarWrap}>
                     <Avatar name={c.fullName} size="lg" shape="circle" className={styles.circleAvatar} />

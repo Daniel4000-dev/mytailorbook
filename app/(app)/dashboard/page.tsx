@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useRouter } from 'next/navigation';
@@ -8,6 +9,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import DashboardSkeleton from './_components/DashboardSkeleton';
 import OwnerDashboard from './_components/OwnerDashboard';
 import StaffDashboard from './_components/StaffDashboard';
+import { ROUTES } from '@/lib/routes';
 
 import styles from './page.module.css';
 
@@ -15,6 +17,14 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, isOwner, loading } = useAuth();
   const { orders, staffMembers, isLoaded } = useData();
+
+  // Next-level prefetching: prefetch the 4 primary destinations a tailor navigates to from Dashboard
+  useEffect(() => {
+    router.prefetch(ROUTES.production);
+    router.prefetch(ROUTES.customers);
+    router.prefetch(ROUTES.orderNew);
+    router.prefetch(ROUTES.calendar);
+  }, [router]);
 
   const topBar = (
     <TopBar

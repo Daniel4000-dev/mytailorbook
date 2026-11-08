@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/routes';
 
-export default function DeprecatedSettingsReportsPage() {
+function ReportsRedirect() {
   const router = useRouter();
 
   useEffect(() => {
@@ -12,4 +12,12 @@ export default function DeprecatedSettingsReportsPage() {
   }, [router]);
 
   return null;
+}
+
+export default function DeprecatedSettingsReportsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReportsRedirect />
+    </Suspense>
+  );
 }

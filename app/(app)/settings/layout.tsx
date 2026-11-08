@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
@@ -28,7 +28,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   const { currentShop } = useData();
 
   if (!isDesktop) {
-    return <>{children}</>;
+    return <Suspense fallback={null}>{children}</Suspense>;
   }
 
   const mode = currentShop?.businessMode || 'bespoke';
@@ -55,7 +55,9 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           );
         })}
       </nav>
-      <div className={styles.content}>{children}</div>
+      <div className={styles.content}>
+        <Suspense fallback={null}>{children}</Suspense>
+      </div>
     </div>
   );
 }

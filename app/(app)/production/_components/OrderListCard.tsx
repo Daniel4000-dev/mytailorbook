@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -11,6 +12,7 @@ import { FREE_ORDER_PROGRESS_PHOTO_LIMIT, PREMIUM_STATUSES } from '@/lib/subscri
 import { truncateText, formatNumber, formatCurrency } from '@/lib/formatters';
 import { isOverdue, isDueSoon, hasUnreadComment, isOwnerLikeRole, getBalanceOwed, CRAFT_ROLE_LABELS } from '@/lib/types';
 import { getNextStatus, getPreviousStatus } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import type { Order, Role, User, OrderPhoto } from '@/lib/types';
@@ -58,12 +60,19 @@ export default function OrderListCard({
   onWhatsApp,
 }: OrderListCardProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const { currentShop, updateOrder, exceptions, resolveException } = useData();
   const { showToast } = useToast();
   const next = getNextStatus(order.status);
   const prev = getPreviousStatus(order.status);
   const balanceOwed = getBalanceOwed(order);
   const activeException = exceptions.find((e) => e.orderId === order.id && !e.endDate);
+
+  const handleCardPrefetch = () => {
+    try {
+      router.prefetch(ROUTES.productionOrder(order));
+    } catch {}
+  };
 
   // Latest progress photo tells the truest story; fall back to the
   // customer's inspiration photo before the placeholder.
@@ -140,6 +149,7 @@ export default function OrderListCard({
   const isHorizontalSwipe = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    handleCardPrefetch();
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     isVerticalScroll.current = false;
@@ -238,7 +248,7 @@ export default function OrderListCard({
         onDragEnd={onDragEnd}
       >
         {/* Photo area */}
-        <div className={styles.photoArea} onClick={onOpen} role="button" tabIndex={0}>
+        <div className={styles.photoArea} onClick={onOpen} onMouseEnter={handleCardPrefetch} role="button" tabIndex={0}>
           {photo ? (
             <Image src={photo} alt={truncateText(cleanOrderDetails || order.orderDetails, 30)} fill sizes="(max-width: 768px) 50vw, 300px" className={styles.photoImg} />
           ) : (
@@ -376,7 +386,7 @@ export default function OrderListCard({
         </div>
 
         {/* Content */}
-        <div className={styles.content} onClick={onOpen} role="button" tabIndex={0}>
+        <div className={styles.content} onClick={onOpen} onMouseEnter={handleCardPrefetch} role="button" tabIndex={0}>
           <div className={styles.titleRow}>
             <div className={styles.titleCol}>
               <h4 className={styles.title}>{truncateText(cleanOrderDetails || order.orderDetails, 48)}</h4>

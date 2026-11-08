@@ -640,6 +640,14 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     [orders, router]
   );
 
+  // Pre-fetch top 6 visible active orders for instant opening
+  useEffect(() => {
+    if (!isLoaded || orders.length === 0) return;
+    orders.slice(0, 6).forEach((o) => {
+      router.prefetch(ROUTES.productionOrder(o));
+    });
+  }, [isLoaded, orders, router]);
+
   if (!isLoaded) {
     return <ProductionBoardSkeleton />;
   }
