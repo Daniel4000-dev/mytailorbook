@@ -173,10 +173,10 @@ export default function OfflineSyncManager() {
         {isSyncing
           ? `Syncing ${pendingCount} update${pendingCount === 1 ? '' : 's'}...`
           : !isOnline
-          ? pendingCount > 0
-            ? `Offline — ${pendingCount} update${pendingCount === 1 ? '' : 's'} saved on phone`
-            : 'Working Offline (Saved locally)'
-          : `${pendingCount} pending sync`}
+            ? pendingCount > 0
+              ? `Offline — ${pendingCount} update${pendingCount === 1 ? '' : 's'} saved on phone`
+              : 'Working Offline (Saved locally)'
+            : `${pendingCount} pending sync`}
       </span>
     </aside>
   );

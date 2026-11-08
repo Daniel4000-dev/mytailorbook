@@ -355,13 +355,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
           prev.map((o) =>
             o.id === orderId
               ? {
-                  ...o,
-                  status: newStatus,
-                  statusHistory: [
-                    ...o.statusHistory,
-                    { from: o.status, to: newStatus, changedBy, changedByName, timestamp: new Date().toISOString() },
-                  ],
-                }
+                ...o,
+                status: newStatus,
+                statusHistory: [
+                  ...o.statusHistory,
+                  { from: o.status, to: newStatus, changedBy, changedByName, timestamp: new Date().toISOString() },
+                ],
+              }
               : o
           )
         );
@@ -406,7 +406,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           revalidate: false,
         }
       );
-      
+
       // GAMIFICATION TRIGGER
       const handleStreakBump = (sRes: any) => {
         if (sRes?.streak_bumped) mutate();
@@ -935,14 +935,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         (current) =>
           current
             ? {
-                ...current,
-                shop: updated,
-                customers: current.customers.map((c) =>
-                  c.preferredStyles?.includes(oldName)
-                    ? { ...c, preferredStyles: c.preferredStyles.map((s) => (s === oldName ? newName : s)) }
-                    : c
-                ),
-              }
+              ...current,
+              shop: updated,
+              customers: current.customers.map((c) =>
+                c.preferredStyles?.includes(oldName)
+                  ? { ...c, preferredStyles: c.preferredStyles.map((s) => (s === oldName ? newName : s)) }
+                  : c
+              ),
+            }
             : current,
         { revalidate: false }
       );
