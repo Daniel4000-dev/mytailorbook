@@ -14,6 +14,7 @@ import { formatShowroomWhatsAppOrderMessage } from '@/lib/formatters';
 import { NAV_ITEMS } from '@/lib/constants';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { computeOpenLoops } from '@/app/(app)/dashboard/_hooks/useOpenLoops';
 
 // Mock next/cache
 vi.mock('next/cache', () => ({
@@ -645,6 +646,39 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
     it('governs bespoke mode strictly by FEATURE_FLAGS.xpSystem', () => {
       expect(isXpSystemEnabled('bespoke')).toBe(Boolean(FEATURE_FLAGS.xpSystem));
       expect(isXpSystemEnabled()).toBe(Boolean(FEATURE_FLAGS.xpSystem));
+    });
+  });
+
+  describe('Mode Separation: RTW Dashboard & Open Loops Focus', () => {
+    it('generates stockout and debtor alerts for RTW without bespoke cutting or measurement noise', () => {
+      const mockOrders: any[] = [
+        {
+          id: 'pos-1',
+          status: 'Delivered',
+          totalBill: 50000,
+          depositPaid: 20000, // 30,000 balance owed
+          customerId: 'cust-1',
+          styleName: 'Senator Suit',
+          measurements: {}, // Missing measurements, but RTW should NOT care
+        },
+      ];
+      const mockCustomers: any[] = [{ id: 'cust-1', fullName: 'Chidi Okafor' }];
+
+      const loops = computeOpenLoops(mockOrders, mockCustomers, [], 'rtw', {
+        outOfStockCount: 2,
+        lowStockCount: 4,
+      });
+      const titles = loops.map((l) => l.title);
+
+      // Verify RTW-specific priorities are present
+      expect(titles.some((t) => t.includes('sold out on your rack'))).toBe(true);
+      expect(titles.some((t) => t.includes('2 or fewer pieces left'))).toBe(true);
+      expect(titles.some((t) => t.includes('unpaid counter balances'))).toBe(true);
+
+      // Verify Bespoke noise is completely absent
+      expect(titles.some((t) => t.includes('missing measurements'))).toBe(false);
+      expect(titles.some((t) => t.includes('cutting table'))).toBe(false);
+      expect(titles.some((t) => t.includes('need an update today'))).toBe(false);
     });
   });
 });

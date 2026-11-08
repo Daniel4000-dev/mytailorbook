@@ -8,13 +8,60 @@ import styles from './ProfileSetupProgress.module.css';
 
 interface ProfileSetupProgressProps {
   onNavigate: (href: string) => void;
+  businessMode?: string;
+  stockCount?: number;
 }
 
-export default function ProfileSetupProgress({ onNavigate }: ProfileSetupProgressProps) {
+export default function ProfileSetupProgress({
+  onNavigate,
+  businessMode = 'bespoke',
+  stockCount = 0,
+}: ProfileSetupProgressProps) {
   const { currentShop, staffMembers } = useData();
   const { user } = useAuth();
+  const isRtw = businessMode === 'rtw';
 
   const steps = useMemo(() => {
+    if (isRtw) {
+      return [
+        {
+          id: 'identity',
+          label: 'Brand Name & Category',
+          isComplete: Boolean(currentShop?.name),
+          href: '/settings/studio',
+          cta: 'Brand Info',
+        },
+        {
+          id: 'phone',
+          label: 'Store WhatsApp & Phone',
+          isComplete: Boolean(currentShop?.phone),
+          href: '/settings/studio',
+          cta: 'Add Phone',
+        },
+        {
+          id: 'bank',
+          label: 'Bank Account for POS Receipts',
+          isComplete: Boolean(currentShop?.bankDetails?.bankName && currentShop?.bankDetails?.accountNumber),
+          href: '/settings/studio',
+          cta: 'Add Bank',
+        },
+        {
+          id: 'stock',
+          label: 'Stock First Garment on Rack',
+          isComplete: stockCount > 0,
+          href: '/stock?action=add',
+          cta: 'Add Stock',
+        },
+        {
+          id: 'team',
+          label: 'Sales Associates & Staff',
+          isComplete: Boolean(staffMembers && staffMembers.length > 0),
+          href: '/settings/staff',
+          cta: 'Add Staff',
+        },
+      ];
+    }
+
     return [
       {
         id: 'identity',
@@ -52,7 +99,7 @@ export default function ProfileSetupProgress({ onNavigate }: ProfileSetupProgres
         cta: 'Add Team',
       },
     ];
-  }, [currentShop, user, staffMembers]);
+  }, [isRtw, currentShop, user, staffMembers, stockCount]);
 
   const completedCount = steps.filter((s) => s.isComplete).length;
   const totalCount = steps.length;

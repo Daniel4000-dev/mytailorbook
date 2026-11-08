@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useDeferredValue } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useMemo, useDeferredValue, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -58,8 +58,9 @@ interface StyleGroup {
   isOutOfStock: boolean;
 }
 
-export default function StockPage() {
+function StockContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { currentShop, customers, refreshShop, isLoaded: dataLoaded } = useData();
   const { user, loading: authLoading } = useAuth();
   const { showToast } = useToast();
@@ -74,6 +75,12 @@ export default function StockPage() {
   const [showroomFinancials, setShowroomFinancials] = useState<ShowroomFinancials | null>(null);
   const [loading, setLoading] = useState(true);
   const [addGarmentOpen, setAddGarmentOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      setAddGarmentOpen(true);
+    }
+  }, [searchParams]);
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -1438,5 +1445,13 @@ export default function StockPage() {
         />
       )}
     </PageLayout>
+  );
+}
+
+export default function StockPage() {
+  return (
+    <Suspense fallback={null}>
+      <StockContent />
+    </Suspense>
   );
 }

@@ -48,7 +48,7 @@ export default function AtelierFirstWinCard({
           <button
             type="button"
             className={styles.actionCardHero}
-            onClick={() => onNavigate(ROUTES.stock)}
+            onClick={() => onNavigate(`${ROUTES.stock}?action=add`)}
             aria-label="Stock your rack with garments and sizes"
           >
             <div className={styles.actionLeft}>

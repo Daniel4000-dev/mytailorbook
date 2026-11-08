@@ -54,7 +54,13 @@ export default function OwnerDashboard({
     teamSnapshot,
   } = useOwnerDashboardData(orders, staffMembers);
 
-  const openLoops = useOpenLoops(orders, customers, exceptions);
+  const openLoops = useOpenLoops(
+    orders,
+    customers,
+    exceptions,
+    businessMode,
+    { lowStockCount: showroomMetrics.lowStockCount, outOfStockCount: showroomMetrics.outOfStockCount }
+  );
 
   const isDayOne = isRtw
     ? orders.length === 0 && showroomMetrics.totalPieces === 0
@@ -350,7 +356,11 @@ export default function OwnerDashboard({
       )}
 
       {/* Complete Profile Setup Progress Status (Auto-hides when 100% complete) */}
-      <ProfileSetupProgress onNavigate={onNavigate} />
+      <ProfileSetupProgress
+        onNavigate={onNavigate}
+        businessMode={businessMode}
+        stockCount={showroomMetrics.totalPieces}
+      />
 
       {/* Master Actions & Atelier Switchboard */}
       <QuickCommandHub
@@ -366,20 +376,26 @@ export default function OwnerDashboard({
         stockCount={showroomMetrics.totalPieces}
       />
 
-      {/* 2-Column Command Workspace (Unlocked when orders are active) */}
-      {orders.length > 0 && (
+      {/* 2-Column Command Workspace (Unlocked when orders or showroom stock are active) */}
+      {(isRtw ? showroomMetrics.totalPieces > 0 || orders.length > 0 : orders.length > 0) && (
         <div className={styles.twoCol}>
           <div className={styles.mainCol}>
-            {/* Artisan Bench — Team Craft Workload */}
+            {/* Store Team / Artisan Bench Workload */}
             {teamSnapshot.length === 0 ? (
               <div className={pageStyles.teamInviteCard}>
                 <div className={pageStyles.teamInviteLeft}>
                   <div className={pageStyles.teamInviteIconWrap}>
-                    <Symbol name="group_add" size={18} />
+                    <Symbol name={isRtw ? 'storefront' : 'group_add'} size={18} />
                   </div>
                   <div>
-                    <span className={pageStyles.teamInviteTitle}>Delegate to Apprentices &amp; Tailors</span>
-                    <span className={pageStyles.teamInviteSub}>Assign garments by craft role &amp; track completed pieces</span>
+                    <span className={pageStyles.teamInviteTitle}>
+                      {isRtw ? 'Add Sales Associates & Store Staff' : 'Delegate to Apprentices & Tailors'}
+                    </span>
+                    <span className={pageStyles.teamInviteSub}>
+                      {isRtw
+                        ? 'Invite cashiers and store attendants to process counter sales and manage floor stock'
+                        : 'Assign garments by craft role & track completed pieces'}
+                    </span>
                   </div>
                 </div>
                 <button
@@ -387,7 +403,7 @@ export default function OwnerDashboard({
                   className={pageStyles.teamInviteBtn}
                   onClick={() => onNavigate('/settings/staff')}
                 >
-                  Add Team
+                  {isRtw ? 'Add Staff' : 'Add Team'}
                 </button>
               </div>
             ) : (
@@ -395,9 +411,11 @@ export default function OwnerDashboard({
                 <div className={pageStyles.teamBenchHeader}>
                   <div className={pageStyles.teamBenchTitleRow}>
                     <Symbol name="group" size={16} className={pageStyles.teamBenchIcon} />
-                    <span className={pageStyles.teamBenchTitle}>Team Workload</span>
+                    <span className={pageStyles.teamBenchTitle}>
+                      {isRtw ? 'Store Staff' : 'Team Workload'}
+                    </span>
                     <span className={pageStyles.teamBenchBadge}>
-                      {teamSnapshot.length} Tailor{teamSnapshot.length === 1 ? '' : 's'}
+                      {teamSnapshot.length} {isRtw ? (teamSnapshot.length === 1 ? 'Member' : 'Members') : (teamSnapshot.length === 1 ? 'Tailor' : 'Tailors')}
                     </span>
                   </div>
                   <button
