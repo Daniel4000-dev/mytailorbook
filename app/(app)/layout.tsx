@@ -19,6 +19,7 @@ import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import CraftSpark from '@/components/ui/CraftSpark/CraftSpark';
 import BadgeCelebrationModal from '@/components/gamification/BadgeCelebrationModal/BadgeCelebrationModal';
+import NavigationProgressBar from '@/components/layout/NavigationProgressBar/NavigationProgressBar';
 import styles from './layout.module.css';
 
 /** Plays the 360ms entrance animation, then drops it entirely (not just
@@ -62,6 +63,11 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   // The in-app portfolio preview also skips it, as the portfolio has its
   // own WhatsApp FAB in that corner.
   const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional && !isDashboard;
+
+  // Prefetch critical creation route so tapping the FAB opens immediately
+  useEffect(() => {
+    router.prefetch(ROUTES.orderNew);
+  }, [router]);
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).
@@ -168,6 +174,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {!isMenuOpen && !isTransactional && <NotificationPrompt />}
       <CraftSpark />
       <BadgeCelebrationModal />
+      <NavigationProgressBar />
     </div>
   );
 }

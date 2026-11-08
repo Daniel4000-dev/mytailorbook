@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { NAV_ITEMS } from '@/lib/constants';
@@ -70,11 +70,18 @@ function NavItemContent({
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isOwner, loading } = useAuth();
   const { currentShop, isLoaded } = useData();
   const [isCompact, setIsCompact] = useState(false);
+  const [optimisticPath, setOptimisticPath] = useState<string | null>(null);
   const isCompactRef = useRef(false);
   const lastScrollY = useRef(0);
+
+  // Clear optimistic active state whenever the route successfully commits
+  useEffect(() => {
+    setOptimisticPath(null);
+  }, [pathname]);
 
   useEffect(() => {
     let mainEl: HTMLElement | null = document.querySelector('main');
@@ -161,10 +168,34 @@ export default function BottomNav() {
     >
       {visibleItems.map((item) => {
         const itemPath = item.href.split('?')[0];
-        const isActive = pathname === itemPath || (itemPath !== '/dashboard' && pathname.startsWith(itemPath + '/'));
+        const isCurrentRoute = pathname === itemPath || (itemPath !== '/dashboard' && pathname.startsWith(itemPath + '/'));
+        const isActive = optimisticPath !== null ? optimisticPath === itemPath : isCurrentRoute;
         const isProfile = item.href === '/settings';
+
+        const handleItemTouch = () => {
+          handleRestore();
+          if (optimisticPath !== itemPath) {
+            setOptimisticPath(itemPath);
+            if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+              try {
+                navigator.vibrate(8);
+              } catch {}
+            }
+          }
+          router.prefetch(item.href);
+        };
+
         return (
-          <Link key={item.href} href={item.href} className={styles.linkReset} aria-label={item.label}>
+          <Link
+            key={item.href}
+            href={item.href}
+            prefetch={true}
+            className={styles.linkReset}
+            aria-label={item.label}
+            onPointerDown={handleItemTouch}
+            onTouchStart={handleItemTouch}
+            onMouseEnter={() => router.prefetch(item.href)}
+          >
             <NavItemContent
               icon={item.icon}
               label={item.label}

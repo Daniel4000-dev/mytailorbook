@@ -73,8 +73,11 @@ export default function SidebarMenu() {
             <Link
               href={item.href}
               key={item.href}
+              prefetch={true}
               className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
               onClick={() => setMenuOpen(false)}
+              onMouseEnter={() => router.prefetch(item.href)}
+              onTouchStart={() => router.prefetch(item.href)}
               title={isCollapsed ? item.label : undefined}
               data-tour-id={item.tourId}
             >
@@ -136,36 +139,78 @@ export default function SidebarMenu() {
 
       {/* Mobile-only Nav (Flattened for bottom sheet style) */}
       <div className={styles.mobileOnlyNav}>
-        <Link href={ROUTES.calendar} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+        <Link
+          href={ROUTES.calendar}
+          prefetch={true}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.calendar)}
+        >
           <CustomNavIcon name="calendar_month" className={styles.menuIcon} />
           <span className={styles.menuText}>Calendar</span>
         </Link>
-        <Link href={ROUTES.portfolio} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+        <Link
+          href={ROUTES.portfolio}
+          prefetch={true}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.portfolio)}
+        >
           <CustomNavIcon name="favorite" className={styles.menuIcon} />
           <span className={styles.menuText}>My Portfolio</span>
         </Link>
-        <Link href={ROUTES.catalogues} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+        <Link
+          href={ROUTES.catalogues}
+          prefetch={true}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.catalogues)}
+        >
           <CustomNavIcon name="collections_bookmark" className={styles.menuIcon} />
           <span className={styles.menuText}>Lookbooks</span>
         </Link>
-        <Link href={ROUTES.circle} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+        <Link
+          href={ROUTES.circle}
+          prefetch={true}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.circle)}
+        >
           <CustomNavIcon name="groups" className={styles.menuIcon} />
           <span className={styles.menuText}>Tailor Circle</span>
         </Link>
         {isOwner && (
-          <Link href={ROUTES.collections} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+          <Link
+            href={ROUTES.collections}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.collections)}
+          >
             <CustomNavIcon name="account_balance_wallet" className={styles.menuIcon} />
             <span className={styles.menuText}>Collections</span>
           </Link>
         )}
         {isOwner && (
-          <Link href={ROUTES.reconciliation} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+          <Link
+            href={ROUTES.reconciliation}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.reconciliation)}
+          >
             <CustomNavIcon name="point_of_sale" className={styles.menuIcon} />
             <span className={styles.menuText}>Cash Book</span>
           </Link>
         )}
         {isOwner && (
-          <Link href={ROUTES.settings} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+          <Link
+            href={ROUTES.settings}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.settings)}
+          >
             <CustomNavIcon name="settings" className={styles.menuIcon} />
             <span className={styles.menuText}>Settings</span>
           </Link>

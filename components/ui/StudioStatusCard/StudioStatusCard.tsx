@@ -110,7 +110,7 @@ export default function StudioStatusCard({ isOpen, onClose, celebratedBadge }: S
     // Award daily share points
     rewardDailyShare();
 
-    const badgeLine = celebratedBadge 
+    const badgeLine = celebratedBadge
       ? `🏆 Just Unlocked: "${celebratedBadge.name}" Badge!\n\n`
       : `Badges Unlocked: ${unlockedBadges.length} Badges\n\n`;
 
