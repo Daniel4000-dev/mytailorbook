@@ -181,6 +181,7 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
         data: [
           {
             id: 'existing-l-1',
+            name: 'Royal Blue Senator',
             size: 'L',
             quantity: 3,
             metadata: { category: 'Senator', parentGarmentName: 'Royal Blue Senator' }

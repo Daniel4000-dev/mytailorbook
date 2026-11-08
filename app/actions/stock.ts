@@ -47,17 +47,20 @@ export async function addStockGarmentsAction(
   // Check for existing items of this style name in the shop to merge inventory cleanly
   const { data: existingRows } = await supabase
     .from('finished_goods')
-    .select('id, size, quantity, metadata')
+    .select('id, name, size, quantity, metadata')
     .eq('shop_id', shopId)
     .ilike('name', cleanName);
 
   const existingMap = new Map<string, { id: string; quantity: number; metadata: any }>();
   (existingRows || []).forEach(row => {
-    existingMap.set(row.size.trim().toLowerCase(), {
-      id: row.id,
-      quantity: Number(row.quantity) || 0,
-      metadata: row.metadata || {}
-    });
+    // Exact case-insensitive match prevents SQL wildcard false-positives (e.g. % or _)
+    if (row.name && row.name.trim().toLowerCase() === cleanName.toLowerCase()) {
+      existingMap.set(row.size.trim().toLowerCase(), {
+        id: row.id,
+        quantity: Number(row.quantity) || 0,
+        metadata: row.metadata || {}
+      });
+    }
   });
 
   const toInsert: any[] = [];

@@ -63,6 +63,12 @@
   border: 1px solid var(--sf-border-subtle);
   border-radius: var(--sf-radius-md, 8px);
   font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.marginPreviewNegative {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .marginLabel {
@@ -72,6 +78,10 @@
 .marginValue {
   font-weight: 600;
   color: #10b981;
+}
+
+.marginValueNegative {
+  color: #ef4444;
 }
 
 .sizingHeader {
@@ -203,6 +213,81 @@
 
 .presetBtn:hover {
   border-color: var(--sf-border-light);
+  color: var(--sf-text-primary);
+}
+
+.addCustomSizeToggle {
+  background: transparent;
+  border: 1px dashed var(--sf-border-subtle);
+  border-radius: var(--sf-radius-sm, 6px);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.addCustomSizeToggle:hover {
+  border-color: var(--sf-accent-primary);
+  color: var(--sf-accent-primary);
+}
+
+.customSizeInlineBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: var(--sf-radius-sm, 6px);
+  padding: 2px 4px;
+}
+
+.customSizeInput {
+  width: 64px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--sf-text-primary);
+  padding: 0 4px;
+}
+
+.customSizeInput:focus {
+  outline: none;
+}
+
+.customSizeAddBtn {
+  background: var(--sf-accent-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.customSizeAddBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.customSizeCancelBtn {
+  background: transparent;
+  border: none;
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.customSizeCancelBtn:hover {
   color: var(--sf-text-primary);
 }
 

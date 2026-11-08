@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
@@ -54,6 +54,9 @@ export default function AddStockGarmentModal({
   const [rackLocation, setRackLocation] = useState('');
   const [sku, setSku] = useState('');
   const [sizeMode, setSizeMode] = useState<'letter' | 'numeric' | 'free'>('letter');
+  const [customSizes, setCustomSizes] = useState<string[]>([]);
+  const [showAddCustomSize, setShowAddCustomSize] = useState(false);
+  const [newCustomSizeInput, setNewCustomSizeInput] = useState('');
 
   // Map of size string -> quantity
   const [sizeQuantities, setSizeQuantities] = useState<Record<string, number>>({
@@ -63,15 +66,38 @@ export default function AddStockGarmentModal({
 
   const [submitting, setSubmitting] = useState(false);
 
+  // Reset form whenever modal opens fresh
+  useEffect(() => {
+    if (isOpen) {
+      setName('');
+      setCategory('Senator');
+      setIsCustomCategory(false);
+      setCustomCategory('');
+      setPrice('');
+      setCostPrice('');
+      setColor('');
+      setFabric('');
+      setRackLocation('');
+      setSku('');
+      setSizeMode('letter');
+      setCustomSizes([]);
+      setShowAddCustomSize(false);
+      setNewCustomSizeInput('');
+      setSizeQuantities({ M: 1, L: 1 });
+    }
+  }, [isOpen]);
+
   const parsedPrice = parseFloat(price) || 0;
   const parsedCost = parseFloat(costPrice) || 0;
 
-  const currentSizeList =
-    sizeMode === 'letter'
+  const currentSizeList = [
+    ...(sizeMode === 'letter'
       ? LETTER_SIZES
       : sizeMode === 'numeric'
       ? NUMERIC_SIZES
-      : ['Free Size'];
+      : ['Free Size']),
+    ...customSizes
+  ];
 
   const totalQuantity = Object.values(sizeQuantities).reduce((sum, q) => sum + (q > 0 ? q : 0), 0);
   const activeSizes = Object.entries(sizeQuantities).filter(([_, qty]) => qty > 0);
@@ -80,13 +106,10 @@ export default function AddStockGarmentModal({
   const effectiveCategory = isCustomCategory ? customCategory.trim() || 'Custom' : category;
 
   const handleSizeClick = (size: string) => {
-    setSizeQuantities(prev => {
-      const current = prev[size] || 0;
-      if (current === 0) {
-        return { ...prev, [size]: 1 };
-      }
-      return prev;
-    });
+    setSizeQuantities(prev => ({
+      ...prev,
+      [size]: (prev[size] && prev[size] > 0) ? prev[size] : 1
+    }));
   };
 
   const handleIncrement = (size: string) => {
@@ -109,14 +132,27 @@ export default function AddStockGarmentModal({
   };
 
   const handleQuantityDirectInput = (size: string, val: string) => {
+    if (val === '') {
+      setSizeQuantities(prev => ({ ...prev, [size]: 0 }));
+      return;
+    }
     const parsed = parseInt(val, 10);
     setSizeQuantities(prev => {
-      if (isNaN(parsed) || parsed <= 0) {
+      if (isNaN(parsed) || parsed < 0) {
+        return { ...prev, [size]: 0 };
+      }
+      return { ...prev, [size]: Math.min(999, parsed) };
+    });
+  };
+
+  const handleBlurSize = (size: string) => {
+    setSizeQuantities(prev => {
+      if ((prev[size] || 0) <= 0) {
         const next = { ...prev };
         delete next[size];
         return next;
       }
-      return { ...prev, [size]: Math.min(999, parsed) };
+      return prev;
     });
   };
 
@@ -140,8 +176,26 @@ export default function AddStockGarmentModal({
     setSizeQuantities({});
   };
 
+  const handleAddCustomSize = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanSize = newCustomSizeInput.trim().toUpperCase();
+    if (!cleanSize) return;
+
+    if (currentSizeList.includes(cleanSize)) {
+      showToast(`Size ${cleanSize} is already in the matrix`, 'info');
+      handleSizeClick(cleanSize);
+    } else {
+      setCustomSizes(prev => [...prev, cleanSize]);
+      setSizeQuantities(prev => ({ ...prev, [cleanSize]: 1 }));
+    }
+    setNewCustomSizeInput('');
+    setShowAddCustomSize(false);
+  };
+
   const handleSwitchSizeMode = (newMode: 'letter' | 'numeric' | 'free') => {
     setSizeMode(newMode);
+    setCustomSizes([]);
+    setShowAddCustomSize(false);
     if (newMode === 'free') {
       setSizeQuantities({ 'Free Size': 1 });
     } else {
@@ -165,26 +219,16 @@ export default function AddStockGarmentModal({
     }
   };
 
-  const handleResetForm = () => {
-    setName('');
-    setCategory('Senator');
-    setIsCustomCategory(false);
-    setCustomCategory('');
-    setPrice('');
-    setCostPrice('');
-    setColor('');
-    setFabric('');
-    setRackLocation('');
-    setSku('');
-    setSizeMode('letter');
-    setSizeQuantities({ M: 1, L: 1 });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name.trim()) {
       showToast('Please enter a garment style name', 'error');
+      return;
+    }
+
+    if (isCustomCategory && !customCategory.trim()) {
+      showToast('Please enter a name for your custom category', 'error');
       return;
     }
 
@@ -221,7 +265,6 @@ export default function AddStockGarmentModal({
           `Successfully processed ${totalQuantity} garment${totalQuantity > 1 ? 's' : ''} for showroom rack`,
           'success'
         );
-        handleResetForm();
         onSuccess();
         onClose();
       }
@@ -233,10 +276,11 @@ export default function AddStockGarmentModal({
   };
 
   const margin =
-    parsedPrice > 0 && parsedCost > 0 && parsedPrice >= parsedCost
+    parsedPrice > 0 && parsedCost > 0
       ? {
           amount: parsedPrice - parsedCost,
-          percentage: Math.round(((parsedPrice - parsedCost) / parsedPrice) * 100)
+          percentage: Math.round(((parsedPrice - parsedCost) / parsedPrice) * 100),
+          isNegative: parsedPrice < parsedCost
         }
       : null;
 
@@ -326,9 +370,19 @@ export default function AddStockGarmentModal({
         </div>
 
         {margin && (
-          <div className={styles.marginPreview}>
-            <span className={styles.marginLabel}>Estimated Gross Margin</span>
-            <span className={styles.marginValue}>
+          <div
+            className={`${styles.marginPreview} ${
+              margin.isNegative ? styles.marginPreviewNegative : ''
+            }`}
+          >
+            <span className={styles.marginLabel}>
+              {margin.isNegative ? 'Warning: Cost Exceeds Retail Price' : 'Estimated Gross Margin'}
+            </span>
+            <span
+              className={`${styles.marginValue} ${
+                margin.isNegative ? styles.marginValueNegative : ''
+              }`}
+            >
               {formatCurrency(margin.amount, currency)} ({margin.percentage}%)
             </span>
           </div>
@@ -402,37 +456,83 @@ export default function AddStockGarmentModal({
           </div>
 
           {/* Quick Preset Buttons */}
-          {sizeMode !== 'free' && (
-            <div className={styles.quickPresetsBar}>
+          <div className={styles.quickPresetsBar}>
+            {sizeMode !== 'free' && (
+              <>
+                <button
+                  type="button"
+                  className={styles.presetBtn}
+                  onClick={() => handleQuickPreset(1)}
+                >
+                  1 of each
+                </button>
+                <button
+                  type="button"
+                  className={styles.presetBtn}
+                  onClick={() => handleQuickPreset(2)}
+                >
+                  2 of each
+                </button>
+                <button
+                  type="button"
+                  className={styles.presetBtn}
+                  onClick={handleClearSizes}
+                >
+                  Clear all
+                </button>
+              </>
+            )}
+            {!showAddCustomSize ? (
               <button
                 type="button"
-                className={styles.presetBtn}
-                onClick={() => handleQuickPreset(1)}
+                className={styles.addCustomSizeToggle}
+                onClick={() => setShowAddCustomSize(true)}
               >
-                1 of each
+                + Custom Size
               </button>
-              <button
-                type="button"
-                className={styles.presetBtn}
-                onClick={() => handleQuickPreset(2)}
-              >
-                2 of each
-              </button>
-              <button
-                type="button"
-                className={styles.presetBtn}
-                onClick={handleClearSizes}
-              >
-                Clear all
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className={styles.customSizeInlineBox}>
+                <input
+                  type="text"
+                  placeholder="e.g. 4XL"
+                  className={styles.customSizeInput}
+                  value={newCustomSizeInput}
+                  onChange={e => setNewCustomSizeInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomSize();
+                    }
+                  }}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className={styles.customSizeAddBtn}
+                  onClick={() => handleAddCustomSize()}
+                  disabled={!newCustomSizeInput.trim()}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  className={styles.customSizeCancelBtn}
+                  onClick={() => {
+                    setShowAddCustomSize(false);
+                    setNewCustomSizeInput('');
+                  }}
+                >
+                  <Symbol name="close" size={14} />
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Size Cards Grid */}
           <div className={styles.matrixGrid}>
             {currentSizeList.map(sz => {
-              const qty = sizeQuantities[sz] || 0;
-              const isSelected = qty > 0;
+              const isSelected = sz in sizeQuantities;
+              const qty = sizeQuantities[sz] ?? 0;
 
               return (
                 <div
@@ -457,8 +557,10 @@ export default function AddStockGarmentModal({
                         type="number"
                         min="0"
                         className={styles.counterInput}
-                        value={qty}
+                        value={qty === 0 ? '' : qty}
+                        placeholder="0"
                         onChange={e => handleQuantityDirectInput(sz, e.target.value)}
+                        onBlur={() => handleBlurSize(sz)}
                         aria-label={`Quantity for ${sz}`}
                       />
                       <button
