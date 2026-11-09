@@ -274,10 +274,20 @@ export default function OwnerDashboard({
               </button>
             </div>
           ) : (
-            <div className={styles.dayOneBanner}>
-              <Symbol name="storefront" size={18} />
-              <span>Ready for Day 1 — Add garments to your stock rack below to launch your digital showroom and start recording counter sales.</span>
-            </div>
+            <button
+              type="button"
+              className={styles.dayOneBanner}
+              onClick={() => onNavigate(`${ROUTES.stock}?action=add`)}
+            >
+              <div className={styles.dayOneBannerLeft}>
+                <Symbol name="storefront" size={18} />
+                <span>Ready for Day 1 — Add garments to your stock rack to launch your digital showroom and start recording counter sales.</span>
+              </div>
+              <span className={styles.dayOneBannerCta}>
+                <span>Add Stock</span>
+                <Symbol name="arrow_forward" size={14} />
+              </span>
+            </button>
           )
         ) : orders.length > 0 ? (
           <div className={styles.operationsGrid}>
@@ -348,10 +358,20 @@ export default function OwnerDashboard({
             </button>
           </div>
         ) : (
-          <div className={styles.dayOneBanner}>
-            <Symbol name="straighten" size={18} />
-            <span>Ready for Day 1 — Create your first order below to start tracking your cutting and sewing board.</span>
-          </div>
+          <button
+            type="button"
+            className={styles.dayOneBanner}
+            onClick={() => onNavigate(ROUTES.orderNew)}
+          >
+            <div className={styles.dayOneBannerLeft}>
+              <Symbol name="straighten" size={18} />
+              <span>Ready for Day 1 — Create your first order to start tracking your cutting and sewing board.</span>
+            </div>
+            <span className={styles.dayOneBannerCta}>
+              <span>New Order</span>
+              <Symbol name="arrow_forward" size={14} />
+            </span>
+          </button>
         )}
       </section>
 

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ROUTES } from '@/lib/routes';
-import { DataProvider } from '@/contexts/DataContext';
+import { DataProvider, useData } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
@@ -51,6 +51,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
   const { preference } = useTheme();
+  const { currentShop } = useData();
+  const isRtw = currentShop?.businessMode === 'rtw';
 
   // The new-client wizard is a focused, transactional flow — global nav
   // and the create-FAB get out of its way (it brings its own action bar).
@@ -66,8 +68,12 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
 
   // Prefetch critical creation route so tapping the FAB opens immediately
   useEffect(() => {
-    router.prefetch(ROUTES.orderNew);
-  }, [router]);
+    if (isRtw) {
+      router.prefetch(`${ROUTES.stock}?action=add`);
+    } else {
+      router.prefetch(ROUTES.orderNew);
+    }
+  }, [isRtw, router]);
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).
@@ -163,9 +169,15 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           equivalent button in SidebarMenu on desktop (see SidebarContext). */}
       {!isMenuOpen && showFab && (
         <FAB
-          onClick={() => router.push(ROUTES.orderNew)}
+          onClick={() => {
+            if (isRtw) {
+              router.push(`${ROUTES.stock}?action=add`);
+            } else {
+              router.push(ROUTES.orderNew);
+            }
+          }}
           icon={<Symbol name="add" />}
-          label="New Order"
+          label={isRtw ? 'Add Garment' : 'New Order'}
           tourId="fab"
         />
       )}

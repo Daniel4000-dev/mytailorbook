@@ -1312,8 +1312,10 @@
 .dayOneBanner {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 13px;
   background: rgba(16, 185, 129, 0.12);
   border: 1px dashed rgba(16, 185, 129, 0.35);
   border-radius: var(--sf-radius-lg);
@@ -1323,11 +1325,49 @@
   margin-top: 10px;
   position: relative;
   z-index: 2;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
 }
 
-.dayOneBanner svg {
+.dayOneBanner:hover,
+.dayOneBanner:active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.55);
+  transform: translateY(-1px);
+}
+
+.dayOneBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.dayOneBannerLeft svg {
   color: var(--sf-accent-emerald);
   flex-shrink: 0;
+}
+
+.dayOneBannerCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  background: var(--sf-accent-emerald);
+  color: #064E3B;
+  font-weight: 700;
+  font-size: 11px;
+  border-radius: var(--sf-radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.dayOneBannerCta svg {
+  color: #064E3B;
 }
 
 .hybridToggleWrap {

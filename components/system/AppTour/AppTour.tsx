@@ -1,15 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { useHasMounted } from '@/lib/hooks/useHasMounted';
 import { trackEvent } from '@/lib/analytics';
 import styles from './AppTour.module.css';
 
 // Bump this if the tour's steps or targets change meaningfully — a
-// returning user who already dismissed v1 won't otherwise ever see v2.
-const TOUR_VERSION = 'v2';
+// returning user who already dismissed v1 won't otherwise ever see v2/v3.
+const TOUR_VERSION = 'v3';
 
 function tourStorageKey(uid: string) {
   return `mtb_tour_seen_${TOUR_VERSION}:${uid}`;
@@ -45,25 +46,121 @@ const VIEWPORT_MARGIN = 12;
  *  them. */
 export default function AppTour() {
   const { user, isOwner, loading, needsOnboarding } = useAuth();
+  const { currentShop } = useData();
   const mounted = useHasMounted();
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
 
-  const steps: TourStep[] = [
-    { targetId: 'home', title: 'Your Dashboard', body: "See today's activity at a glance — orders due, recent updates, and quick shortcuts." },
-    { targetId: 'production', title: 'Production Board', body: 'Track every order from cutting through delivery, and assign work to your staff.' },
-    { targetId: 'fabrics', title: 'Fabric Board', body: 'Browse every fabric photo on file and jump straight to its order.' },
-    ...(isOwner
-      ? [{
-          targetId: 'customers',
-          title: 'Customers',
-          body: "Every client's measurements are saved here — captured once, reused automatically for every order after.",
-        }]
-      : []),
-    { targetId: 'fab', title: 'Tap + to get started', body: 'Use this anytime to add a new customer or start a new order.' },
-    { targetId: 'menu', title: 'More options', body: 'Your portfolio, style gallery, and more live behind this menu.' },
-  ];
+  const mode = currentShop?.businessMode || 'bespoke';
+
+  const steps = useMemo<TourStep[]>(() => {
+    if (mode === 'rtw') {
+      return [
+        {
+          targetId: 'home',
+          title: 'Boutique Dashboard',
+          body: "Monitor today's counter sales, rack stock levels, and daily revenue in real time.",
+        },
+        {
+          targetId: 'stock',
+          title: 'Stock & POS',
+          body: 'Manage your rack inventory, log instant retail sales, and record payment methods.',
+        },
+        {
+          targetId: 'calendar',
+          title: 'Showroom Calendar',
+          body: 'Plan inventory restocks, boutique pop-ups, and customer pickup appointments.',
+        },
+        ...(isOwner
+          ? [
+              {
+                targetId: 'customers',
+                title: 'Customer Directory',
+                body: 'Maintain your buyer list, purchase histories, and contact info for repeat sales.',
+              },
+            ]
+          : []),
+        {
+          targetId: 'fab',
+          title: 'Add Garments & Sales',
+          body: 'Tap + anytime to quickly intake newly finished garments onto your showroom racks.',
+        },
+      ];
+    }
+
+    if (mode === 'hybrid') {
+      return [
+        {
+          targetId: 'home',
+          title: 'Atelier & Retail Dashboard',
+          body: 'See your combined custom tailoring production and ready-to-wear showroom sales.',
+        },
+        {
+          targetId: 'production',
+          title: 'Production Board',
+          body: 'Track bespoke custom orders and RTW batch manufacturing through each workshop stage.',
+        },
+        {
+          targetId: 'stock',
+          title: 'Stock & POS',
+          body: 'Sell off-the-rack pieces instantly with digital receipts and live inventory decrementing.',
+        },
+        {
+          targetId: 'fittings',
+          title: 'Fittings & Calendar',
+          body: 'Keep custom fitting appointments and showroom delivery milestones organized.',
+        },
+        ...(isOwner
+          ? [
+              {
+                targetId: 'customers',
+                title: 'Client Directory',
+                body: 'Manage both bespoke clients with measurements and retail walk-in buyers.',
+              },
+            ]
+          : []),
+        {
+          targetId: 'fab',
+          title: 'Quick Create',
+          body: 'Tap + to start a custom bespoke order or intake finished inventory to your racks.',
+        },
+      ];
+    }
+
+    // Default: bespoke mode
+    return [
+      {
+        targetId: 'home',
+        title: 'Your Dashboard',
+        body: "See today's atelier activity at a glance — orders due, recent updates, and quick shortcuts.",
+      },
+      {
+        targetId: 'production',
+        title: 'Production Board',
+        body: 'Track every bespoke order from cutting through delivery, and assign work to your craft staff.',
+      },
+      {
+        targetId: 'fittings',
+        title: 'Fittings & Calendar',
+        body: 'Schedule and manage client fitting sessions to guarantee a perfect garment fit.',
+      },
+      ...(isOwner
+        ? [
+            {
+              targetId: 'customers',
+              title: 'Customer Profiles',
+              body: "Every client's measurements are saved here — captured once, reused automatically for every order after.",
+            },
+          ]
+        : []),
+      {
+        targetId: 'fab',
+        title: 'New Order',
+        body: 'Tap + anytime to intake a new client, capture measurements, or launch a custom order.',
+      },
+    ];
+  }, [isOwner, mode]);
 
   useEffect(() => {
     if (loading || needsOnboarding || !user) return;

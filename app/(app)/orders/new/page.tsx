@@ -56,19 +56,23 @@ function OrderTypeSelector({ onSelect }: { onSelect: (type: 'bespoke' | 'rtw') =
 }
 
 export default function NewOrderPage() {
+  const router = useRouter();
   const { currentShop, isLoaded } = useData();
   const [selectedType, setSelectedType] = useState<'bespoke' | 'rtw' | null>(null);
 
-  if (!isLoaded) return null;
-
   const mode = currentShop?.businessMode || 'bespoke';
+
+  // In pure RTW mode, all order intake is rack inventory & sales intake.
+  // Direct access to /orders/new cleanly redirects to the Stock intake flow.
+  if (isLoaded && mode === 'rtw') {
+    router.replace(`${ROUTES.stock}?action=add`);
+    return null;
+  }
+
+  if (!isLoaded) return null;
 
   if (mode === 'bespoke') {
     return <Suspense fallback={null}><UnifiedNewOrderForm /></Suspense>;
-  }
-
-  if (mode === 'rtw') {
-    return <Suspense fallback={null}><NewBatchWizard /></Suspense>;
   }
 
   // Hybrid Mode
