@@ -149,9 +149,10 @@ export default function BottomNav() {
   if (loading || !isLoaded) return null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
-    if (item.hideFromBottomNav) return false;
-    if (item.ownerOnly && !isOwner) return false;
     const mode = currentShop?.businessMode || 'bespoke';
+    if (item.hideFromBottomNav) return false;
+    if (item.hideFromBottomNavModes?.includes(mode)) return false;
+    if (item.ownerOnly && !isOwner) return false;
     if (mode === 'bespoke' && item.rtwOnly) return false;
     if (mode === 'rtw' && item.bespokeOnly) return false;
     return true;

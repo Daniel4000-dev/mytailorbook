@@ -584,14 +584,14 @@ export const FULL_BODY_MEASUREMENTS: Record<'male' | 'female', StyleMeasureSpec>
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: 'home', tourId: 'home' },
-  { label: 'Calendar', href: '/calendar', icon: 'calendar_month', hideFromBottomNav: true },
-  { label: 'Production', href: '/production', icon: 'precision_manufacturing', tourId: 'production' },
+  { label: 'Production', href: '/production', icon: 'precision_manufacturing', tourId: 'production', bespokeOnly: true },
   { label: 'Stock / POS', href: '/stock', icon: 'storefront', ownerOnly: true, rtwOnly: true, tourId: 'stock' },
+  { label: 'Calendar', href: '/calendar', icon: 'calendar_month', tourId: 'calendar', hideFromBottomNavModes: ['bespoke', 'hybrid'] },
   { label: 'Fittings', href: '/calendar?filter=fitting', icon: 'calendar_today', tourId: 'fittings', bespokeOnly: true },
   { label: 'Lookbooks', href: '/catalogues', icon: 'collections_bookmark', ownerOnly: true, hideFromBottomNav: true },
   { label: 'Tailor Circle', href: '/circle', icon: 'groups', ownerOnly: true, tourId: 'circle', hideFromBottomNav: true, bespokeOnly: true },
   { label: 'Fabrics', href: '/fabrics', icon: 'texture', tourId: 'fabrics', hideFromBottomNav: true },
-  { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers', bespokeOnly: true },
+  { label: 'Customers', href: '/customers', icon: 'group', ownerOnly: true, tourId: 'customers' },
   { label: 'Collections', href: '/collections', icon: 'account_balance_wallet', ownerOnly: true, hideFromBottomNav: true },
   { label: 'Reconciliation', href: '/reconciliation', icon: 'point_of_sale', ownerOnly: true, hideFromBottomNav: true },
   { label: 'Settings', href: '/settings', icon: 'settings', ownerOnly: true, tourId: 'settings', hideFromBottomNav: true },

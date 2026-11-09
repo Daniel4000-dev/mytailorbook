@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import type { Order } from '@/lib/types';
@@ -69,6 +69,20 @@ export default function OwnerDashboard({
     ? orders.length === 0 && showroomMetrics.totalPieces === 0
     : orders.length === 0;
 
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const todayRegisterSales = useMemo(() => {
+    return orders.filter((o) => {
+      const orderDate = o.createdAt ? new Date(o.createdAt).toISOString().split('T')[0] : '';
+      return orderDate === todayStr;
+    });
+  }, [orders, todayStr]);
+
+  const recentRegisterSales = useMemo(() => {
+    if (todayRegisterSales.length > 0) return todayRegisterSales.slice(0, 5);
+    return orders.slice(0, 5);
+  }, [orders, todayRegisterSales]);
+
   return (
     <>
       {/* 1. Unified Atelier Command Hero Surface */}
@@ -78,19 +92,36 @@ export default function OwnerDashboard({
 
         {/* Sartorial Heritage Watermark Crest */}
         <div className={styles.heroWatermark} aria-hidden="true">
-          <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="90" cy="90" r="82" stroke="white" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
-            <circle cx="90" cy="90" r="70" stroke="white" strokeWidth="0.7" opacity="0.3" />
-            <circle cx="90" cy="90" r="54" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity="0.35" />
-            <circle cx="90" cy="90" r="38" stroke="white" strokeWidth="0.7" opacity="0.25" />
-            <path d="M50 130L130 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-            <path d="M130 130L50 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
-            <circle cx="48" cy="132" r="14" stroke="white" strokeWidth="2" opacity="0.5" />
-            <circle cx="132" cy="132" r="14" stroke="white" strokeWidth="2" opacity="0.5" />
-            <circle cx="90" cy="90" r="4.5" fill="white" opacity="0.8" />
-            <path d="M90 20V160" stroke="white" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.45" />
-            <ellipse cx="90" cy="30" rx="3" ry="7" stroke="white" strokeWidth="1.2" opacity="0.7" />
-          </svg>
+          {isRtw ? (
+            <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="90" cy="90" r="82" stroke="white" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
+              <circle cx="90" cy="90" r="70" stroke="white" strokeWidth="0.7" opacity="0.3" />
+              <circle cx="90" cy="90" r="54" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity="0.35" />
+              {/* Boutique Hanger Hook */}
+              <path d="M90 46 C83 46 78 51 78 58 C78 65 88 67 90 75 L90 82" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.7" />
+              {/* Boutique Hanger Body & Crossbar */}
+              <path d="M90 82 L38 122 C35 124 37 128 41 128 L139 128 C143 128 145 124 142 122 Z" stroke="white" strokeWidth="2.5" strokeLinejoin="round" opacity="0.65" />
+              <line x1="46" y1="128" x2="134" y2="128" stroke="white" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.5" />
+              {/* Center Diamond Gem */}
+              <circle cx="90" cy="105" r="3.5" fill="white" opacity="0.8" />
+              {/* Vertical boutique axis */}
+              <path d="M90 20V160" stroke="white" strokeWidth="1" strokeDasharray="4 3" opacity="0.3" />
+            </svg>
+          ) : (
+            <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="90" cy="90" r="82" stroke="white" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
+              <circle cx="90" cy="90" r="70" stroke="white" strokeWidth="0.7" opacity="0.3" />
+              <circle cx="90" cy="90" r="54" stroke="white" strokeWidth="1" strokeDasharray="6 4" opacity="0.35" />
+              <circle cx="90" cy="90" r="38" stroke="white" strokeWidth="0.7" opacity="0.25" />
+              <path d="M50 130L130 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+              <path d="M130 130L50 50" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+              <circle cx="48" cy="132" r="14" stroke="white" strokeWidth="2" opacity="0.5" />
+              <circle cx="132" cy="132" r="14" stroke="white" strokeWidth="2" opacity="0.5" />
+              <circle cx="90" cy="90" r="4.5" fill="white" opacity="0.8" />
+              <path d="M90 20V160" stroke="white" strokeWidth="1.2" strokeDasharray="4 3" opacity="0.45" />
+              <ellipse cx="90" cy="30" rx="3" ry="7" stroke="white" strokeWidth="1.2" opacity="0.7" />
+            </svg>
+          )}
         </div>
 
         <div className={styles.heroHeader}>
@@ -363,6 +394,90 @@ export default function OwnerDashboard({
             loops={openLoops}
             onNavigate={onNavigate}
           />
+          {/* RTW Counter Register / Today's POS Sales */}
+          {isRtw && (
+            <div className={styles.registerCard}>
+              <div className={styles.registerHeader}>
+                <div className={styles.registerTitleRow}>
+                  <Symbol name="point_of_sale" size={16} className={styles.registerIcon} />
+                  <span className={styles.registerTitle}>Today&apos;s Counter Sales</span>
+                  {todayRegisterSales.length > 0 && (
+                    <span className={styles.registerBadge}>
+                      {todayRegisterSales.length} {todayRegisterSales.length === 1 ? 'Sale' : 'Sales'}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className={styles.teamBenchLink}
+                  onClick={() => onNavigate(ROUTES.stock)}
+                >
+                  <span>Open POS</span>
+                  <Symbol name="chevron_right" size={14} />
+                </button>
+              </div>
+
+              {recentRegisterSales.length > 0 ? (
+                <div className={styles.registerList}>
+                  {recentRegisterSales.map((sale) => {
+                    const timeLabel = sale.createdAt
+                      ? new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : '';
+                    const cleanDetails = (sale.orderDetails || '')
+                      .replace(/^POS Sale:\s*/i, '')
+                      .slice(0, 42);
+                    const rawMethod = (sale.payments?.[0] as { method?: string } | undefined)?.method;
+                    const paymentMethod = rawMethod
+                      ? (rawMethod === 'pos' ? 'Card' : rawMethod.toUpperCase())
+                      : 'PAID';
+
+                    return (
+                      <button
+                        key={sale.id}
+                        type="button"
+                        className={styles.registerRow}
+                        onClick={() => onNavigate(ROUTES.receipt(sale.id))}
+                        aria-label={`View receipt for ${sale.customerName || 'Retail Customer'}`}
+                      >
+                        <div className={styles.registerRowLeft}>
+                          <span className={styles.registerCustomer}>
+                            {sale.customerName || 'Retail Walk-In'}
+                          </span>
+                          <span className={styles.registerDetails}>
+                            {timeLabel ? `${timeLabel} • ` : ''}{cleanDetails || 'Counter purchase'}
+                          </span>
+                        </div>
+                        <div className={styles.registerRowRight}>
+                          <span className={styles.registerAmount}>
+                            {formatCurrency(sale.totalBill, currentShop?.currency)}
+                          </span>
+                          <span className={styles.registerMethodBadge}>
+                            {paymentMethod}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className={styles.registerEmptyState}>
+                  <Symbol name="receipt_long" size={24} style={{ opacity: 0.4 }} />
+                  <span className={styles.registerEmptyText}>
+                    No counter sales recorded yet today. Ring up sales at the counter with Counter POS to generate instant digital receipts.
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.registerPosBtn}
+                    onClick={() => onNavigate(ROUTES.stock)}
+                  >
+                    <Symbol name="point_of_sale" size={16} />
+                    <span>Open Counter POS</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {teamSnapshot.length === 0 ? (
             <div className={styles.teamInviteCard}>
               <div className={styles.teamInviteLeft}>
@@ -414,7 +529,7 @@ export default function OwnerDashboard({
                   <button
                     key={staff.uid}
                     className={styles.teamCard}
-                    onClick={() => onNavigate(`/production?staff=${staff.uid}`)}
+                    onClick={() => onNavigate(isRtw ? '/settings/staff' : `/production?staff=${staff.uid}`)}
                     type="button"
                   >
                     <div className={styles.teamCardLeft}>
@@ -433,26 +548,38 @@ export default function OwnerDashboard({
                         <div className={styles.teamNameRow}>
                           <span className={styles.teamName}>{staff.name}</span>
                           <span className={styles.craftBadge}>
-                            {CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
+                            {isRtw
+                              ? (staff.craftRole === 'general' ? 'Store Staff' : (CRAFT_ROLE_LABELS[staff.craftRole || 'general'] || 'Store Staff'))
+                              : CRAFT_ROLE_LABELS[staff.craftRole || 'tailor']}
                           </span>
                         </div>
                         <span className={styles.teamCompletedNote}>
-                          {completed} completed piece{completed === 1 ? '' : 's'}
+                          {isRtw
+                            ? (staff.active !== false ? 'Active' : 'Deactivated')
+                            : `${completed} completed piece${completed === 1 ? '' : 's'}`}
                         </span>
                       </div>
                     </div>
 
                     <div className={styles.teamCardRight}>
-                      <div className={styles.teamBadges}>
-                        <span className={styles.teamActiveBadge}>
-                          {active} Active
-                        </span>
-                        {overdue > 0 && (
-                          <span className={styles.teamOverdueBadge}>
-                            {overdue} Overdue
+                      {isRtw ? (
+                        <div className={styles.teamBadges}>
+                          <span className={styles.teamActiveBadge}>
+                            {staff.craftRole === 'general' ? 'Store Staff' : (CRAFT_ROLE_LABELS[staff.craftRole || 'general'] || 'Store Staff')}
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className={styles.teamBadges}>
+                          <span className={styles.teamActiveBadge}>
+                            {active} Active
+                          </span>
+                          {overdue > 0 && (
+                            <span className={styles.teamOverdueBadge}>
+                              {overdue} Overdue
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <Symbol name="chevron_right" size={16} className={styles.teamChevron} />
                     </div>
                   </button>

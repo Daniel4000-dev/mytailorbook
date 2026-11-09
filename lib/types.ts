@@ -363,6 +363,7 @@ export interface StatusChange {
 export interface PaymentRecord {
   id: string;
   amount: number;
+  method?: PaymentMethod | string;
   note?: string;
   recordedBy: string;      // User uid
   recordedByName: string;  // User display name
@@ -546,6 +547,8 @@ export interface NavItem {
   ownerOnly?: boolean;
   /** Sidebar only — omit from the mobile bottom nav to prevent crowding */
   hideFromBottomNav?: boolean;
+  /** Business modes where this item should be hidden from bottom nav (e.g. ['bespoke', 'hybrid']) */
+  hideFromBottomNavModes?: ('bespoke' | 'rtw' | 'hybrid')[];
   /** Only show in RTW or Hybrid mode */
   rtwOnly?: boolean;
   /** Only show in Bespoke or Hybrid mode */

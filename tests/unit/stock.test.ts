@@ -572,57 +572,77 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
   });
 
   describe('Business Mode Navigation & Flow Separation', () => {
-    it('filters out Bespoke-only items (Fittings, Customers) and retains Stock/POS in pure RTW mode', () => {
+    it('filters out Bespoke-only items (Production, Fittings) and retains Stock/POS, Calendar, and Customers in pure RTW mode', () => {
       const mode: string = 'rtw';
       const visible = NAV_ITEMS.filter((item) => {
         if (item.hideFromBottomNav) return false;
+        if (item.hideFromBottomNavModes?.includes(mode as 'bespoke' | 'rtw' | 'hybrid')) return false;
         if (mode === 'bespoke' && item.rtwOnly) return false;
         if (mode === 'rtw' && item.bespokeOnly) return false;
         return true;
       });
 
       const labels = visible.map((i) => i.label);
+      expect(labels).toContain('Home');
       expect(labels).toContain('Stock / POS');
+      expect(labels).toContain('Calendar');
+      expect(labels).toContain('Customers');
+      expect(labels).not.toContain('Production');
       expect(labels).not.toContain('Fittings');
-      expect(labels).not.toContain('Customers');
     });
 
-    it('filters out RTW-only items (Stock/POS) and retains Bespoke items (Fittings, Customers) in pure Bespoke mode', () => {
+    it('filters out RTW-only items (Stock/POS) and retains Bespoke items (Production, Fittings, Customers) in pure Bespoke mode', () => {
       const mode: string = 'bespoke';
       const visible = NAV_ITEMS.filter((item) => {
         if (item.hideFromBottomNav) return false;
+        if (item.hideFromBottomNavModes?.includes(mode as 'bespoke' | 'rtw' | 'hybrid')) return false;
         if (mode === 'bespoke' && item.rtwOnly) return false;
         if (mode === 'rtw' && item.bespokeOnly) return false;
         return true;
       });
 
       const labels = visible.map((i) => i.label);
-      expect(labels).not.toContain('Stock / POS');
+      expect(labels).toContain('Home');
+      expect(labels).toContain('Production');
       expect(labels).toContain('Fittings');
       expect(labels).toContain('Customers');
+      expect(labels).not.toContain('Stock / POS');
+      expect(labels).not.toContain('Calendar');
     });
 
     it('retains both Bespoke and RTW navigation items in Hybrid mode without collision', () => {
       const mode: string = 'hybrid';
       const visible = NAV_ITEMS.filter((item) => {
         if (item.hideFromBottomNav) return false;
+        if (item.hideFromBottomNavModes?.includes(mode as 'bespoke' | 'rtw' | 'hybrid')) return false;
         if (mode === 'bespoke' && item.rtwOnly) return false;
         if (mode === 'rtw' && item.bespokeOnly) return false;
         return true;
       });
 
       const labels = visible.map((i) => i.label);
+      expect(labels).toContain('Home');
+      expect(labels).toContain('Production');
       expect(labels).toContain('Stock / POS');
       expect(labels).toContain('Fittings');
       expect(labels).toContain('Customers');
+      expect(labels).not.toContain('Calendar');
     });
 
-    it('filters out Tailor Circle for RTW in sidebar, but preserves it for Bespoke and Hybrid', () => {
+    it('filters out Production and Tailor Circle for RTW in sidebar, but preserves them for Bespoke and Hybrid', () => {
       const rtwSidebar = NAV_ITEMS.filter((item) => !(item.bespokeOnly && 'rtw' === 'rtw'));
+      expect(rtwSidebar.map((i) => i.label)).not.toContain('Production');
       expect(rtwSidebar.map((i) => i.label)).not.toContain('Tailor Circle');
+      expect(rtwSidebar.map((i) => i.label)).toContain('Calendar');
+      expect(rtwSidebar.map((i) => i.label)).toContain('Stock / POS');
+      expect(rtwSidebar.map((i) => i.label)).toContain('Customers');
 
       const bespokeSidebar = NAV_ITEMS.filter((item) => !(item.rtwOnly && 'bespoke' === 'bespoke'));
+      expect(bespokeSidebar.map((i) => i.label)).toContain('Production');
       expect(bespokeSidebar.map((i) => i.label)).toContain('Tailor Circle');
+      expect(bespokeSidebar.map((i) => i.label)).toContain('Calendar');
+      expect(bespokeSidebar.map((i) => i.label)).toContain('Customers');
+      expect(bespokeSidebar.map((i) => i.label)).not.toContain('Stock / POS');
 
       const hybridSidebar = NAV_ITEMS.filter((item) => {
         const mode: string = 'hybrid';
@@ -630,7 +650,11 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
         if (item.rtwOnly && mode === 'bespoke') return false;
         return true;
       });
+      expect(hybridSidebar.map((i) => i.label)).toContain('Production');
       expect(hybridSidebar.map((i) => i.label)).toContain('Tailor Circle');
+      expect(hybridSidebar.map((i) => i.label)).toContain('Calendar');
+      expect(hybridSidebar.map((i) => i.label)).toContain('Stock / POS');
+      expect(hybridSidebar.map((i) => i.label)).toContain('Customers');
     });
   });
 
