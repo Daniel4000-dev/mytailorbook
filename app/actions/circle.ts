@@ -389,7 +389,7 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
       }
     }
 
-    if (isMockAllowed || pulses.length < 2) {
+    if (isMockAllowed && pulses.length < 2) {
       const mockTelemetry: PulseActivity[] = [
         {
           id: 'pulse-mock-1',

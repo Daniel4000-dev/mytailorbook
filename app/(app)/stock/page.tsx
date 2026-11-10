@@ -61,7 +61,7 @@ interface StyleGroup {
 function StockContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { currentShop, customers, refreshShop, isLoaded: dataLoaded } = useData();
+  const { currentShop, customers, staffMembers, refreshShop, isLoaded: dataLoaded } = useData();
   const { user, loading: authLoading } = useAuth();
   const { showToast } = useToast();
 
@@ -141,6 +141,9 @@ function StockContent() {
   const [customerNameInput, setCustomerNameInput] = useState('');
   const [customerPhoneInput, setCustomerPhoneInput] = useState('');
   const [notesInput, setNotesInput] = useState('');
+  const [sendToAlterations, setSendToAlterations] = useState(false);
+  const [alterationNotes, setAlterationNotes] = useState('');
+  const [alterationStaffId, setAlterationStaffId] = useState('');
   const [completedSale, setCompletedSale] = useState<{
     orderId: string;
     totalAmount: number;
@@ -148,6 +151,7 @@ function StockContent() {
     customerPhone?: string;
     paymentMethod: string;
     itemCount: number;
+    hasAlteration?: boolean;
   } | null>(null);
 
   // Editing individual item
@@ -463,6 +467,9 @@ function StockContent() {
     setCustomerNameInput('');
     setCustomerPhoneInput('');
     setNotesInput('');
+    setSendToAlterations(false);
+    setAlterationNotes('');
+    setAlterationStaffId('');
   };
 
   const handleCheckout = async () => {
@@ -478,12 +485,20 @@ function StockContent() {
       ? (customers || []).find(c => c.fullName.toLowerCase() === customerNameInput.trim().toLowerCase())
       : null;
 
+    const assignedStaff = (staffMembers || []).find(s => s.uid === alterationStaffId);
+
     const saleOptions = {
       customerId: matchedCustomer?.id,
       customerName: customerMode === 'attach' && customerNameInput.trim() ? customerNameInput.trim() : 'Retail Walk-In',
       customerPhone: customerMode === 'attach' && customerPhoneInput.trim() ? customerPhoneInput.trim() : undefined,
       discountAmount: cappedDiscount > 0 ? cappedDiscount : undefined,
       notes: customerMode === 'attach' && notesInput.trim() ? notesInput.trim() : undefined,
+      alterations: sendToAlterations ? {
+        required: true,
+        notes: alterationNotes.trim() || 'Showroom Fitting Adjustment',
+        assignedStaffId: alterationStaffId || undefined,
+        assignedStaffName: assignedStaff?.name || undefined
+      } : undefined
     };
 
     const res = await processSaleAction(currentShop.id, cart, paymentMethod, user.uid, saleOptions);
@@ -491,7 +506,12 @@ function StockContent() {
       showToast(res.error, 'error');
     } else if (res.orderId) {
       triggerHaptic('success');
-      showToast('Sale completed successfully!', 'success');
+      showToast(
+        sendToAlterations
+          ? 'Sale recorded & routed to sewing bench for alterations!'
+          : 'Sale completed successfully!',
+        'success'
+      );
       setCompletedSale({
         orderId: res.orderId,
         totalAmount: res.totalAmount ?? cartTotal,
@@ -499,6 +519,7 @@ function StockContent() {
         customerPhone: res.customerPhone || saleOptions.customerPhone,
         paymentMethod,
         itemCount: cart.reduce((sum, item) => sum + item.quantity, 0),
+        hasAlteration: sendToAlterations,
       });
       setCart([]);
       loadStock();
@@ -1107,6 +1128,12 @@ function StockContent() {
                   <span>Receipt ID</span>
                   <code>#{completedSale.orderId.slice(0, 8)}</code>
                 </div>
+                {completedSale.hasAlteration && (
+                  <div className={styles.saleMetaRow} style={{ color: 'var(--sf-color-primary, #047857)' }}>
+                    <span>Workshop Route</span>
+                    <strong>Sent to Sewing Bench</strong>
+                  </div>
+                )}
               </div>
 
               <div className={styles.saleSuccessActions}>
@@ -1254,6 +1281,45 @@ function StockContent() {
                     <Symbol name="person_add" size={16} />
                     VIP / Client
                   </button>
+                </div>
+
+                {/* Hybrid Bridge: Walk-in Alteration / Tailoring Integration */}
+                <div style={{ marginTop: '16px', padding: '12px', borderRadius: 'var(--sf-radius-md)', background: sendToAlterations ? 'rgba(4, 120, 87, 0.08)' : 'var(--sf-bg-surface-sunken)', border: sendToAlterations ? '1px solid var(--sf-color-primary)' : '1px solid var(--sf-border-light)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', color: 'var(--sf-text-primary)' }}>
+                    <input
+                      type="checkbox"
+                      checked={sendToAlterations}
+                      onChange={e => setSendToAlterations(e.target.checked)}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--sf-color-primary)' }}
+                    />
+                    <span>Attach Alterations (Send to Workshop Bench)</span>
+                  </label>
+                  <p style={{ margin: '4px 0 0 24px', fontSize: '11px', color: 'var(--sf-text-secondary)' }}>
+                    Customer needs adjustments (hemming, waist, sleeve). Automatically places this order in Sewing on the Production Board.
+                  </p>
+
+                  {sendToAlterations && (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: '24px' }}>
+                      <Input
+                        label="Alteration Specs"
+                        placeholder="e.g. Hem trousers 1.5 inches, take in waist 1 inch"
+                        value={alterationNotes}
+                        onChange={e => setAlterationNotes(e.target.value)}
+                        autoFocus
+                      />
+                      {staffMembers && staffMembers.length > 0 && (
+                        <Select
+                          label="Assign Alteration Tailor"
+                          value={alterationStaffId}
+                          onChange={e => setAlterationStaffId(e.target.value)}
+                          options={[
+                            { value: '', label: 'Unassigned (General Bench)' },
+                            ...staffMembers.filter(s => s.active !== false).map(s => ({ value: s.uid, label: s.name }))
+                          ]}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {customerMode === 'attach' && (

@@ -389,16 +389,65 @@
 }
 
 @media print {
+  @page {
+    margin: 0;
+  }
   .page {
     background: #fff;
     padding: 0;
+    min-height: auto;
+  }
+  .actionsBar {
+    display: none !important;
   }
   .card {
     box-shadow: none;
     max-width: 100%;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+  }
+  .cardInner {
+    padding: 8px 12px;
   }
   .perforatedEdge {
-    background:
-      radial-gradient(circle at 8px 0, transparent 7px, #fff 7.5px) top / 16px 14px repeat-x;
+    display: none !important;
+  }
+
+  /* Thermal 58mm / 80mm Roll Mode */
+  .card:global(.thermal-print-mode) {
+    width: 100% !important;
+    max-width: 300px !important;
+    margin: 0 auto !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 11px !important;
+  }
+  .card:global(.thermal-print-mode) * {
+    font-family: 'Courier New', Courier, monospace !important;
+  }
+  .card:global(.thermal-print-mode) .brand {
+    font-size: 16px !important;
+    text-align: center;
+  }
+  .card:global(.thermal-print-mode) .header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .card:global(.thermal-print-mode) .brandRow {
+    flex-direction: column;
+    text-align: center;
+  }
+  .card:global(.thermal-print-mode) .receiptMeta {
+    text-align: center;
+    margin-top: 6px;
+    align-items: center;
+  }
+  .card:global(.thermal-print-mode) .amountHeroValue {
+    font-size: 20px !important;
+  }
+  .card:global(.thermal-print-mode) .amountHero {
+    padding: 10px 0;
+    text-align: center;
   }
 }

@@ -23,11 +23,7 @@
 }
 
 /* ── Hero — full-bleed editorial photo, cinematic scrim, centered overlay
-   copy. Height is deliberately not full-viewport: the source photo is a
-   moderate-resolution lifestyle shot, not a 4K plate, so keeping the
-   section shorter than 100vh limits how much it has to be upscaled
-   before the scrim gradient (which does most of the legibility work
-   anyway) takes over. ── */
+   copy. ── */
 .hero {
   position: relative;
   min-height: 78vh;
@@ -54,7 +50,7 @@
 }
 
 .heroContent {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   padding: var(--sf-space-3xl) var(--sf-margin-desktop);
   text-align: center;
@@ -80,7 +76,7 @@
 .heroHeadline {
   font-family: var(--font-fraunces), serif;
   letter-spacing: var(--sf-tracking-display);
-  font-size: clamp(2.75rem, 6vw, 4.25rem);
+  font-size: clamp(2.5rem, 5.5vw, 4.1rem);
   font-weight: 600;
   line-height: 1.08;
   color: #ffffff;
@@ -96,8 +92,8 @@
 .heroSubhead {
   font-size: var(--sf-text-lg);
   line-height: var(--sf-leading-relaxed);
-  color: rgba(255, 255, 255, 0.85);
-  max-width: 560px;
+  color: rgba(255, 255, 255, 0.88);
+  max-width: 600px;
   margin: 0 auto var(--sf-space-xl);
 }
 
@@ -127,18 +123,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.ctaSecondaryOnPhoto:hover {
-  background: rgba(255, 255, 255, 0.16);
-  transform: translateY(-1px);
-  /* Without this, the global a:hover rule (app/globals.css) overrides
-     this link's own text color on hover — every marketing CTA is a
-     Next.js Link, i.e. an <a>, and a:hover's specificity beats a single
-     class selector. Left unset, hovering .ctaPrimary/.ctaPrimaryLight
-     below turns their text the same emerald as their background,
-     making it unreadable. */
-  color: #ffffff;
-}
+  .ctaSecondaryOnPhoto:hover {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+    color: #ffffff;
+  }
 }
 
 .ctaSecondaryOnPhoto:active {
@@ -146,9 +135,7 @@
   transition: transform 100ms ease-out;
 }
 
-/* ── Proof strip — real product screenshots floating just under the hero,
-   Galilee-style overlapping cards proving the product instead of just
-   describing it. ── */
+/* ── Proof strip — real product screenshots floating just under the hero ── */
 .proofStrip {
   max-width: var(--sf-max-width-desktop);
   margin: -64px auto 0;
@@ -176,12 +163,6 @@
   background: var(--sf-bg-primary);
 }
 
-/* Light/dark screenshot pair — swapped by theme so the card's own
-   background (which already follows --sf-bg-surface) never has to sit
-   behind a screenshot in the wrong theme. Mirrors the tri-state pattern
-   used elsewhere (see PortfolioTemplate.module.css): explicit dark/light
-   choice via [data-theme], falling back to the OS preference when the
-   visitor hasn't chosen (no attribute at all). */
 .proofImageLight {
   display: block;
 }
@@ -202,6 +183,7 @@
 :root[data-theme='dark'] .proofImageLight {
   display: none;
 }
+
 :root[data-theme='dark'] .proofImageDark {
   display: block;
 }
@@ -223,16 +205,12 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.ctaPrimary:hover,
-.ctaPrimaryLight:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 14px 32px rgba(67, 56, 202, 0.3);
-  /* See .ctaSecondaryOnPhoto:hover above — without this, the global
-     a:hover rule turns this text emerald on hover, same as the emerald
-     background, making it disappear. */
-  color: var(--sf-text-on-accent);
-}
+  .ctaPrimary:hover,
+  .ctaPrimaryLight:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 14px 32px rgba(67, 56, 202, 0.3);
+    color: var(--sf-text-on-accent);
+  }
 }
 
 .ctaPrimary:active,
@@ -241,39 +219,27 @@
   transition: transform 100ms ease-out;
 }
 
-.ctaSecondaryDark {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sf-space-sm);
-  height: 52px;
-  padding: 0 var(--sf-space-xl);
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-text-on-accent);
-  color: var(--sf-accent-emerald);
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
-  transition: transform var(--sf-transition-fast);
+.ctaPrimary:focus-visible,
+.ctaPrimaryLight:focus-visible,
+.ctaSecondaryOnPhoto:focus-visible {
+  outline: 2px solid var(--sf-accent-emerald);
+  outline-offset: 3px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.ctaSecondaryDark:hover {
-  transform: translateY(-2px) scale(1.02);
-  color: var(--sf-accent-emerald);
-}
-}
-
-.ctaSecondaryDark:active {
-  transform: scale(0.97);
-  transition: transform 100ms ease-out;
-}
-
-/* ── Pain points ── */
+/* ── Pain points & Step Grids ── */
 .painSection {
   max-width: var(--sf-max-width-desktop);
   margin: 0 auto;
   padding: var(--sf-space-3xl) var(--sf-margin-desktop);
   text-align: center;
+}
+
+.sectionSubhead {
+  font-size: var(--sf-text-base);
+  line-height: var(--sf-leading-relaxed);
+  color: var(--sf-text-secondary);
+  max-width: 580px;
+  margin: calc(-1 * var(--sf-space-sm)) auto var(--sf-space-xl);
 }
 
 .painGrid {
@@ -496,6 +462,78 @@
   font-weight: 700;
 }
 
+/* ── FAQ Section (clean, spacious accordion) ── */
+.faqSection {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--sf-space-2xl) var(--sf-margin-desktop) var(--sf-space-3xl);
+}
+
+.faqHeader {
+  text-align: center;
+  margin-bottom: var(--sf-space-xl);
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.faqItem {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-xl);
+  padding: 0 var(--sf-space-xl);
+  box-shadow: var(--sf-shadow-xs);
+}
+
+.faqItem[open] {
+  border-color: var(--sf-accent-emerald);
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  min-block-size: 56px;
+  padding: var(--sf-space-md) 0;
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqQuestion:focus-visible {
+  outline: 2px solid var(--sf-accent-emerald);
+  outline-offset: 2px;
+}
+
+.faqChevron {
+  color: var(--sf-text-tertiary);
+  flex-shrink: 0;
+  transition: transform var(--sf-transition-fast);
+}
+
+.faqItem[open] .faqChevron {
+  transform: rotate(180deg);
+  color: var(--sf-accent-emerald);
+}
+
+.faqAnswer {
+  margin: 0;
+  padding: 0 0 var(--sf-space-lg);
+  font-size: var(--sf-text-sm);
+  line-height: var(--sf-leading-relaxed);
+  color: var(--sf-text-secondary);
+}
+
 /* ── Final CTA — photo-backed, bookends the hero ── */
 .finalCta {
   position: relative;
@@ -546,8 +584,8 @@
 @media (max-width: 900px) {
   .painSection,
   .featuresSection,
-  .portfolioSection,
   .pricingTeaser,
+  .faqSection,
   .finalCta {
     padding-left: var(--sf-margin-mobile);
     padding-right: var(--sf-margin-mobile);
@@ -589,15 +627,6 @@
   }
 
   .featureImageWrap {
-    order: -1;
-  }
-
-  .portfolioInner {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-
-  .portfolioShotWrap {
     order: -1;
   }
 

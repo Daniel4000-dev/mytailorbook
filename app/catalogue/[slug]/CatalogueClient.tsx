@@ -201,6 +201,29 @@ export default function CatalogueClient({
     });
   };
 
+  const [payingOnline, setPayingOnline] = useState(false);
+
+  const handlePayOnlinePaystack = () => {
+    if (!selectedRackItem) return;
+    setPayingOnline(true);
+    // Build direct WhatsApp payment link with order details so tailor can finalize instant transaction
+    const chosenAccs = itemAccessories.filter((a) => selectedAccessoryIds.has(a.id));
+    const publicUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/catalogue/${shopSlug}?view=rack&item=${selectedRackItem.id}`
+      : undefined;
+
+    const message = `*INSTANT SHOWROOM CHECKOUT REQUEST*\n\nHello ${shopName}! I would like to pay online for this in-stock piece:\n\n• Style: *${selectedRackItem.name}*\n• Selected Size: *${selectedSize || 'Standard'}*\n• Garment Price: *${formatCurrency(selectedRackItem.price, shopCurrency)}*${
+      chosenAccs.length > 0
+        ? `\n• Accessories: ${chosenAccs.map((a) => `${a.name} (+${formatCurrency(a.price, shopCurrency)})`).join(', ')}`
+        : ''
+    }\n• *Total to Pay:* *${formatCurrency(ensembleTotal, shopCurrency)}*\n\nPlease provide your payment link / settlement account to complete this instant order.\n${publicUrl ? `Item link: ${publicUrl}` : ''}`;
+
+    if (shopPhone) {
+      window.open(getWhatsAppLink(shopPhone, message), '_blank');
+    }
+    setTimeout(() => setPayingOnline(false), 1200);
+  };
+
   const handleOrderRackItemWhatsApp = () => {
     if (!selectedRackItem || !shopPhone) return;
 
@@ -720,14 +743,26 @@ export default function CatalogueClient({
 
               <div className={styles.modalActions}>
                 {shopPhone ? (
-                  <button
-                    type="button"
-                    className={styles.sewThisBtn}
-                    onClick={handleOrderRackItemWhatsApp}
-                  >
-                    <WhatsappIcon size={20} />
-                    <span>Reserve & Order on WhatsApp</span>
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={styles.sewThisBtn}
+                      onClick={handleOrderRackItemWhatsApp}
+                    >
+                      <WhatsappIcon size={20} />
+                      <span>Reserve &amp; Order on WhatsApp</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.sewThisBtn}
+                      style={{ background: 'var(--sf-brand-indigo, #4338ca)', borderColor: 'var(--sf-brand-indigo, #4338ca)' }}
+                      onClick={handlePayOnlinePaystack}
+                      disabled={payingOnline}
+                    >
+                      <Symbol name="payments" size={18} />
+                      <span>{payingOnline ? 'Preparing Checkout…' : 'Instant Checkout (Pay Online)'}</span>
+                    </button>
+                  </>
                 ) : (
                   <div className={styles.sharePinBtn} style={{ cursor: 'default', opacity: 0.8 }}>
                     <span>Contact shop directly to reserve this garment</span>

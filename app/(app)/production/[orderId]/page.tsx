@@ -23,7 +23,7 @@ import Input from '@/components/ui/Input/Input';
 import MoneyInput from '@/components/ui/MoneyInput/MoneyInput';
 import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
+import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus, isMockDataAllowed } from '@/lib/constants';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import { findByIdOrSlug } from '@/lib/slugs';
@@ -64,9 +64,12 @@ export default function OrderDetailPage() {
   const isDesktop = useIsDesktop();
   const [activeTab, setActiveTab] = useState<DetailTab>('spec');
 
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const order =
     findByIdOrSlug(orders, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) ||
-    findByIdOrSlug(MOCK_ORDERS, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) ||
+    (isMockAllowed
+      ? findByIdOrSlug(MOCK_ORDERS, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`)
+      : null) ||
     null;
   const customer = order ? customers.find((c) => c.id === order.customerId) || null : null;
   const resolvedOrderId = order?.id || orderId;

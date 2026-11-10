@@ -25,6 +25,7 @@ function makeFakeClient(responses: Record<string, unknown[]>) {
     const chain = {
       select: () => chain,
       eq: () => chain,
+      neq: () => chain,
       in: () => chain,
       gte: () => chain,
       single: () => Promise.resolve(result),

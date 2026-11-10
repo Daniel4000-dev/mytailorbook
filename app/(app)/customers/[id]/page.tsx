@@ -26,7 +26,7 @@ import MeasurementHistorySheet from '../_components/MeasurementHistorySheet';
 import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
-import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
+import { GARMENT_STYLES, STATUS_CONFIG, isMockDataAllowed } from '@/lib/constants';
 import { getStoredMockCustomers, saveMockCustomers, MOCK_CUSTOMERS, MOCK_ORDERS } from '@/lib/mockCustomers';
 import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
@@ -47,7 +47,8 @@ interface Point {
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const router = useRouter();
-  const { isOwner, loading: authLoading } = useAuth();
+  const { user, isOwner, loading: authLoading } = useAuth();
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const { customers, orders, currentShop, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer, isDemoMode } = useData();
 
   if (authLoading || !isLoaded) {
@@ -68,8 +69,10 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
 
   const customer =
     findByIdOrSlug(customers, id, (c) => c.fullName) ||
-    findByIdOrSlug(getStoredMockCustomers(), id, (c) => c.fullName) ||
-    findByIdOrSlug(MOCK_CUSTOMERS, id, (c) => c.fullName);
+    (isMockAllowed
+      ? findByIdOrSlug(getStoredMockCustomers(), id, (c) => c.fullName) ||
+        findByIdOrSlug(MOCK_CUSTOMERS, id, (c) => c.fullName)
+      : null);
 
   if (!customer) {
     return (
@@ -79,7 +82,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const effectiveOrders = orders.length > 0 ? orders : MOCK_ORDERS;
+  const effectiveOrders = orders.length > 0 ? orders : isMockAllowed ? MOCK_ORDERS : [];
 
   const handleUpdateMeasurements = async (customerId: string, newMeasurements: Measurements) => {
     if (customerId.startsWith('mock-')) {

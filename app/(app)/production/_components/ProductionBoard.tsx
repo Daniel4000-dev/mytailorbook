@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
+import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus, isMockDataAllowed } from '@/lib/constants';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
@@ -38,6 +38,7 @@ type OpFilter = 'all' | 'rush' | 'due' | 'hold' | 'unpaid';
 
 export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { user } = useAuth();
+  const isMockAllowed = isMockDataAllowed(user?.email);
   const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, exceptions, isDemoMode, toggleDemoMode } = useData();
   const { showToast } = useToast();
   const router = useRouter();
@@ -665,7 +666,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   return (
     <>
       {/* Atelier Preview Mode Banner */}
-      {isDemoMode && (
+      {isMockAllowed && isDemoMode && (
         <div className={styles.demoBanner}>
           <div className={styles.demoBannerLeft}>
             <Symbol name="visibility" size={16} />
@@ -684,7 +685,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       )}
 
       {/* Empty State Help: Offer sample orders preview if atelier floor is currently clear */}
-      {!isDemoMode && orders.filter((o) => o.status !== 'Delivered').length === 0 && (
+      {isMockAllowed && !isDemoMode && orders.filter((o) => o.status !== 'Delivered').length === 0 && (
         <div className={styles.emptyPromptBanner}>
           <span>Want to explore the Kanban board and cards with sample bespoke garments?</span>
           <button

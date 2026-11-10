@@ -12,7 +12,13 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { scrollContentToTop } from '@/lib/scrollToTop';
 import { initializeSubscription, confirmSubscriptionPayment, startFreeTrial, confirmFreeTrial, cancelSubscriptionAction, mockToggleSubscription } from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
-import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, TRIAL_VERIFICATION_AMOUNT_NGN } from '@/lib/subscription';
+import {
+  PREMIUM_MONTHLY_PRICE_NGN,
+  PREMIUM_YEARLY_PRICE_NGN,
+  TRIAL_VERIFICATION_AMOUNT_NGN,
+  PLAN_TIERS,
+  type PlanTierType,
+} from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
 import { useAuth } from '@/contexts/AuthContext';
 import styles from './page.module.css';
@@ -52,6 +58,19 @@ export default function BillingSettingsPage() {
   }, [orders]);
 
   const activeStaffCount = staffMembers.filter((s) => s.active !== false).length;
+
+  const currentMode = (currentShop?.businessMode || 'bespoke') as PlanTierType;
+  const [selectedPlanTab, setSelectedPlanTab] = useState<PlanTierType>(currentMode);
+
+  useEffect(() => {
+    if (currentShop?.businessMode) {
+      setSelectedPlanTab(currentShop.businessMode as PlanTierType);
+    }
+  }, [currentShop?.businessMode]);
+
+  const activePlanConfig = PLAN_TIERS[selectedPlanTab] || PLAN_TIERS.bespoke;
+  const planPriceMonthly = activePlanConfig.monthlyPriceNgn;
+  const planPriceYearly = activePlanConfig.yearlyPriceNgn;
 
   const [nowMs] = useState(() => Date.now());
   const graceDaysLeft = currentShop?.graceExpiresAt
@@ -208,35 +227,69 @@ export default function BillingSettingsPage() {
             </div>
           )}
 
+          {/* Plan Category Switcher: Bespoke vs RTW vs Hybrid */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {(['bespoke', 'rtw', 'hybrid'] as PlanTierType[]).map((tierKey) => {
+              const tier = PLAN_TIERS[tierKey];
+              const isSelected = selectedPlanTab === tierKey;
+              return (
+                <button
+                  key={tierKey}
+                  type="button"
+                  onClick={() => setSelectedPlanTab(tierKey)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: 'var(--sf-radius-full, 999px)',
+                    border: isSelected ? '1px solid var(--sf-color-primary, #047857)' : '1px solid var(--sf-border-light, #e5e7eb)',
+                    background: isSelected ? 'var(--sf-color-primary, #047857)' : 'var(--sf-bg-surface, #ffffff)',
+                    color: isSelected ? '#ffffff' : 'var(--sf-text-secondary, #4b5563)',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {tier.name}
+                </button>
+              );
+            })}
+          </div>
+
           <div className={`${styles.planCard} ${styles.planCardHighlight}`}>
             <div className={styles.planCardHeader}>
-              <span className={styles.planName}>Premium</span>
-              <span className={styles.planBadge}>Recommended</span>
+              <div>
+                <span className={styles.planName}>{activePlanConfig.name}</span>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--sf-text-secondary)' }}>
+                  {activePlanConfig.tagline}
+                </p>
+              </div>
+              <span className={styles.planBadge}>
+                {selectedPlanTab === currentMode ? 'Your Atelier Model' : 'Available Plan'}
+              </span>
             </div>
 
             {billingInterval === 'monthly' ? (
               <span className={styles.planPrice}>
-                ₦{PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}
+                ₦{planPriceMonthly.toLocaleString()}
                 <span className={styles.planPriceUnit}>/month</span>
               </span>
             ) : (
               <span className={styles.planPrice}>
-                ₦{PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}
+                ₦{planPriceYearly.toLocaleString()}
                 <span className={styles.planPriceUnit}>/year</span>
               </span>
             )}
             {billingInterval === 'yearly' && (
               <span className={styles.priceSubtext}>
-                Pay for 10 months, get 12 — vs. ₦{(PREMIUM_MONTHLY_PRICE_NGN * 12).toLocaleString()}/year billed monthly.
+                Pay for 10 months, get 12 — vs. ₦{(planPriceMonthly * 12).toLocaleString()}/year billed monthly.
               </span>
             )}
 
             <ul className={styles.planFeatures}>
-              <li>Everything in Free</li>
-              <li><strong>Unlimited orders</strong></li>
-              <li><strong>Staff accounts</strong></li>
-              <li><strong>Analytics &amp; insights</strong></li>
-              <li>Badge removed from your public pages</li>
+              {activePlanConfig.features.map((feat, idx) => (
+                <li key={idx}><strong>{feat}</strong></li>
+              ))}
               <li>Priority support</li>
             </ul>
             {currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing' ? (
@@ -250,13 +303,13 @@ export default function BillingSettingsPage() {
             ) : (
               <Button variant="primary" loading={upgrading} onClick={() => handleUpgrade(billingInterval)} fullWidth>
                 {billingInterval === 'monthly'
-                  ? `Upgrade — ₦${PREMIUM_MONTHLY_PRICE_NGN.toLocaleString()}/month`
-                  : `Upgrade — ₦${PREMIUM_YEARLY_PRICE_NGN.toLocaleString()}/year`}
+                  ? `Upgrade ${activePlanConfig.name} — ₦${planPriceMonthly.toLocaleString()}/month`
+                  : `Upgrade ${activePlanConfig.name} — ₦${planPriceYearly.toLocaleString()}/year`}
               </Button>
             )}
             {trialEligible && (
               <p className={styles.priceSubtext}>
-                We place a small ₦{TRIAL_VERIFICATION_AMOUNT_NGN} card-verification charge, refunded within a few business days — it&apos;s not a fee. Free for 30 days, then ₦{(billingInterval === 'monthly' ? PREMIUM_MONTHLY_PRICE_NGN : PREMIUM_YEARLY_PRICE_NGN).toLocaleString()}/{billingInterval === 'monthly' ? 'month' : 'year'} unless you cancel — cancel anytime, before or during the trial, right from this page.
+                We place a small ₦{TRIAL_VERIFICATION_AMOUNT_NGN} card-verification charge, refunded within a few business days — it&apos;s not a fee. Free for 30 days, then ₦{(billingInterval === 'monthly' ? planPriceMonthly : planPriceYearly).toLocaleString()}/{billingInterval === 'monthly' ? 'month' : 'year'} unless you cancel — cancel anytime, before or during the trial, right from this page.
               </p>
             )}
 
@@ -286,18 +339,18 @@ export default function BillingSettingsPage() {
 
           <div className={styles.planCard}>
             <div className={styles.planCardHeader}>
-              <span className={styles.planName}>Free</span>
+              <span className={styles.planName}>Free Starter</span>
               <span className={styles.planPrice}>₦0</span>
             </div>
             <ul className={styles.planFeatures}>
               <li>Unlimited customers</li>
-              <li>Unlimited custom styles</li>
-              <li>15 orders / month</li>
-              <li>Receipts &amp; invoices</li>
-              <li>WhatsApp button, tracking link &amp; portfolio</li>
+              <li>Unlimited custom styles & rack categories</li>
+              <li><strong>{activePlanConfig.freeLimitDescription}</strong></li>
+              <li>Receipts, POS register & invoices</li>
+              <li>WhatsApp ticket, tracking link & digital showroom</li>
               <li className={styles.planFeatureMuted}>&quot;Powered by MyStitchBook&quot; badge shown</li>
               <li className={styles.planFeatureMuted}>No staff accounts</li>
-              <li className={styles.planFeatureMuted}>No analytics</li>
+              <li className={styles.planFeatureMuted}>No analytics & insights</li>
             </ul>
           </div>
 

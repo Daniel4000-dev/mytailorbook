@@ -18,6 +18,46 @@
   background: var(--sf-bg-primary);
 }
 
+/* ── Top-Left SaaS Brand Navigation Back to Home ───────────── */
+.topLeftBrandLink {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px 7px 10px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-glass-bg, rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--sf-border-light, rgba(15, 23, 42, 0.1));
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  text-decoration: none;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.topLeftBrandLink:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.16);
+}
+
+.topLeftBrandLink:active {
+  transform: scale(0.97);
+}
+
+.topLeftBrandIcon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.topLeftBrandWordmark {
+  display: block;
+}
+
 /* ── Premium Background Pattern ────────────────────────────── */
 
 .authLayout::before {

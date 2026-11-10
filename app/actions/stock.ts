@@ -208,6 +208,12 @@ export interface ProcessSaleOptions {
   customerPhone?: string;
   discountAmount?: number;
   notes?: string;
+  alterations?: {
+    required: boolean;
+    notes?: string;
+    assignedStaffId?: string;
+    assignedStaffName?: string;
+  };
 }
 
 export async function processSaleAction(
@@ -416,27 +422,33 @@ export async function processSaleAction(
     date: nowIso
   }] : [];
 
+  const hasAlterations = Boolean(options?.alterations?.required);
+  const initialStatus = hasAlterations ? 'Sewing' : 'Delivered';
+
   const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
     shop_id: shopId,
     customer_id: customerId,
     customer_name: customerName,
-    order_details: `POS Sale: ${details}${orderNote ? ` (${orderNote})` : ''}`,
+    order_details: `POS Sale: ${details}${hasAlterations ? ` [Alteration: ${options?.alterations?.notes || 'Hemming/Fit Adjustment'}]` : ''}${orderNote ? ` (${orderNote})` : ''}`,
     total_bill: totalAmount,
     deposit_paid: totalAmount,
-    status: 'Delivered',
+    status: initialStatus,
+    assigned_to: options?.alterations?.assignedStaffId || null,
+    assigned_to_name: options?.alterations?.assignedStaffName || null,
     status_history: [{
       from: 'Documented',
-      to: 'Delivered',
+      to: initialStatus,
       changedBy: cashierId || 'system',
       changedByName: cashierName,
       timestamp: nowIso
     }],
     is_internal_batch: false,
     payments: paymentRecords,
+    notes: hasAlterations && options?.alterations?.notes ? `Alteration Request: ${options.alterations.notes}` : undefined,
     metadata: {
       channel: 'pos_counter',
       sales_channel: 'pos_counter',
-      order_type: 'rtw_counter_sale',
+      order_type: hasAlterations ? 'rtw_alteration_bridge' : 'rtw_counter_sale',
       items: consolidatedItems.map(i => ({
         goodId: i.goodId,
         name: i.name,
@@ -444,7 +456,8 @@ export async function processSaleAction(
         quantity: i.quantity,
         priceAtSale: i.priceAtSale
       })),
-      discountAmount: discount
+      discountAmount: discount,
+      alterations: hasAlterations ? options?.alterations : undefined
     }
   }).select('id').single();
 

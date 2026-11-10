@@ -5,20 +5,22 @@ import JsonLd from '@/components/seo/JsonLd';
 import FeaturesPageContent from './_components/FeaturesPageContent';
 
 export const metadata: Metadata = {
-  title: `Features — ${APP_CONFIG.name}`,
+  title: `Features — ${APP_CONFIG.name} Operating System for Tailors & Fashion Houses`,
   description:
-    'A production board, digital client profiles, unlimited custom styles, public order tracking, a free portfolio page, receipts & invoices, and staff accounts when you grow.',
+    'Explore MyStitchBook features: offline customer measurement vault, fabric intake & digital cutting slips, Ready-to-Wear POS, debtors ledger, live WhatsApp tracking, and multi-branch staff roles.',
   robots: { index: true, follow: true },
   alternates: { canonical: '/features' },
   openGraph: {
-    title: `Features — ${APP_CONFIG.name}`,
-    description: 'Everything you need to run your tailoring business and delight your customers, in one place.',
+    title: `Features — ${APP_CONFIG.name} Operating System for Tailors & Fashion Houses`,
+    description:
+      'From offline measurement records and digital cutting slips to Ready-to-Wear POS, debtors ledger, and live WhatsApp order tracking.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Features — ${APP_CONFIG.name}`,
-    description: 'Everything you need to run your tailoring business and delight your customers, in one place.',
+    title: `Features — ${APP_CONFIG.name} Operating System for Tailors & Fashion Houses`,
+    description:
+      'From offline measurement records and digital cutting slips to Ready-to-Wear POS, debtors ledger, and live WhatsApp order tracking.',
   },
 };
 

@@ -75,20 +75,15 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
   const shop = {
     ...realShop,
     currency: realShop.currency || 'NGN',
-    phone: realShop.phone || '+2348030000000',
-    bio:
-      realShop.bio ||
-      DEFAULT_MOCK_PORTFOLIO.shop.bio,
-    tagline: realShop.tagline || DEFAULT_MOCK_PORTFOLIO.shop.tagline,
+    phone: realShop.phone || '',
+    bio: realShop.bio || undefined,
+    tagline: realShop.tagline || undefined,
   };
 
-  const outfits = portfolio.outfits ?? DEFAULT_MOCK_PORTFOLIO.outfits;
-  const stats = portfolio.stats ?? DEFAULT_MOCK_PORTFOLIO.stats;
-  const testimonials =
-    portfolio.testimonials && portfolio.testimonials.length > 0
-      ? portfolio.testimonials
-      : DEFAULT_MOCK_PORTFOLIO.testimonials;
-  const ratingSummary = portfolio.ratingSummary ?? DEFAULT_MOCK_PORTFOLIO.ratingSummary;
+  const outfits = portfolio.outfits ?? [];
+  const stats = portfolio.stats ?? { completed: 0, onTimePercent: null, stylesCount: 0 };
+  const testimonials = portfolio.testimonials ?? [];
+  const ratingSummary = portfolio.ratingSummary ?? null;
 
   const palette = ACCENTS[shop.portfolioAccent] || ACCENTS.indigo;
   const reduceMotion = useReducedMotion();

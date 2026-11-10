@@ -63,14 +63,13 @@ export default function CustomersPage() {
   const { currentShop, customers: liveCustomers, orders: liveOrders, isLoaded } = useData();
   const { showToast } = useToast();
 
-  const [mockCustomers, setMockCustomers] = useState<Customer[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return isMockCustomersActive() ? getStoredMockCustomers() : [];
-  });
+  const isMockAllowed = isMockDataAllowed(user?.email);
+  const [mockCustomers, setMockCustomers] = useState<Customer[]>([]);
   const [isUsingMock, setIsUsingMock] = useState(false);
 
   useEffect(() => {
-    if (liveCustomers.length > 0) {
+    if (!isMockAllowed || liveCustomers.length > 0) {
+      setMockCustomers([]);
       setIsUsingMock(false);
     } else {
       const active = isMockCustomersActive();
@@ -78,10 +77,10 @@ export default function CustomersPage() {
       setMockCustomers(stored);
       setIsUsingMock(active && stored.length > 0);
     }
-  }, [liveCustomers]);
+  }, [liveCustomers, isMockAllowed]);
 
-  const customers = isUsingMock ? mockCustomers : liveCustomers;
-  const orders = isUsingMock ? (liveOrders.length > 0 ? liveOrders : MOCK_ORDERS) : liveOrders;
+  const customers = isMockAllowed && isUsingMock ? mockCustomers : liveCustomers;
+  const orders = isMockAllowed && isUsingMock ? (liveOrders.length > 0 ? liveOrders : MOCK_ORDERS) : liveOrders;
 
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
@@ -540,7 +539,7 @@ export default function CustomersPage() {
   return (
     <PageLayout header={topBar}>
       {/* ── Sample Clients Preview Banner ──────────────────────────── */}
-      {isUsingMock && (
+      {isMockAllowed && isUsingMock && (
         <div className={styles.mockBanner}>
           <div className={styles.mockBannerText}>
             <Symbol name="visibility" size={15} />
@@ -1135,23 +1134,29 @@ export default function CustomersPage() {
             <EmptyState
               image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
               title="No customers yet"
-              description="Your customer book starts with your first order — create one or load sample workshop clients to preview the directory."
+              description={
+                isMockAllowed
+                  ? 'Your customer book starts with your first order — create one or load sample workshop clients to preview the directory.'
+                  : 'Your customer book starts with your first order — create an order or save a client to start building your workshop directory.'
+              }
               action={{ label: 'Create Order', href: ROUTES.orderNew }}
             />
-            <button
-              type="button"
-              className={styles.softPill}
-              style={{ marginTop: '-8px', marginBottom: '24px' }}
-              onClick={() => {
-                const fresh = resetMockCustomers();
-                setMockCustomers(fresh);
-                setIsUsingMock(true);
-                showToast('Sample clients loaded', 'success');
-              }}
-            >
-              <Symbol name="visibility" size={14} />
-              <span>Load Sample Clients</span>
-            </button>
+            {isMockAllowed && (
+              <button
+                type="button"
+                className={styles.softPill}
+                style={{ marginTop: '-8px', marginBottom: '24px' }}
+                onClick={() => {
+                  const fresh = resetMockCustomers();
+                  setMockCustomers(fresh);
+                  setIsUsingMock(true);
+                  showToast('Sample clients loaded', 'success');
+                }}
+              >
+                <Symbol name="visibility" size={14} />
+                <span>Load Sample Clients</span>
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>

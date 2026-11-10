@@ -258,27 +258,29 @@ export default function CataloguesPage() {
             </button>
 
             {/* Quick Demo Data Controls */}
-            {isUsingMock ? (
-              <button
-                type="button"
-                className={styles.previewBtn}
-                style={{ borderColor: 'rgba(220, 38, 38, 0.3)', color: '#DC2626' }}
-                onClick={handleWipeMock}
-                title="Wipe frontend demo data"
-              >
-                <Symbol name="delete" size={15} />
-                <span>Wipe Demo Data</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={styles.previewBtn}
-                onClick={handleResetMock}
-                title="Load sample lookbook"
-              >
-                <Symbol name="auto_awesome" size={15} />
-                <span>Load Sample Lookbook</span>
-              </button>
+            {isMockAllowed && (
+              isUsingMock ? (
+                <button
+                  type="button"
+                  className={styles.previewBtn}
+                  style={{ borderColor: 'rgba(220, 38, 38, 0.3)', color: '#DC2626' }}
+                  onClick={handleWipeMock}
+                  title="Wipe frontend demo data"
+                >
+                  <Symbol name="delete" size={15} />
+                  <span>Wipe Demo Data</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.previewBtn}
+                  onClick={handleResetMock}
+                  title="Load sample lookbook"
+                >
+                  <Symbol name="auto_awesome" size={15} />
+                  <span>Load Sample Lookbook</span>
+                </button>
+              )
             )}
           </div>
         </div>
@@ -331,24 +333,26 @@ export default function CataloguesPage() {
             <div className={styles.quickStartCard}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4 className={styles.quickStartTitle}>Popular Style Albums — Tap to Create:</h4>
-                <button
-                  type="button"
-                  onClick={handleResetMock}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--sf-brand-indigo)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <Symbol name="auto_awesome" size={13} />
-                  <span>Load Sample Lookbook</span>
-                </button>
+                {isMockAllowed && (
+                  <button
+                    type="button"
+                    onClick={handleResetMock}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--sf-brand-indigo)',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <Symbol name="auto_awesome" size={13} />
+                    <span>Load Sample Lookbook</span>
+                  </button>
+                )}
               </div>
               <div className={styles.quickStartPresets}>
                 {POPULAR_STYLE_PRESETS.slice(0, 5).map((preset) => (

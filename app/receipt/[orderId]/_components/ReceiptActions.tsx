@@ -117,6 +117,21 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
     }
   };
 
+  const handleThermalPrint = () => {
+    const card = document.getElementById('receipt-card');
+    if (card) {
+      card.classList.add('thermal-print-mode');
+      const handleAfterPrint = () => {
+        card.classList.remove('thermal-print-mode');
+        window.removeEventListener('afterprint', handleAfterPrint);
+      };
+      window.addEventListener('afterprint', handleAfterPrint);
+      window.print();
+    } else {
+      window.print();
+    }
+  };
+
   return (
     <div className={`${styles.actions} noPrint`}>
       <button type="button" className={styles.actionBtn} onClick={handleShareImage} disabled={busy !== null}>
@@ -124,6 +139,9 @@ export default function ReceiptActions({ fileName }: ReceiptActionsProps) {
       </button>
       <button type="button" className={styles.actionBtn} onClick={handleSharePdf} disabled={busy !== null}>
         {busy === 'pdf' ? <Symbol name="progress_activity" className="global-spinner" /> : <Symbol name="picture_as_pdf" />} PDF
+      </button>
+      <button type="button" className={styles.actionBtn} onClick={handleThermalPrint} disabled={busy !== null} title="Thermal 58mm/80mm roll printer format">
+        <Symbol name="receipt" /> Thermal Roll
       </button>
       <button type="button" className={styles.printBtn} onClick={() => window.print()} disabled={busy !== null}>
         <Symbol name="print" /> Print
