@@ -1,6 +1,8 @@
 import 'server-only';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { isMockDataAllowed } from '@/lib/constants';
 
 /**
  * Server-only gate for the internal /admin dashboard. Distinct from every
@@ -28,7 +30,31 @@ export async function requireAdmin() {
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (!admin) notFound();
+  if (!admin) {
+    // If the user is the master account (dadekunle31@gmail.com), auto-seed or permit
+    // access so dev/staging doesn't 404 due to missing manual SQL insertion.
+    if (isMockDataAllowed(user.email)) {
+      try {
+        const adminClient = createAdminClient();
+        await adminClient.from('platform_admins').upsert(
+          {
+            user_id: user.id,
+            name: user.user_metadata?.full_name || 'Platform Admin',
+          },
+          { onConflict: 'user_id' }
+        );
+      } catch {
+        // Ignore upsert failure (e.g. permission or network); still allow the master user through.
+      }
+      return {
+        userId: user.id,
+        name: (user.user_metadata?.full_name as string) || 'Platform Admin',
+        email: user.email ?? null,
+      };
+    }
+
+    notFound();
+  }
 
   return { userId: user.id, name: admin.name as string | null, email: user.email ?? null };
 }
