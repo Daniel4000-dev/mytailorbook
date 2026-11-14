@@ -64,6 +64,70 @@ export interface PowerWorkshop {
   orderCount: number;
 }
 
+export interface CirclePodMember {
+  shopId: string;
+  shopName: string;
+  orgId: string;
+  businessMode: 'bespoke' | 'rtw' | 'hybrid';
+  streakCurrent: number;
+  lastActiveAt: string | null;
+  isActiveToday: boolean;
+  isSabbatical: boolean;
+  sabbaticalReason?: string;
+}
+
+export interface CirclePod {
+  id: string;
+  members: CirclePodMember[];
+  sharedStreak: number;
+  isCoOpSecuredToday: boolean;
+  status: 'active' | 'partial' | 'sabbatical' | 'dormant';
+  createdAt?: string;
+}
+
+export interface CircleTelemetry {
+  totalPods: number;
+  pairedWorkshopsCount: number;
+  coOpSecuredTodayCount: number;
+  sabbaticalCount: number;
+  pods: CirclePod[];
+}
+
+export interface XpLedgerEntry {
+  id: string;
+  shopId: string;
+  shopName: string;
+  orgId: string;
+  amount: number;
+  actionType: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface XpTierDistribution {
+  apprenticeCount: number;   // < 500 XP
+  artisanCount: number;      // 500 - 1,499 XP
+  seniorCount: number;       // 1,500 - 3,499 XP
+  masterTailorCount: number; // 3,500+ XP
+  totalXpCirculating: number;
+}
+
+export interface XpTelemetry {
+  tierDistribution: XpTierDistribution;
+  recentLedger: XpLedgerEntry[];
+}
+
+export interface AdminShopLookup {
+  id: string;
+  name: string;
+  orgId: string;
+  businessMode: 'bespoke' | 'rtw' | 'hybrid';
+  streakCurrent: number;
+  streakBest: number;
+  streakFreezes: number;
+  xpPoints: number;
+}
+
 export interface EngagementTelemetry {
   stickinessRatio: number; // DAU/MAU %
   onlineNow: number;       // active in last 15m
@@ -78,5 +142,9 @@ export interface EngagementTelemetry {
   powerWorkshops: PowerWorkshop[];
   roleEngagement: { role: string; count: number }[];
   actionDistribution: { action: string; label: string; count: number }[];
+  circleTelemetry: CircleTelemetry;
+  xpTelemetry: XpTelemetry;
+  allShopsList: AdminShopLookup[];
   lastRefreshedAt: string;
 }
+

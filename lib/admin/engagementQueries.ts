@@ -7,6 +7,12 @@ import type {
   StreakChampion,
   PowerWorkshop,
   TailorCraftCategory,
+  CirclePod,
+  CirclePodMember,
+  CircleTelemetry,
+  XpLedgerEntry,
+  XpTelemetry,
+  AdminShopLookup,
 } from './engagementTypes';
 
 /**
@@ -97,7 +103,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
     // 2. Fetch all shops with mode & streak info
     let shopsQuery = admin
       .from('shops')
-      .select('id, org_id, name, business_mode, subscription_status, streak_current, streak_best, streak_freezes, xp, created_at, owner_id');
+      .select('id, org_id, name, business_mode, subscription_status, streak_current, streak_best, streak_freezes, xp, created_at, owner_id, buddy_shop_id, vacation_mode');
 
     if (modeFilter && modeFilter !== 'all') {
       if (modeFilter === 'bespoke') {
@@ -112,8 +118,8 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
     const shopMap = new Map(allShops.map((s) => [s.id, s]));
     const shopIds = allShops.map((s) => s.id);
 
-    // 3. Fetch recent actions from audit_log and xp_ledger (last 7 days)
-    const [{ data: auditLogs }, { data: xpLogs }, { data: openOrders }] = await Promise.all([
+    // 3. Fetch recent actions from audit_log, xp_ledger, open orders, circle members, and recent ledger entries
+    const [{ data: auditLogs }, { data: xpLogs }, { data: openOrders }, circleRowsRes, xpLedgerRes] = await Promise.all([
       admin
         .from('audit_log')
         .select('id, shop_id, created_at, action, actor_name, entity_type')
@@ -134,7 +140,32 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
         .select('id, shop_id, status, due_date')
         .in('shop_id', shopIds.length > 0 ? shopIds : ['00000000-0000-0000-0000-000000000000'])
         .not('status', 'in', '("completed","delivered","canceled")'),
+      (async () => {
+        try {
+          const res = await admin
+            .from('circle_members')
+            .select('shop_id, buddy_shop_id, status, sabbatical_reason, sabbatical_started_at, created_at');
+          return res.data || [];
+        } catch {
+          return [];
+        }
+      })(),
+      (async () => {
+        try {
+          const res = await admin
+            .from('xp_ledger')
+            .select('id, shop_id, amount, action_type, description, created_at')
+            .order('created_at', { ascending: false })
+            .limit(50);
+          return res.data || [];
+        } catch {
+          return [];
+        }
+      })(),
     ]);
+
+    const circleRows = Array.isArray(circleRowsRes) ? circleRowsRes : [];
+    const fullXpLedger = Array.isArray(xpLedgerRes) ? xpLedgerRes : [];
 
     // 4. Construct Live Craft Actions Stream
     const combinedActions: Array<{
@@ -323,6 +354,176 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
 
     const stickinessRatio = monthlyActive > 0 ? Math.round((dailyActive / monthlyActive) * 100) : 0;
 
+    // 9. Construct Tailor Circle Pods & Co-Op Telemetry
+    const todayStartIso = new Date(now.toISOString().split('T')[0] + 'T00:00:00.000Z').toISOString();
+    const pairedEdges: Array<{
+      shopA: string;
+      shopB: string;
+      status: string;
+      reason?: string;
+    }> = [];
+
+    const seenPair = new Set<string>();
+    if (circleRows && circleRows.length > 0) {
+      for (const r of circleRows) {
+        if (!r.shop_id || !r.buddy_shop_id) continue;
+        const pairKey = [r.shop_id, r.buddy_shop_id].sort().join(':');
+        if (!seenPair.has(pairKey)) {
+          seenPair.add(pairKey);
+          pairedEdges.push({
+            shopA: r.shop_id,
+            shopB: r.buddy_shop_id,
+            status: r.status || 'active',
+            reason: r.sabbatical_reason || undefined,
+          });
+        }
+      }
+    }
+
+    // Fallback: check legacy shops.buddy_shop_id
+    for (const s of allShops) {
+      if (s.buddy_shop_id && s.buddy_shop_id !== s.id) {
+        const pairKey = [s.id, s.buddy_shop_id].sort().join(':');
+        if (!seenPair.has(pairKey)) {
+          seenPair.add(pairKey);
+          pairedEdges.push({
+            shopA: s.id,
+            shopB: s.buddy_shop_id,
+            status: s.vacation_mode ? 'sabbatical' : 'active',
+          });
+        }
+      }
+    }
+
+    const circlePods: CirclePod[] = [];
+    let podIndex = 1;
+
+    for (const edge of pairedEdges) {
+      const shopA = shopMap.get(edge.shopA);
+      const shopB = shopMap.get(edge.shopB);
+      if (!shopA || !shopB) continue;
+
+      const lastActiveA = shopLastActive.get(shopA.id) || null;
+      const lastActiveB = shopLastActive.get(shopB.id) || null;
+
+      const isActiveTodayA = Boolean(lastActiveA && lastActiveA >= todayStartIso);
+      const isActiveTodayB = Boolean(lastActiveB && lastActiveB >= todayStartIso);
+
+      const isSabbA = Boolean(shopA.vacation_mode || edge.status === 'sabbatical');
+      const isSabbB = Boolean(shopB.vacation_mode);
+
+      const memberA: CirclePodMember = {
+        shopId: shopA.id,
+        shopName: shopA.name || 'Tailor Workshop',
+        orgId: shopA.org_id || shopA.id,
+        businessMode: (shopA.business_mode as any) || 'bespoke',
+        streakCurrent: Number(shopA.streak_current) || 0,
+        lastActiveAt: lastActiveA,
+        isActiveToday: isActiveTodayA,
+        isSabbatical: isSabbA,
+        sabbaticalReason: isSabbA ? edge.reason : undefined,
+      };
+
+      const memberB: CirclePodMember = {
+        shopId: shopB.id,
+        shopName: shopB.name || 'Tailor Workshop',
+        orgId: shopB.org_id || shopB.id,
+        businessMode: (shopB.business_mode as any) || 'bespoke',
+        streakCurrent: Number(shopB.streak_current) || 0,
+        lastActiveAt: lastActiveB,
+        isActiveToday: isActiveTodayB,
+        isSabbatical: isSabbB,
+      };
+
+      const activeTodayCount = (isActiveTodayA ? 1 : 0) + (isActiveTodayB ? 1 : 0);
+      const isCoOpSecuredToday = activeTodayCount >= 2;
+      const sharedStreak = Math.max(memberA.streakCurrent, memberB.streakCurrent);
+
+      let podStatus: 'active' | 'partial' | 'sabbatical' | 'dormant' = 'dormant';
+      if (isSabbA || isSabbB) {
+        podStatus = 'sabbatical';
+      } else if (isCoOpSecuredToday) {
+        podStatus = 'active';
+      } else if (activeTodayCount === 1) {
+        podStatus = 'partial';
+      }
+
+      circlePods.push({
+        id: `pod-${podIndex++}-${shopA.id.slice(0, 4)}-${shopB.id.slice(0, 4)}`,
+        members: [memberA, memberB],
+        sharedStreak,
+        isCoOpSecuredToday,
+        status: podStatus,
+      });
+    }
+
+    const uniquePairedShops = new Set<string>();
+    circlePods.forEach((p) => p.members.forEach((m) => uniquePairedShops.add(m.shopId)));
+
+    const circleTelemetry: CircleTelemetry = {
+      totalPods: circlePods.length,
+      pairedWorkshopsCount: uniquePairedShops.size,
+      coOpSecuredTodayCount: circlePods.filter((p) => p.isCoOpSecuredToday).length,
+      sabbaticalCount: circlePods.reduce(
+        (acc, p) => acc + p.members.filter((m) => m.isSabbatical).length,
+        0
+      ),
+      pods: circlePods,
+    };
+
+    // 10. Compute XP & Tier Distribution Telemetry
+    let apprenticeCount = 0;
+    let artisanCount = 0;
+    let seniorCount = 0;
+    let masterTailorCount = 0;
+    let totalXpCirculating = 0;
+
+    for (const s of allShops) {
+      const xp = Number(s.xp) || 0;
+      totalXpCirculating += xp;
+      if (xp < 500) apprenticeCount++;
+      else if (xp < 1500) artisanCount++;
+      else if (xp < 3500) seniorCount++;
+      else masterTailorCount++;
+    }
+
+    const recentXpEntries: XpLedgerEntry[] = fullXpLedger.map((entry: any) => {
+      const shop = shopMap.get(entry.shop_id);
+      return {
+        id: entry.id,
+        shopId: entry.shop_id,
+        shopName: shop?.name || 'Tailor Workshop',
+        orgId: shop?.org_id || entry.shop_id,
+        amount: Number(entry.amount) || 0,
+        actionType: entry.action_type || 'craft_reward',
+        description: entry.description || null,
+        createdAt: entry.created_at,
+      };
+    });
+
+    const xpTelemetry: XpTelemetry = {
+      tierDistribution: {
+        apprenticeCount,
+        artisanCount,
+        seniorCount,
+        masterTailorCount,
+        totalXpCirculating,
+      },
+      recentLedger: recentXpEntries,
+    };
+
+    // 11. All Shops Lookup for Admin Pairings & Quick Controls
+    const allShopsList: AdminShopLookup[] = allShops.map((s) => ({
+      id: s.id,
+      name: s.name || 'Tailor Workshop',
+      orgId: s.org_id || s.id,
+      businessMode: (s.business_mode as any) || 'bespoke',
+      streakCurrent: Number(s.streak_current) || 0,
+      streakBest: Number(s.streak_best) || 0,
+      streakFreezes: Number(s.streak_freezes) || 0,
+      xpPoints: Number(s.xp) || 0,
+    }));
+
     return {
       stickinessRatio,
       onlineNow,
@@ -337,6 +538,9 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       powerWorkshops,
       roleEngagement,
       actionDistribution,
+      circleTelemetry,
+      xpTelemetry,
+      allShopsList,
       lastRefreshedAt: now.toISOString(),
     };
   } catch (err) {
@@ -355,6 +559,24 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       powerWorkshops: [],
       roleEngagement: [],
       actionDistribution: [],
+      circleTelemetry: {
+        totalPods: 0,
+        pairedWorkshopsCount: 0,
+        coOpSecuredTodayCount: 0,
+        sabbaticalCount: 0,
+        pods: [],
+      },
+      xpTelemetry: {
+        tierDistribution: {
+          apprenticeCount: 0,
+          artisanCount: 0,
+          seniorCount: 0,
+          masterTailorCount: 0,
+          totalXpCirculating: 0,
+        },
+        recentLedger: [],
+      },
+      allShopsList: [],
       lastRefreshedAt: now.toISOString(),
     };
   }

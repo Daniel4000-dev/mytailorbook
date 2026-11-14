@@ -340,3 +340,4 @@ export default function ActivityClient({ initialEntries }: ActivityClientProps) 
     </div>
   );
 }
+
