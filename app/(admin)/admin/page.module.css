@@ -29,14 +29,14 @@
   font-family: var(--sf-font-heading);
   font-size: 26px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--sf-text-primary, #0f172a);
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .subheading {
   font-size: 14px;
-  color: #64748b;
+  color: var(--sf-text-secondary, #64748b);
   margin: 0;
 }
 
@@ -53,15 +53,16 @@
   justify-content: space-between;
   padding: 18px;
   border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border-light, rgba(226, 232, 240, 0.8));
+  box-shadow: var(--sf-shadow-xs, 0 1px 3px rgba(0, 0, 0, 0.02));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--sf-shadow-md, 0 6px 20px rgba(0, 0, 0, 0.04));
+  border-color: var(--sf-border, #cbd5e1);
 }
 
 .cardTop {
@@ -76,7 +77,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--sf-text-secondary, #64748b);
 }
 
 .cardIcon {
@@ -86,7 +87,7 @@
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: rgba(67, 56, 202, 0.06);
+  background: var(--sf-surface-container-high, rgba(67, 56, 202, 0.06));
   color: var(--sf-brand-indigo);
 }
 
@@ -94,7 +95,7 @@
   font-family: var(--sf-font-numeric);
   font-size: 26px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--sf-text-primary, #0f172a);
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin-bottom: 4px;
@@ -102,7 +103,7 @@
 
 .cardMeta {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--sf-text-tertiary, #94a3b8);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -117,11 +118,11 @@
 .section {
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border-light, rgba(226, 232, 240, 0.8));
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--sf-shadow-xs, 0 1px 3px rgba(0, 0, 0, 0.02));
 }
 
 .sectionHeadingRow {
@@ -142,13 +143,13 @@
 .sectionHeading {
   font-size: 16px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--sf-text-primary, #0f172a);
   letter-spacing: -0.01em;
 }
 
 .sectionHint {
   font-size: 13px;
-  color: #64748b;
+  color: var(--sf-text-secondary, #64748b);
   margin-top: -8px;
   margin-bottom: 16px;
 }
@@ -171,7 +172,7 @@
 .tableWrap {
   overflow-x: auto;
   border-radius: 10px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid var(--sf-border-light, #f1f5f9);
 }
 
 .table {
@@ -183,20 +184,20 @@
 
 .table th {
   padding: 12px 16px;
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  color: var(--sf-text-secondary, #64748b);
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--sf-border, #e2e8f0);
   white-space: nowrap;
 }
 
 .table td {
   padding: 14px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+  border-bottom: 1px solid var(--sf-border-light, #f1f5f9);
+  color: var(--sf-text-primary, #334155);
   white-space: nowrap;
 }
 
@@ -205,12 +206,12 @@
 }
 
 .table tr:hover td {
-  background: #fafafa;
+  background: var(--sf-bg-surface-hover, #fafafa);
 }
 
 .rowLink {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--sf-text-primary, #0f172a);
   text-decoration: none;
 }
 
@@ -225,22 +226,21 @@
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--sf-brand-indigo, #4f46e5);
   text-decoration: none;
-  background: rgba(99, 102, 241, 0.08);
+  background: var(--sf-surface-container-high, rgba(99, 102, 241, 0.08));
   padding: 4px 10px;
   border-radius: 999px;
   transition: all 0.15s ease;
 }
 
 .manageLink:hover {
-  background: rgba(99, 102, 241, 0.18);
-  color: #3730a3;
+  background: var(--sf-surface-container-highest, rgba(99, 102, 241, 0.18));
 }
 
 .modeBadgeBespoke {
-  background: rgba(99, 102, 241, 0.12);
-  color: #4f46e5;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 11px;
@@ -248,8 +248,8 @@
 }
 
 .modeBadgeRtw {
-  background: rgba(234, 88, 12, 0.12);
-  color: #c2410c;
+  background: rgba(234, 88, 12, 0.15);
+  color: #fb923c;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 11px;
@@ -257,8 +257,8 @@
 }
 
 .modeBadgeHybrid {
-  background: rgba(16, 185, 129, 0.12);
-  color: #047857;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 11px;
@@ -271,8 +271,8 @@
   border-radius: 100px;
   font-size: 11px;
   font-weight: 600;
-  background: #dcfce7;
-  color: #15803d;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
 }
 
 .badgeInactive {
@@ -281,22 +281,22 @@
   border-radius: 100px;
   font-size: 11px;
   font-weight: 600;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--sf-surface-container-high, #f1f5f9);
+  color: var(--sf-text-secondary, #64748b);
 }
 
 .codePill {
   font-family: monospace;
   font-size: 12px;
-  background: #f1f5f9;
+  background: var(--sf-bg-surface-elevated, #f1f5f9);
   padding: 2px 6px;
   border-radius: 4px;
-  color: #0f172a;
+  color: var(--sf-text-primary, #0f172a);
 }
 
 .empty {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--sf-text-secondary, #94a3b8);
   padding: 24px;
   text-align: center;
 }
@@ -309,22 +309,22 @@
 }
 
 .chartGridline {
-  stroke: #f1f5f9;
+  stroke: var(--sf-border-light, #f1f5f9);
   stroke-width: 1;
 }
 
 .chartAxisLabel {
   font-size: 11px;
-  fill: #94a3b8;
+  fill: var(--sf-text-tertiary, #94a3b8);
   font-family: var(--sf-font-body);
 }
 
 .chartBar {
-  fill: #6366f1;
+  fill: var(--sf-brand-indigo, #6366f1);
   rx: 3;
   transition: fill 0.15s ease;
 }
 
 .chartBar:hover {
-  fill: #4338ca;
+  fill: var(--sf-brand-primary-hover, #4338ca);
 }

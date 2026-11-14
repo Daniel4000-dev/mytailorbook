@@ -32,6 +32,20 @@
    --sf-sand: rgba(67, 56, 202, 0.045);
    /* order-card ground */
 
+   /* ── Semantic Background & Surface Aliases ─────────── */
+   --sf-bg-canvas: #F8F8FE;
+   --sf-bg-page: #F8F8FE;
+   --sf-bg-card: #FFFFFF;
+   --sf-bg-secondary: #F1F5F9;
+   --sf-bg-tertiary: #E2E8F0;
+   --sf-bg-elevated: #FFFFFF;
+   --sf-bg-hover: rgba(67, 56, 202, 0.05);
+   --sf-bg-subtle: rgba(67, 56, 202, 0.04);
+   --sf-bg-sunken: #F1F5F9;
+   --sf-bg-surface-secondary: #F8FAFC;
+   --sf-bg-surface-sunken: #F1F5F9;
+   --sf-bg-surface-pressed: rgba(67, 56, 202, 0.08);
+
    /* ── Colors: Ink surfaces (legacy aliases) ───────────── */
    --sf-ink: #FFFFFF;
    --sf-ink-soft: rgba(67, 56, 202, 0.05);
@@ -74,11 +88,21 @@
    --sf-text-tertiary: #615E77;
    --sf-text-on-accent: #FFFFFF;
    --sf-text-gold: #4338CA;
+   --sf-text-accent: #4338CA;
 
    /* ── Colors: Borders (accent tints) ──────────────────── */
    --sf-border: rgba(67, 56, 202, 0.16);
    --sf-border-light: rgba(67, 56, 202, 0.09);
    --sf-border-focus: #4338CA;
+   --sf-border-subtle: rgba(67, 56, 202, 0.09);
+   --sf-border-default: rgba(67, 56, 202, 0.16);
+   --sf-border-hover: rgba(67, 56, 202, 0.32);
+   --sf-border-medium: rgba(67, 56, 202, 0.22);
+   --sf-border-strong: rgba(67, 56, 202, 0.36);
+   --sf-border-accent: #4338CA;
+
+   /* ── Semantic Action Colors ──────────────────────────── */
+   --sf-primary: #4338CA;
 
    /* ── Colors: Semantic (accent-only signaling) ────────── */
    /* Urgency/success read through weight and fill, not extra hues. */
@@ -288,6 +312,34 @@
       --sf-surface-variant: rgba(99, 102, 241, 0.14);
       --sf-sand: rgba(99, 102, 241, 0.08);
 
+   /* ── Semantic Background & Surface Aliases (Dark) ─── */
+   --sf-bg-canvas: #0A0910;
+   --sf-bg-page: #0A0910;
+   --sf-bg-card: #161526;
+   --sf-bg-secondary: #1F1E33;
+   --sf-bg-tertiary: #2A2840;
+   --sf-bg-elevated: #1F1E33;
+   --sf-bg-hover: rgba(99, 102, 241, 0.10);
+   --sf-bg-subtle: rgba(99, 102, 241, 0.06);
+   --sf-bg-sunken: #100F1C;
+   --sf-bg-surface-secondary: #1C1B2E;
+   --sf-bg-surface-sunken: #100F1C;
+   --sf-bg-surface-pressed: rgba(99, 102, 241, 0.16);
+
+      /* ── Semantic Background & Surface Aliases (Dark) ─── */
+      --sf-bg-canvas: #0A0910;
+      --sf-bg-page: #0A0910;
+      --sf-bg-card: #161526;
+      --sf-bg-secondary: #1F1E33;
+      --sf-bg-tertiary: #2A2840;
+      --sf-bg-elevated: #1F1E33;
+      --sf-bg-hover: rgba(99, 102, 241, 0.10);
+      --sf-bg-subtle: rgba(99, 102, 241, 0.06);
+      --sf-bg-sunken: #100F1C;
+      --sf-bg-surface-secondary: #1C1B2E;
+      --sf-bg-surface-sunken: #100F1C;
+      --sf-bg-surface-pressed: rgba(99, 102, 241, 0.16);
+
       --sf-ink: #1B1A2B;
       --sf-ink-soft: rgba(99, 102, 241, 0.10);
       --sf-ink-text: #EDEDF5;
@@ -321,10 +373,19 @@
       --sf-text-tertiary: #9592B8;
       --sf-text-on-accent: #0D0C17;
       --sf-text-gold: #A5B4FC;
+      --sf-text-accent: #818CF8;
 
       --sf-border: rgba(99, 102, 241, 0.24);
       --sf-border-light: rgba(99, 102, 241, 0.14);
       --sf-border-focus: #818CF8;
+      --sf-border-subtle: rgba(99, 102, 241, 0.14);
+      --sf-border-default: rgba(99, 102, 241, 0.24);
+      --sf-border-hover: rgba(99, 102, 241, 0.45);
+      --sf-border-medium: rgba(99, 102, 241, 0.32);
+      --sf-border-strong: rgba(99, 102, 241, 0.50);
+      --sf-border-accent: #818CF8;
+
+      --sf-primary: #6366F1;
 
       --sf-error: #6366F1;
       --sf-error-bg: rgba(99, 102, 241, 0.16);
@@ -392,6 +453,20 @@
    --sf-surface-variant: rgba(99, 102, 241, 0.14);
    --sf-sand: rgba(99, 102, 241, 0.08);
 
+   /* ── Semantic Background & Surface Aliases (Dark) ─── */
+   --sf-bg-canvas: #0A0910;
+   --sf-bg-page: #0A0910;
+   --sf-bg-card: #161526;
+   --sf-bg-secondary: #1F1E33;
+   --sf-bg-tertiary: #2A2840;
+   --sf-bg-elevated: #1F1E33;
+   --sf-bg-hover: rgba(99, 102, 241, 0.10);
+   --sf-bg-subtle: rgba(99, 102, 241, 0.06);
+   --sf-bg-sunken: #100F1C;
+   --sf-bg-surface-secondary: #1C1B2E;
+   --sf-bg-surface-sunken: #100F1C;
+   --sf-bg-surface-pressed: rgba(99, 102, 241, 0.16);
+
    --sf-ink: #1B1A2B;
    --sf-ink-soft: rgba(99, 102, 241, 0.10);
    --sf-ink-text: #EDEDF5;
@@ -425,10 +500,19 @@
    --sf-text-tertiary: #9592B8;
    --sf-text-on-accent: #0D0C17;
    --sf-text-gold: #A5B4FC;
+   --sf-text-accent: #818CF8;
 
    --sf-border: rgba(99, 102, 241, 0.24);
    --sf-border-light: rgba(99, 102, 241, 0.14);
    --sf-border-focus: #818CF8;
+   --sf-border-subtle: rgba(99, 102, 241, 0.14);
+   --sf-border-default: rgba(99, 102, 241, 0.24);
+   --sf-border-hover: rgba(99, 102, 241, 0.45);
+   --sf-border-medium: rgba(99, 102, 241, 0.32);
+   --sf-border-strong: rgba(99, 102, 241, 0.50);
+   --sf-border-accent: #818CF8;
+
+   --sf-primary: #6366F1;
 
    --sf-error: #6366F1;
    --sf-error-bg: rgba(99, 102, 241, 0.16);

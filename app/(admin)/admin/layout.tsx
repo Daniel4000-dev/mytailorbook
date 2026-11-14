@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/admin/requireAdmin';
 import { ROUTES } from '@/lib/routes';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import AdminNavLink from './AdminNavLink';
+import AdminThemeToggle from './AdminThemeToggle';
 import styles from './layout.module.css';
 
 // Root layout already defaults every page to noindex — this is just
@@ -45,6 +46,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </div>
 
         <div className={styles.headerRight}>
+          <AdminThemeToggle />
           <Link href={ROUTES.dashboard} className={styles.openShopBtn}>
             <Symbol name="arrow_back" size={14} />
             <span>Open Tailor App</span>

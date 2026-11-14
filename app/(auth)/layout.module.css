@@ -29,22 +29,29 @@
   gap: 10px;
   padding: 7px 14px 7px 10px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-glass-bg, rgba(255, 255, 255, 0.85));
+  background: var(--sf-bg-surface-elevated, rgba(255, 255, 255, 0.85));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--sf-border-light, rgba(15, 23, 42, 0.1));
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--sf-shadow-xs, 0 4px 16px rgba(15, 23, 42, 0.08));
   text-decoration: none;
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .topLeftBrandLink:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.16);
+  box-shadow: var(--sf-shadow-md, 0 6px 20px rgba(67, 56, 202, 0.16));
 }
 
 .topLeftBrandLink:active {
   transform: scale(0.97);
+}
+
+.topRightThemeWrap {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 30;
 }
 
 .topLeftBrandIcon {

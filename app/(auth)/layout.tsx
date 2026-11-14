@@ -8,6 +8,7 @@ import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
+import ThemeTogglePill from '@/components/ui/ThemeTogglePill/ThemeTogglePill';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
 
@@ -27,6 +28,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <BrandIcon className={styles.topLeftBrandIcon} />
         <BrandWordmark height={20} />
       </Link>
+
+      {/* Top-Right Theme Toggle for Instant Light/Dark Switching */}
+      <div className={styles.topRightThemeWrap}>
+        <ThemeTogglePill />
+      </div>
 
       {isCustomAuth ? (
         <div className={styles.splitWrapper}>
