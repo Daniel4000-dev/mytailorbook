@@ -1,162 +1,273 @@
-.heading {
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-2xl);
-  margin-bottom: var(--sf-space-lg);
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
 }
 
+/* ── Hero Title Row ─────────────────────────────────────── */
+.headerRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+@media (min-width: 768px) {
+  .headerRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heading {
+  font-family: var(--sf-font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.subheading {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── KPI Grid ───────────────────────────────────────────── */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--sf-space-md);
-  margin-bottom: var(--sf-space-xl);
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xs);
-  padding: var(--sf-space-md);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-md);
-  background: var(--sf-bg-primary);
+  justify-content: space-between;
+  padding: 18px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .cardLabel {
-  font-size: var(--sf-text-xs);
+  font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-text-secondary);
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.cardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(67, 56, 202, 0.06);
+  color: var(--sf-brand-indigo);
 }
 
 .cardValue {
-  font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-xl);
-  font-weight: var(--sf-weight-bold);
+  font-family: var(--sf-font-numeric);
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 4px;
 }
 
+.cardMeta {
+  font-size: 12px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.highlightMeta {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* ── Section Container ──────────────────────────────────── */
 .section {
-  margin-bottom: var(--sf-space-xl);
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .sectionHeadingRow {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+@media (min-width: 640px) {
+  .sectionHeadingRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .sectionHeading {
-  font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-semibold);
-  margin-bottom: var(--sf-space-md);
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .sectionHint {
-  font-size: var(--sf-text-sm);
-  color: var(--sf-text-secondary);
-  margin-bottom: var(--sf-space-md);
-  margin-top: calc(-1 * var(--sf-space-sm));
+  font-size: 13px;
+  color: #64748b;
+  margin-top: -8px;
+  margin-bottom: 16px;
 }
 
 .sectionLink {
-  font-size: var(--sf-text-sm);
-  color: var(--sf-accent-emerald);
-  font-weight: var(--sf-weight-semibold);
-}
-
-.chart {
-  display: block;
-  width: 100%;
-  /* Matches the SVG's viewBox (1000x460) so the browser scales it
-     uniformly — a fixed pixel height here (with the old
-     preserveAspectRatio="none") was what stretched every label
-     horizontally the wider the container got. Taller than the section's
-     other cards on purpose: this is the one chart on the page, it should
-     read as the visual anchor of the Overview, not a cramped strip. */
-  aspect-ratio: 1000 / 460;
-  height: auto;
-  min-height: 320px;
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-sm) var(--sf-space-xs);
-  background: var(--sf-bg-primary);
-}
-
-.chartBar {
-  fill: var(--sf-accent-emerald);
-}
-
-.chartBar:hover {
-  opacity: 0.8;
-}
-
-.chartBarEmpty {
-  fill: var(--sf-text-primary);
-  opacity: 0.15;
-}
-
-.chartValueLabel {
-  font-size: 14px;
-  /* A fixed, theme-independent color rather than a text token — the
-     secondary/primary text tokens are tuned for body copy on the page
-     background, not for small SVG labels sitting on this card's own
-     background, and came out too low-contrast in practice. White reads
-     clearly against the brand-purple bars in both themes. */
-  fill: #ffffff;
-  font-weight: 700;
-}
-
-.chartAxisLabel {
   font-size: 13px;
-  fill: var(--sf-text-primary);
-  opacity: 0.65;
+  font-weight: 600;
+  color: var(--sf-brand-indigo);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.chartAxis {
-  stroke: var(--sf-text-primary);
-  opacity: 0.35;
-  stroke-width: 1.5;
+.sectionLink:hover {
+  text-decoration: underline;
 }
 
-.chartGridline {
-  stroke: var(--sf-text-primary);
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
-  opacity: 0.15;
-}
-
-.chartNote {
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-secondary);
-  margin-top: var(--sf-space-sm);
-}
-
-.empty {
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
-}
-
+/* ── Tables ─────────────────────────────────────────────── */
 .tableWrap {
   overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
 }
 
 .table {
   width: 100%;
-  min-width: 560px;
   border-collapse: collapse;
-  font-size: var(--sf-text-sm);
-}
-
-.table th,
-.table td {
   text-align: left;
-  padding: var(--sf-space-sm) var(--sf-space-md);
-  border-bottom: 1px solid var(--sf-border);
+  font-size: 13px;
 }
 
 .table th {
-  color: var(--sf-text-secondary);
-  font-weight: var(--sf-weight-semibold);
+  padding: 12px 16px;
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 11px;
   text-transform: uppercase;
-  font-size: var(--sf-text-xs);
-  letter-spacing: var(--sf-tracking-caps);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: #fafafa;
+}
+
+.badgeActive {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badgeInactive {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.codePill {
+  font-family: monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0f172a;
+}
+
+.empty {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 24px;
+  text-align: center;
+}
+
+/* ── SVG Chart ──────────────────────────────────────────── */
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chartGridline {
+  stroke: #f1f5f9;
+  stroke-width: 1;
+}
+
+.chartAxisLabel {
+  font-size: 11px;
+  fill: #94a3b8;
+  font-family: var(--sf-font-body);
+}
+
+.chartBar {
+  fill: #6366f1;
+  rx: 3;
+  transition: fill 0.15s ease;
+}
+
+.chartBar:hover {
+  fill: #4338ca;
 }

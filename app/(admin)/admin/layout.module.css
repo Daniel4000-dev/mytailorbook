@@ -1,112 +1,316 @@
 .shell {
   min-height: 100dvh;
-  background: var(--sf-bg-primary);
+  background: #f8fafc;
+  color: var(--sf-text-primary);
+  display: flex;
+  flex-direction: column;
 }
 
+/* ── Top Header ────────────────────────────────────────── */
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 52px;
-  padding: 0 var(--sf-space-md);
-  background: var(--sf-nav);
-  color: #fff;
+  height: 64px;
+  padding: 0 var(--sf-space-lg);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-.brand {
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.brandLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brandBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--sf-brand-indigo);
+  color: #ffffff;
+}
+
+.brandTextGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandTitle {
   font-family: var(--sf-font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.brandSubtitle {
   font-size: 11px;
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
+  font-weight: 500;
+  color: var(--sf-text-secondary);
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.05em;
+}
+
+.envTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-md);
+}
+
+.viewAtelierBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.viewAtelierBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.adminProfile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: var(--sf-space-xs);
+}
+
+.adminAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
+}
+
+.adminMeta {
+  display: none;
+  flex-direction: column;
 }
 
 .adminName {
-  font-size: var(--sf-text-xs);
-  color: rgba(255, 255, 255, 0.7);
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: var(--sf-space-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
+.adminEmail {
+  font-size: 11px;
+  color: #64748b;
+}
+
+@media (min-width: 768px) {
+  .adminMeta {
+    display: flex;
+  }
+}
+
+/* ── Body Layout ────────────────────────────────────────── */
 .body {
   display: flex;
   flex-direction: column;
-  max-width: var(--sf-max-width-desktop);
-  margin: 0 auto;
+  flex: 1;
 }
 
-/* Mobile default: a horizontal, scrollable tab strip under the header —
-   a fixed-width side column has no room on a phone screen, and this repo's
-   own components (SidebarMenu) already gate their desktop-only layout
-   behind min-width: 1024px, so this admin shell follows the same
-   mobile-first convention rather than inventing a new breakpoint scheme. */
 .sidebar {
   display: flex;
   flex-direction: row;
-  gap: var(--sf-space-xs);
-  padding: var(--sf-space-sm) var(--sf-space-md);
+  align-items: center;
+  gap: 4px;
+  padding: 8px var(--sf-space-md);
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border-bottom: 1px solid var(--sf-border);
 }
 
-.navLink {
-  padding: var(--sf-space-sm) var(--sf-space-md);
-  border-radius: var(--sf-radius-sm);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-secondary);
-  white-space: nowrap;
+.sidebarGroup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.sidebarSectionLabel {
+  display: none;
+}
+
+.navStack {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
   flex-shrink: 0;
 }
 
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
 .navLink:hover {
-  background: var(--sf-bg-secondary);
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .navLinkActive {
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
+  background: rgba(67, 56, 202, 0.08) !important;
+  color: var(--sf-brand-indigo) !important;
+  font-weight: 600;
+}
+
+.navIcon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.navLinkActive .navIcon {
+  opacity: 1;
+  color: var(--sf-brand-indigo);
+}
+
+.navBadge {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(67, 56, 202, 0.1);
+  color: var(--sf-brand-indigo);
+}
+
+.sidebarFooter {
+  display: none;
 }
 
 .main {
   flex: 1;
   min-width: 0;
-  padding: var(--sf-space-lg) var(--sf-space-md);
+  padding: var(--sf-space-md);
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
+/* ── Desktop Breakpoint (1024px) ────────────────────────── */
 @media (min-width: 1024px) {
-  .header {
-    height: 56px;
-    padding: 0 var(--sf-space-lg);
-  }
-
-  .brand {
-    font-size: var(--sf-text-sm);
-  }
-
-  .adminName {
-    font-size: var(--sf-text-sm);
-  }
-
   .body {
     flex-direction: row;
   }
 
   .sidebar {
+    width: 250px;
     flex-direction: column;
-    width: 200px;
-    flex-shrink: 0;
-    padding: var(--sf-space-xl) var(--sf-space-md);
-    overflow-x: visible;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: var(--sf-space-lg) var(--sf-space-md);
+    background: #ffffff;
+    border-right: 1px solid rgba(226, 232, 240, 0.8);
     border-bottom: none;
+    height: calc(100dvh - 64px);
+    position: sticky;
+    top: 64px;
+  }
+
+  .sidebarGroup {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sf-space-sm);
+  }
+
+  .sidebarSectionLabel {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 0 10px;
+    margin-bottom: 4px;
+  }
+
+  .navStack {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .navLink {
+    padding: 10px 12px;
+  }
+
+  .sidebarFooter {
+    display: block;
+    padding-top: var(--sf-space-md);
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .versionPill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #f8fafc;
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
   }
 
   .main {
-    padding: var(--sf-space-xl) var(--sf-space-lg);
+    padding: var(--sf-space-xl) var(--sf-space-2xl);
   }
 }

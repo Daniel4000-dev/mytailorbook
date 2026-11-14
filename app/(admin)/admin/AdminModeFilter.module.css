@@ -1,0 +1,67 @@
+.segmentedWrap {
+  display: inline-flex;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.segmentedWrap::-webkit-scrollbar {
+  display: none;
+}
+
+.segmentedControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  padding: 4px;
+  border-radius: var(--sf-radius-full);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.segmentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-family: var(--sf-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.segmentBtn:hover {
+  color: var(--sf-text-primary);
+  background: var(--sf-bg-surface-hover);
+}
+
+.segmentBtnActive {
+  background: var(--sf-brand-indigo) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.28);
+}
+
+.countBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  line-height: 1.4;
+}
+
+.segmentBtn:not(.segmentBtnActive) .countBadge {
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+}
+

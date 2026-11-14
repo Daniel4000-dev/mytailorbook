@@ -151,6 +151,29 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  /** Retail Atelier Storefront */
+  store: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l2-5h14l2 5" fill={fill ? color : 'none'} />
+      <path d="M21 9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9" />
+      <path d="M3 9c0 1.66 1.34 3 3 3s3-1.34 3-3c0 1.66 1.34 3 3 3s3-1.34 3-3c0 1.66 1.34 3 3 3s3-1.34 3-3" />
+      <path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6" />
+    </svg>
+  ),
+
+  /** Central Network Hub */
+  hub: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" fill={fill ? color : 'none'} />
+      <circle cx="12" cy="4" r="2" fill={fill ? color : 'none'} />
+      <circle cx="19" cy="17" r="2" fill={fill ? color : 'none'} />
+      <circle cx="5" cy="17" r="2" fill={fill ? color : 'none'} />
+      <line x1="12" y1="6" x2="12" y2="9" />
+      <line x1="14.5" y1="13.5" x2="17.5" y2="15.5" />
+      <line x1="9.5" y1="13.5" x2="6.5" y2="15.5" />
+    </svg>
+  ),
+
   /** Bolt of Woven Wool Fabric with visible selvedge edge */
   texture: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

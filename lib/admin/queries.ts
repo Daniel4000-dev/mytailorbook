@@ -23,6 +23,9 @@ export interface OverviewStats {
   signups30d: number;
   revenueLast30dNgn: number;
   cancellations30d: number;
+  bespokeShopsCount: number;
+  rtwShopsCount: number;
+  hybridShopsCount: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +53,9 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     signups30d,
     { data: revenueEvents },
     cancellations30d,
+    bespokeShopsCount,
+    rtwShopsCount,
+    hybridShopsCount,
   ] = await Promise.all([
     count(admin, 'organizations', (q) => q.not('owner_id', 'is', null)),
     count(admin, 'shops', (q) => q.not('owner_id', 'is', null)),
@@ -63,6 +69,9 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     count(admin, 'subscription_events', (q) =>
       q.in('event_type', ['subscription.disable', 'subscription.not_renew']).gte('created_at', d30)
     ),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).or('business_mode.eq.bespoke,business_mode.is.null')),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).eq('business_mode', 'rtw')),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).eq('business_mode', 'hybrid')),
   ]);
 
   const revenueLast30dNgn = (revenueEvents ?? []).reduce((sum, e) => sum + (e.amount_kobo ?? 0), 0) / 100;
@@ -80,6 +89,9 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     signups30d,
     revenueLast30dNgn,
     cancellations30d,
+    bespokeShopsCount,
+    rtwShopsCount,
+    hybridShopsCount,
   };
 }
 
@@ -207,6 +219,7 @@ export interface OrganizationListRow {
   createdAt: string;
   ownerEmail: string | null;
   shopCount: number;
+  businessMode: string;
   subscriptionStatus: string | null;
   subscriptionPlan: string | null;
   customerCount: number;
@@ -224,6 +237,7 @@ export interface OrganizationListResult {
 export interface OrganizationFilters {
   search?: string;
   status?: string;
+  mode?: string;
   affiliateId?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -252,6 +266,17 @@ async function resolveOrgIdConstraints(admin: AdminClient, filters: Organization
 
   if (filters.status) {
     const { data: shops } = await admin.from('shops').select('org_id').eq('subscription_status', filters.status);
+    constraints.push(new Set((shops ?? []).map((s) => s.org_id as string)));
+  }
+
+  if (filters.mode) {
+    let modeQuery = admin.from('shops').select('org_id');
+    if (filters.mode === 'bespoke') {
+      modeQuery = modeQuery.or('business_mode.eq.bespoke,business_mode.is.null');
+    } else {
+      modeQuery = modeQuery.eq('business_mode', filters.mode);
+    }
+    const { data: shops } = await modeQuery;
     constraints.push(new Set((shops ?? []).map((s) => s.org_id as string)));
   }
 
@@ -292,7 +317,7 @@ export async function getOrganizations(
   const ownerIds = rows.map((o) => o.owner_id as string).filter(Boolean);
 
   const [{ data: shops }, { data: owners }, customerCounts, orderCounts] = await Promise.all([
-    admin.from('shops').select('org_id, name, subscription_status, subscription_plan').in('org_id', orgIds),
+    admin.from('shops').select('org_id, name, business_mode, subscription_status, subscription_plan').in('org_id', orgIds),
     ownerIds.length > 0
       ? admin.from('profiles').select('id, email').in('id', ownerIds)
       : Promise.resolve({ data: [] as { id: string; email: string | null }[] }),
@@ -300,10 +325,10 @@ export async function getOrganizations(
     Promise.all(orgIds.map((id) => count(admin, 'orders', (q) => q.eq('org_id', id)))),
   ]);
 
-  const shopsByOrg = new Map<string, { name: string; subscription_status: string | null; subscription_plan: string | null }[]>();
+  const shopsByOrg = new Map<string, { name: string; business_mode: string | null; subscription_status: string | null; subscription_plan: string | null }[]>();
   for (const shop of shops ?? []) {
     const list = shopsByOrg.get(shop.org_id as string) ?? [];
-    list.push(shop as { name: string; subscription_status: string | null; subscription_plan: string | null });
+    list.push(shop as { name: string; business_mode: string | null; subscription_status: string | null; subscription_plan: string | null });
     shopsByOrg.set(shop.org_id as string, list);
   }
   const ownerEmailById = new Map((owners ?? []).map((o) => [o.id, o.email]));
@@ -317,6 +342,7 @@ export async function getOrganizations(
       createdAt: org.created_at as string,
       ownerEmail: ownerEmailById.get(org.owner_id as string) ?? null,
       shopCount: orgShops.length,
+      businessMode: primary?.business_mode || 'bespoke',
       subscriptionStatus: primary?.subscription_status ?? null,
       subscriptionPlan: primary?.subscription_plan ?? null,
       customerCount: customerCounts[i],
