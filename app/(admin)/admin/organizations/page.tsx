@@ -92,7 +92,7 @@ export default async function OrganizationsPage({
             className={styles.searchInput}
             type="text"
             name="q"
-            placeholder="Search studio name or owner email…"
+            placeholder="Search tailor shop name or owner email…"
             defaultValue={search ?? ''}
           />
           <select className={styles.select} name="status" defaultValue={status ?? ''}>
