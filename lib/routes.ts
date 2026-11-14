@@ -157,6 +157,7 @@ export const ROUTES = {
   //      lib/admin/requireAdmin.ts; not a shop-tenant route) ----
   admin: '/admin',
   adminBroadcasts: '/admin/broadcasts',
+  adminSettings: '/admin/settings',
 
   // ---- Public-by-link (bare domain, not indexed) ----
   track: (
