@@ -373,17 +373,43 @@ export interface OrganizationDetail {
   shops: {
     id: string;
     name: string;
+    slug: string | null;
     isPrimary: boolean;
+    businessMode: 'bespoke' | 'rtw' | 'hybrid' | null;
     subscriptionStatus: string | null;
     subscriptionPlan: string | null;
     currentPeriodEnd: string | null;
     graceExpiresAt: string | null;
+    streakCurrent: number;
+    streakBest: number;
+    streakFreezes: number;
+    xp: number;
+    createdAt: string | null;
   }[];
   customerCount: number;
   orderCount: number;
   ordersByStatus: Record<string, number>;
   staffCount: number;
+  team: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: string | null;
+    avatarUrl: string | null;
+    lastActiveAt: string | null;
+    createdAt: string;
+    active: boolean;
+  }[];
   billingEvents: { eventType: string; status: string; amountKobo: number | null; createdAt: string }[];
+  auditLogs: {
+    id: string;
+    adminName: string | null;
+    action: string;
+    targetType: string;
+    targetId: string | null;
+    diff: Record<string, unknown> | null;
+    createdAt: string;
+  }[];
 }
 
 export async function getOrganizationDetail(orgId: string): Promise<OrganizationDetail | null> {
@@ -396,16 +422,21 @@ export async function getOrganizationDetail(orgId: string): Promise<Organization
     .maybeSingle();
   if (!org) return null;
 
-  const [{ data: shops }, { data: owner }, { data: orders }, staffCount, { data: billingEvents }] = await Promise.all([
+  const [{ data: shops }, { data: owner }, { data: orders }, { data: teamProfiles }, { data: billingEvents }] = await Promise.all([
     admin
       .from('shops')
-      .select('id, name, is_primary, subscription_status, subscription_plan, current_period_end, grace_expires_at')
-      .eq('org_id', orgId),
+      .select('id, name, slug, is_primary, business_mode, subscription_status, subscription_plan, current_period_end, grace_expires_at, streak_current, streak_best, streak_freezes, xp, created_at')
+      .eq('org_id', orgId)
+      .order('is_primary', { ascending: false }),
     org.owner_id
       ? admin.from('profiles').select('name, email').eq('id', org.owner_id).maybeSingle()
       : Promise.resolve({ data: null as { name: string; email: string | null } | null }),
     admin.from('orders').select('status').eq('org_id', orgId),
-    count(admin, 'profiles', (q) => q.eq('org_id', orgId)),
+    admin
+      .from('profiles')
+      .select('id, name, email, role, avatar_url, last_active_at, created_at, active')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: true }),
     admin
       .from('subscription_events')
       .select('event_type, status, amount_kobo, created_at')
@@ -414,6 +445,16 @@ export async function getOrganizationDetail(orgId: string): Promise<Organization
   ]);
 
   const customerCount = await count(admin, 'customers', (q) => q.eq('org_id', orgId));
+
+  const shopIds = (shops ?? []).map((s) => s.id);
+  const targetIds = [orgId, ...shopIds];
+
+  const { data: auditLogs } = await admin
+    .from('admin_audit_log')
+    .select('id, admin_name, action, target_type, target_id, diff, created_at')
+    .in('target_id', targetIds)
+    .order('created_at', { ascending: false })
+    .limit(25);
 
   const ordersByStatus: Record<string, number> = {};
   for (const o of orders ?? []) {
@@ -430,21 +471,47 @@ export async function getOrganizationDetail(orgId: string): Promise<Organization
     shops: (shops ?? []).map((s) => ({
       id: s.id,
       name: s.name,
+      slug: s.slug ?? null,
       isPrimary: s.is_primary,
+      businessMode: (s.business_mode as 'bespoke' | 'rtw' | 'hybrid' | null) ?? 'bespoke',
       subscriptionStatus: s.subscription_status,
       subscriptionPlan: s.subscription_plan,
       currentPeriodEnd: s.current_period_end,
       graceExpiresAt: s.grace_expires_at,
+      streakCurrent: Number(s.streak_current) || 0,
+      streakBest: Number(s.streak_best) || 0,
+      streakFreezes: Number(s.streak_freezes) || 0,
+      xp: Number(s.xp) || 0,
+      createdAt: s.created_at ?? null,
     })),
     customerCount,
     orderCount: (orders ?? []).length,
     ordersByStatus,
-    staffCount,
+    staffCount: (teamProfiles ?? []).length,
+    team: (teamProfiles ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      email: p.email,
+      role: p.role,
+      avatarUrl: p.avatar_url,
+      lastActiveAt: p.last_active_at,
+      createdAt: p.created_at,
+      active: p.active,
+    })),
     billingEvents: (billingEvents ?? []).map((e) => ({
       eventType: e.event_type,
       status: e.status,
       amountKobo: e.amount_kobo,
       createdAt: e.created_at,
+    })),
+    auditLogs: (auditLogs ?? []).map((l) => ({
+      id: l.id,
+      adminName: l.admin_name,
+      action: l.action,
+      targetType: l.target_type,
+      targetId: l.target_id,
+      diff: l.diff as Record<string, unknown> | null,
+      createdAt: l.created_at,
     })),
   };
 }
