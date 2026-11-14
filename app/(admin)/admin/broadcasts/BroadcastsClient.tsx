@@ -11,7 +11,9 @@ interface BroadcastHistoryItem {
   title: string;
   targetMode: string;
   targetPlan: string;
+  targetAudience?: string;
   shopsCount: number;
+  recipientsCount?: number;
   pushCount: number;
   createdAt: string;
 }
@@ -79,6 +81,7 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
                 <tr>
                   <th>Announcement Title</th>
                   <th>Target Shops</th>
+                  <th>Target Audience</th>
                   <th>Delivered In-App</th>
                   <th>Device Pushes</th>
                   <th>Dispatched By</th>
@@ -97,7 +100,12 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
                       </span>
                     </td>
                     <td>
-                      <strong>{item.shopsCount}</strong> shops
+                      <span className={styles.audienceBadge}>
+                        {item.targetAudience === 'owners_only' ? 'Owners Only' : item.targetAudience === 'staff_only' ? 'Staff Only' : 'Everyone'}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{item.recipientsCount || item.shopsCount}</strong> delivered
                     </td>
                     <td>
                       {item.pushCount > 0 ? (

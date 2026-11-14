@@ -177,6 +177,54 @@
   font-weight: 500;
 }
 
+/* ── Smart Placeholder Toolbar ── */
+.placeholderHelpRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  margin-top: -6px;
+}
+
+.placeholderHelpLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.placeholderPillGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.placeholderPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.placeholderPill:hover {
+  background: rgba(67, 56, 202, 0.08);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+}
+
 /* ── History Card ───────────────────────────────────────── */
 .historyCard {
   background: #ffffff;
@@ -257,6 +305,16 @@
   background: rgba(67, 56, 202, 0.08);
   color: var(--sf-brand-indigo);
   text-transform: capitalize;
+}
+
+.audienceBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .pushActive {

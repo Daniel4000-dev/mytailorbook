@@ -14,12 +14,17 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
   const [message, setMessage] = useState('');
   const [targetMode, setTargetMode] = useState<BroadcastPayload['targetMode']>('all');
   const [targetPlan, setTargetPlan] = useState<BroadcastPayload['targetPlan']>('all');
+  const [targetAudience, setTargetAudience] = useState<BroadcastPayload['targetAudience']>('all');
   const [tone, setTone] = useState<BroadcastPayload['tone']>('info');
   const [actionLabel, setActionLabel] = useState('');
   const [actionHref, setActionHref] = useState('');
 
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<{ success?: boolean; message?: string } | null>(null);
+
+  const insertVariable = (varCode: string) => {
+    setMessage((prev) => `${prev} ${varCode} `);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +38,7 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
       message,
       targetMode,
       targetPlan,
+      targetAudience,
       tone,
       actionLabel: actionLabel.trim() || undefined,
       actionHref: actionHref.trim() || undefined,
@@ -41,7 +47,7 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
     if (res.success) {
       setStatus({
         success: true,
-        message: `Successfully delivered to ${res.shopsNotified} tailor shops (${res.pushSentCount} device pushes sent)!`,
+        message: `Delivered to ${res.recipientsNotified} recipients across ${res.shopsNotified} tailor shops (${res.pushSentCount} device pushes dispatched)!`,
       });
       setTitle('');
       setMessage('');
@@ -92,18 +98,57 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
       </div>
 
       <div className={styles.formGroup}>
-        <label className={styles.label}>Announcement Message *</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <label className={styles.label}>Announcement Message *</label>
+        </div>
         <textarea
           className={styles.textarea}
           rows={4}
-          placeholder="Write the clear update for tailors..."
+          placeholder="e.g. Good day {first_name}! Notice for {shop_name}: our weekend cutting table dispatch window is open..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
         />
+        <div className={styles.placeholderHelpRow}>
+          <span className={styles.placeholderHelpLabel}>1-Tap Personalization Slangs & Variables:</span>
+          <div className={styles.placeholderPillGroup}>
+            <button
+              type="button"
+              className={styles.placeholderPill}
+              onClick={() => insertVariable('{shop_name}')}
+              title="Replaces with the shop's registered business name"
+            >
+              + {'{shop_name}'}
+            </button>
+            <button
+              type="button"
+              className={styles.placeholderPill}
+              onClick={() => insertVariable('{first_name}')}
+              title="Replaces with recipient's first name (e.g. Daniel)"
+            >
+              + {'{first_name}'}
+            </button>
+            <button
+              type="button"
+              className={styles.placeholderPill}
+              onClick={() => insertVariable('{name}')}
+              title="Replaces with recipient's full name"
+            >
+              + {'{name}'}
+            </button>
+            <button
+              type="button"
+              className={styles.placeholderPill}
+              onClick={() => insertVariable('{mode}')}
+              title="Replaces with 'Bespoke', 'Ready-to-Wear', or 'Hybrid Fashion'"
+            >
+              + {'{mode}'}
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.formRow}>
+      <div className={styles.formRow} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         <div className={styles.formGroup}>
           <label className={styles.label}>Target Shop Mode</label>
           <select
@@ -119,7 +164,20 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Target Plan</label>
+          <label className={styles.label}>Target Audience / Role</label>
+          <select
+            className={styles.select}
+            value={targetAudience}
+            onChange={(e) => setTargetAudience(e.target.value as BroadcastPayload['targetAudience'])}
+          >
+            <option value="all">Everyone (Shop Owners & Staff)</option>
+            <option value="owners_only">Shop Owners / Managers Only</option>
+            <option value="staff_only">Workshop Staff / Apprentices Only</option>
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Subscription Plan</label>
           <select
             className={styles.select}
             value={targetPlan}
