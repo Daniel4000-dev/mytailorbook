@@ -51,9 +51,12 @@ export default function TopBar({
 
   const finalRightAction = rightAction || actions;
 
-  const businessMode = currentShop?.businessMode || 'bespoke';
+  const businessMode =
+    currentShop?.businessMode ||
+    ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
+    'bespoke';
   const isBespokeOrHybrid = businessMode !== 'rtw';
-  const xpEnabled = isXpSystemEnabled(currentShop?.businessMode);
+  const xpEnabled = isXpSystemEnabled(businessMode);
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
   const currentTier = getTierForXp(xp);
