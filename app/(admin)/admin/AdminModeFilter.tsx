@@ -36,7 +36,7 @@ export default function AdminModeFilter({ counts }: AdminModeFilterProps) {
   };
 
   return (
-    <div className={styles.segmentedWrap} role="region" aria-label="Filter atelier mode">
+    <div className={styles.segmentedWrap} role="region" aria-label="Filter tailor shop mode">
       <div className={styles.segmentedControl}>
         <button
           type="button"

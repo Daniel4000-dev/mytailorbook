@@ -71,8 +71,8 @@ export default async function OrganizationsPage({
       {/* ── Page Header ── */}
       <div className={styles.headingRow}>
         <div>
-          <h1 className={styles.heading}>Ateliers & Organizations</h1>
-          <p className={styles.subheading}>{total} fashion houses registered across all modes</p>
+          <h1 className={styles.heading}>Tailor Shops & Businesses</h1>
+          <p className={styles.subheading}>{total} fashion businesses registered across all modes</p>
         </div>
 
         <div className={styles.headerActions}>
@@ -145,7 +145,7 @@ export default async function OrganizationsPage({
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Atelier / Organization</th>
+                  <th>Shop / Business</th>
                   <th>Operating Mode</th>
                   <th>Owner Email</th>
                   <th>Subscription</th>

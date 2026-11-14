@@ -35,7 +35,7 @@ export default async function AdminOverviewPage({
       label: 'Estimated MRR',
       value: formatNaira(stats.mrrEstimateNgn),
       icon: 'payments',
-      sub: `${stats.premiumCount} paid ateliers (${stats.freeCount} free)`,
+      sub: `${stats.premiumCount} paid shops (${stats.freeCount} free)`,
       highlight: true,
     },
     {
@@ -45,7 +45,7 @@ export default async function AdminOverviewPage({
       sub: `${stats.cancellations30d} cancellations`,
     },
     {
-      label: 'Atelier Mode Mix',
+      label: 'Tailor Shop Mode Mix',
       value: `${stats.bespokeShopsCount} / ${stats.rtwShopsCount} / ${stats.hybridShopsCount}`,
       icon: 'layers',
       sub: 'Bespoke / RTW / Hybrid',
@@ -60,7 +60,7 @@ export default async function AdminOverviewPage({
       label: 'Customer Directory',
       value: stats.totalCustomers.toLocaleString(),
       icon: 'group',
-      sub: 'Total clients across ateliers',
+      sub: 'Total clients across all shops',
     },
     {
       label: 'New Signups (7d / 30d)',
@@ -164,7 +164,7 @@ export default async function AdminOverviewPage({
                     <td>
                       <code className={styles.codePill}>{a.code}</code>
                     </td>
-                    <td>{a.signups} ateliers</td>
+                    <td>{a.signups} shops</td>
                     <td>{a.premiumConversions} paid</td>
                     <td>
                       <span className={a.active ? styles.badgeActive : styles.badgeInactive}>

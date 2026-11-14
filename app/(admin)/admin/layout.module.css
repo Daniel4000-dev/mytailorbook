@@ -85,7 +85,7 @@
   gap: var(--sf-space-md);
 }
 
-.viewAtelierBtn {
+.openShopBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -100,7 +100,7 @@
   transition: all 0.15s ease;
 }
 
-.viewAtelierBtn:hover {
+.openShopBtn:hover {
   background: #f1f5f9;
   color: #0f172a;
 }

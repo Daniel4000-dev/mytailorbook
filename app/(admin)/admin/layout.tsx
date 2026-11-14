@@ -17,7 +17,8 @@ export const metadata: Metadata = {
 const NAV_ITEMS = [
   { href: ROUTES.admin, label: 'Overview', icon: 'dashboard' },
   { href: `${ROUTES.admin}/active-users`, label: 'Live Engagement', icon: 'monitoring' },
-  { href: `${ROUTES.admin}/organizations`, label: 'Ateliers & Orgs', icon: 'store' },
+  { href: `${ROUTES.admin}/organizations`, label: 'Tailor Shops & Orgs', icon: 'store' },
+  { href: ROUTES.adminBroadcasts, label: 'Broadcast Center', icon: 'campaign' },
   { href: `${ROUTES.admin}/affiliates`, label: 'Affiliates', icon: 'group' },
   { href: `${ROUTES.admin}/activity`, label: 'Audit Trail', icon: 'history' },
 ];
@@ -43,9 +44,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </div>
 
         <div className={styles.headerRight}>
-          <Link href={ROUTES.dashboard} className={styles.viewAtelierBtn}>
+          <Link href={ROUTES.dashboard} className={styles.openShopBtn}>
             <Symbol name="arrow_back" size={14} />
-            <span>Switch to Atelier App</span>
+            <span>Open Tailor App</span>
           </Link>
           <div className={styles.adminProfile}>
             <div className={styles.adminAvatar}>
