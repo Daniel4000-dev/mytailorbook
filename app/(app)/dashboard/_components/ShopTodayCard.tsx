@@ -18,9 +18,11 @@ export default function ShopTodayCard({
 }) {
   const { milestones } = useMilestones();
   const { calendarEvents } = useData();
-  const xpEnabled = isXpSystemEnabled(shop?.business_mode || shop?.businessMode);
+  const businessMode = shop?.businessMode || shop?.business_mode || 'bespoke';
+  const isBespoke = businessMode !== 'rtw';
+  const xpEnabled = isXpSystemEnabled(businessMode);
   const isAllCaughtUp = loops.length === 0;
-  const currentStreak = xpEnabled ? (shop?.streakCurrent || 0) : 0;
+  const currentStreak = isBespoke ? (shop?.streakCurrent || 0) : 0;
 
   const todayStr = new Date().toISOString().split('T')[0];
   const isMarketRunToday = (calendarEvents || []).some(

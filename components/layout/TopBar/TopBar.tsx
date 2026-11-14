@@ -56,6 +56,7 @@ export default function TopBar({
     ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
     'bespoke';
   const isBespokeOrHybrid = businessMode !== 'rtw';
+  const isBespoke = businessMode === 'bespoke';
   const xpEnabled = isXpSystemEnabled(businessMode);
   const currentStreak = currentShop?.streakCurrent || 0;
   const xp = currentShop?.xp || 0;
@@ -196,7 +197,7 @@ export default function TopBar({
                 </Link>
               )}
 
-              {xpEnabled && (
+              {isBespoke && (
                 <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   {streakIndicator}
                 </div>
@@ -242,19 +243,19 @@ export default function TopBar({
       </header>
 
 
-      {xpEnabled && (
-        <>
-          <StreakModal 
-            isOpen={isStreakModalOpen} 
-            onClose={() => setIsStreakModalOpen(false)} 
-            streakCount={currentStreak} 
-          />
+      {isBespoke && (
+        <StreakModal 
+          isOpen={isStreakModalOpen} 
+          onClose={() => setIsStreakModalOpen(false)} 
+          streakCount={currentStreak} 
+        />
+      )}
 
-          <ChallengeModal
-            isOpen={isChallengeModalOpen}
-            onClose={() => setIsChallengeModalOpen(false)}
-          />
-        </>
+      {xpEnabled && (
+        <ChallengeModal
+          isOpen={isChallengeModalOpen}
+          onClose={() => setIsChallengeModalOpen(false)}
+        />
       )}
     </>
   );

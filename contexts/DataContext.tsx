@@ -272,9 +272,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = isDemoMode ? true : !!data;
 
-  // Daily Streak Auto Check-in on Login / App Open (only when standalone XP module is plugged in)
+  // Daily Streak Auto Check-in on Login / App Open (runs standalone for bespoke tailor shops)
   useEffect(() => {
-    if (!isXpSystemEnabled() || !currentShop?.id || isDemoMode) return;
+    const shopMode =
+      currentShop?.businessMode ||
+      ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
+      'bespoke';
+    if (shopMode !== 'bespoke' || !currentShop?.id || isDemoMode) return;
     const todayStr = new Date().toISOString().split('T')[0];
     const sessionKey = `mtb_daily_checkin_${todayStr}_${currentShop.id}`;
 

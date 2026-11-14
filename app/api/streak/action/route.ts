@@ -43,10 +43,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
     }
 
-    // XP, daily streaks, and craft badges are exclusively built for bespoke tailoring.
+    // Streaks and Tailor Circle accountability are exclusively built for bespoke tailoring.
     // RTW and Hybrid modes operate on inventory throughput and rack stock, where craft
-    // order streaks and gamification do not apply.
-    if (!xpEnabled || (shop.business_mode && shop.business_mode !== 'bespoke')) {
+    // order streaks do not apply.
+    if (shop.business_mode && shop.business_mode !== 'bespoke') {
       return NextResponse.json({
         success: true,
         xp_awarded: 0,

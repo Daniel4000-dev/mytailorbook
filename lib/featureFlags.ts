@@ -28,10 +28,9 @@ export const FEATURE_FLAGS = {
    *  fully in place underneath — flipping this to true re-enables the
    *  split with no further code changes. */
   perStyleMeasurements: true,
-  /** Master plug-and-play switch for the XP, Streak, Tailor Tier & Tailor Circle
-   *  gamification engine. When false (default), all XP UI surfaces, streak
-   *  badges, leaderboards, and XP ledger dispatches are completely detached
-   *  while core workshop operations, audit logs, and smart notifications run
-   *  independently. Flip to true at any time to plug the XP system back in. */
-  xpSystem: true,
+  /** Master plug-and-play switch for the XP gamification engine (levels, XP ledger,
+   *  and tier badges). When false (default), all XP points, levels, and tier needle badges
+   *  are detached, while Daily Streaks and Tailor Circle run completely standalone for
+   *  bespoke workshops. Flip to true to plug the XP points system back in. */
+  xpSystem: false,
 } as const;
