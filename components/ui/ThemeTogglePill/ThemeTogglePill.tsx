@@ -47,3 +47,4 @@ export default function ThemeTogglePill({ className = '', showLabel = true }: Th
     </button>
   );
 }
+
