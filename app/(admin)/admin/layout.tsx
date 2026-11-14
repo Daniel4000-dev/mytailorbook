@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 
 const NAV_ITEMS = [
   { href: ROUTES.admin, label: 'Overview', icon: 'dashboard' },
-  { href: `${ROUTES.admin}/active-users`, label: 'Live Engagement', icon: 'monitoring' },
-  { href: `${ROUTES.admin}/organizations`, label: 'Tailor Shops & Orgs', icon: 'store' },
+  { href: `${ROUTES.admin}/organizations`, label: 'Tailor Shops', icon: 'store' },
   { href: ROUTES.adminBroadcasts, label: 'Broadcast Center', icon: 'campaign' },
+  { href: `${ROUTES.admin}/active-users`, label: 'Live Engagement', icon: 'monitoring' },
   { href: `${ROUTES.admin}/affiliates`, label: 'Affiliates', icon: 'group' },
   { href: `${ROUTES.admin}/activity`, label: 'Audit Trail', icon: 'history' },
 ];

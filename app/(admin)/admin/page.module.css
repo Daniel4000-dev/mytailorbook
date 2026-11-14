@@ -208,6 +208,63 @@
   background: #fafafa;
 }
 
+.rowLink {
+  font-weight: 600;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.rowLink:hover {
+  color: var(--sf-brand-indigo, #4f46e5);
+  text-decoration: underline;
+}
+
+.manageLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+  background: rgba(99, 102, 241, 0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+  transition: all 0.15s ease;
+}
+
+.manageLink:hover {
+  background: rgba(99, 102, 241, 0.18);
+  color: #3730a3;
+}
+
+.modeBadgeBespoke {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.modeBadgeRtw {
+  background: rgba(234, 88, 12, 0.12);
+  color: #c2410c;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.modeBadgeHybrid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .badgeActive {
   display: inline-block;
   padding: 2px 8px;
