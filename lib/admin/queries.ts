@@ -136,6 +136,19 @@ export interface AffiliatePerformance {
   active: boolean;
   signups: number;
   premiumConversions: number;
+  monthlyRevenueGeneratedNgn: number;
+}
+
+export interface ReferredShopItem {
+  id: string;
+  name: string;
+  createdAt: string;
+  ownerEmail: string | null;
+  businessMode: string;
+  subscriptionStatus: string | null;
+  subscriptionPlan: string | null;
+  customerCount: number;
+  orderCount: number;
 }
 
 export async function getAffiliatePerformance(): Promise<AffiliatePerformance[]> {
@@ -167,15 +180,32 @@ export async function getAffiliatePerformance(): Promise<AffiliatePerformance[]>
 
   return (affiliates ?? []).map((a) => {
     const orgIds = orgIdsByAffiliate.get(a.id) ?? [];
+    const premiumConversions = orgIds.filter((id) => premiumOrgIds.has(id)).length;
     return {
       id: a.id,
       name: a.name,
       code: a.code,
       active: a.active,
       signups: orgIds.length,
-      premiumConversions: orgIds.filter((id) => premiumOrgIds.has(id)).length,
+      premiumConversions,
+      monthlyRevenueGeneratedNgn: premiumConversions * MONTHLY_PRICE_NGN,
     };
   });
+}
+
+export async function getAffiliateReferredShops(affiliateId: string): Promise<ReferredShopItem[]> {
+  const { rows } = await getOrganizations({ affiliateId, pageSize: 100 });
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    createdAt: r.createdAt,
+    ownerEmail: r.ownerEmail,
+    businessMode: r.businessMode,
+    subscriptionStatus: r.subscriptionStatus,
+    subscriptionPlan: r.subscriptionPlan,
+    customerCount: r.customerCount,
+    orderCount: r.orderCount,
+  }));
 }
 
 export interface RateLimitHotspot {
