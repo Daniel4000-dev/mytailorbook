@@ -2,7 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-sm);
+  margin-top: -24px; /* Plane 3: Physically overlaps Plane 2 */
   margin-bottom: var(--sf-space-md);
+  position: relative;
+  z-index: 10; /* Elevated above middle and back planes */
   width: 100%;
 }
 
@@ -11,7 +14,7 @@
 .masterBar {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
@@ -21,30 +24,33 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: 48px;
-  padding: 0 16px;
-  border-radius: 14px;
-  background: var(--sf-brand-indigo, #4338CA);
-  color: #FFFFFF;
-  border: none;
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #1A1002;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   font-size: var(--sf-text-sm, 14px);
-  font-weight: var(--sf-weight-semibold);
+  font-weight: 800;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  box-shadow: none;
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+  box-shadow: 0 10px 28px rgba(245, 158, 11, 0.38), 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .primaryActionBtn:hover {
-    background: #3730A3;
-    box-shadow: none;
+    background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+    box-shadow: 0 14px 34px rgba(245, 158, 11, 0.48), 0 2px 8px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
   }
 }
 
 .primaryActionBtn:active {
-  transform: scale(0.97);
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
 }
 
 .portfolioActionBtn {
@@ -53,17 +59,17 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: 48px;
-  padding: 0 16px;
-  border-radius: 14px;
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 16px;
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
   border: 1px solid var(--sf-border);
   font-size: var(--sf-text-sm, 14px);
-  font-weight: var(--sf-weight-semibold);
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: none;
-  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), border-color var(--sf-transition-fast);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
 }
@@ -72,11 +78,13 @@
   .portfolioActionBtn:hover {
     background: var(--sf-bg-surface-hover);
     border-color: var(--sf-border-focus);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
   }
 }
 
 .portfolioActionBtn:active {
-  transform: scale(0.97);
+  transform: translateY(0) scale(0.97);
 }
 
 .secondaryActionBtn {

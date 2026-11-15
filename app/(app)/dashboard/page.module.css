@@ -1179,9 +1179,28 @@
   transform: rotate(-5deg);
 }
 
+/* Plane 1 (Back): Giant Typographic Moniker for Spatial Depth */
+.heroBackPlane {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-fraunces), var(--sf-font-heading), Georgia, serif;
+  font-size: clamp(68px, 19vw, 130px);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  color: rgba(255, 255, 255, 0.045);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  text-transform: uppercase;
+}
+
 .heroHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   position: relative;
@@ -1206,23 +1225,24 @@
 
 .heroShopName {
   font-family: var(--font-fraunces), var(--sf-font-heading), serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
 .heroRevenueBlock {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 1px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
   flex-shrink: 0;
   text-align: right;
 }
@@ -1236,10 +1256,10 @@
 
 .heroRevenueLabel {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .heroEyeBtn {
@@ -1259,11 +1279,12 @@
 
 .heroRevenueValue {
   font-family: var(--sf-font-numeric), sans-serif;
-  font-size: 19px;
-  font-weight: 800;
+  font-size: clamp(28px, 7.5vw, 42px);
+  font-weight: 900;
   color: #ffffff;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
 }
 
 /* Integrated Monthly Progress Bar */
@@ -1315,59 +1336,102 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  padding: 11px 13px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px dashed rgba(16, 185, 129, 0.35);
+  padding: 13px 15px;
+  background: rgba(12, 10, 36, 0.55);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--sf-radius-lg);
   color: #E2E8F0;
-  font-size: var(--sf-text-xs);
-  line-height: 1.4;
   margin-top: 10px;
   position: relative;
   z-index: 2;
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: inherit;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.dayOneBackPlane {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-fraunces), serif;
+  font-size: clamp(48px, 13vw, 76px);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: rgba(255, 255, 255, 0.045);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
 }
 
 .dayOneBanner:hover,
 .dayOneBanner:active {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.55);
+  background: rgba(12, 10, 36, 0.75);
+  border-color: rgba(245, 158, 11, 0.35);
   transform: translateY(-1px);
 }
 
 .dayOneBannerLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .dayOneBannerLeft svg {
-  color: var(--sf-accent-emerald);
+  color: #F59E0B;
   flex-shrink: 0;
+}
+
+.dayOneTextCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dayOneTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.dayOneSubtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.35;
 }
 
 .dayOneBannerCta {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 9px;
-  background: var(--sf-accent-emerald);
-  color: #064E3B;
-  font-weight: 700;
+  gap: 5px;
+  padding: 7px 13px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #1A1002;
+  font-weight: 800;
   font-size: 11px;
   border-radius: var(--sf-radius-full);
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.38);
 }
 
 .dayOneBannerCta svg {
-  color: #064E3B;
+  color: #1A1002;
 }
 
 .hybridToggleWrap {
@@ -1493,10 +1557,10 @@
 
 .metricNum {
   font-family: var(--font-fraunces), var(--sf-font-heading), serif;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: #ffffff;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .metricAlertDot {
@@ -1509,10 +1573,10 @@
 
 .metricLabel {
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.65);
   white-space: nowrap;
 }
 

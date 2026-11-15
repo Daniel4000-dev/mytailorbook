@@ -18,6 +18,25 @@
   overflow: hidden;
 }
 
+/* Plane 1 (Back): Giant Typographic Watermark for Spatial Depth */
+.backPlaneType {
+  position: absolute;
+  top: 45%;
+  right: -8px;
+  transform: translateY(-50%);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(60px, 16vw, 105px);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: var(--sf-text-primary);
+  opacity: 0.038;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  text-transform: uppercase;
+}
+
 /* Tailor's Basting Pick-Stitch Border */
 .pickStitchBorder {
   position: absolute;
@@ -25,7 +44,7 @@
   left: 6px;
   right: 6px;
   bottom: 6px;
-  border: 1px dashed rgba(16, 185, 129, 0.22);
+  border: 1px dashed rgba(245, 158, 11, 0.22);
   border-radius: calc(var(--sf-radius-xl, 24px) - 5px);
   pointer-events: none;
 }
@@ -109,8 +128,8 @@
   justify-content: space-between;
   gap: var(--sf-space-md);
   padding: var(--sf-space-md);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, rgba(67, 56, 202, 0.06) 100%);
-  border: 1.5px solid rgba(16, 185, 129, 0.32);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(67, 56, 202, 0.04) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
   border-radius: var(--sf-radius-lg, 16px);
   cursor: pointer;
   text-align: left;
@@ -119,10 +138,10 @@
 }
 
 .actionCardHero:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(67, 56, 202, 0.1) 100%);
-  border-color: var(--sf-accent-emerald, #10B981);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(67, 56, 202, 0.08) 100%);
+  border-color: #F59E0B;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.2);
 }
 
 .actionCardHero:active {
@@ -167,13 +186,13 @@
   width: 44px;
   height: 44px;
   border-radius: var(--sf-radius-md, 12px);
-  background: rgba(16, 185, 129, 0.18);
-  color: var(--sf-accent-emerald, #10B981);
+  background: rgba(245, 158, 11, 0.16);
+  color: #F59E0B;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .iconBoxSecondary {
@@ -249,15 +268,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 8px 15px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald, #10B981);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #1A1002;
   font-size: var(--sf-text-xs);
-  font-weight: 700;
+  font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
-  border: none;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .actionBtnSecondary {

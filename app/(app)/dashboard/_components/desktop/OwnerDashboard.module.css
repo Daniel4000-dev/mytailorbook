@@ -67,9 +67,28 @@
   transform: rotate(-5deg);
 }
 
+/* Plane 1 (Back): Giant Typographic Moniker for Spatial Depth */
+.heroBackPlane {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-fraunces), var(--sf-font-heading), Georgia, serif;
+  font-size: clamp(80px, 16vw, 160px);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: rgba(255, 255, 255, 0.045);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  text-transform: uppercase;
+}
+
 .heroTop {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--sf-space-lg);
   position: relative;
@@ -117,11 +136,11 @@
 }
 
 .heroPrimaryLabel {
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-semibold);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
-  color: var(--sf-nav-icon);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .heroPrivacyBtn {
@@ -148,11 +167,12 @@
 
 .heroPrimaryValue {
   font-family: var(--sf-font-numeric);
-  font-size: 1.5rem;
-  line-height: 1.15;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: -0.03em;
   color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .heroMain {
