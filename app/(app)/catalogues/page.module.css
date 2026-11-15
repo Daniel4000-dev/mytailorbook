@@ -24,18 +24,30 @@
   gap: var(--sf-space-lg);
 }
 
-/* ── Atelier Hero Liquid Glass Banner ── */
+/* ── Workshop Hero Liquid Glass Banner (Plane 1 & 2) ── */
 .heroBanner {
-  background: var(--sf-glass-fallback-bg);
-  border: var(--sf-glass-border);
-  border-radius: var(--sf-radius-xl, 22px);
+  background: var(--sf-bg-surface);
+  border: 1px solid rgba(67, 56, 202, 0.1);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.98);
+  border-radius: 22px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 18px;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--sf-glass-shadow-floating);
+  box-shadow: 
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 10px 28px -4px rgba(67, 56, 202, 0.08),
+    0 20px 40px -10px rgba(15, 23, 42, 0.05);
+}
+
+:global([data-theme='dark']) .heroBanner {
+  border-color: rgba(99, 102, 241, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 12px 32px -4px rgba(0, 0, 0, 0.45);
 }
 
 @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
@@ -65,18 +77,21 @@
   gap: 6px;
   padding: 4px 12px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-sand);
-  border: 1px solid var(--sf-border-light);
-  font-size: 12px;
-  font-weight: 600;
+  background: rgba(67, 56, 202, 0.06);
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--sf-brand-indigo);
 }
 
 .heroTitle {
   margin: 0;
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--sf-text-primary);
 }
 
@@ -95,11 +110,47 @@
   flex-wrap: wrap;
 }
 
+/* Plane 3: Signal Button (Luminous Adire Indigo) */
 .primaryCreateBtn {
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent, #FFFFFF);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
   border: none;
-  padding: 10px 20px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+  padding: 10px 22px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-family: var(--sf-font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.38), 0 2px 4px rgba(67, 56, 202, 0.2);
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 44px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primaryCreateBtn:hover {
+    background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+    box-shadow: 0 8px 24px rgba(67, 56, 202, 0.45), 0 3px 6px rgba(67, 56, 202, 0.25);
+    transform: translateY(-1.5px);
+  }
+}
+
+.primaryCreateBtn:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.3);
+}
+
+.secondaryShareBtn {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid rgba(67, 56, 202, 0.1);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  padding: 10px 18px;
   border-radius: var(--sf-radius-full);
   font-size: 13px;
   font-weight: 700;
@@ -108,62 +159,37 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 14px var(--sf-accent-emerald-glow);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  min-height: 42px;
-}
-
-.primaryCreateBtn:hover {
-  background: var(--sf-accent-emerald-dark);
-  transform: translateY(-1px);
-}
-
-.primaryCreateBtn:active {
-  transform: scale(0.98);
-}
-
-.secondaryShareBtn {
-  background: var(--sf-bg-surface);
-  color: var(--sf-text-primary);
-  border: 1px solid var(--sf-border-light);
-  padding: 10px 18px;
-  border-radius: var(--sf-radius-full);
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--sf-font-body), sans-serif;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   transition: all 0.18s ease;
-  min-height: 42px;
+  min-height: 44px;
 }
 
 .secondaryShareBtn:hover {
   background: var(--sf-bg-surface-hover);
-  border-color: var(--sf-border);
+  border-color: rgba(67, 56, 202, 0.2);
   transform: translateY(-1px);
 }
 
 .previewBtn {
-  background: transparent;
+  background: rgba(67, 56, 202, 0.04);
   color: var(--sf-brand-indigo);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
   padding: 10px 16px;
   border-radius: var(--sf-radius-full);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--sf-font-body), sans-serif;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   cursor: pointer;
   transition: all 0.18s ease;
-  min-height: 42px;
+  min-height: 44px;
 }
 
 .previewBtn:hover {
-  background: var(--sf-sand);
+  background: rgba(67, 56, 202, 0.08);
 }
 
 /* ── Apple Segmented Control (Albums vs Feed) ── */
@@ -177,11 +203,20 @@
 
 .segmentedControl {
   display: inline-flex;
-  background: var(--sf-sand);
+  background: rgba(15, 23, 42, 0.04);
   padding: 4px;
   border-radius: var(--sf-radius-full);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
   gap: 4px;
+}
+
+:global([data-theme='dark']) .segmentedControl {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .segmentBtn {
@@ -208,10 +243,16 @@
 .segmentBtnActive {
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(67, 56, 202, 0.08);
 }
 
-/* ── Albums Grid (Pinterest Board Style) ── */
+:global([data-theme='dark']) .segmentBtnActive {
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Albums Grid (Plane 2 Tactile Board Cards) ── */
 .albumsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -227,21 +268,36 @@
 
 .albumCard {
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg, 18px);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
   display: flex;
   flex-direction: column;
   user-select: none;
-  box-shadow: 0 4px 16px -4px rgba(27, 27, 34, 0.05);
+  box-shadow: 
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 8px 24px -4px rgba(67, 56, 202, 0.06),
+    0 16px 36px -8px rgba(15, 23, 42, 0.04);
+}
+
+:global([data-theme='dark']) .albumCard {
+  border-color: rgba(99, 102, 241, 0.16);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4);
 }
 
 .albumCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px -6px rgba(67, 56, 202, 0.15);
-  border-color: var(--sf-border);
+  box-shadow: 
+    0 4px 12px rgba(15, 23, 42, 0.06),
+    0 16px 36px -4px rgba(67, 56, 202, 0.16),
+    0 24px 48px -8px rgba(15, 23, 42, 0.08);
+  border-color: rgba(67, 56, 202, 0.2);
 }
 
 .albumCard:active {
@@ -317,7 +373,7 @@
   padding: 3px 8px;
   border-radius: var(--sf-radius-full);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -337,10 +393,12 @@
   gap: 8px;
 }
 
+/* Extreme Scale Contrast: Large bold style title */
 .albumTitle {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
   color: var(--sf-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -358,13 +416,17 @@
   color: var(--sf-brand-indigo);
 }
 
+/* Extreme Scale Contrast: Tiny micro-caps label */
 .albumSub {
   margin: 0;
-  font-size: 12px;
-  color: var(--sf-text-secondary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sf-text-tertiary);
 }
 
-/* ── Pinterest Staggered Masonry (for "All Inspirations" mode) ── */
+/* ── Pinterest Staggered Masonry (Plane 2 Pin Cards) ── */
 .masonryGrid {
   column-count: 4;
   column-gap: 14px;
@@ -382,19 +444,33 @@
 .pinCard {
   break-inside: avoid;
   margin-bottom: 14px;
-  border-radius: var(--sf-radius-lg, 16px);
+  border-radius: 20px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  box-shadow: 0 4px 16px -4px rgba(27, 27, 34, 0.05);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 8px 24px -4px rgba(67, 56, 202, 0.06),
+    0 16px 36px -8px rgba(15, 23, 42, 0.04);
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
 }
 
+:global([data-theme='dark']) .pinCard {
+  border-color: rgba(99, 102, 241, 0.16);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
 .pinCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px -4px rgba(67, 56, 202, 0.14);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 4px 12px rgba(15, 23, 42, 0.06),
+    0 16px 36px -4px rgba(67, 56, 202, 0.16);
 }
 
 .pinImg {
@@ -416,13 +492,13 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .pinOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(15,14,23,0.7) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(15,14,23,0.75) 100%);
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
@@ -448,7 +524,7 @@
   -webkit-backdrop-filter: blur(6px);
   color: #FFFFFF;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 3px 7px;
   border-radius: var(--sf-radius-full);
   display: inline-flex;
@@ -475,22 +551,39 @@
 }
 
 .pinQuoteBtn:hover {
-  background: var(--sf-color-brand-brown, #5C3D2E);
+  background: rgba(15, 14, 23, 0.95);
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* Plane 3: Signal Order Button */
 .pinOrderBtn {
-  background: var(--sf-accent-emerald);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
   border: none;
-  padding: 6px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 6px 12px;
   border-radius: var(--sf-radius-full);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.35);
+  transition: all 0.16s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pinOrderBtn:hover {
+    background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+    box-shadow: 0 6px 16px rgba(67, 56, 202, 0.45);
+    transform: translateY(-1px);
+  }
+}
+
+.pinOrderBtn:active {
+  transform: scale(0.97);
 }
 
 /* ── Empty State & Quick Start ── */
@@ -502,12 +595,20 @@
 
 .quickStartCard {
   background: var(--sf-bg-surface);
-  border: 1px dashed var(--sf-border);
-  border-radius: var(--sf-radius-lg, 16px);
-  padding: 20px;
+  border: 1px dashed rgba(67, 56, 202, 0.25);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.05);
+}
+
+:global([data-theme='dark']) .quickStartCard {
+  border-color: rgba(99, 102, 241, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
 }
 
 .quickStartTitle {

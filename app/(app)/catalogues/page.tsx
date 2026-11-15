@@ -483,7 +483,7 @@ export default function CataloguesPage() {
                         )}`
                       );
                     }}
-                    title="Calculate bespoke quote for this style"
+                    title="Calculate price quote for this style"
                   >
                     <Symbol name="calculate" size={13} />
                     <span>Quote</span>

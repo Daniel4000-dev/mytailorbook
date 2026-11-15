@@ -402,7 +402,7 @@ export default function CatalogueDetailPage() {
               </button>
             </div>
             <p className={styles.albumTip}>
-              Consult with walk-ins on this screen. Tap any photo to inspect or convert directly into a bespoke order cutting slip.
+              Consult with walk-ins on this screen. Tap any photo to inspect or convert directly into a cutting slip.
             </p>
           </div>
 
@@ -475,7 +475,7 @@ export default function CatalogueDetailPage() {
                         `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(photo.imageUrl)}`
                       );
                     }}
-                    title="Calculate bespoke quote for this style"
+                    title="Calculate price quote for this style"
                   >
                     <Symbol name="calculate" size={14} />
                     <span>Quote</span>
@@ -487,7 +487,7 @@ export default function CatalogueDetailPage() {
                       e.stopPropagation();
                       handleStartOrderWithPhoto(photo);
                     }}
-                    title="Start bespoke order with this style"
+                    title="Start order with this style"
                   >
                     <Symbol name="content_cut" size={14} />
                     <span>Sew This</span>
@@ -545,7 +545,7 @@ export default function CatalogueDetailPage() {
                 onClick={() => handleStartOrderWithPhoto(inspectedPhoto)}
               >
                 <Symbol name="content_cut" size={18} />
-                <span>Start Bespoke Order With This Style</span>
+                <span>Start Order With This Style</span>
               </button>
 
               <button

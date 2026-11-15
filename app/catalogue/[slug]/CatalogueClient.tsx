@@ -288,7 +288,7 @@ export default function CatalogueClient({
 
             <div className={styles.brandText}>
               <div className={styles.studioBadgeRow}>
-                <span className={styles.studioKicker}>Atelier Showcase</span>
+                <span className={styles.studioKicker}>Workshop Showcase</span>
                 <span className={styles.verifiedTag}>
                   <Symbol name="verified" size={13} />
                   <span>Verified Fashion House</span>
@@ -310,13 +310,13 @@ export default function CatalogueClient({
               title="Chat on WhatsApp"
             >
               <WhatsappIcon size={16} />
-              <span>Contact Studio</span>
+              <span>Contact Workshop</span>
             </a>
           )}
         </div>
       </header>
 
-      {/* ── Dual Mode Switcher (Showroom Floor vs Bespoke Lookbook) ── */}
+      {/* ── Dual Mode Switcher (Showroom Floor vs Style Lookbook) ── */}
       {hasShowroom && hasLookbook && (
         <section className={styles.viewModeBar}>
           <div className={styles.viewModeTrack}>
@@ -336,7 +336,7 @@ export default function CatalogueClient({
               onClick={() => setViewMode('lookbook')}
             >
               <Symbol name="collections" size={16} />
-              <span>Bespoke Lookbook</span>
+              <span>Style Lookbook</span>
               <span className={styles.viewModeCount}>{allEnrichedPhotos.length}</span>
             </button>
           </div>
@@ -377,7 +377,7 @@ export default function CatalogueClient({
                   {selectedRackCategory === 'All' ? 'In-Stock Ready to Wear' : `${selectedRackCategory} Collection`}
                 </h2>
                 <p className={styles.feedSubtitle}>
-                  {displayedRackItems.length} {displayedRackItems.length === 1 ? 'style' : 'styles'} currently on the atelier rack
+                  {displayedRackItems.length} {displayedRackItems.length === 1 ? 'style' : 'styles'} currently in stock
                 </p>
               </div>
             </div>
@@ -690,7 +690,7 @@ export default function CatalogueClient({
                 <div className={styles.ensembleSection}>
                   <div className={styles.sectionHeaderRow}>
                     <h4 className={styles.sectionHeading}>Style With / Complete the Look:</h4>
-                    <span className={styles.sectionSub}>Optional atelier accessories</span>
+                    <span className={styles.sectionSub}>Optional matching accessories</span>
                   </div>
 
                   <div className={styles.accessoryList}>
@@ -825,7 +825,7 @@ export default function CatalogueClient({
               </div>
 
               <p className={styles.modalInstructions}>
-                Love this bespoke design? Send it directly on WhatsApp to confirm custom measurements, fabric selection, and order delivery dates.
+                Love this style? Send it directly on WhatsApp to confirm custom measurements, fabric selection, and order delivery dates.
               </p>
 
               <div className={styles.modalActions}>
@@ -871,7 +871,7 @@ export default function CatalogueClient({
             <span>{shopName}</span>
           </div>
           <p className={styles.footerNote}>
-            Powered by {APP_CONFIG.name} · Atelier Showroom & Bespoke Fashion Operating System
+            Powered by {APP_CONFIG.name} · Workshop Showroom & Tailor Operating System
           </p>
         </div>
       </footer>

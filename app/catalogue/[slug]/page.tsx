@@ -17,10 +17,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
-  const shopName = shopRow?.name || `${formattedSlug} Atelier`;
+  const shopName = shopRow?.name || `${formattedSlug} Tailors`;
 
-  const title = `${shopName} — Showroom Rack & Bespoke Lookbook`;
-  const description = `Shop in-stock ready-to-wear pieces and explore handcrafted bespoke silhouettes by ${shopName}.`;
+  const title = `${shopName} — Showroom Rack & Style Lookbook`;
+  const description = `Shop in-stock ready-to-wear pieces and explore handcrafted custom styles by ${shopName}.`;
 
   return {
     title,
@@ -53,7 +53,7 @@ export default async function PublicCataloguePage({ params }: { params: Promise<
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
-  const shopName = shopRow?.name || `${formattedSlug} Atelier`;
+  const shopName = shopRow?.name || `${formattedSlug} Tailors`;
   const logoUrl = shopRow?.logo_url || null;
   const shopPhone = shopRow?.phone || null;
   const currency = shopRow?.currency || 'NGN';
