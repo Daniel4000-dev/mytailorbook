@@ -68,5 +68,11 @@ export interface StitchWrapData {
   onTimeDeliveryRate: number;
   archetype: StitchWrapArchetype;
   theme: StitchWrapTheme;
+  featuredGarmentPhotos: {
+    heroStylePhoto: string;
+    fabricDetailPhoto: string;
+    celebrationPhoto: string;
+    patronFitPhoto: string;
+  };
 }
 

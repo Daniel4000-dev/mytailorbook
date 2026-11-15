@@ -209,7 +209,66 @@ export async function getStitchWrapData(
     }
   }
 
-  // 8. Color Science & Tailor Archetype Assignment
+  // 8. Photo Curation (Shop's actual garment photos + bespoke editorial lookbook matches)
+  let heroStylePhoto = '/images/blog/agbada-ceremonial-amurode.jpg';
+  let fabricDetailPhoto = '/images/blog/agbada-embroidery-detail.jpg';
+  let celebrationPhoto = '/images/blog/owambe-cover.jpg';
+  let patronFitPhoto = '/images/blog/senator-wear-cover.jpg';
+
+  const styleLower = topGarmentStyle.toLowerCase();
+  if (styleLower.includes('senator')) {
+    heroStylePhoto = '/images/blog/senator-wear-cover.jpg';
+    fabricDetailPhoto = '/images/blog/senator-collar-detail.jpg';
+    patronFitPhoto = '/images/garments/senator-male.jpg';
+  } else if (styleLower.includes('kaftan')) {
+    heroStylePhoto = '/images/blog/kaftan-babban-riga-cover.jpg';
+    fabricDetailPhoto = '/images/blog/kaftan-embroidery-detail.jpg';
+    patronFitPhoto = '/images/garments/kaftan-male.jpg';
+  } else if (styleLower.includes('suit') || styleLower.includes('tuxedo')) {
+    heroStylePhoto = '/images/mock/mock_suit_nigerian_1789589547408.jpg';
+    fabricDetailPhoto = '/images/mock/mock_detail_nigerian_1789589583459.jpg';
+    patronFitPhoto = '/images/garments/suit-male.jpg';
+  } else if (styleLower.includes('gown') || styleLower.includes('dress') || styleLower.includes('lace')) {
+    heroStylePhoto = '/images/blog/aso-oke-structured-gown.jpg';
+    fabricDetailPhoto = '/images/blog/lace-fabric-detail.jpg';
+    patronFitPhoto = '/images/blog/bridal-gown-cover.jpg';
+  } else if (styleLower.includes('ankara')) {
+    heroStylePhoto = '/images/blog/ankara-2026-cover.jpg';
+    fabricDetailPhoto = '/images/blog/ankara-mixed-print.jpg';
+    patronFitPhoto = '/images/blog/ankara-mermaid-gown.jpg';
+  } else if (styleLower.includes('boubou') || styleLower.includes('buba')) {
+    heroStylePhoto = '/images/blog/buba-iro-structured.jpg';
+    fabricDetailPhoto = '/images/blog/aso-oke-lace-panels.jpg';
+    patronFitPhoto = '/images/garments/boubou-female.jpg';
+  }
+
+  // Check if shop has custom uploaded style photos in DB
+  try {
+    const { data: dbStyles } = await admin
+      .from('styles')
+      .select('photo_url, image_url')
+      .eq('shop_id', shop.id)
+      .limit(4);
+
+    if (dbStyles && dbStyles.length > 0) {
+      const valid = dbStyles
+        .map((s: { photo_url?: string; image_url?: string }) => s.photo_url || s.image_url)
+        .filter(Boolean) as string[];
+      if (valid[0]) heroStylePhoto = valid[0];
+      if (valid[1]) patronFitPhoto = valid[1];
+    }
+  } catch {
+    // Fallback to editorial lookbook photography
+  }
+
+  const featuredGarmentPhotos = {
+    heroStylePhoto,
+    fabricDetailPhoto,
+    celebrationPhoto,
+    patronFitPhoto,
+  };
+
+  // 9. Color Science & Tailor Archetype Assignment
   const { theme, archetype } = determineWrapThemeAndArchetype({
     topGarmentStyle,
     averageTurnaroundDays,
@@ -242,5 +301,6 @@ export async function getStitchWrapData(
     onTimeDeliveryRate,
     archetype,
     theme,
+    featuredGarmentPhotos,
   };
 }

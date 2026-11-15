@@ -3,7 +3,7 @@ import type { StitchWrapData } from './types';
 /**
  * 9:16 Vertical Video Reel Exporter for Stitch Wrap (1080x1920)
  * Uses native HTML5 Canvas + MediaRecorder API to generate a video file
- * with the selected audio track baked in.
+ * with real tailor garment photos, chalk textures, and audio track baked in.
  */
 export async function exportStitchWrapVideo({
   data,
@@ -21,6 +21,27 @@ export async function exportStitchWrapVideo({
   if (typeof window === 'undefined') {
     throw new Error('Video export can only be run in the browser.');
   }
+
+  onProgress?.(5, 'Pre-loading garment craft photography...');
+
+  // Pre-load photos
+  const photos = data.featuredGarmentPhotos;
+  const [heroImg, fabricImg, celebrationImg, patronImg] = await Promise.all([
+    loadImage(photos.heroStylePhoto),
+    loadImage(photos.fabricDetailPhoto),
+    loadImage(photos.celebrationPhoto),
+    loadImage(photos.patronFitPhoto),
+  ]);
+
+  const loadedImages: Record<number, HTMLImageElement | null> = {
+    0: heroImg,
+    1: fabricImg,
+    2: patronImg,
+    3: heroImg,
+    4: celebrationImg,
+    5: fabricImg,
+    6: heroImg,
+  };
 
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
@@ -63,6 +84,8 @@ export async function exportStitchWrapVideo({
   let currentFrame = 0;
 
   for (let slideIdx = 0; slideIdx < totalSlides; slideIdx++) {
+    const slideImg = loadedImages[slideIdx];
+
     for (let f = 0; f < totalFramesPerSlide; f++) {
       const slideProgress = f / totalFramesPerSlide;
       renderEditorialFrame({
@@ -70,6 +93,7 @@ export async function exportStitchWrapVideo({
         data,
         slideIdx,
         slideProgress,
+        slideImg,
         isClientMasked,
         isRevenueMasked,
       });
@@ -101,15 +125,27 @@ export async function exportStitchWrapVideo({
   });
 }
 
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    if (!src) return resolve(null);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
 /**
  * High-Fashion Editorial Frame Renderer (1080x1920)
- * Draws high-contrast typography, luxury care label tags, barcodes, and kinetic glows.
+ * Draws garment photos, high-contrast typography, chalk lines, and the watermark footer.
  */
 function renderEditorialFrame({
   ctx,
   data,
   slideIdx,
   slideProgress,
+  slideImg,
   isClientMasked,
   isRevenueMasked,
 }: {
@@ -117,6 +153,7 @@ function renderEditorialFrame({
   data: StitchWrapData;
   slideIdx: number;
   slideProgress: number;
+  slideImg: HTMLImageElement | null;
   isClientMasked: boolean;
   isRevenueMasked: boolean;
 }) {
@@ -124,13 +161,35 @@ function renderEditorialFrame({
   const H = 1920;
   const theme = data.theme;
 
-  // 1. Deep Obsidian / Brand Background
+  // 1. Deep Obsidian Background
   ctx.fillStyle = '#0a0a0c';
   ctx.fillRect(0, 0, W, H);
 
-  // 2. High-Voltage Saturated Color Aura
+  // 2. Full-Bleed Editorial Garment Photo with Ken-Burns Motion Zoom
+  if (slideImg) {
+    ctx.save();
+    const zoom = 1 + slideProgress * 0.05;
+    const drawW = W * zoom;
+    const drawH = H * zoom;
+    const offsetX = (W - drawW) / 2;
+    const offsetY = (H - drawH) / 2;
+
+    ctx.drawImage(slideImg, offsetX, offsetY, drawW, drawH);
+
+    // Dark cinematic vignette
+    const darkGrad = ctx.createLinearGradient(0, 0, 0, H);
+    darkGrad.addColorStop(0, 'rgba(10, 10, 12, 0.72)');
+    darkGrad.addColorStop(0.35, 'rgba(10, 10, 12, 0.2)');
+    darkGrad.addColorStop(0.7, 'rgba(10, 10, 12, 0.72)');
+    darkGrad.addColorStop(1, 'rgba(10, 10, 12, 0.98)');
+    ctx.fillStyle = darkGrad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // 3. Subtle Saturated Color Aura
   const grad = ctx.createRadialGradient(
-    W * 0.5 + Math.sin(slideProgress * Math.PI * 2) * 80,
+    W * 0.5 + Math.sin(slideProgress * Math.PI * 2) * 60,
     H * 0.45,
     50,
     W * 0.5,
@@ -138,56 +197,69 @@ function renderEditorialFrame({
     W * 0.85
   );
   grad.addColorStop(0, theme.blobColor1);
-  grad.addColorStop(0.5, theme.blobColor2);
+  grad.addColorStop(0.6, theme.blobColor2);
   grad.addColorStop(1, 'rgba(10, 10, 12, 0)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // 3. Top Progress Tracks
+  // 4. Tailor White Chalk Dashed Measurement Grid
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([14, 10]);
+  ctx.strokeRect(30, 30, W - 60, H - 60);
+  ctx.restore();
+
+  // Yellow Chalk Ticks
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = '700 22px monospace';
+  ctx.fillText('[CHALK: 42° LAGOS BESPOKE // 2026]', 50, 56);
+
+  // 5. Top Progress Tracks
   const totalSlides = 7;
   const trackGap = 12;
   const trackWidth = (W - 120 - (totalSlides - 1) * trackGap) / totalSlides;
   for (let i = 0; i < totalSlides; i++) {
     const x = 60 + i * (trackWidth + trackGap);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.beginPath();
-    ctx.roundRect(x, 60, trackWidth, 8, 4);
+    ctx.roundRect(x, 80, trackWidth, 8, 4);
     ctx.fill();
 
     if (i < slideIdx) {
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(x, 60, trackWidth, 8, 4);
+      ctx.roundRect(x, 80, trackWidth, 8, 4);
       ctx.fill();
     } else if (i === slideIdx) {
       ctx.fillStyle = theme.accentColor;
       ctx.beginPath();
-      ctx.roundRect(x, 60, trackWidth * slideProgress, 8, 4);
+      ctx.roundRect(x, 80, trackWidth * slideProgress, 8, 4);
       ctx.fill();
     }
   }
 
-  // 4. Header Bar: Workshop Brand & Archetype Pill
+  // 6. Header Bar: Workshop Brand & Archetype Pill
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 34px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  ctx.fillText(data.shopName.toUpperCase(), 60, 130);
+  ctx.font = '900 36px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  ctx.fillText(data.shopName.toUpperCase(), 60, 150);
 
   ctx.fillStyle = theme.accentColor;
   ctx.font = '700 24px monospace';
-  ctx.fillText(`// ${theme.auraTitle.toUpperCase()}`, 60, 170);
+  ctx.fillText(`// ${theme.auraTitle.toUpperCase()}`, 60, 190);
 
-  // 5. Luxury Garment Care Label Motif (Top Right)
+  // Luxury Garment Care Label Motif (Top Right)
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
   ctx.lineWidth = 2;
-  ctx.strokeRect(W - 360, 95, 300, 80);
+  ctx.strokeRect(W - 380, 110, 320, 85);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.font = '700 18px monospace';
-  ctx.fillText('100% PURE CRAFT', W - 340, 128);
+  ctx.fillText('100% PURE CRAFT', W - 360, 145);
   ctx.font = '500 15px monospace';
-  ctx.fillText('DO NOT TUMBLE DRY THE HUSTLE', W - 340, 155);
+  ctx.fillText('DO NOT TUMBLE DRY THE HUSTLE', W - 360, 175);
 
-  // 6. Chapter Content Rendering
+  // 7. Chapter Content Rendering
   switch (slideIdx) {
     case 0:
       drawChapter0(ctx, data, W, H, theme);
@@ -212,11 +284,8 @@ function renderEditorialFrame({
       break;
   }
 
-  // 7. Bottom Barcode & Footer Watermark
-  drawBarcode(ctx, 60, H - 150, 400, 50);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = '600 20px monospace';
-  ctx.fillText('POWERED BY MYSTITCHBOOK // 2026 STITCH WRAP', 60, H - 80);
+  // 8. Watermark Footer on Every Slide
+  drawWatermarkFooter(ctx, data, W, H, theme);
 }
 
 function drawChapter0(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: number, H: number, theme: any) {
@@ -229,7 +298,7 @@ function drawChapter0(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
   const title1 = data.isMidYearJoiner ? 'JOINED THE RANKS' : '365 DAYS OF CRAFT';
   ctx.fillText(title1, 60, 460);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
   ctx.font = '500 34px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText(
     data.isMidYearJoiner
@@ -248,7 +317,7 @@ function drawChapter0(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
   ctx.font = '800 46px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('BESPOKE GARMENTS CRAFTED', 60, 920);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.font = '500 32px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText(
     `Averaged ${(data.totalGarments / (data.monthsActive || 12)).toFixed(1)} completed fits every single month.`,
@@ -274,13 +343,13 @@ function drawChapter1(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
   ctx.font = '800 50px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('YARDS OF CLOTH SLICED', 60, 840);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
   ctx.font = '500 34px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('Enough luxury silk, wool, and brocade to wrap an Olympic stadium!', 60, 920);
 
   // Sub Card
   drawGlassCard(ctx, 60, 1020, W - 120, 240);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.font = '700 24px monospace';
   ctx.fillText('ON-TIME DELIVERY COMMITMENT', 100, 1080);
   ctx.fillStyle = '#10b981';
@@ -327,7 +396,7 @@ function drawChapter2(
   ctx.font = '700 36px -apple-system, sans-serif';
   ctx.fillText(`✂️ ${data.topClient.garmentCount} Bespoke Garments Commissioned`, 100, 1140);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.font = '500 28px -apple-system, sans-serif';
   ctx.fillText('Your biggest workshop believer in 2026.', 100, 1200);
 }
@@ -363,7 +432,7 @@ function drawChapter3(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
   ctx.font = '700 36px -apple-system, sans-serif';
   ctx.fillText(`Delivered ${data.busiestMonth.garmentCount} completed garments in 30 days!`, 100, 1110);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
   ctx.font = '500 28px -apple-system, sans-serif';
   ctx.fillText('Peak Owambe & celebration rush. Pure master tailor momentum.', 100, 1180);
 }
@@ -385,12 +454,12 @@ function drawChapter4(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
   ctx.font = '800 48px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('DAY CRAFT STREAK UNBROKEN', 60, 840);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.font = '500 34px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('Showing up at your sewing machine every single day.', 60, 910);
 
   drawGlassCard(ctx, 60, 1010, W - 120, 260);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.font = '700 24px monospace';
   ctx.fillText('ACTIVE WORKSHOP LOG', 100, 1070);
   ctx.fillStyle = '#ffffff';
@@ -424,14 +493,14 @@ function drawChapter5(
   ctx.fillText('TOTAL BESPOKE PRODUCTION VALUE', 60, 760);
 
   drawGlassCard(ctx, 60, 900, W - 120, 320);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.font = '700 24px monospace';
   ctx.fillText('AVERAGE FIT VALUATION', 100, 960);
   ctx.fillStyle = '#ffffff';
   ctx.font = '900 64px -apple-system, sans-serif';
   const avg = isRevenueMasked ? '₦ •••' : `₦${Math.round(data.totalRevenue / data.totalGarments).toLocaleString()}`;
   ctx.fillText(avg, 100, 1050);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
   ctx.font = '500 28px -apple-system, sans-serif';
   ctx.fillText('100% deposit health · Zero lost client balances', 100, 1120);
 }
@@ -451,12 +520,12 @@ function drawChapter6(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
 
   drawGlassCard(ctx, 60, 650, W - 120, 620);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
   ctx.font = '500 32px -apple-system, BlinkMacSystemFont, sans-serif';
   wrapText(ctx, data.archetype.description, 100, 740, W - 200, 46);
 
   // Summary Metrics Table inside Card
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(100, 900);
@@ -469,32 +538,48 @@ function drawChapter6(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: nu
   ctx.fillText(`~${data.estimatedFabricYards} yds`, 400, 980);
   ctx.fillText(`${data.longestStreak}d`, 760, 980);
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.font = '700 20px monospace';
   ctx.fillText('GARMENTS', 100, 1020);
   ctx.fillText('CLOTH CUT', 400, 1020);
   ctx.fillText('STREAK', 760, 1020);
 }
 
+function drawWatermarkFooter(ctx: CanvasRenderingContext2D, data: StitchWrapData, W: number, H: number, theme: any) {
+  // Watermark Card Container
+  drawGlassCard(ctx, 60, H - 160, W - 120, 100);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 24px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('⚡ MADE WITH MYTAILORBOOK', 100, H - 108);
+
+  ctx.fillStyle = theme.accentColor;
+  ctx.font = '700 20px monospace';
+  ctx.fillText(`2026 CRAFT TELEMETRY // ${data.shopName.toUpperCase()}`, 100, H - 76);
+
+  // Subtle Barcode on right side of footer
+  drawBarcode(ctx, W - 320, H - 135, 220, 50);
+}
+
 function drawGlassCard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
   ctx.save();
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-  ctx.lineWidth = 3;
+  ctx.fillStyle = 'rgba(10, 10, 14, 0.68)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, 28);
+  ctx.roundRect(x, y, w, h, 24);
   ctx.fill();
   ctx.stroke();
   ctx.restore();
 }
 
 function drawBarcode(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   let curX = x;
   while (curX < x + w) {
-    const barW = Math.random() > 0.5 ? 4 : 8;
+    const barW = Math.random() > 0.5 ? 3 : 6;
     ctx.fillRect(curX, y, barW, h);
-    curX += barW + (Math.random() > 0.5 ? 4 : 6);
+    curX += barW + (Math.random() > 0.5 ? 3 : 5);
   }
 }
 

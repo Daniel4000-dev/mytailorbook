@@ -91,7 +91,6 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
   const [isVideoExporting, setIsVideoExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportStatusText, setExportStatusText] = useState('');
-  const [exportedVideoUrl, setExportedVideoUrl] = useState<string | null>(null);
 
   // Privacy Toggles
   const [isClientMasked, setIsClientMasked] = useState(true);
@@ -112,7 +111,6 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     setError(null);
     setCurrentSlide(0);
     setProgressPercent(0);
-    setExportedVideoUrl(null);
 
     fetchStitchWrapAction()
       .then((res) => {
@@ -183,8 +181,8 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     if (currentSlide === TOTAL_SLIDES - 1 && isOpen) {
       try {
         confetti({
-          particleCount: 110,
-          spread: 85,
+          particleCount: 120,
+          spread: 90,
           origin: { y: 0.55 },
           colors: ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#38BDF8', '#ffffff'],
         });
@@ -256,13 +254,13 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     }
   };
 
-  // 1-Click Video Export (9:16 vertical video reel)
+  // 1-Click Video Export (9:16 vertical video reel with real photos)
   const handleExportVideoReel = async () => {
     if (!data) return;
     setIsPaused(true);
     setIsVideoExporting(true);
     setExportProgress(0);
-    setExportStatusText('Preparing high-fashion video canvas...');
+    setExportStatusText('Preparing 9:16 high-fashion video canvas...');
 
     try {
       const audioTrack = wrapAudio.getAudioStreamTrack();
@@ -276,8 +274,6 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
           setExportStatusText(status);
         },
       });
-
-      setExportedVideoUrl(result.url);
 
       // Trigger automatic download
       const link = document.createElement('a');
@@ -346,6 +342,16 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
   if (!isOpen) return null;
 
   const theme = data?.theme;
+  const photos = data?.featuredGarmentPhotos;
+
+  // Determine which background garment photo to display for the current slide
+  let activeSlidePhoto = photos?.heroStylePhoto;
+  if (currentSlide === 1) activeSlidePhoto = photos?.fabricDetailPhoto;
+  else if (currentSlide === 2) activeSlidePhoto = photos?.patronFitPhoto;
+  else if (currentSlide === 3) activeSlidePhoto = photos?.heroStylePhoto;
+  else if (currentSlide === 4) activeSlidePhoto = photos?.celebrationPhoto;
+  else if (currentSlide === 5) activeSlidePhoto = photos?.fabricDetailPhoto;
+  else if (currentSlide === 6) activeSlidePhoto = photos?.heroStylePhoto;
 
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
@@ -370,7 +376,25 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
           onChange={handleCustomAudioUpload}
         />
 
-        {/* Dynamic Motion Aurora Stage: Floating Orbs & Light Sweeps */}
+        {/* Full-Bleed Editorial Garment Photo Background Stage */}
+        {activeSlidePhoto && (
+          <div className={styles.photoBackdropStage}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={activeSlidePhoto}
+              alt="Bespoke Garment Craft"
+              className={styles.photoBackdropImg}
+            />
+            <div className={styles.photoVignetteOverlay} />
+          </div>
+        )}
+
+        {/* Fashion Textures: Ankara Geometry & Tailor White Chalk Markings */}
+        <div className={styles.ankaraTextureOverlay} />
+        <div className={styles.chalkMeasurementLines} />
+        <div className={styles.chalkCornerTicks}>[CHALK: 42° LAGOS BESPOKE]</div>
+
+        {/* Dynamic Motion Aurora Stage */}
         <div className={styles.auroraStage}>
           <div
             className={styles.auroraBlob1}
@@ -385,8 +409,6 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
             style={{ background: theme?.blobColor3 || 'rgba(99, 102, 241, 0.35)' }}
           />
           <div className={styles.laserSweepLine} />
-          <div className={styles.meshGridOverlay} />
-          <div className={styles.perimeterStitchLine} />
         </div>
 
         {/* Top Progress Tracks & Header Bar */}
@@ -607,7 +629,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
           <div className={styles.videoExportOverlay}>
             <Symbol name="movie" size={44} style={{ color: '#f59e0b', animation: 'pulse 1.5s infinite' }} />
             <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#ffffff' }}>
-              Rendering Your 15-Second Video Reel
+              Rendering Your 9:16 Video Reel
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)', maxWidth: 280 }}>
               {exportStatusText}
@@ -629,8 +651,8 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
           <div className={styles.slideCanvas} style={{ justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ color: '#ffffff', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Symbol name="needle" size={42} style={{ color: '#f59e0b', animation: 'spin 1.5s linear infinite' }} />
-              <span style={{ fontSize: '1.2rem', fontWeight: 900 }}>Generating Your 2026 Stitch Wrap...</span>
-              <span style={{ fontSize: '0.84rem', opacity: 0.8 }}>Calculating your garment stitches &amp; client milestones.</span>
+              <span style={{ fontSize: '1.2rem', fontWeight: 900 }}>Curating Your 2026 Stitch Wrap...</span>
+              <span style={{ fontSize: '0.84rem', opacity: 0.8 }}>Matching your garment photos &amp; craft milestones.</span>
             </div>
           </div>
         )}
@@ -708,6 +730,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                         : 'Full year of dedicated bespoke excellence.'}
                     </span>
                   </div>
+
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -736,6 +767,19 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       Every bespoke piece required exact body measurements, chalking, and seam assembly.
                     </p>
                   </div>
+
+                  {/* Photo Framing Window: Fabric & Embroidery Detail */}
+                  {photos?.fabricDetailPhoto && (
+                    <div className={styles.garmentPhotoCard}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photos.fabricDetailPhoto}
+                        alt="Bespoke Fabric Detail"
+                        className={styles.garmentPhotoImg}
+                      />
+                      <span className={styles.photoTagBadge}>CHALK // SILK &amp; BROCADE</span>
+                    </div>
+                  )}
 
                   <div className={styles.statsGrid}>
                     <div className={styles.statGlassCard}>
@@ -767,17 +811,17 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       <span className={styles.statGlassVal} style={{ color: '#10b981' }}>
                         <AnimatedCounter value={data.onTimeDeliveryRate} suffix="%" />
                       </span>
-                      <span className={styles.statGlassSub}>Client promises honored</span>
+                      <span className={styles.statGlassSub}>Promises honored</span>
                     </div>
                   </div>
 
-                  <div className={styles.statGlassCard}>
-                    <span className={styles.statGlassLabel}>Tailor Craft Fact</span>
-                    <span className={styles.statGlassSub} style={{ fontSize: '0.84rem', color: '#ffffff' }}>
-                      {data.estimatedFabricYards > 50
-                        ? `Your ${data.estimatedFabricYards} yards of cut fabric could stretch across an entire Olympic football pitch!`
-                        : 'Every single yard was chalked and cut with dedicated artisan care.'}
-                    </span>
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
                 </motion.div>
               )}
@@ -849,6 +893,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                         : 'Strong repeat patronage keeping your sewing machines humming.'}
                     </span>
                   </div>
+
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -878,20 +931,18 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                     </p>
                   </div>
 
-                  <div className={styles.heroNumberStage}>
-                    <div className={styles.heroIconHalo}>
-                      <Symbol name="workspace_premium" size={38} style={{ color: theme?.accentColor }} />
+                  {/* Photo Framing Window: Hero Runway Piece */}
+                  {photos?.heroStylePhoto && (
+                    <div className={styles.garmentPhotoCard} style={{ height: 180 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photos.heroStylePhoto}
+                        alt="Bespoke Runway Fit"
+                        className={styles.garmentPhotoImg}
+                      />
+                      <span className={styles.photoTagBadge}>EDITORIAL // {data.topGarmentStyle.toUpperCase()}</span>
                     </div>
-                    <span
-                      className={styles.heroNumberLabel}
-                      style={{ fontSize: '1.8rem', color: theme?.accentColor, marginTop: 4 }}
-                    >
-                      {data.topGarmentStyle}
-                    </span>
-                    <span className={styles.heroDetailSubtext}>
-                      Your most commissioned bespoke design of the entire year!
-                    </span>
-                  </div>
+                  )}
 
                   <div className={styles.statsGrid}>
                     <div className={styles.statGlassCard}>
@@ -907,6 +958,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       </span>
                       <span className={styles.statGlassSub}>Tape intake to packaging</span>
                     </div>
+                  </div>
+
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
                 </motion.div>
               )}
@@ -960,7 +1020,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                     </div>
 
                     <div className={styles.statGlassCard}>
-                      <span className={styles.statGlassLabel}>Circle Accountability</span>
+                      <span className={styles.statGlassLabel}>Circle Pod</span>
                       <span className={styles.statGlassVal}>
                         {data.circlePartnerName ? 'Active Pod' : 'Independent'}
                       </span>
@@ -970,6 +1030,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                           : 'Solo craft resilience'}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
                 </motion.div>
               )}
@@ -1053,6 +1122,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       <span className={styles.statGlassSub}>Zero lost balances</span>
                     </div>
                   </div>
+
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
+                  </div>
                 </motion.div>
               )}
 
@@ -1126,6 +1204,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       <Symbol name="download" size={16} />
                       <span>{isCardExporting ? 'Generating Retina Card...' : 'Download Story Card (PNG)'}</span>
                     </button>
+                  </div>
+
+                  {/* Watermark Footer on Every Slide */}
+                  <div className={styles.cardWatermarkFooter}>
+                    <div className={styles.watermarkBrandLogo}>
+                      <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
+                      <span>MYTAILORBOOK</span>
+                    </div>
+                    <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
                 </motion.div>
               )}
