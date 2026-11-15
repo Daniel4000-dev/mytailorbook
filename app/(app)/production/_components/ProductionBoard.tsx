@@ -412,8 +412,8 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       if (!fittingPromptOrder) return;
       const order = fittingPromptOrder;
       const customer = customers.find((c) => c.id === order.customerId);
-      const customerName = customer?.fullName || order.customerName || 'Bespoke Client';
-      const shopName = currentShop?.name || 'our atelier';
+      const customerName = customer?.fullName || order.customerName || 'Client';
+      const shopName = currentShop?.name || 'our workshop';
       const address = currentShop?.address || '';
       const targetShopId = user?.shopId || currentShop?.id || order.shopId;
 
@@ -427,7 +427,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
             startTime: time,
             relatedOrderId: order.id,
             relatedCustomerId: order.customerId,
-            description: `Bespoke try-on session for ${order.orderDetails || order.styleName || 'outfit'}.`,
+            description: `Fitting session for ${order.orderDetails || order.styleName || 'outfit'}.`,
             status: 'pending',
           });
         } catch (err) {
@@ -444,7 +444,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
           day: 'numeric',
           month: 'short',
         });
-        const addrText = address ? `\n\nAtelier Address: ${address}` : '';
+        const addrText = address ? `\n\nWorkshop Address: ${address}` : '';
         const msg = `Hello ${customerName},\n\nWarm greetings from ${shopName}. Your ${order.orderDetails || order.styleName || 'garment'} is ready for your fitting session!\n\nWe have reserved your appointment for ${formattedDate} at ${time}.${addrText}\n\nPlease let us know if this time works for you. Looking forward to seeing you!`;
         window.open(getWhatsAppLink(customer.whatsappNumber, msg), '_blank');
       }
@@ -665,13 +665,13 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
 
   return (
     <>
-      {/* Atelier Preview Mode Banner */}
+      {/* Workshop Preview Mode Banner */}
       {isMockAllowed && isDemoMode && (
         <div className={styles.demoBanner}>
           <div className={styles.demoBannerLeft}>
             <Symbol name="visibility" size={16} />
             <span>
-              <strong>Atelier Preview Active</strong> — 10 sample bespoke garments loaded in-memory. Drag & drop cards, change stages, and test filters freely (nothing touches your database).
+              <strong>Workshop Preview Active</strong> — 10 sample garments loaded in-memory. Drag & drop cards, change stages, and test filters freely (nothing touches your database).
             </span>
           </div>
           <button
@@ -684,10 +684,10 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
         </div>
       )}
 
-      {/* Empty State Help: Offer sample orders preview if atelier floor is currently clear */}
+      {/* Empty State Help: Offer sample orders preview if workshop floor is currently clear */}
       {isMockAllowed && !isDemoMode && orders.filter((o) => o.status !== 'Delivered').length === 0 && (
         <div className={styles.emptyPromptBanner}>
-          <span>Want to explore the Kanban board and cards with sample bespoke garments?</span>
+          <span>Want to explore the Kanban board and cards with sample garments?</span>
           <button
             type="button"
             className={styles.demoLaunchBtn}

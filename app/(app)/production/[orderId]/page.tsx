@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
           startTime: time,
           relatedOrderId: order.id,
           relatedCustomerId: order.customerId,
-          description: `Bespoke try-on session for ${order.orderDetails || order.styleName || 'outfit'}.`,
+          description: `Fitting session for ${order.orderDetails || order.styleName || 'outfit'}.`,
           status: 'pending',
         });
       } catch (err) {

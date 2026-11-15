@@ -61,7 +61,7 @@ export default function ScheduleFittingPromptModal({
 
   if (!order) return null;
 
-  const clientName = customer?.fullName || order.customerName || 'Bespoke Client';
+  const clientName = customer?.fullName || order.customerName || 'Client';
   const hasPhone = !!customer?.whatsappNumber;
 
   const handleConfirm = async () => {
@@ -159,7 +159,7 @@ export default function ScheduleFittingPromptModal({
               <WhatsappIcon size={20} />
               <div>
                 <p className={styles.whatsappTitle}>Send WhatsApp Fitting Invitation</p>
-                <p className={styles.whatsappDesc}>Auto-drafts appointment time and atelier address</p>
+                <p className={styles.whatsappDesc}>Auto-drafts appointment time and workshop address</p>
               </div>
             </div>
             <input

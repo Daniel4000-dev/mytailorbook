@@ -42,9 +42,13 @@
   display: flex;
   flex-direction: column;
   background: var(--sf-bg-surface, #FFFFFF);
-  border-radius: var(--sf-radius-lg, 16px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  border-radius: 18px;
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
   overflow: hidden;
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
   animation: cardIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -72,8 +76,10 @@
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 14px 28px -4px rgba(0, 0, 0, 0.09);
-    border-color: rgba(67, 56, 202, 0.22);
+    box-shadow: 
+      0 4px 12px rgba(67, 56, 202, 0.08),
+      0 14px 34px -4px rgba(67, 56, 202, 0.14);
+    border-color: rgba(67, 56, 202, 0.25);
   }
 }
 
@@ -453,8 +459,8 @@
 
 .title {
   font-family: var(--sf-font-body);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 15.5px;
+  font-weight: 800;
   letter-spacing: -0.015em;
   line-height: 1.35;
   color: var(--sf-text-primary);
@@ -526,9 +532,9 @@
 }
 
 .orderRef {
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--sf-text-tertiary);
   white-space: nowrap;
@@ -624,37 +630,39 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: var(--sf-brand-indigo);
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--sf-radius-full);
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.28);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.38), 0 2px 4px rgba(49, 46, 129, 0.2);
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .moveNextBtn:hover {
-    background: #3730A3;
-    box-shadow: 0 4px 14px rgba(67, 56, 202, 0.38);
+    background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+    box-shadow: 0 8px 22px rgba(79, 70, 229, 0.46), 0 3px 6px rgba(49, 46, 129, 0.25);
     transform: translateY(-1px);
   }
 }
 
 .moveNextBtn:active {
   transform: scale(0.96);
-  background: #312E81;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
 }
 
 /* Dark mode adjustments */
 :global([data-theme='dark']) .card {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  background: var(--sf-bg-surface, #1C1C1E);
+  border-color: rgba(99, 102, 241, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
 
 :global([data-theme='dark']) .customerAvatar {

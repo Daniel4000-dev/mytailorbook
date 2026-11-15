@@ -116,7 +116,7 @@ export default function StageList({
             </div>
           </div>
           <h3 className={styles.atelierEmptyTitle}>
-            {searchQuery || isFiltered ? 'No garments match filter' : 'Atelier floor is clear'}
+            {searchQuery || isFiltered ? 'No garments match filter' : 'Workshop floor is clear'}
           </h3>
           <p className={styles.atelierEmptyDesc}>
             {searchQuery

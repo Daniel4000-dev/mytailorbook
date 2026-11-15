@@ -60,9 +60,9 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
   const generateSlipText = () => {
     const lines = [
       `===============================`,
-      `ATELIER WORKSHOP CUTTING SLIP`,
+      `WORKSHOP CUTTING SLIP`,
       `===============================`,
-      `Ref: #${order.id.slice(0, 4).toUpperCase()} | ${order.styleName || 'Custom Bespoke'}`,
+      `Ref: #${order.id.slice(0, 4).toUpperCase()} | ${order.styleName || 'Custom Garment'}`,
       `Client: ${customerName}`,
       customerPhone ? `Contact: ${formatPhone(customerPhone)}` : null,
       fabricNote ? `Fabric: ${fabricNote}` : null,
@@ -76,7 +76,7 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
       ...measurementEntries.map(([key, val]) => `• ${MEASUREMENT_LABELS[key] || key}: ${val}"`),
       cleanOrderDetails ? `\n--- TAILOR NOTES & CUTTING SPEC ---\n${cleanOrderDetails}` : null,
       `===============================`,
-      `${APP_CONFIG.name} Atelier OS`,
+      `${APP_CONFIG.name} Workshop OS`,
     ];
     return lines.filter(Boolean).join('\n');
   };
@@ -229,7 +229,7 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
                 {isShopFabric && (
                   <span className={styles.provenancePill}>
                     <Symbol name="storefront" size={11} />
-                    <span>Atelier Stock</span>
+                    <span>Workshop Stock</span>
                   </span>
                 )}
               </div>
@@ -250,7 +250,7 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
               )}
               <div className={styles.fabricDetailsCol}>
                 <p className={styles.fabricContent}>
-                  {fabricNote || (order.styleName ? `Fabric for ${order.styleName}` : 'Custom atelier fabric')}
+                  {fabricNote || (order.styleName ? `Fabric for ${order.styleName}` : 'Custom workshop fabric')}
                 </p>
                 {order.dueDate && (
                   <span className={styles.dueDateNotice}>
