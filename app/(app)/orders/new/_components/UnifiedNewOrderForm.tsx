@@ -954,6 +954,7 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
+                <span className={styles.cardEyebrow}>Client Registry</span>
                 <h2 className={styles.cardTitle}>Customer Information</h2>
                 <p className={styles.cardSubtitle}>Select an existing customer or add a new one</p>
               </div>
@@ -1189,6 +1190,7 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
+                      <span className={styles.cardEyebrow}>Garments &amp; Styles</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Style & Design` : 'Style & Design'}
                       </h2>
@@ -1357,6 +1359,7 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
+                      <span className={styles.cardEyebrow}>Anatomical Measurements</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Body Measurements` : 'Body Measurements'}
                       </h2>
@@ -1487,6 +1490,7 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
+                      <span className={styles.cardEyebrow}>Fabric &amp; Cut Specifications</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Style Photos'}
                       </h2>
@@ -1701,6 +1705,7 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
+                <span className={styles.cardEyebrow}>Settlement &amp; Delivery</span>
                 <h2 className={styles.cardTitle}>Price &amp; Delivery Date</h2>
                 <p className={styles.cardSubtitle}>Total bill, deposit received, and delivery date</p>
               </div>
