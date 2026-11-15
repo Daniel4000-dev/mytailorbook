@@ -70,3 +70,4 @@ export default function AdminXpToggle({ initialEnabled = false }: AdminXpToggleP
     </button>
   );
 }
+
