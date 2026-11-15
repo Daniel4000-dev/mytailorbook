@@ -453,3 +453,55 @@ export async function adminQuickAdjustStreakAction(params: {
   }
 }
 
+/**
+ * Master XP Gamification Engine Plug-In / Plug-Out Switch
+ */
+export async function adminToggleXpSystemAction(enabled: boolean): Promise<{ success: boolean; isPluggedIn: boolean; error?: string }> {
+  try {
+    const adminUser = await requireAdmin();
+    const { getPlatformSettings, savePlatformSettings } = await import('@/lib/admin/platformSettings');
+    const { cookies } = await import('next/headers');
+    const { revalidatePath } = await import('next/cache');
+
+    const current = await getPlatformSettings();
+    const updated = {
+      ...current,
+      featureFlags: {
+        ...current.featureFlags,
+        xpSystemEnabled: enabled,
+      },
+    };
+
+    const res = await savePlatformSettings(updated, adminUser.email || undefined);
+    if (!res.success) {
+      return { success: false, isPluggedIn: !enabled, error: res.error };
+    }
+
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set('mtb_xp_plugged_in', enabled ? '1' : '0', {
+        path: '/',
+        maxAge: 31536000,
+        sameSite: 'lax',
+      });
+    } catch {
+      // Cookie fallback
+    }
+
+    revalidatePath('/admin');
+    revalidatePath('/admin/active-users');
+    revalidatePath('/admin/settings');
+    revalidatePath('/dashboard');
+
+    return { success: true, isPluggedIn: enabled };
+  } catch (err: unknown) {
+    console.error('[adminToggleXpSystemAction] Error:', err);
+    return {
+      success: false,
+      isPluggedIn: !enabled,
+      error: err instanceof Error ? err.message : 'Failed to toggle XP system.',
+    };
+  }
+}
+
+

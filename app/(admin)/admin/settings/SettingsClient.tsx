@@ -259,6 +259,32 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
             </div>
           </div>
 
+          {/* XP & Leveling Engine Switch */}
+          <div className={styles.toggleCard}>
+            <div className={styles.toggleInfo}>
+              <span className={styles.toggleTitle}>XP Points &amp; Leveling Engine</span>
+              <span className={styles.toggleHint}>
+                Awards XP points, tier ranks, and level milestones for tailor craft work. When disabled, daily streaks and circle accountability continue running standalone without XP.
+              </span>
+            </div>
+            <label className={styles.switch}>
+              <input
+                type="checkbox"
+                checked={Boolean(settings.featureFlags.xpSystemEnabled)}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    featureFlags: {
+                      ...settings.featureFlags,
+                      xpSystemEnabled: e.target.checked,
+                    },
+                  })
+                }
+              />
+              <span className={styles.slider}></span>
+            </label>
+          </div>
+
           {/* Streaks Engine Toggle */}
           <div className={styles.toggleCard}>
             <div className={styles.toggleInfo}>

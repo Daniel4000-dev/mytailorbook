@@ -1,5 +1,6 @@
 import confetti from 'canvas-confetti';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { getClientCookie } from '@/lib/client-cookies';
 import {
   TAILOR_TIERS,
   CHALLENGE_GOAL_XP,
@@ -39,6 +40,12 @@ export interface XpEventOptions {
 export function isXpSystemEnabled(businessMode?: string): boolean {
   if (businessMode && businessMode !== 'bespoke') {
     return false;
+  }
+  if (typeof document !== 'undefined') {
+    const cookieVal = getClientCookie('mtb_xp_plugged_in');
+    if (cookieVal !== null) {
+      return cookieVal === '1';
+    }
   }
   return Boolean(FEATURE_FLAGS.xpSystem);
 }

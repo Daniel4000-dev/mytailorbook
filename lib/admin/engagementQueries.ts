@@ -1,5 +1,6 @@
 import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPlatformSettings } from './platformSettings';
 import type {
   EngagementTelemetry,
   LiveCraftAction,
@@ -81,14 +82,17 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
   const inactiveThreshold = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString(); // 48h
 
   try {
-    // 1. Fetch active profiles
-    const { data: profiles } = await admin
-      .from('profiles')
-      .select('id, shop_id, name, role, last_active_at, email')
-      .not('last_active_at', 'is', null)
-      .gte('last_active_at', monthlyThreshold);
+    // 1. Fetch active profiles and platform settings snapshot
+    const [profilesRes, platformSettings] = await Promise.all([
+      admin
+        .from('profiles')
+        .select('id, shop_id, name, role, last_active_at, email')
+        .not('last_active_at', 'is', null)
+        .gte('last_active_at', monthlyThreshold),
+      getPlatformSettings(),
+    ]);
 
-    const activeProfiles = profiles || [];
+    const activeProfiles = profilesRes.data || [];
     let onlineNow = 0;
     let dailyActive = 0;
     let weeklyActive = 0;
@@ -876,6 +880,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       circleTelemetry,
       xpTelemetry,
       featureTelemetry,
+      isXpSystemPluggedIn: Boolean(platformSettings.featureFlags?.xpSystemEnabled),
       allShopsList,
       lastRefreshedAt: now.toISOString(),
     };
@@ -913,6 +918,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
         recentLedger: [],
       },
       featureTelemetry: [],
+      isXpSystemPluggedIn: false,
       allShopsList: [],
       lastRefreshedAt: now.toISOString(),
     };

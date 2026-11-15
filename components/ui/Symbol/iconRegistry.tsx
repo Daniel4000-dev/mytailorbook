@@ -1292,6 +1292,20 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  toggle_off: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="5" width="22" height="14" rx="7" fill={fill ? color : 'none'} />
+      <circle cx="8" cy="12" r="4" fill={fill ? '#fff' : color} />
+    </svg>
+  ),
+
+  power_settings_new: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+      <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+  ),
+
   smartphone: ({ size, fill, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="5" y="2" width="14" height="20" rx="2.5" fill={fill ? color : 'none'} />

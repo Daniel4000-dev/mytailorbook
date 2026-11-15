@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { requireAdmin } from '@/lib/admin/requireAdmin';
 import { ROUTES } from '@/lib/routes';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import AdminNavLink from './AdminNavLink';
 import AdminThemeToggle from './AdminThemeToggle';
+import AdminXpToggle from './AdminXpToggle';
 import styles from './layout.module.css';
 
 // Root layout already defaults every page to noindex — this is just
@@ -27,6 +29,16 @@ const NAV_ITEMS = [
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const admin = await requireAdmin();
+  let xpPluggedIn = false;
+  try {
+    const cookieStore = await cookies();
+    const c = cookieStore.get('mtb_xp_plugged_in')?.value;
+    if (c !== undefined) {
+      xpPluggedIn = c === '1';
+    }
+  } catch {
+    // fallback
+  }
 
   return (
     <div className={styles.shell}>
@@ -46,6 +58,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </div>
 
         <div className={styles.headerRight}>
+          <AdminXpToggle initialEnabled={xpPluggedIn} />
           <AdminThemeToggle />
           <Link href={ROUTES.dashboard} className={styles.openShopBtn}>
             <Symbol name="arrow_back" size={14} />

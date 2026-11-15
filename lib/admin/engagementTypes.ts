@@ -161,6 +161,7 @@ export interface EngagementTelemetry {
   circleTelemetry: CircleTelemetry;
   xpTelemetry: XpTelemetry;
   featureTelemetry: FeatureUsageTelemetry[];
+  isXpSystemPluggedIn: boolean;
   allShopsList: AdminShopLookup[];
   lastRefreshedAt: string;
 }

@@ -27,6 +27,24 @@ export async function savePlatformSettingsAction(
       };
     }
 
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const isXp = Boolean(settings.featureFlags?.xpSystemEnabled);
+      cookieStore.set('mtb_xp_plugged_in', isXp ? '1' : '0', {
+        path: '/',
+        maxAge: 31536000,
+        sameSite: 'lax',
+      });
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/admin');
+      revalidatePath('/admin/active-users');
+      revalidatePath('/admin/settings');
+      revalidatePath('/dashboard');
+    } catch {
+      // Graceful fallback
+    }
+
     return {
       success: true,
       message: 'Platform configuration updated successfully.',
@@ -52,6 +70,23 @@ export async function resetPlatformSettingsAction(): Promise<ActionResult> {
         success: false,
         error: res.error || 'Failed to reset settings.',
       };
+    }
+
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      cookieStore.set('mtb_xp_plugged_in', '0', {
+        path: '/',
+        maxAge: 31536000,
+        sameSite: 'lax',
+      });
+      const { revalidatePath } = await import('next/cache');
+      revalidatePath('/admin');
+      revalidatePath('/admin/active-users');
+      revalidatePath('/admin/settings');
+      revalidatePath('/dashboard');
+    } catch {
+      // Graceful fallback
     }
 
     return {

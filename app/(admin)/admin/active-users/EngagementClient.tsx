@@ -21,7 +21,9 @@ import {
   adminToggleShopSabbaticalAction,
   adminEmergencyStreakFreezeAction,
   adminQuickAdjustStreakAction,
+  adminToggleXpSystemAction,
 } from './actions';
+import { setClientCookie } from '@/lib/client-cookies';
 import styles from './EngagementClient.module.css';
 
 interface EngagementClientProps {
@@ -106,6 +108,45 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
 
   // XP Ledger Filter State
   const [selectedXpAction, setSelectedXpAction] = useState<string>('all');
+
+  // XP Master Switch State
+  const [isXpPluggedIn, setIsXpPluggedIn] = useState<boolean>(initialData.isXpSystemPluggedIn ?? false);
+  const [isTogglingXp, startToggleXpTransition] = useTransition();
+
+  // Sync state if initialData or refreshed data updates
+  useEffect(() => {
+    if (data.isXpSystemPluggedIn !== undefined) {
+      setIsXpPluggedIn(data.isXpSystemPluggedIn);
+    }
+  }, [data.isXpSystemPluggedIn]);
+
+  const handleToggleXpMaster = () => {
+    if (isTogglingXp) return;
+    const targetState = !isXpPluggedIn;
+
+    // Optimistic UI update
+    setIsXpPluggedIn(targetState);
+    setClientCookie('mtb_xp_plugged_in', targetState ? '1' : '0');
+
+    startToggleXpTransition(async () => {
+      const res = await adminToggleXpSystemAction(targetState);
+      if (res.success) {
+        setIsXpPluggedIn(res.isPluggedIn);
+        setClientCookie('mtb_xp_plugged_in', res.isPluggedIn ? '1' : '0');
+        showToast(
+          res.isPluggedIn
+            ? 'XP System plugged in! Tailors will now earn craft XP, unlock badges, and level up.'
+            : 'XP System unplugged! Gamification suspended; streaks and circles run standalone.'
+        );
+        const fresh = await fetchEngagementTelemetryAction(modeFilter);
+        setData(fresh);
+      } else {
+        setIsXpPluggedIn(!targetState);
+        setClientCookie('mtb_xp_plugged_in', !targetState ? '1' : '0');
+        showToast(res.error || 'Failed to toggle XP system.');
+      }
+    });
+  };
 
   // Auto-refresh timer
   useEffect(() => {
@@ -627,6 +668,9 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
           <Symbol name="workspace_premium" size={16} />
           <span>XP &amp; Tier Ledger</span>
           <span className={styles.tabCount}>{filteredXpLedger.length}</span>
+          <span className={`${styles.xpTabBadge} ${isXpPluggedIn ? styles.xpTabBadgeOn : styles.xpTabBadgeOff}`}>
+            {isXpPluggedIn ? 'ON' : 'OFF'}
+          </span>
         </button>
 
         <button
@@ -1253,6 +1297,54 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
         {/* TAB 4: XP & TIER LEDGER */}
         {activeTab === 'xp' && (
           <div>
+            {/* XP Master Control Switch Hero */}
+            <div className={`${styles.xpMasterCard} ${!isXpPluggedIn ? styles.xpMasterCardUnplugged : ''}`}>
+              <div className={styles.xpMasterContent}>
+                <div className={`${styles.xpMasterIconWrap} ${!isXpPluggedIn ? styles.xpMasterIconWrapUnplugged : ''}`}>
+                  <Symbol name={isXpPluggedIn ? 'bolt' : 'power_settings_new'} size={24} />
+                </div>
+                <div className={styles.xpMasterInfo}>
+                  <div className={styles.xpMasterTitleRow}>
+                    <h3 className={styles.xpMasterTitle}>XP &amp; Leveling Engine Master Switch</h3>
+                    {isXpPluggedIn ? (
+                      <span className={styles.xpMasterBadgeOn}>
+                        ● PLUGGED IN (Active)
+                      </span>
+                    ) : (
+                      <span className={styles.xpMasterBadgeOff}>
+                        ○ UNPLUGGED (Suspended)
+                      </span>
+                    )}
+                  </div>
+                  <p className={styles.xpMasterDescription}>
+                    {isXpPluggedIn
+                      ? 'The craft XP engine is plugged in. Tailors across bespoke workshops earn points for creating orders, measuring clients, recording garment intake, and maintaining daily craft streaks.'
+                      : 'The XP system is currently unplugged. No tailors will earn XP points, level progression, or gamification badges. Daily craft streaks and Tailor Circle accountability continue running completely standalone.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.xpMasterActions}>
+                <button
+                  type="button"
+                  className={`${styles.xpMasterToggleBtn} ${
+                    isXpPluggedIn ? styles.xpMasterToggleBtnOn : styles.xpMasterToggleBtnOff
+                  }`}
+                  onClick={handleToggleXpMaster}
+                  disabled={isTogglingXp}
+                >
+                  <Symbol name={isXpPluggedIn ? 'power_settings_new' : 'bolt'} size={16} />
+                  <span>
+                    {isTogglingXp
+                      ? 'Updating System...'
+                      : isXpPluggedIn
+                      ? 'Unplug XP Engine'
+                      : 'Plug In XP Engine'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <div className={styles.tabActionToolbar}>
               <div className={styles.tabActionLeft}>
                 <div>

@@ -9,6 +9,7 @@ export interface NotificationTemplatesConfig {
 export interface FeatureFlagsConfig {
   rtwModuleStatus: 'active' | 'beta_only' | 'disabled';
   streakGamificationEnabled: boolean;
+  xpSystemEnabled: boolean;
   publicLookbookEnabled: boolean;
   whatsappDirectEnabled: boolean;
   maintenanceMode: boolean;
@@ -46,6 +47,7 @@ export const DEFAULT_PLATFORM_SETTINGS: PlatformSettings = {
   featureFlags: {
     rtwModuleStatus: 'active',
     streakGamificationEnabled: true,
+    xpSystemEnabled: false,
     publicLookbookEnabled: true,
     whatsappDirectEnabled: true,
     maintenanceMode: false,
