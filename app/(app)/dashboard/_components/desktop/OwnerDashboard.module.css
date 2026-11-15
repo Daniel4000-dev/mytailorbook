@@ -67,25 +67,6 @@
   transform: rotate(-5deg);
 }
 
-/* Plane 1 (Back): Giant Typographic Moniker for Spatial Depth */
-.heroBackPlane {
-  position: absolute;
-  top: 48%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-fraunces), var(--sf-font-heading), Georgia, serif;
-  font-size: clamp(80px, 16vw, 160px);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.06em;
-  color: rgba(255, 255, 255, 0.045);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-  text-transform: uppercase;
-}
-
 .heroTop {
   display: flex;
   align-items: flex-start;

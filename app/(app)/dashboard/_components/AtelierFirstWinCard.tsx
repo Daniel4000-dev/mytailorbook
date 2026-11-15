@@ -25,11 +25,6 @@ export default function AtelierFirstWinCard({
       <div className={styles.card} role="region" aria-label="RTW Showroom Quick Launch">
         <div className={styles.pickStitchBorder} aria-hidden="true" />
 
-        {/* Plane 1 (Back): Giant Typographic Watermark for Spatial Depth */}
-        <div className={styles.backPlaneType} aria-hidden="true">
-          <span>SHOWROOM</span>
-        </div>
-
         <div className={styles.header}>
           <div className={styles.headerTopRow}>
             <span className={styles.badge}>
@@ -136,11 +131,6 @@ export default function AtelierFirstWinCard({
       <div className={styles.card} role="region" aria-label="Hybrid Atelier Quick Launch">
         <div className={styles.pickStitchBorder} aria-hidden="true" />
 
-        {/* Plane 1 (Back): Giant Typographic Watermark for Spatial Depth */}
-        <div className={styles.backPlaneType} aria-hidden="true">
-          <span>STUDIO</span>
-        </div>
-
         <div className={styles.header}>
           <div className={styles.headerTopRow}>
             <span className={styles.badge}>
@@ -245,11 +235,6 @@ export default function AtelierFirstWinCard({
   return (
     <div className={styles.card} role="region" aria-label="Shop Quick Launch">
       <div className={styles.pickStitchBorder} aria-hidden="true" />
-
-      {/* Plane 1 (Back): Giant Typographic Watermark for Spatial Depth */}
-      <div className={styles.backPlaneType} aria-hidden="true">
-        <span>BESPOKE</span>
-      </div>
 
       <div className={styles.header}>
         <div className={styles.headerTopRow}>

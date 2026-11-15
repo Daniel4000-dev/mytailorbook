@@ -20,25 +20,6 @@
   overflow: hidden;
 }
 
-/* Plane 1 (Back): Giant Typographic Watermark for Spatial Depth */
-.backPlaneType {
-  position: absolute;
-  top: 45%;
-  right: -8px;
-  transform: translateY(-50%);
-  font-family: var(--font-fraunces), Georgia, serif;
-  font-size: clamp(60px, 16vw, 105px);
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  color: var(--sf-text-primary);
-  opacity: 0.038;
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-  text-transform: uppercase;
-}
-
 /* Tailor's Basting Pick-Stitch Border */
 .pickStitchBorder {
   position: absolute;

@@ -89,11 +89,6 @@ export default function OwnerDashboard({
         {/* Tailor's Hand-Basting Pick-Stitch Border */}
         <div className={styles.heroStitchBorder} aria-hidden="true" />
 
-        {/* Plane 1 (Back): Giant Typographic Moniker for Spatial Depth */}
-        <div className={styles.heroBackPlane} aria-hidden="true">
-          <span>{isRtw ? 'SHOWROOM' : isHybrid ? (hybridLens === 'rtw' ? 'SHOWROOM' : 'BESPOKE') : 'BESPOKE'}</span>
-        </div>
-
         {/* Sartorial Heritage Watermark Crest */}
         <div className={styles.heroWatermark} aria-hidden="true">
           {isRtw ? (

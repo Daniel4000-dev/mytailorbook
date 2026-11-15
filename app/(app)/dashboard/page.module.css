@@ -1186,25 +1186,6 @@
   transform: rotate(-5deg);
 }
 
-/* Plane 1 (Back): Giant Typographic Moniker for Spatial Depth */
-.heroBackPlane {
-  position: absolute;
-  top: 48%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-fraunces), var(--sf-font-heading), Georgia, serif;
-  font-size: clamp(68px, 19vw, 130px);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.05em;
-  color: rgba(255, 255, 255, 0.045);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
-  text-transform: uppercase;
-}
-
 .heroHeader {
   display: flex;
   align-items: flex-start;
@@ -1359,22 +1340,6 @@
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: inherit;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
-
-.dayOneBackPlane {
-  position: absolute;
-  right: -6px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-fraunces), serif;
-  font-size: clamp(48px, 13vw, 76px);
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  color: rgba(255, 255, 255, 0.045);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
 }
 
 .dayOneBanner:hover,
