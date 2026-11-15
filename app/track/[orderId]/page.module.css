@@ -434,16 +434,25 @@
   }
 }
 
-/* Photo / story cards */
+/* Photo / story cards — Plane 2 Subject Cards with architectural radii, top specular highlight */
 .photoCard,
 .storyCard {
   position: relative;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--sf-shadow-sm);
-  transition: transform var(--sf-transition-normal);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global([data-theme='dark']) .photoCard,
+:global([data-theme='dark']) .storyCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -451,6 +460,7 @@
 .stage:hover .photoCard,
 .stage:hover .storyCard {
   transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 16px 36px -6px rgba(67, 56, 202, 0.15);
 }
 }
 
@@ -652,9 +662,16 @@
 .card {
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   padding: var(--sf-space-lg);
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme='dark']) .card {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
 }
 
 .sectionTitle {
@@ -1059,13 +1076,9 @@
 
 /* ── Promotional CTA ────────────────────────────────────────── */
 .ctaCard {
-  /* Was linear-gradient(135deg, var(--sf-accent-emerald), #059669) — a
-     hardcoded real green, an actual second hue slipped into the most
-     prominent promotional surface on the page. Replaced with the
-     existing dark-indigo token so the gradient still has depth without
-     leaving the two-color system. */
-  background: linear-gradient(135deg, var(--sf-accent-emerald), var(--sf-accent-emerald-dark));
-  border-radius: var(--sf-radius-xl);
+  background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
+  border-radius: 22px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.4);
   padding: var(--sf-space-xl) var(--sf-space-lg);
   display: flex;
   flex-direction: column;
@@ -1075,7 +1088,7 @@
   margin-top: var(--sf-space-2xl);
   position: relative;
   overflow: hidden;
-  box-shadow: var(--sf-shadow-lg);
+  box-shadow: 0 8px 30px rgba(67, 56, 202, 0.35);
 }
 
 .ctaCard::before {
@@ -1091,14 +1104,15 @@
 }
 
 .ctaIcon {
-  color: var(--sf-text-on-accent);
+  color: #FFFFFF;
   margin-bottom: -4px;
 }
 
 .ctaTitle {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-xl);
-  color: var(--sf-text-on-accent);
+  font-size: 20px;
+  font-weight: 800;
+  color: #FFFFFF;
   margin: 0;
   position: relative;
   z-index: 1;
@@ -1106,8 +1120,8 @@
 
 .ctaText {
   color: rgba(255, 255, 255, 0.9);
-  font-size: var(--sf-text-sm);
-  max-width: 32ch;
+  font-size: 13.5px;
+  max-width: 34ch;
   line-height: 1.5;
   margin: 0;
   position: relative;
@@ -1116,12 +1130,13 @@
 
 .ctaButton {
   margin-top: var(--sf-space-sm);
-  background: var(--sf-bg-surface);
-  color: var(--sf-accent-emerald);
-  padding: 12px 24px;
+  background: #FFFFFF;
+  color: #4338CA;
+  padding: 12px 26px;
   border-radius: var(--sf-radius-full);
-  font-weight: var(--sf-weight-bold);
-  font-size: var(--sf-text-sm);
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: 0.02em;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -1129,13 +1144,13 @@
   position: relative;
   z-index: 1;
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
-  box-shadow: var(--sf-shadow-sm);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .ctaButton:hover {
     transform: translateY(-2px);
-    box-shadow: var(--sf-shadow-md);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
   }
 }
 

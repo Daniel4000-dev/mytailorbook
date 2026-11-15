@@ -39,7 +39,7 @@
   border-color: var(--sf-border-default);
 }
 
-/* ── WhatsApp 'You' Tab Inspired Atelier Executive Hero ── */
+/* ── WhatsApp 'You' Tab Inspired Workshop Executive Hero (Plane 2 Subject Card) ── */
 .heroProfileCard {
   position: relative;
   display: flex;
@@ -49,17 +49,19 @@
   width: 100%;
   background: linear-gradient(180deg, var(--sf-bg-surface-elevated, #FFFFFF) 0%, var(--sf-bg-surface, #F8FAFC) 100%);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl, 24px);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
   padding: 24px 20px 22px;
   margin-top: var(--sf-space-xs);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.08);
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .heroProfileCard:hover {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 14px 28px -6px rgba(67, 56, 202, 0.12);
 }
 
 .heroProfileCard:active {
@@ -258,14 +260,16 @@
 .groupCard {
   background: var(--sf-bg-surface-elevated);
   border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg, 16px);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--sf-shadow-xs);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 18px -4px rgba(0, 0, 0, 0.05);
 }
 
 :global([data-theme='dark']) .groupCard {
   background: var(--sf-bg-surface);
   border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
 }
 
 .logoThumb {

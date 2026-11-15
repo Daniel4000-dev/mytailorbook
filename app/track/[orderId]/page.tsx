@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ orderId: 
   const { order, shop } = view;
   const shopName = shop?.name || APP_CONFIG.name;
   const title = `Tracking: ${order.orderDetails} | ${shopName}`;
-  const description = `Live craftsmanship updates and progress photos for your bespoke garment at ${shopName}.`;
+  const description = `Live craftsmanship updates and progress photos for your custom garment at ${shopName}.`;
   const primaryImage = order.images?.[0]?.url || order.inspirationImages?.[0] || shop?.logoUrl;
 
   return {
@@ -224,8 +224,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           </h2>
           <p className={styles.heroSub}>
             {isDelivered
-              ? `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — thank you for trusting ${shop ? shop.name : 'our atelier'}! Your bespoke piece has been completed and received. You can review the full craft journey of your garment below.`
-              : `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life${shop ? ` at ${shop.name}` : ''}. Every milestone of your bespoke garment is documented here.`}
+              ? `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — thank you for trusting ${shop ? shop.name : 'our workshop'}! Your custom piece has been completed and received. You can review the full craft journey of your garment below.`
+              : `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life${shop ? ` at ${shop.name}` : ''}. Every milestone of your garment is documented here.`}
           </p>
           {isDelivered ? (
             <div className={styles.dueRow}>
@@ -431,7 +431,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         {/* Tailor CTA */}
         <section className={styles.ctaCard}>
           <Symbol name="auto_awesome" size={32} className={styles.ctaIcon} />
-          <h3 className={styles.ctaTitle}>Are you a bespoke tailor?</h3>
+          <h3 className={styles.ctaTitle}>Are you a tailor or fashion designer?</h3>
           <p className={styles.ctaText}>
             Give your own customers this exact world-class live tracking experience. Manage orders, sizes, and payments effortlessly.
           </p>

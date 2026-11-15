@@ -700,27 +700,31 @@
   pointer-events: auto;
 }
 
+/* Plane 3 Signal Button in Luminous Adire Royal Indigo */
 .exportVideoBtn {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #000000;
-  border: none;
-  border-radius: 13px;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #ffffff;
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
   padding: 13px 20px;
   font-size: 0.94rem;
   font-weight: 900;
+  letter-spacing: 0.02em;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 24px rgba(245, 158, 11, 0.5);
+  box-shadow: 0 4px 24px rgba(67, 56, 202, 0.5);
   transition: all 0.15s ease;
   user-select: none;
 }
 
 .exportVideoBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 28px rgba(245, 158, 11, 0.65);
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 28px rgba(67, 56, 202, 0.65);
 }
 
 .whatsappShareBtn {

@@ -54,9 +54,11 @@
 }
 
 .rangeBtnActive {
-  background: var(--sf-text-primary, #111827);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #ffffff;
-  font-weight: var(--sf-weight-semibold, 600);
+  font-weight: 800;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
 }
 
 /* ── 4-Metric Dominant Telemetry Grid ── */
@@ -72,15 +74,29 @@
   }
 }
 
+/* Plane 2 Subject Card: tactile elevation, top specular highlight */
 .metricCard {
   background: var(--sf-bg-surface-elevated, #ffffff);
   border: 1px solid var(--sf-border-light, #e5e7eb);
-  border-radius: var(--sf-radius-lg, 16px);
-  padding: var(--sf-space-md, 16px);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+:global([data-theme='dark']) .metricCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 12px 28px -6px rgba(67, 56, 202, 0.1);
 }
 
 .metricHeader {
@@ -89,10 +105,13 @@
   justify-content: space-between;
 }
 
+/* Extreme Scale Contrast: Micro metadata */
 .metricLabel {
-  font-size: var(--sf-text-xs, 12px);
+  font-size: 10px;
   color: var(--sf-text-secondary);
-  font-weight: var(--sf-weight-medium, 500);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .metricIconWrap {
@@ -106,28 +125,38 @@
   color: var(--sf-text-primary);
 }
 
+/* Extreme Scale Contrast: Large bold value */
 .metricValue {
-  font-size: var(--sf-text-xl, 22px);
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   color: var(--sf-text-primary);
   letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .metricSub {
-  font-size: var(--sf-text-xs, 11px);
+  font-size: 10px;
+  font-weight: 700;
   color: var(--sf-text-tertiary, #9ca3af);
 }
 
-/* ── Analytical Visual Surface ── */
+/* ── Analytical Visual Surface (Plane 2 Subject Card) ── */
 .panelCard {
   background: var(--sf-bg-surface-elevated, #ffffff);
   border: 1px solid var(--sf-border-light, #e5e7eb);
-  border-radius: var(--sf-radius-lg, 16px);
-  padding: var(--sf-space-lg, 20px);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-md, 16px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.06);
+}
+
+:global([data-theme='dark']) .panelCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
 }
 
 .panelHeader {
@@ -139,8 +168,8 @@
 }
 
 .panelTitle {
-  font-size: var(--sf-text-sm, 14px);
-  font-weight: var(--sf-weight-semibold, 600);
+  font-size: 16.5px;
+  font-weight: 800;
   color: var(--sf-text-primary);
   display: flex;
   align-items: center;

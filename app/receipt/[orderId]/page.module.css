@@ -23,23 +23,27 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--sf-text-primary);
-  background: var(--sf-bg-surface, #ffffff);
-  border: 1px solid var(--sf-border);
+  padding: 6px 16px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
   border-radius: var(--sf-radius-full);
   text-decoration: none;
   transition: all 0.15s ease;
-  min-height: 36px;
+  min-height: 38px;
   box-sizing: border-box;
 }
 
 .trackPill:hover {
-  background: var(--sf-bg-hover, rgba(0, 0, 0, 0.04));
-  border-color: var(--sf-border-strong);
-  color: var(--sf-accent-emerald);
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.45);
+  color: #FFFFFF;
+  transform: translateY(-1px);
 }
 
 .trackPill:active {
@@ -50,15 +54,12 @@
   width: 100%;
   max-width: 560px;
   background: #fff;
-  border-radius: var(--sf-radius-lg);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 12px 36px -4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   box-sizing: border-box;
-  /* Labels/meta text on this page uses --sf-text-tertiary, whose contrast
-     against a plain white card is borderline (~4.9:1) — fine on the app's
-     dark surfaces but too faint on paper-white. Scoped override, darker
-     in light mode only; dark mode keeps the token that already reads
-     well there. */
   --receipt-muted: #4A4860;
 }
 @media (prefers-color-scheme: dark) {

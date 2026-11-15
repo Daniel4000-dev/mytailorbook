@@ -61,19 +61,24 @@
 }
 
 /* Variants */
-/* One flat, unmistakable CTA treatment app-wide: burnt saffron — the
-   app's single accent. Nothing else on screen carries this hue, so the
-   eye instantly finds "the" action. */
+/* Single Signal Color CTA: Luminous Adire Royal Indigo.
+   Plane 3 Button on Top with specular highlight edge and tactile elevation. */
 .primary {
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35), 0 1px 2px rgba(67, 56, 202, 0.2);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.primary:hover:not(:disabled) {
-  background: var(--sf-accent-emerald-dark);
-}
+  .primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+    box-shadow: 0 6px 18px rgba(67, 56, 202, 0.45);
+    transform: translateY(-1px);
+  }
 }
 
 .secondary {

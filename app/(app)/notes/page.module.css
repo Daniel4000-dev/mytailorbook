@@ -18,24 +18,26 @@
   }
 }
 
-/* ── 1. Luxury Cockpit Card ── */
+/* ── 1. Workshop Notes Cockpit Card (Plane 2 Subject Card) ── */
 
 .cockpitCard {
   background: var(--sf-bg-surface, #FFFFFF);
   border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.09));
-  border-radius: 20px;
-  padding: 18px 20px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 4px 20px -2px rgba(67, 56, 202, 0.05), 0 2px 6px -1px rgba(27, 27, 34, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.08);
   position: relative;
   overflow: hidden;
 }
 
 :global([data-theme='dark']) .cockpitCard {
-  background: var(--sf-bg-surface, #161526);
-  border-color: var(--sf-border, rgba(99, 102, 241, 0.22));
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
@@ -338,12 +340,14 @@
   font-size: 13.5px;
 }
 
+/* Plane 3 Signal Button in Adire Indigo */
 .dockAddBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  border: none;
-  background: var(--sf-brand-indigo, #4338CA);
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
   display: flex;
   align-items: center;
@@ -351,12 +355,18 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: all var(--sf-transition-fast);
-  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.35);
 }
 
 :global([data-theme='dark']) .dockAddBtn {
-  background: #6366F1;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.45);
+}
+
+.dockAddBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 16px rgba(67, 56, 202, 0.5);
+  transform: translateY(-1px);
 }
 
 .dockAddBtn:disabled {
@@ -364,6 +374,7 @@
   cursor: not-allowed;
   background: var(--sf-text-tertiary);
   box-shadow: none;
+  border: none;
 }
 
 .dockAddBtn:not(:disabled):active {

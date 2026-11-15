@@ -111,9 +111,12 @@
 }
 
 .filterPillActive {
-  background: var(--sf-text-primary);
-  border-color: var(--sf-text-primary);
-  color: var(--sf-bg-primary, #FFFFFF);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  border-color: rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
+  color: #FFFFFF;
+  font-weight: 800;
 }
 
 .filterCount {
@@ -148,25 +151,36 @@
   flex-direction: column;
 }
 
-/* ── Instagram Activity Row ── */
+/* ── Instagram Activity Row (Plane 2 Subject Card) ── */
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  padding: 10px 8px;
-  border-radius: var(--sf-radius-md);
-  background: transparent;
-  border: none;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   text-align: left;
   cursor: pointer;
-  transition: background var(--sf-transition-fast);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
 }
 
+:global([data-theme='dark']) .row {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
+}
+
 .row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   background: var(--sf-bg-surface-hover);
 }
 

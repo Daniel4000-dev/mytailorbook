@@ -213,22 +213,24 @@
   background: #059669;
 }
 
-/* ── 2. Elevated Financial Hero Card ── */
+/* ── 2. Elevated Financial Hero Card (Plane 2 Subject Card) ── */
 
 .summaryDeck {
   background: var(--sf-bg-surface, #FFFFFF);
   border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.09));
-  border-radius: 20px;
-  padding: 18px 20px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 4px 20px -2px rgba(67, 56, 202, 0.04), 0 2px 6px -1px rgba(27, 27, 34, 0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.08);
 }
 
 :global([data-theme='dark']) .summaryDeck {
-  background: var(--sf-bg-surface, #161526);
-  border-color: var(--sf-border, rgba(99, 102, 241, 0.22));
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
@@ -366,30 +368,35 @@
   gap: 8px;
 }
 
+/* Plane 3 Signal Button in Adire Indigo */
 .primaryActionBtn {
-  height: 44px;
+  height: 46px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-brand-indigo, #4338CA);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
-  border: none;
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   transition: all var(--sf-transition-fast);
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.22);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
 }
 
 :global([data-theme='dark']) .primaryActionBtn {
-  background: #6366F1;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  box-shadow: 0 4px 16px rgba(67, 56, 202, 0.45);
 }
 
 .primaryActionBtn:hover {
-  opacity: 0.95;
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.45);
+  transform: translateY(-1px);
 }
 
 .primaryActionBtn:active {

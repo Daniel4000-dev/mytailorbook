@@ -35,9 +35,9 @@
 }
 
 .searchInput:focus {
-  border-color: var(--sf-accent-emerald);
+  border-color: #4F46E5;
   background: var(--sf-bg-primary);
-  box-shadow: 0 0 0 3px var(--sf-accent-emerald-glow);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
 }
 
 .clearBtn {
@@ -58,15 +58,25 @@
 }
 
 .addBtn {
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
   height: 44px;
   padding: 0 20px;
   border-radius: 22px;
-  font-weight: 600;
-  font-size: 15px;
-  border: none;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(67, 56, 202, 0.4);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.addBtn:hover {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.45);
+  transform: translateY(-1px);
 }
 
 .inventoryList {
@@ -75,57 +85,80 @@
   gap: 12px;
 }
 
+/* Plane 2 Subject Card: tactile depth, top specular rim, multi-tier elevation */
 .itemCard {
-  background: var(--sf-bg-primary);
-  border: 1px solid var(--sf-border);
-  border-radius: 12px;
-  padding: 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 18px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 18px -4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
 }
 
 .itemCard:hover {
-  border-color: var(--sf-text-secondary);
+  transform: translateY(-2px);
+  border-color: rgba(67, 56, 202, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 12px 28px -6px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme='dark']) .itemCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .itemInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
+/* Extreme Scale Contrast: Large bold name */
 .itemName {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 800;
   color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
 }
 
+/* Micro-caps metadata */
 .itemMeta {
-  font-size: 13px;
+  font-size: 10px;
+  font-weight: 800;
   color: var(--sf-text-secondary);
   display: flex;
   align-items: center;
   gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .itemQty {
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 5px;
 }
 
+/* Extreme Scale Contrast: Large bold quantity */
 .qtyValue {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--sf-text-primary);
+  line-height: 1;
 }
 
 .qtyUnit {
-  font-size: 13px;
+  font-size: 10.5px;
+  font-weight: 800;
   color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .qtyValue.lowStock {
