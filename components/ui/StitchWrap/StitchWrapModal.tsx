@@ -7,6 +7,8 @@ import { toPng } from 'html-to-image';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { fetchStitchWrapAction } from '@/app/actions/wrap';
 import type { StitchWrapData } from '@/lib/wrap/types';
+import { wrapAudio, type AudioTrackId } from '@/lib/wrap/audioEngine';
+import { exportStitchWrapVideo } from '@/lib/wrap/videoExporter';
 import styles from './StitchWrapModal.module.css';
 
 interface StitchWrapModalProps {
@@ -70,36 +72,6 @@ function AnimatedCounter({
   );
 }
 
-/**
- * Web Audio API Celebratory Sound Chimes
- * Generates an upbeat harmonic chord on transition without copyright issues.
- */
-function playStoryChime(enabled: boolean, frequency: number = 523.25) {
-  if (!enabled || typeof window === 'undefined') return;
-  try {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(frequency * 1.5, ctx.currentTime + 0.15);
-
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.35);
-  } catch {
-    // Audio context fallback
-  }
-}
-
 export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProps) {
   const [data, setData] = useState<StitchWrapData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,17 +80,30 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Audio System
+  const [selectedTrack, setSelectedTrack] = useState<AudioTrackId>('lagos_amapiano');
+  const [customTrackName, setCustomTrackName] = useState<string | null>(null);
+  const [isSoundDrawerOpen, setIsSoundDrawerOpen] = useState(false);
+  const [eqHeights, setEqHeights] = useState<number[]>([4, 8, 12, 6]);
+
+  // Video Export System
+  const [isVideoExporting, setIsVideoExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportStatusText, setExportStatusText] = useState('');
+  const [exportedVideoUrl, setExportedVideoUrl] = useState<string | null>(null);
 
   // Privacy Toggles
   const [isClientMasked, setIsClientMasked] = useState(true);
   const [isRevenueMasked, setIsRevenueMasked] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isCardExporting, setIsCardExporting] = useState(false);
 
   const storyCardRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const progressStartTimeRef = useRef<number>(Date.now());
   const elapsedBeforePauseRef = useRef<number>(0);
+  const animFrameRef = useRef<number | null>(null);
 
   // Fetch Wrap Data
   useEffect(() => {
@@ -127,11 +112,14 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     setError(null);
     setCurrentSlide(0);
     setProgressPercent(0);
+    setExportedVideoUrl(null);
 
     fetchStitchWrapAction()
       .then((res) => {
         if (res.data) {
           setData(res.data);
+          // Start Audio Engine
+          wrapAudio.setTrack('lagos_amapiano').catch(() => {});
         } else {
           setError(res.error || 'Failed to load Stitch Wrap.');
         }
@@ -142,18 +130,46 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
       .finally(() => {
         setIsLoading(false);
       });
+
+    return () => {
+      wrapAudio.stop();
+    };
   }, [isOpen]);
+
+  // Real-time Audio Visualizer Equalizer Loop
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateBars = () => {
+      const freqData = wrapAudio.getAnalyserData();
+      if (selectedTrack !== 'mute' && freqData.length >= 4) {
+        setEqHeights([
+          Math.max(3, (freqData[1] / 255) * 14),
+          Math.max(4, (freqData[3] / 255) * 16),
+          Math.max(3, (freqData[5] / 255) * 14),
+          Math.max(2, (freqData[7] / 255) * 12),
+        ]);
+      } else {
+        setEqHeights([3, 3, 3, 3]);
+      }
+      animFrameRef.current = requestAnimationFrame(updateBars);
+    };
+
+    animFrameRef.current = requestAnimationFrame(updateBars);
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isOpen, selectedTrack]);
 
   const handleNextSlide = useCallback(() => {
     setCurrentSlide((prev) => {
       if (prev < TOTAL_SLIDES - 1) {
         elapsedBeforePauseRef.current = 0;
-        playStoryChime(soundEnabled, 440 + (prev + 1) * 60);
         return prev + 1;
       }
       return prev;
     });
-  }, [soundEnabled]);
+  }, []);
 
   const handlePrevSlide = useCallback(() => {
     setCurrentSlide((prev) => {
@@ -167,8 +183,8 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     if (currentSlide === TOTAL_SLIDES - 1 && isOpen) {
       try {
         confetti({
-          particleCount: 100,
-          spread: 80,
+          particleCount: 110,
+          spread: 85,
           origin: { y: 0.55 },
           colors: ['#D4AF37', '#10B981', '#6366F1', '#F59E0B', '#38BDF8', '#ffffff'],
         });
@@ -180,7 +196,7 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
 
   // Story Progress Timer
   useEffect(() => {
-    if (!isOpen || isLoading || !data || isPaused) {
+    if (!isOpen || isLoading || !data || isPaused || isVideoExporting) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
@@ -205,11 +221,11 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isOpen, isLoading, data, isPaused, currentSlide, handleNextSlide]);
+  }, [isOpen, isLoading, data, isPaused, isVideoExporting, currentSlide, handleNextSlide]);
 
   // Hold to Pause / Release to Resume
   const handleHoldStart = () => {
-    if (isPaused) return;
+    if (isPaused || isVideoExporting) return;
     elapsedBeforePauseRef.current = Date.now() - progressStartTimeRef.current;
     setIsPaused(true);
   };
@@ -218,30 +234,85 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
     setIsPaused(false);
   };
 
-  // Keyboard Navigation
-  useEffect(() => {
-    if (!isOpen) return;
+  // Sound Track Selection
+  const handleSelectTrack = async (track: AudioTrackId) => {
+    setSelectedTrack(track);
+    if (track === 'custom') {
+      fileInputRef.current?.click();
+    } else {
+      await wrapAudio.setTrack(track);
+      setIsSoundDrawerOpen(false);
+    }
+  };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        handleNextSlide();
-      } else if (e.key === 'ArrowLeft') {
-        handlePrevSlide();
-      } else if (e.key === ' ' || e.key === 'Spacebar') {
-        setIsPaused((p) => !p);
-      } else if (e.key === 'Escape') {
-        onClose();
+  // Custom File Selection
+  const handleCustomAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCustomTrackName(file.name);
+      setSelectedTrack('custom');
+      await wrapAudio.setTrack('custom', file);
+      setIsSoundDrawerOpen(false);
+    }
+  };
+
+  // 1-Click Video Export (9:16 vertical video reel)
+  const handleExportVideoReel = async () => {
+    if (!data) return;
+    setIsPaused(true);
+    setIsVideoExporting(true);
+    setExportProgress(0);
+    setExportStatusText('Preparing high-fashion video canvas...');
+
+    try {
+      const audioTrack = wrapAudio.getAudioStreamTrack();
+      const result = await exportStitchWrapVideo({
+        data,
+        audioTrack,
+        isClientMasked,
+        isRevenueMasked,
+        onProgress: (pct, status) => {
+          setExportProgress(pct);
+          setExportStatusText(status);
+        },
+      });
+
+      setExportedVideoUrl(result.url);
+
+      // Trigger automatic download
+      const link = document.createElement('a');
+      link.href = result.url;
+      link.download = result.filename;
+      link.click();
+
+      // Native Mobile Share to WhatsApp Status if supported
+      if (typeof navigator !== 'undefined' && navigator.canShare) {
+        const file = new File([result.blob], result.filename, { type: result.blob.type });
+        if (navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'My 2026 Stitch Wrap',
+              text: `✂️ Check out my 2026 Stitch Wrap! Crafted ${data.totalGarments} bespoke garments with ~${data.estimatedFabricYards} yards cut. Awarded "${data.archetype.title}" on MyStitchBook!`,
+            });
+          } catch {
+            // Share canceled or dismissed
+          }
+        }
       }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, handleNextSlide, handlePrevSlide, onClose]);
+    } catch (err) {
+      console.error('[StitchWrap] Video export error:', err);
+      alert('Video export could not be completed in this browser. You can download the Story Card (PNG) instead!');
+    } finally {
+      setIsVideoExporting(false);
+      setIsPaused(false);
+    }
+  };
 
   // Download Story Card as crisp PNG
   const handleDownloadStoryCard = async () => {
-    if (!storyCardRef.current) return;
-    setIsExporting(true);
+    if (!storyCardRef.current || !data) return;
+    setIsCardExporting(true);
     try {
       const dataUrl = await toPng(storyCardRef.current, {
         cacheBust: true,
@@ -249,14 +320,14 @@ export default function StitchWrapModal({ isOpen, onClose }: StitchWrapModalProp
       });
 
       const link = document.createElement('a');
-      link.download = `${data?.shopName.toLowerCase().replace(/\s+/g, '-')}-stitch-wrap-2026.png`;
+      link.download = `${data.shopName.toLowerCase().replace(/\s+/g, '-')}-stitch-wrap-2026.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error('[StitchWrap] Export error:', err);
+      console.error('[StitchWrap] Card export error:', err);
       alert('Unable to generate image directly. You can take a screenshot to share on WhatsApp!');
     } finally {
-      setIsExporting(false);
+      setIsCardExporting(false);
     }
   };
 
@@ -290,19 +361,28 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
           background: theme ? theme.primaryGradient : '#09090b',
         }}
       >
+        {/* Hidden Audio Upload Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*"
+          style={{ display: 'none' }}
+          onChange={handleCustomAudioUpload}
+        />
+
         {/* Dynamic Motion Aurora Stage: Floating Orbs & Light Sweeps */}
         <div className={styles.auroraStage}>
           <div
             className={styles.auroraBlob1}
-            style={{ background: theme?.blobColor1 || 'rgba(16, 185, 129, 0.4)' }}
+            style={{ background: theme?.blobColor1 || 'rgba(16, 185, 129, 0.45)' }}
           />
           <div
             className={styles.auroraBlob2}
-            style={{ background: theme?.blobColor2 || 'rgba(245, 158, 11, 0.3)' }}
+            style={{ background: theme?.blobColor2 || 'rgba(245, 158, 11, 0.35)' }}
           />
           <div
             className={styles.auroraBlob3}
-            style={{ background: theme?.blobColor3 || 'rgba(99, 102, 241, 0.3)' }}
+            style={{ background: theme?.blobColor3 || 'rgba(99, 102, 241, 0.35)' }}
           />
           <div className={styles.laserSweepLine} />
           <div className={styles.meshGridOverlay} />
@@ -347,18 +427,30 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
             </div>
 
             <div className={styles.headerActionBtns}>
-              {/* Audio toggle button */}
+              {/* Audio Equalizer & Track Selector */}
               <button
                 type="button"
-                className={styles.iconControlBtn}
+                className={styles.eqControlBtn}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSoundEnabled((s) => !s);
+                  setIsSoundDrawerOpen(true);
                 }}
-                title={soundEnabled ? 'Mute Chimes' : 'Unmute Chimes'}
-                aria-label="Toggle Sound"
+                title="Select Soundtrack or Upload Song"
+                aria-label="Soundtrack Selector"
               >
-                <Symbol name={soundEnabled ? 'volume_up' : 'volume_off'} size={15} />
+                <div className={styles.equalizerBars}>
+                  {eqHeights.map((h, i) => (
+                    <div
+                      key={i}
+                      className={styles.eqBar}
+                      style={{
+                        height: h,
+                        backgroundColor: theme?.accentColor || '#ffffff',
+                      }}
+                    />
+                  ))}
+                </div>
+                <Symbol name="music_note" size={14} />
               </button>
 
               {/* Privacy Eye Toggle button (Slides 2, 5 & 6) */}
@@ -423,10 +515,112 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
         </div>
 
         {/* Floating Pause Indicator Pill */}
-        {isPaused && (
+        {isPaused && !isSoundDrawerOpen && !isVideoExporting && (
           <div className={styles.pauseNotice}>
             <Symbol name="pause" size={12} />
             <span>Story Paused</span>
+          </div>
+        )}
+
+        {/* Sound Track Selector Drawer */}
+        {isSoundDrawerOpen && (
+          <div
+            className={styles.soundDrawerOverlay}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSoundDrawerOpen(false);
+            }}
+          >
+            <div className={styles.soundDrawer} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.soundDrawerHeader}>
+                <span className={styles.soundDrawerTitle}>Choose Story Soundtrack</span>
+                <button
+                  type="button"
+                  className={styles.iconControlBtn}
+                  onClick={() => setIsSoundDrawerOpen(false)}
+                >
+                  <Symbol name="close" size={14} />
+                </button>
+              </div>
+
+              <div className={styles.soundTrackList}>
+                <div
+                  className={`${styles.soundTrackItem} ${
+                    selectedTrack === 'lagos_amapiano' ? styles.soundTrackItemActive : ''
+                  }`}
+                  onClick={() => handleSelectTrack('lagos_amapiano')}
+                >
+                  <div className={styles.soundTrackInfo}>
+                    <span className={styles.soundTrackName}>🥁 Lagos Amapiano Groove</span>
+                    <span className={styles.soundTrackDesc}>Heavy synthesized log drums, 808 sub-bass &amp; shakers (114 BPM)</span>
+                  </div>
+                  {selectedTrack === 'lagos_amapiano' && <Symbol name="check" size={16} />}
+                </div>
+
+                <div
+                  className={`${styles.soundTrackItem} ${
+                    selectedTrack === 'afro_fusion' ? styles.soundTrackItemActive : ''
+                  }`}
+                  onClick={() => handleSelectTrack('afro_fusion')}
+                >
+                  <div className={styles.soundTrackInfo}>
+                    <span className={styles.soundTrackName}>🎷 Afro-Fusion Runway</span>
+                    <span className={styles.soundTrackDesc}>High-fashion Afrobeat brass, syncopated clave &amp; percussion (120 BPM)</span>
+                  </div>
+                  {selectedTrack === 'afro_fusion' && <Symbol name="check" size={16} />}
+                </div>
+
+                <div
+                  className={`${styles.soundTrackItem} ${
+                    selectedTrack === 'custom' ? styles.soundTrackItemActive : ''
+                  }`}
+                  onClick={() => handleSelectTrack('custom')}
+                >
+                  <div className={styles.soundTrackInfo}>
+                    <span className={styles.soundTrackName}>📁 Pick Any Song From My Phone</span>
+                    <span className={styles.soundTrackDesc}>
+                      {customTrackName ? `Loaded: ${customTrackName}` : 'Select your favorite trending MP3/audio (Zero copyright liability)'}
+                    </span>
+                  </div>
+                  <Symbol name="folder_open" size={16} />
+                </div>
+
+                <div
+                  className={`${styles.soundTrackItem} ${
+                    selectedTrack === 'mute' ? styles.soundTrackItemActive : ''
+                  }`}
+                  onClick={() => handleSelectTrack('mute')}
+                >
+                  <div className={styles.soundTrackInfo}>
+                    <span className={styles.soundTrackName}>🔇 Mute Soundtrack</span>
+                    <span className={styles.soundTrackDesc}>Silent visual story</span>
+                  </div>
+                  {selectedTrack === 'mute' && <Symbol name="check" size={16} />}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Video Exporting Modal Overlay */}
+        {isVideoExporting && (
+          <div className={styles.videoExportOverlay}>
+            <Symbol name="movie" size={44} style={{ color: '#f59e0b', animation: 'pulse 1.5s infinite' }} />
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#ffffff' }}>
+              Rendering Your 15-Second Video Reel
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.75)', maxWidth: 280 }}>
+              {exportStatusText}
+            </p>
+            <div className={styles.videoExportProgressBar}>
+              <div
+                className={styles.videoExportProgressFill}
+                style={{ width: `${exportProgress}%` }}
+              />
+            </div>
+            <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: '#f59e0b' }}>
+              {exportProgress}% COMPLETE
+            </span>
           </div>
         )}
 
@@ -435,7 +629,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
           <div className={styles.slideCanvas} style={{ justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ color: '#ffffff', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Symbol name="needle" size={42} style={{ color: '#f59e0b', animation: 'spin 1.5s linear infinite' }} />
-              <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>Generating Your 2026 Stitch Wrap...</span>
+              <span style={{ fontSize: '1.2rem', fontWeight: 900 }}>Generating Your 2026 Stitch Wrap...</span>
               <span style={{ fontSize: '0.84rem', opacity: 0.8 }}>Calculating your garment stitches &amp; client milestones.</span>
             </div>
           </div>
@@ -446,7 +640,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
           <div className={styles.slideCanvas} style={{ justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ color: '#ffffff', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Symbol name="warning" size={38} style={{ color: '#ef4444' }} />
-              <span style={{ fontSize: '1.15rem', fontWeight: 800 }}>Unable to Load Stitch Wrap</span>
+              <span style={{ fontSize: '1.15rem', fontWeight: 900 }}>Unable to Load Stitch Wrap</span>
               <span style={{ fontSize: '0.82rem', opacity: 0.8 }}>{error}</span>
             </div>
           </div>
@@ -467,20 +661,25 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      ✨ {data.isMidYearJoiner ? 'New Workshop Story' : '2026 Annual Retrospective'}
-                    </span>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        ✨ {data.isMidYearJoiner ? 'New Workshop Story' : '2026 Retrospective'}
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>
+                        {data.isMidYearJoiner ? 'OCT 2026 COHORT' : 'VETERAN RUN'}
+                      </span>
+                    </div>
                     <h2 className={styles.slideMainTitle}>
                       {data.isMidYearJoiner
-                        ? `You set up your workshop table with us in ${data.joinedDate}.`
+                        ? `You set up your workshop table in ${data.joinedDate}.`
                         : '365 days of steady craft and bespoke mastery.'}
                     </h2>
                     <p className={styles.slideSubtitle}>
                       {data.isMidYearJoiner
-                        ? `In just ${data.monthsActive} active months, you brought real energy to your tailoring table.`
+                        ? `In just ${data.monthsActive} active months, you brought serious runway energy to your cutting table.`
                         : 'From your first chalk mark of January to the grand December rush, your scissors never rested.'}
                     </p>
                   </div>
@@ -489,14 +688,14 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                     <div className={styles.heroIconHalo}>
                       <Symbol name="straighten" size={34} style={{ color: theme?.accentColor }} />
                     </div>
-                    <span className={styles.heroBigCounter} style={{ color: theme?.accentColor }}>
+                    <span className={styles.editorialBigCounter} style={{ color: theme?.accentColor }}>
                       <AnimatedCounter value={data.totalGarments} />
                     </span>
                     <span className={styles.heroNumberLabel}>Garments Brought to Life</span>
                     <span className={styles.heroDetailSubtext}>
                       {data.isMidYearJoiner
-                        ? `An impressive velocity of ${(data.totalGarments / data.monthsActive).toFixed(1)} bespoke garments every single month!`
-                        : `Averaging ${(data.totalGarments / 12).toFixed(1)} bespoke garments delivered every month across all seasons.`}
+                        ? `An impressive velocity of ${(data.totalGarments / (data.monthsActive || 1)).toFixed(1)} bespoke garments delivered every month!`
+                        : `Averaging ${(data.totalGarments / 12).toFixed(1)} completed fits every month across all wedding and celebration seasons.`}
                     </span>
                   </div>
 
@@ -523,13 +722,16 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      ✂️ Craft Output &amp; Yardage
-                    </span>
-                    <h2 className={styles.slideMainTitle}>The fabric on your cutting table spoke volumes.</h2>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        ✂️ Fabric Mileage
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>100% PURE CRAFT</span>
+                    </div>
+                    <h2 className={styles.slideMainTitle}>The cloth on your cutting table spoke volumes.</h2>
                     <p className={styles.slideSubtitle}>
                       Every bespoke piece required exact body measurements, chalking, and seam assembly.
                     </p>
@@ -591,12 +793,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      👥 Client Relationships
-                    </span>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        👥 Inner Circle
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>CONFIDENTIAL VIP</span>
+                    </div>
                     <h2 className={styles.slideMainTitle}>
                       You dressed <AnimatedCounter value={data.totalClients} /> unique clients this year.
                     </h2>
@@ -658,12 +863,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      👑 Signature Craft
-                    </span>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        👑 Signature Crown
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>RUNWAY RANK #1</span>
+                    </div>
                     <h2 className={styles.slideMainTitle}>What defined your scissors in 2026?</h2>
                     <p className={styles.slideSubtitle}>
                       Every tailor workshop develops a distinct identity that clients seek out.
@@ -676,7 +884,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                     </div>
                     <span
                       className={styles.heroNumberLabel}
-                      style={{ fontSize: '1.65rem', color: theme?.accentColor, marginTop: 4 }}
+                      style={{ fontSize: '1.8rem', color: theme?.accentColor, marginTop: 4 }}
                     >
                       {data.topGarmentStyle}
                     </span>
@@ -714,12 +922,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      🔥 Workshop Resilience
-                    </span>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        🔥 Table Resilience
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>DAILY DISCIPLINE</span>
+                    </div>
                     <h2 className={styles.slideMainTitle}>Mastery is forged through daily consistency.</h2>
                     <p className={styles.slideSubtitle}>
                       Showing up at your cutting table every day, rain or shine.
@@ -730,7 +941,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                     <div className={styles.heroIconHalo} style={{ borderColor: '#f97316' }}>
                       <Symbol name="local_fire_department" size={38} style={{ color: '#f97316' }} />
                     </div>
-                    <span className={styles.heroBigCounter} style={{ color: '#f97316' }}>
+                    <span className={styles.editorialBigCounter} style={{ color: '#f97316' }}>
                       <AnimatedCounter value={data.longestStreak} />
                     </span>
                     <span className={styles.heroNumberLabel}>Day Unbroken Craft Streak</span>
@@ -774,12 +985,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      💼 Business Turnover
-                    </span>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        💼 Annual Commerce
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>100% SECURE</span>
+                    </div>
                     <h2 className={styles.slideMainTitle}>Your craft rewarded your dedication.</h2>
                     <p className={styles.slideSubtitle}>
                       Turning raw fabrics into sustainable business growth.
@@ -800,7 +1014,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       </button>
                     </div>
 
-                    <div className={styles.vipClientName} style={{ color: '#10b981' }}>
+                    <div className={styles.vipClientName} style={{ color: '#10b981', fontSize: '1.9rem' }}>
                       {isRevenueMasked ? (
                         '₦ •••••••••••'
                       ) : (
@@ -853,12 +1067,15 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className={styles.slideHeaderBlock}>
-                    <span
-                      className={styles.storyPillTag}
-                      style={{ background: theme?.tagBackground, color: theme?.accentColor }}
-                    >
-                      🏆 2026 Tailor Trophy
-                    </span>
+                    <div className={styles.headerTopMeta}>
+                      <span
+                        className={styles.storyPillTag}
+                        style={{ background: theme?.tagBackground, color: theme?.accentColor }}
+                      >
+                        🏆 2026 Tailor Trophy
+                      </span>
+                      <span className={styles.garmentCareMiniTag}>OFFICIAL HONOUR</span>
+                    </div>
                   </div>
 
                   <div className={styles.archetypeContainer}>
@@ -880,6 +1097,17 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   </div>
 
                   <div className={styles.bottomActionRow}>
+                    {/* 1-Tap Video Export */}
+                    <button
+                      type="button"
+                      className={styles.exportVideoBtn}
+                      onClick={handleExportVideoReel}
+                      disabled={isVideoExporting}
+                    >
+                      <Symbol name="movie" size={17} />
+                      <span>{isVideoExporting ? 'Generating Video...' : 'Export Video Reel (9:16 MP4)'}</span>
+                    </button>
+
                     <button
                       type="button"
                       className={styles.whatsappShareBtn}
@@ -893,10 +1121,10 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                       type="button"
                       className={styles.downloadCardBtn}
                       onClick={handleDownloadStoryCard}
-                      disabled={isExporting}
+                      disabled={isCardExporting}
                     >
                       <Symbol name="download" size={16} />
-                      <span>{isExporting ? 'Generating Retina Card...' : 'Download Story Card (PNG)'}</span>
+                      <span>{isCardExporting ? 'Generating Retina Card...' : 'Download Story Card (PNG)'}</span>
                     </button>
                   </div>
                 </motion.div>
