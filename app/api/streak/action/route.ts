@@ -333,12 +333,14 @@ export async function POST(req: Request) {
       streakChanged = true;
 
       // Milestone streak bonuses
-      if (currentStreak === 7) {
-        earnedXp += 50;
-      } else if (currentStreak === 21) {
-        earnedXp += 150;
-      } else if (currentStreak === 50) {
-        earnedXp += 300;
+      if (xpEnabled) {
+        if (currentStreak === 7) {
+          earnedXp += 50;
+        } else if (currentStreak === 21) {
+          earnedXp += 150;
+        } else if (currentStreak === 50) {
+          earnedXp += 300;
+        }
       }
     }
 
@@ -355,7 +357,7 @@ export async function POST(req: Request) {
         if (q.type === questType && !q.completed) {
           const newCurrent = q.current + 1;
           const completed = newCurrent >= q.target;
-          if (completed) {
+          if (completed && xpEnabled) {
             earnedXp += q.rewardXP || 20;
           }
           questUpdated = true;
@@ -505,8 +507,8 @@ export async function POST(req: Request) {
       success: true, 
       streak_current: streakChanged ? currentStreak : shop.streak_current,
       streak_bumped: streakChanged,
-      xp_awarded: earnedXp,
-      total_xp: totalXp,
+      xp_awarded: xpEnabled ? earnedXp : 0,
+      total_xp: xpEnabled ? totalXp : (shop.xp || 0),
       is_premium_multiplier: isPremium,
       buddy_synced: buddySynced,
       buddy_streak_count: buddyStreakCount,

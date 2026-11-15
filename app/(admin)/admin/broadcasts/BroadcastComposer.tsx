@@ -15,6 +15,7 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
   const [targetMode, setTargetMode] = useState<BroadcastPayload['targetMode']>('all');
   const [targetPlan, setTargetPlan] = useState<BroadcastPayload['targetPlan']>('all');
   const [targetAudience, setTargetAudience] = useState<BroadcastPayload['targetAudience']>('all');
+  const [targetFeature, setTargetFeature] = useState<BroadcastPayload['targetFeature']>('all');
   const [tone, setTone] = useState<BroadcastPayload['tone']>('info');
   const [actionLabel, setActionLabel] = useState('');
   const [actionHref, setActionHref] = useState('');
@@ -39,6 +40,7 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
       targetMode,
       targetPlan,
       targetAudience,
+      targetFeature,
       tone,
       actionLabel: actionLabel.trim() || undefined,
       actionHref: actionHref.trim() || undefined,
@@ -186,6 +188,37 @@ export default function BroadcastComposer({ onSuccess }: BroadcastComposerProps)
             <option value="all">All Plans (Free & Premium)</option>
             <option value="premium">Premium Subscribed Shops Only</option>
             <option value="free">Free Starter Plan Shops Only</option>
+          </select>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Feature Usage Target</label>
+          <select
+            className={styles.select}
+            value={targetFeature}
+            onChange={(e) => setTargetFeature(e.target.value as BroadcastPayload['targetFeature'])}
+          >
+            <option value="all">All Workshops (No Feature Filter)</option>
+            <optgroup label="✅ Workshops That HAVE USED:">
+              <option value="used_orders">Garment Orders &amp; Pipeline</option>
+              <option value="used_measurements">Client Measurements</option>
+              <option value="used_payments">Invoicing &amp; Payments</option>
+              <option value="used_expenses">Workshop Expenses</option>
+              <option value="used_calendar">Fitting Calendar</option>
+              <option value="used_catalogue">Style Catalogues</option>
+              <option value="used_streaks">Daily Work Streaks</option>
+              <option value="used_circle">Tailor Circle Pods</option>
+            </optgroup>
+            <optgroup label="🎯 Workshops That Have NEVER USED (Nudges):">
+              <option value="unused_orders">Never created a Garment Order</option>
+              <option value="unused_measurements">Never recorded Client Measurements</option>
+              <option value="unused_payments">Never recorded Payments / Deposits</option>
+              <option value="unused_expenses">Never tracked Workshop Expenses</option>
+              <option value="unused_calendar">Never scheduled a Fitting / Calendar</option>
+              <option value="unused_catalogue">Never uploaded a Style Lookbook</option>
+              <option value="unused_streaks">Never started a Work Streak</option>
+              <option value="unused_circle">Never joined a Tailor Circle Pod</option>
+            </optgroup>
           </select>
         </div>
       </div>

@@ -13,10 +13,11 @@ import type {
   XpLedgerEntry,
   XpTelemetry,
   AdminShopLookup,
+  FeatureUsageTelemetry,
 } from './engagementTypes';
 
 /**
- * Human-friendly mapping of raw audit & XP actions into plain tailor workshop milestones.
+ * Human-friendly mapping of raw audit & craft actions into plain tailor workshop milestones.
  */
 function translateCraftAction(rawAction: string): {
   label: string;
@@ -43,10 +44,19 @@ function translateCraftAction(rawAction: string): {
   if (norm.includes('payment') || norm.includes('deposit') || norm.includes('bill')) {
     return { label: 'Recorded client deposit / balance payment', category: 'payment', icon: 'payments' };
   }
-  if (norm.includes('order_create') || norm.includes('new_order') || norm.includes('intake')) {
+  if (norm.includes('expense') || norm.includes('outflow')) {
+    return { label: 'Logged workshop operational expense', category: 'payment', icon: 'receipt_long' };
+  }
+  if (norm.includes('calendar') || norm.includes('schedule') || norm.includes('appointment')) {
+    return { label: 'Scheduled fitting or workshop milestone', category: 'fitting', icon: 'calendar_today' };
+  }
+  if (norm.includes('catalogue') || norm.includes('lookbook')) {
+    return { label: 'Curated digital style lookbook', category: 'system', icon: 'photo_library' };
+  }
+  if (norm.includes('order_create') || norm.includes('new_order') || norm.includes('intake') || norm.includes('order.created')) {
     return { label: 'Logged new custom garment order', category: 'order', icon: 'checkroom' };
   }
-  if (norm.includes('order_stage') || norm.includes('stage_move') || norm.includes('pipeline')) {
+  if (norm.includes('order_stage') || norm.includes('stage_move') || norm.includes('pipeline') || norm.includes('order.updated')) {
     return { label: 'Advanced garment production milestone', category: 'order', icon: 'sync' };
   }
   if (norm.includes('customer') || norm.includes('client')) {
@@ -117,29 +127,84 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
     const allShops = shops || [];
     const shopMap = new Map(allShops.map((s) => [s.id, s]));
     const shopIds = allShops.map((s) => s.id);
+    const safeShopIds = shopIds.length > 0 ? shopIds : ['00000000-0000-0000-0000-000000000000'];
 
-    // 3. Fetch recent actions from audit_log, xp_ledger, open orders, circle members, and recent ledger entries
-    const [{ data: auditLogs }, { data: xpLogs }, { data: openOrders }, circleRowsRes, xpLedgerRes] = await Promise.all([
+    // 3. Scan holistic real craft activity across all tables
+    const [
+      { data: auditLogs },
+      { data: xpLogs },
+      { data: recentOrders },
+      { data: recentCustomers },
+      { data: recentPayments },
+      { data: recentExpenses },
+      { data: recentCalendar },
+      { data: recentCatalogues },
+      circleRowsRes,
+      xpLedgerRes,
+      { data: allOrdersMeta },
+      { data: allCustomersMeta },
+      { data: allPaymentsMeta },
+      { data: allExpensesMeta },
+      { data: allCalendarMeta },
+      { data: allCataloguesMeta },
+    ] = await Promise.all([
       admin
         .from('audit_log')
         .select('id, shop_id, created_at, action, actor_name, entity_type')
-        .in('shop_id', shopIds.length > 0 ? shopIds : ['00000000-0000-0000-0000-000000000000'])
+        .in('shop_id', safeShopIds)
         .gte('created_at', weeklyThreshold)
         .order('created_at', { ascending: false })
         .limit(100),
       admin
         .from('xp_ledger')
         .select('id, shop_id, created_at, action_type, user_id')
-        .in('shop_id', shopIds.length > 0 ? shopIds : ['00000000-0000-0000-0000-000000000000'])
+        .in('shop_id', safeShopIds)
         .neq('action_type', 'daily_login')
         .gte('created_at', weeklyThreshold)
         .order('created_at', { ascending: false })
         .limit(100),
       admin
         .from('orders')
-        .select('id, shop_id, status, due_date')
-        .in('shop_id', shopIds.length > 0 ? shopIds : ['00000000-0000-0000-0000-000000000000'])
-        .not('status', 'in', '("completed","delivered","canceled")'),
+        .select('id, shop_id, customer_name, status, due_date, created_at, updated_at')
+        .in('shop_id', safeShopIds)
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false })
+        .limit(150),
+      admin
+        .from('customers')
+        .select('id, shop_id, name, measurements, style_measurements, created_at, updated_at')
+        .in('shop_id', safeShopIds)
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false })
+        .limit(150),
+      admin
+        .from('payments')
+        .select('id, shop_id, amount, method, created_at')
+        .in('shop_id', safeShopIds)
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false })
+        .limit(100),
+      admin
+        .from('expenses')
+        .select('id, shop_id, amount, category, description, created_at')
+        .in('shop_id', safeShopIds)
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false })
+        .limit(100),
+      admin
+        .from('calendar_events')
+        .select('id, shop_id, title, type, date, created_at')
+        .in('shop_id', safeShopIds)
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false })
+        .limit(100),
+      admin
+        .from('style_catalogues')
+        .select('id, shop_id, title, created_at')
+        .in('shop_id', safeShopIds)
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false })
+        .limit(50),
       (async () => {
         try {
           const res = await admin
@@ -162,12 +227,34 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
           return [];
         }
       })(),
+      // Meta counts for feature usage analytics & power workshops
+      admin.from('orders').select('id, shop_id, created_at, status, due_date').in('shop_id', safeShopIds),
+      admin.from('customers').select('id, shop_id, created_at, measurements, style_measurements').in('shop_id', safeShopIds),
+      admin.from('payments').select('id, shop_id, created_at').in('shop_id', safeShopIds),
+      admin.from('expenses').select('id, shop_id, created_at').in('shop_id', safeShopIds),
+      admin.from('calendar_events').select('id, shop_id, created_at').in('shop_id', safeShopIds),
+      admin.from('style_catalogues').select('id, shop_id, created_at').in('shop_id', safeShopIds),
     ]);
 
     const circleRows = Array.isArray(circleRowsRes) ? circleRowsRes : [];
     const fullXpLedger = Array.isArray(xpLedgerRes) ? xpLedgerRes : [];
 
-    // 4. Construct Live Craft Actions Stream
+    // Accurate shop order and customer count maps
+    const orderCountByShop = new Map<string, number>();
+    for (const o of allOrdersMeta || []) {
+      if (o.shop_id) {
+        orderCountByShop.set(o.shop_id, (orderCountByShop.get(o.shop_id) || 0) + 1);
+      }
+    }
+
+    const customerCountByShop = new Map<string, number>();
+    for (const c of allCustomersMeta || []) {
+      if (c.shop_id) {
+        customerCountByShop.set(c.shop_id, (customerCountByShop.get(c.shop_id) || 0) + 1);
+      }
+    }
+
+    // 4. Construct Holistic Live Craft Actions Stream
     const combinedActions: Array<{
       id: string;
       shop_id: string;
@@ -177,6 +264,100 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       entity_type: string;
     }> = [];
 
+    // A. Real orders created
+    for (const o of recentOrders || []) {
+      if (!o.shop_id) continue;
+      combinedActions.push({
+        id: `order-created-${o.id}`,
+        shop_id: o.shop_id,
+        created_at: o.created_at,
+        action: 'order.created',
+        actor_name: 'Workshop Team',
+        entity_type: o.customer_name ? `Client: ${o.customer_name}` : 'Custom Order',
+      });
+    }
+
+    // B. Real customers registered & measurements logged
+    for (const c of recentCustomers || []) {
+      if (!c.shop_id) continue;
+      combinedActions.push({
+        id: `client-reg-${c.id}`,
+        shop_id: c.shop_id,
+        created_at: c.created_at,
+        action: 'customer.registered',
+        actor_name: 'Front Desk / Tailor',
+        entity_type: c.name ? `Client: ${c.name}` : 'New Client',
+      });
+
+      const hasMeasurements =
+        (c.measurements && Object.keys(c.measurements).length > 0) ||
+        (c.style_measurements && Object.keys(c.style_measurements).length > 0);
+
+      if (hasMeasurements) {
+        combinedActions.push({
+          id: `measure-logged-${c.id}`,
+          shop_id: c.shop_id,
+          created_at: c.updated_at || c.created_at,
+          action: 'measurement.recorded',
+          actor_name: 'Master Tailor',
+          entity_type: c.name ? `Measurements: ${c.name}` : 'Body Profile',
+        });
+      }
+    }
+
+    // C. Real payments received
+    for (const pay of recentPayments || []) {
+      if (!pay.shop_id) continue;
+      combinedActions.push({
+        id: `pay-${pay.id}`,
+        shop_id: pay.shop_id,
+        created_at: pay.created_at,
+        action: 'payment.received',
+        actor_name: 'Cashier / Accountant',
+        entity_type: pay.method ? `Method: ${pay.method.toUpperCase()}` : 'Client Payment',
+      });
+    }
+
+    // D. Real workshop expenses logged
+    for (const exp of recentExpenses || []) {
+      if (!exp.shop_id) continue;
+      combinedActions.push({
+        id: `exp-${exp.id}`,
+        shop_id: exp.shop_id,
+        created_at: exp.created_at,
+        action: 'expense.logged',
+        actor_name: 'Workshop Manager',
+        entity_type: exp.category ? `Category: ${exp.category}` : 'Operational Expense',
+      });
+    }
+
+    // E. Real calendar events & fittings scheduled
+    for (const cal of recentCalendar || []) {
+      if (!cal.shop_id) continue;
+      combinedActions.push({
+        id: `cal-${cal.id}`,
+        shop_id: cal.shop_id,
+        created_at: cal.created_at,
+        action: 'calendar.scheduled',
+        actor_name: 'Workshop Staff',
+        entity_type: cal.title || 'Workshop Fitting',
+      });
+    }
+
+    // F. Real style catalogues created
+    for (const cat of recentCatalogues || []) {
+      if (!cat.shop_id) continue;
+      combinedActions.push({
+        id: `cat-${cat.id}`,
+        shop_id: cat.shop_id,
+        created_at: cat.created_at,
+        action: 'catalogue.curated',
+        actor_name: 'Creative Director',
+        entity_type: cat.title || 'Lookbook Album',
+      });
+    }
+
+    // G. Audit log & XP logs
     for (const a of auditLogs || []) {
       if (!a.shop_id) continue;
       combinedActions.push({
@@ -203,7 +384,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
 
     combinedActions.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
 
-    const liveFeed: LiveCraftAction[] = combinedActions.slice(0, 40).map((row) => {
+    const liveFeed: LiveCraftAction[] = combinedActions.slice(0, 50).map((row) => {
       const shop = shopMap.get(row.shop_id);
       const translated = translateCraftAction(row.action);
       return {
@@ -222,7 +403,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       };
     });
 
-    // 5. Calculate Action Distribution & Power Workshops
+    // 5. Calculate Action Distribution & Power Workshops with Real Actions
     const actionCounts: Record<string, { total: number; breakdown: Record<string, number> }> = {};
     const globalDist: Record<string, { count: number; label: string }> = {};
 
@@ -248,7 +429,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       .sort((a, b) => b.count - a.count)
       .slice(0, 8);
 
-    // 6. Compute Power Workshops
+    // 6. Compute True Power Workshops (including real customerCount and orderCount)
     const powerWorkshops: PowerWorkshop[] = Object.entries(actionCounts)
       .map(([shopId, data]) => {
         const shop = shopMap.get(shopId);
@@ -257,7 +438,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
           .sort((a, b) => b.count - a.count);
 
         const grade: 'High' | 'Medium' | 'Low' =
-          data.total >= 20 ? 'High' : data.total >= 5 ? 'Medium' : 'Low';
+          data.total >= 15 ? 'High' : data.total >= 5 ? 'Medium' : 'Low';
 
         return {
           shopId,
@@ -267,18 +448,21 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
           totalActions7d: data.total,
           activityGrade: grade,
           actionBreakdown: breakdown,
-          customerCount: 0,
-          orderCount: 0,
+          customerCount: customerCountByShop.get(shopId) || 0,
+          orderCount: orderCountByShop.get(shopId) || 0,
         };
       })
       .sort((a, b) => b.totalActions7d - a.totalActions7d)
-      .slice(0, 15);
+      .slice(0, 20);
 
     // 7. Calculate At-Risk Shops (Shops with pending orders but no recent activity > 48h)
     const openOrdersByShop = new Map<string, { total: number; overdue: number }>();
     const nowIso = now.toISOString();
 
-    for (const o of openOrders || []) {
+    for (const o of allOrdersMeta || []) {
+      const isDeliveredOrDone = o.status === 'Completed' || o.status === 'Delivered' || o.status === 'completed' || o.status === 'delivered' || o.status === 'canceled';
+      if (isDeliveredOrDone) continue;
+
       const stats = openOrdersByShop.get(o.shop_id) || { total: 0, overdue: 0 };
       stats.total++;
       if (o.due_date && o.due_date < nowIso) {
@@ -494,9 +678,9 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
         shopId: entry.shop_id,
         shopName: shop?.name || 'Tailor Workshop',
         orgId: shop?.org_id || entry.shop_id,
-        amount: Number(entry.amount) || 0,
-        actionType: entry.action_type || 'craft_reward',
-        description: entry.description || null,
+        amount: entry.amount,
+        actionType: entry.action_type,
+        description: entry.description,
         createdAt: entry.created_at,
       };
     });
@@ -512,7 +696,158 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       recentLedger: recentXpEntries,
     };
 
-    // 11. All Shops Lookup for Admin Pairings & Quick Controls
+    // 11. Feature Usage Telemetry — Identify Best & Most-Used Platform Features
+    const totalPlatformShops = Math.max(allShops.length, 1);
+
+    // Helper to calculate feature usage metrics
+    const computeFeatureStats = (
+      featureKey: string,
+      name: string,
+      description: string,
+      icon: string,
+      rows: Array<{ shop_id: string; created_at: string }>
+    ) => {
+      let count7d = 0;
+      let count24h = 0;
+      const allShopsSet = new Set<string>();
+      const shops7dSet = new Set<string>();
+
+      for (const r of rows) {
+        if (!r.shop_id) continue;
+        allShopsSet.add(r.shop_id);
+        if (r.created_at >= weeklyThreshold) {
+          count7d++;
+          shops7dSet.add(r.shop_id);
+        }
+        if (r.created_at >= dailyThreshold) {
+          count24h++;
+        }
+      }
+
+      return {
+        featureKey,
+        name,
+        description,
+        icon,
+        totalUsageAllTime: rows.length,
+        usageLast7d: count7d,
+        usageLast24h: count24h,
+        activeShops7d: shops7dSet.size,
+        activeShopsAllTime: allShopsSet.size,
+        adoptionRate: Math.round((allShopsSet.size / totalPlatformShops) * 100),
+      };
+    };
+
+    // Measurements calculation (rows in customers that have measurements)
+    const measurementRows: Array<{ shop_id: string; created_at: string }> = [];
+    for (const c of allCustomersMeta || []) {
+      const hasMeasure =
+        (c.measurements && Object.keys(c.measurements).length > 0) ||
+        (c.style_measurements && Object.keys(c.style_measurements).length > 0);
+      if (hasMeasure) {
+        measurementRows.push({ shop_id: c.shop_id, created_at: c.created_at });
+      }
+    }
+
+    // Daily streak rows
+    const streakRows: Array<{ shop_id: string; created_at: string }> = [];
+    for (const s of allShops) {
+      if ((s.streak_current || 0) > 0 || (s.streak_best || 0) > 0) {
+        streakRows.push({ shop_id: s.id, created_at: s.created_at });
+      }
+    }
+
+    // Circle rows
+    const circleMemberRows: Array<{ shop_id: string; created_at: string }> = [];
+    for (const cm of circleRows) {
+      if (cm.shop_id) {
+        circleMemberRows.push({ shop_id: cm.shop_id, created_at: cm.created_at || nowIso });
+      }
+    }
+
+    const rawFeatures = [
+      computeFeatureStats(
+        'orders',
+        'Garment Orders & Production Pipeline',
+        'Tracking custom client orders from cutting, sewing, to fitting and ready for pickup.',
+        'checkroom',
+        (allOrdersMeta || []).map((o) => ({ shop_id: o.shop_id, created_at: o.created_at }))
+      ),
+      computeFeatureStats(
+        'measurements',
+        'Client Body Profiles & Measurements',
+        'Saving precise chest, waist, sleeve, and custom style measurement profiles.',
+        'straighten',
+        measurementRows
+      ),
+      computeFeatureStats(
+        'payments',
+        'Invoicing, Receipts & Payments',
+        'Logging deposits, bank transfers, POS, and balance settlements from clients.',
+        'payments',
+        (allPaymentsMeta || []).map((p) => ({ shop_id: p.shop_id, created_at: p.created_at }))
+      ),
+      computeFeatureStats(
+        'expenses',
+        'Workshop Expenses & Outflows',
+        'Tracking materials, threads, buttons, machine servicing, fuel, and workshop costs.',
+        'receipt_long',
+        (allExpensesMeta || []).map((e) => ({ shop_id: e.shop_id, created_at: e.created_at }))
+      ),
+      computeFeatureStats(
+        'calendar',
+        'Fitting Calendar & Market Runs',
+        'Scheduling client fittings, delivery deadlines, and fabric sourcing trips.',
+        'calendar_today',
+        (allCalendarMeta || []).map((cal) => ({ shop_id: cal.shop_id, created_at: cal.created_at }))
+      ),
+      computeFeatureStats(
+        'catalogue',
+        'Digital Style Catalogues & Lookbooks',
+        'Showcasing curated garment styles, lookbook photos, and signature designs.',
+        'photo_library',
+        (allCataloguesMeta || []).map((cat) => ({ shop_id: cat.shop_id, created_at: cat.created_at }))
+      ),
+      computeFeatureStats(
+        'customers',
+        'Client Profiles & Contact Directory',
+        'Managing client contact details, garment preferences, and communication.',
+        'person_add',
+        (allCustomersMeta || []).map((c) => ({ shop_id: c.shop_id, created_at: c.created_at }))
+      ),
+      computeFeatureStats(
+        'streaks',
+        'Daily Work Streaks & Momentum',
+        'Tailor craft consistency tracking and rest-day protection across workshop days.',
+        'local_fire_department',
+        streakRows
+      ),
+      computeFeatureStats(
+        'circle',
+        'Tailor Circle Accountability',
+        'Multi-workshop peer accountability pods and shared craft consistency streaks.',
+        'groups',
+        circleMemberRows
+      ),
+    ];
+
+    // Compute weekly percent share across all features
+    const totalWeeklyActions = rawFeatures.reduce((acc, f) => acc + f.usageLast7d, 0) || 1;
+
+    // Rank features by 7-day usage (primary) and all-time usage (secondary)
+    rawFeatures.sort((a, b) => b.usageLast7d - a.usageLast7d || b.totalUsageAllTime - a.totalUsageAllTime);
+
+    const featureTelemetry: FeatureUsageTelemetry[] = rawFeatures.map((f, index) => {
+      const rank = index + 1;
+      return {
+        ...f,
+        rank,
+        percentShare7d: Math.round((f.usageLast7d / totalWeeklyActions) * 100),
+        isTopFeature: rank === 1,
+      };
+    });
+
+    // 12. All Shops Lookup for Admin Pairings & Quick Controls
     const allShopsList: AdminShopLookup[] = allShops.map((s) => ({
       id: s.id,
       name: s.name || 'Tailor Workshop',
@@ -540,6 +875,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
       actionDistribution,
       circleTelemetry,
       xpTelemetry,
+      featureTelemetry,
       allShopsList,
       lastRefreshedAt: now.toISOString(),
     };
@@ -576,6 +912,7 @@ export async function getLiveEngagementTelemetry(modeFilter?: string): Promise<E
         },
         recentLedger: [],
       },
+      featureTelemetry: [],
       allShopsList: [],
       lastRefreshedAt: now.toISOString(),
     };

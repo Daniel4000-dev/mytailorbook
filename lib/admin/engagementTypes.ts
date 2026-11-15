@@ -128,6 +128,22 @@ export interface AdminShopLookup {
   xpPoints: number;
 }
 
+export interface FeatureUsageTelemetry {
+  featureKey: string;
+  name: string;
+  description: string;
+  icon: string;
+  totalUsageAllTime: number;
+  usageLast7d: number;
+  usageLast24h: number;
+  activeShops7d: number;
+  activeShopsAllTime: number;
+  adoptionRate: number;
+  percentShare7d: number;
+  rank: number;
+  isTopFeature: boolean;
+}
+
 export interface EngagementTelemetry {
   stickinessRatio: number; // DAU/MAU %
   onlineNow: number;       // active in last 15m
@@ -144,6 +160,7 @@ export interface EngagementTelemetry {
   actionDistribution: { action: string; label: string; count: number }[];
   circleTelemetry: CircleTelemetry;
   xpTelemetry: XpTelemetry;
+  featureTelemetry: FeatureUsageTelemetry[];
   allShopsList: AdminShopLookup[];
   lastRefreshedAt: string;
 }

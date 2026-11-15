@@ -28,7 +28,7 @@ interface EngagementClientProps {
   initialData: EngagementTelemetry;
 }
 
-type TabType = 'live' | 'streak' | 'circle' | 'xp' | 'atRisk' | 'power';
+type TabType = 'live' | 'features' | 'power' | 'streak' | 'circle' | 'xp' | 'atRisk';
 type RefreshInterval = 15 | 30 | 0; // 0 = paused
 
 const QUICK_NUDGE_TEMPLATES = [
@@ -581,6 +581,26 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
 
         <button
           type="button"
+          onClick={() => setActiveTab('features')}
+          className={`${styles.tabBtn} ${activeTab === 'features' ? styles.tabBtnActive : ''}`}
+        >
+          <Symbol name="apps" size={16} />
+          <span>Feature Pulse &amp; Telemetry</span>
+          <span className={styles.tabCount}>{data.featureTelemetry?.length || 9}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('power')}
+          className={`${styles.tabBtn} ${activeTab === 'power' ? styles.tabBtnActive : ''}`}
+        >
+          <Symbol name="star" size={16} />
+          <span>Power Workshops</span>
+          <span className={styles.tabCount}>{filteredPowerWorkshops.length}</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('streak')}
           className={`${styles.tabBtn} ${activeTab === 'streak' ? styles.tabBtnActive : ''}`}
         >
@@ -619,16 +639,6 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
           <span className={`${styles.tabCount} ${data.atRiskCount > 0 ? styles.tabCountAlert : ''}`}>
             {filteredAtRiskShops.length}
           </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('power')}
-          className={`${styles.tabBtn} ${activeTab === 'power' ? styles.tabBtnActive : ''}`}
-        >
-          <Symbol name="star" size={16} />
-          <span>Power Workshops</span>
-          <span className={styles.tabCount}>{filteredPowerWorkshops.length}</span>
         </button>
       </div>
 
@@ -785,7 +795,164 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
           </div>
         )}
 
-        {/* TAB 2: STREAKS & RESILIENCE DOCTOR */}
+        {/* TAB 2: FEATURE PULSE & TELEMETRY */}
+        {activeTab === 'features' && (
+          <div className={styles.featureSection}>
+            {/* Top Feature Spotlight Banner */}
+            {(() => {
+              const topFeature = data.featureTelemetry?.find((f) => f.isTopFeature) || data.featureTelemetry?.[0];
+              if (!topFeature) return null;
+              return (
+                <div className={styles.featureSpotlightCard}>
+                  <div className={styles.featureSpotlightHeader}>
+                    <div className={styles.featureCrownBadge}>
+                      <Symbol name="emoji_events" size={14} style={{ color: '#fff' }} />
+                      <span>#1 PLATFORM BEST FEATURE</span>
+                    </div>
+                    <Link
+                      href="/admin/broadcasts"
+                      className={styles.featureBroadcastLink}
+                      style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+                    >
+                      <Symbol name="campaign" size={15} />
+                      <span>Broadcast to Tailors of this Feature</span>
+                    </Link>
+                  </div>
+
+                  <div className={styles.featureSpotlightBody}>
+                    <div className={styles.featureSpotlightIconWrap}>
+                      <Symbol name={topFeature.icon || 'star'} size={24} />
+                    </div>
+                    <div className={styles.featureSpotlightInfo}>
+                      <h2 className={styles.featureSpotlightName}>{topFeature.name}</h2>
+                      <p className={styles.featureSpotlightDesc}>{topFeature.description}</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.featureSpotlightMetrics}>
+                    <div className={styles.featureMetricItem}>
+                      <span className={styles.featureMetricLabel}>All-Time Usage</span>
+                      <span className={styles.featureMetricVal}>
+                        {topFeature.totalUsageAllTime.toLocaleString()}
+                      </span>
+                      <span className={styles.featureMetricSub}>Total records logged</span>
+                    </div>
+
+                    <div className={styles.featureMetricItem}>
+                      <span className={styles.featureMetricLabel}>7-Day Velocity</span>
+                      <span className={styles.featureMetricVal} style={{ color: '#4f46e5' }}>
+                        {topFeature.usageLast7d.toLocaleString()}
+                      </span>
+                      <span className={styles.featureMetricSub}>
+                        {topFeature.percentShare7d}% of all weekly platform activity
+                      </span>
+                    </div>
+
+                    <div className={styles.featureMetricItem}>
+                      <span className={styles.featureMetricLabel}>Active Workshops</span>
+                      <span className={styles.featureMetricVal} style={{ color: '#059669' }}>
+                        {topFeature.activeShops7d} Active
+                      </span>
+                      <span className={styles.featureMetricSub}>
+                        {topFeature.activeShopsAllTime} shops have ever used
+                      </span>
+                    </div>
+
+                    <div className={styles.featureMetricItem}>
+                      <span className={styles.featureMetricLabel}>Workshop Adoption</span>
+                      <span className={styles.featureMetricVal}>
+                        {topFeature.adoptionRate}%
+                      </span>
+                      <span className={styles.featureMetricSub}>Of all registered workshops</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Grid of All Ranked Features */}
+            <div className={styles.featureGrid}>
+              {(data.featureTelemetry || []).map((feat) => {
+                const rankClass =
+                  feat.rank === 1
+                    ? styles.rankBadgeGold
+                    : feat.rank === 2
+                    ? styles.rankBadgeSilver
+                    : feat.rank === 3
+                    ? styles.rankBadgeBronze
+                    : styles.rankBadgeStandard;
+
+                return (
+                  <div key={feat.featureKey} className={styles.featureCard}>
+                    <div className={styles.featureCardHeader}>
+                      <div className={styles.featureCardMain}>
+                        <div className={styles.featureCardIconWrap}>
+                          <Symbol name={feat.icon || 'star'} size={20} />
+                        </div>
+                        <div>
+                          <h3 className={styles.featureCardTitle}>{feat.name}</h3>
+                          <p className={styles.featureCardDesc}>{feat.description}</p>
+                        </div>
+                      </div>
+                      <span className={`${styles.rankBadge} ${rankClass}`}>
+                        #{feat.rank}
+                      </span>
+                    </div>
+
+                    {/* Mini Stats Grid */}
+                    <div className={styles.featureStatsMiniRow}>
+                      <div>
+                        <div className={styles.miniStatVal}>{feat.totalUsageAllTime.toLocaleString()}</div>
+                        <div className={styles.miniStatLabel}>All-Time</div>
+                      </div>
+                      <div>
+                        <div className={styles.miniStatVal} style={{ color: '#4f46e5' }}>
+                          {feat.usageLast7d.toLocaleString()}
+                        </div>
+                        <div className={styles.miniStatLabel}>Past 7 Days</div>
+                      </div>
+                      <div>
+                        <div className={styles.miniStatVal}>{feat.usageLast24h.toLocaleString()}</div>
+                        <div className={styles.miniStatLabel}>Last 24 Hours</div>
+                      </div>
+                    </div>
+
+                    {/* Adoption Progress */}
+                    <div className={styles.adoptionSection}>
+                      <div className={styles.adoptionHeaderRow}>
+                        <span>Workshop Adoption</span>
+                        <span>{feat.adoptionRate}% ({feat.activeShopsAllTime} shops)</span>
+                      </div>
+                      <div className={styles.adoptionProgressTrack}>
+                        <div
+                          className={styles.adoptionProgressFill}
+                          style={{ width: `${Math.min(100, Math.max(5, feat.adoptionRate))}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Footer Row with Broadcast Shortcut */}
+                    <div className={styles.featureCardFooter}>
+                      <span className={styles.featureShopCountText}>
+                        {feat.activeShops7d} active shops this week ({feat.percentShare7d}% share)
+                      </span>
+                      <Link
+                        href="/admin/broadcasts"
+                        className={styles.featureBroadcastLink}
+                        title="Broadcast announcement to tailors who have used or not used this feature"
+                      >
+                        <Symbol name="send" size={12} />
+                        <span>Filter &amp; Broadcast</span>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: STREAKS & RESILIENCE DOCTOR */}
         {activeTab === 'streak' && (
           <div>
             <div className={styles.tabActionToolbar}>
@@ -1255,6 +1422,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                     <tr>
                       <th>Tailor Shop</th>
                       <th>Mode</th>
+                      <th>Clients &amp; Orders</th>
                       <th>Activity Grade</th>
                       <th>7-Day Volume</th>
                       <th>Craft Breakdown</th>
@@ -1273,6 +1441,16 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                           <span className={`${styles.modePill} ${getModePillClass(pw.businessMode)}`}>
                             {pw.businessMode}
                           </span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sf-text-primary, #0f172a)' }}>
+                              {pw.customerCount} {pw.customerCount === 1 ? 'Client' : 'Clients'}
+                            </span>
+                            <span style={{ fontSize: '0.74rem', color: 'var(--sf-text-secondary, #64748b)' }}>
+                              {pw.orderCount} {pw.orderCount === 1 ? 'Order' : 'Orders'} logged
+                            </span>
+                          </div>
                         </td>
                         <td>
                           <span

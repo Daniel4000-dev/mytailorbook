@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isMockDataAllowed } from '@/lib/constants';
 import { getTierForXp } from '@/lib/gamification';
+import { isXpSystemEnabled } from '@/lib/xp';
 import { createAtelierNotification } from '@/lib/notifications';
 
 export interface CircleBuddy {
@@ -376,7 +377,7 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
             activityType,
             category,
             headline,
-            subtext: `+${ev.amount} XP verified craft proof`,
+            subtext: isXpSystemEnabled() ? `+${ev.amount} XP verified craft proof` : 'Verified craft proof',
             badgeLabel,
             timeAgo: formatTimeAgo(ev.created_at),
             salutes: {
@@ -455,7 +456,9 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
           tierColor: '#FFD700',
           activityType: 'tier_advance',
           category: 'milestone',
-          headline: 'Ranked up to Gold Spool Master Craft tier (2,000 XP)',
+          headline: isXpSystemEnabled()
+            ? 'Ranked up to Gold Spool Master Craft tier (2,000 XP)'
+            : 'Ranked up to Gold Spool Master Craft tier',
           subtext: 'Unlocked master challenge equipment grant milestone entry',
           badgeLabel: 'TIER RANK-UP',
           timeAgo: '16h ago',

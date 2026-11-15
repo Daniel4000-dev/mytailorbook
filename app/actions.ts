@@ -7,6 +7,7 @@ import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
 import { createAtelierNotification } from '@/lib/notifications';
 import { toOrderSlug } from '@/lib/slugs';
+import { isXpSystemEnabled, recordServerXpLedger } from '@/lib/xp';
 
 const STAGE_BADGE_ICON: Record<OrderStatus, string> = {
   Documented: 'assignment',
@@ -2537,7 +2538,7 @@ export async function logStudioRestDayAction() {
 
   const { data: shop } = await admin
     .from('shops')
-    .select('id, xp, rest_days_used_this_week, last_rest_day_date, streak_current, streak_best')
+    .select('id, xp, rest_days_used_this_week, last_rest_day_date, streak_current, streak_best, business_mode')
     .eq('id', profile.shop_id)
     .single();
 
@@ -2553,31 +2554,38 @@ export async function logStudioRestDayAction() {
     return { error: 'You have used your 2 Studio Rest Days for this week.' };
   }
 
+  const xpEnabled = isXpSystemEnabled(shop.business_mode || 'bespoke');
+  const xpAwarded = xpEnabled ? 10 : 0;
   const newUsed = used + 1;
-  const newXp = (shop.xp || 0) + 10;
   const newStreak = (shop.streak_current || 0) + 1;
   const newBest = Math.max(newStreak, shop.streak_best || 0);
 
-  await admin.from('shops').update({
-    xp: newXp,
+  const updateData: Record<string, unknown> = {
     rest_days_used_this_week: newUsed,
     last_rest_day_date: todayStr,
     streak_current: newStreak,
     streak_best: newBest,
     streak_last_counted_at: new Date().toISOString(),
-  }).eq('id', shop.id);
+  };
 
-  // Log in xp_ledger
-  await admin.from('xp_ledger').insert({
-    shop_id: shop.id,
-    amount: 10,
-    action_type: 'rest_day',
-    description: 'Studio Rest Day claimed',
-  });
+  if (xpAwarded > 0) {
+    updateData.xp = (shop.xp || 0) + xpAwarded;
+  }
+
+  await admin.from('shops').update(updateData).eq('id', shop.id);
+
+  if (xpAwarded > 0) {
+    await recordServerXpLedger(admin, {
+      shop_id: shop.id,
+      amount: xpAwarded,
+      action_type: 'rest_day',
+      description: 'Studio Rest Day claimed',
+    });
+  }
 
   return {
     success: true,
-    xpAwarded: 10,
+    xpAwarded,
     newStreak,
     restDaysRemaining: 2 - newUsed,
   };

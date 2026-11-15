@@ -4,12 +4,34 @@ import { requireAdmin } from '@/lib/admin/requireAdmin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendPushToShop } from '@/lib/push';
 
+export type FeatureAudienceTarget =
+  | 'all'
+  // Feature Used
+  | 'used_orders'
+  | 'used_measurements'
+  | 'used_payments'
+  | 'used_expenses'
+  | 'used_calendar'
+  | 'used_catalogue'
+  | 'used_streaks'
+  | 'used_circle'
+  // Feature Not Used (Nudges & Onboarding)
+  | 'unused_orders'
+  | 'unused_measurements'
+  | 'unused_payments'
+  | 'unused_expenses'
+  | 'unused_calendar'
+  | 'unused_catalogue'
+  | 'unused_streaks'
+  | 'unused_circle';
+
 export interface BroadcastPayload {
   title: string;
   message: string;
   targetMode: 'all' | 'bespoke' | 'rtw' | 'hybrid';
   targetPlan: 'all' | 'free' | 'premium';
   targetAudience: 'all' | 'owners_only' | 'staff_only';
+  targetFeature?: FeatureAudienceTarget;
   tone: 'info' | 'warning' | 'alert';
   actionLabel?: string;
   actionHref?: string;
@@ -51,9 +73,9 @@ export async function sendBroadcastAction(payload: BroadcastPayload): Promise<Br
     query = query.in('subscription_status', ['active', 'past_due', 'trialing']);
   }
 
-  const { data: shops, error: shopsError } = await query;
+  const { data: rawShops, error: shopsError } = await query;
 
-  if (shopsError || !shops || shops.length === 0) {
+  if (shopsError || !rawShops || rawShops.length === 0) {
     return {
       success: false,
       shopsNotified: 0,
@@ -61,6 +83,73 @@ export async function sendBroadcastAction(payload: BroadcastPayload): Promise<Br
       pushSentCount: 0,
       error: shopsError?.message || 'No shops matched the target filters.',
     };
+  }
+
+  // 1b. Filter by Feature Usage (Used vs Unused)
+  let shops = rawShops;
+
+  if (payload.targetFeature && payload.targetFeature !== 'all') {
+    const isUsedFilter = payload.targetFeature.startsWith('used_');
+    const featureName = payload.targetFeature.replace(/^(used_|unused_)/, '');
+
+    const shopIdsWithFeature = new Set<string>();
+
+    if (featureName === 'orders') {
+      const { data: rows } = await admin.from('orders').select('shop_id');
+      (rows || []).forEach((r) => r.shop_id && shopIdsWithFeature.add(r.shop_id));
+    } else if (featureName === 'measurements') {
+      const { data: rows } = await admin
+        .from('customers')
+        .select('shop_id, measurements, style_measurements');
+      (rows || []).forEach((r) => {
+        const hasMeasure =
+          (r.measurements && Object.keys(r.measurements).length > 0) ||
+          (r.style_measurements && Object.keys(r.style_measurements).length > 0);
+        if (r.shop_id && hasMeasure) shopIdsWithFeature.add(r.shop_id);
+      });
+    } else if (featureName === 'payments') {
+      const { data: rows } = await admin.from('payments').select('shop_id');
+      (rows || []).forEach((r) => r.shop_id && shopIdsWithFeature.add(r.shop_id));
+    } else if (featureName === 'expenses') {
+      const { data: rows } = await admin.from('expenses').select('shop_id');
+      (rows || []).forEach((r) => r.shop_id && shopIdsWithFeature.add(r.shop_id));
+    } else if (featureName === 'calendar') {
+      const { data: rows } = await admin.from('calendar_events').select('shop_id');
+      (rows || []).forEach((r) => r.shop_id && shopIdsWithFeature.add(r.shop_id));
+    } else if (featureName === 'catalogue') {
+      const { data: rows } = await admin.from('style_catalogues').select('shop_id');
+      (rows || []).forEach((r) => r.shop_id && shopIdsWithFeature.add(r.shop_id));
+    } else if (featureName === 'streaks') {
+      const { data: rows } = await admin
+        .from('shops')
+        .select('id, streak_current, streak_best');
+      (rows || []).forEach((r) => {
+        if ((r.streak_current || 0) > 0 || (r.streak_best || 0) > 0) {
+          shopIdsWithFeature.add(r.id);
+        }
+      });
+    } else if (featureName === 'circle') {
+      const { data: rows } = await admin.from('circle_members').select('shop_id');
+      (rows || []).forEach((r) => r.shop_id && shopIdsWithFeature.add(r.shop_id));
+    }
+
+    if (isUsedFilter) {
+      shops = shops.filter((s) => shopIdsWithFeature.has(s.id));
+    } else {
+      shops = shops.filter((s) => !shopIdsWithFeature.has(s.id));
+    }
+
+    if (shops.length === 0) {
+      return {
+        success: false,
+        shopsNotified: 0,
+        recipientsNotified: 0,
+        pushSentCount: 0,
+        error: isUsedFilter
+          ? `No shops have used the ${featureName} feature yet matching your filters.`
+          : `All shops have already used the ${featureName} feature matching your filters.`,
+      };
+    }
   }
 
   const shopIds = shops.map((s) => s.id);
@@ -237,6 +326,7 @@ export async function sendBroadcastAction(payload: BroadcastPayload): Promise<Br
         targetMode: payload.targetMode,
         targetPlan: payload.targetPlan,
         targetAudience: payload.targetAudience,
+        targetFeature: payload.targetFeature || 'all',
         shopsCount: shops.length,
         recipientsCount: notificationRows.length,
         pushCount: totalPushSent,

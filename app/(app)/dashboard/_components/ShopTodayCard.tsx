@@ -39,8 +39,8 @@ export default function ShopTodayCard({
 
   if (isMarketRunToday) {
     title = "Out Sourcing Materials";
-    subtitle = xpEnabled
-      ? `Fabric market run active today. Your ${currentStreak > 0 ? `${currentStreak}-day ` : ''}streak is fully protected!`
+    subtitle = isBespoke && currentStreak > 0
+      ? `Fabric market run active today. Your ${currentStreak}-day streak is fully protected!`
       : 'Fabric market run active today — happy sourcing!';
     emotion = "celebratory";
   } else if (newlyHitMilestone && isAllCaughtUp) {
@@ -51,7 +51,7 @@ export default function ShopTodayCard({
     title = "Needs Attention";
     subtitle = `${loops.length} item${loops.length === 1 ? '' : 's'} need attention before today is done.`;
     emotion = "concerned";
-  } else if (xpEnabled && currentStreak > 0) {
+  } else if (isBespoke && currentStreak > 0) {
     title = "Your shop is on track";
     if (shop?.onboardingGoal) {
       subtitle = `You are on a ${currentStreak}-day streak! You are successfully building your reputation for ${shop.onboardingGoal.toLowerCase()}.`;

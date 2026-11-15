@@ -8,6 +8,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
 import { logStudioRestDayAction } from '@/app/actions';
 import { useData } from '@/contexts/DataContext';
+import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './StreakModal.module.css';
 
 interface StreakModalProps {
@@ -52,8 +53,11 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
       if (res?.error) {
         setRestDayMsg({ text: res.error, error: true });
       } else if (res?.success) {
+        const xpEnabled = isXpSystemEnabled(currentShop?.businessMode);
         setRestDayMsg({
-          text: `Rest Day logged! +10 XP awarded. (${res.restDaysRemaining} rest days remaining this week)`,
+          text: xpEnabled
+            ? `Rest Day logged! +10 XP awarded. (${res.restDaysRemaining} rest days remaining this week)`
+            : `Rest Day logged! Streak protected. (${res.restDaysRemaining} rest days remaining this week)`,
         });
         refreshShop();
       }
@@ -142,7 +146,13 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
               onClick={handleClaimRestDay}
               disabled={restDayLoading || usedRestDays >= 2}
             >
-              {restDayLoading ? 'Claiming...' : usedRestDays >= 2 ? 'Used' : 'Take Rest Day (+10 XP)'}
+              {restDayLoading
+                ? 'Claiming...'
+                : usedRestDays >= 2
+                ? 'Used'
+                : isXpSystemEnabled(currentShop?.businessMode)
+                ? 'Take Rest Day (+10 XP)'
+                : 'Take Rest Day (Protect Streak)'}
             </button>
           </div>
 

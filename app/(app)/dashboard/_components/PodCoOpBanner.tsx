@@ -4,11 +4,15 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { useCircleHub } from '@/lib/hooks/useCircleHub';
+import { useData } from '@/contexts/DataContext';
+import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './PodCoOpBanner.module.css';
 
 export default function PodCoOpBanner() {
   const router = useRouter();
   const { peerBuddies, isCoOpSecuredToday, activeTodayCount, benefits } = useCircleHub();
+  const { currentShop } = useData();
+  const xpEnabled = isXpSystemEnabled(currentShop?.businessMode);
 
   if (!peerBuddies || peerBuddies.length === 0) {
     return null;
@@ -41,7 +45,9 @@ export default function PodCoOpBanner() {
           <div className={styles.titleRow}>
             <span className={styles.title}>
               {isCoOpSecuredToday
-                ? `Pod Streak Secured (+${dailyRate} XP)`
+                ? xpEnabled
+                  ? `Pod Streak Secured (+${dailyRate} XP)`
+                  : 'Pod Streak Secured'
                 : `Pod Co-Op: ${activeTodayCount} of ${peerBuddies.length + 1} Active Today`}
             </span>
             {isCoOpSecuredToday && (
@@ -51,7 +57,9 @@ export default function PodCoOpBanner() {
           <span className={styles.subtext}>
             {isCoOpSecuredToday
               ? `You & ${peerNames} both crafted today · Circle streak active`
-              : `Complete an order or log measurements to lock in your +${dailyRate} XP pod bonus`}
+              : xpEnabled
+              ? `Complete an order or log measurements to lock in your +${dailyRate} XP pod bonus`
+              : 'Complete an order or log measurements to lock in your pod streak'}
           </span>
         </div>
       </div>

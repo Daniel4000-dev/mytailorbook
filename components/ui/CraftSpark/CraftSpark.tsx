@@ -64,12 +64,15 @@ export default function CraftSpark() {
       aria-live="polite"
     >
       <div className={styles.sparkChip}>
-        <div className={styles.xpBadge}>
-          <Symbol name="bolt" size={14} style={{ color: '#F59E0B' }} />
-          <span>+{spark.xpAwarded} XP</span>
-        </div>
-
-        <span className={styles.divider}>·</span>
+        {spark.xpAwarded > 0 && (
+          <>
+            <div className={styles.xpBadge}>
+              <Symbol name="bolt" size={14} style={{ color: '#F59E0B' }} />
+              <span>+{spark.xpAwarded} XP</span>
+            </div>
+            <span className={styles.divider}>·</span>
+          </>
+        )}
 
         <div className={styles.streakBadge}>
           <Symbol name="local_fire_department" size={14} style={{ color: '#EA580C' }} />

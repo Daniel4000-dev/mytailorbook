@@ -20,6 +20,7 @@ import { SUPPORTED_CURRENCIES } from '@/lib/constants';
 import { getCurrencySymbol } from '@/lib/formatters';
 import SettingsSkeleton from '../_components/SettingsSkeleton';
 import { ROUTES } from '@/lib/routes';
+import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './page.module.css';
 
 type EditableField = 'name' | 'about' | 'phone' | 'address' | 'currency' | null;
@@ -653,24 +654,26 @@ export default function StudioSettingsPage() {
                 Shields your streak on unplanned workshop disruptions. You also get 2 weekly studio rest days.
               </p>
             </div>
-            <Button
-              variant="secondary"
-              onClick={async () => {
-                const xp = currentShop?.xp || 0;
-                if (xp >= 100) {
-                  try {
-                    await updateShop({ xp: xp - 100, streakFreezes: (currentShop?.streakFreezes || 0) + 1 });
-                    showToast('Acquired 1 emergency Streak Freeze!');
-                  } catch {
-                    showToast('Failed to update streak freezes', 'error');
+            {isXpSystemEnabled(currentShop?.businessMode) && (
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  const xp = currentShop?.xp || 0;
+                  if (xp >= 100) {
+                    try {
+                      await updateShop({ xp: xp - 100, streakFreezes: (currentShop?.streakFreezes || 0) + 1 });
+                      showToast('Acquired 1 emergency Streak Freeze!');
+                    } catch {
+                      showToast('Failed to update streak freezes', 'error');
+                    }
+                  } else {
+                    showToast('You need at least 100 XP to acquire an emergency freeze.', 'error');
                   }
-                } else {
-                  showToast('You need at least 100 XP to acquire an emergency freeze.', 'error');
-                }
-              }}
-            >
-              Get Freeze (100 XP)
-            </Button>
+                }}
+              >
+                Get Freeze (100 XP)
+              </Button>
+            )}
           </div>
         </div>
       </div>
