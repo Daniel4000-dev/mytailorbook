@@ -18,6 +18,11 @@ export interface StitchWrapTheme {
   textMuted: string;
   cardBorder: string;
   tagBackground: string;
+  blobColor1: string;
+  blobColor2: string;
+  blobColor3: string;
+  laserColor: string;
+  glassBorder: string;
 }
 
 export interface StitchWrapArchetype {
@@ -64,3 +69,4 @@ export interface StitchWrapData {
   archetype: StitchWrapArchetype;
   theme: StitchWrapTheme;
 }
+
