@@ -2,9 +2,13 @@
   margin: 12px 0 16px;
   padding: 14px 16px;
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--sf-radius-xl);
-  box-shadow: none;
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -12,15 +16,17 @@
 
 :global([data-theme='dark']) .container {
   background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: none;
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme='light'])) .container {
     background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: none;
+    border-color: rgba(99, 102, 241, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -4px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -196,14 +202,14 @@
   gap: 4px;
   font-size: 11px;
   font-weight: 800;
-  color: #1A1002;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   padding: 5px 12px;
   border-radius: var(--sf-radius-full);
   white-space: nowrap;
   flex-shrink: 0;
   transition: all var(--sf-transition-fast);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.42);
   border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
@@ -217,15 +223,15 @@
 }
 
 :global([data-theme='dark']) .actionBtn {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  color: #1A1002;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme='light'])) .actionBtn {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-    color: #1A1002;
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
   }
 }

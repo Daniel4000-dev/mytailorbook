@@ -6,13 +6,15 @@
 
 .card {
   position: relative;
-  background: var(--sf-glass-gradient, var(--sf-glass-bg));
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--sf-radius-xl, 24px);
   padding: var(--sf-space-lg);
-  box-shadow: var(--sf-glass-shadow-card);
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
   margin-top: var(--sf-space-md);
   margin-bottom: var(--sf-space-md);
   overflow: hidden;
@@ -44,7 +46,7 @@
   left: 6px;
   right: 6px;
   bottom: 6px;
-  border: 1px dashed rgba(245, 158, 11, 0.22);
+  border: 1px dashed rgba(67, 56, 202, 0.16);
   border-radius: calc(var(--sf-radius-xl, 24px) - 5px);
   pointer-events: none;
 }
@@ -128,8 +130,8 @@
   justify-content: space-between;
   gap: var(--sf-space-md);
   padding: var(--sf-space-md);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(67, 56, 202, 0.04) 100%);
-  border: 1.5px solid rgba(245, 158, 11, 0.35);
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.05) 0%, rgba(99, 102, 241, 0.02) 100%);
+  border: 1.5px solid rgba(67, 56, 202, 0.2);
   border-radius: var(--sf-radius-lg, 16px);
   cursor: pointer;
   text-align: left;
@@ -138,10 +140,10 @@
 }
 
 .actionCardHero:hover {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(67, 56, 202, 0.08) 100%);
-  border-color: #F59E0B;
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.08) 0%, rgba(99, 102, 241, 0.04) 100%);
+  border-color: #4338CA;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.16);
 }
 
 .actionCardHero:active {
@@ -156,7 +158,7 @@
   gap: var(--sf-space-md);
   padding: 12px 14px;
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(67, 56, 202, 0.08);
   border-radius: var(--sf-radius-md, 12px);
   cursor: pointer;
   text-align: left;
@@ -186,13 +188,14 @@
   width: 44px;
   height: 44px;
   border-radius: var(--sf-radius-md, 12px);
-  background: rgba(245, 158, 11, 0.16);
-  color: #F59E0B;
+  background: rgba(67, 56, 202, 0.1);
+  color: #4338CA;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  border: 1px solid rgba(67, 56, 202, 0.25);
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.08);
 }
 
 .iconBoxSecondary {
@@ -270,12 +273,12 @@
   gap: 6px;
   padding: 8px 15px;
   border-radius: var(--sf-radius-full);
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  color: #1A1002;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
   font-size: var(--sf-text-xs);
   font-weight: 800;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.38);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.42);
   border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
