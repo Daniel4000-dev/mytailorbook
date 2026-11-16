@@ -550,7 +550,7 @@ export default function CustomersPage() {
   const shopInitials = getInitials(currentShop?.name || APP_CONFIG.name);
 
   return (
-    <PageLayout header={topBar}>
+    <PageLayout header={topBar} className={customers.length === 0 ? styles.emptyPageContent : ''}>
       {/* ── Sample Clients Preview Banner ──────────────────────────── */}
       {isMockAllowed && isUsingMock && (
         <div className={styles.mockBanner}>
@@ -1170,7 +1170,7 @@ export default function CustomersPage() {
               {isMockAllowed && (
                 <button
                   type="button"
-                  className={styles.softPill}
+                  className={styles.emptyStateSampleBtn}
                   onClick={() => {
                     const fresh = resetMockCustomers();
                     setMockCustomers(fresh);

@@ -87,7 +87,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   width: 100%;
 }
 
@@ -1768,68 +1768,79 @@
   line-height: 1.35;
 }
 
+/* ── 0. Empty Page Zero-Scroll Viewport Shell ─────────────────── */
+.emptyPageContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100dvh - 56px - var(--sf-bottom-nav-height, 84px) - var(--sf-safe-area-bottom, 0px) - 32px);
+  gap: clamp(8px, 1.5vh, 16px) !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 1024px) {
+  .emptyPageContent {
+    max-height: calc(100dvh - 56px - var(--sf-bottom-nav-height, 84px) - 64px);
+  }
+}
+
 /* ── 5. Full-Screen Empty State ─────────────────────────────── */
 .emptyStateContainer {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   width: 100%;
-  min-height: clamp(380px, calc(100dvh - 280px), 640px);
-  padding: 24px 20px 36px;
+  padding: 8px 16px 12px;
   animation: fadeIn 0.35s ease both;
-}
-
-@media (min-width: 640px) {
-  .emptyStateContainer {
-    min-height: clamp(420px, calc(100dvh - 260px), 700px);
-    padding: 32px 24px 44px;
-  }
 }
 
 .emptyStateImageWrap {
   position: relative;
-  width: clamp(116px, 28vw, 148px);
-  height: clamp(126px, 30vw, 160px);
-  margin-bottom: 16px;
+  height: clamp(85px, 15vh, 130px);
+  width: auto;
+  aspect-ratio: 200 / 235;
+  margin-bottom: clamp(6px, 1.2vh, 12px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .emptyStateImage {
-  width: 100%;
+  width: auto;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.08));
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.08));
 }
 
 .emptyStateTitle {
   font-family: var(--sf-font-heading);
-  font-size: clamp(20px, 4.8vw, 24px);
+  font-size: clamp(18px, 2.6vh, 22px);
   font-weight: 750;
   color: var(--sf-text-primary);
-  margin: 0 0 8px 0;
+  margin: 0 0 clamp(4px, 0.8vh, 8px) 0;
   letter-spacing: -0.02em;
 }
 
 .emptyStateDescription {
-  font-size: clamp(14px, 3.4vw, 15px);
+  font-size: clamp(13px, 1.8vh, 14.5px);
   color: var(--sf-text-secondary);
-  max-width: 380px;
-  line-height: 1.55;
-  margin: 0 0 24px 0;
+  max-width: 360px;
+  line-height: 1.45;
+  margin: 0 0 clamp(10px, 2vh, 20px) 0;
 }
 
 .emptyStateActions {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: clamp(6px, 1vh, 10px);
   width: 100%;
-  max-width: 280px;
+  max-width: 260px;
 }
 
 .emptyStatePrimaryCta {
@@ -1838,14 +1849,14 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: 48px;
-  padding: 0 28px;
+  height: clamp(42px, 5.2vh, 46px);
+  padding: 0 24px;
   background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-top: 1.5px solid rgba(255, 255, 255, 0.6);
   border-radius: var(--sf-radius-full);
-  font-size: 15px;
+  font-size: clamp(13.5px, 1.8vh, 14.5px);
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -1862,4 +1873,38 @@
 
 .emptyStatePrimaryCta:active {
   transform: scale(0.97);
+}
+
+.emptyStateSampleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: clamp(30px, 4vh, 34px);
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.emptyStateSampleBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--sf-text-primary);
+}
+
+:global([data-theme='dark']) .emptyStateSampleBtn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .emptyStateSampleBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-primary);
 }
