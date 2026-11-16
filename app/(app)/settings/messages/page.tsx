@@ -15,6 +15,7 @@ import { ORDER_STATUSES, STATUS_CONFIG } from '@/lib/constants';
 import { DEFAULT_STAGE_MESSAGES, DEFAULT_EVENT_PHOTO_MESSAGE } from '@/lib/formatters';
 import type { OrderStatus } from '@/lib/types';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
 export default function MessageTemplatesSettingsPage() {
@@ -123,7 +124,7 @@ export default function MessageTemplatesSettingsPage() {
     return text
       .replace(/\{name\}/g, 'Chief Emeka')
       .replace(/\{shop\}/g, studioName)
-      .replace(/\{link\}/g, `mytailorbook.com/t/ord_204`)
+      .replace(/\{link\}/g, `${APP_CONFIG.domain}/t/ord_204`)
       .replace(/\{orderId\}/g, 'ORD-204')
       .replace(/\{instagram\}/g, cleanIg)
       .replace(/\{handle\}/g, cleanIg)

@@ -16,6 +16,7 @@ import { trackEvent } from '@/lib/analytics';
 import AuthInput from '@/components/ui/AuthInput/AuthInput';
 import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import AspirationalVision from './_components/AspirationalVision';
 import styles from './page.module.css';
@@ -375,7 +376,7 @@ export default function OnboardingPage() {
                         {watchedShopName.trim() || 'Your Shop'}
                       </h3>
                       <p className={styles.previewSlug}>
-                        mytailorbook.com/studio/{slugify(watchedShopName)}
+                        {APP_CONFIG.domain}/studio/{slugify(watchedShopName)}
                       </p>
                     </div>
                   </div>

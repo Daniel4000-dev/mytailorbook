@@ -114,7 +114,7 @@ export default function AccountSettingsPage() {
         isOpen={confirmLogout}
         onClose={() => setConfirmLogout(false)}
         onConfirm={logout}
-        title="Log out of MyTailorBook?"
+        title="Log out of MyStitchBook?"
         description="You will need to sign in again to access your workshop and records."
         confirmLabel="Log Out"
         destructive

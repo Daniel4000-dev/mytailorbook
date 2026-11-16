@@ -27,7 +27,7 @@ export default function SidebarMenu() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  const { isOwner, user } = useAuth();
+  const { isOwner, user, logout } = useAuth();
   const { currentShop, shops, activeBranchId, setActiveBranchId } = useData();
   const initial = user?.name?.charAt(0) || user?.email?.charAt(0) || 'U';
 
@@ -42,13 +42,7 @@ export default function SidebarMenu() {
   const shopName = currentShop?.name || 'Studio';
 
   async function handleLogout() {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push('/login');
-    } catch (e) {
-      console.error('Error logging out', e);
-    }
+    logout();
   }
 
   // Close profile menu when clicking outside

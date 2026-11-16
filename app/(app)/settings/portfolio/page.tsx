@@ -30,6 +30,7 @@ import {
   type PortfolioOutfit,
 } from './actions';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
 const MIN_FOUNDED_YEAR = 1950;
@@ -290,7 +291,7 @@ function PortfolioCurationSettingsContent() {
                           showToast('Set your public profile URL first', 'error');
                           return;
                         }
-                        const url = `https://wa.me/?text=${encodeURIComponent(`Check out this design from ${currentShop.name}: https://mytailorbook.com/studio/${currentShop.slug}?outfit=${o.id}`)}`;
+                        const url = `https://wa.me/?text=${encodeURIComponent(`Check out this design from ${currentShop.name}: https://${APP_CONFIG.domain}/studio/${currentShop.slug}?outfit=${o.id}`)}`;
                         window.open(url, '_blank');
                       }}
                     >

@@ -8,6 +8,7 @@ import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, getCurrencySy
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
@@ -159,7 +160,7 @@ export default function CollectionsPage() {
   const buildReminderMessage = (debtor: DebtorOrder) => {
     const shopName = currentShop?.name || 'our atelier';
     const amount = formatCurrency(debtor.balance, currency);
-    const receiptUrl = `https://mytailorbook.com${ROUTES.receipt(debtor.order)}`;
+    const receiptUrl = `https://${APP_CONFIG.domain}${ROUTES.receipt(debtor.order)}`;
 
     let stageContext = 'currently in production';
     if (debtor.order.status === 'Delivered') {
@@ -233,7 +234,7 @@ export default function CollectionsPage() {
           ? {
               label: 'WhatsApp Receipt',
               onClick: () => {
-                const receiptUrl = `https://mytailorbook.com${ROUTES.receipt(debtorSnapshot.order)}`;
+                const receiptUrl = `https://${APP_CONFIG.domain}${ROUTES.receipt(debtorSnapshot.order)}`;
                 const receiptMsg = `Hello ${debtorSnapshot.customer.fullName},\n\nWe have received your payment of ${formatCurrency(numAmount, currency)} for "${debtorSnapshot.order.orderDetails}". Thank you!\n\nView updated digital receipt:\n${receiptUrl}`;
                 window.open(getWhatsAppLink(debtorSnapshot.customer.whatsappNumber, receiptMsg), '_blank');
               },

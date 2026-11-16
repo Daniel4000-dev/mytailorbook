@@ -982,7 +982,7 @@ export async function GET(request: NextRequest) {
   // =========================================================================
   // 3. EVENING PRIORITY QUEUE (8:00 PM, 8:30 PM WAT)
   // Priority 1: Streak Protection Nudge (only when standalone XP module is plugged in)
-  // Priority 2: Closing-Day "Well Done" Message from MyTailorBook Team (reads from audit_log)
+  // Priority 2: Closing-Day "Well Done" Message from MyStitchBook Team (reads from audit_log)
   // =========================================================================
   if (runEvening) {
     // Priority 1: Streak Protection Nudge (independent of XP engine)

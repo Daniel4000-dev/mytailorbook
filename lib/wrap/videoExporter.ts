@@ -551,7 +551,7 @@ function drawWatermarkFooter(ctx: CanvasRenderingContext2D, data: StitchWrapData
 
   ctx.fillStyle = '#ffffff';
   ctx.font = '900 24px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('⚡ MADE WITH MYTAILORBOOK', 100, H - 108);
+  ctx.fillText('⚡ MADE WITH MYSTITCHBOOK', 100, H - 108);
 
   ctx.fillStyle = theme.accentColor;
   ctx.font = '700 20px monospace';

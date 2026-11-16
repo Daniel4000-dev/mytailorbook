@@ -735,7 +735,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
@@ -819,7 +819,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
@@ -898,7 +898,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
@@ -964,7 +964,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
@@ -1036,7 +1036,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
@@ -1127,7 +1127,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>
@@ -1210,7 +1210,7 @@ Awarded "${data.archetype.title}" on MyStitchBook. Proud of our craft! 🧵✨`;
                   <div className={styles.cardWatermarkFooter}>
                     <div className={styles.watermarkBrandLogo}>
                       <Symbol name="needle" size={11} style={{ color: theme?.accentColor || '#f59e0b' }} />
-                      <span>MYTAILORBOOK</span>
+                      <span>MYSTITCHBOOK</span>
                     </div>
                     <span>2026 CRAFT TELEMETRY // {data.shopName.toUpperCase()}</span>
                   </div>

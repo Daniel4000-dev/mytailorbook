@@ -253,7 +253,7 @@ export default function SettingsPage() {
             <SettingsRow
               icon="photo_library"
               label="Public Portfolio &amp; Lookbook"
-              subtitle={`mytailorbook.com/studio/${currentShop?.slug || ''}`}
+              subtitle={`${APP_CONFIG.domain}/studio/${currentShop?.slug || ''}`}
               meta={<Symbol name="open_in_new" size={15} />}
               onClick={() => router.push(ROUTES.settingsPortfolio)}
             />
@@ -379,7 +379,7 @@ export default function SettingsPage() {
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={logout}
-        title="Log out of MyTailorBook?"
+        title="Log out of MyStitchBook?"
         description="You will need to sign in again to access your workshop and records."
         confirmLabel="Log Out"
         destructive

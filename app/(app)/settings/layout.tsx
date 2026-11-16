@@ -77,7 +77,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={logout}
-        title="Log out of MyTailorBook?"
+        title="Log out of MyStitchBook?"
         description="You will need to sign in again to access your workshop and records."
         confirmLabel="Log Out"
         destructive

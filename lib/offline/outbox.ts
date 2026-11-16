@@ -1,5 +1,5 @@
 /**
- * Offline Mutation Outbox Engine for MyTailorBook.
+ * Offline Mutation Outbox Engine for MyStitchBook.
  * 
  * Provides an append-only, FIFO queue persisted to client storage.
  * When a tailor makes changes while offline (moving an order, measuring a client,
