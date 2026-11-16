@@ -377,44 +377,47 @@ export default function CatalogueDetailPage() {
                   loading="lazy"
                   className={styles.photoImg}
                 />
+                <button
+                  type="button"
+                  className={styles.photoDeleteBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPhotoToDelete(photo.id);
+                  }}
+                  title="Remove photo"
+                  aria-label="Remove photo"
+                >
+                  <Symbol name="delete" size={14} />
+                </button>
                 <div className={styles.photoOverlay}>
-                  <button
-                    type="button"
-                    className={styles.quickQuoteBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(
-                        `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(photo.imageUrl)}`
-                      );
-                    }}
-                    title="Calculate price quote for this style"
-                  >
-                    <Symbol name="calculate" size={14} />
-                    <span>Quote</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.quickOrderBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleStartOrderWithPhoto(photo);
-                    }}
-                    title="Start order with this style"
-                  >
-                    <Symbol name="content_cut" size={14} />
-                    <span>Sew This</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.quickDeleteBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPhotoToDelete(photo.id);
-                    }}
-                    title="Remove photo"
-                  >
-                    <Symbol name="delete" size={14} />
-                  </button>
+                  <div className={styles.photoActions}>
+                    <button
+                      type="button"
+                      className={styles.quickQuoteBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(photo.imageUrl)}`
+                        );
+                      }}
+                      title="Calculate price quote for this style"
+                    >
+                      <Symbol name="calculate" size={13} />
+                      <span>Quote</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickOrderBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartOrderWithPhoto(photo);
+                      }}
+                      title="Start order with this style"
+                    >
+                      <Symbol name="content_cut" size={13} />
+                      <span>Sew This</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

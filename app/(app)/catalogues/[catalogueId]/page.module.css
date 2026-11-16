@@ -281,99 +281,175 @@
   transform: scale(1.02);
 }
 
+.photoDeleteBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 14, 23, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FCA5A5;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s ease, color 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.photoCard:hover .photoDeleteBtn,
+.photoCard:focus-within .photoDeleteBtn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.photoDeleteBtn:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.08);
+}
+
+.photoDeleteBtn:active {
+  transform: scale(0.95);
+}
+
+@media (hover: none) {
+  .photoDeleteBtn {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+}
+
 .photoOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(15, 14, 23, 0.82) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(15, 14, 23, 0.88) 100%);
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  padding: 10px;
+  padding: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
 .photoCard:hover .photoOverlay,
-.photoCard:focus-visible .photoOverlay {
+.photoCard:focus-visible .photoOverlay,
+.photoCard:focus-within .photoOverlay {
   opacity: 1;
 }
 
 @media (hover: none) {
   .photoOverlay {
     opacity: 1;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 65%, rgba(15, 14, 23, 0.72) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(15, 14, 23, 0.8) 100%);
   }
 }
 
+.photoActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  pointer-events: auto;
+}
+
 .quickQuoteBtn {
-  background: rgba(15, 14, 23, 0.85);
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 7px 12px;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 8px;
   border-radius: var(--sf-radius-full);
-  font-size: 11.5px;
+  background: rgba(15, 14, 23, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease, filter 0.15s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.quickQuoteBtn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .quickQuoteBtn:hover {
-  background: rgba(15, 14, 23, 0.95);
-  filter: brightness(1.1);
-  transform: scale(1.04);
+  background: rgba(26, 25, 38, 0.95);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.quickQuoteBtn:active {
+  transform: scale(0.96);
 }
 
 /* Plane 3: Signal Button (Luminous Adire Indigo) */
 .quickOrderBtn {
+  flex: 1.25;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--sf-radius-full);
   background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 7px 14px;
-  border-radius: var(--sf-radius-full);
-  font-size: 11.5px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.4);
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quickOrderBtn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .quickOrderBtn:hover {
   background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
-  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.5);
-  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
 }
 
-.quickDeleteBtn {
-  background: rgba(220, 38, 38, 0.85);
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.quickOrderBtn:active {
+  transform: scale(0.96);
 }
 
-.quickDeleteBtn:hover {
-  background: #DC2626;
-  transform: scale(1.08);
+@media (max-width: 380px) {
+  .photoActions {
+    gap: 4px;
+  }
+  .quickQuoteBtn,
+  .quickOrderBtn {
+    height: 32px;
+    padding: 0 6px;
+    font-size: 10px;
+    gap: 3px;
+  }
 }
 
 /* ── Empty State ── */

@@ -498,91 +498,125 @@
 .pinOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(15,14,23,0.75) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(15, 14, 23, 0.88) 100%);
   display: flex;
   align-items: flex-end;
-  justify-content: flex-start;
-  padding: 10px;
+  padding: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
-.pinCard:hover .pinOverlay {
+.pinCard:hover .pinOverlay,
+.pinCard:focus-within .pinOverlay {
   opacity: 1;
 }
 
 @media (hover: none) {
-  .pinOverlay { opacity: 1; }
+  .pinOverlay {
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(15, 14, 23, 0.8) 100%);
+  }
 }
 
-.pinYardageBadge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(15, 14, 23, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: #FFFFFF;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 7px;
-  border-radius: var(--sf-radius-full);
-  display: inline-flex;
+.pinActions {
+  display: flex;
   align-items: center;
-  gap: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  gap: 6px;
+  width: 100%;
+  pointer-events: auto;
 }
 
 .pinQuoteBtn {
-  background: rgba(15, 14, 23, 0.85);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 6px 10px;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 8px;
   border-radius: var(--sf-radius-full);
+  background: rgba(15, 14, 23, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   font-size: 11px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.pinQuoteBtn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pinQuoteBtn:hover {
-  background: rgba(15, 14, 23, 0.95);
+  background: rgba(26, 25, 38, 0.95);
   border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.pinQuoteBtn:active {
+  transform: scale(0.96);
 }
 
 /* Plane 3: Signal Order Button */
 .pinOrderBtn {
+  flex: 1.25;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--sf-radius-full);
   background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 6px 12px;
-  border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.35);
-  transition: all 0.16s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .pinOrderBtn:hover {
-    background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
-    box-shadow: 0 6px 16px rgba(67, 56, 202, 0.45);
-    transform: translateY(-1px);
-  }
+.pinOrderBtn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinOrderBtn:hover {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
 }
 
 .pinOrderBtn:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 380px) {
+  .pinActions {
+    gap: 4px;
+  }
+  .pinQuoteBtn,
+  .pinOrderBtn {
+    height: 32px;
+    padding: 0 6px;
+    font-size: 10px;
+    gap: 3px;
+  }
+}
   transform: scale(0.97);
 }
 

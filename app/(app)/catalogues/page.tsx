@@ -354,38 +354,40 @@ export default function CataloguesPage() {
                 </span>
 
                 <div className={styles.pinOverlay}>
-                  <button
-                    type="button"
-                    className={styles.pinQuoteBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(
-                        `/quotes?style=${encodeURIComponent(photo.albumTitle)}&styleRef=${encodeURIComponent(
-                          photo.imageUrl
-                        )}`
-                      );
-                    }}
-                    title="Calculate price quote for this style"
-                  >
-                    <Symbol name="calculate" size={13} />
-                    <span>Quote</span>
-                  </button>
+                  <div className={styles.pinActions}>
+                    <button
+                      type="button"
+                      className={styles.pinQuoteBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/quotes?style=${encodeURIComponent(photo.albumTitle)}&styleRef=${encodeURIComponent(
+                            photo.imageUrl
+                          )}`
+                        );
+                      }}
+                      title="Calculate price quote for this style"
+                    >
+                      <Symbol name="calculate" size={13} />
+                      <span>Quote</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    className={styles.pinOrderBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(
-                        `/orders/new?style=${encodeURIComponent(photo.albumTitle)}&styleRef=${encodeURIComponent(
-                          photo.imageUrl
-                        )}`
-                      );
-                    }}
-                  >
-                    <Symbol name="content_cut" size={13} />
-                    <span>Sew This</span>
-                  </button>
+                    <button
+                      type="button"
+                      className={styles.pinOrderBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/orders/new?style=${encodeURIComponent(photo.albumTitle)}&styleRef=${encodeURIComponent(
+                            photo.imageUrl
+                          )}`
+                        );
+                      }}
+                    >
+                      <Symbol name="content_cut" size={13} />
+                      <span>Sew This</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
