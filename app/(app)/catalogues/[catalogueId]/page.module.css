@@ -225,6 +225,25 @@
   }
 }
 
+.backBreadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  padding: 0 0 12px 2px;
+  cursor: pointer;
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.backBreadcrumb:hover {
+  color: var(--sf-text-primary);
+  transform: translateX(-3px);
+}
+
 .photoCard {
   break-inside: avoid;
   margin-bottom: 14px;
@@ -232,7 +251,7 @@
   overflow: hidden;
   position: relative;
   cursor: pointer;
-  background: var(--sf-bg-surface);
+  background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
   border: 1px solid rgba(67, 56, 202, 0.08);
   border-top: 1.5px solid rgba(255, 255, 255, 0.95);
   box-shadow: 
@@ -241,6 +260,8 @@
     0 16px 36px -8px rgba(15, 23, 42, 0.04);
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
   user-select: none;
+  min-height: 180px;
+  display: block;
 }
 
 :global([data-theme='dark']) .photoCard {
@@ -255,6 +276,7 @@
   .photoCard {
     margin-bottom: 10px;
     border-radius: 16px;
+    min-height: 140px;
   }
 }
 
@@ -275,6 +297,8 @@
   display: block;
   object-fit: cover;
   transition: transform 0.3s ease;
+  min-height: 140px;
+  background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
 }
 
 .photoCard:hover .photoImg {

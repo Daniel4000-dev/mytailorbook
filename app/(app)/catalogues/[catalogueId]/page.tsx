@@ -243,7 +243,7 @@ export default function CatalogueDetailPage() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <TopBar title="Loading Album..." onBack={() => router.push('/catalogues')} />
+        <TopBar title="Loading Album..." showBack onBack={() => router.push('/catalogues')} />
         <div className={styles.content}>
           <div className={styles.skeletonGrid}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -260,7 +260,7 @@ export default function CatalogueDetailPage() {
   if (!catalogue) {
     return (
       <div className={styles.container}>
-        <TopBar title="Album Not Found" onBack={() => router.push('/catalogues')} />
+        <TopBar title="Album Not Found" showBack onBack={() => router.push('/catalogues')} />
         <div className={styles.content}>
           <EmptyState
             icon={<Symbol name="photo_library" size={40} />}
@@ -279,6 +279,7 @@ export default function CatalogueDetailPage() {
     <div className={styles.container}>
       <TopBar
         title={catalogue.title}
+        showBack
         onBack={() => router.push('/catalogues')}
         rightAction={
           <button
@@ -293,6 +294,17 @@ export default function CatalogueDetailPage() {
       />
 
       <div className={styles.content}>
+        {/* ── Return Back to Lookbooks Navigation ── */}
+        <button
+          type="button"
+          className={styles.backBreadcrumb}
+          onClick={() => router.push('/catalogues')}
+          aria-label="Back to Lookbooks"
+        >
+          <Symbol name="arrow_back" size={16} />
+          <span>Back to Lookbooks</span>
+        </button>
+
         {/* ── Apple Liquid Glass Album Info Card ── */}
         <div className={styles.albumHeaderCard}>
           <div className={styles.albumMeta}>
@@ -374,7 +386,7 @@ export default function CatalogueDetailPage() {
                 <img
                   src={photo.imageUrl}
                   alt={catalogue.title}
-                  loading="lazy"
+                  decoding="async"
                   className={styles.photoImg}
                 />
                 <button

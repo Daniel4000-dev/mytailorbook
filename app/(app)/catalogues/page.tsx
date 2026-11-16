@@ -285,22 +285,29 @@ export default function CataloguesPage() {
                       </div>
                     ) : photoCount === 1 ? (
                       <div className={styles.collageMain} style={{ flex: 1 }}>
-                        <img src={mainPhoto} alt={cat.title} className={styles.collageImg} />
+                        <img src={mainPhoto} alt={cat.title} decoding="async" className={styles.collageImg} />
                       </div>
+                    ) : photoCount === 2 ? (
+                      <>
+                        <div className={styles.collageHalf}>
+                          <img src={mainPhoto} alt={cat.title} decoding="async" className={styles.collageImg} />
+                        </div>
+                        <div className={styles.collageHalf}>
+                          <img src={secondPhoto} alt={cat.title} decoding="async" className={styles.collageImg} />
+                        </div>
+                      </>
                     ) : (
                       <>
                         <div className={styles.collageMain}>
-                          <img src={mainPhoto} alt={cat.title} className={styles.collageImg} />
+                          <img src={mainPhoto} alt={cat.title} decoding="async" className={styles.collageImg} />
                         </div>
                         <div className={styles.collageSide}>
                           <div className={styles.collageSideThumb}>
-                            <img src={secondPhoto} alt="" className={styles.collageImg} />
+                            <img src={secondPhoto} alt="" decoding="async" className={styles.collageImg} />
                           </div>
-                          {thirdPhoto && (
-                            <div className={styles.collageSideThumb}>
-                              <img src={thirdPhoto} alt="" className={styles.collageImg} />
-                            </div>
-                          )}
+                          <div className={styles.collageSideThumb}>
+                            <img src={thirdPhoto} alt="" decoding="async" className={styles.collageImg} />
+                          </div>
                         </div>
                       </>
                     )}
@@ -344,7 +351,7 @@ export default function CataloguesPage() {
                 <img
                   src={photo.imageUrl}
                   alt={photo.albumTitle}
-                  loading="lazy"
+                  decoding="async"
                   className={styles.pinImg}
                 />
                 <span className={styles.pinAlbumBadge}>{photo.albumTitle}</span>
