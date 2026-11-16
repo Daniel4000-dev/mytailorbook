@@ -113,24 +113,22 @@ export default function OnboardingPage() {
     }
   }, [isGoogleAccount, googleUserInfo?.name, setValue]);
 
-  // Redirect to login if user lands here without needing onboarding
-  const initialCheckDone = useRef(false);
+  const [showVision, setShowVision] = useState(false);
+  const [confirmedShopName, setConfirmedShopName] = useState('');
+
+  // Redirect to dashboard if user lands here without needing onboarding
   useEffect(() => {
-    if (loading || initialCheckDone.current) return;
-    initialCheckDone.current = true;
-    if (!needsOnboarding) {
+    if (loading) return;
+    if (!needsOnboarding && !showVision) {
       router.replace(ROUTES.dashboard);
     }
-  }, [loading, needsOnboarding, router]);
+  }, [loading, needsOnboarding, showVision, router]);
 
   useEffect(() => {
     for (const screen of WELCOME_SCREENS) {
       preload(screen.image, { as: 'image' });
     }
   }, []);
-
-  const [showVision, setShowVision] = useState(false);
-  const [confirmedShopName, setConfirmedShopName] = useState('');
 
   // Handle moving from Step 2 (Identity) to Step 3 (Operating Model)
   const handleProceedFromIdentity = async () => {
@@ -194,15 +192,24 @@ export default function OnboardingPage() {
     }
   };
 
-  if (loading || !needsOnboarding) return null;
-
   if (showVision) {
     return (
       <AspirationalVision
         shopName={confirmedShopName}
         businessMode={watchedBusinessMode}
-        onFinish={() => router.push(ROUTES.dashboard)}
+        onFinish={() => {
+          window.location.href = ROUTES.dashboard;
+        }}
       />
+    );
+  }
+
+  if (loading || !needsOnboarding) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner} />
+        <p className={styles.loadingText}>Preparing your atelier...</p>
+      </div>
     );
   }
 
