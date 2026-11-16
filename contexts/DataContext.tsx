@@ -19,9 +19,8 @@ import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
 import { enqueueOfflineMutation } from '@/lib/offline/outbox';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
-import { isMockDataAllowed, resolveCanonicalStyleName } from '@/lib/constants';
+import { resolveCanonicalStyleName } from '@/lib/constants';
 import { triggerHaptic } from '@/lib/haptics';
-import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_STAFF, MOCK_EXCEPTIONS } from '@/lib/mockData';
 import {
   getShopBundle,
   getOrgBranches,
@@ -230,41 +229,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
   }, [activeBranchId, orgId, mutate]);
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const legacyKeys = [
+        'mtb_demo_mode',
+        'mtb_mock_portfolio',
+        'mtb_mock_portfolio_flag',
+        'mtb_mock_customers',
+        'mtb_mock_customers_flag',
+        'mtb_mock_catalogues',
+        'mtb_mock_catalogues_flag',
+        'mtb_mock_fabrics',
+        'mtb_mock_fabrics_flag',
+      ];
+      legacyKeys.forEach((k) => localStorage.removeItem(k));
+    }
+  }, []);
 
-  const [rawDemoMode, setRawDemoMode] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('demo') === 'true' || localStorage.getItem('mtb_demo_mode') === 'true';
-  });
-
-  const isDemoMode = isMockAllowed && rawDemoMode;
-
-  const [demoOrders, setDemoOrders] = useState<Order[]>([]);
-  const [demoCustomers, setDemoCustomers] = useState<Customer[]>([]);
-  const [demoStaff, setDemoStaff] = useState<User[]>([]);
-  const [demoExceptions, setDemoExceptions] = useState<ShopException[]>([]);
-
-  const toggleDemoMode = useCallback((enabled?: boolean) => {
-    if (!isMockAllowed) return;
-    setRawDemoMode((prev) => {
-      const next = enabled !== undefined ? enabled : !prev;
-      if (typeof window !== 'undefined') {
-        if (next) {
-          localStorage.setItem('mtb_demo_mode', 'true');
-        } else {
-          localStorage.removeItem('mtb_demo_mode');
-        }
-      }
-      return next;
-    });
-  }, [isMockAllowed]);
+  const isDemoMode = false;
+  const toggleDemoMode = useCallback((_enabled?: boolean) => {}, []);
 
   const bundle = data ?? EMPTY_BUNDLE;
-  const orders = isDemoMode ? demoOrders : bundle.orders;
-  const customers = isDemoMode ? demoCustomers : bundle.customers;
-  const staffMembers = isDemoMode ? demoStaff : bundle.staffMembers;
-  const exceptions = isDemoMode ? demoExceptions : bundle.exceptions;
+  const orders = bundle.orders;
+  const customers = bundle.customers;
+  const staffMembers = bundle.staffMembers;
+  const exceptions = bundle.exceptions;
   const currentShop = bundle.shop;
   const inventory = bundle.inventory;
   const calendarEvents = bundle.calendarEvents || [];
@@ -367,23 +356,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
       triggerHaptic('medium');
-      if (isDemoMode) {
-        setDemoOrders((prev) =>
-          prev.map((o) =>
-            o.id === orderId
-              ? {
-                ...o,
-                status: newStatus,
-                statusHistory: [
-                  ...o.statusHistory,
-                  { from: o.status, to: newStatus, changedBy, changedByName, timestamp: new Date().toISOString() },
-                ],
-              }
-              : o
-          )
-        );
-        return;
-      }
 
       if (!activeBranchId) return;
       await mutate(
@@ -439,12 +411,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
-      if (isDemoMode) {
-        setDemoOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o))
-        );
-        return;
-      }
 
       if (!activeBranchId) return;
       await mutate(
@@ -499,26 +465,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     async (customerData: Omit<Customer, 'id' | 'shopId' | 'createdAt'>): Promise<Customer> => {
       const normalizedPhone = normalizePhone(customerData.whatsappNumber);
 
-      if (isDemoMode) {
-        const newCustomer: Customer = {
-          id: `demo-cust-${Date.now()}`,
-          shopId: activeBranchId || '6bd33796-2464-43f9-b140-8f9af54e0699',
-          fullName: customerData.fullName,
-          whatsappNumber: normalizedPhone,
-          gender: customerData.gender,
-          preferredStyles: customerData.preferredStyles || [],
-          measurements: customerData.measurements || {},
-          measurementNotes: customerData.measurementNotes,
-          address: customerData.address,
-          birthdate: customerData.birthdate,
-          wallet_balance: customerData.wallet_balance || 0,
-          fabrics: customerData.fabrics || [],
-          createdAt: new Date().toISOString(),
-        };
-        setDemoCustomers((prev) => [newCustomer, ...prev]);
-        return newCustomer;
-      }
-
       if (!activeBranchId || !orgId) throw new Error('No active shop for the current user');
 
       try {
@@ -559,30 +505,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
-      if (isDemoMode) {
-        setDemoCustomers((prev) =>
-          prev.map((c) => {
-            if (c.id !== customerId) return c;
-            const history = Array.isArray(c.measurementsHistory) ? [...c.measurementsHistory] : [];
-            const now = new Date();
-            const lastUpdated = c.measurementsUpdatedAt ? new Date(c.measurementsUpdatedAt) : null;
-            const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
-            if (isDifferentSession && c.measurements && Object.keys(c.measurements).length > 0) {
-              history.unshift({
-                date: c.measurementsUpdatedAt || now.toISOString(),
-                measurements: c.measurements,
-              });
-            }
-            return {
-              ...c,
-              measurements: { ...c.measurements, ...measurements },
-              measurementsUpdatedAt: now.toISOString(),
-              measurementsHistory: history,
-            };
-          })
-        );
-        return;
-      }
 
       if (!orgId) return;
       await mutate(
@@ -640,46 +562,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const updateCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string, measurements: Measurements, notes?: string) => {
-      if (isDemoMode) {
-        setDemoCustomers((prev) =>
-          prev.map((c) => {
-            if (c.id !== customerId) return c;
-            const existing = c.styleMeasurements || {};
-            const currentStyleData = existing[styleName] || { measurements: {}, updatedAt: new Date().toISOString() };
-            const history = Array.isArray(currentStyleData.history) ? [...currentStyleData.history] : [];
-            const now = new Date();
-            const lastUpdated = currentStyleData.updatedAt ? new Date(currentStyleData.updatedAt) : null;
-            const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
-            if (isDifferentSession && currentStyleData.measurements && Object.keys(currentStyleData.measurements).length > 0) {
-              history.unshift({
-                date: currentStyleData.updatedAt || now.toISOString(),
-                measurements: currentStyleData.measurements,
-              });
-            }
-            const canonicalStyle = resolveCanonicalStyleName(styleName, c.gender);
-            const currentPreferred = c.preferredStyles || [];
-            const nextPreferred =
-              canonicalStyle && !currentPreferred.includes(canonicalStyle)
-                ? [...currentPreferred, canonicalStyle]
-                : currentPreferred;
-            return {
-              ...c,
-              preferredStyles: nextPreferred,
-              styleMeasurements: {
-                ...existing,
-                [styleName]: {
-                  ...currentStyleData,
-                  measurements,
-                  history,
-                  updatedAt: now.toISOString(),
-                  ...(notes !== undefined && { notes }),
-                },
-              },
-            };
-          })
-        );
-        return;
-      }
 
       if (!orgId) return;
       await mutate(
@@ -726,17 +608,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string) => {
-      if (isDemoMode) {
-        setDemoCustomers((prev) =>
-          prev.map((c) => {
-            if (c.id !== customerId) return c;
-            const nextProfiles = { ...(c.styleMeasurements || {}) };
-            delete nextProfiles[styleName];
-            return { ...c, styleMeasurements: nextProfiles };
-          })
-        );
-        return;
-      }
 
       if (!orgId) return;
       await mutate(
@@ -777,13 +648,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
           ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
           : updates;
 
-      if (isDemoMode) {
-        setDemoCustomers((prev) =>
-          prev.map((c) => (c.id === customerId ? { ...c, ...normalized } : c))
-        );
-        return;
-      }
-
       if (!orgId) return;
 
       await mutate(
@@ -817,12 +681,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteCustomer = useCallback(
     async (customerId: string) => {
-      if (isDemoMode) {
-        setDemoCustomers((prev) => prev.filter((c) => c.id !== customerId));
-        setDemoOrders((prev) => prev.filter((o) => o.customerId !== customerId));
-        return { deletedOrderCount: 0 };
-      }
-
       mutate(
         (current) => {
           const state = current || EMPTY_BUNDLE;
@@ -846,11 +704,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteOrder = useCallback(
     async (orderId: string) => {
-      if (isDemoMode) {
-        setDemoOrders((prev) => prev.filter((o) => o.id !== orderId));
-        return {};
-      }
-
       mutate(
         (current) => {
           const state = current || EMPTY_BUNDLE;

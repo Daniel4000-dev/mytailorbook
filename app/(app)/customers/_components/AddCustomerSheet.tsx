@@ -19,7 +19,7 @@ interface AddCustomerSheetProps {
 }
 
 export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, initialName }: AddCustomerSheetProps) {
-  const { addCustomer, customers } = useData();
+  const { addCustomer, customers, currentShop } = useData();
   const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(initialName || '');
@@ -155,6 +155,7 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, i
             id="add-customer-phone"
             value={phone}
             onChange={setPhone}
+            defaultCountryCode={currentShop?.countryCode}
             placeholder="080 1234 5678"
           />
         </div>

@@ -20,8 +20,6 @@ import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import type { User, AtelierCraftRole } from '@/lib/types';
 import { CRAFT_ROLE_LABELS } from '@/lib/types';
-import { MOCK_STAFF } from '@/lib/mockData';
-import { isMockDataAllowed } from '@/lib/constants';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { formatCurrency } from '@/lib/formatters';
@@ -41,8 +39,7 @@ export default function StaffSettingsPage() {
   const isDesktop = useIsDesktop();
 
   const [localStaffList, setLocalStaffList] = useState<User[] | null>(null);
-  const isMockAllowed = isMockDataAllowed(user?.email);
-  const effectiveStaff = localStaffList || (staffMembers.length > 0 ? staffMembers : (isMockAllowed ? MOCK_STAFF.filter((s) => s.role !== 'OrgAdmin') : []));
+  const effectiveStaff = localStaffList || staffMembers;
 
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
   const [sheetView, setSheetView] = useState<StaffSheetView>('actions');

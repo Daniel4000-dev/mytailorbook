@@ -1088,6 +1088,7 @@ export default function UnifiedNewOrderForm() {
                     <PhoneInput
                       value={newCustomerPhone}
                       onChange={setNewCustomerPhone}
+                      defaultCountryCode={currentShop?.countryCode}
                       placeholder="0801 234 5678"
                       required
                     />

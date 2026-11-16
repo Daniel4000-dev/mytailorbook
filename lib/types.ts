@@ -31,6 +31,8 @@ export interface Shop {
   currency?: string;
   phone?: string;
   address?: string;
+  country?: string;
+  countryCode?: string;
   ownerUid: string;
   createdAt: string;
   orgId: string;

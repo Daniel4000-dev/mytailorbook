@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -14,13 +13,6 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import { StyleCatalogue, StyleCataloguePhoto } from '@/lib/types';
 import { getCataloguesAction, createCatalogueAction } from '@/app/actions/catalogues';
-import {
-  getStoredMockCatalogues,
-  saveMockCatalogues,
-  wipeMockCatalogues,
-  resetMockCatalogues,
-  isMockCataloguesActive,
-} from '@/lib/mockCatalogues';
 import styles from './page.module.css';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -52,64 +44,36 @@ function getEstimatedYardage(title?: string): string {
 
 export default function CataloguesPage() {
   const { currentShop } = useData();
-  const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const [catalogues, setCatalogues] = useState<StyleCatalogue[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [isUsingMock, setIsUsingMock] = useState(false);
 
   // 'albums' = Pinterest Board Cards, 'stream' = All Inspirations Staggered Masonry
   const [viewMode, setViewMode] = useState<'albums' | 'stream'>('albums');
 
   useEffect(() => {
-    if (!currentShop) {
-      if (isMockAllowed) {
-        const mocks = getStoredMockCatalogues();
-        setCatalogues(mocks);
-        setIsUsingMock(true);
-      } else {
-        setCatalogues([]);
-        setIsUsingMock(false);
-      }
+    if (!currentShop?.id) {
+      setCatalogues([]);
       setLoading(false);
       return;
     }
 
     getCataloguesAction(currentShop.id)
       .then((res) => {
-        if (res && res.length > 0) {
-          setCatalogues(res);
-          setIsUsingMock(false);
-        } else if (isMockAllowed) {
-          // If shop has no catalogues in DB, fallback to stored frontend mock data if enabled for master account
-          const mocks = getStoredMockCatalogues();
-          setCatalogues(mocks);
-          setIsUsingMock(mocks.length > 0);
-        } else {
-          setCatalogues([]);
-          setIsUsingMock(false);
-        }
+        setCatalogues(res || []);
         setLoading(false);
       })
       .catch((err) => {
         console.warn('DB catalogue query error:', err.message);
-        if (isMockAllowed) {
-          const mocks = getStoredMockCatalogues();
-          setCatalogues(mocks);
-          setIsUsingMock(mocks.length > 0);
-        } else {
-          setCatalogues([]);
-          setIsUsingMock(false);
-        }
+        setCatalogues([]);
         setLoading(false);
       });
-  }, [currentShop, isMockAllowed]);
+  }, [currentShop?.id]);
 
   const handleCreate = async (titleToCreate?: string) => {
     const title = (titleToCreate || newTitle).trim();
@@ -120,49 +84,18 @@ export default function CataloguesPage() {
 
     setSubmitting(true);
     try {
-      if (currentShop && !isUsingMock) {
+      if (currentShop) {
         const id = await createCatalogueAction(currentShop.id, title);
         showToast(`Album "${title}" created!`, 'success');
         setIsCreating(false);
         setNewTitle('');
         router.push(ROUTES.catalogueDetail({ id, title }));
-      } else {
-        // Frontend Mock Mode creation
-        const newCat: StyleCatalogue = {
-          id: `mock-${Date.now()}`,
-          shopId: currentShop?.id || 'mock-shop',
-          title,
-          createdAt: new Date().toISOString(),
-          photos: [],
-        };
-        const updated = [...catalogues, newCat];
-        setCatalogues(updated);
-        saveMockCatalogues(updated);
-        setIsUsingMock(true);
-        showToast(`Album "${title}" created in mock mode!`, 'success');
-        setIsCreating(false);
-        setNewTitle('');
-        router.push(ROUTES.catalogueDetail(newCat));
       }
     } catch (e: any) {
       showToast(e.message || 'Could not create album', 'error');
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleWipeMock = () => {
-    wipeMockCatalogues();
-    setCatalogues([]);
-    setIsUsingMock(false);
-    showToast('Frontend demo data wiped. Lookbook is now empty.', 'info');
-  };
-
-  const handleResetMock = () => {
-    const fresh = resetMockCatalogues();
-    setCatalogues(fresh);
-    setIsUsingMock(true);
-    showToast('Sample lookbook loaded with 5 collections!', 'success');
   };
 
   const handleShareGeneral = () => {
@@ -211,12 +144,6 @@ export default function CataloguesPage() {
                 <Symbol name="collections" size={14} />
                 <span>{totalPhotos} {totalPhotos === 1 ? 'Inspiration Look' : 'Inspiration Looks'}</span>
               </span>
-              {isUsingMock && (
-                <span className={styles.heroPill} style={{ background: 'rgba(67, 56, 202, 0.12)', color: 'var(--sf-brand-indigo)' }}>
-                  <Symbol name="auto_awesome" size={13} />
-                  <span>Frontend Demo Mode</span>
-                </span>
-              )}
             </div>
             <h2 className={styles.heroTitle}>Curate Your Signature Craft</h2>
             <p className={styles.heroSubtitle}>
@@ -257,31 +184,6 @@ export default function CataloguesPage() {
               <span>Client View</span>
             </button>
 
-            {/* Quick Demo Data Controls */}
-            {isMockAllowed && (
-              isUsingMock ? (
-                <button
-                  type="button"
-                  className={styles.previewBtn}
-                  style={{ borderColor: 'rgba(220, 38, 38, 0.3)', color: '#DC2626' }}
-                  onClick={handleWipeMock}
-                  title="Wipe frontend demo data"
-                >
-                  <Symbol name="delete" size={15} />
-                  <span>Wipe Demo Data</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.previewBtn}
-                  onClick={handleResetMock}
-                  title="Load sample lookbook"
-                >
-                  <Symbol name="auto_awesome" size={15} />
-                  <span>Load Sample Lookbook</span>
-                </button>
-              )
-            )}
           </div>
         </div>
 
@@ -333,26 +235,6 @@ export default function CataloguesPage() {
             <div className={styles.quickStartCard}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4 className={styles.quickStartTitle}>Popular Style Albums — Tap to Create:</h4>
-                {isMockAllowed && (
-                  <button
-                    type="button"
-                    onClick={handleResetMock}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--sf-brand-indigo)',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <Symbol name="auto_awesome" size={13} />
-                    <span>Load Sample Lookbook</span>
-                  </button>
-                )}
               </div>
               <div className={styles.quickStartPresets}>
                 {POPULAR_STYLE_PRESETS.slice(0, 5).map((preset) => (

@@ -22,7 +22,7 @@ interface EditCustomerSheetProps {
 /** Edits an existing customer's profile fields in place — the same fields
  *  collected in the New Client wizard, reused here instead of re-invented. */
 export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCustomerSheetProps) {
-  const { updateCustomerProfile, customers } = useData();
+  const { updateCustomerProfile, customers, currentShop } = useData();
   const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(customer.fullName);
@@ -172,6 +172,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
             id="edit-phone"
             value={phone}
             onChange={setPhone}
+            defaultCountryCode={currentShop?.countryCode}
           />
         </div>
 

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus, isMockDataAllowed } from '@/lib/constants';
+import { STATUS_CONFIG, ORDER_STATUSES, getNextStatus, getPreviousStatus } from '@/lib/constants';
 import { useDebounce } from '@/lib/hooks/useDebounce';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
@@ -38,8 +38,7 @@ type OpFilter = 'all' | 'rush' | 'due' | 'hold' | 'unpaid';
 
 export default function ProductionBoard({ userRole }: ProductionBoardProps) {
   const { user } = useAuth();
-  const isMockAllowed = isMockDataAllowed(user?.email);
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, exceptions, isDemoMode, toggleDemoMode } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, exceptions } = useData();
   const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -665,40 +664,6 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
 
   return (
     <>
-      {/* Workshop Preview Mode Banner */}
-      {isMockAllowed && isDemoMode && (
-        <div className={styles.demoBanner}>
-          <div className={styles.demoBannerLeft}>
-            <Symbol name="visibility" size={16} />
-            <span>
-              <strong>Workshop Preview Active</strong> — 10 sample garments loaded in-memory. Drag & drop cards, change stages, and test filters freely (nothing touches your database).
-            </span>
-          </div>
-          <button
-            type="button"
-            className={styles.demoExitBtn}
-            onClick={() => toggleDemoMode?.(false)}
-          >
-            Exit Preview
-          </button>
-        </div>
-      )}
-
-      {/* Empty State Help: Offer sample orders preview if workshop floor is currently clear */}
-      {isMockAllowed && !isDemoMode && orders.filter((o) => o.status !== 'Delivered').length === 0 && (
-        <div className={styles.emptyPromptBanner}>
-          <span>Want to explore the Kanban board and cards with sample garments?</span>
-          <button
-            type="button"
-            className={styles.demoLaunchBtn}
-            onClick={() => toggleDemoMode?.(true)}
-          >
-            <Symbol name="visibility" size={13} />
-            <span>Load Sample Orders</span>
-          </button>
-        </div>
-      )}
-
       {/* Atelier Toolbar: Search + Mobile Filter Button + Desktop Scope Switcher */}
       <div className={styles.boardToolbar}>
         <div className={styles.searchBarWrap}>
@@ -995,7 +960,6 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
             setBatchFilterId(null);
           }}
           isFiltered={Boolean(searchQuery || opFilter !== 'all' || stageFilter !== ALL_FILTER || staffFilterId || batchFilterId)}
-          onPreviewSample={() => toggleDemoMode?.(true)}
         />
       )}
 

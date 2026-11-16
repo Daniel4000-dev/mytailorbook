@@ -16,39 +16,8 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import { getSizeChartsAction, createSizeChartAction, updateSizeChartAction, deleteSizeChartAction } from '@/app/actions/sizeCharts';
 import { SizeChart } from '@/lib/types';
-import { isMockDataAllowed } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
-
-const MOCK_SIZE_CHARTS: SizeChart[] = [
-  {
-    id: 'mock-sc-1',
-    shopId: 'mock-shop',
-    name: 'Standard Men Kaftan & Senator',
-    measurements: {
-      'S (Small)': 'Chest 38", Shoulder 17.5", Length 38", Trouser 40"',
-      'M (Medium)': 'Chest 40", Shoulder 18.5", Length 40", Trouser 41"',
-      'L (Large)': 'Chest 42", Shoulder 19.5", Length 42", Trouser 42"',
-      'XL (Extra Large)': 'Chest 45", Shoulder 20.5", Length 44", Trouser 43"',
-      'XXL (2X Large)': 'Chest 48", Shoulder 21.5", Length 45", Trouser 44"',
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'mock-sc-2',
-    shopId: 'mock-shop',
-    name: 'Ladies Boubou & Kaftan Free-Size',
-    measurements: {
-      'Petite (UK 8-10)': 'Bust 34-36", Length 58", Sleeve 22"',
-      'Regular (UK 12-14)': 'Bust 38-40", Length 60", Sleeve 23"',
-      'Plus (UK 16-18)': 'Bust 42-46", Length 62", Sleeve 24"',
-      'Grand Curve (UK 20+)': 'Bust 48-52", Length 62", Sleeve 24"',
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 export default function SizeChartsPage() {
   const router = useRouter();
@@ -66,8 +35,6 @@ export default function SizeChartsPage() {
   const [measurementsText, setMeasurementsText] = useState(''); // Simple format: S: Chest 40, L 30\nM: Chest 42, L 32
   const [saving, setSaving] = useState(false);
 
-  const { user } = useAuth();
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,7 +45,7 @@ export default function SizeChartsPage() {
 
   const loadCharts = async () => {
     if (!currentShop) {
-      setCharts(isMockAllowed ? MOCK_SIZE_CHARTS : []);
+      setCharts([]);
       setLoading(false);
       return;
     }
@@ -86,12 +53,12 @@ export default function SizeChartsPage() {
     try {
       const res = await getSizeChartsAction(currentShop.id);
       if ('error' in res || res.length === 0) {
-        setCharts(isMockAllowed ? MOCK_SIZE_CHARTS : []);
+        setCharts([]);
       } else {
         setCharts(res);
       }
     } catch {
-      setCharts(isMockAllowed ? MOCK_SIZE_CHARTS : []);
+      setCharts([]);
     } finally {
       setLoading(false);
     }
@@ -125,29 +92,9 @@ export default function SizeChartsPage() {
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || !currentShop) return;
     setSaving(true);
     const measurements = parseMeasurements(measurementsText);
-    
-    if (editingChart?.id.startsWith('mock-') || !currentShop) {
-      if (editingChart) {
-        setCharts((prev) => prev.map((c) => (c.id === editingChart.id ? { ...c, name, measurements } : c)));
-      } else {
-        const newChart: SizeChart = {
-          id: `mock-sc-${Date.now()}`,
-          shopId: currentShop?.id || 'mock-shop',
-          name,
-          measurements,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setCharts((prev) => [...prev, newChart]);
-      }
-      showToast('Size chart saved', 'success');
-      setSheetOpen(false);
-      setSaving(false);
-      return;
-    }
 
     let err;
     if (editingChart) {
@@ -170,11 +117,7 @@ export default function SizeChartsPage() {
 
   const handleDelete = async (id: string) => {
     setConfirmDelete(null);
-    if (id.startsWith('mock-') || !currentShop) {
-      setCharts((prev) => prev.filter((c) => c.id !== id));
-      showToast('Size chart deleted', 'success');
-      return;
-    }
+    if (!currentShop) return;
     const res = await deleteSizeChartAction(id);
     if (res.error) {
       showToast(res.error, 'error');

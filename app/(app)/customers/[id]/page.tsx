@@ -26,8 +26,7 @@ import MeasurementHistorySheet from '../_components/MeasurementHistorySheet';
 import EditCustomerSheet from '../_components/EditCustomerSheet';
 import StyleProfileSheet from '../_components/StyleProfileSheet';
 import { getStylePhotos } from '@/lib/style-photos';
-import { GARMENT_STYLES, STATUS_CONFIG, isMockDataAllowed } from '@/lib/constants';
-import { getStoredMockCustomers, saveMockCustomers, MOCK_CUSTOMERS, MOCK_ORDERS } from '@/lib/mockCustomers';
+import { GARMENT_STYLES, STATUS_CONFIG } from '@/lib/constants';
 import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, truncateText, parseMeasurementValue, formatMeasurementsSummary } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Measurements, Customer, Order, OrderPhoto } from '@/lib/types';
@@ -47,9 +46,8 @@ interface Point {
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const router = useRouter();
-  const { user, isOwner, loading: authLoading } = useAuth();
-  const isMockAllowed = isMockDataAllowed(user?.email);
-  const { customers, orders, currentShop, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer, isDemoMode } = useData();
+  const { isOwner, loading: authLoading } = useAuth();
+  const { customers, orders, isLoaded, updateCustomerMeasurements, updateCustomerProfile, deleteCustomer } = useData();
 
   if (authLoading || !isLoaded) {
     return (
@@ -67,12 +65,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const customer =
-    findByIdOrSlug(customers, id, (c) => c.fullName) ||
-    (isMockAllowed
-      ? findByIdOrSlug(getStoredMockCustomers(), id, (c) => c.fullName) ||
-        findByIdOrSlug(MOCK_CUSTOMERS, id, (c) => c.fullName)
-      : null);
+  const customer = findByIdOrSlug(customers, id, (c) => c.fullName);
 
   if (!customer) {
     return (
@@ -82,36 +75,21 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
     );
   }
 
-  const effectiveOrders = orders.length > 0 ? orders : isMockAllowed ? MOCK_ORDERS : [];
-
   const handleUpdateMeasurements = async (customerId: string, newMeasurements: Measurements) => {
-    if (customerId.startsWith('mock-')) {
-      const all = getStoredMockCustomers();
-      const updated = all.map((c) => (c.id === customerId ? { ...c, measurements: newMeasurements, measurementsUpdatedAt: new Date().toISOString() } : c));
-      saveMockCustomers(updated);
-      return;
-    }
     return updateCustomerMeasurements(customerId, newMeasurements);
   };
 
   const handleUpdateProfile = async (customerId: string, updates: Partial<Customer>) => {
-    if (customerId.startsWith('mock-')) {
-      const all = getStoredMockCustomers();
-      const updated = all.map((c) => (c.id === customerId ? { ...c, ...updates } : c));
-      saveMockCustomers(updated);
-      return;
-    }
     return updateCustomerProfile(customerId, updates);
   };
 
   return (
     <CustomerProfileContent
       customer={customer}
-      orders={effectiveOrders}
+      orders={orders}
       updateCustomerMeasurements={handleUpdateMeasurements}
       updateCustomerProfile={handleUpdateProfile}
       deleteCustomer={deleteCustomer}
-      isDemoMode={isDemoMode || customer.id.startsWith('mock-')}
     />
   );
 }
@@ -122,14 +100,12 @@ function CustomerProfileContent({
   updateCustomerMeasurements,
   updateCustomerProfile,
   deleteCustomer,
-  isDemoMode,
 }: {
   customer: Customer;
   orders: Order[];
   updateCustomerMeasurements: ReturnType<typeof useData>['updateCustomerMeasurements'];
   updateCustomerProfile: ReturnType<typeof useData>['updateCustomerProfile'];
   deleteCustomer: ReturnType<typeof useData>['deleteCustomer'];
-  isDemoMode?: boolean;
 }) {
   const { showToast } = useToast();
   const router = useRouter();
@@ -429,12 +405,7 @@ function CustomerProfileContent({
     try {
       const uploaded: OrderPhoto[] = [];
       for (const file of Array.from(files)) {
-        let url: string;
-        if (isDemoMode) {
-          url = URL.createObjectURL(file);
-        } else {
-          url = await uploadToStorage(file, 'fabrics/');
-        }
+        const url = await uploadToStorage(file, 'fabrics/');
         uploaded.push({ url, stage: 'Documented', uploadedAt: new Date().toISOString() });
       }
       await updateCustomerProfile(customer.id, { fabrics: [...(customer.fabrics || []), ...uploaded] });
@@ -450,7 +421,7 @@ function CustomerProfileContent({
   const handleRemoveFabric = async (index: number) => {
     const removed = (customer.fabrics || [])[index];
     await updateCustomerProfile(customer.id, { fabrics: (customer.fabrics || []).filter((_, i) => i !== index) });
-    if (!isDemoMode && removed && removed.url) await removeFromStorage(removed);
+    if (removed && removed.url) await removeFromStorage(removed);
   };
 
   return (

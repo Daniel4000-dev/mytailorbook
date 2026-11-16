@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isMockDataAllowed } from '@/lib/constants';
 import { getTierForXp } from '@/lib/gamification';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { createAtelierNotification } from '@/lib/notifications';
@@ -223,61 +222,6 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
       }
     }
 
-    const isMockAllowed = isMockDataAllowed(user.email);
-
-    // If master demo account and only 1 shop in circle, add rich demo peer studios
-    if (isMockAllowed && buddies.length === 1) {
-      buddies.push(
-        {
-          id: 'demo-kolawole',
-          name: 'Kolawole Stitches',
-          slug: 'kolawole-stitches',
-          phone: '08023456789',
-          city: 'Yaba, Lagos',
-          address: 'Commercial Avenue, Yaba',
-          specialties: ['Agbada Embroidery', 'Grand Senator', 'Two-Piece Kaftan'],
-          streakCount: 18,
-          tierName: 'Gold Spool',
-          tierColor: '#FFD700',
-          lastActiveText: 'Active 25m ago',
-          status: 'active',
-          isCurrentUser: false,
-        },
-        {
-          id: 'demo-fatima',
-          name: 'Fatima Bespoke',
-          slug: 'fatima-bespoke',
-          phone: '08098765432',
-          city: 'Maitama, Abuja',
-          address: 'Gana Street, Maitama',
-          specialties: ['Bridal Corsetry', 'Luxury Silk Robes', 'Dinner Gowns'],
-          streakCount: 34,
-          tierName: 'Diamond Machine',
-          tierColor: '#b9f2ff',
-          lastActiveText: 'Active 1h ago',
-          status: 'active',
-          isCurrentUser: false,
-        },
-        {
-          id: 'demo-ibadan',
-          name: 'Ibadan Craft House',
-          slug: 'ibadan-craft-house',
-          phone: '08112233445',
-          city: 'Bodija, Ibadan',
-          address: 'Favos Junction, Bodija',
-          specialties: ['Traditional Aso-Oke', 'Senator Cut'],
-          streakCount: 9,
-          tierName: 'Silver Scissors',
-          tierColor: '#C0C0C0',
-          lastActiveText: 'Sabbatical (Village travel)',
-          status: 'sabbatical',
-          sabbaticalReason: 'Attending family wedding in Osun',
-          sabbaticalStartedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          isCurrentUser: false,
-        }
-      );
-    }
-
     // 3. Compute Circle Benefits Tier
     const activeCount = buddies.filter((b) => b.status === 'active').length;
     const dormantCount = buddies.filter((b) => b.status === 'dormant').length;
@@ -388,85 +332,6 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
           });
         }
       }
-    }
-
-    if (isMockAllowed && pulses.length < 2) {
-      const mockTelemetry: PulseActivity[] = [
-        {
-          id: 'pulse-mock-1',
-          shopId: 'demo-fatima',
-          shopName: 'Fatima Bespoke',
-          tierName: 'Diamond Machine',
-          tierColor: '#b9f2ff',
-          activityType: 'dispatched',
-          category: 'fulfillment',
-          headline: 'Dispatched 4 bespoke wedding tuxedos to client in Maitama',
-          subtext: 'Fulfillment completed 2 days ahead of fitting deadline',
-          badgeLabel: 'DISPATCHED',
-          timeAgo: '28m ago',
-          salutes: { flame: 12, needle: 8, respect: 5 },
-        },
-        {
-          id: 'pulse-mock-2',
-          shopId: 'demo-kolawole',
-          shopName: 'Kolawole Stitches',
-          tierName: 'Gold Spool',
-          tierColor: '#FFD700',
-          activityType: 'cutting',
-          category: 'production',
-          headline: 'Completed pattern cutting for 6 Senegalese Kaftan sets',
-          subtext: 'Advanced to workshop sewing stage with verified yardage',
-          badgeLabel: 'CUTTING',
-          timeAgo: '2h ago',
-          salutes: { flame: 9, needle: 14, respect: 4 },
-        },
-        {
-          id: 'pulse-mock-3',
-          shopId: currentShop.id,
-          shopName: currentShop.name || 'Your Workshop',
-          tierName: currentTier.name,
-          tierColor: currentTier.color,
-          activityType: 'streak',
-          category: 'milestone',
-          headline: `Maintained continuous ${currentShop.streak_current || 7}-day workshop production streak`,
-          subtext: 'Co-op craft bonus eligible for linked colleague studios',
-          badgeLabel: 'STREAK',
-          timeAgo: '4h ago',
-          salutes: { flame: 15, needle: 6, respect: 9 },
-        },
-        {
-          id: 'pulse-mock-4',
-          shopId: 'demo-ibadan',
-          shopName: 'Ibadan Craft House',
-          tierName: 'Silver Scissors',
-          tierColor: '#C0C0C0',
-          activityType: 'rest_day',
-          category: 'milestone',
-          headline: 'Logged sabbatical leave — group streak protected',
-          subtext: 'Scheduled workshop leave prevents burnout and preserves pod benefits',
-          badgeLabel: 'SABBATICAL',
-          timeAgo: '7h ago',
-          salutes: { flame: 4, needle: 2, respect: 11 },
-        },
-        {
-          id: 'pulse-mock-5',
-          shopId: 'demo-kolawole',
-          shopName: 'Kolawole Stitches',
-          tierName: 'Gold Spool',
-          tierColor: '#FFD700',
-          activityType: 'tier_advance',
-          category: 'milestone',
-          headline: isXpSystemEnabled()
-            ? 'Ranked up to Gold Spool Master Craft tier (2,000 XP)'
-            : 'Ranked up to Gold Spool Master Craft tier',
-          subtext: 'Unlocked master challenge equipment grant milestone entry',
-          badgeLabel: 'TIER RANK-UP',
-          timeAgo: '16h ago',
-          salutes: { flame: 22, needle: 18, respect: 16 },
-        },
-      ];
-
-      pulses.push(...mockTelemetry.slice(0, Math.max(0, 6 - pulses.length)));
     }
 
     return {

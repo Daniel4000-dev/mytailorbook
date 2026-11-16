@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import { useToast } from '@/contexts/ToastContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
@@ -18,65 +17,20 @@ import CuttingSlipModal from '../production/_components/CuttingSlipModal';
 import type { Order, Customer } from '@/lib/types';
 import { ROUTES } from '@/lib/routes';
 import { filterFabricOrders, type FabricStageFilter } from './utils';
-import {
-  getStoredMockFabricOrders,
-  wipeMockFabricOrders,
-  resetMockFabricOrders,
-  isMockFabricsActive,
-} from '@/lib/mockFabrics';
 import styles from './page.module.css';
 
 export default function FabricsPage() {
   const router = useRouter();
-  const { orders: liveOrders, customers, isLoaded } = useData();
+  const { orders: activeOrders, customers, isLoaded } = useData();
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
   const [stageFilter, setStageFilter] = useState<FabricStageFilter>('uncut');
   const [showNoPhoto, setShowNoPhoto] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [cuttingSlipOrder, setCuttingSlipOrder] = useState<Order | null>(null);
-
-  const [mockOrders, setMockOrders] = useState<Order[]>([]);
-  const [isUsingMock, setIsUsingMock] = useState(false);
-
-  useEffect(() => {
-    // If live DB has active orders, use live data
-    const realFabricOrders = liveOrders.filter(
-      (o) => o.status !== 'Delivered'
-    );
-
-    if (realFabricOrders.length > 0) {
-      setMockOrders(liveOrders);
-      setIsUsingMock(false);
-    } else if (isMockAllowed) {
-      // Fallback to client-side mock fabric queue for demo exploration only if allowed
-      const stored = getStoredMockFabricOrders();
-      setMockOrders(stored);
-      setIsUsingMock(isMockFabricsActive() && stored.length > 0);
-    } else {
-      setMockOrders(liveOrders);
-      setIsUsingMock(false);
-    }
-  }, [liveOrders, isMockAllowed]);
-
-  const activeOrders = isUsingMock ? mockOrders : liveOrders;
-
-  const handleWipeDemo = () => {
-    const empty = wipeMockFabricOrders();
-    setMockOrders(empty);
-    showToast('Demo fabrics wiped. Cutting table is now blank.', 'info');
-  };
-
-  const handleResetDemo = () => {
-    const fresh = resetMockFabricOrders();
-    setMockOrders(fresh);
-    setIsUsingMock(true);
-    showToast('Sample bespoke fabric orders restored to cutting table!', 'success');
-  };
 
   const filtered = useMemo(() => {
     return filterFabricOrders(activeOrders, { search: deferredSearch, stageFilter, showNoPhoto });
@@ -317,12 +271,7 @@ export default function FabricsPage() {
                 action={
                   search
                     ? { label: 'Clear Search', onClick: () => setSearch('') }
-                    : isUsingMock && mockOrders.length === 0
-                      ? {
-                        label: 'Load Sample Fabrics',
-                        onClick: handleResetDemo,
-                      }
-                      : stageFilter === 'uncut' && cuttingCount > 0
+                    : stageFilter === 'uncut' && cuttingCount > 0
                         ? {
                           label: 'View Cutting Queue',
                           onClick: () => setStageFilter('cutting'),

@@ -11,7 +11,6 @@ import { ROUTES } from '@/lib/routes';
 import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPortal';
 import type { PublicPortfolio, PortfolioOutfit } from '@/app/public-actions';
 import { getTierForXp } from '@/lib/xp';
-import { DEFAULT_MOCK_PORTFOLIO } from '@/lib/mockPortfolio';
 import styles from './PortfolioTemplate.module.css';
 
 const EDITORIAL_EXPERIENCE = [

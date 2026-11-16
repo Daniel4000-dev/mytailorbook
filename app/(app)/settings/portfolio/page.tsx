@@ -29,46 +29,10 @@ import {
   type PortfolioPoolPhoto,
   type PortfolioOutfit,
 } from './actions';
-import { DEFAULT_MOCK_PORTFOLIO } from '@/lib/mockPortfolio';
-import { isMockDataAllowed } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
 const MIN_FOUNDED_YEAR = 1950;
-
-const MOCK_SETTING_OUTFITS: PortfolioOutfit[] = DEFAULT_MOCK_PORTFOLIO.outfits.map((o, idx) => ({
-  id: o.id,
-  title: o.title,
-  storyModeEnabled: o.storyModeEnabled,
-  storyCaption: o.storyCaption,
-  sortOrder: idx,
-  createdAt: new Date().toISOString(),
-  photos: [
-    ...o.displayPhotos.map((dp, pIdx) => ({
-      photoId: `${o.id}-dp-${pIdx}`,
-      imageUrl: dp.url,
-      kind: 'display' as const,
-      angle: (dp.angle as any) || 'front',
-      sortOrder: pIdx,
-    })),
-    ...o.storyPhotos.map((sp, sIdx) => ({
-      photoId: `${o.id}-sp-${sIdx}`,
-      imageUrl: sp,
-      kind: 'story' as const,
-      angle: null,
-      sortOrder: o.displayPhotos.length + sIdx,
-    })),
-  ],
-}));
-
-const MOCK_SETTING_POOL: PortfolioPoolPhoto[] = (DEFAULT_MOCK_PORTFOLIO.photos || []).map((p, idx) => ({
-  id: `mock-pool-${idx}`,
-  imageUrl: p.url,
-  source: 'auto' as const,
-  orderId: `ord-${idx}`,
-  createdAt: new Date().toISOString(),
-  usedInOutfitIds: [],
-}));
 
 function PortfolioCurationSettingsContent() {
   const router = useRouter();
@@ -103,12 +67,10 @@ function PortfolioCurationSettingsContent() {
     setFoundedYear(currentShop.portfolioSettings?.foundedYear ? String(currentShop.portfolioSettings.foundedYear) : '');
   }
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
-
   const load = useCallback(async () => {
     if (!currentShop?.id) {
-      setPool(isMockAllowed ? MOCK_SETTING_POOL : []);
-      setOutfits(isMockAllowed ? MOCK_SETTING_OUTFITS : []);
+      setPool([]);
+      setOutfits([]);
       setIsLoaded(true);
       return;
     }
@@ -118,15 +80,15 @@ function PortfolioCurationSettingsContent() {
         getPortfolioPoolAction(currentShop.id),
         getPortfolioOutfitsAction(currentShop.id),
       ]);
-      setPool(poolPhotos.length > 0 ? poolPhotos : (isMockAllowed ? MOCK_SETTING_POOL : []));
-      setOutfits(outfitList.length > 0 ? outfitList : (isMockAllowed ? MOCK_SETTING_OUTFITS : []));
+      setPool(poolPhotos || []);
+      setOutfits(outfitList || []);
     } catch {
-      setPool(isMockAllowed ? MOCK_SETTING_POOL : []);
-      setOutfits(isMockAllowed ? MOCK_SETTING_OUTFITS : []);
+      setPool([]);
+      setOutfits([]);
     } finally {
       setIsLoaded(true);
     }
-  }, [currentShop, isMockAllowed]);
+  }, [currentShop?.id]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -164,11 +126,6 @@ function PortfolioCurationSettingsContent() {
       showToast('Remove this photo from its outfit(s) first', 'error');
       return;
     }
-    if (photo.id.startsWith('mock-')) {
-      setPool((prev) => prev.filter((p) => p.id !== photo.id));
-      showToast('Photo removed from pool', 'success');
-      return;
-    }
     try {
       await deletePortfolioPhotoAction(photo.id);
       setPool((prev) => prev.filter((p) => p.id !== photo.id));
@@ -178,11 +135,6 @@ function PortfolioCurationSettingsContent() {
   };
 
   const handleDeleteOutfit = async (outfitId: string) => {
-    if (outfitId.startsWith('mock-')) {
-      setOutfits((prev) => prev.filter((o) => o.id !== outfitId));
-      showToast('Outfit removed', 'success');
-      return;
-    }
     try {
       await deleteOutfitAction(outfitId);
       setOutfits((prev) => prev.filter((o) => o.id !== outfitId));

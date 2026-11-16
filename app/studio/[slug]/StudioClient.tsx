@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import type { PublicPortfolio } from '@/app/public-actions';
 import PortfolioView from '@/components/studio/PortfolioView/PortfolioView';
-import { getStoredMockPortfolio } from '@/lib/mockPortfolio';
 import styles from './page.module.css';
 
 interface StudioClientProps {

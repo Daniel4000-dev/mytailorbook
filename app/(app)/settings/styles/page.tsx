@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import { useToast } from '@/contexts/ToastContext';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { createClient } from '@/lib/supabase/client';
@@ -20,7 +19,6 @@ import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
 import GarmentSilhouette from '@/components/ui/GarmentSilhouette/GarmentSilhouette';
 import { formatCurrency } from '@/lib/formatters';
-import { MOCK_ATELIER_STYLES } from '@/lib/mockCustomStyles';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -39,10 +37,8 @@ export default function CustomStylesSettingsPage() {
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
-  // If shop has custom styles, use them. If not yet added, use rich atelier mock styles only for master account.
   const shopStyles = currentShop?.customStyles || [];
-  const displayStyles: CustomStyle[] = shopStyles.length > 0 ? shopStyles : (isMockAllowed ? MOCK_ATELIER_STYLES : []);
+  const displayStyles: CustomStyle[] = shopStyles;
 
   const [activeStyle, setActiveStyle] = useState<CustomStyle | null>(null);
   const [editName, setEditName] = useState('');

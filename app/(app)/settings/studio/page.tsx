@@ -17,13 +17,14 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { compressImage } from '@/lib/compressImage';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
+import { COUNTRIES } from '@/components/ui/PhoneInput/countries';
 import { getCurrencySymbol } from '@/lib/formatters';
 import SettingsSkeleton from '../_components/SettingsSkeleton';
 import { ROUTES } from '@/lib/routes';
 import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './page.module.css';
 
-type EditableField = 'name' | 'about' | 'phone' | 'address' | 'currency' | null;
+type EditableField = 'name' | 'about' | 'phone' | 'address' | 'currency' | 'country' | null;
 
 const REVENUE_BENCHMARKS = [
   { label: '500k', value: 500000 },
@@ -83,6 +84,7 @@ export default function StudioSettingsPage() {
     else if (field === 'about') setDraftValue(currentShop?.portfolioSettings?.tagline || '');
     else if (field === 'phone') setDraftValue(currentShop?.phone || '');
     else if (field === 'address') setDraftValue(currentShop?.address || '');
+    else if (field === 'country') setDraftValue(currentShop?.country || 'Nigeria');
     else if (field === 'currency') setDraftValue(currentShop?.currency || 'NGN');
   };
 
@@ -107,6 +109,28 @@ export default function StudioSettingsPage() {
       } else if (activeField === 'address') {
         await updateShop({ address: draftValue.trim() || undefined });
         showToast('Shop address updated', 'success');
+      } else if (activeField === 'country') {
+        const selected = COUNTRIES.find((c) => c.name.toLowerCase() === draftValue.toLowerCase() || c.code.toLowerCase() === draftValue.toLowerCase());
+        const countryName = selected ? selected.name : draftValue.trim() || undefined;
+        const countryCode = selected ? selected.code : undefined;
+        const currencyMap: Record<string, string> = {
+          NG: 'NGN',
+          GH: 'GHS',
+          KE: 'KES',
+          ZA: 'ZAR',
+          GB: 'GBP',
+          US: 'USD',
+          CA: 'CAD',
+        };
+        const updates: Record<string, unknown> = {
+          country: countryName,
+          countryCode: countryCode,
+        };
+        if (countryCode && currencyMap[countryCode] && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          updates.currency = currencyMap[countryCode];
+        }
+        await updateShop(updates);
+        showToast('Country updated', 'success');
       } else if (activeField === 'currency') {
         await updateShop({ currency: draftValue });
         showToast('Currency updated', 'success');
@@ -449,6 +473,20 @@ export default function StudioSettingsPage() {
           <button
             type="button"
             className={styles.rowItem}
+            onClick={() => handleOpenEditor('country')}
+          >
+            <span className={styles.rowLabel}>Country</span>
+            <div className={styles.rowValueWrap}>
+              <span className={styles.rowValue}>
+                {currentShop?.country || 'Nigeria'}
+              </span>
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
             onClick={() => handleOpenEditor('currency')}
           >
             <span className={styles.rowLabel}>Currency</span>
@@ -691,6 +729,8 @@ export default function StudioSettingsPage() {
             ? 'WhatsApp Business Number'
             : activeField === 'address'
             ? 'Shop Address'
+            : activeField === 'country'
+            ? 'Country of Operation'
             : activeField === 'currency'
             ? 'Currency'
             : undefined
@@ -698,7 +738,17 @@ export default function StudioSettingsPage() {
         variant="modal"
       >
         <div className={styles.sheetBody}>
-          {activeField === 'currency' ? (
+          {activeField === 'country' ? (
+            <Select
+              label="Operating Country"
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
+              options={COUNTRIES.map((c) => ({
+                value: c.name,
+                label: `${c.flag} ${c.name} (+${c.dialCode})`,
+              }))}
+            />
+          ) : activeField === 'currency' ? (
             <Select
               label="Select Currency"
               value={draftValue}
@@ -739,6 +789,7 @@ export default function StudioSettingsPage() {
             {activeField === 'about' && 'Appears under your studio name on lookbooks and client quotes.'}
             {activeField === 'phone' && 'Used for client communications and invoice headers.'}
             {activeField === 'address' && 'Included on printable cutting slips and client receipts.'}
+            {activeField === 'country' && 'Sets your operating country, phone dial code defaults, and invoice headers.'}
             {activeField === 'currency' && 'Prices across orders, quotes, and catalog items will display this currency.'}
           </p>
 

@@ -23,7 +23,7 @@ import Input from '@/components/ui/Input/Input';
 import MoneyInput from '@/components/ui/MoneyInput/MoneyInput';
 import Select from '@/components/ui/Select/Select';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus, isMockDataAllowed } from '@/lib/constants';
+import { ORDER_STATUSES, STATUS_CONFIG, MEASUREMENT_LABELS, getNextStatus } from '@/lib/constants';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES } from '@/lib/routes';
 import { findByIdOrSlug } from '@/lib/slugs';
@@ -47,8 +47,6 @@ import CuttingSlipModal from '../_components/CuttingSlipModal';
 import ScheduleFittingPromptModal from '../_components/ScheduleFittingPromptModal';
 import { createCalendarEvent } from '@/app/actions/calendar';
 import { publishOrderStoryToPortfolioAction } from '@/app/(app)/settings/portfolio/actions';
-import { addOrderToMockPortfolio } from '@/lib/mockPortfolio';
-import { MOCK_ORDERS } from '@/lib/mockData';
 import styles from './page.module.css';
 
 type DetailTab = 'spec' | 'feed' | 'ledger';
@@ -59,18 +57,12 @@ export default function OrderDetailPage() {
   const { user } = useAuth();
   const userRole = user?.role || 'Staff';
   const isOwnerView = isOwnerLikeRole(userRole);
-  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException, isDemoMode } = useData();
+  const { orders, customers, staffMembers, currentShop, isLoaded, updateOrderStatus, updateOrder, deleteOrder, exceptions, logException, resolveException } = useData();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
   const [activeTab, setActiveTab] = useState<DetailTab>('spec');
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
-  const order =
-    findByIdOrSlug(orders, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) ||
-    (isMockAllowed
-      ? findByIdOrSlug(MOCK_ORDERS, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`)
-      : null) ||
-    null;
+  const order = findByIdOrSlug(orders, orderId, (o) => `${o.customerName || ''} ${o.styleName || o.orderDetails || ''}`) || null;
   const customer = order ? customers.find((c) => c.id === order.customerId) || null : null;
   const resolvedOrderId = order?.id || orderId;
 
@@ -648,21 +640,14 @@ export default function OrderDetailPage() {
     }
     setPublishingPortfolio(true);
     try {
-      if (isDemoMode) {
-        addOrderToMockPortfolio(order);
-        showToast('Order photos published to your catalog showcase!', 'success');
+      const res = await publishOrderStoryToPortfolioAction(currentShop.id, order.id);
+      if (res.success) {
+        showToast('Order photos published to your shop catalog!', 'success');
       } else {
-        const res = await publishOrderStoryToPortfolioAction(currentShop.id, order.id);
-        if (res.success) {
-          showToast('Order photos published to your shop catalog!', 'success');
-        } else {
-          addOrderToMockPortfolio(order);
-          showToast('Order photos published to your catalog showcase!', 'success');
-        }
+        showToast(res.error || 'Failed to publish to catalog', 'error');
       }
     } catch {
-      addOrderToMockPortfolio(order);
-      showToast('Commission story published to portfolio showcase!', 'success');
+      showToast('Failed to publish to catalog showcase', 'error');
     } finally {
       setPublishingPortfolio(false);
     }

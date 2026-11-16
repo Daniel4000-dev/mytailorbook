@@ -440,7 +440,8 @@
    }
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+[data-theme="dark"] {
    color-scheme: dark;
    --sf-bg-primary: #0A0910;
    --sf-bg-surface: #161526;

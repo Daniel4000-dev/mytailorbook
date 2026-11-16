@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import { updateAppBadge } from '@/lib/badging';
 
 export type NotificationCategory = 'production' | 'clients' | 'payments' | 'system';
@@ -62,17 +61,10 @@ function mapRowToItem(row: Record<string, unknown>): NotificationItem {
 }
 
 // ---------------------------------------------------------------------------
-// Zero mock data — notification hub displays authentic atelier events only.
-// ---------------------------------------------------------------------------
-const MOCK_NOTIFICATIONS: NotificationItem[] = [];
-
-// ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 export function useNotifications() {
   const { currentShop } = useData();
-  const { user } = useAuth();
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -154,7 +146,7 @@ export function useNotifications() {
         .subscribe();
     } catch {
       if (!cancelled) {
-        setNotifications(isMockAllowed ? MOCK_NOTIFICATIONS : []);
+        setNotifications([]);
         setIsLoaded(true);
       }
     }
@@ -165,7 +157,7 @@ export function useNotifications() {
         try {
           const supabase = createClient();
           supabase.removeChannel(channel);
-        } catch {}
+        } catch { }
       }
     };
   }, [currentShop?.id]);

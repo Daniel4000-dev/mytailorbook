@@ -20,20 +20,12 @@ import Button from '@/components/ui/Button/Button';
 import { formatCurrency, formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getTelLink, getInitials } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Customer, Order, StyleCatalogue } from '@/lib/types';
-import { GARMENT_STYLES, resolveCanonicalStyleName, isMockDataAllowed } from '@/lib/constants';
+import { GARMENT_STYLES, resolveCanonicalStyleName } from '@/lib/constants';
 import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
 import { getCataloguesAction } from '@/app/actions/catalogues';
-import { getStoredMockCatalogues } from '@/lib/mockCatalogues';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
 import AddCustomerSheet from './_components/AddCustomerSheet';
-import {
-  getStoredMockCustomers,
-  isMockCustomersActive,
-  wipeMockCustomers,
-  resetMockCustomers,
-  MOCK_ORDERS,
-} from '@/lib/mockCustomers';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
@@ -61,27 +53,8 @@ interface CustomerStatDetail {
 export default function CustomersPage() {
   const router = useRouter();
   const { user, isOwner, loading: authLoading } = useAuth();
-  const { currentShop, customers: liveCustomers, orders: liveOrders, isLoaded } = useData();
+  const { currentShop, customers, orders, isLoaded } = useData();
   const { showToast } = useToast();
-
-  const isMockAllowed = isMockDataAllowed(user?.email);
-  const [mockCustomers, setMockCustomers] = useState<Customer[]>([]);
-  const [isUsingMock, setIsUsingMock] = useState(false);
-
-  useEffect(() => {
-    if (!isMockAllowed || liveCustomers.length > 0) {
-      setMockCustomers([]);
-      setIsUsingMock(false);
-    } else {
-      const active = isMockCustomersActive();
-      const stored = getStoredMockCustomers();
-      setMockCustomers(stored);
-      setIsUsingMock(active && stored.length > 0);
-    }
-  }, [liveCustomers, isMockAllowed]);
-
-  const customers = isMockAllowed && isUsingMock ? mockCustomers : liveCustomers;
-  const orders = isMockAllowed && isUsingMock ? (liveOrders.length > 0 ? liveOrders : MOCK_ORDERS) : liveOrders;
 
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
@@ -122,20 +95,12 @@ export default function CustomersPage() {
     if (!currentShop?.id) return;
     getCataloguesAction(currentShop.id)
       .then((cats) => {
-        if (cats && cats.length > 0) {
-          setCatalogues(cats);
-        } else if (isMockDataAllowed(user?.email)) {
-          setCatalogues(getStoredMockCatalogues());
-        } else {
-          setCatalogues([]);
-        }
+        setCatalogues(cats || []);
       })
       .catch(() => {
-        if (isMockDataAllowed(user?.email)) {
-          setCatalogues(getStoredMockCatalogues());
-        }
+        setCatalogues([]);
       });
-  }, [currentShop?.id, user?.email]);
+  }, [currentShop?.id]);
 
   useEffect(() => {
     if (!currentShop?.id) return;
@@ -551,28 +516,6 @@ export default function CustomersPage() {
 
   return (
     <PageLayout header={topBar} className={customers.length === 0 ? styles.emptyPageContent : ''}>
-      {/* ── Sample Clients Preview Banner ──────────────────────────── */}
-      {isMockAllowed && isUsingMock && (
-        <div className={styles.mockBanner}>
-          <div className={styles.mockBannerText}>
-            <Symbol name="visibility" size={15} />
-            <span>Showing <strong>{customers.length} sample clients</strong> so you can preview the elevated UI.</span>
-          </div>
-          <button
-            type="button"
-            className={styles.mockBannerBtn}
-            onClick={() => {
-              wipeMockCustomers();
-              setMockCustomers([]);
-              setIsUsingMock(false);
-              showToast('Switched to blank state', 'info');
-            }}
-          >
-            Show Blank State
-          </button>
-        </div>
-      )}
-
       {/* ── 1. Four-Metric Client Pulse Grid ── */}
       <div className={styles.kpiGrid} role="tablist" aria-label="Filter clients by status">
         <button
@@ -1158,30 +1101,13 @@ export default function CustomersPage() {
             </div>
             <h2 className={styles.emptyStateTitle}>No customers yet</h2>
             <p className={styles.emptyStateDescription}>
-              {isMockAllowed
-                ? 'Your customer book starts with your first order — create one or load sample workshop clients to preview the directory.'
-                : 'Your customer book starts with your first order — create an order or save a client to start building your workshop directory.'}
+              Your customer book starts with your first order — create an order or save a client to start building your workshop directory.
             </p>
             <div className={styles.emptyStateActions}>
               <Link href={ROUTES.orderNew} className={styles.emptyStatePrimaryCta}>
                 <Symbol name="add" size={18} />
                 <span>Create Order</span>
               </Link>
-              {isMockAllowed && (
-                <button
-                  type="button"
-                  className={styles.emptyStateSampleBtn}
-                  onClick={() => {
-                    const fresh = resetMockCustomers();
-                    setMockCustomers(fresh);
-                    setIsUsingMock(true);
-                    showToast('Sample clients loaded', 'success');
-                  }}
-                >
-                  <Symbol name="visibility" size={14} />
-                  <span>Load Sample Clients</span>
-                </button>
-              )}
             </div>
           </div>
         ) : (

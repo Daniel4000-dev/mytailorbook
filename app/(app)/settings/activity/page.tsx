@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { getAuditLogAction } from '@/app/actions';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -28,45 +27,6 @@ const ACTION_LABELS: Record<string, string> = {
   'shop.deleted': 'deleted the shop',
 };
 
-const MOCK_AUDIT_LOG: AuditLogEntry[] = [
-  {
-    id: 'audit-1',
-    actorName: 'Daniel Adekunle',
-    action: 'order.status_changed',
-    entityType: 'order',
-    entityId: 'ord-101',
-    diff: { fromStatus: 'Cutting', toStatus: 'Sewing' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-  },
-  {
-    id: 'audit-2',
-    actorName: 'Emeka Eze',
-    action: 'payment.recorded',
-    entityType: 'order',
-    entityId: 'ord-102',
-    diff: { amount: '45000' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
-  },
-  {
-    id: 'audit-3',
-    actorName: 'Daniel Adekunle',
-    action: 'order.status_changed',
-    entityType: 'order',
-    entityId: 'ord-103',
-    diff: { fromStatus: 'Fitting', toStatus: 'Ready' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-  },
-  {
-    id: 'audit-4',
-    actorName: 'Blessing Oladipo',
-    action: 'staff.created',
-    entityType: 'staff',
-    entityId: 'staff-4',
-    diff: { staffName: 'Chioma Okeke' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-];
-
 function describeEntry(entry: AuditLogEntry, currency?: string): string {
   const label = ACTION_LABELS[entry.action] || entry.action;
   const diff = entry.diff || {};
@@ -84,24 +44,22 @@ function describeEntry(entry: AuditLogEntry, currency?: string): string {
 export default function ActivityLogPage() {
   const router = useRouter();
   const { currentShop } = useData();
-  const { user } = useAuth();
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const isDesktop = useIsDesktop();
   const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
 
   useEffect(() => {
     if (!currentShop?.id) {
-      setEntries(isMockAllowed ? MOCK_AUDIT_LOG : []);
+      setEntries([]);
       return;
     }
     getAuditLogAction(currentShop.id).then((result) => {
-      if (!result || 'error' in result || result.length === 0) {
-        setEntries(isMockAllowed ? MOCK_AUDIT_LOG : []);
+      if (!result || 'error' in result) {
+        setEntries([]);
         return;
       }
       setEntries(result);
-    }).catch(() => setEntries(isMockAllowed ? MOCK_AUDIT_LOG : []));
-  }, [currentShop?.id, isMockAllowed]);
+    }).catch(() => setEntries([]));
+  }, [currentShop?.id]);
 
   return (
     <PageLayout width="narrow" header={<TopBar title="Activity Log" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>

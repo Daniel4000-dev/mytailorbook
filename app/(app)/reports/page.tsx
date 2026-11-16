@@ -6,7 +6,6 @@ import { getFinancialReport, type FinancialReport } from '@/app/actions';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -36,48 +35,6 @@ function fromDateFor(range: RangeKey): string | undefined {
   return undefined;
 }
 
-const MOCK_FINANCIAL_TOTALS: FinancialReport['totals'] = {
-  collected: 4850000,
-  outstanding: 620000,
-  revenueWithCostData: 4200000,
-  costTotal: 1550000,
-  marginTotal: 2650000,
-  ordersWithCostCount: 28,
-  totalExpenses: 1550000,
-  netProfit: 3300000,
-  bespokeRevenue: 3400000,
-  bespokeCollected: 3400000,
-  bespokeOutstanding: 620000,
-  bespokeOrdersCount: 22,
-  showroomRevenue: 1450000,
-  showroomCollected: 1450000,
-  showroomUnitsSold: 38,
-  showroomOrdersCount: 16,
-  mostProfitableOrder: {
-    id: 'ord-102',
-    customerName: 'Chief Adebayo',
-    styleName: 'Executive Kaftan',
-    profit: 180000,
-  },
-  mostProfitableStyle: {
-    styleName: 'Royal Sovereign Agbada',
-    profit: 240000,
-    count: 14,
-  },
-  expenseBreakdown: [
-    { label: 'Fabric Sourcing & Aso-Oke', value: 780000 },
-    { label: 'Staff & Tailor Wages', value: 420000 },
-    { label: 'Haberdashery, Linings & Zips', value: 180000 },
-    { label: 'Generator & Studio Utilities', value: 170000 },
-  ],
-  trendData: [
-    { label: 'Wk 1', revenue: 950000, expenses: 320000 },
-    { label: 'Wk 2', revenue: 1450000, expenses: 450000 },
-    { label: 'Wk 3', revenue: 1150000, expenses: 380000 },
-    { label: 'Wk 4', revenue: 1300000, expenses: 400000 },
-  ],
-};
-
 const EMPTY_FINANCIAL_TOTALS: FinancialReport['totals'] = {
   collected: 0,
   outstanding: 0,
@@ -101,8 +58,6 @@ const EMPTY_FINANCIAL_TOTALS: FinancialReport['totals'] = {
 
 export default function ReportsPage() {
   const router = useRouter();
-  const { user } = useAuth();
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const isDesktop = useIsDesktop();
   const { currentShop } = useData();
 
@@ -129,7 +84,7 @@ export default function ReportsPage() {
   }, [range]);
 
   const currency = currentShop?.currency || 'NGN';
-  const totals = report?.totals || (isMockAllowed ? MOCK_FINANCIAL_TOTALS : EMPTY_FINANCIAL_TOTALS);
+  const totals = report?.totals || EMPTY_FINANCIAL_TOTALS;
 
   const marginPercent =
     totals.revenueWithCostData > 0

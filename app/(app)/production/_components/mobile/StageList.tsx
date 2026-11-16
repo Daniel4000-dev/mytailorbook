@@ -33,7 +33,6 @@ interface StageListProps {
   onWhatsApp?: (order: Order) => void;
   onResetFilters?: () => void;
   isFiltered?: boolean;
-  onPreviewSample?: () => void;
 }
 
 /** Stage filter pills, then vertical stage-by-stage sections of compact
@@ -60,7 +59,6 @@ export default function StageList({
   onWhatsApp,
   onResetFilters,
   isFiltered,
-  onPreviewSample,
 }: StageListProps) {
   const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
 
@@ -140,16 +138,6 @@ export default function StageList({
                 <Symbol name="add" size={16} />
                 <span>New Garment Order</span>
               </Link>
-              {onPreviewSample && (
-                <button
-                  type="button"
-                  className={styles.atelierDemoBtn}
-                  onClick={onPreviewSample}
-                >
-                  <Symbol name="visibility" size={14} />
-                  <span>Preview Sample Orders</span>
-                </button>
-              )}
             </div>
           )}
         </div>

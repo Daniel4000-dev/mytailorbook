@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isMockDataAllowed } from '@/lib/constants';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -23,10 +22,6 @@ import {
   deleteCatalogueAction,
   updateCatalogueAction,
 } from '@/app/actions/catalogues';
-import {
-  getStoredMockCatalogues,
-  saveMockCatalogues,
-} from '@/lib/mockCatalogues';
 import { compressImage } from '@/lib/compressImage';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { createClient } from '@/lib/supabase/client';
@@ -48,16 +43,13 @@ function getEstimatedYardage(title?: string): string {
 export default function CatalogueDetailPage() {
   const { catalogueId } = useParams() as { catalogueId: string };
   const { currentShop, customers, orders } = useData();
-  const { user } = useAuth();
   const router = useRouter();
   const { showToast } = useToast();
 
-  const isMockAllowed = isMockDataAllowed(user?.email);
   const [catalogue, setCatalogue] = useState<StyleCatalogue | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
-  const [isMockMode, setIsMockMode] = useState(false);
 
   // Sheets and Dialogs state
   const [showBroadcast, setShowBroadcast] = useState(false);
@@ -81,25 +73,11 @@ export default function CatalogueDetailPage() {
           if (found) {
             setCatalogue(found);
             setEditedTitle(found.title);
-            setIsMockMode(false);
             setLoading(false);
             return;
           }
         } catch {
-          // ignore, fall back to mock
-        }
-      }
-
-      // Check stored frontend mock catalogues if allowed
-      if (isMockAllowed) {
-        const mocks = getStoredMockCatalogues();
-        const mockFound = findByIdOrSlug(mocks, catalogueId, (c) => c.title);
-        if (mockFound) {
-          setCatalogue(mockFound);
-          setEditedTitle(mockFound.title);
-          setIsMockMode(true);
-          setLoading(false);
-          return;
+          // ignore
         }
       }
 
@@ -108,7 +86,7 @@ export default function CatalogueDetailPage() {
     };
 
     loadData();
-  }, [currentShop, catalogueId, isMockAllowed]);
+  }, [currentShop, catalogueId]);
 
   // Smart matching across preferredStyles, custom style measurements, and past order history
   const matchingCustomers = useMemo(() => {
@@ -139,36 +117,9 @@ export default function CatalogueDetailPage() {
     setUploading(true);
     setUploadProgress({ current: 0, total: files.length });
 
-    if (isMockMode || !currentShop) {
-      // Mock mode photo upload via local object URLs
-      const newPhotos: StyleCataloguePhoto[] = [];
-      for (let i = 0; i < files.length; i++) {
-        setUploadProgress({ current: i + 1, total: files.length });
-        const file = files[i];
-        const localUrl = URL.createObjectURL(file);
-        newPhotos.push({
-          id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          catalogueId: catalogue.id,
-          imageUrl: localUrl,
-          createdAt: new Date().toISOString(),
-        });
-      }
-
-      const updatedPhotos = [...(catalogue.photos || []), ...newPhotos];
-      const updatedCat: StyleCatalogue = { ...catalogue, photos: updatedPhotos };
-      setCatalogue(updatedCat);
-
-      const allMocks = getStoredMockCatalogues();
-      const idx = allMocks.findIndex((c) => c.id === catalogue.id);
-      if (idx !== -1) {
-        allMocks[idx] = updatedCat;
-        saveMockCatalogues(allMocks);
-      }
-
-      showToast(`Added ${newPhotos.length} inspiration looks to mock album!`, 'success');
+    if (!currentShop) {
+      showToast('Shop profile not loaded', 'error');
       setUploading(false);
-      setUploadProgress(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
@@ -214,21 +165,9 @@ export default function CatalogueDetailPage() {
     if (!catalogue || !editedTitle.trim()) return;
     setSavingTitle(true);
     try {
-      if (isMockMode || !currentShop) {
-        const updatedCat = { ...catalogue, title: editedTitle.trim() };
-        setCatalogue(updatedCat);
-        const allMocks = getStoredMockCatalogues();
-        const idx = allMocks.findIndex((c) => c.id === catalogue.id);
-        if (idx !== -1) {
-          allMocks[idx] = updatedCat;
-          saveMockCatalogues(allMocks);
-        }
-        showToast('Album title updated!', 'success');
-      } else {
-        await updateCatalogueAction(catalogue.id, editedTitle.trim());
-        setCatalogue((prev) => (prev ? { ...prev, title: editedTitle.trim() } : null));
-        showToast('Album title updated', 'success');
-      }
+      await updateCatalogueAction(catalogue.id, editedTitle.trim());
+      setCatalogue((prev) => (prev ? { ...prev, title: editedTitle.trim() } : null));
+      showToast('Album title updated', 'success');
       setShowEditTitle(false);
     } catch (err: any) {
       showToast(err.message || 'Could not update title', 'error');
@@ -242,25 +181,11 @@ export default function CatalogueDetailPage() {
     if (!photoToDelete || !catalogue) return;
     setDeleting(true);
     try {
-      if (isMockMode || !currentShop) {
-        const filtered = (catalogue.photos || []).filter((p) => p.id !== photoToDelete);
-        const updatedCat = { ...catalogue, photos: filtered };
-        setCatalogue(updatedCat);
-
-        const allMocks = getStoredMockCatalogues();
-        const idx = allMocks.findIndex((c) => c.id === catalogue.id);
-        if (idx !== -1) {
-          allMocks[idx] = updatedCat;
-          saveMockCatalogues(allMocks);
-        }
-        showToast('Photo removed from demo album', 'success');
-      } else {
-        await deleteCataloguePhotoAction(photoToDelete);
-        setCatalogue((prev) =>
-          prev ? { ...prev, photos: prev.photos?.filter((p) => p.id !== photoToDelete) } : null
-        );
-        showToast('Photo removed from album', 'success');
-      }
+      await deleteCataloguePhotoAction(photoToDelete);
+      setCatalogue((prev) =>
+        prev ? { ...prev, photos: prev.photos?.filter((p) => p.id !== photoToDelete) } : null
+      );
+      showToast('Photo removed from album', 'success');
 
       if (inspectedPhoto?.id === photoToDelete) {
         setInspectedPhoto(null);
@@ -278,15 +203,8 @@ export default function CatalogueDetailPage() {
     if (!catalogue) return;
     setDeleting(true);
     try {
-      if (isMockMode || !currentShop) {
-        const allMocks = getStoredMockCatalogues();
-        const filtered = allMocks.filter((c) => c.id !== catalogue.id);
-        saveMockCatalogues(filtered);
-        showToast('Album removed from demo data', 'info');
-      } else {
-        await deleteCatalogueAction(catalogueId);
-        showToast('Album deleted', 'info');
-      }
+      await deleteCatalogueAction(catalogue.id);
+      showToast('Album deleted', 'info');
       router.push('/catalogues');
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -383,12 +301,6 @@ export default function CatalogueDetailPage() {
                 <Symbol name="collections" size={14} />
                 <span>{photos.length} {photos.length === 1 ? 'inspiration look' : 'inspiration looks'}</span>
               </span>
-              {isMockMode && (
-                <span className={styles.albumCountBadge} style={{ background: 'rgba(67, 56, 202, 0.12)', color: 'var(--sf-brand-indigo)' }}>
-                  <Symbol name="auto_awesome" size={12} />
-                  <span>Frontend Demo Album</span>
-                </span>
-              )}
               <button
                 type="button"
                 className={styles.editTitleBtn}
