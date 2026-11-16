@@ -36,6 +36,13 @@
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+@media (max-width: 640px) {
+  .card {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+}
+
 /* Cards whose header strip runs edge-to-edge (Inspiration, Gallery) */
 .flushCard {
   padding: 0;
@@ -144,6 +151,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .heroCard {
+    padding: 16px 14px;
+    border-radius: 18px;
+    gap: 12px;
+  }
 }
 
 .heroTopRow {
@@ -267,6 +282,8 @@
   color: var(--sf-text-primary);
   margin: 0;
   letter-spacing: -0.02em;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .heroGarment {
@@ -275,6 +292,17 @@
   line-height: 1.4;
   margin: 0;
   font-weight: 500;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .heroCustomerName {
+    font-size: 19px;
+  }
+  .heroGarment {
+    font-size: 13px;
+  }
 }
 
 .heroActions {
@@ -373,7 +401,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  min-width: 380px;
+  min-width: 320px;
 }
 
 .stageStep {
@@ -381,18 +409,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 10px;
+  gap: 5px;
+  padding: 7px 8px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--sf-text-tertiary);
   cursor: pointer;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+  .stageStep {
+    padding: 6px 6px;
+    font-size: 10.5px;
+    gap: 3px;
+  }
 }
 
 .stageStep:hover {
@@ -2736,6 +2772,13 @@
   max-width: 100%;
   margin: 0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dossierTabBar::-webkit-scrollbar {
+  display: none;
 }
 
 :global([data-theme='dark']) .dossierTabBar {
@@ -2749,8 +2792,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 9px 12px;
   border-radius: calc(var(--sf-radius-lg, 14px) - 3px);
   border: none;
   background: transparent;
@@ -2762,6 +2805,15 @@
   -webkit-tap-highlight-color: transparent;
   position: relative;
   white-space: nowrap;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .dossierTabBtn {
+    padding: 8px 8px;
+    font-size: 12px;
+    gap: 4px;
+  }
 }
 
 .dossierTabBtn:hover {
