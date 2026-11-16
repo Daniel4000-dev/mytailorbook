@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ROUTES } from '@/lib/routes';
 import { DataProvider, useData } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, syncThemeColor } from '@/contexts/ThemeContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
@@ -99,20 +99,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   }, [authLoading, needsOnboarding]);
 
   useEffect(() => {
-    const isDark = preference === 'dark' || (preference === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
-    const color = isMenuOpen 
-      ? (isDark ? '#1B1A2B' : '#E9E8F0') 
-      : (isDark ? '#131220' : '#FFFFFF');
-      
-    const lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]');
-    const darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]');
-    
-    if (lightMeta) lightMeta.setAttribute('content', color);
-    if (darkMeta) darkMeta.setAttribute('content', color);
-    
-    document.documentElement.style.backgroundColor = '';
-    document.body.style.backgroundColor = color;
+    syncThemeColor(preference, isMenuOpen);
   }, [isMenuOpen, preference]);
 
   if (isLoggingOut) {

@@ -9,7 +9,7 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import type { Customer } from '@/lib/types';
-import styles from './EditCustomerSheet.module.css';
+import styles from './AddCustomerSheet.module.css';
 
 interface AddCustomerSheetProps {
   isOpen: boolean;
@@ -95,8 +95,22 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, i
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title="New Client">
-      <div className={styles.body}>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title="New Client"
+      footer={
+        <div className={styles.footerActions}>
+          <Button variant="ghost" onClick={onClose} disabled={saving} className={styles.cancelBtn}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSave} loading={saving} className={styles.saveBtn}>
+            Save Client
+          </Button>
+        </div>
+      }
+    >
+      <div className={styles.form}>
         {error && (
           <div className={styles.errorBanner} role="alert">
             <Symbol name="running_with_errors" size={18} />
@@ -122,16 +136,18 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, i
               }
             }}
             placeholder="e.g. Chief Adebayo"
-            autoFocus
           />
         </div>
 
-        <div className={styles.field} onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleSave();
-          }
-        }}>
+        <div
+          className={styles.field}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSave();
+            }
+          }}
+        >
           <label className={styles.label} htmlFor="add-customer-phone">
             WhatsApp or phone number
           </label>
@@ -165,15 +181,6 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, i
               Women&apos;s Wear
             </button>
           </div>
-        </div>
-
-        <div className={styles.actions}>
-          <Button variant="ghost" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSave} loading={saving}>
-            Save Client
-          </Button>
         </div>
       </div>
     </BottomSheet>

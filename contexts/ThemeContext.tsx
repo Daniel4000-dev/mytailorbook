@@ -13,24 +13,41 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'sf-theme';
 
-function updateMetaThemeColor(pref: ThemePreference | null) {
-  const lightColor = '#FFFFFF';
-  const darkColor = '#131220';
-  
-  const lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]') as HTMLMetaElement | null;
-  const darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]') as HTMLMetaElement | null;
-  
-  if (lightMeta && darkMeta) {
-    if (pref === 'light') {
-      lightMeta.content = lightColor;
-      darkMeta.content = lightColor;
-    } else if (pref === 'dark') {
-      lightMeta.content = darkColor;
-      darkMeta.content = darkColor;
-    } else {
-      lightMeta.content = lightColor;
-      darkMeta.content = darkColor;
-    }
+export function syncThemeColor(pref: ThemePreference | null, isMenuOpen: boolean = false) {
+  if (typeof window === 'undefined') return;
+
+  const isDark =
+    pref === 'dark' ||
+    ((!pref || pref === 'system') &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const color = isMenuOpen
+    ? (isDark ? '#1B1A2B' : '#E9E8F0')
+    : (isDark ? '#0A0910' : '#FFFFFF');
+
+  // 1. Immediately paint root html and body — this colors the iOS status bar,
+  // safe area notch, and home indicator rubber-band instantaneously without lag
+  document.documentElement.style.backgroundColor = color;
+  document.body.style.backgroundColor = color;
+
+  // 2. Direct unconstrained theme-color meta tag for instant browser chrome & PWA status bar repaint
+  let directMeta = document.querySelector('meta[name="theme-color"]:not([media])') as HTMLMetaElement | null;
+  if (!directMeta) {
+    directMeta = document.createElement('meta');
+    directMeta.name = 'theme-color';
+    document.head.appendChild(directMeta);
+  }
+  directMeta.setAttribute('content', color);
+
+  // 3. Keep media-specific meta tags in sync as well
+  const lightMeta = document.querySelector('meta[name="theme-color"][media*="light"]') as HTMLMetaElement | null;
+  const darkMeta = document.querySelector('meta[name="theme-color"][media*="dark"]') as HTMLMetaElement | null;
+  if (lightMeta) {
+    lightMeta.setAttribute('content', pref === 'dark' ? color : (isMenuOpen ? '#E9E8F0' : '#FFFFFF'));
+  }
+  if (darkMeta) {
+    darkMeta.setAttribute('content', pref === 'light' ? color : (isMenuOpen ? '#1B1A2B' : '#0A0910'));
   }
 }
 
@@ -38,8 +55,8 @@ function applyTheme(pref: ThemePreference) {
   const root = document.documentElement;
   if (pref === 'system') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', pref);
-  
-  updateMetaThemeColor(pref);
+
+  syncThemeColor(pref);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -50,18 +67,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as ThemePreference | null;
-    if (stored === 'light' || stored === 'dark' || stored === 'system') {
-      // Deferred a tick so this reads as an async sync-with-external-store,
-      // not a synchronous setState-in-effect (the inline anti-flash script
-      // in <head> already applied the correct data-theme before paint —
-      // this is only catching this context's own React state up to match).
-      Promise.resolve().then(() => {
-        setPreferenceState(stored);
-        updateMetaThemeColor(stored);
-      });
-    } else {
-      updateMetaThemeColor('system');
-    }
+    const initialPref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+
+    Promise.resolve().then(() => {
+      setPreferenceState(initialPref);
+      syncThemeColor(initialPref);
+    });
+
+    // Listen to OS system color scheme changes when in 'system' mode
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = () => {
+      const currentStored = window.localStorage.getItem(STORAGE_KEY) as ThemePreference | null;
+      if (!currentStored || currentStored === 'system') {
+        syncThemeColor('system');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleSystemChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemChange);
   }, []);
 
   const setPreference = useCallback((pref: ThemePreference) => {
@@ -86,27 +109,27 @@ export const THEME_ANTI_FLASH_SCRIPT = `
 (function() {
   try {
     var pref = localStorage.getItem('${STORAGE_KEY}');
-    var lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]');
-    var darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]');
+    var isDark = pref === 'dark' || ((!pref || pref === 'system') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var color = isDark ? '#0A0910' : '#FFFFFF';
     
     if (pref === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
-      if (lightMeta && darkMeta) {
-        lightMeta.content = '#FFFFFF';
-        darkMeta.content = '#FFFFFF';
-      }
     } else if (pref === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
-      if (lightMeta && darkMeta) {
-        lightMeta.content = '#131220';
-        darkMeta.content = '#131220';
-      }
-    } else {
-      if (lightMeta && darkMeta) {
-        lightMeta.content = '#FFFFFF';
-        darkMeta.content = '#131220';
-      }
     }
+    
+    document.documentElement.style.backgroundColor = color;
+    if (document.body) {
+      document.body.style.backgroundColor = color;
+    }
+    
+    var directMeta = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (!directMeta) {
+      directMeta = document.createElement('meta');
+      directMeta.name = 'theme-color';
+      document.head.appendChild(directMeta);
+    }
+    directMeta.setAttribute('content', color);
   } catch (e) {}
 })();
 `;
