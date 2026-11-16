@@ -13,7 +13,6 @@ import { getTierForXp, isXpSystemEnabled } from '@/lib/xp';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 import StreakModal from '@/components/ui/StreakModal/StreakModal';
 import ChallengeModal from '@/components/ui/ChallengeModal/ChallengeModal';
-import StitchWrapModal from '@/components/ui/StitchWrap/StitchWrapModal';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import { useCircleHub } from '@/lib/hooks/useCircleHub';
 
@@ -44,7 +43,6 @@ export default function TopBar({
   const { peerBuddies, isCoOpSecuredToday } = useCircleHub();
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
-  const [isWrapModalOpen, setIsWrapModalOpen] = useState(false);
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -82,26 +80,42 @@ export default function TopBar({
         {brandMode ? (
           <div className={styles.profileHeaderContent}>
             <div className={styles.left}>
-              <div
-                className={styles.storyPulseWrapper}
-                onClick={() => setIsWrapModalOpen(true)}
-                title="✨ 2026 Stitch Wrap Story · Tap to view your year in review!"
-                role="button"
-                tabIndex={0}
-                aria-label="2026 Stitch Wrap Story"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setIsWrapModalOpen(true);
-                  }
-                }}
+              <Link
+                href="/settings"
+                className={styles.brandLogoLink}
+                title={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
+                aria-label={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
               >
-                <div className={styles.storyRing} />
-                <div className={styles.storyRadarBeep} />
-                <div className={styles.brandLogoWrapper}>
+                <div
+                  className={styles.brandLogoWrapper}
+                  style={
+                    xpEnabled
+                      ? {
+                          ['--tier-color' as string]: currentTier.color,
+                        }
+                      : undefined
+                  }
+                >
                   <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
+                  {xpEnabled && (
+                    <span
+                      className={styles.tierNeedleBadge}
+                      style={{ backgroundColor: currentTier.color }}
+                      title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsChallengeModalOpen(true);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
+                    >
+                      <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
+                    </span>
+                  )}
                 </div>
-              </div>
+              </Link>
               {leftAction}
             </div>
             <div className={styles.right}>
@@ -243,11 +257,6 @@ export default function TopBar({
           onClose={() => setIsChallengeModalOpen(false)}
         />
       )}
-
-      <StitchWrapModal
-        isOpen={isWrapModalOpen}
-        onClose={() => setIsWrapModalOpen(false)}
-      />
     </>
   );
 }
