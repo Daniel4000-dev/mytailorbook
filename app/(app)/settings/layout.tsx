@@ -1,12 +1,14 @@
 'use client';
 
-import { Suspense, type ReactNode } from 'react';
+import { Suspense, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import styles from './layout.module.css';
 
 const NAV_ITEMS: { href: string; icon: string; label: string; rtwOnly?: boolean }[] = [
@@ -26,6 +28,8 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isDesktop = useIsDesktop();
   const { currentShop } = useData();
+  const { logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   if (!isDesktop) {
     return <Suspense fallback={null}>{children}</Suspense>;
@@ -54,10 +58,30 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
             </Link>
           );
         })}
+        <div className={styles.navFooter}>
+          <button
+            type="button"
+            className={styles.logoutBtn}
+            onClick={() => setShowLogoutConfirm(true)}
+          >
+            <Symbol name="logout" size={20} className={styles.logoutIcon} />
+            <span>Log Out</span>
+          </button>
+        </div>
       </nav>
       <div className={styles.content}>
         <Suspense fallback={null}>{children}</Suspense>
       </div>
+
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={logout}
+        title="Log out of MyTailorBook?"
+        description="You will need to sign in again to access your workshop and records."
+        confirmLabel="Log Out"
+        destructive
+      />
     </div>
   );
 }

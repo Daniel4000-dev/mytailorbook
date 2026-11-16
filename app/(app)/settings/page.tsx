@@ -15,6 +15,7 @@ import Input from '@/components/ui/Input/Input';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { addBranchAction } from '@/app/actions';
@@ -28,10 +29,11 @@ import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, isOwner, loading: authLoading } = useAuth();
+  const { user, isOwner, loading: authLoading, logout } = useAuth();
   const { currentShop, staffMembers, shops, refreshBranches, isLoaded } = useData();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Desktop's persistent left nav (see settings/layout.tsx) already lists
   // every category — landing on the bare overview page would just show
@@ -358,7 +360,30 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+        {/* ── Group 5: Session & Sign Out ── */}
+        <div className={styles.group}>
+          <div className={styles.groupCard}>
+            <SettingsRow
+              icon="logout"
+              label="Log Out"
+              subtitle={user?.email ? `Signed in as ${user.email}` : 'Sign out of your atelier account'}
+              destructive
+              onClick={() => setShowLogoutConfirm(true)}
+            />
+          </div>
+        </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={logout}
+        title="Log out of MyTailorBook?"
+        description="You will need to sign in again to access your workshop and records."
+        confirmLabel="Log Out"
+        destructive
+      />
 
       <BottomSheet isOpen={addBranchOpen} onClose={() => setAddBranchOpen(false)} title="Add Branch">
         <div className={styles.sheetBody}>
