@@ -122,7 +122,7 @@ export default function StaffDashboard({
             </span>
           </div>
           <div style={{ fontSize: '13px', color: 'var(--sf-text-secondary)' }}>
-            {currentShop?.name || 'Atelier'} Floor Workbench
+            {currentShop?.name || 'Shop'} Floor Workbench
           </div>
         </div>
 

@@ -56,7 +56,7 @@ export default function OwnPortfolioPage() {
 
   const handleShareWhatsApp = () => {
     const slug = currentShop?.slug || 'savile-row';
-    const shopName = currentShop?.name || 'our atelier';
+    const shopName = currentShop?.name || 'our shop';
     const url = `${window.location.origin}/studio/${slug}`;
     const text = `Greetings from ${shopName}! Explore our signature bespoke collections, handcrafted commissions, and creation stories:\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
@@ -65,7 +65,7 @@ export default function OwnPortfolioPage() {
   if (authLoading) {
     return (
       <div className={styles.status}>
-        <p>Loading your atelier portfolio...</p>
+        <p>Loading your shop portfolio...</p>
       </div>
     );
   }
@@ -88,13 +88,13 @@ export default function OwnPortfolioPage() {
               type="button"
               className={styles.backBtn}
               onClick={() => router.back()}
-              aria-label="Back to Atelier"
+              aria-label="Back to Workshop"
             >
               <Symbol name="arrow_back" size={18} />
             </button>
             <div className={styles.barTag}>
               <Symbol name="verified" size={14} />
-              <span className={styles.barTagText}>Live Atelier Storefront</span>
+              <span className={styles.barTagText}>Live Public Storefront</span>
             </div>
           </div>
 
@@ -144,7 +144,7 @@ export default function OwnPortfolioPage() {
 
       {!isLoaded || loading ? (
         <div className={styles.status}>
-          <p>Loading your atelier portfolio...</p>
+          <p>Loading your shop portfolio...</p>
         </div>
       ) : portfolio ? (
         <PortfolioView portfolio={portfolio} />

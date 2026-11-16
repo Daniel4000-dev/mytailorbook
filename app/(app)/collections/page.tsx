@@ -156,9 +156,9 @@ export default function CollectionsPage() {
     return result;
   }, [allDebtors, statusFilter, deferredSearchQuery, sortBy]);
 
-  // Courteous Nigerian atelier WhatsApp message builder
+  // Courteous Nigerian tailor WhatsApp message builder
   const buildReminderMessage = (debtor: DebtorOrder) => {
-    const shopName = currentShop?.name || 'our atelier';
+    const shopName = currentShop?.name || 'our workshop';
     const amount = formatCurrency(debtor.balance, currency);
     const receiptUrl = `https://${APP_CONFIG.domain}${ROUTES.receipt(debtor.order)}`;
 
@@ -166,7 +166,7 @@ export default function CollectionsPage() {
     if (debtor.order.status === 'Delivered') {
       stageContext = 'which was recently collected/delivered';
     } else if (debtor.order.status === 'Ready') {
-      stageContext = 'which is finished and ready for pickup at our atelier';
+      stageContext = 'which is finished and ready for pickup at our workshop';
     }
 
     return `Hello ${debtor.customer.fullName},\n\nWarm greetings from ${shopName}.\n\nThis is a gentle update regarding the outstanding balance of ${amount} for your bespoke order "${debtor.order.orderDetails}" (${stageContext}).\n\nYou can review your live digital invoice & receipt here:\n${receiptUrl}\n\nPlease let us know once convenient for payment or transfer. Thank you for your continued patronage!`;
@@ -272,7 +272,7 @@ export default function CollectionsPage() {
           <div className={styles.heroTop}>
             <div className={styles.heroBadge}>
               <Symbol name="account_balance_wallet" size={14} />
-              <span>Outstanding Atelier Balances</span>
+              <span>Outstanding Workshop Balances</span>
             </div>
             {readyDeliveredDebt > 0 && (
               <span className={styles.riskBadge}>
@@ -386,7 +386,7 @@ export default function CollectionsPage() {
               description={
                 searchQuery
                   ? `No clients or outfits matching "${searchQuery}".`
-                  : 'All client orders are fully paid. The atelier balance sheet is 100% balanced.'
+                  : 'All client orders are fully paid. The shop balance sheet is 100% balanced.'
               }
             />
             {searchQuery && (

@@ -378,7 +378,7 @@ export function calculateArtisanPayout(
  */
 export function getVideoFittingMessage(customerName: string, garmentTitle: string, trackingUrl: string): string {
   return (
-    `Good day ${customerName}! Your ${garmentTitle} is prepared on our atelier dress form for your virtual video fitting.\n\n` +
+    `Good day ${customerName}! Your ${garmentTitle} is prepared on our workshop dress form for your virtual video fitting.\n\n` +
     `View live progress: ${trackingUrl}\n` +
     `Please let us know your availability for a 5-minute video call to confirm the drape before final closure.`
   );
@@ -429,7 +429,7 @@ export function generateBatchGarmentTags(
  */
 export function getBirthdayGreeting(customerName: string, discountPercent: number = 10): string {
   return (
-    `Happy Birthday ${customerName.split(' ')[0]}! The team at our atelier wishes you joy, health, and elegance on your special day.\n\n` +
+    `Happy Birthday ${customerName.split(' ')[0]}! The team at our workshop wishes you joy, health, and elegance on your special day.\n\n` +
     `As our gift to you, enjoy ${discountPercent}% off workmanship on your next bespoke order this month!`
   );
 }

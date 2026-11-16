@@ -128,7 +128,7 @@ export default function AtelierFirstWinCard({
 
   if (businessMode === 'hybrid') {
     return (
-      <div className={styles.card} role="region" aria-label="Hybrid Atelier Quick Launch">
+      <div className={styles.card} role="region" aria-label="Hybrid Workshop Quick Launch">
         <div className={styles.pickStitchBorder} aria-hidden="true" />
 
         <div className={styles.header}>

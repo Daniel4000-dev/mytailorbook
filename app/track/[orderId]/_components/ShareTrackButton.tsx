@@ -31,7 +31,7 @@ const STAGE_ICON_MAP: Record<OrderStatus, string> = {
 export default function ShareTrackButton({
   orderId,
   orderTitle,
-  shopName = 'Bespoke Atelier',
+  shopName = 'Bespoke Workshop',
   shopLogoUrl,
   customerName,
   stageHeadline,
@@ -262,7 +262,7 @@ export default function ShareTrackButton({
                       )}
                       <div className={styles.cardAtelierText}>
                         <span className={styles.cardAtelierName}>{shopName}</span>
-                        <span className={styles.cardAtelierBadge}>Bespoke Atelier</span>
+                        <span className={styles.cardAtelierBadge}>Bespoke Workshop</span>
                       </div>
                     </div>
 

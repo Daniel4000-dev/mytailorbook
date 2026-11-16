@@ -104,7 +104,7 @@ export default function AccountSettingsPage() {
           }}
         >
           <Symbol name="logout" size={18} />
-          <span>Log Out of Atelier</span>
+          <span>Log Out of Workshop</span>
         </Button>
       </div>
 

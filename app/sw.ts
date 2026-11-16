@@ -128,7 +128,7 @@ self.addEventListener('push', (event) => {
     return;
   }
 
-  const title = payload.title || `${APP_CONFIG.name} Atelier`;
+  const title = payload.title || `${APP_CONFIG.name} Workshop`;
   const promises: Promise<unknown>[] = [
     self.registration.showNotification(title, {
       body: payload.body,

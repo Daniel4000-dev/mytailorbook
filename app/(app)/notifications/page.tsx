@@ -249,7 +249,7 @@ export default function NotificationsPage() {
             <Symbol name="notifications_off" size={40} style={{ color: 'var(--sf-text-tertiary)' }} />
             <h3 className={styles.emptyStateTitle}>
               {!isLoaded
-                ? 'Loading atelier activity...'
+                ? 'Loading shop activity...'
                 : activeTab === 'unread'
                 ? "You're all caught up"
                 : searchQuery

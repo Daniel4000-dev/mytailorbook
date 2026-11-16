@@ -193,7 +193,7 @@ export const MONTHLY_SPRINTS: MonthlySprintConfig[] = [
     theme: 'Aso-Ebi & Bridal Perfection',
     targetDeliveries: 18,
     focus: 'Bridal party coordination and flawless fittings',
-    distinction: 'Bridal Atelier Star',
+    distinction: 'Bridal Design Star',
   },
   {
     monthIndex: 5,

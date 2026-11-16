@@ -367,7 +367,7 @@ export default function SettingsPage() {
             <SettingsRow
               icon="logout"
               label="Log Out"
-              subtitle={user?.email ? `Signed in as ${user.email}` : 'Sign out of your atelier account'}
+              subtitle={user?.email ? `Signed in as ${user.email}` : 'Sign out of your workshop account'}
               destructive
               onClick={() => setShowLogoutConfirm(true)}
             />

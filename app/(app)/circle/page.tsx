@@ -360,7 +360,7 @@ function AtelierCircleContent() {
                       setSelectedBuddy(buddy);
                     }
                   }}
-                  title={`Tap to view ${buddy.name}'s atelier profile`}
+                  title={`Tap to view ${buddy.name}'s tailor profile`}
                 >
                   <div
                     className={`${styles.avatarRing} ${isTodayActive ? styles.avatarRingActive : ''
@@ -536,7 +536,7 @@ function AtelierCircleContent() {
                       className={`${styles.saluteBtn} ${currentSalute.userSaluted.respect ? styles.saluteBtnActive : ''
                         }`}
                       onClick={() => handleSalute(pulse.id, 'respect')}
-                      title="Salute: Atelier Respect"
+                      title="Salute: Tailor Respect"
                     >
                       <Symbol name="handshake" size={14} />
                       <span>{currentSalute.respect}</span>
@@ -553,7 +553,7 @@ function AtelierCircleContent() {
       <BottomSheet
         isOpen={Boolean(selectedBuddy)}
         onClose={() => setSelectedBuddy(null)}
-        title="Atelier Profile"
+        title="Tailor Profile"
       >
         {selectedBuddy && (
           <div className={styles.profileModalBody}>

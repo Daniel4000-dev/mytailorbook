@@ -208,7 +208,7 @@ export default function OnboardingPage() {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner} />
-        <p className={styles.loadingText}>Preparing your atelier...</p>
+        <p className={styles.loadingText}>Preparing your workshop...</p>
       </div>
     );
   }

@@ -160,7 +160,7 @@ export default function AspirationalVision({
             {isRtw
               ? 'Your Showroom is Ready'
               : isHybrid
-              ? 'Your Atelier & Showroom are Ready'
+              ? 'Your Workshop & Showroom are Ready'
               : 'Your Shop is Ready'}
           </h2>
           <p className={styles.subtitle}>

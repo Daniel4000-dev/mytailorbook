@@ -25,7 +25,7 @@ ${APP_CONFIG.name} empowers a tailor or fashion designer to command their entire
 
 - [Home](${base}/): complete shop workflow, real tailor scenarios, 8 core studio pillars, pricing summary, and 10-question FAQ
 - [Features](${base}/features): complete feature breakdown across Measurement Vault, Fabrics Table & Cutting Slips, Ready-to-Wear POS, Offline Sync, Finances, and Team Roles
-- [Pricing](${base}/pricing): Free Forever vs Premium Atelier plans, with FAQ
+- [Pricing](${base}/pricing): Free Forever vs Premium Workshop plans, with FAQ
 - [Portfolio Templates](${base}/portfolio-examples): Modern, Editorial, and Heritage public portfolio templates
 - [About](${base}/about): company mission and story
 - [Blog](${base}/blog): practical tailoring, yardage, pricing, and fashion business guides

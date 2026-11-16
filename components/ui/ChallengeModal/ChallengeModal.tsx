@@ -148,7 +148,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Championship & Atelier Badges">
+    <Modal isOpen={isOpen} onClose={onClose} title="Championship & Workshop Badges">
       <div className={styles.container}>
         {/* Grand Prize Header Banner */}
         <div className={styles.banner}>
@@ -361,13 +361,13 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
           </div>
         )}
 
-        {/* TAB 3: Atelier Badges */}
+        {/* TAB 3: Workshop Badges */}
         {activeTab === 'badges' && (
           <div className={styles.contentCard}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--sf-text-primary)' }}>
-                  Atelier Badges ({evaluatedBadges.filter((b) => b.unlocked).length} Earned)
+                  Workshop Badges ({evaluatedBadges.filter((b) => b.unlocked).length} Earned)
                 </span>
                 <p style={{ fontSize: '11px', color: 'var(--sf-text-secondary)', margin: '2px 0 0 0' }}>
                   Scarce milestones representing verified workshop mastery
@@ -440,10 +440,10 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
               ))}
             </div>
 
-            {/* Category 2: Master Atelier Trophies */}
+            {/* Category 2: Master Tailor Trophies */}
             <div className={styles.badgeCategoryTitle}>
               <Symbol name="workspace_premium" size={14} style={{ color: '#8b5cf6' }} />
-              Master Atelier Trophies (High-Value Milestones)
+              Master Tailor Trophies (High-Value Milestones)
             </div>
             <div className={styles.badgeGrid}>
               {masterTrophyBadges.map((b) => (
@@ -507,7 +507,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
               <div className={styles.flierCard}>
                 <div className={styles.flierHeader}>
                   <div className={styles.flierTitleWrap}>
-                    <span className={styles.flierBadgeLabel}>Atelier Promotion</span>
+                    <span className={styles.flierBadgeLabel}>Shop Promotion</span>
                     <h4 className={styles.flierHeading}>{currentShop?.name || 'Your Workshop'} Story Flier</h4>
                   </div>
                   <Button variant="primary" onClick={() => setIsStatusCardOpen(true)}>
@@ -589,7 +589,7 @@ export default function ChallengeModal({ isOpen, onClose }: ChallengeModalProps)
           <div className={styles.refText}>
             <span className={styles.refTitle}>Invite Code: {currentShop?.referralCode || 'STITCH-PRO'}</span>
             <span style={{ fontSize: '11px', color: 'var(--sf-text-secondary)' }}>
-              Earn +100 Points when a fellow tailor registers their atelier!
+              Earn +100 Points when a fellow tailor registers their workshop!
             </span>
           </div>
           <button type="button" className={styles.shareRefBtn} onClick={handleShareReferral}>

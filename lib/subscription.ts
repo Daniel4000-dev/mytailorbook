@@ -47,7 +47,7 @@ export interface PlanTierConfig {
 export const PLAN_TIERS: Record<PlanTierType, PlanTierConfig> = {
   bespoke: {
     id: 'bespoke',
-    name: 'Bespoke Atelier',
+    name: 'Bespoke Workshop',
     tagline: 'Custom made-to-measure tailoring, cutting queues & fittings',
     monthlyPriceNgn: PREMIUM_MONTHLY_PRICE_NGN,
     yearlyPriceNgn: PREMIUM_YEARLY_PRICE_NGN,
@@ -84,7 +84,7 @@ export const PLAN_TIERS: Record<PlanTierType, PlanTierConfig> = {
     yearlyPriceNgn: HYBRID_ATELIER_YEARLY_PRICE_NGN,
     freeLimitDescription: '15 bespoke + 30 rack pieces / month free',
     features: [
-      'Everything in Bespoke Atelier & RTW Showroom',
+      'Everything in Bespoke Workshop & RTW Showroom',
       'Walk-in alteration bridge (rack pieces to workshop)',
       'Multi-staff craft accounts with piece-rate payroll',
       'Segregated bespoke vs showroom revenue reports',

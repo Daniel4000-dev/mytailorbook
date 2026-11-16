@@ -37,7 +37,7 @@ export interface NotificationItem {
 // DB row → app type mapper
 // ---------------------------------------------------------------------------
 function mapRowToItem(row: Record<string, unknown>): NotificationItem {
-  const title = (row.title as string) || 'Atelier Notification';
+  const title = (row.title as string) || 'Workshop Notification';
   return {
     id: (row.id as string) || `notif-${Math.random()}`,
     category: (row.category as NotificationCategory) ?? 'system',

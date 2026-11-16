@@ -93,7 +93,7 @@ export default function AppTour() {
       return [
         {
           targetId: 'home',
-          title: 'Atelier & Retail Dashboard',
+          title: 'Workshop & Retail Dashboard',
           body: 'See your combined custom tailoring production and ready-to-wear showroom sales.',
         },
         {
@@ -133,7 +133,7 @@ export default function AppTour() {
       {
         targetId: 'home',
         title: 'Your Dashboard',
-        body: "See today's atelier activity at a glance — orders due, recent updates, and quick shortcuts.",
+        body: "See today's shop activity at a glance — orders due, recent updates, and quick shortcuts.",
       },
       {
         targetId: 'production',
