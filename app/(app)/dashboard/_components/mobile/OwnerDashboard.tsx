@@ -294,7 +294,7 @@ export default function OwnerDashboard({
           )
         ) : orders.length > 0 ? (
           <div className={styles.operationsGrid}>
-            {/* Row 1: Sewing, Cutting, Overdue Payment (3 cards) */}
+            {/* Row 1: Sewing, Cutting, Overdue (3 cards) */}
             <button
               type="button"
               className={styles.operationsCard}
@@ -322,19 +322,18 @@ export default function OwnerDashboard({
 
             <button
               type="button"
-              className={`${styles.operationsCard} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
-              onClick={() => onNavigate('/collections')}
-              aria-label="View uncollected debtor balances"
+              className={`${styles.operationsCard} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
+              onClick={() => onNavigate('/production')}
+              aria-label="View overdue and urgent orders"
             >
               <div className={styles.metricTop}>
-                <span className={styles.metricNum}>
-                  {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
-                </span>
+                <span className={styles.metricNum}>{urgentCount}</span>
+                {urgentCount > 0 && <span className={styles.metricAlertDot} />}
               </div>
-              <span className={styles.metricLabel}>Overdue payment</span>
+              <span className={styles.metricLabel}>Overdue</span>
             </button>
 
-            {/* Row 2: Ready, Overdue (2 wide cards, balanced) */}
+            {/* Row 2: Ready, Overdue payment (2 wide cards, balanced) */}
             <button
               type="button"
               className={`${styles.operationsCard} ${styles.operationsCardWide}`}
@@ -349,15 +348,16 @@ export default function OwnerDashboard({
 
             <button
               type="button"
-              className={`${styles.operationsCard} ${styles.operationsCardWide} ${urgentCount > 0 ? styles.metricAlertItem : ''}`}
-              onClick={() => onNavigate('/production')}
-              aria-label="View overdue and urgent orders"
+              className={`${styles.operationsCard} ${styles.operationsCardWide} ${debtorsCount > 0 ? styles.metricDebtItem : ''}`}
+              onClick={() => onNavigate('/collections')}
+              aria-label="View uncollected debtor balances"
             >
               <div className={styles.metricTop}>
-                <span className={styles.metricNum}>{urgentCount}</span>
-                {urgentCount > 0 && <span className={styles.metricAlertDot} />}
+                <span className={styles.metricNum}>
+                  {hideProjected ? '******' : formatCurrency(debtTotal, currentShop?.currency)}
+                </span>
               </div>
-              <span className={styles.metricLabel}>Overdue</span>
+              <span className={styles.metricLabel}>Overdue payment</span>
             </button>
           </div>
         ) : (

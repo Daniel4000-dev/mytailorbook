@@ -51,6 +51,7 @@ export interface LookbookOutreachPhoto {
 interface CustomerStatDetail {
   totalOrders: number;
   activeOrders: number;
+  inProductionOrders?: number;
   totalSpend: number;
   totalBalance: number;
   activeOrder?: Order;
@@ -233,7 +234,7 @@ export default function CustomersPage() {
     const stats: Record<string, CustomerStatDetail> = {};
 
     customers.forEach(c => {
-      stats[c.id] = { totalOrders: 0, activeOrders: 0, totalSpend: 0, totalBalance: 0 };
+      stats[c.id] = { totalOrders: 0, activeOrders: 0, inProductionOrders: 0, totalSpend: 0, totalBalance: 0 };
     });
 
     const sortedOrders = [...orders].sort(
@@ -246,6 +247,9 @@ export default function CustomersPage() {
         s.totalOrders += 1;
         if (o.status !== 'Delivered') {
           s.activeOrders += 1;
+          if (o.status !== 'Ready') {
+            s.inProductionOrders = (s.inProductionOrders || 0) + 1;
+          }
           if (!s.activeOrder) {
             s.activeOrder = o;
           }
@@ -328,7 +332,7 @@ export default function CustomersPage() {
       if (clientFilter === 'male' && c.gender !== 'male') return false;
       if (clientFilter === 'female' && c.gender !== 'female') return false;
       if (clientFilter === 'ready' && stats?.activeOrder?.status !== 'Ready') return false;
-      if (clientFilter === 'active' && (!stats || stats.activeOrders <= 0)) return false;
+      if (clientFilter === 'active' && (!stats || (stats.inProductionOrders || 0) <= 0)) return false;
       if (clientFilter === 'owing' && (!stats || stats.totalBalance <= 0)) return false;
       if (styleFilter && !customerStylesMap[c.id]?.has(styleFilter)) return false;
       if (!rawSearch) return true;
@@ -347,8 +351,7 @@ export default function CustomersPage() {
     });
   }, [customers, clientFilter, styleFilter, deferredSearch, customerStats, customerStylesMap]);
 
-  const { totalCustomers, activeCustomers, owingCount, readyCount, totalBalanceOwed, maleCount, femaleCount } = useMemo(() => {
-    let active = 0;
+  const { totalCustomers, garmentsInProduction, owingCount, readyCount, totalBalanceOwed, maleCount, femaleCount } = useMemo(() => {
     let owing = 0;
     let ready = 0;
     let totalBal = 0;
@@ -360,23 +363,33 @@ export default function CustomersPage() {
       const s = customerStats[c.id];
       if (s) {
         if (s.activeOrder?.status === 'Ready') ready += 1;
-        if (s.activeOrders > 0) active += 1;
         if (s.totalBalance > 0) {
           owing += 1;
           totalBal += s.totalBalance;
         }
       }
     });
+
+    // Sum all garments currently in production across the workshop
+    const totalGarments = orders
+      .filter((o) => o.status !== 'Delivered' && o.status !== 'Ready')
+      .reduce((sum, o) => {
+        const count = o.batchSizes && o.batchSizes.length > 0
+          ? o.batchSizes.reduce((bSum, b) => bSum + (b.quantity || 0), 0)
+          : 1;
+        return sum + Math.max(1, count);
+      }, 0);
+
     return {
       totalCustomers: customers.length,
-      activeCustomers: active,
+      garmentsInProduction: totalGarments,
       owingCount: owing,
       readyCount: ready,
       totalBalanceOwed: totalBal,
       maleCount: men,
       femaleCount: women,
     };
-  }, [customers, customerStats]);
+  }, [customers, orders, customerStats]);
 
   const getDefaultOutreachNote = useCallback(
     (styleName: string | null, hasPhotoSelected = false) => {
@@ -587,9 +600,9 @@ export default function CustomersPage() {
         >
           <div className={styles.kpiTopRow}>
             <div className={`${styles.kpiIconWrap} ${styles.kpiIconProduction}`}>
-              <Symbol name="content_cut" size={16} />
+              <Symbol name="content_cut" size={15} />
             </div>
-            <span className={styles.kpiVal}>{activeCustomers}</span>
+            <span className={styles.kpiVal}>{garmentsInProduction}</span>
           </div>
           <span className={styles.kpiLabel}>In Production</span>
         </button>
@@ -636,78 +649,80 @@ export default function CustomersPage() {
       </div>
 
       {/* ── 2. Search Bar with Integrated Gender & Style Controls ── */}
-      <div className={styles.searchBarRow}>
-        <div className={styles.searchBarPill}>
-          <Symbol name="search" size={16} className={styles.searchIcon} />
-          <input
-            type="text"
-            className={styles.searchInput}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search clients, styles, phone..."
-          />
-          {search && (
+      {customers.length > 0 && (
+        <div className={styles.searchBarRow}>
+          <div className={styles.searchBarPill}>
+            <Symbol name="search" size={16} className={styles.searchIcon} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search clients, styles, phone..."
+            />
+            {search && (
+              <button
+                type="button"
+                className={styles.searchClearBtn}
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+              >
+                <Symbol name="close" size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Gender Segmented Switch [All | Men | Women] */}
+          <div className={styles.genderSegment} role="group" aria-label="Filter by gender">
             <button
               type="button"
-              className={styles.searchClearBtn}
-              onClick={() => setSearch('')}
-              aria-label="Clear search"
+              className={`${styles.genderSegmentBtn} ${clientFilter !== 'male' && clientFilter !== 'female' ? styles.genderSegmentBtnActive : ''}`}
+              onClick={() => {
+                if (clientFilter === 'male' || clientFilter === 'female') setClientFilter('all');
+              }}
             >
-              <Symbol name="close" size={12} />
+              All
             </button>
-          )}
-        </div>
+            <button
+              type="button"
+              className={`${styles.genderSegmentBtn} ${clientFilter === 'male' ? styles.genderSegmentBtnActive : ''}`}
+              onClick={() => {
+                setClientFilter(clientFilter === 'male' ? 'all' : 'male');
+                if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
+                  setStyleFilter(null);
+                }
+              }}
+            >
+              Men
+            </button>
+            <button
+              type="button"
+              className={`${styles.genderSegmentBtn} ${clientFilter === 'female' ? styles.genderSegmentBtnActive : ''}`}
+              onClick={() => {
+                setClientFilter(clientFilter === 'female' ? 'all' : 'female');
+                if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
+                  setStyleFilter(null);
+                }
+              }}
+            >
+              Women
+            </button>
+          </div>
 
-        {/* Gender Segmented Switch [All | Men | Women] */}
-        <div className={styles.genderSegment} role="group" aria-label="Filter by gender">
           <button
             type="button"
-            className={`${styles.genderSegmentBtn} ${clientFilter !== 'male' && clientFilter !== 'female' ? styles.genderSegmentBtnActive : ''}`}
-            onClick={() => {
-              if (clientFilter === 'male' || clientFilter === 'female') setClientFilter('all');
-            }}
+            className={`${styles.filterActionBtn} ${styleFilter ? styles.filterActionBtnActive : ''}`}
+            onClick={() => setIsStyleSheetOpen(true)}
+            title="Browse styles & outbound leads"
           >
-            All
-          </button>
-          <button
-            type="button"
-            className={`${styles.genderSegmentBtn} ${clientFilter === 'male' ? styles.genderSegmentBtnActive : ''}`}
-            onClick={() => {
-              setClientFilter(clientFilter === 'male' ? 'all' : 'male');
-              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'male')) {
-                setStyleFilter(null);
-              }
-            }}
-          >
-            Men
-          </button>
-          <button
-            type="button"
-            className={`${styles.genderSegmentBtn} ${clientFilter === 'female' ? styles.genderSegmentBtnActive : ''}`}
-            onClick={() => {
-              setClientFilter(clientFilter === 'female' ? 'all' : 'female');
-              if (styleFilter && !GARMENT_STYLES.some((g) => g.name === styleFilter && g.gender === 'female')) {
-                setStyleFilter(null);
-              }
-            }}
-          >
-            Women
+            <Symbol name="campaign" size={15} />
+            <span>{styleFilter ? `Lead: ${styleFilter}` : 'Style Leads'}</span>
           </button>
         </div>
-
-        <button
-          type="button"
-          className={`${styles.filterActionBtn} ${styleFilter ? styles.filterActionBtnActive : ''}`}
-          onClick={() => setIsStyleSheetOpen(true)}
-          title="Browse styles & outbound leads"
-        >
-          <Symbol name="campaign" size={15} />
-          <span>{styleFilter ? `Lead: ${styleFilter}` : 'Style Leads'}</span>
-        </button>
-      </div>
+      )}
 
       {/* ── 2b. Zero-Friction 1-Tap Style & Outbound Leads Pill Rail ── */}
-      {availableStyles.length > 0 && (
+      {customers.length > 0 && availableStyles.length > 0 && (
         <div className={styles.styleLeadRail} role="region" aria-label="Filter clients by garment style">
           <button
             type="button"
@@ -1130,33 +1145,44 @@ export default function CustomersPage() {
       {/* ── 4. Customer Feed (Continuous, Borderless List) ───────────── */}
       {filtered.length === 0 ? (
         customers.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <EmptyState
-              image={{ src: '/images/empty-states/customers.png', width: 608, height: 797 }}
-              title="No customers yet"
-              description={
-                isMockAllowed
-                  ? 'Your customer book starts with your first order — create one or load sample workshop clients to preview the directory.'
-                  : 'Your customer book starts with your first order — create an order or save a client to start building your workshop directory.'
-              }
-              action={{ label: 'Create Order', href: ROUTES.orderNew }}
-            />
-            {isMockAllowed && (
-              <button
-                type="button"
-                className={styles.softPill}
-                style={{ marginTop: '-8px', marginBottom: '24px' }}
-                onClick={() => {
-                  const fresh = resetMockCustomers();
-                  setMockCustomers(fresh);
-                  setIsUsingMock(true);
-                  showToast('Sample clients loaded', 'success');
-                }}
-              >
-                <Symbol name="visibility" size={14} />
-                <span>Load Sample Clients</span>
-              </button>
-            )}
+          <div className={styles.emptyStateContainer}>
+            <div className={styles.emptyStateImageWrap}>
+              <Image
+                src="/images/empty-states/customers.png"
+                alt=""
+                width={144}
+                height={168}
+                className={styles.emptyStateImage}
+                priority
+              />
+            </div>
+            <h2 className={styles.emptyStateTitle}>No customers yet</h2>
+            <p className={styles.emptyStateDescription}>
+              {isMockAllowed
+                ? 'Your customer book starts with your first order — create one or load sample workshop clients to preview the directory.'
+                : 'Your customer book starts with your first order — create an order or save a client to start building your workshop directory.'}
+            </p>
+            <div className={styles.emptyStateActions}>
+              <Link href={ROUTES.orderNew} className={styles.emptyStatePrimaryCta}>
+                <Symbol name="add" size={17} />
+                <span>Create Order</span>
+              </Link>
+              {isMockAllowed && (
+                <button
+                  type="button"
+                  className={styles.softPill}
+                  onClick={() => {
+                    const fresh = resetMockCustomers();
+                    setMockCustomers(fresh);
+                    setIsUsingMock(true);
+                    showToast('Sample clients loaded', 'success');
+                  }}
+                >
+                  <Symbol name="visibility" size={14} />
+                  <span>Load Sample Clients</span>
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
