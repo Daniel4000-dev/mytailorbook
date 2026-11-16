@@ -240,10 +240,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const isDemoMode = isMockAllowed && rawDemoMode;
 
-  const [demoOrders, setDemoOrders] = useState<Order[]>(MOCK_ORDERS);
-  const [demoCustomers, setDemoCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
-  const [demoStaff, setDemoStaff] = useState<User[]>(MOCK_STAFF);
-  const [demoExceptions, setDemoExceptions] = useState<ShopException[]>(MOCK_EXCEPTIONS);
+  const [demoOrders, setDemoOrders] = useState<Order[]>([]);
+  const [demoCustomers, setDemoCustomers] = useState<Customer[]>([]);
+  const [demoStaff, setDemoStaff] = useState<User[]>([]);
+  const [demoExceptions, setDemoExceptions] = useState<ShopException[]>([]);
 
   const toggleDemoMode = useCallback((enabled?: boolean) => {
     if (!isMockAllowed) return;

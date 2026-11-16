@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-md);
-  padding: 0 var(--sf-space-sm) var(--sf-space-2xl) var(--sf-space-sm);
+  padding: 12px var(--sf-space-sm) var(--sf-space-2xl) var(--sf-space-sm);
   width: 100%;
 }
 
@@ -1147,6 +1147,7 @@
     inset 0 1.5px 2px rgba(255, 255, 255, 0.28),
     inset 0 -2px 4px rgba(0, 0, 0, 0.5),
     0 12px 36px rgba(30, 27, 75, 0.35);
+  margin-top: 4px;
   margin-bottom: var(--sf-space-md);
   color: #ffffff;
 }

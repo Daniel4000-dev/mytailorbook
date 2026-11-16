@@ -381,3 +381,57 @@ body.no-scroll {
     display: none !important;
   }
 }
+
+/* ============================================================
+   Dark Mode Border Normalization
+   Eliminates disruptive, stark white specular top borders on cards,
+   pills, rows, and widgets in dark mode so all card borders look
+   calm, uniform, and seamlessly integrated with the dark canvas.
+   ============================================================ */
+:root[data-theme='dark'] [class*="kpiCard"],
+:root[data-theme='dark'] [class*="customerRow"],
+:root[data-theme='dark'] [class*="searchBarPill"],
+:root[data-theme='dark'] [class*="filterActionBtn"],
+:root[data-theme='dark'] [class*="genderSegment"],
+:root[data-theme='dark'] [class*="glassMetricCard"],
+:root[data-theme='dark'] [class*="bentoCard"],
+:root[data-theme='dark'] [class*="operationCard"],
+:root[data-theme='dark'] [class*="statCard"],
+:root[data-theme='dark'] [class*="orderCard"],
+:root[data-theme='dark'] [class*="orderListCard"],
+:root[data-theme='dark'] [class*="fabricCard"],
+:root[data-theme='dark'] [class*="quickCommandHub"],
+:root[data-theme='dark'] [class*="todayPrioritiesWidget"],
+:root[data-theme='dark'] [class*="profileSetupProgress"],
+:root[data-theme='dark'] [class*="podCoOpBanner"],
+:root[data-theme='dark'] [class*="firstWinCard"],
+:root[data-theme='dark'] [class*="kanbanColumn"],
+:root[data-theme='dark'] [class*="glass-card"] {
+  border-top-color: var(--sf-border) !important;
+  border-top-width: 1px !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) [class*="kpiCard"],
+  :root:not([data-theme='light']) [class*="customerRow"],
+  :root:not([data-theme='light']) [class*="searchBarPill"],
+  :root:not([data-theme='light']) [class*="filterActionBtn"],
+  :root:not([data-theme='light']) [class*="genderSegment"],
+  :root:not([data-theme='light']) [class*="glassMetricCard"],
+  :root:not([data-theme='light']) [class*="bentoCard"],
+  :root:not([data-theme='light']) [class*="operationCard"],
+  :root:not([data-theme='light']) [class*="statCard"],
+  :root:not([data-theme='light']) [class*="orderCard"],
+  :root:not([data-theme='light']) [class*="orderListCard"],
+  :root:not([data-theme='light']) [class*="fabricCard"],
+  :root:not([data-theme='light']) [class*="quickCommandHub"],
+  :root:not([data-theme='light']) [class*="todayPrioritiesWidget"],
+  :root:not([data-theme='light']) [class*="profileSetupProgress"],
+  :root:not([data-theme='light']) [class*="podCoOpBanner"],
+  :root:not([data-theme='light']) [class*="firstWinCard"],
+  :root:not([data-theme='light']) [class*="kanbanColumn"],
+  :root:not([data-theme='light']) [class*="glass-card"] {
+    border-top-color: var(--sf-border) !important;
+    border-top-width: 1px !important;
+  }
+}

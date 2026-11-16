@@ -53,8 +53,19 @@ export function syncThemeColor(pref: ThemePreference | null, isMenuOpen: boolean
 
 function applyTheme(pref: ThemePreference) {
   const root = document.documentElement;
-  if (pref === 'system') root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', pref);
+  const isDark =
+    pref === 'dark' ||
+    (pref === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  if (pref === 'system') {
+    root.setAttribute('data-theme-preference', 'system');
+  } else {
+    root.removeAttribute('data-theme-preference');
+  }
 
   syncThemeColor(pref);
 }
@@ -79,6 +90,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const handleSystemChange = () => {
       const currentStored = window.localStorage.getItem(STORAGE_KEY) as ThemePreference | null;
       if (!currentStored || currentStored === 'system') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
         syncThemeColor('system');
       }
     };
@@ -112,10 +125,9 @@ export const THEME_ANTI_FLASH_SCRIPT = `
     var isDark = pref === 'dark' || ((!pref || pref === 'system') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
     var color = isDark ? '#0A0910' : '#FFFFFF';
     
-    if (pref === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-    } else if (pref === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    if (!pref || pref === 'system') {
+      document.documentElement.setAttribute('data-theme-preference', 'system');
     }
     
     document.documentElement.style.backgroundColor = color;

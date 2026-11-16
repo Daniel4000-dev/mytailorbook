@@ -120,8 +120,7 @@
 
 :global([data-theme='dark']) .kpiCard {
   background: var(--sf-bg-surface, #1C1C1E);
-  border-color: rgba(99, 102, 241, 0.22);
-  border-top-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.22);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 10px 24px -4px rgba(0, 0, 0, 0.55);
 }
 
@@ -251,8 +250,7 @@
 
 :global([data-theme='dark']) .searchBarPill {
   background: var(--sf-bg-surface, #1C1C1E);
-  border-color: rgba(99, 102, 241, 0.2);
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .searchBarPill:focus-within {
@@ -317,8 +315,7 @@
 
 :global([data-theme='dark']) .filterActionBtn {
   background: var(--sf-bg-surface, #1C1C1E);
-  border-color: rgba(99, 102, 241, 0.2);
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .filterActionBtn:active {
@@ -346,8 +343,7 @@
 
 :global([data-theme='dark']) .genderSegment {
   background: var(--sf-bg-surface, #1C1C1E);
-  border-color: rgba(99, 102, 241, 0.2);
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .genderSegmentBtn {
@@ -524,8 +520,7 @@
 
 :global([data-theme='dark']) .customerRow {
   background: var(--sf-bg-surface, #1C1C1E);
-  border-color: rgba(99, 102, 241, 0.2);
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 24px -4px rgba(0, 0, 0, 0.55);
 }
 

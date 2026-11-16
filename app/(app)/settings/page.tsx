@@ -218,10 +218,17 @@ export default function SettingsPage() {
             )}
           </div>
 
-          <p className={styles.heroMetaLine}>
-            {currentShop?.address || 'Lagos, Nigeria'}
-            {currentShop?.phone ? ` · ${currentShop.phone}` : ''}
-          </p>
+          {currentShop?.address || currentShop?.phone ? (
+            <p className={styles.heroMetaLine}>
+              {currentShop?.address || ''}
+              {currentShop?.address && currentShop?.phone ? ' · ' : ''}
+              {currentShop?.phone || ''}
+            </p>
+          ) : (
+            <p className={styles.heroMetaLine}>
+              Tap to set workshop address &amp; studio details
+            </p>
+          )}
         </div>
       </button>
 

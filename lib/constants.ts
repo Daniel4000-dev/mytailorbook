@@ -598,12 +598,11 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Single master account permitted to view frontend demo/mock datasets.
- * All other accounts see only their authentic shop records and clean empty states.
+ * Demo / mock data completely disabled.
+ * Every account sees only authentic workshop data and clean empty states.
  */
-export const MOCK_DATA_ALLOWED_EMAIL = 'dadekunle31@gmail.com';
+export const MOCK_DATA_ALLOWED_EMAIL = '';
 
-export function isMockDataAllowed(email?: string | null): boolean {
-  if (!email) return false;
-  return email.trim().toLowerCase() === MOCK_DATA_ALLOWED_EMAIL;
+export function isMockDataAllowed(_email?: string | null): boolean {
+  return false;
 }
