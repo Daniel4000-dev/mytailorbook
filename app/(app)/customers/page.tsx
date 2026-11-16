@@ -1150,8 +1150,8 @@ export default function CustomersPage() {
               <Image
                 src="/images/empty-states/customers.png"
                 alt=""
-                width={144}
-                height={168}
+                width={200}
+                height={235}
                 className={styles.emptyStateImage}
                 priority
               />
@@ -1164,7 +1164,7 @@ export default function CustomersPage() {
             </p>
             <div className={styles.emptyStateActions}>
               <Link href={ROUTES.orderNew} className={styles.emptyStatePrimaryCta}>
-                <Symbol name="add" size={17} />
+                <Symbol name="add" size={18} />
                 <span>Create Order</span>
               </Link>
               {isMockAllowed && (
