@@ -1,10 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { useReveal, slideInLeft, slideInRight, popIn } from '@/lib/marketingMotion';
+import RevealLeaf from '@/components/marketing/RevealLeaf';
 import { FREE_MONTHLY_ORDER_LIMIT, PREMIUM_MONTHLY_PRICE_NGN } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
 import { HOMEPAGE_FAQS } from './homepageFaqs';
@@ -89,9 +86,14 @@ const BENEFITS = [
   },
 ];
 
+/**
+ * HomePageContent is a pure React Server Component (RSC).
+ *
+ * It ships zero component JavaScript for all static typography, struggle cards,
+ * feature showcases, and pricing tiers. Client hydration and motion observers are
+ * isolated into lightweight leaf components (<RevealLeaf>).
+ */
 export default function HomePageContent() {
-  const reveal = useReveal();
-
   return (
     <div className={styles.page}>
       {/* Hero */}
@@ -105,12 +107,7 @@ export default function HomePageContent() {
           className={styles.heroBg}
         />
         <div className={styles.heroScrim} />
-        <motion.div
-          className={styles.heroContent}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <RevealLeaf className={styles.heroContent} animateOnMount>
           <span className={styles.heroEyebrow}>
             For Bespoke Tailors &amp; Ready-to-Wear Fashion Houses
           </span>
@@ -131,7 +128,7 @@ export default function HomePageContent() {
               See All Features
             </Link>
           </div>
-        </motion.div>
+        </RevealLeaf>
       </section>
 
       {/* Proof strip */}
@@ -153,12 +150,11 @@ export default function HomePageContent() {
             label: 'Client profiles',
           },
         ].map((shot, i) => (
-          <motion.div
+          <RevealLeaf
             key={shot.src}
             className={styles.proofCard}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 + i * 0.1 }}
+            animateOnMount
+            delay={0.1 + i * 0.1}
           >
             <Image
               src={shot.src}
@@ -174,27 +170,28 @@ export default function HomePageContent() {
               height={540}
               className={`${styles.proofImage} ${styles.proofImageDark}`}
             />
-          </motion.div>
+          </RevealLeaf>
         ))}
       </section>
 
       {/* SECTION 1: Relatable Everyday Shop Struggles */}
       <section className={styles.painSection}>
-        <motion.span className={styles.eyebrow} {...reveal(0.03)}>
+        <RevealLeaf as="span" className={styles.eyebrow} delay={0.03}>
           Why tailors leave paper jotters behind
-        </motion.span>
-        <motion.h2 className={styles.sectionTitle} {...reveal(0.05)}>
+        </RevealLeaf>
+        <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.05}>
           Every tailor has faced these moments.
-        </motion.h2>
+        </RevealLeaf>
         <div
           className={styles.painGrid}
           style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
         >
           {STRUGGLES.map((point, i) => (
-            <motion.div
+            <RevealLeaf
               key={point.title}
               className={styles.painCard}
-              {...reveal(0.08 + i * 0.08, popIn)}
+              variant="popIn"
+              delay={0.08 + i * 0.08}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
             >
               <div style={{ marginBottom: '1rem', color: 'var(--sf-accent-rose)' }}>
@@ -202,7 +199,7 @@ export default function HomePageContent() {
               </div>
               <h3>{point.title}</h3>
               <p>{point.text}</p>
-            </motion.div>
+            </RevealLeaf>
           ))}
         </div>
       </section>
@@ -213,12 +210,12 @@ export default function HomePageContent() {
         style={{ padding: '6rem 2rem', background: 'var(--sf-bg-surface-elevated)', maxWidth: 'none' }}
       >
         <div style={{ textAlign: 'center', marginBottom: '1rem', width: '100%' }}>
-          <motion.span className={styles.eyebrow} {...reveal(0.03)}>
+          <RevealLeaf as="span" className={styles.eyebrow} delay={0.03}>
             Simple daily workflow
-          </motion.span>
-          <motion.h2 className={styles.sectionTitle} {...reveal(0.05)} style={{ marginBottom: 0 }}>
+          </RevealLeaf>
+          <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.05} style={{ marginBottom: 0 }}>
             How MyStitchBook Works
-          </motion.h2>
+          </RevealLeaf>
         </div>
 
         <div
@@ -231,10 +228,11 @@ export default function HomePageContent() {
           }}
         >
           {HOW_IT_WORKS.map((step, i) => (
-            <motion.div
+            <RevealLeaf
               key={step.step}
               className={styles.painCard}
-              {...reveal(0.08 + i * 0.08, popIn)}
+              variant="popIn"
+              delay={0.08 + i * 0.08}
               style={{ textAlign: 'center', padding: '2rem' }}
             >
               <div
@@ -256,7 +254,7 @@ export default function HomePageContent() {
                 {step.step}
               </span>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0 }}>{step.title}</h3>
-            </motion.div>
+            </RevealLeaf>
           ))}
         </div>
       </section>
@@ -264,12 +262,12 @@ export default function HomePageContent() {
       {/* SECTION 3: Visual Feature Highlights */}
       <section className={styles.featuresSection} style={{ paddingTop: '5rem' }}>
         <div style={{ textAlign: 'center', width: '100%' }}>
-          <motion.span className={styles.eyebrow} {...reveal(0.05)} style={{ textAlign: 'center' }}>
+          <RevealLeaf as="span" className={styles.eyebrow} delay={0.05} style={{ textAlign: 'center' }}>
             Inside the app
-          </motion.span>
-          <motion.h2 className={styles.sectionTitle} {...reveal(0.08)}>
+          </RevealLeaf>
+          <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.08}>
             Everything you need, built in.
-          </motion.h2>
+          </RevealLeaf>
         </div>
         {FEATURES.map((feature, i) => {
           const reversed = i % 2 === 1;
@@ -278,17 +276,18 @@ export default function HomePageContent() {
               key={feature.title}
               className={`${styles.featureRow} ${reversed ? styles.featureRowReverse : ''}`}
             >
-              <motion.div
+              <RevealLeaf
                 className={styles.featureText}
-                {...reveal(0, reversed ? slideInRight : slideInLeft)}
+                variant={reversed ? 'slideInRight' : 'slideInLeft'}
               >
                 <span className={styles.eyebrow}>{feature.kicker}</span>
                 <h2 className={styles.featureTitle}>{feature.title}</h2>
                 <p className={styles.featureBody}>{feature.text}</p>
-              </motion.div>
-              <motion.div
+              </RevealLeaf>
+              <RevealLeaf
                 className={styles.featureImageWrap}
-                {...reveal(0.1, reversed ? slideInLeft : slideInRight)}
+                delay={0.1}
+                variant={reversed ? 'slideInLeft' : 'slideInRight'}
               >
                 <Image
                   src={feature.image}
@@ -297,16 +296,16 @@ export default function HomePageContent() {
                   height={600}
                   className={styles.featureImage}
                 />
-              </motion.div>
+              </RevealLeaf>
             </div>
           );
         })}
-        <motion.div className={styles.featureLinkRow} {...reveal()}>
+        <RevealLeaf className={styles.featureLinkRow}>
           <Link href={ROUTES.features} className={styles.featureLink}>
             See every feature
             <Symbol name="arrow_forward" size={16} />
           </Link>
-        </motion.div>
+        </RevealLeaf>
       </section>
 
       {/* SECTION 4: Benefits */}
@@ -315,25 +314,27 @@ export default function HomePageContent() {
         style={{ padding: '5rem 2rem', background: 'var(--sf-bg-surface-elevated)', maxWidth: 'none' }}
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <motion.span className={styles.eyebrow} {...reveal(0.03)}>
+          <RevealLeaf as="span" className={styles.eyebrow} delay={0.03}>
             Built for solo tailors &amp; growing teams
-          </motion.span>
-          <motion.h2
+          </RevealLeaf>
+          <RevealLeaf
+            as="h2"
             className={styles.sectionTitle}
-            {...reveal(0.05)}
+            delay={0.05}
             style={{ textAlign: 'center', marginBottom: '3rem' }}
           >
             Why workshops stay on MyStitchBook
-          </motion.h2>
+          </RevealLeaf>
           <div
             className={styles.painGrid}
             style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
           >
             {BENEFITS.map((benefit, i) => (
-              <motion.div
+              <RevealLeaf
                 key={benefit.text}
                 className={styles.painCard}
-                {...reveal(0.08 + i * 0.08, popIn)}
+                variant="popIn"
+                delay={0.08 + i * 0.08}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -360,7 +361,7 @@ export default function HomePageContent() {
                 <p style={{ fontSize: '1.05rem', fontWeight: 500, lineHeight: 1.45, margin: 0 }}>
                   {benefit.text}
                 </p>
-              </motion.div>
+              </RevealLeaf>
             ))}
           </div>
         </div>
@@ -368,18 +369,18 @@ export default function HomePageContent() {
 
       {/* Pricing teaser */}
       <section className={styles.pricingTeaser}>
-        <motion.span className={styles.eyebrow} {...reveal()}>
+        <RevealLeaf as="span" className={styles.eyebrow}>
           Simple, honest pricing
-        </motion.span>
-        <motion.h2 className={styles.sectionTitle} {...reveal(0.05)}>
+        </RevealLeaf>
+        <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.05}>
           A plan for every workshop.
-        </motion.h2>
-        <motion.p className={styles.pricingTeaserBody} {...reveal(0.08)}>
+        </RevealLeaf>
+        <RevealLeaf className={styles.pricingTeaserBody} delay={0.08}>
           Unlimited customers and unlimited custom styles, on every plan, forever. Free gets you{' '}
           {FREE_MONTHLY_ORDER_LIMIT} orders a month — upgrade only once your shop has genuinely
           outgrown that.
-        </motion.p>
-        <motion.div className={styles.pricingCards} {...reveal(0.12, popIn)}>
+        </RevealLeaf>
+        <RevealLeaf className={styles.pricingCards} variant="popIn" delay={0.12}>
           <div className={styles.pricingCard}>
             <span className={styles.pricingCardName}>Free</span>
             <span className={styles.pricingCardPrice}>₦0</span>
@@ -402,13 +403,13 @@ export default function HomePageContent() {
               <li>Full financial insights</li>
             </ul>
           </div>
-        </motion.div>
-        <motion.div {...reveal(0.16)}>
+        </RevealLeaf>
+        <RevealLeaf delay={0.16}>
           <Link href={ROUTES.pricing} className={styles.featureLink}>
             See full pricing details
             <Symbol name="arrow_forward" size={16} />
           </Link>
-        </motion.div>
+        </RevealLeaf>
       </section>
 
       {/* FAQ Accordion */}
@@ -448,7 +449,7 @@ export default function HomePageContent() {
           className={styles.finalCtaBg}
         />
         <div className={styles.finalCtaScrim} />
-        <motion.div className={styles.finalCtaInner} {...reveal(0, popIn)}>
+        <RevealLeaf className={styles.finalCtaInner} variant="popIn">
           <h2 className={styles.finalCtaTitle}>Ready to elevate your craft?</h2>
           <p className={styles.finalCtaBody}>
             It takes less than two minutes to set up your shop. No card required for the free plan.
@@ -457,7 +458,7 @@ export default function HomePageContent() {
             Start Free
             <Symbol name="arrow_forward" size={18} />
           </Link>
-        </motion.div>
+        </RevealLeaf>
       </section>
     </div>
   );
