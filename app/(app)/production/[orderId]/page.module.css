@@ -2,17 +2,12 @@
    the two-color rule (white-family surfaces + terracotta accent). */
 
 .detailWrapper {
-  /* width (not just max-width) so the flex parent can't floor this at
-     min-content and push cards past the viewport on small screens */
   width: 100%;
-  max-width: 896px;
+  max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-lg);
-  /* PageLayout's own content padding already trails the last card — no
-     extra padding-bottom here, or the two stack into a much bigger gap
-     than the last item's own margin/gap. */
+  gap: var(--sf-space-md);
   min-width: 0;
 }
 
@@ -34,12 +29,10 @@
   background: var(--sf-bg-surface);
   border-radius: 20px;
   padding: var(--sf-space-lg);
-  border: 1px solid rgba(67, 56, 202, 0.08);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--sf-border-light);
   box-shadow: 
     0 1px 3px rgba(15, 23, 42, 0.04),
-    0 8px 24px -4px rgba(67, 56, 202, 0.06),
-    0 16px 36px -8px rgba(15, 23, 42, 0.04);
+    0 4px 16px -2px rgba(15, 23, 42, 0.03);
   transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
@@ -108,13 +101,12 @@
   min-height: 44px;
   background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
-  border: none;
-  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--sf-radius-full);
   font-size: var(--sf-text-sm);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.01em;
-  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.38), 0 2px 4px rgba(67, 56, 202, 0.2);
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
   cursor: pointer;
   transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -139,51 +131,100 @@
   border-top-color: transparent;
 }
 
-/* ── 2. Workshop Command Hero Card ──────────────────────── */
+/* ── 2. Master Workshop Command Hero Card ──────────────────────── */
 .heroCard {
   position: relative;
   background: var(--sf-bg-surface);
   border-radius: 22px;
   padding: 20px 22px;
-  border: 1px solid rgba(67, 56, 202, 0.1);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--sf-border-light);
   box-shadow: 
     0 1px 3px rgba(15, 23, 42, 0.04),
-    0 10px 28px -4px rgba(67, 56, 202, 0.08),
-    0 20px 40px -10px rgba(15, 23, 42, 0.05);
+    0 6px 20px -4px rgba(67, 56, 202, 0.06);
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
+  gap: 16px;
 }
 
-.heroTop {
+.heroTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+.heroTopRightGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stageDropdownBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  background: var(--sf-bg-surface-elevated, rgba(15, 23, 42, 0.04));
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stageDropdownBtn:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border);
+}
+
+.stageDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.stageDropdownLabel {
+  letter-spacing: -0.01em;
+}
+
+.heroMainRow {
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-md);
 }
 
 @media (min-width: 640px) {
-  .heroTop {
+  .heroMainRow {
     flex-direction: row;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
   }
 }
 
 .heroProfile {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .customerAvatar {
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .heroInfo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -208,7 +249,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--sf-text-tertiary);
   transition: color var(--sf-transition-fast);
@@ -220,17 +261,20 @@
 
 .heroCustomerName {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-2xl);
-  font-weight: var(--sf-weight-bold);
-  line-height: 28px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
   color: var(--sf-text-primary);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .heroGarment {
   color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
+  font-size: 13.5px;
+  line-height: 1.4;
   margin: 0;
+  font-weight: 500;
 }
 
 .heroActions {
@@ -257,13 +301,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
+  padding: 7px 13px;
   background: #25D366;
   color: #FFFFFF;
   text-decoration: none;
   border: none;
   border-radius: var(--sf-radius-full) 0 0 var(--sf-radius-full);
-  font-size: var(--sf-text-xs);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: transform var(--sf-transition-fast), filter var(--sf-transition-fast);
@@ -277,7 +321,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 7px;
+  padding: 7px 8px;
   background: #1EBE5D;
   color: #FFFFFF;
   border: none;
@@ -294,13 +338,13 @@
 .heroCallBtn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 7px 14px;
   background: color-mix(in srgb, var(--sf-brand-indigo) 10%, transparent);
   color: var(--sf-brand-indigo);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-full);
-  font-size: var(--sf-text-xs);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--sf-transition-fast);
@@ -312,10 +356,10 @@
 
 /* ── Interactive Workshop Stage Stepper ───────────────────────────────── */
 .stageRibbon {
-  background: color-mix(in srgb, var(--sf-bg-primary) 65%, transparent);
+  background: var(--sf-bg-surface-elevated, rgba(15, 23, 42, 0.03));
   border-radius: 14px;
-  padding: 6px 8px;
-  border: 0.5px solid var(--sf-border-light);
+  padding: 4px;
+  border: 1px solid var(--sf-border-light);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -328,9 +372,8 @@
 .stageStepper {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 4px;
-  min-width: 330px;
+  min-width: 380px;
 }
 
 .stageStep {
@@ -339,21 +382,26 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-radius: 10px;
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--sf-text-tertiary);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
   white-space: nowrap;
 }
 
+.stageStep:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--sf-text-secondary);
+}
+
 .stageStep:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .stageStepCircle {
@@ -365,9 +413,10 @@
   justify-content: center;
   font-size: 10px;
   font-weight: 700;
-  background: color-mix(in srgb, var(--sf-text-primary) 10%, transparent);
-  color: var(--sf-text-secondary);
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--sf-text-tertiary);
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .stageStepPast {
@@ -375,19 +424,21 @@
 }
 
 .stageStepPast .stageStepCircle {
-  background: rgba(16, 185, 129, 0.16);
+  background: rgba(16, 185, 129, 0.15);
   color: #10B981;
 }
 
 .stageStepCurrent {
-  background: var(--sf-brand-indigo);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
+  background: var(--sf-bg-surface);
+  color: var(--sf-brand-indigo, #4F46E5);
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-weight: 700;
 }
 
 .stageStepCurrent .stageStepCircle {
-  background: #FFFFFF;
-  color: var(--sf-brand-indigo);
+  background: var(--sf-brand-indigo, #4F46E5);
+  color: #FFFFFF;
 }
 
 .stageStepText {
@@ -472,27 +523,28 @@
 .balanceHeaderDue {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 5px 11px;
   border-radius: var(--sf-radius-full);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-bold);
-  background: var(--sf-warning-bg, #FEF3C7);
-  color: var(--sf-warning-text, #92400E);
-  border: 1px solid var(--sf-warning-border, #FDE68A);
+  font-size: 11.5px;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.28);
   white-space: nowrap;
 }
 
 .balanceHeaderPaid {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 5px 11px;
   border-radius: var(--sf-radius-full);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-semibold);
-  background: #ECFDF5;
-  color: #065F46;
-  border: 1px solid #A7F3D0;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
   white-space: nowrap;
 }
 
@@ -1789,108 +1841,18 @@
    the item's old position in the file. On desktop this has no visible
    effect (.railWrap stops being `display: contents` there, so order no
    longer needs to reach across it) but is harmless to leave on. */
-.gaAdvance { order: 1; }
-.gaHeader { order: 2; }
-.orderMeta { order: 3; }
-.gaInspo { order: 4; }
-.gaNotes { order: 5; }
-.gaGallery { order: 6; }
-.gaComments { order: 7; }
-.gaBatch { order: 8; }
-.gaMeasure { order: 9; }
-.gaPayment { order: 10; }
-.gaMargin { order: 11; }
-.gaShare { order: 12; }
-.gaTimeline { order: 13; }
-.footerActions { order: 14; }
-.dangerZone { order: 15; }
-
-/* .railWrap wraps the metadata card plus everything from Payment Summary
-   down to Danger Zone — mobile: `display: contents` makes this wrapper
-   invisible to layout, so its children stack via .detailWrapper's own
-   flex gap exactly as if this div didn't exist (see the order block
-   above for why the *sequence* still comes out right). Desktop: it
-   becomes one real box occupying the full height of the right column —
-   see the grid rules below. */
-.railWrap {
-  display: contents;
-}
-
-/* ── Desktop overrides ──────────────────────────────────────────
-   Placed last on purpose — CSS source order decides the winner when
-   specificity ties against earlier unconditional rules (.detailWrapper
-   above sets max-width: 896px unconditionally; this must come after it
-   to actually win).
-
-   A real two-column detail view instead of mobile's cards reflowed into
-   two equal columns: a main working column (header, advance action,
-   photos, notes, measurements) in column 1, and .railWrap — everything
-   that's about the order rather than the work on it: properties, money,
-   comms, history, the destructive action — as one persistent box
-   spanning the full height of column 2. The same split Linear/GitHub use
-   for issue detail views.
-
-   Earlier version of this used grid-template-areas pairing each rail
-   item against a specific main-column row — broke as soon as a
-   conditional main-column section (Comments/Batch) didn't render: the
-   grid's row-sizing algorithm dumped the rail's leftover height into
-   that now-empty row, opening a large blank gap in the main column.
-   .railWrap as one real spanning box sidesteps that entirely — its
-   height no longer has to be distributed across rows shared with main
-   content. The WhatsApp FAB is hidden on desktop (replaced by the
-   toolbar button next to NotificationBell — see .whatsappTopBarBtn), so
-   the old padding-right dodge for it is gone too. */
+/* ── Desktop & Layout Overrides ────────────────────────────────── */
 @media (min-width: 1024px) {
   .detailWrapper {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    /* Needed for .railWrap's `grid-row: 1 / -1` below to mean anything —
-       without an explicit row count, line -1 has no defined target and
-       the browser was generating implicit rows in the wrong place,
-       pushing the entire main column hundreds of pixels down the page.
-       8 rows = the 8 main-column items (advance/header/inspo/notes/
-       gallery/comments/batch/measure), auto-placed in `order` sequence. */
-    grid-template-rows: repeat(8, auto);
-    column-gap: var(--sf-space-xl);
-    align-items: start;
-    max-width: 1400px;
-  }
-
-  .gaAdvance,
-  .gaHeader,
-  .gaInspo,
-  .gaGallery,
-  .gaNotes,
-  .gaComments,
-  .gaBatch,
-  .gaMeasure {
-    grid-column: 1;
-  }
-
-  .railWrap {
-    display: flex;
-    flex-direction: column;
+    max-width: 960px;
+    margin: 0 auto;
     gap: var(--sf-space-lg);
-    grid-column: 2;
-    grid-row: 1 / -1;
-    min-width: 0;
   }
 
-  /* The 768px breakpoint below still applies at desktop widths (media
-     queries don't know this card now lives in a 340px rail, not a
-     full-width band) — 4 columns there crams "Assigned To / Due Date /
-     Created / Stage Entry" into slivers that collide with the edit
-     button. Back to 2 columns, sized for the rail's actual width. */
-  .orderMeta .metaGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  /* Preserve multi-tier spatial depth on desktop */
   .card {
     box-shadow: 
       0 1px 3px rgba(15, 23, 42, 0.04),
-      0 8px 24px -4px rgba(67, 56, 202, 0.06),
-      0 16px 36px -8px rgba(15, 23, 42, 0.04);
+      0 4px 16px -2px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -2423,16 +2385,14 @@
 
 :global([data-theme='dark']) .card {
   background: var(--sf-bg-surface, #161526);
-  border-color: rgba(99, 102, 241, 0.16);
-  border-top-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.08);
   box-shadow: 
     0 1px 3px rgba(0, 0, 0, 0.3),
     0 8px 24px -4px rgba(0, 0, 0, 0.4);
 }
 
 :global([data-theme='dark']) .heroCard {
-  border-color: rgba(99, 102, 241, 0.18);
-  border-top-color: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.09);
   box-shadow: 
     0 1px 3px rgba(0, 0, 0, 0.3),
     0 12px 32px -4px rgba(0, 0, 0, 0.45);
@@ -2563,16 +2523,14 @@
 
   :global(:root:not([data-theme="light"])) .card {
     background: var(--sf-bg-surface, #161526);
-    border-color: rgba(99, 102, 241, 0.16);
-    border-top-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 
       0 1px 3px rgba(0, 0, 0, 0.3),
       0 8px 24px -4px rgba(0, 0, 0, 0.4);
   }
 
   :global(:root:not([data-theme="light"])) .heroCard {
-    border-color: rgba(99, 102, 241, 0.18);
-    border-top-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.09);
     box-shadow: 
       0 1px 3px rgba(0, 0, 0, 0.3),
       0 12px 32px -4px rgba(0, 0, 0, 0.45);
@@ -2769,23 +2727,21 @@
 .dossierTabBar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px;
-  background: rgba(15, 23, 42, 0.04);
-  border-radius: var(--sf-radius-full);
-  border: 1px solid rgba(67, 56, 202, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  gap: 4px;
+  padding: 4px;
+  background: var(--sf-bg-surface-elevated, rgba(15, 23, 42, 0.04));
+  border-radius: var(--sf-radius-lg, 14px);
+  border: 1px solid var(--sf-border-light);
   width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 :global([data-theme='dark']) .dossierTabBar {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(99, 102, 241, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .dossierTabBtn {
@@ -2793,36 +2749,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: var(--sf-radius-full);
+  gap: 7px;
+  padding: 10px 14px;
+  border-radius: calc(var(--sf-radius-lg, 14px) - 3px);
   border: none;
   background: transparent;
   color: var(--sf-text-secondary);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.16s ease;
   -webkit-tap-highlight-color: transparent;
   position: relative;
   white-space: nowrap;
 }
 
+.dossierTabBtn:hover {
+  color: var(--sf-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .dossierTabBtn:active {
-  transform: scale(0.96);
+  transform: scale(0.98);
 }
 
 .dossierTabActive {
   background: var(--sf-bg-surface);
   color: var(--sf-text-primary);
-  border-top: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(67, 56, 202, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-weight: 700;
 }
 
 :global([data-theme='dark']) .dossierTabActive {
-  border-top-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
+
 
 .tabBadge {
   font-size: 10px;

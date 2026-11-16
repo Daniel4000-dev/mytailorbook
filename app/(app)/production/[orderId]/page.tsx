@@ -798,9 +798,52 @@ export default function OrderDetailPage() {
            use. Placement is pure CSS grid-area, fully decoupled from DOM
            order, so mobile's flex-column stacking below is completely
            untouched — same source order as always. */}
-        {/* 1. Luxury Atelier Studio Command Hero Card */}
+        {/* 1. Master Workshop Command Hero Card */}
         <section className={styles.heroCard + ' ' + styles.gaHeader}>
-          <div className={styles.heroTop}>
+          {/* Top Row: Ref Badge + Client Profile Link & Stage Selector */}
+          <div className={styles.heroTopRow}>
+            <div className={styles.refRow}>
+              <span className={styles.refBadge}>#{orderRef}</span>
+              {customer && (
+                <Link href={ROUTES.customerDetail(customer)} className={styles.viewProfileBtn}>
+                  <span>Client Profile</span>
+                  <Symbol name="arrow_forward" size={12} />
+                </Link>
+              )}
+            </div>
+
+            <div className={styles.heroTopRightGroup}>
+              {balanceOwed > 0 ? (
+                <span className={styles.balanceHeaderDue}>
+                  <Symbol name="payments" size={13} />
+                  <span>{formatCurrency(balanceOwed, currentShop?.currency)} Due</span>
+                </span>
+              ) : (
+                <span className={styles.balanceHeaderPaid}>
+                  <Symbol name="check_circle" size={13} />
+                  <span>Paid in Full</span>
+                </span>
+              )}
+
+              <button
+                type="button"
+                className={styles.stageDropdownBtn}
+                onClick={() => setStagePickerOpen(true)}
+                aria-label={`Change stage from ${STATUS_CONFIG[order.status].label}`}
+                title="Tap to change stage"
+              >
+                <span
+                  className={styles.stageDot}
+                  style={{ background: STATUS_CONFIG[order.status].color }}
+                />
+                <span className={styles.stageDropdownLabel}>{STATUS_CONFIG[order.status].label}</span>
+                <Symbol name="expand_more" size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Identity: Customer Info & Quick Actions */}
+          <div className={styles.heroMainRow}>
             <div className={styles.heroProfile}>
               <Avatar
                 name={order.customerName || 'Customer'}
@@ -809,15 +852,6 @@ export default function OrderDetailPage() {
                 className={styles.customerAvatar}
               />
               <div className={styles.heroInfo}>
-                <div className={styles.refRow}>
-                  <span className={styles.refBadge}>Order #{orderRef}</span>
-                  {customer && (
-                    <Link href={ROUTES.customerDetail(customer)} className={styles.viewProfileBtn}>
-                      <span>Client Profile</span>
-                      <Symbol name="arrow_forward" size={12} />
-                    </Link>
-                  )}
-                </div>
                 <h2 className={styles.heroCustomerName}>{order.customerName}</h2>
                 <p className={styles.heroGarment}>{order.orderDetails}</p>
               </div>
@@ -847,28 +881,6 @@ export default function OrderDetailPage() {
                     </button>
                   )}
                 </>
-              )}
-
-              <button
-                type="button"
-                className={styles.stagePillBtn}
-                style={{ background: STATUS_CONFIG[order.status].bgColor }}
-                onClick={() => setStagePickerOpen(true)}
-                aria-label={`Change stage from ${STATUS_CONFIG[order.status].label}`}
-                title="Tap to change stage"
-              >
-                <span>{STATUS_CONFIG[order.status].label} Stage</span>
-                <Symbol name="expand_more" size={14} />
-              </button>
-
-              {balanceOwed > 0 ? (
-                <span className={styles.balanceHeaderDue}>
-                  {formatCurrency(balanceOwed, currentShop?.currency)} Due
-                </span>
-              ) : (
-                <span className={styles.balanceHeaderPaid}>
-                  <Symbol name="check" size={13} /> Paid in Full
-                </span>
               )}
 
               {customer && (
@@ -982,13 +994,14 @@ export default function OrderDetailPage() {
           ) : order.status !== 'Delivered' && (
             <div className={styles.exceptionActionRow}>
               <button type="button" className={styles.logExceptionBtn} onClick={() => setLoggingException(true)}>
-                <Symbol name="front_hand" size={16} /> Log Delay Exception
+                <Symbol name="front_hand" size={14} />
+                <span>Log Delay Exception</span>
               </button>
             </div>
           )}
         </section>
 
-        {/* 2. Luxury Atelier Dossier Segmented Tab Control */}
+        {/* 2. Dossier Segmented Tab Control */}
         <div className={styles.dossierTabBar}>
           <button
             type="button"
@@ -1020,7 +1033,7 @@ export default function OrderDetailPage() {
           </button>
         </div>
 
-        {/* 3. Luxury Atelier Production Dossier Content */}
+        {/* 3. Master Workshop Production Dossier Content */}
         <div className={styles.dossierBody}>
           {/* ── PILLAR 1: CRAFT SPEC ── */}
           {activeTab === 'spec' && (
