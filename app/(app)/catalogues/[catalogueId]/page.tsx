@@ -16,6 +16,11 @@ import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import { StyleCatalogue, StyleCataloguePhoto, Customer } from '@/lib/types';
 import { findByIdOrSlug } from '@/lib/slugs';
 import {
+  getCachedCatalogues,
+  updateCachedCatalogue,
+  removeCachedCatalogue,
+} from '@/lib/catalogueCache';
+import {
   getCataloguesAction,
   addCataloguePhotoAction,
   deleteCataloguePhotoAction,
@@ -46,15 +51,18 @@ export default function CatalogueDetailPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const [catalogue, setCatalogue] = useState<StyleCatalogue | null>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedList = currentShop?.id ? getCachedCatalogues(currentShop.id) : null;
+  const cachedFound = cachedList ? findByIdOrSlug(cachedList, catalogueId, (c) => c.title) : null;
+
+  const [catalogue, setCatalogue] = useState<StyleCatalogue | null>(cachedFound || null);
+  const [loading, setLoading] = useState(!cachedFound);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
 
   // Sheets and Dialogs state
   const [showBroadcast, setShowBroadcast] = useState(false);
   const [showEditTitle, setShowEditTitle] = useState(false);
-  const [editedTitle, setEditedTitle] = useState('');
+  const [editedTitle, setEditedTitle] = useState(cachedFound?.title || '');
   const [savingTitle, setSavingTitle] = useState(false);
 
   const [inspectedPhoto, setInspectedPhoto] = useState<StyleCataloguePhoto | null>(null);
@@ -63,6 +71,14 @@ export default function CatalogueDetailPage() {
   const [deleting, setDeleting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/catalogues');
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -73,6 +89,7 @@ export default function CatalogueDetailPage() {
           if (found) {
             setCatalogue(found);
             setEditedTitle(found.title);
+            updateCachedCatalogue(currentShop.id, found);
             setLoading(false);
             return;
           }
@@ -150,7 +167,11 @@ export default function CatalogueDetailPage() {
     if (successCount > 0) {
       showToast(`Added ${successCount} inspiration ${successCount === 1 ? 'look' : 'looks'}!`, 'success');
       const updated = await getCataloguesAction(currentShop.id);
-      setCatalogue(updated.find((c) => c.id === catalogueId) || null);
+      const found = updated.find((c) => c.id === catalogueId) || null;
+      setCatalogue(found);
+      if (found) {
+        updateCachedCatalogue(currentShop.id, found);
+      }
     } else {
       showToast('Could not upload photos. Please check your connection.', 'error');
     }
@@ -166,7 +187,11 @@ export default function CatalogueDetailPage() {
     setSavingTitle(true);
     try {
       await updateCatalogueAction(catalogue.id, editedTitle.trim());
-      setCatalogue((prev) => (prev ? { ...prev, title: editedTitle.trim() } : null));
+      const updated = { ...catalogue, title: editedTitle.trim() };
+      setCatalogue(updated);
+      if (currentShop) {
+        updateCachedCatalogue(currentShop.id, updated);
+      }
       showToast('Album title updated', 'success');
       setShowEditTitle(false);
     } catch (err: any) {
@@ -182,9 +207,12 @@ export default function CatalogueDetailPage() {
     setDeleting(true);
     try {
       await deleteCataloguePhotoAction(photoToDelete);
-      setCatalogue((prev) =>
-        prev ? { ...prev, photos: prev.photos?.filter((p) => p.id !== photoToDelete) } : null
-      );
+      const updatedPhotos = catalogue.photos?.filter((p) => p.id !== photoToDelete) || [];
+      const updated = { ...catalogue, photos: updatedPhotos };
+      setCatalogue(updated);
+      if (currentShop) {
+        updateCachedCatalogue(currentShop.id, updated);
+      }
       showToast('Photo removed from album', 'success');
 
       if (inspectedPhoto?.id === photoToDelete) {
@@ -204,8 +232,11 @@ export default function CatalogueDetailPage() {
     setDeleting(true);
     try {
       await deleteCatalogueAction(catalogue.id);
+      if (currentShop) {
+        removeCachedCatalogue(currentShop.id, catalogue.id);
+      }
       showToast('Album deleted', 'info');
-      router.push('/catalogues');
+      handleBack();
     } catch (err: any) {
       showToast(err.message, 'error');
       setDeleting(false);
@@ -260,13 +291,13 @@ export default function CatalogueDetailPage() {
   if (!catalogue) {
     return (
       <div className={styles.container}>
-        <TopBar title="Album Not Found" showBack onBack={() => router.push('/catalogues')} />
+        <TopBar title="Album Not Found" showBack onBack={handleBack} />
         <div className={styles.content}>
           <EmptyState
             icon={<Symbol name="photo_library" size={40} />}
             title="Album Not Found"
             description="This collection may have been removed or reorganized."
-            action={{ label: 'Return to Lookbooks', onClick: () => router.push('/catalogues') }}
+            action={{ label: 'Return to Lookbooks', onClick: handleBack }}
           />
         </div>
       </div>
@@ -280,7 +311,7 @@ export default function CatalogueDetailPage() {
       <TopBar
         title={catalogue.title}
         showBack
-        onBack={() => router.push('/catalogues')}
+        onBack={handleBack}
         rightAction={
           <button
             type="button"
@@ -298,7 +329,7 @@ export default function CatalogueDetailPage() {
         <button
           type="button"
           className={styles.backBreadcrumb}
-          onClick={() => router.push('/catalogues')}
+          onClick={handleBack}
           aria-label="Back to Lookbooks"
         >
           <Symbol name="arrow_back" size={16} />
@@ -366,7 +397,7 @@ export default function CatalogueDetailPage() {
           </div>
         </div>
 
-        {/* ── True Pinterest Staggered Masonry Grid ── */}
+        {/* ── Editorial Staggered Grid ── */}
         {photos.length > 0 ? (
           <div className={styles.masonryGrid}>
             {photos.map((photo) => (
@@ -387,20 +418,9 @@ export default function CatalogueDetailPage() {
                   src={photo.imageUrl}
                   alt={catalogue.title}
                   decoding="async"
+                  loading="lazy"
                   className={styles.photoImg}
                 />
-                <button
-                  type="button"
-                  className={styles.photoDeleteBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPhotoToDelete(photo.id);
-                  }}
-                  title="Remove photo"
-                  aria-label="Remove photo"
-                >
-                  <Symbol name="delete" size={14} />
-                </button>
                 <div className={styles.photoOverlay}>
                   <div className={styles.photoActions}>
                     <button
@@ -413,8 +433,9 @@ export default function CatalogueDetailPage() {
                         );
                       }}
                       title="Calculate price quote for this style"
+                      aria-label="Calculate price quote"
                     >
-                      <Symbol name="calculate" size={13} />
+                      <Symbol name="calculate" size={12} />
                       <span>Quote</span>
                     </button>
                     <button
@@ -425,9 +446,22 @@ export default function CatalogueDetailPage() {
                         handleStartOrderWithPhoto(photo);
                       }}
                       title="Start order with this style"
+                      aria-label="Sew this style"
                     >
-                      <Symbol name="content_cut" size={13} />
+                      <Symbol name="content_cut" size={12} />
                       <span>Sew This</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickDeleteBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPhotoToDelete(photo.id);
+                      }}
+                      title="Remove photo"
+                      aria-label="Remove photo"
+                    >
+                      <Symbol name="delete" size={13} />
                     </button>
                   </div>
                 </div>

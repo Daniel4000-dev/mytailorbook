@@ -204,24 +204,32 @@
   border-top-color: transparent;
 }
 
-/* ── True Pinterest Staggered Masonry Grid ── */
+/* ── Editorial Staggered Grid ── */
 .masonryGrid {
-  column-count: 4;
-  column-gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
   width: 100%;
 }
 
 @media (max-width: 1024px) {
   .masonryGrid {
-    column-count: 3;
-    column-gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
   }
 }
 
 @media (max-width: 640px) {
   .masonryGrid {
-    column-count: 2;
-    column-gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 330px) {
+  .masonryGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
 
@@ -245,46 +253,39 @@
 }
 
 .photoCard {
-  break-inside: avoid;
-  margin-bottom: 14px;
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
   background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
   border: 1px solid rgba(67, 56, 202, 0.08);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
   box-shadow: 
     0 1px 3px rgba(15, 23, 42, 0.04),
-    0 8px 24px -4px rgba(67, 56, 202, 0.06),
-    0 16px 36px -8px rgba(15, 23, 42, 0.04);
+    0 6px 20px -4px rgba(67, 56, 202, 0.06);
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
   user-select: none;
-  min-height: 180px;
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 :global([data-theme='dark']) .photoCard {
   border-color: rgba(99, 102, 241, 0.16);
-  border-top-color: rgba(255, 255, 255, 0.15);
   box-shadow: 
     0 1px 3px rgba(0, 0, 0, 0.3),
-    0 8px 24px -4px rgba(0, 0, 0, 0.4);
+    0 6px 20px -4px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 640px) {
   .photoCard {
-    margin-bottom: 10px;
     border-radius: 16px;
-    min-height: 140px;
   }
 }
 
 .photoCard:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: 
     0 4px 12px rgba(15, 23, 42, 0.06),
-    0 16px 36px -4px rgba(67, 56, 202, 0.16);
+    0 14px 28px -4px rgba(67, 56, 202, 0.14);
 }
 
 .photoCard:active {
@@ -293,11 +294,10 @@
 
 .photoImg {
   width: 100%;
-  height: auto;
-  display: block;
+  aspect-ratio: 3 / 4;
   object-fit: cover;
+  display: block;
   transition: transform 0.3s ease;
-  min-height: 140px;
   background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
 }
 
@@ -305,60 +305,13 @@
   transform: scale(1.02);
 }
 
-.photoDeleteBtn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 4;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--sf-radius-full);
-  background: rgba(15, 14, 23, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #FCA5A5;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s ease, color 0.15s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.photoCard:hover .photoDeleteBtn,
-.photoCard:focus-within .photoDeleteBtn {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.photoDeleteBtn:hover {
-  background: #DC2626;
-  color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.08);
-}
-
-.photoDeleteBtn:active {
-  transform: scale(0.95);
-}
-
-@media (hover: none) {
-  .photoDeleteBtn {
-    opacity: 0.95;
-    transform: scale(1);
-  }
-}
-
 .photoOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(15, 14, 23, 0.88) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(15, 14, 23, 0.92) 100%);
   display: flex;
   align-items: flex-end;
-  padding: 8px;
+  padding: 8px 6px;
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
@@ -373,25 +326,26 @@
 @media (hover: none) {
   .photoOverlay {
     opacity: 1;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(15, 14, 23, 0.8) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(15, 14, 23, 0.88) 100%);
   }
 }
 
 .photoActions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
   pointer-events: auto;
+  box-sizing: border-box;
 }
 
 .quickQuoteBtn {
   flex: 1;
   min-width: 0;
-  height: 34px;
-  padding: 0 8px;
+  height: 30px;
+  padding: 0 6px;
   border-radius: var(--sf-radius-full);
-  background: rgba(15, 14, 23, 0.82);
+  background: rgba(15, 14, 23, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: #FFFFFF;
@@ -401,10 +355,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -426,10 +380,10 @@
 
 /* Plane 3: Signal Button (Luminous Adire Indigo) */
 .quickOrderBtn {
-  flex: 1.25;
+  flex: 1.15;
   min-width: 0;
-  height: 34px;
-  padding: 0 10px;
+  height: 30px;
+  padding: 0 8px;
   border-radius: var(--sf-radius-full);
   background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
@@ -440,10 +394,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.35);
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -455,7 +409,7 @@
 
 .quickOrderBtn:hover {
   background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.45);
   transform: translateY(-1px);
 }
 
@@ -463,16 +417,52 @@
   transform: scale(0.96);
 }
 
+.quickDeleteBtn {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 14, 23, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #F87171;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.quickDeleteBtn:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.06);
+}
+
+.quickDeleteBtn:active {
+  transform: scale(0.92);
+}
+
 @media (max-width: 380px) {
+  .photoOverlay {
+    padding: 6px 4px;
+  }
   .photoActions {
-    gap: 4px;
+    gap: 3px;
   }
   .quickQuoteBtn,
   .quickOrderBtn {
-    height: 32px;
-    padding: 0 6px;
+    height: 27px;
     font-size: 10px;
-    gap: 3px;
+    padding: 0 5px;
+  }
+  .quickDeleteBtn {
+    flex: 0 0 27px;
+    width: 27px;
+    height: 27px;
   }
 }
 

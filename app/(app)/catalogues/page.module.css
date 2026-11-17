@@ -434,69 +434,75 @@
   color: var(--sf-text-tertiary);
 }
 
-/* ── Pinterest Staggered Masonry (Plane 2 Pin Cards) ── */
+/* ── Editorial Staggered Grid (Plane 2 Pin Cards) ── */
 .masonryGrid {
-  column-count: 4;
-  column-gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
   width: 100%;
 }
 
 @media (max-width: 1024px) {
-  .masonryGrid { column-count: 3; column-gap: 12px; }
+  .masonryGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
 }
 
 @media (max-width: 640px) {
-  .masonryGrid { column-count: 2; column-gap: 10px; }
+  .masonryGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 330px) {
+  .masonryGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 .pinCard {
-  break-inside: avoid;
-  margin-bottom: 14px;
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
   background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
   border: 1px solid rgba(67, 56, 202, 0.08);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
   box-shadow: 
     0 1px 3px rgba(15, 23, 42, 0.04),
-    0 8px 24px -4px rgba(67, 56, 202, 0.06),
-    0 16px 36px -8px rgba(15, 23, 42, 0.04);
+    0 6px 20px -4px rgba(67, 56, 202, 0.06);
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
-  min-height: 180px;
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 :global([data-theme='dark']) .pinCard {
   border-color: rgba(99, 102, 241, 0.16);
-  border-top-color: rgba(255, 255, 255, 0.15);
   box-shadow: 
     0 1px 3px rgba(0, 0, 0, 0.3),
-    0 8px 24px -4px rgba(0, 0, 0, 0.4);
+    0 6px 20px -4px rgba(0, 0, 0, 0.4);
 }
 
 @media (max-width: 640px) {
   .pinCard {
-    margin-bottom: 10px;
     border-radius: 16px;
-    min-height: 140px;
   }
 }
 
 .pinCard:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: 
     0 4px 12px rgba(15, 23, 42, 0.06),
-    0 16px 36px -4px rgba(67, 56, 202, 0.16);
+    0 14px 28px -4px rgba(67, 56, 202, 0.14);
 }
 
 .pinImg {
   width: 100%;
-  height: auto;
-  display: block;
+  aspect-ratio: 3 / 4;
   object-fit: cover;
-  min-height: 140px;
+  display: block;
   background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
 }
 
@@ -631,13 +637,11 @@
   }
   .pinQuoteBtn,
   .pinOrderBtn {
-    height: 32px;
+    height: 30px;
     padding: 0 6px;
     font-size: 10px;
     gap: 3px;
   }
-}
-  transform: scale(0.97);
 }
 
 /* ── Empty State & Quick Start ── */

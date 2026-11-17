@@ -13,6 +13,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import { StyleCatalogue, StyleCataloguePhoto } from '@/lib/types';
 import { getCataloguesAction, createCatalogueAction } from '@/app/actions/catalogues';
+import { getCachedCatalogues, setCachedCatalogues } from '@/lib/catalogueCache';
 import styles from './page.module.css';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -47,8 +48,9 @@ export default function CataloguesPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const [catalogues, setCatalogues] = useState<StyleCatalogue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = currentShop?.id ? getCachedCatalogues(currentShop.id) : null;
+  const [catalogues, setCatalogues] = useState<StyleCatalogue[]>(cached || []);
+  const [loading, setLoading] = useState<boolean>(!cached);
   const [isCreating, setIsCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -63,14 +65,26 @@ export default function CataloguesPage() {
       return;
     }
 
+    const cachedNow = getCachedCatalogues(currentShop.id);
+    if (cachedNow) {
+      setCatalogues(cachedNow);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     getCataloguesAction(currentShop.id)
       .then((res) => {
-        setCatalogues(res || []);
+        const data = res || [];
+        setCachedCatalogues(currentShop.id, data);
+        setCatalogues(data);
         setLoading(false);
       })
       .catch((err) => {
         console.warn('DB catalogue query error:', err.message);
-        setCatalogues([]);
+        if (!cachedNow) {
+          setCatalogues([]);
+        }
         setLoading(false);
       });
   }, [currentShop?.id]);
@@ -86,6 +100,16 @@ export default function CataloguesPage() {
     try {
       if (currentShop) {
         const id = await createCatalogueAction(currentShop.id, title);
+        const newCat: StyleCatalogue = {
+          id,
+          shopId: currentShop.id,
+          title,
+          photos: [],
+          createdAt: new Date().toISOString(),
+        };
+        const updatedList = [newCat, ...catalogues];
+        setCachedCatalogues(currentShop.id, updatedList);
+        setCatalogues(updatedList);
         showToast(`Album "${title}" created!`, 'success');
         setIsCreating(false);
         setNewTitle('');
