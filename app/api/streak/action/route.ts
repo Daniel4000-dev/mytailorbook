@@ -310,20 +310,26 @@ export async function POST(req: Request) {
     if (lastCountedStr !== todayStr) {
       if (lastCountedStr) {
         const lastDate = new Date(lastCountedStr);
-        lastDate.setHours(12,0,0,0);
+        lastDate.setHours(12, 0, 0, 0);
         const todayDate = new Date(todayStr);
-        todayDate.setHours(12,0,0,0);
+        todayDate.setHours(12, 0, 0, 0);
         
         const diffDays = Math.round((todayDate.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
         // Streak is paused for up to 3 days without resetting.
-        // On day 4 or later of inactivity, it resets to zero unless a freeze protects it.
+        // On day 4 or later of inactivity, it resets to zero unless freezes cover the missed days.
         if (diffDays > 3 && !shop.vacation_mode) {
-          if (streakFreezes > 0 && currentStreak > 0) {
-            streakFreezes -= 1;
+          const missedDaysBeyondGrace = diffDays - 3;
+          if (streakFreezes >= missedDaysBeyondGrace && currentStreak > 0) {
+            streakFreezes -= missedDaysBeyondGrace;
           } else {
+            // Inactivity exceeded available freezes — reset streak to start over
             currentStreak = 0;
+            streakFreezes = 0;
           }
         }
+      } else {
+        // First recorded craft check-in for this shop — start cleanly at 0 before today's +1
+        currentStreak = 0;
       }
 
       currentStreak += 1;

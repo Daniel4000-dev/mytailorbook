@@ -39,3 +39,4 @@ export function removeCachedCatalogue(shopId: string, catalogueId: string): void
 export function invalidateCatalogueCache(): void {
   cachedCatalogues = null;
 }
+
