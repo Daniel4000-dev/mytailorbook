@@ -2,7 +2,7 @@
 
 .container {
   padding: 12px 16px 88px;
-  max-width: 640px;
+  max-width: var(--sf-max-width-desktop, 1200px);
   width: 100%;
   margin: 0 auto;
   display: flex;
@@ -11,11 +11,33 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .container {
-    padding: 20px 20px 96px;
-    gap: 16px;
+    padding: 20px var(--sf-space-lg) 96px;
+    gap: 18px;
   }
+}
+
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.skeletonHeroCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-subtle, rgba(67, 56, 202, 0.08));
+  border-radius: var(--sf-radius-xl, 20px);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+:global([data-theme='dark']) .skeletonHeroCard {
+  border-color: rgba(99, 102, 241, 0.16);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* ── TopBar Secondary Reports Navigation ── */

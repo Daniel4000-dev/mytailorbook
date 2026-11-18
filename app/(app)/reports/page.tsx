@@ -86,6 +86,14 @@ export default function ReportsPage() {
   const currency = currentShop?.currency || 'NGN';
   const totals = report?.totals || EMPTY_FINANCIAL_TOTALS;
 
+  const businessMode =
+    currentShop?.businessMode ||
+    ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
+    'bespoke';
+  const isBespoke = businessMode === 'bespoke';
+  const isRtw = businessMode === 'rtw';
+  const isHybrid = businessMode === 'hybrid';
+
   const marginPercent =
     totals.revenueWithCostData > 0
       ? Math.round((totals.marginTotal / totals.revenueWithCostData) * 100)
@@ -99,7 +107,7 @@ export default function ReportsPage() {
 
   return (
     <PageLayout
-      width="narrow"
+      width="full"
       header={
         <TopBar
           title="Sales & Reports"
@@ -140,7 +148,11 @@ export default function ReportsPage() {
               </div>
             </div>
             <span className={styles.metricValue}>{formatCurrency(totals.collected, currency)}</span>
-            <span className={styles.metricSub}>{totals.ordersWithCostCount} costed commissions</span>
+            <span className={styles.metricSub}>
+              {isRtw
+                ? `${totals.showroomUnitsSold} pieces sold`
+                : `${totals.ordersWithCostCount} costed commissions`}
+            </span>
           </div>
 
           <div className={styles.metricCard}>
@@ -181,73 +193,144 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Revenue Channels: Bespoke Atelier vs Showroom RTW */}
-        <div className={styles.panelCard}>
-          <div className={styles.panelHeader}>
-            <span className={styles.panelTitle}>
-              <Symbol name="bar_chart" size={18} />
-              Revenue Segregation: Bespoke vs Showroom
-            </span>
-            <span className={styles.metricSub}>
-              {totals.bespokeOrdersCount + totals.showroomOrdersCount} total orders
-            </span>
-          </div>
-
-          {/* Split Ratio Bar */}
-          <div
-            className={styles.channelSplitTrack}
-            role="progressbar"
-            aria-valuenow={bespokeShare}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            title={`Bespoke: ${bespokeShare}% | Showroom: ${showroomShare}%`}
-          >
-            <div className={styles.channelSplitBespoke} style={{ width: `${bespokeShare}%` }} />
-            <div className={styles.channelSplitShowroom} style={{ width: `${showroomShare}%` }} />
-          </div>
-
-          <div className={styles.channelsGrid}>
-            {/* Bespoke Commissions */}
-            <div className={styles.channelCard}>
-              <div className={styles.channelCardHeader}>
-                <div className={styles.channelTitleWrap}>
-                  <div className={styles.channelIconWrap}>
-                    <Symbol name="straighten" size={16} />
-                  </div>
-                  <span className={styles.channelTitle}>Bespoke Atelier</span>
-                </div>
-                <span className={styles.channelShareBadge}>{bespokeShare}% of sales</span>
-              </div>
-              <span className={styles.channelAmount}>
-                {formatCurrency(totals.bespokeRevenue || totals.collected, currency)}
+        {/* Channel Breakdown: Specific to Business Configuration */}
+        {isHybrid ? (
+          /* Hybrid Configuration: Full Comparison & Segregation */
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="bar_chart" size={18} />
+                Revenue Segregation: Bespoke vs Showroom
               </span>
-              <div className={styles.channelStatsRow}>
-                <span>{totals.bespokeOrdersCount} commissions</span>
-                <span>Collected: {formatCurrency(totals.bespokeCollected || totals.collected, currency)}</span>
-              </div>
+              <span className={styles.metricSub}>
+                {totals.bespokeOrdersCount + totals.showroomOrdersCount} total orders
+              </span>
             </div>
 
-            {/* Showroom RTW Counter */}
-            <div className={styles.channelCard}>
-              <div className={styles.channelCardHeader}>
-                <div className={styles.channelTitleWrap}>
-                  <div className={styles.channelIconWrap}>
-                    <Symbol name="checkroom" size={16} />
+            {/* Split Ratio Bar */}
+            <div
+              className={styles.channelSplitTrack}
+              role="progressbar"
+              aria-valuenow={bespokeShare}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              title={`Bespoke: ${bespokeShare}% | Showroom: ${showroomShare}%`}
+            >
+              <div className={styles.channelSplitBespoke} style={{ width: `${bespokeShare}%` }} />
+              <div className={styles.channelSplitShowroom} style={{ width: `${showroomShare}%` }} />
+            </div>
+
+            <div className={styles.channelsGrid}>
+              <div className={styles.channelCard}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="straighten" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Bespoke Tailoring</span>
                   </div>
-                  <span className={styles.channelTitle}>Ready-to-Wear Showroom</span>
+                  <span className={styles.channelShareBadge}>{bespokeShare}% of sales</span>
                 </div>
-                <span className={styles.channelShareBadge}>{showroomShare}% of sales</span>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.bespokeRevenue || totals.collected, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>{totals.bespokeOrdersCount} commissions</span>
+                  <span>Collected: {formatCurrency(totals.bespokeCollected || totals.collected, currency)}</span>
+                </div>
               </div>
-              <span className={styles.channelAmount}>
-                {formatCurrency(totals.showroomRevenue, currency)}
-              </span>
-              <div className={styles.channelStatsRow}>
-                <span>{totals.showroomUnitsSold} pieces sold ({totals.showroomOrdersCount} sales)</span>
-                <span>Collected: {formatCurrency(totals.showroomCollected, currency)}</span>
+
+              <div className={styles.channelCard}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="checkroom" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Ready-to-Wear Showroom</span>
+                  </div>
+                  <span className={styles.channelShareBadge}>{showroomShare}% of sales</span>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.showroomRevenue, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>{totals.showroomUnitsSold} pieces sold ({totals.showroomOrdersCount} sales)</span>
+                  <span>Collected: {formatCurrency(totals.showroomCollected, currency)}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : isRtw ? (
+          /* Pure RTW Configuration: Showroom Inventory & Sales Focus */
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="checkroom" size={18} />
+                Ready-to-Wear Showroom Performance
+              </span>
+              <span className={styles.metricSub}>
+                {totals.showroomUnitsSold} pieces sold across {totals.showroomOrdersCount} checkouts
+              </span>
+            </div>
+
+            <div className={styles.channelsGrid}>
+              <div className={styles.channelCard} style={{ flex: 1 }}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="point_of_sale" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Showroom Gross Revenue</span>
+                  </div>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.showroomRevenue || totals.collected, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>Collected: {formatCurrency(totals.showroomCollected || totals.collected, currency)}</span>
+                  <span>
+                    Avg piece: {totals.showroomUnitsSold > 0 ? formatCurrency(Math.round((totals.showroomRevenue || totals.collected) / totals.showroomUnitsSold), currency) : '--'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Pure Bespoke Configuration: Custom Commissions & Craft Focus */
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="straighten" size={18} />
+                Bespoke Tailoring Performance
+              </span>
+              <span className={styles.metricSub}>
+                {totals.bespokeOrdersCount} tailored client commissions
+              </span>
+            </div>
+
+            <div className={styles.channelsGrid}>
+              <div className={styles.channelCard} style={{ flex: 1 }}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="content_cut" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Custom Commission Value</span>
+                  </div>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.bespokeRevenue || totals.collected, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>Collected: {formatCurrency(totals.bespokeCollected || totals.collected, currency)}</span>
+                  <span>
+                    Avg ticket: {totals.bespokeOrdersCount > 0 ? formatCurrency(Math.round((totals.bespokeRevenue || totals.collected) / totals.bespokeOrdersCount), currency) : '--'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Collections Pulse & Debt Recovery Ratio */}
         <div className={styles.panelCard}>
@@ -302,7 +385,7 @@ export default function ReportsPage() {
                 <span className={styles.cutProfitVal}>
                   +{formatCurrency(totals.mostProfitableStyle.profit, currency)}
                 </span>
-                <span className={styles.cutProfitLabel}>Net Atelier Margin</span>
+                <span className={styles.cutProfitLabel}>Net Workshop Margin</span>
               </div>
             </div>
           </div>
@@ -319,7 +402,7 @@ export default function ReportsPage() {
           <DonutChart data={totals.expenseBreakdown} />
         </div>
 
-        {/* Atelier Operational Expenses Ledger */}
+        {/* Workshop Operational Expenses Ledger */}
         <div className={styles.panelCard}>
           <div className={styles.panelHeader}>
             <span className={styles.panelTitle}>

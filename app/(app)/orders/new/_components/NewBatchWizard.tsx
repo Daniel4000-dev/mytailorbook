@@ -86,9 +86,21 @@ export default function NewBatchWizard() {
 
   return (
     <PageLayout 
-      width="narrow"
+      width="full"
       padding="none"
-      header={<TopBar title="New Production Batch" showBack onBack={() => router.push(ROUTES.production)} />}
+      header={
+        <TopBar
+          title="New Production Batch"
+          showBack
+          onBack={() => {
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push(ROUTES.production);
+            }
+          }}
+        />
+      }
     >
       <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '680px', margin: '0 auto', width: '100%' }}>
         <div style={{ background: 'var(--sf-bg-surface)', padding: '24px', borderRadius: '12px', border: '1px solid var(--sf-border-subtle)', display: 'flex', flexDirection: 'column', gap: '16px' }}>

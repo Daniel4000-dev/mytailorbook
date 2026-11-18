@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useMemo, useDeferredValue } from 'react';
+import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
+import { ROUTES } from '@/lib/routes';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
@@ -14,12 +16,21 @@ import type { InventoryItem } from '@/lib/types';
 import styles from './page.module.css';
 
 export default function InventoryPage() {
+  const router = useRouter();
   const { inventory, isLoaded } = useData();
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
   
   // selectedItem can be null (closed), 'new' (add item), or an InventoryItem (edit)
   const [selectedItem, setSelectedItem] = useState<InventoryItem | 'new' | null>(null);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.dashboard);
+    }
+  };
 
   const filtered = useMemo(() => {
     return inventory.filter((item) => 
@@ -33,6 +44,8 @@ export default function InventoryPage() {
         <TopBar
           title="Inventory"
           subtitle="Manage fabrics, thread, and materials"
+          showBack
+          onBack={handleBack}
           rightAction={<NotificationBell />}
         />
       }

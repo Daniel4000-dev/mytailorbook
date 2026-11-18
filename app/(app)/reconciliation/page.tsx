@@ -14,6 +14,7 @@ import { APP_CONFIG } from '@/lib/config';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import styles from './page.module.css';
@@ -530,14 +531,20 @@ export default function ShopExpensesPage() {
 
   return (
     <PageLayout
-      width="narrow"
+      width="full"
       padding="none"
       header={
         <TopBar
-          title="Daily Register & Expenses"
-          subtitle="Cash drawer balancing, showroom POS & shop expenses"
+          title="Shop Expenses"
+          subtitle="Daily cash drawer & petty expenses"
           showBack
-          onBack={() => router.push(ROUTES.dashboard)}
+          onBack={() => {
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push(ROUTES.dashboard);
+            }
+          }}
           rightAction={
             <button
               type="button"
@@ -568,7 +575,6 @@ export default function ShopExpensesPage() {
             <label className={styles.calendarPickerBtn} htmlFor="reconDateInput">
               <Symbol name="calendar_today" size={13} />
               <span className={styles.displayDateLabel}>{displayDateText}</span>
-              <span className={styles.displayDateSub}>({date})</span>
               <input
                 id="reconDateInput"
                 type="date"
@@ -615,9 +621,41 @@ export default function ShopExpensesPage() {
         </section>
 
         {initialLoading ? (
-          <div className={styles.loadingState}>
-            <Symbol name="progress_activity" size={28} className="global-spinner" />
-            <p>Loading shop expenses…</p>
+          <div className={styles.skeletonContainer}>
+            {/* Hero Card Skeleton */}
+            <div className={styles.skeletonHeroCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <Skeleton width="180px" height={14} borderRadius={6} />
+                <Skeleton width="90px" height={14} borderRadius={6} />
+              </div>
+              <Skeleton width="220px" height={38} borderRadius={8} style={{ marginBottom: 18 }} />
+              <div style={{ display: 'flex', gap: 12 }}>
+                <Skeleton width="50%" height={50} borderRadius={10} />
+                <Skeleton width="50%" height={50} borderRadius={10} />
+              </div>
+            </div>
+
+            {/* Balancing Card Skeleton */}
+            <div className={styles.skeletonHeroCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <Skeleton width="160px" height={16} borderRadius={6} />
+                <Skeleton width="100px" height={24} borderRadius={12} />
+              </div>
+              <Skeleton width="100%" height={44} borderRadius={10} />
+            </div>
+
+            {/* Tabs Skeleton */}
+            <div style={{ display: 'flex', gap: 8, margin: '4px 0' }}>
+              <Skeleton width="120px" height={36} borderRadius={20} />
+              <Skeleton width="120px" height={36} borderRadius={20} />
+            </div>
+
+            {/* Rows Skeleton */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Skeleton width="100%" height={68} borderRadius={12} />
+              <Skeleton width="100%" height={68} borderRadius={12} />
+              <Skeleton width="100%" height={68} borderRadius={12} />
+            </div>
           </div>
         ) : (
           <>

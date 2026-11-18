@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
+import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
@@ -326,13 +327,12 @@ function CalendarContent() {
 
   if (!isLoaded) {
     return (
-      <>
-        <TopBar title="Fittings & Schedule" />
+      <PageLayout header={<TopBar title="Fittings & Schedule" />}>
         <div className={styles.container}>
           <div className={styles.skeletonHero} />
           <div className={styles.skeletonGrid} />
         </div>
-      </>
+      </PageLayout>
     );
   }
 
@@ -345,8 +345,7 @@ function CalendarContent() {
     : null;
 
   return (
-    <>
-      <TopBar title="Fittings & Schedule" />
+    <PageLayout header={<TopBar title="Fittings & Schedule" />}>
       <div className={styles.container}>
         {/* Navigation & View Toggle Header */}
         <header className={styles.topControlCard}>
@@ -820,7 +819,7 @@ function CalendarContent() {
           label="Book Fitting or Event"
         />
       </div>
-    </>
+    </PageLayout>
   );
 }
 

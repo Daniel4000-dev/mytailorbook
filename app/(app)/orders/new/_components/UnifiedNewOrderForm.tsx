@@ -930,7 +930,7 @@ export default function UnifiedNewOrderForm() {
 
   return (
     <PageLayout
-      width="narrow"
+      width="full"
       padding="none"
       header={
         <TopBar
@@ -941,6 +941,8 @@ export default function UnifiedNewOrderForm() {
             const custIdParam = searchParams.get('customer');
             if (custIdParam) {
               router.push(ROUTES.customerDetail(custIdParam));
+            } else if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back();
             } else {
               router.push(ROUTES.production);
             }

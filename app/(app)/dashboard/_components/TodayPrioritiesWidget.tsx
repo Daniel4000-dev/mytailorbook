@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
+import { useState, useMemo } from 'react';
+import { useData } from '@/contexts/DataContext';
+import { updateEventStatus } from '@/app/actions/calendar';
 import type { CalendarEvent } from '@/lib/types';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -15,25 +15,36 @@ interface TodayPrioritiesWidgetProps {
 }
 
 export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPrioritiesWidgetProps) {
-  const { user } = useAuth();
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { calendarEvents, isLoaded } = useData();
+  const [localStatuses, setLocalStatuses] = useState<Record<string, 'pending' | 'completed'>>({});
 
-  useEffect(() => {
-    if (!user?.shopId) {
-      setIsLoading(false);
-      return;
+  const todayStr = useMemo(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }, []);
+
+  // Synchronous resolution directly from cached DataContext — instant 0ms rendering on screen refocus
+  const events = useMemo(() => {
+    return (calendarEvents || [])
+      .filter((e) => (e.date || '').split('T')[0] === todayStr)
+      .map((e) => (localStatuses[e.id] ? { ...e, status: localStatuses[e.id] } : e));
+  }, [calendarEvents, todayStr, localStatuses]);
+
+  const handleToggleEvent = async (evt: CalendarEvent) => {
+    const isCompleted = evt.status === 'completed';
+    const newStatus = isCompleted ? 'pending' : 'completed';
+    setLocalStatuses((prev) => ({ ...prev, [evt.id]: newStatus }));
+    try {
+      await updateEventStatus(evt.id, newStatus);
+    } catch (err) {
+      console.warn('Failed to update event status', err);
+      setLocalStatuses((prev) => {
+        const copy = { ...prev };
+        delete copy[evt.id];
+        return copy;
+      });
     }
-    const fetchToday = async () => {
-      const today = new Date();
-      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const allMonth = await getCalendarEvents(user.shopId, monthStr);
-      const todayStr = today.toISOString().split('T')[0];
-      setEvents(allMonth.filter((e) => e.date === todayStr));
-      setIsLoading(false);
-    };
-    fetchToday();
-  }, [user?.shopId]);
+  };
 
   const pendingEvents = events.filter((e) => e.status !== 'completed');
   const hasItems = pendingEvents.length > 0 || loops.length > 0;
@@ -52,7 +63,7 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
         )}
       </div>
 
-      {!isLoading && !hasItems && (
+      {isLoaded && !hasItems && (
         <div className={styles.allClearBox}>
           <div className={styles.clearIconWrap}>
             <Symbol name="check_circle" size={18} />
@@ -74,13 +85,7 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
                 <div className={styles.itemLeft}>
                   <button
                     type="button"
-                    onClick={async () => {
-                      const newStatus = isCompleted ? 'pending' : 'completed';
-                      setEvents((prev) =>
-                        prev.map((p) => (p.id === evt.id ? { ...p, status: newStatus } : p))
-                      );
-                      await updateEventStatus(evt.id, newStatus);
-                    }}
+                    onClick={() => handleToggleEvent(evt)}
                     className={`${styles.checkbox} ${isCompleted ? styles.checkboxChecked : ''}`}
                     aria-label={`Mark ${evt.title} as ${isCompleted ? 'pending' : 'done'}`}
                   >

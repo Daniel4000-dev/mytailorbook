@@ -223,20 +223,7 @@ export default function TopBar({
               {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
             </div>
             <div className={styles.right}>
-              {finalRightAction || (
-                <>
-                  <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-                    {!isOnline ? (
-                      <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
-                    ) : (
-                      <>
-                        <Symbol name="notifications" size={24} />
-                        <span className={styles.notificationBadge} />
-                      </>
-                    )}
-                  </button>
-                </>
-              )}
+              {finalRightAction !== undefined ? finalRightAction : <NotificationBell />}
             </div>
           </>
         )}

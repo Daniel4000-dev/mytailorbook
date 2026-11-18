@@ -14,9 +14,17 @@ import styles from './page.module.css';
 
 function OrderTypeSelector({ onSelect }: { onSelect: (type: 'bespoke' | 'rtw') => void }) {
   const router = useRouter();
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.production);
+    }
+  };
   
   return (
-    <PageLayout width="narrow" padding="none" header={<TopBar title="New Order" showBack onBack={() => router.push(ROUTES.production)} />}>
+    <PageLayout width="full" padding="none" header={<TopBar title="New Order" showBack onBack={handleBack} />}>
       <div className={styles.selectorContainer}>
         <h2 className={styles.selectorTitle}>What are you creating?</h2>
         <p className={styles.selectorSubtitle}>Select the production workflow for this order</p>

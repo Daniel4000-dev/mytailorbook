@@ -12,6 +12,7 @@
 
 @media (min-width: 768px) {
   .container {
+    max-width: 860px;
     padding: 24px 20px calc(96px + env(safe-area-inset-bottom, 0px));
     gap: 18px;
   }
