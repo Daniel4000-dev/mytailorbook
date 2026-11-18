@@ -5,83 +5,88 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useNotifications, type NotificationItem, type NotificationCategory } from '@/lib/hooks/useNotifications';
 import { useNotificationReadState } from '@/lib/hooks/useNotificationReadState';
-import { useData } from '@/contexts/DataContext';
-import { useToast } from '@/contexts/ToastContext';
-import { sendTestPushAction } from '@/app/actions';
-import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { getInitials } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
-import PageLayout from '@/components/layout/PageLayout/PageLayout';
+import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
+import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import styles from './page.module.css';
 
-type FilterTab = 'all' | NotificationCategory | 'unread';
+type FilterTab = 'all' | 'unread' | NotificationCategory;
 
-const GROUP_ORDER = ['Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Older'] as const;
+const GROUP_ORDER = ['Today', 'Yesterday', 'This Week', 'Earlier'] as const;
 
-function formatInstagramRelativeTime(timestamp: string): string {
-  const diffMs = Date.now() - new Date(timestamp).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d`;
-  const weeks = Math.floor(days / 7);
-  if (weeks < 5) return `${weeks}w`;
-  const months = Math.floor(days / 30);
-  return `${months}mo`;
+function formatNotificationTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) {
+    const isToday = now.toDateString() === date.toDateString();
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+    return `${diffHours}h ago`;
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (yesterday.toDateString() === date.toDateString()) {
+    return `Yesterday, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+  }
+
+  if (diffMs < 7 * 24 * 60 * 60 * 1000) {
+    return date.toLocaleDateString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  }
+
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
-function getInstagramGroupLabel(timestamp: string): typeof GROUP_ORDER[number] {
+function getNotificationGroupLabel(timestamp: string): typeof GROUP_ORDER[number] {
   const date = new Date(timestamp);
   const now = new Date();
 
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
-  const sevenDaysStart = todayStart - 7 * 24 * 60 * 60 * 1000;
-  const thirtyDaysStart = todayStart - 30 * 24 * 60 * 60 * 1000;
+  const weekStart = todayStart - 6 * 24 * 60 * 60 * 1000;
 
   const time = date.getTime();
   if (time >= todayStart) return 'Today';
   if (time >= yesterdayStart) return 'Yesterday';
-  if (time >= sevenDaysStart) return 'Last 7 days';
-  if (time >= thirtyDaysStart) return 'Last 30 days';
-  return 'Older';
+  if (time >= weekStart) return 'This Week';
+  return 'Earlier';
+}
+
+function getCategorySemantic(category: NotificationCategory, tone?: string) {
+  if (tone === 'alert') {
+    return { icon: 'warning', className: styles.toneAlert };
+  }
+  switch (category) {
+    case 'payments':
+      return { icon: 'payments', className: styles.tonePayments };
+    case 'production':
+      return { icon: 'straighten', className: styles.toneProduction };
+    case 'clients':
+      return { icon: 'checkroom', className: styles.toneClients };
+    case 'system':
+    default:
+      return { icon: 'info', className: styles.toneSystem };
+  }
 }
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const isDesktop = useIsDesktop();
-  const { currentShop } = useData();
   const { notifications, isLoaded } = useNotifications();
   const { readIds, markRead, markAllRead } = useNotificationReadState();
 
-  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
-  const [testingPush, setTestingPush] = useState(false);
-
-  const handleTestPush = async () => {
-    if (testingPush) return;
-    setTestingPush(true);
-    showToast('Sending test push in 3s — lock screen or switch apps to view', 'info');
-    try {
-      const res = await sendTestPushAction(3);
-      if (res.error) {
-        showToast(res.error, 'error');
-      } else {
-        showToast(`Test alert delivered to ${res.sentCount || 1} registered device(s)`, 'success');
-      }
-    } catch {
-      showToast('Could not deliver test notification', 'error');
-    } finally {
-      setTestingPush(false);
-    }
-  };
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !readIds.has(n.id) && !n.readAt).length,
@@ -113,12 +118,14 @@ export default function NotificationsPage() {
   const groups = useMemo(() => {
     const map = new Map<string, NotificationItem[]>();
     filtered.forEach((n) => {
-      const label = getInstagramGroupLabel(n.timestamp);
+      const label = getNotificationGroupLabel(n.timestamp);
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(n);
     });
 
-    return GROUP_ORDER.filter((label) => map.has(label)).map((label) => [label, map.get(label)!] as const);
+    return GROUP_ORDER.filter((label) => map.has(label)).map(
+      (label) => [label, map.get(label)!] as const
+    );
   }, [filtered]);
 
   const handleSelect = (n: NotificationItem) => {
@@ -130,235 +137,297 @@ export default function NotificationsPage() {
     }
   };
 
-  const studioHandle = currentShop?.socialLinks?.instagram || currentShop?.name?.toLowerCase().replace(/\s+/g, '_') || 'mystitchbook_studio';
-  const cleanHandle = studioHandle.startsWith('@') ? studioHandle.slice(1) : studioHandle;
+  const handleMarkAll = () => {
+    markAllRead(notifications.map((n) => n.id));
+  };
+
+  const categoryTabLabels: Record<FilterTab, string> = {
+    all: 'All',
+    unread: 'Unread',
+    production: 'Production',
+    clients: 'Clients & Lookbook',
+    payments: 'Payments',
+    system: 'System',
+  };
 
   return (
-    <PageLayout width="narrow" padding="none">
-      <div className={styles.page}>
-        {/* Instagram-Inspired Header */}
-        <div className={styles.headerWrap}>
-          <button
-            type="button"
-            className={styles.headerIconBtn}
-            onClick={() => router.push(ROUTES.dashboard)}
-            aria-label="Back"
-          >
-            <Symbol name="chevron_left" size={20} />
-          </button>
-
-          <button
-            type="button"
-            className={styles.headerTitleBtn}
-            onClick={() => router.push(ROUTES.settingsStudio)}
-          >
-            <span className={styles.headerHandle}>_{cleanHandle}</span>
-            <Symbol name="verified" size={15} className={styles.headerVerified} />
-            <Symbol name="expand_more" size={16} className={styles.headerChevron} />
-          </button>
-
-          <div className={styles.headerActions}>
-            <button
-              type="button"
-              className={styles.headerIconBtn}
-              onClick={handleTestPush}
-              disabled={testingPush}
-              title="Send test push alert to this device"
-              aria-label="Send test push alert to this device"
-            >
-              <Symbol name="send" size={17} />
-            </button>
+    <div className={styles.container}>
+      <TopBar
+        title="Notifications"
+        subtitle={
+          !isLoaded
+            ? 'Loading updates...'
+            : unreadCount > 0
+            ? `${unreadCount} unread update${unreadCount === 1 ? '' : 's'}`
+            : 'All caught up'
+        }
+        showBack={true}
+        onBack={() => router.push(ROUTES.dashboard)}
+        rightAction={
+          <div className={styles.topActions}>
             {unreadCount > 0 && (
               <button
                 type="button"
-                className={styles.headerIconBtn}
-                onClick={() => markAllRead(notifications.map((n) => n.id))}
-                title="Mark all as read"
-                aria-label="Mark all as read"
+                className={styles.markAllBtn}
+                onClick={handleMarkAll}
+                title="Mark all notifications as read"
               >
-                <Symbol name="done_all" size={18} />
+                <Symbol name="done_all" size={15} />
+                <span>Mark all read</span>
               </button>
             )}
             <button
               type="button"
-              className={styles.headerIconBtn}
+              className={styles.settingsBtn}
               onClick={() => router.push(ROUTES.settingsMessages)}
-              title="Notification settings"
-              aria-label="Notification settings"
+              title="Notification Settings"
+              aria-label="Notification Settings"
             >
-              <Symbol name="notifications" size={18} />
+              <Symbol name="settings" size={17} />
             </button>
           </div>
-        </div>
+        }
+      />
 
+      <main className={styles.content}>
         {/* Search Bar */}
-        <div style={{ marginTop: '8px', marginBottom: '8px' }}>
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search orders, clients, or alerts..."
-          />
-        </div>
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search by order, client, or update..."
+        />
 
-        {/* Filter Pills */}
-        <div className={styles.filterRow} role="tablist">
+        {/* Filter Pills Strip */}
+        <div className={styles.filterStrip} role="tablist" aria-label="Filter notifications">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'all'}
             className={`${styles.filterPill} ${activeTab === 'all' ? styles.filterPillActive : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All
-            <span className={styles.filterCount}>{notifications.length}</span>
+            <span>All</span>
+            {notifications.length > 0 && (
+              <span className={styles.filterBadge}>{notifications.length}</span>
+            )}
           </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${activeTab === 'production' ? styles.filterPillActive : ''}`}
-            onClick={() => setActiveTab('production')}
-          >
-            Production
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${activeTab === 'clients' ? styles.filterPillActive : ''}`}
-            onClick={() => setActiveTab('clients')}
-          >
-            Clients &amp; Lookbook
-          </button>
-          <button
-            type="button"
-            className={`${styles.filterPill} ${activeTab === 'payments' ? styles.filterPillActive : ''}`}
-            onClick={() => setActiveTab('payments')}
-          >
-            Payments
-          </button>
+
           {unreadCount > 0 && (
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === 'unread'}
               className={`${styles.filterPill} ${activeTab === 'unread' ? styles.filterPillActive : ''}`}
               onClick={() => setActiveTab('unread')}
             >
-              Unread
-              <span className={styles.filterCount}>{unreadCount}</span>
+              <span>Unread</span>
+              <span className={styles.filterBadge}>{unreadCount}</span>
             </button>
           )}
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'production'}
+            className={`${styles.filterPill} ${activeTab === 'production' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('production')}
+          >
+            <span>Production</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'clients'}
+            className={`${styles.filterPill} ${activeTab === 'clients' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('clients')}
+          >
+            <span>Clients &amp; Lookbook</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'payments'}
+            className={`${styles.filterPill} ${activeTab === 'payments' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('payments')}
+          >
+            <span>Payments</span>
+          </button>
         </div>
 
-        {/* Instagram Activity Grouped List */}
-        {groups.length === 0 ? (
-          <div className={styles.emptyStateWrap}>
-            <Symbol name="notifications_off" size={40} style={{ color: 'var(--sf-text-tertiary)' }} />
-            <h3 className={styles.emptyStateTitle}>
-              {!isLoaded
-                ? 'Loading shop activity...'
-                : activeTab === 'unread'
-                ? "You're all caught up"
-                : searchQuery
-                ? 'No activity matches your search'
-                : 'No shop activity yet'}
-            </h3>
-            <p className={styles.emptyStateDesc}>
+        {/* ── 1. SKELETON LOAD STATE ── */}
+        {!isLoaded ? (
+          <div className={styles.skeletonContainer}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className={styles.skeletonCard}>
+                <Skeleton width={42} height={42} borderRadius={12} />
+                <div className={styles.skeletonBody}>
+                  <Skeleton width={`${55 + (i * 7) % 30}%`} height={15} borderRadius={4} />
+                  <Skeleton width={`${75 + (i * 5) % 20}%`} height={13} borderRadius={4} />
+                  <Skeleton width={80} height={11} borderRadius={4} style={{ marginTop: '2px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : groups.length === 0 ? (
+          /* ── 2. CONTEXTUAL EMPTY STATE ── */
+          <div className={styles.emptyCard}>
+            <div className={styles.emptyIconCircle}>
+              <Symbol
+                name={
+                  activeTab === 'unread'
+                    ? 'check_circle'
+                    : searchQuery.trim()
+                    ? 'search'
+                    : 'notifications'
+                }
+                size={26}
+              />
+            </div>
+            <h3 className={styles.emptyTitle}>
               {activeTab === 'unread'
-                ? 'All customer fitting comments, workshop stage transitions, and lookbook reactions have been reviewed.'
-                : 'When clients approve quotes, tailors cut fabrics, or payments arrive, they will appear right here.'}
+                ? "You're All Caught Up"
+                : searchQuery.trim()
+                ? 'No Matching Notifications'
+                : activeTab !== 'all'
+                ? `No ${categoryTabLabels[activeTab]} Notifications`
+                : 'No Notifications Yet'}
+            </h3>
+            <p className={styles.emptyDescription}>
+              {activeTab === 'unread'
+                ? 'All order milestones, fitting appointments, and payments have been reviewed.'
+                : searchQuery.trim()
+                ? `No notifications found matching "${searchQuery}". Try searching by order reference or client name.`
+                : activeTab !== 'all'
+                ? `Updates related to ${categoryTabLabels[activeTab].toLowerCase()} will appear here as activity occurs.`
+                : 'When clients approve designs, tailors cut fabrics, or payments arrive, updates will appear right here.'}
             </p>
+            {(activeTab !== 'all' || searchQuery.trim()) && (
+              <button
+                type="button"
+                className={styles.emptyActionBtn}
+                onClick={() => {
+                  setActiveTab('all');
+                  setSearchQuery('');
+                }}
+              >
+                <Symbol name="done_all" size={15} />
+                <span>Show All Activity</span>
+              </button>
+            )}
           </div>
         ) : (
+          /* ── 3. GROUPED NOTIFICATIONS FEED ── */
           groups.map(([label, items]) => (
-            <div key={label} className={styles.group}>
+            <section key={label} className={styles.groupSection}>
               <span className={styles.groupLabel}>{label}</span>
-              <div className={styles.rowList}>
+              <div className={styles.cardsList}>
                 {items.map((n) => {
                   const isUnread = !readIds.has(n.id) && !n.readAt;
-                  const itemTitle = n.title || 'Shop Update';
-                  const actor = n.actorName || (itemTitle.split(' ')[0] + ' ' + (itemTitle.split(' ')[1] || ''));
-                  const badgeIcon = n.badgeIcon || (n.tone === 'alert' ? 'warning' : 'check_circle');
-                  const badgeBg = n.badgeBg || (n.tone === 'alert' ? '#FEE2E2' : '#D1FAE5');
-                  const badgeColor = n.badgeColor || (n.tone === 'alert' ? '#DC2626' : '#059669');
+                  const semantic = getCategorySemantic(n.category, n.tone);
+                  const actor = n.actorName || '';
 
                   return (
-                    <div
+                    <article
                       key={n.id}
-                      className={`${styles.row} ${isUnread ? styles.rowUnread : ''}`}
+                      className={`${styles.card} ${isUnread ? styles.cardUnread : ''}`}
                       onClick={() => handleSelect(n)}
                       role="button"
                       tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelect(n);
+                        }
+                      }}
                     >
-                      {/* Left: Avatar with Overlapping Icon Badge */}
-                      <div className={styles.avatarWrap}>
-                        <div className={styles.avatarCircle}>
-                          {n.actorAvatarUrl ? (
+                      {/* Left: Avatar or Semantic Icon */}
+                      <div className={styles.iconWrap}>
+                        {n.actorAvatarUrl ? (
+                          <div className={styles.avatarCircle}>
                             <Image
                               src={n.actorAvatarUrl}
-                              alt={actor}
+                              alt={actor || 'Avatar'}
                               className={styles.avatarImg}
-                              width={44}
-                              height={44}
+                              width={42}
+                              height={42}
                               unoptimized
                             />
-                          ) : (
+                            {n.badgeIcon && (
+                              <div
+                                className={styles.avatarBadge}
+                                style={{
+                                  background: n.badgeBg || '#4F46E5',
+                                  color: n.badgeColor || '#FFFFFF',
+                                }}
+                              >
+                                <Symbol name={n.badgeIcon} size={10} />
+                              </div>
+                            )}
+                          </div>
+                        ) : actor ? (
+                          <div className={styles.avatarCircle}>
                             <span>{getInitials(actor)}</span>
-                          )}
-                        </div>
-                        <div
-                          className={styles.avatarBadge}
-                          style={{ background: badgeBg, color: badgeColor }}
-                        >
-                          <Symbol name={badgeIcon} size={11} />
-                        </div>
+                          </div>
+                        ) : (
+                          <div className={`${styles.iconWrap} ${semantic.className}`}>
+                            <Symbol name={semantic.icon} size={20} />
+                          </div>
+                        )}
                       </div>
 
-                      {/* Middle: Instagram Styled Sentence & Action */}
-                      <div className={styles.contentCol}>
-                        <p className={styles.activitySentence}>
-                          <span className={styles.actorName}>{actor}</span>{' '}
-                          {itemTitle.replace(actor, '').trim() || itemTitle}
+                      {/* Middle: Content Body */}
+                      <div className={styles.cardBody}>
+                        <div className={styles.cardHeaderRow}>
+                          <span className={styles.cardTitle}>{n.title}</span>
+                          {isUnread && <span className={styles.unreadDot} aria-label="Unread notification" />}
+                        </div>
+                        {n.subtitle && (
+                          <span className={styles.cardSubtitle}>{n.subtitle}</span>
+                        )}
+                        <div className={styles.cardMetaRow}>
                           <span className={styles.timeTag}>
-                            {formatInstagramRelativeTime(n.timestamp)}
+                            {formatNotificationTime(n.timestamp)}
                           </span>
-                        </p>
-                        <div className={styles.subActionRow}>
                           {n.actionLabel && (
                             <button
                               type="button"
-                              className={styles.actionPillBtn}
+                              className={styles.actionPill}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSelect(n);
                               }}
                             >
-                              {n.actionLabel}
+                              <span>{n.actionLabel}</span>
+                              <Symbol name="chevron_right" size={12} />
                             </button>
                           )}
-                          <span className={styles.subContext}>{n.subtitle}</span>
                         </div>
                       </div>
 
-                      {/* Right: Media Thumbnail or Unread Dot */}
-                      <div className={styles.rightWrap}>
-                        {n.thumbnailUrl ? (
+                      {/* Right: Media Thumbnail & Directional Chevron */}
+                      <div className={styles.cardRight}>
+                        {n.thumbnailUrl && (
                           <Image
                             src={n.thumbnailUrl}
                             alt="Media Preview"
-                            className={styles.mediaThumb}
-                            width={44}
-                            height={44}
+                            className={styles.thumbPreview}
+                            width={42}
+                            height={42}
                             unoptimized
                           />
-                        ) : (
-                          <div className={styles.mediaSilhouette}>
-                            <Symbol name="checkroom" size={18} />
-                          </div>
                         )}
-                        {isUnread && <div className={styles.unreadDot} />}
+                        <Symbol name="chevron_right" size={18} className={styles.chevronIcon} />
                       </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>
-            </div>
+            </section>
           ))
         )}
-      </div>
-    </PageLayout>
+      </main>
+    </div>
   );
 }
