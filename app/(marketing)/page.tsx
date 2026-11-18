@@ -8,7 +8,7 @@ import { HOMEPAGE_FAQS } from './_components/homepageFaqs';
 export const metadata: Metadata = {
   title: `${APP_CONFIG.name} — Measurement, Production & POS App for Tailors & Fashion Houses`,
   description:
-    'Your sewing is already great. Now your shop runs like it. Save every customer measurement forever, tag every cloth, track due dates, collect unpaid balances, and sell Ready-to-Wear — even offline.',
+    'Your sewing is already great. Now your shop runs like it. Permanent offline measurements, cloth tagging, production tracking, and instant WhatsApp updates for modern tailors.',
   keywords: [
     'tailoring app',
     'measurement app for tailors',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${APP_CONFIG.name} — Your sewing is already great. Now your shop runs like it.`,
     description:
-      'Save every customer’s measurement forever, tag every cloth that enters your shop, know which outfits are due this week, and collect every unpaid balance — even without internet.',
+      'Never lose a client’s measurement, mix up fabrics on the cutting table, or chase awkward balances. Run your fashion business with calm, unmistakable control — even offline.',
     type: 'website',
     images: [{ url: '/images/marketing/hero-tailor-tablet.jpg' }],
   },
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${APP_CONFIG.name} — Your sewing is already great. Now your shop runs like it.`,
     description:
-      'Save every customer’s measurement forever, tag every cloth that enters your shop, know which outfits are due this week, and collect every unpaid balance — even without internet.',
+      'Never lose a client’s measurement, mix up fabrics on the cutting table, or chase awkward balances. Run your fashion business with calm, unmistakable control — even offline.',
     images: ['/images/marketing/hero-tailor-tablet.jpg'],
   },
 };
@@ -68,7 +68,7 @@ export default function HomePage() {
       },
       {
         '@type': 'Offer',
-        name: 'Premium Atelier Plan',
+        name: 'Premium Plan',
         price: String(PREMIUM_MONTHLY_PRICE_NGN),
         priceCurrency: 'NGN',
         description: 'Unlimited monthly orders, role-based staff accounts, multi-branch switching, and full financial analytics.',

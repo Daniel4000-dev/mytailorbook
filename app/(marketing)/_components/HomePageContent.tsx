@@ -10,59 +10,84 @@ import styles from './HomePageContent.module.css';
 const STRUGGLES = [
   {
     icon: 'auto_stories',
-    title: 'Missing measurement pages',
-    text: 'A returning customer says “use my last measurement” and you cannot find their page.',
+    title: 'Torn or lost measurement jotters',
+    text: 'A returning VIP client says “use my last fit” and your notebook page is water-damaged, torn, or misplaced.',
   },
   {
     icon: 'texture',
-    title: 'Untagged cloth on the shelf',
-    text: 'Three black cashmeres or white laces sit on the shelf and nobody remembers whose is whose.',
+    title: 'Untagged fabrics on the shelf',
+    text: 'Three black cashmeres or emerald laces sit on your cutting table, and nobody is certain whose is whose.',
   },
   {
     icon: 'content_cut',
-    title: 'Misread numbers when cutting',
-    text: 'A handwritten 42 gets read as 47 at the cutting table, costing you your own money.',
+    title: 'Costly cutting table mistakes',
+    text: 'A hurried handwritten 32 gets read as 37 by your cutter, wasting expensive client yardage from your own pocket.',
   },
   {
     icon: 'payments',
-    title: 'Uncollected customer balances',
-    text: '“I will transfer the balance when I get home” turns into weeks of awkward follow-ups.',
+    title: 'Awkward balance collection',
+    text: '“I will transfer the balance when I get home” turns into weeks of silent calls and uncollected earnings.',
   },
   {
     icon: 'event',
-    title: 'Thursday night deadline surprises',
-    text: 'Realizing late on Thursday that four different outfits are promised for Friday morning.',
+    title: 'Thursday night delivery shocks',
+    text: 'Realizing late on Thursday evening that four bespoke outfits were promised for Friday morning church or event.',
   },
 ];
 
 const HOW_IT_WORKS = [
-  { icon: 'straighten', step: 'Step 1', title: 'Save measurements once (even offline)' },
-  { icon: 'content_cut', step: 'Step 2', title: 'Tag customer cloth & print cutting slip' },
-  { icon: 'view_kanban', step: 'Step 3', title: 'Move orders across your production board' },
-  { icon: 'share', step: 'Step 4', title: 'Send a live WhatsApp progress link' },
-  { icon: 'account_balance_wallet', step: 'Step 5', title: 'Collect balances & sell Ready-to-Wear' },
+  {
+    icon: 'straighten',
+    step: 'Step 1',
+    title: 'Save measurements once',
+    text: 'Permanent cloud backup, ready in 2 seconds, even offline.',
+  },
+  {
+    icon: 'content_cut',
+    step: 'Step 2',
+    title: 'Tag cloth & cutting slip',
+    text: 'Snap fabric on arrival. Give cutters clear, legible specs.',
+  },
+  {
+    icon: 'view_kanban',
+    step: 'Step 3',
+    title: 'Track shop progress',
+    text: 'See cutting, sewing, and fitting without shouting across the floor.',
+  },
+  {
+    icon: 'share',
+    step: 'Step 4',
+    title: 'Live WhatsApp updates',
+    text: 'Clients track progress live, ending repetitive “is it ready?” calls.',
+  },
+  {
+    icon: 'account_balance_wallet',
+    step: 'Step 5',
+    title: 'Collect balances calmly',
+    text: 'One-tap digital receipts and WhatsApp balance reminders that work.',
+  },
 ];
 
 const FEATURES = [
   {
     icon: 'view_kanban',
     kicker: 'Production & Fabrics Table',
-    title: 'See every uncut cloth, sewing job, and Friday deadline at a glance',
-    text: 'Snap and tag every customer’s fabric on arrival, generate clean digital cutting slips for your cutters, and move orders through Documented, Cutting, Sewing, Fitting, and Ready.',
+    title: 'Every Friday deadline under control before Thursday night arrives',
+    text: 'Snap and tag every customer’s fabric on arrival, generate clean digital cutting slips for your cutters, and see every garment moving smoothly through Documented, Cutting, Sewing, Fitting, and Ready.',
     image: '/images/marketing/sewing-machine-hands.jpg',
   },
   {
     icon: 'straighten',
     kicker: 'Client & Measurement Vault',
-    title: 'Save every customer’s measurements forever — even offline',
-    text: 'Pull up any returning client in two seconds, create custom style templates for Senator, Agbada, Corset Gown, or Bridal, and keep every record backed up safely if your phone is ever lost.',
+    title: 'Command instant respect every time a customer returns',
+    text: 'Pull up any returning client’s complete fit history in two seconds. Store custom templates for Senator, Agbada, Kaftan, Corset, or Bridal wear. Even if your phone is lost, every client record remains safe forever.',
     image: '/images/marketing/measuring-hands.jpg',
   },
   {
     icon: 'share',
-    kicker: 'WhatsApp Tracking, Debtors & POS',
-    title: 'Give clients a live tracking link and collect every balance faster',
-    text: 'Share a no-login WhatsApp progress timeline, send one-tap balance reminders from your Debtors Ledger, and sell off-the-rack Ready-to-Wear pieces from the same workshop app.',
+    kicker: 'Debtors Ledger & WhatsApp Tracking',
+    title: 'Collect what you earned without chasing, begging, or awkwardness',
+    text: 'Delight clients with a private, no-login WhatsApp link to watch their outfit take shape. When it’s ready, send one-tap balance reminders with digital receipts that make timely payments effortless.',
     image: '/images/marketing/hands-dark-fabric.jpg',
   },
 ];
@@ -70,19 +95,23 @@ const FEATURES = [
 const BENEFITS = [
   {
     icon: 'cloud_off',
-    text: 'Works offline without data and syncs automatically when connection returns.',
+    title: 'Works 100% Offline',
+    text: 'No data? Weak signal? Record measurements and advance orders without pause. Everything syncs silently when your phone reconnects.',
   },
   {
     icon: 'storefront',
-    text: 'Manage Ready-to-Wear rack stock (XS–3XL) and counter POS alongside bespoke sewing.',
+    title: 'Bespoke + Ready-to-Wear',
+    text: 'Manage bespoke custom orders alongside rack sizes (XS–3XL) and counter POS in the same clean, unified workshop flow.',
   },
   {
     icon: 'groups',
-    text: 'Add Cutters, Tailors, and Managers without exposing client phone numbers or shop revenue.',
+    title: 'Protect Your Shop Secrets',
+    text: 'Give Cutters and Tailors the cutting slips and style photos they need to sew, while keeping client contacts and revenue private.',
   },
   {
     icon: 'photo_library',
-    text: 'Get a free public portfolio website and WhatsApp lookbooks to win repeat orders.',
+    title: 'Command Luxury Pricing',
+    text: 'An automatic public portfolio website and WhatsApp lookbook catalogues showcase your work like a high-end fashion house.',
   },
 ];
 
@@ -116,8 +145,8 @@ export default function HomePageContent() {
             <span className={styles.heroHeadlineAccent}>Now your shop runs like it.</span>
           </h1>
           <p className={styles.heroSubhead}>
-            Save every customer’s measurement forever, tag every cloth that enters your shop, know
-            which outfits are due this week, and collect every unpaid balance — even without internet.
+            Never lose a client’s measurement. Never mix up fabrics on the cutting table. Never chase
+            awkward balances in the dark. Run your fashion business with calm, unmistakable control — even without internet.
           </p>
           <div className={styles.heroActions}>
             <Link href={ROUTES.signup} className={styles.ctaPrimary}>
@@ -125,7 +154,7 @@ export default function HomePageContent() {
               <Symbol name="arrow_forward" size={18} />
             </Link>
             <Link href={ROUTES.features} className={styles.ctaSecondaryOnPhoto}>
-              See All Features
+              See How Your Shop Transforms
             </Link>
           </div>
         </RevealLeaf>
@@ -177,10 +206,13 @@ export default function HomePageContent() {
       {/* SECTION 1: Relatable Everyday Shop Struggles */}
       <section className={styles.painSection}>
         <RevealLeaf as="span" className={styles.eyebrow} delay={0.03}>
-          Why tailors leave paper jotters behind
+          The daily friction in the workshop
         </RevealLeaf>
         <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.05}>
-          Every tailor has faced these moments.
+          Every master tailor has lived through these moments.
+        </RevealLeaf>
+        <RevealLeaf as="p" className={styles.sectionSubhead} delay={0.07}>
+          Your hands create beauty every day. Paper chaos shouldn’t steal your peace of mind.
         </RevealLeaf>
         <div
           className={styles.painGrid}
@@ -204,17 +236,20 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* SECTION 2: How MyStitchBook Works */}
+      {/* SECTION 2: How Your Workshop Runs */}
       <section
         className={styles.featuresSection}
         style={{ padding: '6rem 2rem', background: 'var(--sf-bg-surface-elevated)', maxWidth: 'none' }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '1rem', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem', width: '100%' }}>
           <RevealLeaf as="span" className={styles.eyebrow} delay={0.03}>
-            Simple daily workflow
+            Your new daily standard
           </RevealLeaf>
-          <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.05} style={{ marginBottom: 0 }}>
-            How MyStitchBook Works
+          <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.05} style={{ marginBottom: '0.75rem' }}>
+            How your workshop runs from tomorrow.
+          </RevealLeaf>
+          <RevealLeaf as="p" className={styles.sectionSubhead} delay={0.07}>
+            Five calm steps that replace notebooks, scrap paper, and phone calls.
           </RevealLeaf>
         </div>
 
@@ -233,7 +268,7 @@ export default function HomePageContent() {
               className={styles.painCard}
               variant="popIn"
               delay={0.08 + i * 0.08}
-              style={{ textAlign: 'center', padding: '2rem' }}
+              style={{ textAlign: 'center', padding: '2rem 1.5rem' }}
             >
               <div
                 style={{
@@ -253,7 +288,10 @@ export default function HomePageContent() {
               <span className={styles.eyebrow} style={{ marginBottom: '0.5rem', display: 'block' }}>
                 {step.step}
               </span>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0 }}>{step.title}</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: '0 0 0.5rem' }}>{step.title}</h3>
+              <p style={{ fontSize: '0.85rem', lineHeight: 1.45, color: 'var(--sf-text-secondary)', margin: 0 }}>
+                {step.text}
+              </p>
             </RevealLeaf>
           ))}
         </div>
@@ -263,10 +301,10 @@ export default function HomePageContent() {
       <section className={styles.featuresSection} style={{ paddingTop: '5rem' }}>
         <div style={{ textAlign: 'center', width: '100%' }}>
           <RevealLeaf as="span" className={styles.eyebrow} delay={0.05} style={{ textAlign: 'center' }}>
-            Inside the app
+            Built for the craft, not a cubicle
           </RevealLeaf>
           <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.08}>
-            Everything you need, built in.
+            The calm and confidence your work deserves.
           </RevealLeaf>
         </div>
         {FEATURES.map((feature, i) => {
@@ -315,15 +353,18 @@ export default function HomePageContent() {
       >
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <RevealLeaf as="span" className={styles.eyebrow} delay={0.03}>
-            Built for solo tailors &amp; growing teams
+            Why generic software fails tailors
           </RevealLeaf>
           <RevealLeaf
             as="h2"
             className={styles.sectionTitle}
             delay={0.05}
-            style={{ textAlign: 'center', marginBottom: '3rem' }}
+            style={{ textAlign: 'center', marginBottom: '0.75rem' }}
           >
-            Why workshops stay on MyStitchBook
+            Engineered for workshop reality, not an office desk.
+          </RevealLeaf>
+          <RevealLeaf as="p" className={styles.sectionSubhead} delay={0.07}>
+            Spreadsheets get deleted, foreign apps demand high-speed Wi-Fi, and jotters tear. We built this from the ground up for how African fashion houses thrive.
           </RevealLeaf>
           <div
             className={styles.painGrid}
@@ -331,13 +372,13 @@ export default function HomePageContent() {
           >
             {BENEFITS.map((benefit, i) => (
               <RevealLeaf
-                key={benefit.text}
+                key={benefit.title}
                 className={styles.painCard}
                 variant="popIn"
                 delay={0.08 + i * 0.08}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
+                  alignItems: 'flex-start',
                   gap: '1.25rem',
                   textAlign: 'left',
                   padding: '1.75rem',
@@ -354,13 +395,19 @@ export default function HomePageContent() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    marginTop: '2px',
                   }}
                 >
                   <Symbol name={benefit.icon} size={26} />
                 </div>
-                <p style={{ fontSize: '1.05rem', fontWeight: 500, lineHeight: 1.45, margin: 0 }}>
-                  {benefit.text}
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--sf-text-primary)' }}>
+                    {benefit.title}
+                  </h3>
+                  <p style={{ fontSize: '0.88rem', fontWeight: 400, lineHeight: 1.5, margin: 0, color: 'var(--sf-text-secondary)' }}>
+                    {benefit.text}
+                  </p>
+                </div>
               </RevealLeaf>
             ))}
           </div>
@@ -450,9 +497,9 @@ export default function HomePageContent() {
         />
         <div className={styles.finalCtaScrim} />
         <RevealLeaf className={styles.finalCtaInner} variant="popIn">
-          <h2 className={styles.finalCtaTitle}>Ready to elevate your craft?</h2>
+          <h2 className={styles.finalCtaTitle}>Stop running on panic. Start running like a fashion house.</h2>
           <p className={styles.finalCtaBody}>
-            It takes less than two minutes to set up your shop. No card required for the free plan.
+            It takes less than two minutes to set up your workshop. Unlimited customers, permanent measurements, and 10 orders each month free forever.
           </p>
           <Link href={ROUTES.signup} className={styles.ctaPrimaryLight}>
             Start Free
