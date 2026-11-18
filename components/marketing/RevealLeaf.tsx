@@ -17,7 +17,7 @@ interface RevealLeafProps {
   children: ReactNode;
   delay?: number;
   variant?: RevealVariant;
-  as?: 'div' | 'span' | 'h2' | 'section';
+  as?: 'div' | 'span' | 'h2' | 'h1' | 'h3' | 'section' | 'p';
   animateOnMount?: boolean;
   className?: string;
   style?: React.CSSProperties;
