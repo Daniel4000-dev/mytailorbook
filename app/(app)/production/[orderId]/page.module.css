@@ -26,14 +26,16 @@
 
 .card {
   position: relative;
-  background: var(--sf-bg-surface);
+  background: var(--sf-bg-surface, #ffffff);
   border-radius: 20px;
   padding: var(--sf-space-lg);
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow: 
-    0 1px 3px rgba(15, 23, 42, 0.04),
-    0 4px 16px -2px rgba(15, 23, 42, 0.03);
-  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast), background var(--sf-transition-fast), border-color var(--sf-transition-fast);
 }
 
 @media (max-width: 640px) {
@@ -141,16 +143,19 @@
 /* ── 2. Master Workshop Command Hero Card ──────────────────────── */
 .heroCard {
   position: relative;
-  background: var(--sf-bg-surface);
+  background: var(--sf-bg-surface, #ffffff);
   border-radius: 22px;
   padding: 24px 26px;
-  border: 1px solid var(--sf-border-light);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow: 
-    0 1px 3px rgba(15, 23, 42, 0.04),
-    0 6px 20px -4px rgba(67, 56, 202, 0.06);
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
   display: flex;
   flex-direction: column;
   gap: 18px;
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 @media (max-width: 640px) {
@@ -1185,14 +1190,20 @@
 
 /* ── Unified Visual Reference & Progress Tray ───────────────────────── */
 .visualGlanceStripCard {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: 16px;
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: var(--sf-space-md) var(--sf-space-lg);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
+  position: relative;
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .visualGlanceHeader {
@@ -1907,8 +1918,9 @@
 
   .card {
     box-shadow: 
-      0 1px 3px rgba(15, 23, 42, 0.04),
-      0 4px 16px -2px rgba(0, 0, 0, 0.04);
+      0 1px 3px rgba(67, 56, 202, 0.04),
+      0 8px 24px -4px rgba(27, 27, 34, 0.06),
+      0 16px 36px -8px rgba(67, 56, 202, 0.05);
   }
 }
 
@@ -2348,65 +2360,23 @@
 }
 
 /* Dark mode adjustments */
-:global([data-theme='dark']) .heroCard {
+:global([data-theme='dark']) .card,
+:global([data-theme='dark']) .visualGlanceStripCard {
   background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-}
-
-:global([data-theme='dark']) .refBadge {
-  background: rgba(99, 102, 241, 0.22);
-  color: #A5B4FC;
-}
-
-:global([data-theme='dark']) .viewProfileBtn:hover {
-  color: #A5B4FC;
-}
-
-:global([data-theme='dark']) .heroCallBtn {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #A5B4FC;
-}
-
-:global([data-theme='dark']) .stageRibbon {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-:global([data-theme='dark']) .stageStepPast .stageStepCircle {
-  background: rgba(16, 185, 129, 0.22);
-  color: #34D399;
-}
-
-:global([data-theme='dark']) .stageStepCurrent {
-  background: #6366F1;
-  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.45);
-}
-
-:global([data-theme='dark']) .copySpecBtn {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #A5B4FC;
-}
-
-:global([data-theme='dark']) .copySpecBtn:hover {
-  background: rgba(99, 102, 241, 0.25);
-}
-
-:global([data-theme='dark']) .card {
-  background: var(--sf-bg-surface, #161526);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.12);
   box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.3),
-    0 8px 24px -4px rgba(0, 0, 0, 0.4);
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
 
 :global([data-theme='dark']) .heroCard {
-  border-color: rgba(255, 255, 255, 0.09);
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.12);
   box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.3),
-    0 12px 32px -4px rgba(0, 0, 0, 0.45);
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
 
 :global([data-theme='dark']) .reworkBtn {
@@ -2487,65 +2457,23 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme="light"])) .heroCard {
+  :global(:root:not([data-theme="light"])) .card,
+  :global(:root:not([data-theme="light"])) .visualGlanceStripCard {
     background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  }
-
-  :global(:root:not([data-theme="light"])) .refBadge {
-    background: rgba(99, 102, 241, 0.22);
-    color: #A5B4FC;
-  }
-
-  :global(:root:not([data-theme="light"])) .viewProfileBtn:hover {
-    color: #A5B4FC;
-  }
-
-  :global(:root:not([data-theme="light"])) .heroCallBtn {
-    background: rgba(99, 102, 241, 0.15);
-    border-color: rgba(99, 102, 241, 0.3);
-    color: #A5B4FC;
-  }
-
-  :global(:root:not([data-theme="light"])) .stageRibbon {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  :global(:root:not([data-theme="light"])) .stageStepPast .stageStepCircle {
-    background: rgba(16, 185, 129, 0.22);
-    color: #34D399;
-  }
-
-  :global(:root:not([data-theme="light"])) .stageStepCurrent {
-    background: #6366F1;
-    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.45);
-  }
-
-  :global(:root:not([data-theme="light"])) .copySpecBtn {
-    background: rgba(99, 102, 241, 0.15);
-    border-color: rgba(99, 102, 241, 0.3);
-    color: #A5B4FC;
-  }
-
-  :global(:root:not([data-theme="light"])) .copySpecBtn:hover {
-    background: rgba(99, 102, 241, 0.25);
-  }
-
-  :global(:root:not([data-theme="light"])) .card {
-    background: var(--sf-bg-surface, #161526);
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(99, 102, 241, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.12);
     box-shadow: 
-      0 1px 3px rgba(0, 0, 0, 0.3),
-      0 8px 24px -4px rgba(0, 0, 0, 0.4);
+      0 2px 6px rgba(0, 0, 0, 0.35),
+      0 12px 32px -4px rgba(0, 0, 0, 0.55);
   }
 
   :global(:root:not([data-theme="light"])) .heroCard {
-    border-color: rgba(255, 255, 255, 0.09);
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(99, 102, 241, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.12);
     box-shadow: 
-      0 1px 3px rgba(0, 0, 0, 0.3),
-      0 12px 32px -4px rgba(0, 0, 0, 0.45);
+      0 2px 6px rgba(0, 0, 0, 0.35),
+      0 12px 32px -4px rgba(0, 0, 0, 0.55);
   }
 
   :global(:root:not([data-theme="light"])) .reworkBtn {

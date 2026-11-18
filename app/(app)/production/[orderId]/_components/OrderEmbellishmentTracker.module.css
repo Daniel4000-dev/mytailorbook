@@ -1,13 +1,38 @@
 .card {
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg, 16px);
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   position: relative;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+:global([data-theme='dark']) .card {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 12px 32px -4px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .card {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(99, 102, 241, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 
+      0 2px 6px rgba(0, 0, 0, 0.35),
+      0 12px 32px -4px rgba(0, 0, 0, 0.55);
+  }
 }
 
 .headerRow {
