@@ -55,6 +55,10 @@
   overscroll-behavior-y: contain;
 }
 
+.mainTransactional {
+  padding-bottom: 0 !important;
+}
+
 /* ── Page transition ──────────────────────────────────────────
    Keyed on pathname in layout.tsx so React fully recreates this div
    on every route change, restarting the animation every time —

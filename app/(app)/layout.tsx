@@ -126,7 +126,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       <div
         className={`${styles.appShell} ${isMenuOpen ? styles.menuOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
       >
-        <main className={styles.main}>
+        <main className={`${styles.main} ${isTransactional ? styles.mainTransactional : ''}`}>
           <PageEnter key={pathname}>{children}</PageEnter>
         </main>
         {/* Sits on top of the shrunk page while the menu is open, so a tap
