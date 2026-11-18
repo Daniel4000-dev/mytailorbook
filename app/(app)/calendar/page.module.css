@@ -1,14 +1,7 @@
 .container {
-  padding: 0 16px 120px;
-  max-width: var(--sf-max-width-desktop, 1200px);
-  margin: 0 auto;
   width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 0 var(--sf-space-lg) 120px;
-  }
+  padding: 0;
+  margin: 0;
 }
 
 /* =========================================================================
@@ -167,59 +160,20 @@
   scroll-snap-align: start;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: 7px;
+  padding: 8px 16px;
   border-radius: var(--sf-radius-full);
   background: var(--sf-glass-bg);
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border-subtle);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--sf-text-secondary);
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
-}
-
-@media (max-width: 640px) {
-  .craftFilterRow {
-    gap: 6px;
-    padding: 2px 0 10px;
-  }
-  .craftFilterBtn {
-    padding: 6px 11px;
-    font-size: 12px;
-    gap: 5px;
-  }
-  .todayPillBtn {
-    padding: 5px 11px;
-    font-size: 12px;
-  }
-  .viewBtn {
-    padding: 5px 10px;
-    font-size: 11px;
-    gap: 4px;
-  }
-}
-
-@media (max-width: 420px) {
-  .monthNavRow {
-    gap: 8px;
-  }
-  .monthTitle {
-    font-size: 18px;
-  }
-  .navBtn {
-    width: 34px;
-    height: 34px;
-  }
-  .craftFilterBtn {
-    padding: 5px 9px;
-    font-size: 11px;
-    gap: 4px;
-  }
 }
 
 .craftFilterBtn:hover {
