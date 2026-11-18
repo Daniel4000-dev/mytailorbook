@@ -109,6 +109,19 @@ export async function handlePaystackWebhook(req: Request, mode: 'live' | 'test')
       case 'subscription.disable':
       case 'subscription.not_renew': {
         const { customer } = event.data;
+        // Don't overwrite if the tailor intentionally paused their subscription
+        const { data: targetShop } = await supabaseAdmin
+          .from('shops')
+          .select('subscription_status')
+          .eq('paystack_customer_code', customer.customer_code)
+          .eq('paystack_environment', mode)
+          .maybeSingle();
+
+        if (targetShop?.subscription_status === 'paused') {
+          await recordSubscriptionEvent(supabaseAdmin, { customerCode: customer.customer_code, eventType: event.event, status: 'paused' });
+          break;
+        }
+
         await supabaseAdmin
           .from('shops')
           .update({ subscription_status: 'canceled', grace_expires_at: null })
