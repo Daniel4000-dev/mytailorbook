@@ -197,6 +197,10 @@ export default function BillingSettingsPage() {
   };
 
   const openPauseFlow = () => {
+    if (currentShop?.subscriptionStatus !== 'active') {
+      showToast('Subscription pause is only available on an active paid subscription.', 'info');
+      return;
+    }
     setCancelStep('pause');
   };
 
@@ -443,14 +447,16 @@ export default function BillingSettingsPage() {
 
       {cancelStep === 'why-stay' && (
         <>
-          <div style={{ padding: '14px', background: 'rgba(67, 56, 202, 0.06)', borderRadius: '12px', border: '1px solid rgba(67, 56, 202, 0.2)', marginBottom: '16px' }}>
-            <strong style={{ display: 'block', fontSize: '13px', color: 'var(--sf-brand-indigo, #4338CA)', marginBottom: '4px' }}>
-              Taking an off-season breath?
-            </strong>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--sf-text-secondary)', lineHeight: 1.4 }}>
-              Pause your subscription for 1 to 3 months instead of canceling. You pay ₦0, and all your lookbook photos and client catalogues remain 100% safe.
-            </p>
-          </div>
+          {currentShop?.subscriptionStatus === 'active' && (
+            <div style={{ padding: '14px', background: 'rgba(67, 56, 202, 0.06)', borderRadius: '12px', border: '1px solid rgba(67, 56, 202, 0.2)', marginBottom: '16px' }}>
+              <strong style={{ display: 'block', fontSize: '13px', color: 'var(--sf-brand-indigo, #4338CA)', marginBottom: '4px' }}>
+                Taking an off-season breath?
+              </strong>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--sf-text-secondary)', lineHeight: 1.4 }}>
+                Pause your subscription for 1 to 3 months instead of canceling. You pay ₦0, and all your lookbook photos and client catalogues remain 100% safe.
+              </p>
+            </div>
+          )}
 
           <p className={styles.hintText}>
             Here&apos;s what moving to Free changes for {currentShop?.name || 'your workshop'}:
@@ -474,11 +480,17 @@ export default function BillingSettingsPage() {
             None of this happens right away — you keep Premium until your current billing period ends, and your data is never deleted or locked either way.
           </p>
           <div className={styles.cancelActions}>
-            <Button variant="primary" fullWidth onClick={openPauseFlow}>
-              <Symbol name="pause_circle" size={16} /> Pause Subscription Instead (1–3 Months)
+            {currentShop?.subscriptionStatus === 'active' && (
+              <Button variant="primary" fullWidth onClick={openPauseFlow}>
+                <Symbol name="pause_circle" size={16} /> Pause Subscription Instead (1–3 Months)
+              </Button>
+            )}
+            <Button variant={currentShop?.subscriptionStatus === 'active' ? 'secondary' : 'primary'} fullWidth onClick={() => setCancelStep('plans')}>
+              Never mind, keep my {currentShop?.subscriptionStatus === 'trialing' ? 'trial' : 'plan'}
             </Button>
-            <Button variant="secondary" fullWidth onClick={() => setCancelStep('plans')}>Never mind, keep my plan</Button>
-            <Button variant="ghost" fullWidth onClick={() => setCancelStep('why-leave')}>Continue to cancel</Button>
+            <Button variant="ghost" fullWidth onClick={() => setCancelStep('why-leave')}>
+              Continue to cancel {currentShop?.subscriptionStatus === 'trialing' ? 'trial' : 'subscription'}
+            </Button>
           </div>
         </>
       )}

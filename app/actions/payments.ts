@@ -622,8 +622,12 @@ export async function pauseSubscriptionAction(
     return { error: 'Your subscription is already paused.' };
   }
 
+  if (billingShop.subscription_status === 'trialing') {
+    return { error: 'Free trials cannot be paused. Subscription pause is only available on an active paid subscription.' };
+  }
+
   if (billingShop.subscription_status !== 'active' && billingShop.subscription_status !== 'past_due') {
-    return { error: 'Only active subscriptions can be paused.' };
+    return { error: 'Subscription pause is only available on an active paid subscription.' };
   }
 
   const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
