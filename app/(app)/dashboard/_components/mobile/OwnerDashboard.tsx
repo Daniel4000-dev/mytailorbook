@@ -133,7 +133,10 @@ export default function OwnerDashboard({
               <span className={styles.heroRevenueLabel}>Total Collected</span>
               <button
                 type="button"
-                onClick={toggleHideCollected}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleHideCollected();
+                }}
                 className={styles.heroEyeBtn}
                 title={hideCollected ? 'Show Balance' : 'Hide Balance'}
                 aria-label={hideCollected ? 'Show Balance' : 'Hide Balance'}
