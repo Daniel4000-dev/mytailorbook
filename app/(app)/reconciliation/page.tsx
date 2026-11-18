@@ -47,6 +47,11 @@ export default function ShopExpensesPage() {
 
   const currencySymbol = getCurrencySymbol(currentShop?.currency || 'NGN');
 
+  const businessMode = currentShop?.businessMode || ((currentShop as any)?.business_mode) || 'bespoke';
+  const isBespoke = businessMode === 'bespoke';
+  const isRtw = businessMode === 'rtw';
+  const isHybrid = businessMode === 'hybrid';
+
   // Role Gate
   useEffect(() => {
     if (user && !isOwner && user.role !== 'Accountant') {
@@ -346,13 +351,21 @@ export default function ShopExpensesPage() {
       `• Petty Cash Paid Out: -${currencySymbol}${formatNumber(drawerCashOutflow)}`,
       ``,
       `COLLECTIONS & INFLOWS:`,
-      `• Showroom RTW Sales: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.total || 0)} (${dailyRegister?.inflows.showroom.orderCount || 0} sales)`,
-      `  - Cash: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.cash || 0)}`,
-      `  - POS / Card: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.pos || 0)}`,
-      `  - Transfer: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.transfer || 0)}`,
-      `• Bespoke Order Deposits: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.total || 0)} (${dailyRegister?.inflows.bespoke.orderCount || 0} commissions)`,
-      `  - Cash: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.cash || 0)}`,
-      `  - Transfer: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.transfer || 0)}`,
+      ...(isRtw
+        ? []
+        : [
+            `• Bespoke Order Deposits: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.total || 0)} (${dailyRegister?.inflows.bespoke.orderCount || 0} commissions)`,
+            `  - Cash: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.cash || 0)}`,
+            `  - Transfer: ${currencySymbol}${formatNumber(dailyRegister?.inflows.bespoke.transfer || 0)}`,
+          ]),
+      ...(isBespoke
+        ? []
+        : [
+            `• Showroom RTW Sales: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.total || 0)} (${dailyRegister?.inflows.showroom.orderCount || 0} sales)`,
+            `  - Cash: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.cash || 0)}`,
+            `  - POS / Card: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.pos || 0)}`,
+            `  - Transfer: ${currencySymbol}${formatNumber(dailyRegister?.inflows.showroom.transfer || 0)}`,
+          ]),
       `• Total Daily Collections: ${currencySymbol}${formatNumber(dailyRegister?.inflows.total || 0)}`,
       ``,
       `EXPENSES & OUTFLOWS (${expenses.length}):`,
@@ -795,81 +808,85 @@ export default function ShopExpensesPage() {
 
             {activeTab === 'register' ? (
               <>
-                {/* ── DAILY INFLOW CHANNELS (SHOWROOM VS BESPOKE) ── */}
+                {/* ── DAILY INFLOW CHANNELS (FILTERED BY BUSINESS MODE) ── */}
                 <section className={styles.inflowsDeck}>
-                  {/* Showroom RTW Sales */}
-                  <div className={styles.inflowChannelCard}>
-                    <div className={styles.inflowCardHeader}>
-                      <span className={styles.inflowCardTitle}>
-                        <Symbol name="checkroom" size={16} />
-                        <span>Showroom RTW Sales</span>
-                      </span>
-                      <span className={styles.inflowCardBadge}>
-                        {dailyRegister?.inflows.showroom.orderCount || 0} sales
-                      </span>
-                    </div>
-
-                    <div className={styles.inflowAmountRow}>
-                      <span className={styles.inflowAmountMain}>
-                        {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.total || 0)}
-                      </span>
-                    </div>
-
-                    <div className={styles.inflowSplitList}>
-                      <div className={styles.inflowSplitItem}>
-                        <span>Cash to Drawer:</span>
-                        <span className={styles.inflowSplitVal}>
-                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.cash || 0)}
+                  {/* Showroom RTW Sales: only if hybrid or rtw */}
+                  {!isBespoke && (
+                    <div className={styles.inflowChannelCard}>
+                      <div className={styles.inflowCardHeader}>
+                        <span className={styles.inflowCardTitle}>
+                          <Symbol name="checkroom" size={16} />
+                          <span>Showroom RTW Sales</span>
+                        </span>
+                        <span className={styles.inflowCardBadge}>
+                          {dailyRegister?.inflows.showroom.orderCount || 0} sales
                         </span>
                       </div>
-                      <div className={styles.inflowSplitItem}>
-                        <span>POS / Card Terminal:</span>
-                        <span className={styles.inflowSplitVal}>
-                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.pos || 0)}
-                        </span>
-                      </div>
-                      <div className={styles.inflowSplitItem}>
-                        <span>Bank Transfer:</span>
-                        <span className={styles.inflowSplitVal}>
-                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.transfer || 0)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Bespoke Atelier Orders */}
-                  <div className={styles.inflowChannelCard}>
-                    <div className={styles.inflowCardHeader}>
-                      <span className={styles.inflowCardTitle}>
-                        <Symbol name="straighten" size={16} />
-                        <span>Bespoke Order Deposits</span>
-                      </span>
-                      <span className={styles.inflowCardBadge}>
-                        {dailyRegister?.inflows.bespoke.orderCount || 0} commissions
-                      </span>
-                    </div>
-
-                    <div className={styles.inflowAmountRow}>
-                      <span className={styles.inflowAmountMain}>
-                        {currencySymbol}{formatNumber(dailyRegister?.inflows.bespoke.total || 0)}
-                      </span>
-                    </div>
-
-                    <div className={styles.inflowSplitList}>
-                      <div className={styles.inflowSplitItem}>
-                        <span>Cash to Drawer:</span>
-                        <span className={styles.inflowSplitVal}>
-                          {currencySymbol}{formatNumber(dailyRegister?.inflows.bespoke.cash || 0)}
+                      <div className={styles.inflowAmountRow}>
+                        <span className={styles.inflowAmountMain}>
+                          {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.total || 0)}
                         </span>
                       </div>
-                      <div className={styles.inflowSplitItem}>
-                        <span>Bank Transfer / POS:</span>
-                        <span className={styles.inflowSplitVal}>
-                          {currencySymbol}{formatNumber((dailyRegister?.inflows.bespoke.transfer || 0) + (dailyRegister?.inflows.bespoke.pos || 0))}
-                        </span>
+
+                      <div className={styles.inflowSplitList}>
+                        <div className={styles.inflowSplitItem}>
+                          <span>Cash to Drawer:</span>
+                          <span className={styles.inflowSplitVal}>
+                            {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.cash || 0)}
+                          </span>
+                        </div>
+                        <div className={styles.inflowSplitItem}>
+                          <span>POS / Card Terminal:</span>
+                          <span className={styles.inflowSplitVal}>
+                            {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.pos || 0)}
+                          </span>
+                        </div>
+                        <div className={styles.inflowSplitItem}>
+                          <span>Bank Transfer:</span>
+                          <span className={styles.inflowSplitVal}>
+                            {currencySymbol}{formatNumber(dailyRegister?.inflows.showroom.transfer || 0)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Bespoke Order Deposits: only if hybrid or bespoke */}
+                  {!isRtw && (
+                    <div className={styles.inflowChannelCard}>
+                      <div className={styles.inflowCardHeader}>
+                        <span className={styles.inflowCardTitle}>
+                          <Symbol name="straighten" size={16} />
+                          <span>Bespoke Order Deposits</span>
+                        </span>
+                        <span className={styles.inflowCardBadge}>
+                          {dailyRegister?.inflows.bespoke.orderCount || 0} commissions
+                        </span>
+                      </div>
+
+                      <div className={styles.inflowAmountRow}>
+                        <span className={styles.inflowAmountMain}>
+                          {currencySymbol}{formatNumber(dailyRegister?.inflows.bespoke.total || 0)}
+                        </span>
+                      </div>
+
+                      <div className={styles.inflowSplitList}>
+                        <div className={styles.inflowSplitItem}>
+                          <span>Cash to Drawer:</span>
+                          <span className={styles.inflowSplitVal}>
+                            {currencySymbol}{formatNumber(dailyRegister?.inflows.bespoke.cash || 0)}
+                          </span>
+                        </div>
+                        <div className={styles.inflowSplitItem}>
+                          <span>Bank Transfer / POS:</span>
+                          <span className={styles.inflowSplitVal}>
+                            {currencySymbol}{formatNumber((dailyRegister?.inflows.bespoke.transfer || 0) + (dailyRegister?.inflows.bespoke.pos || 0))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </section>
 
                 {/* ── COLLECTIONS & PAYMENTS LEDGER ── */}
@@ -879,7 +896,13 @@ export default function ShopExpensesPage() {
                       <EmptyState
                         icon={<Symbol name="payments" size={32} />}
                         title="No Sales Logged Today"
-                        description={`No showroom counter checkouts or bespoke client payments were recorded for ${displayDateText}.`}
+                        description={
+                          isBespoke
+                            ? `No bespoke client payments were recorded for ${displayDateText}.`
+                            : isRtw
+                            ? `No showroom counter checkouts were recorded for ${displayDateText}.`
+                            : `No showroom counter checkouts or bespoke client payments were recorded for ${displayDateText}.`
+                        }
                       />
                     </div>
                   ) : (
@@ -900,10 +923,14 @@ export default function ShopExpensesPage() {
                                   <span className={styles.methodBadge}>
                                     {p.method === 'transfer' ? 'Transfer' : p.method === 'pos' ? 'Card/POS' : 'Cash'}
                                   </span>
-                                  <span className={styles.metaDot}>·</span>
-                                  <span className={`${styles.paymentChannelBadge} ${isPos ? styles.badgePos : styles.badgeBespoke}`}>
-                                    {isPos ? 'Showroom RTW' : 'Bespoke Atelier'}
-                                  </span>
+                                  {isHybrid && (
+                                    <>
+                                      <span className={styles.metaDot}>·</span>
+                                      <span className={`${styles.paymentChannelBadge} ${isPos ? styles.badgePos : styles.badgeBespoke}`}>
+                                        {isPos ? 'Showroom RTW' : 'Bespoke Order'}
+                                      </span>
+                                    </>
+                                  )}
                                   {p.referenceNote && (
                                     <>
                                       <span className={styles.metaDot}>·</span>
