@@ -1009,7 +1009,7 @@ export default function OrderDetailPage() {
             onClick={() => setActiveTab('spec')}
           >
             <Symbol name="checkroom" size={15} />
-            <span>Craft Spec</span>
+            <span>Overview</span>
           </button>
           <button
             type="button"
@@ -1017,7 +1017,7 @@ export default function OrderDetailPage() {
             onClick={() => setActiveTab('feed')}
           >
             <Symbol name="photo_camera" size={15} />
-            <span>Workshop Feed</span>
+            <span>Workshop</span>
             {(order.images?.length || 0) > 0 && (
               <span className={styles.tabBadge}>{order.images?.length}</span>
             )}
@@ -1028,7 +1028,7 @@ export default function OrderDetailPage() {
             onClick={() => setActiveTab('ledger')}
           >
             <Symbol name="payments" size={15} />
-            <span>Ledger &amp; Costs</span>
+            <span>Ledger</span>
             {balanceOwed > 0 && <span className={styles.tabDueDot} />}
           </button>
         </div>
@@ -1398,23 +1398,25 @@ export default function OrderDetailPage() {
                         title="Feature this garment and its making-of sequence in your public portfolio"
                       >
                         <Symbol name="auto_awesome" size={14} />
-                        <span>{publishingPortfolio ? 'Publishing…' : 'Feature in Portfolio'}</span>
+                        <span>{publishingPortfolio ? 'Publishing…' : 'Feature'}</span>
                       </button>
                     )}
                     {(!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT) ? (
                       <span className={styles.emptyNote}>Limit ({FREE_ORDER_PROGRESS_PHOTO_LIMIT})</span>
                     ) : (
                       <>
-                        <label className={styles.actionPillBtn}>
+                        <label className={styles.actionPillBtn} title="Snap workshop progress photo">
                           <input type="file" accept="image/*" multiple hidden onChange={handlePhotoUpload} disabled={uploadingPhoto} />
-                          <Symbol name="add_a_photo" size={15} />
+                          <Symbol name="add_a_photo" size={14} />
                           <span>{uploadingPhoto ? 'Uploading…' : 'Snap Photo'}</span>
                         </label>
-                        <label className={styles.actionPillBtn} title="Upload client photos from WhatsApp / event">
-                          <input type="file" accept="image/*" multiple hidden onChange={handleEventPhotoUpload} disabled={uploadingPhoto} />
-                          <Symbol name="photo_camera" size={15} />
-                          <span>Add Client Event Photos</span>
-                        </label>
+                        {(order.status === 'Ready' || order.status === 'Delivered') && (
+                          <label className={styles.actionPillBtn} title="Upload client photos from fitting or event">
+                            <input type="file" accept="image/*" multiple hidden onChange={handleEventPhotoUpload} disabled={uploadingPhoto} />
+                            <Symbol name="photo_camera" size={14} />
+                            <span>Client Photo</span>
+                          </label>
+                        )}
                       </>
                     )}
                   </div>
@@ -1684,45 +1686,47 @@ export default function OrderDetailPage() {
                 )}
               </section>
 
-              {/* Activity timeline — full pipeline */}
-              <section className={styles.card + ' ' + styles.gaTimeline}>
-                <div className={styles.sectionHeaderRow}>
-                  <div className={styles.sectionTitleGroup}>
-                    <h3 className={styles.sectionTitle}>Activity Timeline</h3>
-                    <span className={styles.measureSubtitle}>Stage progression &amp; audit history</span>
+              {/* Activity timeline — full pipeline (premium feature) */}
+              {isPremium && (
+                <section className={styles.card + ' ' + styles.gaTimeline}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div className={styles.sectionTitleGroup}>
+                      <h3 className={styles.sectionTitle}>Activity Timeline</h3>
+                      <span className={styles.measureSubtitle}>Stage progression &amp; audit history</span>
+                    </div>
                   </div>
-                </div>
-                <div className={styles.timeline}>
-                  {ORDER_STATUSES.map((status) => {
-                    const entry = order.statusHistory.filter((h) => h.to === status).pop();
-                    const currentIndex = ORDER_STATUSES.indexOf(order.status);
-                    const stepIndex = ORDER_STATUSES.indexOf(status);
-                    const isTerminal = status === 'Delivered' && order.status === 'Delivered';
-                    const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
-                    return (
-                      <div key={status} className={styles.timelineStep}>
-                        <div className={styles.timelineLine} />
-                        <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
-                          <Symbol
-                            name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
-                            size={14}
-                          />
+                  <div className={styles.timeline}>
+                    {ORDER_STATUSES.map((status) => {
+                      const entry = order.statusHistory.filter((h) => h.to === status).pop();
+                      const currentIndex = ORDER_STATUSES.indexOf(order.status);
+                      const stepIndex = ORDER_STATUSES.indexOf(status);
+                      const isTerminal = status === 'Delivered' && order.status === 'Delivered';
+                      const state = stepIndex < currentIndex || isTerminal ? 'done' : stepIndex === currentIndex ? 'current' : 'pending';
+                      return (
+                        <div key={status} className={styles.timelineStep}>
+                          <div className={styles.timelineLine} />
+                          <div className={`${styles.timelineDot} ${styles['dot_' + state]}`}>
+                            <Symbol
+                              name={state === 'done' ? 'check' : state === 'current' ? 'autorenew' : status === 'Delivered' ? 'check_circle' : 'hourglass_empty'}
+                              size={14}
+                            />
+                          </div>
+                          <div>
+                            <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
+                              {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
+                            </p>
+                            <p className={styles.timelineMeta}>
+                              {entry
+                                ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
+                                : state === 'pending' ? 'Pending' : '—'}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className={`${styles.timelineTitle} ${state === 'pending' ? styles.timelineTitlePending : ''}`}>
-                            {STATUS_CONFIG[status].label}{state === 'current' ? ' (Current)' : ''}
-                          </p>
-                          <p className={styles.timelineMeta}>
-                            {entry
-                              ? `${formatDate(entry.timestamp)}${entry.changedByName ? ` • ${entry.changedByName}` : ''}`
-                              : state === 'pending' ? 'Pending' : '—'}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
 
               {/* Danger Zone */}
               {isOwnerView && (
@@ -1761,9 +1765,9 @@ export default function OrderDetailPage() {
         {!isDesktop && <div className={styles.mobileBottomClearance} />}
       </div>
 
-      {/* Floating mobile sticky bottom bar — portaled straight to document.body,
-          see FixedBottomPortal for why. */}
-      {!isDesktop && (next || customer || order.status === 'Delivered') && (
+      {/* Floating mobile sticky stage dock — portaled straight to document.body,
+          floating above the bottom navigation so CTAs are accessible anywhere. */}
+      {!isDesktop && (next || order.status === 'Ready' || order.status === 'Delivered') && (
         <FixedBottomPortal>
           <div className={styles.mobileStickyBottomBar}>
             {order.status === 'Delivered' ? (
@@ -1803,17 +1807,6 @@ export default function OrderDetailPage() {
                 title="Needs Alteration"
               >
                 <Symbol name="needle" size={18} />
-              </button>
-            )}
-
-            {customer && (
-              <button
-                type="button"
-                className={styles.stickyWhatsAppBtn}
-                onClick={() => setWhatsAppSheetOpen(true)}
-                aria-label={`WhatsApp ${customer.fullName}`}
-              >
-                <WhatsappIcon size={22} color="#FFFFFF" />
               </button>
             )}
           </div>

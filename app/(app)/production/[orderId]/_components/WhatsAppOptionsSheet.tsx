@@ -42,7 +42,7 @@ export default function WhatsAppOptionsSheet({
     <BottomSheet isOpen={isOpen} onClose={onClose} variant="modal" noPadding>
       <div className={styles.container}>
         <div className={styles.header}>
-          <WhatsappIcon size={32} />
+          <WhatsappIcon size={22} />
           <h3>Message {firstName}</h3>
         </div>
 
@@ -55,7 +55,7 @@ export default function WhatsAppOptionsSheet({
             onClick={onClose}
           >
             <div className={styles.optionIcon}>
-              <Symbol name="send" />
+              <Symbol name="send" size={18} />
             </div>
             <div className={styles.optionText}>
               <span className={styles.optionTitle}>Send Progress Report</span>
@@ -72,30 +72,14 @@ export default function WhatsAppOptionsSheet({
               onClick={onClose}
             >
               <div className={styles.optionIcon} style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)', color: '#A78BFA' }}>
-                <Symbol name="photo_camera" />
+                <Symbol name="photo_camera" size={18} />
               </div>
               <div className={styles.optionText}>
                 <span className={styles.optionTitle}>Request Client Event Photos</span>
-                <span className={styles.optionDesc}>Ask client to send photos wearing the outfit to feature in your lookbook</span>
+                <span className={styles.optionDesc}>Ask client to send photos wearing the outfit to feature in lookbook</span>
               </div>
             </a>
           )}
-
-          <a
-            href={getWhatsAppLink(whatsappNumber)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.optionBtn}
-            onClick={onClose}
-          >
-            <div className={styles.optionIcon}>
-              <Symbol name="chat" />
-            </div>
-            <div className={styles.optionText}>
-              <span className={styles.optionTitle}>General Chat</span>
-              <span className={styles.optionDesc}>Open an empty WhatsApp chat with the customer</span>
-            </div>
-          </a>
         </div>
       </div>
     </BottomSheet>

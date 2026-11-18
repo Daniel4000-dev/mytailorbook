@@ -226,17 +226,15 @@ export default function OrderEmbellishmentTracker({
 
   return (
     <section className={styles.card}>
-      <div className={styles.cardFresnel} />
-
       {/* Header */}
       <div className={styles.headerRow}>
         <div className={styles.titleGroup}>
           <div className={styles.titleRow}>
-            <Symbol name="diamond" size={16} style={{ color: '#C4B5FD' }} />
-            <h3 className={styles.cardTitle}>Specialist Embellishment &amp; Beading</h3>
+            <Symbol name="diamond" size={16} className={styles.titleIcon} />
+            <h3 className={styles.cardTitle}>Beading &amp; Detailing</h3>
           </div>
           <span className={styles.cardSubtitle}>
-            Specialist embroidery, tambour beading, and stoning tracker
+            Hand-beading, embroidery, and stoning tracker
           </span>
         </div>
 
@@ -263,14 +261,14 @@ export default function OrderEmbellishmentTracker({
       {!data && !isEditing && (
         <div className={styles.emptyState}>
           <div className={styles.emptyTextGroup}>
-            <span className={styles.emptyTitle}>No specialist embellishment attached</span>
+            <span className={styles.emptyTitle}>No beading or detailing attached</span>
             <span className={styles.emptyDesc}>
-              Track computer embroidery, hand-beading, or stoning outsourced to external specialists (can be done before sewing on flat panels or after sewing).
+              Track hand-beading, stoning, or embroidery (before or after sewing).
             </span>
           </div>
           <button type="button" className={styles.addBtn} onClick={startEdit}>
             <Symbol name="add" size={14} />
-            <span>Track Embellishment</span>
+            <span>Add Beading &amp; Detailing</span>
           </button>
         </div>
       )}
