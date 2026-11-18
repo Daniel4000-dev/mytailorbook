@@ -1575,23 +1575,38 @@
   justify-content: space-between;
   gap: 12px;
   background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl);
-  padding: 14px 16px;
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 16px 18px;
   margin-top: 8px;
   margin-bottom: 24px;
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
+  position: relative;
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .teamInviteCard {
-    background: var(--sf-bg-surface-elevated, #1F1E33);
-    border-color: var(--sf-border);
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(99, 102, 241, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 
+      0 2px 6px rgba(0, 0, 0, 0.35),
+      0 12px 32px -4px rgba(0, 0, 0, 0.55);
   }
 }
 
 :global([data-theme='dark']) .teamInviteCard {
-  background: var(--sf-bg-surface-elevated, #1F1E33);
-  border-color: var(--sf-border);
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
 
 .teamInviteLeft {
@@ -1653,8 +1668,8 @@
   background: var(--sf-bg-surface, #FFFFFF);
   border: 1px solid rgba(67, 56, 202, 0.08);
   border-top: 1px solid rgba(255, 255, 255, 0.95);
-  border-radius: var(--sf-radius-xl, 16px);
-  padding: 16px;
+  border-radius: 20px;
+  padding: 18px 20px;
   margin-bottom: 16px;
   box-shadow:
     0 1px 3px rgba(67, 56, 202, 0.04),
@@ -1662,6 +1677,8 @@
     0 16px 36px -8px rgba(67, 56, 202, 0.05);
   box-sizing: border-box;
   width: 100%;
+  position: relative;
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 @media (prefers-color-scheme: dark) {

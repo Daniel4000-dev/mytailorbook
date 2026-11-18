@@ -2,7 +2,7 @@
   background: var(--sf-bg-surface, #ffffff);
   border: 1px solid rgba(67, 56, 202, 0.08);
   border-top: 1px solid rgba(255, 255, 255, 0.95);
-  border-radius: var(--sf-radius-xl, 16px);
+  border-radius: 20px;
   padding: 16px 18px;
   margin-bottom: var(--sf-space-md, 16px);
   box-shadow: 
@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
   transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
