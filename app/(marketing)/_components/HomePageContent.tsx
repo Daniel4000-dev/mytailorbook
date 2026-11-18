@@ -68,6 +68,14 @@ const HOW_IT_WORKS = [
   },
 ];
 
+const DASHBOARD_SPOTLIGHT = {
+  kicker: 'Workshop Command Center',
+  title: 'Know your numbers, orders, and daily priorities in one calm morning glance',
+  text: 'From the moment you step into your shop, see total collections (₦2,717,000), what’s sewing, what’s cutting, and what’s ready for try-on. Fast shortcuts to your Cutting Table, Inventory, and Lookbook Catalogues keep your team moving without interrupting your work.',
+  image: '/images/marketing/mobile-dashboard.jpg',
+  alt: "Baan's Fashion House mobile dashboard showing total collections, workshop status, and quick shortcuts",
+};
+
 const FEATURES = [
   {
     icon: 'view_kanban',
@@ -311,18 +319,42 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* SECTION 3: Visual Feature Highlights */}
+      {/* SECTION 3: Inside the Craft / Visual Feature Highlights */}
       <section className={styles.featuresSection} style={{ paddingTop: '5rem' }}>
         <div style={{ textAlign: 'center', width: '100%' }}>
           <RevealLeaf as="span" className={styles.eyebrow} delay={0.05} style={{ textAlign: 'center' }}>
-            Built for the craft, not a cubicle
+            Inside the craft
           </RevealLeaf>
           <RevealLeaf as="h2" className={styles.sectionTitle} delay={0.08}>
             The calm and confidence your work deserves.
           </RevealLeaf>
         </div>
+
+        {/* Flagship Dashboard Spotlight — Real Mobile View */}
+        <div className={styles.featureRow}>
+          <RevealLeaf className={styles.featureText} variant="slideInLeft">
+            <span className={styles.eyebrow}>{DASHBOARD_SPOTLIGHT.kicker}</span>
+            <h2 className={styles.featureTitle}>{DASHBOARD_SPOTLIGHT.title}</h2>
+            <p className={styles.featureBody}>{DASHBOARD_SPOTLIGHT.text}</p>
+          </RevealLeaf>
+          <RevealLeaf className={styles.craftPhoneWrap} delay={0.1} variant="slideInRight">
+            <div className={styles.phoneFrame}>
+              <div className={styles.phoneScreen}>
+                <Image
+                  src={DASHBOARD_SPOTLIGHT.image}
+                  alt={DASHBOARD_SPOTLIGHT.alt}
+                  width={473}
+                  height={1024}
+                  className={styles.phoneImage}
+                />
+                <div className={styles.phoneGlare} />
+              </div>
+            </div>
+          </RevealLeaf>
+        </div>
+
         {FEATURES.map((feature, i) => {
-          const reversed = i % 2 === 1;
+          const reversed = i % 2 === 0;
           return (
             <div
               key={feature.title}
