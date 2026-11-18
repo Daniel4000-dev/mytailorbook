@@ -38,16 +38,13 @@ export interface XpEventOptions {
  * order streaks and gamification do not apply.
  */
 export function isXpSystemEnabled(businessMode?: string): boolean {
+  if (!FEATURE_FLAGS.xpSystem) {
+    return false;
+  }
   if (businessMode && businessMode !== 'bespoke') {
     return false;
   }
-  if (typeof document !== 'undefined') {
-    const cookieVal = getClientCookie('mtb_xp_plugged_in');
-    if (cookieVal !== null) {
-      return cookieVal === '1';
-    }
-  }
-  return Boolean(FEATURE_FLAGS.xpSystem);
+  return true;
 }
 
 /**

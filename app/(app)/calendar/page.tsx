@@ -447,16 +447,16 @@ function CalendarContent() {
           </div>
         </header>
 
-        {/* Focused Fittings Lounge Banner when fitting filter active */}
+        {/* Focused Fittings Banner when fitting filter active */}
         {craftFilter === 'fitting' && (
           <div className={styles.fittingsLoungeBanner}>
-            <div>
+            <div className={styles.bannerTextCol}>
               <h3 className={styles.bannerTitle}>
                 <Symbol name="checkroom" size={18} />
-                Bespoke Fitting Lounge
+                Client Fittings
               </h3>
               <p className={styles.bannerSub}>
-                Client in-person try-on trials, drape inspection, and alteration recording
+                Schedule customer try-on sessions, adjustments, and alterations
               </p>
             </div>
             <Button
@@ -464,6 +464,7 @@ function CalendarContent() {
               size="sm"
               onClick={() => setIsAddEventOpen(true)}
               icon={<Symbol name="add" size={14} />}
+              className={styles.bannerCtaBtn}
             >
               Book Fitting
             </Button>

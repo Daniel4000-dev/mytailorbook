@@ -29,7 +29,6 @@ export default function AccountSettingsPage() {
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [confirmRemoveAvatar, setConfirmRemoveAvatar] = useState(false);
-  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFile = e.target.files?.[0];
@@ -90,35 +89,7 @@ export default function AccountSettingsPage() {
         {FEATURE_FLAGS.dataExport && <ExportDataButton shopName={currentShop?.name || 'shop'} />}
       </div>
 
-      <div className={styles.card}>
-        <Button
-          variant="secondary"
-          onClick={() => setConfirmLogout(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'var(--sf-space-sm)',
-            width: '100%',
-            color: 'var(--sf-status-danger)',
-          }}
-        >
-          <Symbol name="logout" size={18} />
-          <span>Log Out of Workshop</span>
-        </Button>
-      </div>
-
       <AccountDangerZone isOwner={isOwner} onClosingProfile={() => router.push(ROUTES.settings)} />
-
-      <ConfirmDialog
-        isOpen={confirmLogout}
-        onClose={() => setConfirmLogout(false)}
-        onConfirm={logout}
-        title="Log out of MyStitchBook?"
-        description="You will need to sign in again to access your workshop and records."
-        confirmLabel="Log Out"
-        destructive
-      />
 
       <ConfirmDialog
         isOpen={confirmRemoveAvatar}

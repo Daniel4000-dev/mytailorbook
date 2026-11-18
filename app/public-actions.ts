@@ -8,6 +8,7 @@ import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
 import { isOrgPremiumByOrgId } from '@/lib/subscription';
 import { extractCanonicalId, toOrderSlug } from '@/lib/slugs';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 
 // A real customer refreshing their own tracking page a few times is
 // normal; a scraper hitting many different order/shop IDs from one IP in
@@ -105,30 +106,34 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
     };
     order.metadata = updatedMeta;
 
-    // Asynchronously log to DB, award XP, and notify tailor
+    // Asynchronously log to DB and notify tailor
     (async () => {
       try {
         await admin.from('orders').update({ metadata: updatedMeta }).eq('id', row.id);
-        const { data: currentShop } = await admin.from('shops').select('xp').eq('id', row.shop_id).single();
-        if (currentShop) {
-          await admin.from('shops').update({ xp: (currentShop.xp || 0) + 15 }).eq('id', row.shop_id);
-          await admin.from('xp_ledger').insert({
-            shop_id: row.shop_id,
-            action_type: 'verified_tracking_opened',
-            xp_awarded: 15,
-            order_id: row.id,
-          });
-          await createAtelierNotification({
-            shopId: row.shop_id,
-            category: 'clients',
-            tone: 'info',
-            title: 'Client Opened Live Tracker',
-            subtitle: `${row.customer_name || 'Your customer'} opened their live tracking link! (+15 XP)`,
-            orderId: row.id,
-            actionLabel: 'View Order',
-            actionHref: `/production/${row.id}`,
-          });
+
+        if (FEATURE_FLAGS.xpSystem) {
+          const { data: currentShop } = await admin.from('shops').select('xp').eq('id', row.shop_id).single();
+          if (currentShop) {
+            await admin.from('shops').update({ xp: (currentShop.xp || 0) + 15 }).eq('id', row.shop_id);
+            await admin.from('xp_ledger').insert({
+              shop_id: row.shop_id,
+              action_type: 'verified_tracking_opened',
+              xp_awarded: 15,
+              order_id: row.id,
+            });
+          }
         }
+
+        await createAtelierNotification({
+          shopId: row.shop_id,
+          category: 'clients',
+          tone: 'info',
+          title: 'Client Opened Live Tracker',
+          subtitle: `${row.customer_name || 'Your customer'} opened their live tracking link!`,
+          orderId: row.id,
+          actionLabel: 'View Order',
+          actionHref: `/production/${row.id}`,
+        });
       } catch (err) {
         console.error('[track] Failed to record client view ping:', err);
       }

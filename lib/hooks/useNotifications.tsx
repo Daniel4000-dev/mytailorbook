@@ -61,15 +61,47 @@ function mapRowToItem(row: Record<string, unknown>): NotificationItem {
 }
 
 // ---------------------------------------------------------------------------
+// Memory Cache for instantaneous cross-page persistence
+// ---------------------------------------------------------------------------
+let memoryCache: { shopId: string; items: NotificationItem[]; isLoaded: boolean } | null = null;
+const memoryListeners = new Set<(items: NotificationItem[]) => void>();
+
+function updateMemoryCache(shopId: string, items: NotificationItem[]) {
+  memoryCache = { shopId, items, isLoaded: true };
+  memoryListeners.forEach((listener) => listener(items));
+}
+
+// ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 export function useNotifications() {
   const { currentShop } = useData();
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const shopId = currentShop?.id;
+
+  const initialItems = (memoryCache && memoryCache.shopId === shopId) ? memoryCache.items : [];
+  const initialLoaded = (memoryCache && memoryCache.shopId === shopId) ? memoryCache.isLoaded : false;
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>(initialItems);
+  const [isLoaded, setIsLoaded] = useState<boolean>(initialLoaded);
 
   useEffect(() => {
-    if (!currentShop?.id) return;
+    const handleMemoryChange = (items: NotificationItem[]) => {
+      setNotifications(items);
+      setIsLoaded(true);
+    };
+    memoryListeners.add(handleMemoryChange);
+    return () => {
+      memoryListeners.delete(handleMemoryChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shopId) return;
+
+    if (memoryCache && memoryCache.shopId === shopId) {
+      setNotifications(memoryCache.items);
+      setIsLoaded(true);
+    }
 
     let cancelled = false;
     let channel: ReturnType<ReturnType<typeof createClient>['channel']> | null = null;
@@ -82,23 +114,26 @@ export function useNotifications() {
         supabase
           .from('atelier_notifications')
           .select('*')
-          .eq('shop_id', currentShop.id)
+          .eq('shop_id', shopId)
           .order('created_at', { ascending: false })
           .limit(100)
       )
         .then(({ data, error }) => {
           if (cancelled) return;
           if (error) {
-            setNotifications([]);
-            setIsLoaded(true);
+            if (!memoryCache || memoryCache.shopId !== shopId) {
+              setNotifications([]);
+              setIsLoaded(true);
+            }
             return;
           }
           const rows = (data || []).filter(Boolean).map(mapRowToItem);
+          updateMemoryCache(shopId, rows);
           setNotifications(rows);
           setIsLoaded(true);
         })
         .catch(() => {
-          if (!cancelled) {
+          if (!cancelled && (!memoryCache || memoryCache.shopId !== shopId)) {
             setNotifications([]);
             setIsLoaded(true);
           }
@@ -106,23 +141,24 @@ export function useNotifications() {
 
       // Realtime subscription — instant delivery without polling.
       channel = supabase
-        .channel(`atelier-notifications-${currentShop.id}`)
+        .channel(`atelier-notifications-${shopId}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'atelier_notifications',
-            filter: `shop_id=eq.${currentShop.id}`,
+            filter: `shop_id=eq.${shopId}`,
           },
           (payload) => {
             if (cancelled || !payload?.new) return;
             const newRow = payload.new as Record<string, unknown>;
             if (!newRow || typeof newRow !== 'object' || !newRow.id) return;
-            setNotifications((prev) => {
-              if (prev.some((n) => n.id === newRow.id)) return prev;
-              return [mapRowToItem(newRow), ...prev];
-            });
+            const newItem = mapRowToItem(newRow);
+            const currentItems = memoryCache?.shopId === shopId ? memoryCache.items : [];
+            if (currentItems.some((n) => n.id === newItem.id)) return;
+            const updated = [newItem, ...currentItems];
+            updateMemoryCache(shopId, updated);
           },
         )
         .on(
@@ -131,21 +167,21 @@ export function useNotifications() {
             event: 'UPDATE',
             schema: 'public',
             table: 'atelier_notifications',
-            filter: `shop_id=eq.${currentShop.id}`,
+            filter: `shop_id=eq.${shopId}`,
           },
           (payload) => {
             if (cancelled || !payload?.new) return;
             const updatedRow = payload.new as Record<string, unknown>;
             if (!updatedRow || typeof updatedRow !== 'object' || !updatedRow.id) return;
             const updated = mapRowToItem(updatedRow);
-            setNotifications((prev) =>
-              prev.map((n) => (n.id === updated.id ? updated : n)),
-            );
+            const currentItems = memoryCache?.shopId === shopId ? memoryCache.items : [];
+            const updatedList = currentItems.map((n) => (n.id === updated.id ? updated : n));
+            updateMemoryCache(shopId, updatedList);
           },
         )
         .subscribe();
     } catch {
-      if (!cancelled) {
+      if (!cancelled && (!memoryCache || memoryCache.shopId !== shopId)) {
         setNotifications([]);
         setIsLoaded(true);
       }
@@ -160,7 +196,7 @@ export function useNotifications() {
         } catch { }
       }
     };
-  }, [currentShop?.id]);
+  }, [shopId]);
 
   // alertCount = unread non-info items (warnings + alerts) — drives the bell badge.
   const alertCount = notifications.filter(
