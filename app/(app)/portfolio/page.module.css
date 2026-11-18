@@ -54,22 +54,29 @@
 }
 
 .backBtn {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-sand, rgba(67, 56, 202, 0.05));
-  border: 1px solid var(--sf-border-light);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
   color: var(--sf-text-primary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
 .backBtn:hover {
-  background: var(--sf-bg-surface-hover);
-  transform: scale(1.05);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 18px -2px rgba(0, 0, 0, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.backBtn:active {
+  transform: scale(0.92);
 }
 
 .barTag {
