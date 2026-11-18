@@ -276,21 +276,8 @@ async function seed() {
 
   console.log(`Seeded ${insertedCount} bespoke garment orders.`);
 
-  // 3. Update workshop streak metrics for impressive display
-  const { error: shopUpdateErr } = await admin
-    .from('shops')
-    .update({
-      streak_current: 24,
-      streak_best: 28,
-      streak_last_counted_at: new Date().toISOString(),
-    })
-    .eq('id', TARGET_SHOP_ID);
-
-  if (shopUpdateErr) {
-    console.error('Error updating shop streak:', shopUpdateErr);
-  } else {
-    console.log('Updated workshop streak to 24 current / 28 best.');
-  }
+  // 3. Do not overwrite organic workshop streak metrics
+  console.log('Skipping artificial streak update to protect organic shop streak.');
 
   console.log('✅ Stitch Wrap test data successfully seeded for dadekunle31@gmail.com!');
 }

@@ -5,8 +5,8 @@ import styles from './OwnerDashboard.module.css';
 export default function DashboardSkeleton() {
   return (
     <div className={styles.content}>
-      {/* Atelier Hero Skeleton */}
-      <div className={styles.hero} style={{ minHeight: '190px' }}>
+      {/* Studio Hero Skeleton */}
+      <div className={styles.hero} style={{ minHeight: '150px' }}>
         <div className={styles.heroTop}>
           <div className={styles.heroIdentity}>
             <Skeleton width={180} height={24} />

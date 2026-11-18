@@ -1123,7 +1123,7 @@
   border-radius: var(--sf-radius-full);
 }
 
-/* ── Unified Atelier Command Hero ── */
+/* ── Unified Studio Command Hero ── */
 .atelierHero {
   background-color: #1E1B4B;
   background-image:
@@ -1133,13 +1133,13 @@
     /* Sartorial herringbone / fine worsted twill micro-weave */
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.024) 0px, rgba(255, 255, 255, 0.024) 1px, transparent 1px, transparent 7px),
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.018) 0px, rgba(255, 255, 255, 0.018) 1px, transparent 1px, transparent 7px),
-    /* Royal indigo atelier gradient */
+    /* Royal indigo studio gradient */
     linear-gradient(155deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
   border-radius: var(--sf-radius-2xl);
-  padding: 15px 16px 13px 16px;
+  padding: 12px 14px 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1147,8 +1147,8 @@
     inset 0 1.5px 2px rgba(255, 255, 255, 0.28),
     inset 0 -2px 4px rgba(0, 0, 0, 0.5),
     0 12px 36px rgba(30, 27, 75, 0.35);
-  margin-top: 14px;
-  margin-bottom: var(--sf-space-md);
+  margin-top: 8px;
+  margin-bottom: 12px;
   color: #ffffff;
 }
 
@@ -1268,7 +1268,7 @@
 
 .heroRevenueValue {
   font-family: var(--sf-font-numeric), sans-serif;
-  font-size: clamp(28px, 7.5vw, 42px);
+  font-size: clamp(22px, 6vw, 30px);
   font-weight: 900;
   color: #ffffff;
   line-height: 1.05;
@@ -1318,21 +1318,21 @@
   transition: width 0.5s ease-out;
 }
 
-/* 5-Pillar Workshop Metric Strip — Elevated Atelier Cockpit Deck */
+/* 5-Pillar Workshop Metric Strip — Elevated Studio Cockpit Deck */
 .dayOneBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  padding: 13px 15px;
+  padding: 9px 12px;
   background: rgba(12, 10, 36, 0.55);
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--sf-radius-lg);
   color: #E2E8F0;
-  margin-top: 10px;
+  margin-top: 6px;
   position: relative;
   z-index: 2;
   text-align: left;
@@ -1450,13 +1450,13 @@
 .operationsGrid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 8px 6px;
+  gap: 6px 5px;
   align-items: stretch;
   background: rgba(12, 10, 36, 0.52);
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-radius: var(--sf-radius-xl);
-  padding: 10px 8px;
+  border-radius: var(--sf-radius-lg);
+  padding: 6px 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.22);
   border-bottom: 1px solid rgba(0, 0, 0, 0.6);
   border-left: 1px solid rgba(255, 255, 255, 0.09);
@@ -1467,7 +1467,7 @@
     0 4px 16px rgba(0, 0, 0, 0.25);
   position: relative;
   z-index: 2;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .operationsCard {
@@ -1478,8 +1478,8 @@
   justify-content: center;
   text-align: center;
   gap: 2px;
-  padding: 8px 6px;
-  min-height: 52px;
+  padding: 5px 4px;
+  min-height: 42px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%);
   border: 1px solid rgba(255, 255, 255, 0.13);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 10px rgba(0, 0, 0, 0.2);
@@ -1517,8 +1517,8 @@
   border-radius: var(--sf-radius-md);
   color: #ffffff;
   cursor: pointer;
-  padding: 8px 4px;
-  min-height: 52px;
+  padding: 5px 4px;
+  min-height: 42px;
   transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
@@ -1531,25 +1531,25 @@
 
 .metricNum {
   font-family: var(--font-fraunces), var(--sf-font-heading), serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
   color: #ffffff;
   line-height: 1.1;
 }
 
 .metricAlertDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #EF4444;
-  box-shadow: 0 0 6px #EF4444;
+  box-shadow: 0 0 5px #EF4444;
 }
 
 .metricLabel {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.65);
   white-space: nowrap;
 }

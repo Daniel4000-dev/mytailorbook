@@ -16,13 +16,13 @@
     /* Sartorial herringbone / fine worsted twill micro-weave */
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.024) 0px, rgba(255, 255, 255, 0.024) 1px, transparent 1px, transparent 7px),
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.018) 0px, rgba(255, 255, 255, 0.018) 1px, transparent 1px, transparent 7px),
-    /* Royal indigo atelier gradient */
+    /* Royal indigo studio gradient */
     linear-gradient(155deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
   border-radius: var(--sf-radius-2xl);
-  padding: 20px 26px 18px;
+  padding: 16px 22px 14px;
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
+  gap: 12px;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -94,7 +94,7 @@
 
 .heroShopName {
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: var(--sf-text-xl);
+  font-size: 1.15rem;
   font-weight: 600;
   letter-spacing: var(--sf-tracking-display);
   color: #ffffff;
@@ -148,7 +148,7 @@
 
 .heroPrimaryValue {
   font-family: var(--sf-font-numeric);
-  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  font-size: clamp(1.85rem, 3vw, 2.6rem);
   line-height: 1.05;
   font-weight: 900;
   letter-spacing: -0.03em;
@@ -167,10 +167,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sf-space-md);
+  gap: 12px;
   background: rgba(10, 8, 30, 0.45);
   border-radius: var(--sf-radius-lg);
-  padding: 10px var(--sf-space-lg);
+  padding: 8px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.18);
   border-bottom: 1px solid rgba(0, 0, 0, 0.55);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
@@ -194,7 +194,7 @@
 }
 
 .heroStatLabel {
-  font-size: var(--sf-text-2xs);
+  font-size: 9.5px;
   font-weight: var(--sf-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
@@ -203,7 +203,7 @@
 
 .heroStatValue {
   font-family: var(--sf-font-numeric);
-  font-size: var(--sf-text-xl);
+  font-size: 1.1rem;
   font-weight: 700;
   color: #ffffff;
 }
@@ -240,7 +240,7 @@
 
 .heroStatDivider {
   width: 1px;
-  height: 28px;
+  height: 22px;
   background: rgba(255, 255, 255, 0.14);
 }
 
