@@ -246,6 +246,7 @@
    --sf-bottom-nav-height: 84px;
    --sf-top-bar-height: 56px;
    --sf-fab-size: 56px;
+   --sf-safe-area-top: env(safe-area-inset-top, 0px);
    --sf-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
    /* ── Apple & Instagram Liquid Glass Tokens ────────────────── */

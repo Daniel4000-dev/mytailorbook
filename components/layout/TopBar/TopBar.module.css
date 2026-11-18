@@ -4,8 +4,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--sf-top-bar-height);
-  padding: 0 var(--sf-space-md);
+  height: calc(var(--sf-top-bar-height) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: var(--sf-space-md);
+  padding-right: var(--sf-space-md);
+  padding-bottom: 0;
+  box-sizing: border-box;
   background: var(--sf-glass-gradient, var(--sf-glass-bg));
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
@@ -39,7 +43,10 @@
 /* Profile mode's banner is taller than the standard bar — let the bar grow to fit it. */
 .topBar:has(.profileHeaderContent) {
   height: auto;
-  padding: var(--sf-space-sm) var(--sf-space-sm);
+  padding-top: calc(var(--sf-space-sm) + env(safe-area-inset-top, 0px));
+  padding-left: var(--sf-space-sm);
+  padding-right: var(--sf-space-sm);
+  padding-bottom: var(--sf-space-sm);
 }
 
 .left,

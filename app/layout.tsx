@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: APP_CONFIG.name,
   },
   icons: {
@@ -77,6 +77,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
   // Previously maximumScale: 1 + userScalable: false — blocks pinch-zoom
   // entirely, which felt more "app-like" but fails WCAG 1.4.4 (flagged by
   // Lighthouse) and genuinely blocks low-vision users from zooming in

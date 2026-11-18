@@ -28,7 +28,8 @@
   position: sticky;
   top: 0;
   z-index: var(--sf-z-sticky);
-  height: 68px;
+  height: calc(68px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   background: var(--sf-glass-fallback-bg);
   border-bottom: var(--sf-glass-border-subtle);
 }
