@@ -138,21 +138,20 @@
 /* ── Proof Stage: 3-Device iPhone Bevel Showcase ── */
 .proofStage {
   max-width: 1140px;
-  margin: -84px auto var(--sf-space-2xl);
+  margin: var(--sf-space-2xl) auto var(--sf-space-3xl);
   padding: 0 var(--sf-margin-desktop);
   position: relative;
   z-index: 3;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 28px;
 }
 
 .deviceWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   position: relative;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.2s ease;
 }
@@ -165,7 +164,7 @@
   border-radius: var(--sf-radius-full);
   background: var(--sf-bg-surface);
   border: 1px solid rgba(67, 56, 202, 0.1);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
   font-size: 12px;
   font-weight: 700;
   color: var(--sf-text-primary);
@@ -183,107 +182,59 @@
   border-radius: var(--sf-radius-full);
 }
 
+/* Stacking: Left and Right tuck gently behind the Center device */
 .deviceWrapperLeft {
-  transform: translateY(32px) rotate(-3deg) scale(0.95);
+  margin-right: -44px;
+  transform: translateY(28px) rotate(-4deg) scale(0.92);
   z-index: 1;
 }
 
 .deviceWrapperCenter {
-  transform: translateY(0) scale(1.05);
+  transform: translateY(0) scale(1.04);
   z-index: 3;
 }
 
 .deviceWrapperRight {
-  transform: translateY(32px) rotate(3deg) scale(0.95);
+  margin-left: -44px;
+  transform: translateY(28px) rotate(4deg) scale(0.92);
   z-index: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .deviceWrapperLeft:hover {
-    transform: translateY(12px) rotate(-1deg) scale(0.98);
+    transform: translateY(10px) rotate(-1deg) scale(0.96);
     z-index: 4;
   }
   .deviceWrapperRight:hover {
-    transform: translateY(12px) rotate(1deg) scale(0.98);
+    transform: translateY(10px) rotate(1deg) scale(0.96);
     z-index: 4;
   }
 }
 
-/* ── Realistic Beveled iPhone Chassis ── */
-.phoneFrame {
-  position: relative;
+.deviceFrame {
   width: 290px;
-  aspect-ratio: 473 / 1024;
-  background: #09090b;
-  border-radius: 48px;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 0 0 3px #18181b,
-    0 0 0 4.5px rgba(255, 255, 255, 0.08),
-    0 24px 60px -12px rgba(0, 0, 0, 0.42),
-    0 36px 80px -16px rgba(67, 56, 202, 0.24);
-  user-select: none;
-  overflow: visible;
-}
-
-.deviceWrapperCenter .phoneFrame {
-  box-shadow: 
-    0 0 0 3.5px #18181b,
-    0 0 0 5px rgba(255, 255, 255, 0.14),
-    0 32px 80px -14px rgba(0, 0, 0, 0.5),
-    0 44px 100px -18px rgba(67, 56, 202, 0.38);
-}
-
-/* Side Buttons */
-.phoneFrame::before {
-  content: '';
-  position: absolute;
-  top: 96px;
-  left: -4.5px;
-  width: 3px;
-  height: 46px;
-  background: #27272a;
-  border-radius: 2px 0 0 2px;
-  box-shadow: 0 56px 0 #27272a;
-}
-
-.phoneFrame::after {
-  content: '';
-  position: absolute;
-  top: 120px;
-  right: -4.5px;
-  width: 3px;
-  height: 66px;
-  background: #27272a;
-  border-radius: 0 2px 2px 0;
-}
-
-.phoneScreen {
   position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 38px;
-  overflow: hidden;
-  background: #000000;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  user-select: none;
 }
 
-.phoneImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.deviceImage {
   display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.12));
 }
 
-.phoneGlare {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(130deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 38%, transparent 55%);
-  border-radius: 38px;
-  z-index: 2;
+.craftPhoneWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--sf-space-md) 0;
+}
+
+.craftDeviceFrame {
+  width: 290px;
+  position: relative;
+  user-select: none;
 }
 
 .ctaPrimary,
@@ -421,13 +372,6 @@
   border-radius: var(--sf-radius-xl);
   overflow: hidden;
   box-shadow: var(--sf-shadow-lg);
-}
-
-.craftPhoneWrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--sf-space-md) 0;
 }
 
 .featureImage {
@@ -710,7 +654,7 @@
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     gap: 16px;
-    margin-top: -50px;
+    margin: var(--sf-space-xl) auto var(--sf-space-2xl);
     padding: 0 var(--sf-margin-mobile) 24px;
     justify-content: flex-start;
   }
@@ -720,13 +664,15 @@
   }
 
   .deviceWrapper {
-    flex: 0 0 260px;
+    flex: 0 0 250px;
     scroll-snap-align: center;
+    margin: 0 !important;
     transform: none !important;
   }
 
-  .phoneFrame {
-    width: 260px;
+  .deviceFrame,
+  .craftDeviceFrame {
+    width: 250px;
   }
 
   .heroActions {

@@ -72,7 +72,7 @@ const DASHBOARD_SPOTLIGHT = {
   kicker: 'Workshop Command Center',
   title: 'Know your numbers, orders, and daily priorities in one calm morning glance',
   text: 'From the moment you step into your shop, see total collections (₦2,717,000), what’s sewing, what’s cutting, and what’s ready for try-on. Fast shortcuts to your Cutting Table, Inventory, and Lookbook Catalogues keep your team moving without interrupting your work.',
-  image: '/images/marketing/mobile-dashboard.jpg',
+  image: '/images/marketing/framed-dashboard.png',
   alt: "Baan's Fashion House mobile dashboard showing total collections, workshop status, and quick shortcuts",
 };
 
@@ -126,7 +126,7 @@ const BENEFITS = [
 const MOBILE_SHOWCASE = [
   {
     roleClass: styles.deviceWrapperLeft,
-    src: '/images/marketing/mobile-measurement-vault.jpg',
+    src: '/images/marketing/framed-measurement-vault.png',
     label: 'Client Measurement Vault',
     kicker: 'Permanent & Offline',
     alt: 'Permanent client measurement profile showing upper body bespoke landmarks',
@@ -134,7 +134,7 @@ const MOBILE_SHOWCASE = [
   },
   {
     roleClass: styles.deviceWrapperCenter,
-    src: '/images/marketing/mobile-production-board.jpg',
+    src: '/images/marketing/framed-production-board.png',
     label: 'Bespoke Production Board',
     kicker: 'Cutting to Delivery',
     alt: 'Bespoke production board with burgundy jacquard Agbada ready for try-on',
@@ -142,7 +142,7 @@ const MOBILE_SHOWCASE = [
   },
   {
     roleClass: styles.deviceWrapperRight,
-    src: '/images/marketing/mobile-order-tracking.jpg',
+    src: '/images/marketing/framed-order-tracking.png',
     label: 'Live WhatsApp Tracker',
     kicker: 'Zero Login Needed',
     alt: 'Customer live WhatsApp tracking link with real-time status and digital receipt',
@@ -204,18 +204,15 @@ export default function HomePageContent() {
             animateOnMount
             delay={device.delay}
           >
-            <div className={styles.phoneFrame}>
-              <div className={styles.phoneScreen}>
-                <Image
-                  src={device.src}
-                  alt={device.alt}
-                  width={473}
-                  height={1024}
-                  priority
-                  className={styles.phoneImage}
-                />
-                <div className={styles.phoneGlare} />
-              </div>
+            <div className={styles.deviceFrame}>
+              <Image
+                src={device.src}
+                alt={device.alt}
+                width={322}
+                height={662}
+                priority
+                className={styles.deviceImage}
+              />
             </div>
             <div className={styles.deviceBadge}>
               <span className={styles.deviceBadgeKicker}>{device.kicker}</span>
@@ -338,17 +335,14 @@ export default function HomePageContent() {
             <p className={styles.featureBody}>{DASHBOARD_SPOTLIGHT.text}</p>
           </RevealLeaf>
           <RevealLeaf className={styles.craftPhoneWrap} delay={0.1} variant="slideInRight">
-            <div className={styles.phoneFrame}>
-              <div className={styles.phoneScreen}>
-                <Image
-                  src={DASHBOARD_SPOTLIGHT.image}
-                  alt={DASHBOARD_SPOTLIGHT.alt}
-                  width={473}
-                  height={1024}
-                  className={styles.phoneImage}
-                />
-                <div className={styles.phoneGlare} />
-              </div>
+            <div className={styles.craftDeviceFrame}>
+              <Image
+                src={DASHBOARD_SPOTLIGHT.image}
+                alt={DASHBOARD_SPOTLIGHT.alt}
+                width={322}
+                height={662}
+                className={styles.deviceImage}
+              />
             </div>
           </RevealLeaf>
         </div>
