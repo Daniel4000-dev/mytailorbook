@@ -145,6 +145,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  gap: 28px;
 }
 
 .deviceWrapper {
@@ -182,32 +183,33 @@
   border-radius: var(--sf-radius-full);
 }
 
-/* Stacking: Left and Right tuck gently behind the Center device */
+/* Unstacked side-by-side with clean breathing room */
 .deviceWrapperLeft {
-  margin-right: -44px;
-  transform: translateY(28px) rotate(-4deg) scale(0.92);
+  margin: 0;
+  transform: translateY(20px);
   z-index: 1;
 }
 
 .deviceWrapperCenter {
+  margin: 0;
   transform: translateY(0) scale(1.04);
-  z-index: 3;
+  z-index: 2;
 }
 
 .deviceWrapperRight {
-  margin-left: -44px;
-  transform: translateY(28px) rotate(4deg) scale(0.92);
+  margin: 0;
+  transform: translateY(20px);
   z-index: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .deviceWrapperLeft:hover {
-    transform: translateY(10px) rotate(-1deg) scale(0.96);
-    z-index: 4;
+    transform: translateY(8px) scale(0.98);
+    z-index: 3;
   }
   .deviceWrapperRight:hover {
-    transform: translateY(10px) rotate(1deg) scale(0.96);
-    z-index: 4;
+    transform: translateY(8px) scale(0.98);
+    z-index: 3;
   }
 }
 
