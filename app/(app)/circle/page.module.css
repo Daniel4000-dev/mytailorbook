@@ -14,8 +14,8 @@
   align-items: center;
   justify-content: space-between;
   padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
-  background: var(--sf-bg-surface);
-  border-bottom: 1px solid var(--sf-border-light);
+  background: transparent;
+  border-bottom: none;
 }
 
 .headerLeft {

@@ -30,15 +30,15 @@
   z-index: var(--sf-z-sticky);
   height: calc(68px + env(safe-area-inset-top, 0px));
   padding-top: env(safe-area-inset-top, 0px);
-  background: var(--sf-glass-fallback-bg);
-  border-bottom: var(--sf-glass-border-subtle);
+  background: transparent;
+  border-bottom: none;
 }
 
 @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
   .header {
-    background: var(--sf-glass-bg);
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 

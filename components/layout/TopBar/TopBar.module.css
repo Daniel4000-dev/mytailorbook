@@ -10,33 +10,32 @@
   padding-right: var(--sf-space-md);
   padding-bottom: 0;
   box-sizing: border-box;
-  background: var(--sf-glass-gradient, var(--sf-glass-bg));
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-bottom: var(--sf-glass-border-subtle);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.40);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
   z-index: var(--sf-z-sticky);
   width: 100%;
   transform: translateZ(0);
   will-change: transform;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 :global([data-theme='dark']) .topBar {
-  background: var(--sf-glass-gradient, var(--sf-glass-bg));
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-bottom: var(--sf-glass-border-subtle);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
 }
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .topBar {
-    background: var(--sf-glass-gradient, var(--sf-glass-bg));
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-    border-bottom: var(--sf-glass-border-subtle);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12);
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
   }
 }
 
@@ -47,6 +46,11 @@
   padding-left: var(--sf-space-sm);
   padding-right: var(--sf-space-sm);
   padding-bottom: var(--sf-space-sm);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
 }
 
 .left,
