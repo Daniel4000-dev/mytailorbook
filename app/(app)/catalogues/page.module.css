@@ -464,6 +464,8 @@
 }
 
 .pinCard {
+  container-type: inline-size;
+  container-name: pincard;
   border-radius: 18px;
   overflow: hidden;
   position: relative;
@@ -553,6 +555,11 @@
   pointer-events: auto;
 }
 
+.pinBtnLabel {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .pinQuoteBtn {
   flex: 1;
   min-width: 0;
@@ -574,12 +581,6 @@
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
-
-.pinQuoteBtn span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .pinQuoteBtn:hover {
@@ -615,12 +616,6 @@
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
 }
 
-.pinOrderBtn span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .pinOrderBtn:hover {
   background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
   box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
@@ -631,6 +626,30 @@
   transform: scale(0.96);
 }
 
+/* Container query: switch to icon-only mode when card is narrow */
+@container pincard (max-width: 200px) {
+  .pinBtnLabel {
+    display: none !important;
+  }
+  .pinQuoteBtn,
+  .pinOrderBtn {
+    padding: 0;
+    gap: 0;
+  }
+}
+
+/* Media query fallback */
+@media (max-width: 520px) {
+  .pinBtnLabel {
+    display: none !important;
+  }
+  .pinQuoteBtn,
+  .pinOrderBtn {
+    padding: 0;
+    gap: 0;
+  }
+}
+
 @media (max-width: 380px) {
   .pinActions {
     gap: 4px;
@@ -638,9 +657,8 @@
   .pinQuoteBtn,
   .pinOrderBtn {
     height: 30px;
-    padding: 0 6px;
-    font-size: 10px;
-    gap: 3px;
+    padding: 0;
+    gap: 0;
   }
 }
 

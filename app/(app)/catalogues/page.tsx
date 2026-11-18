@@ -399,8 +399,8 @@ export default function CataloguesPage() {
                       }}
                       title="Calculate price quote for this style"
                     >
-                      <Symbol name="calculate" size={13} />
-                      <span>Quote</span>
+                      <Symbol name="calculate" size={14} />
+                      <span className={styles.pinBtnLabel}>Quote</span>
                     </button>
 
                     <button
@@ -415,8 +415,8 @@ export default function CataloguesPage() {
                         );
                       }}
                     >
-                      <Symbol name="content_cut" size={13} />
-                      <span>Sew This</span>
+                      <Symbol name="content_cut" size={14} />
+                      <span className={styles.pinBtnLabel}>Sew This</span>
                     </button>
                   </div>
                 </div>

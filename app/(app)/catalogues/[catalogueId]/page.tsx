@@ -435,8 +435,8 @@ export default function CatalogueDetailPage() {
                       title="Calculate price quote for this style"
                       aria-label="Calculate price quote"
                     >
-                      <Symbol name="calculate" size={12} />
-                      <span>Quote</span>
+                      <Symbol name="calculate" size={14} />
+                      <span className={styles.actionBtnLabel}>Quote</span>
                     </button>
                     <button
                       type="button"
@@ -448,8 +448,8 @@ export default function CatalogueDetailPage() {
                       title="Start order with this style"
                       aria-label="Sew this style"
                     >
-                      <Symbol name="content_cut" size={12} />
-                      <span>Sew This</span>
+                      <Symbol name="content_cut" size={14} />
+                      <span className={styles.actionBtnLabel}>Sew This</span>
                     </button>
                     <button
                       type="button"
@@ -461,7 +461,7 @@ export default function CatalogueDetailPage() {
                       title="Remove photo"
                       aria-label="Remove photo"
                     >
-                      <Symbol name="delete" size={13} />
+                      <Symbol name="delete" size={14} />
                     </button>
                   </div>
                 </div>
