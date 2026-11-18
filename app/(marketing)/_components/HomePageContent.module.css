@@ -135,6 +135,23 @@
   transition: transform 100ms ease-out;
 }
 
+.heroMicroCopy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.heroMicroSep {
+  opacity: 0.5;
+}
+
 /* ── Proof Stage: 3-Device iPhone Bevel Showcase ── */
 .proofStage {
   max-width: 1140px;

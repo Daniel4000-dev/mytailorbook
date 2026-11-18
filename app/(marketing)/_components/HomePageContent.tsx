@@ -185,13 +185,20 @@ export default function HomePageContent() {
           </p>
           <div className={styles.heroActions}>
             <Link href={ROUTES.signup} className={styles.ctaPrimary}>
-              Start Free
+              Start Free — No Card Needed
               <Symbol name="arrow_forward" size={18} />
             </Link>
             <Link href={ROUTES.features} className={styles.ctaSecondaryOnPhoto}>
               See How Your Shop Transforms
             </Link>
           </div>
+          <p className={styles.heroMicroCopy}>
+            <span>Free forever for solo tailors</span>
+            <span className={styles.heroMicroSep}>•</span>
+            <span>No debit card required</span>
+            <span className={styles.heroMicroSep}>•</span>
+            <span>Works 100% offline</span>
+          </p>
         </RevealLeaf>
       </section>
 
