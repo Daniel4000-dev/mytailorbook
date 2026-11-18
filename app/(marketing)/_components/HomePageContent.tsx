@@ -115,6 +115,33 @@ const BENEFITS = [
   },
 ];
 
+const MOBILE_SHOWCASE = [
+  {
+    roleClass: styles.deviceWrapperLeft,
+    src: '/images/marketing/mobile-measurement-vault.jpg',
+    label: 'Client Measurement Vault',
+    kicker: 'Permanent & Offline',
+    alt: 'Permanent client measurement profile showing upper body bespoke landmarks',
+    delay: 0.1,
+  },
+  {
+    roleClass: styles.deviceWrapperCenter,
+    src: '/images/marketing/mobile-production-board.jpg',
+    label: 'Bespoke Production Board',
+    kicker: 'Cutting to Delivery',
+    alt: 'Bespoke production board with burgundy jacquard Agbada ready for try-on',
+    delay: 0.2,
+  },
+  {
+    roleClass: styles.deviceWrapperRight,
+    src: '/images/marketing/mobile-order-tracking.jpg',
+    label: 'Live WhatsApp Tracker',
+    kicker: 'Zero Login Needed',
+    alt: 'Customer live WhatsApp tracking link with real-time status and digital receipt',
+    delay: 0.3,
+  },
+];
+
 /**
  * HomePageContent is a pure React Server Component (RSC).
  *
@@ -160,45 +187,32 @@ export default function HomePageContent() {
         </RevealLeaf>
       </section>
 
-      {/* Proof strip */}
-      <section className={styles.proofStrip}>
-        {[
-          {
-            src: '/images/marketing/proof-dashboard-home.jpg',
-            darkSrc: '/images/marketing/proof-dashboard-home-dark.jpg',
-            label: 'Dashboard overview',
-          },
-          {
-            src: '/images/marketing/proof-production-board.jpg',
-            darkSrc: '/images/marketing/proof-production-board-dark.jpg',
-            label: 'Production board',
-          },
-          {
-            src: '/images/marketing/proof-client-profiles.jpg',
-            darkSrc: '/images/marketing/proof-client-profiles-dark.jpg',
-            label: 'Client profiles',
-          },
-        ].map((shot, i) => (
+      {/* Proof stage — 3-Device Beveled iPhone Showcase */}
+      <section className={styles.proofStage} aria-label="MyStitchBook Mobile Interface Showcase">
+        {MOBILE_SHOWCASE.map((device) => (
           <RevealLeaf
-            key={shot.src}
-            className={styles.proofCard}
+            key={device.src}
+            className={`${styles.deviceWrapper} ${device.roleClass}`}
             animateOnMount
-            delay={0.1 + i * 0.1}
+            delay={device.delay}
           >
-            <Image
-              src={shot.src}
-              alt={shot.label}
-              width={960}
-              height={540}
-              className={`${styles.proofImage} ${styles.proofImageLight}`}
-            />
-            <Image
-              src={shot.darkSrc}
-              alt={shot.label}
-              width={960}
-              height={540}
-              className={`${styles.proofImage} ${styles.proofImageDark}`}
-            />
+            <div className={styles.phoneFrame}>
+              <div className={styles.phoneScreen}>
+                <Image
+                  src={device.src}
+                  alt={device.alt}
+                  width={473}
+                  height={1024}
+                  priority
+                  className={styles.phoneImage}
+                />
+                <div className={styles.phoneGlare} />
+              </div>
+            </div>
+            <div className={styles.deviceBadge}>
+              <span className={styles.deviceBadgeKicker}>{device.kicker}</span>
+              <span>{device.label}</span>
+            </div>
           </RevealLeaf>
         ))}
       </section>
