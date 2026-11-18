@@ -83,7 +83,14 @@ export interface Shop {
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
   subscriptionPlan?: string;
-  subscriptionStatus: 'free' | 'trialing' | 'active' | 'past_due' | 'canceled';
+  subscriptionStatus: 'free' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused';
+  /** Set when subscription is paused by user (1 to 3 months) */
+  subscriptionPausedAt?: string;
+  subscriptionPauseEndsAt?: string;
+  subscriptionPauseMonths?: number;
+  subscriptionPauseReason?: string;
+  cataloguePhotosPurgeWarningSentAt?: string;
+  cataloguePhotosPurgedAt?: string;
   /** Only set while subscriptionStatus is 'past_due' — the 3-day grace
    *  deadline from migration 0026, after which the daily cron
    *  (app/api/cron/subscription-grace) demotes the shop to 'free'. */

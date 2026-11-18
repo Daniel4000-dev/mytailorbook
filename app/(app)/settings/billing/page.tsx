@@ -10,7 +10,15 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { scrollContentToTop } from '@/lib/scrollToTop';
-import { initializeSubscription, confirmSubscriptionPayment, startFreeTrial, confirmFreeTrial, cancelSubscriptionAction } from '@/app/actions/payments';
+import {
+  initializeSubscription,
+  confirmSubscriptionPayment,
+  startFreeTrial,
+  confirmFreeTrial,
+  cancelSubscriptionAction,
+  pauseSubscriptionAction,
+  resumeSubscriptionAction,
+} from '@/app/actions/payments';
 import { trackEvent } from '@/lib/analytics';
 import {
   PREMIUM_MONTHLY_PRICE_NGN,
@@ -34,8 +42,13 @@ export default function BillingSettingsPage() {
   const [upgrading, setUpgrading] = useState(false);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [cancelling, setCancelling] = useState(false);
-  const [cancelStep, setCancelStep] = useState<'plans' | 'why-stay' | 'why-leave'>('plans');
+  const [cancelStep, setCancelStep] = useState<'plans' | 'why-stay' | 'why-leave' | 'pause'>('plans');
   const [cancelReason, setCancelReason] = useState<string | null>(null);
+
+  const [pausing, setPausing] = useState(false);
+  const [resuming, setResuming] = useState(false);
+  const [pauseMonths, setPauseMonths] = useState<1 | 2 | 3>(2);
+  const [pauseReason, setPauseReason] = useState<string>('Seasonal lull after holidays');
 
   useEffect(() => {
     scrollContentToTop();
@@ -183,10 +196,84 @@ export default function BillingSettingsPage() {
     }
   };
 
+  const openPauseFlow = () => {
+    setCancelStep('pause');
+  };
+
+  const handleConfirmPause = async () => {
+    setPausing(true);
+    try {
+      const result = await pauseSubscriptionAction(pauseMonths, pauseReason);
+      if ('error' in result) {
+        showToast(result.error, 'error');
+        return;
+      }
+      trackEvent('subscription_paused', { months: pauseMonths, reason: pauseReason });
+      const resumeDate = new Date(result.pauseEndsAt).toLocaleDateString('en-NG', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      showToast(`Subscription paused for ${pauseMonths} month(s) until ${resumeDate}. Your lookbook pictures are safe!`, 'success');
+      setCancelStep('plans');
+      refreshShop();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not pause subscription', 'error');
+    } finally {
+      setPausing(false);
+    }
+  };
+
+  const handleResumeSubscription = async () => {
+    setResuming(true);
+    try {
+      const result = await resumeSubscriptionAction();
+      if ('error' in result) {
+        showToast(result.error, 'error');
+        return;
+      }
+      if ('needsCheckout' in result) {
+        showToast('Please confirm your payment method to reactivate your plan.', 'info');
+        handleUpgrade(billingInterval);
+        return;
+      }
+      showToast('Welcome back! Your subscription has resumed successfully.', 'success');
+      trackEvent('subscription_resumed');
+      refreshShop();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Could not resume subscription', 'error');
+    } finally {
+      setResuming(false);
+    }
+  };
+
   return (
     <PageLayout width="narrow" header={<TopBar title="Billing & Subscription" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       {cancelStep === 'plans' && (
         <>
+          {currentShop?.subscriptionStatus === 'paused' && (
+            <div className={styles.pauseBanner}>
+              <div className={styles.pauseBannerHeader}>
+                <div className={styles.pauseBannerTitle}>
+                  <Symbol name="pause_circle" size={20} />
+                  <span>Subscription Paused</span>
+                </div>
+                <span className={styles.pauseBadge}>
+                  {currentShop.subscriptionPauseMonths || 2} {currentShop.subscriptionPauseMonths === 1 ? 'Month' : 'Months'}
+                </span>
+              </div>
+              <p className={styles.pauseBannerBody}>
+                Your workshop subscription is currently on an off-season breath. Your catalogue pictures and customer albums are <strong>100% preserved and protected</strong> from being cleared.
+                {currentShop.subscriptionPauseEndsAt && (
+                  <> Scheduled to resume on <strong>{new Date(currentShop.subscriptionPauseEndsAt).toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>.</>
+                )}
+              </p>
+              <Button variant="primary" loading={resuming} onClick={handleResumeSubscription}>
+                <Symbol name="play_arrow" size={16} /> Resume Subscription Now
+              </Button>
+            </div>
+          )}
+
           <div className={styles.intervalToggle} role="tablist" aria-label="Billing interval">
             <button
               type="button"
@@ -335,9 +422,20 @@ export default function BillingSettingsPage() {
             Cancel anytime. If a renewal payment fails, you keep Premium features for a 3-day grace period with reminders before reverting to Free — your data is never locked either way.
           </p>
 
-          {(currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing') && (
+          {currentShop?.subscriptionStatus === 'active' && (
+            <div className={styles.subActionsRow}>
+              <button type="button" className={styles.pausePlanBtn} onClick={openPauseFlow}>
+                <Symbol name="pause_circle" size={15} /> Pause subscription (1–3 mo)
+              </button>
+              <button type="button" className={styles.cancelPlanLink} onClick={openCancelFlow}>
+                Cancel subscription
+              </button>
+            </div>
+          )}
+
+          {currentShop?.subscriptionStatus === 'trialing' && (
             <button type="button" className={styles.cancelPlanLink} onClick={openCancelFlow}>
-              {currentShop.subscriptionStatus === 'trialing' ? 'Cancel trial' : 'Cancel subscription'}
+              Cancel trial
             </button>
           )}
         </>
@@ -345,8 +443,17 @@ export default function BillingSettingsPage() {
 
       {cancelStep === 'why-stay' && (
         <>
+          <div style={{ padding: '14px', background: 'rgba(67, 56, 202, 0.06)', borderRadius: '12px', border: '1px solid rgba(67, 56, 202, 0.2)', marginBottom: '16px' }}>
+            <strong style={{ display: 'block', fontSize: '13px', color: 'var(--sf-brand-indigo, #4338CA)', marginBottom: '4px' }}>
+              Taking an off-season breath?
+            </strong>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--sf-text-secondary)', lineHeight: 1.4 }}>
+              Pause your subscription for 1 to 3 months instead of canceling. You pay ₦0, and all your lookbook photos and client catalogues remain 100% safe.
+            </p>
+          </div>
+
           <p className={styles.hintText}>
-            Here&apos;s what moving to Free changes for {currentShop?.name || 'your studio'}:
+            Here&apos;s what moving to Free changes for {currentShop?.name || 'your workshop'}:
           </p>
           <ul className={styles.planFeatures}>
             <li>
@@ -357,6 +464,9 @@ export default function BillingSettingsPage() {
                 <strong>{activeStaffCount}</strong> staff account{activeStaffCount === 1 ? '' : 's'} will lose access
               </li>
             )}
+            <li>
+              <strong>Lookbook &amp; Style Catalogues:</strong> Inactive catalogue pictures are preserved during active pauses (up to 3 months), but are cleared from server storage if your account stays on Free after 3 months.
+            </li>
             <li>Analytics &amp; insights go away</li>
             <li>The &quot;Powered by MyStitchBook&quot; badge returns to your public pages</li>
           </ul>
@@ -364,8 +474,80 @@ export default function BillingSettingsPage() {
             None of this happens right away — you keep Premium until your current billing period ends, and your data is never deleted or locked either way.
           </p>
           <div className={styles.cancelActions}>
+            <Button variant="primary" fullWidth onClick={openPauseFlow}>
+              <Symbol name="pause_circle" size={16} /> Pause Subscription Instead (1–3 Months)
+            </Button>
             <Button variant="secondary" fullWidth onClick={() => setCancelStep('plans')}>Never mind, keep my plan</Button>
             <Button variant="ghost" fullWidth onClick={() => setCancelStep('why-leave')}>Continue to cancel</Button>
+          </div>
+        </>
+      )}
+
+      {cancelStep === 'pause' && (
+        <>
+          <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+            <h3 style={{ margin: '0 0 6px', fontSize: '18px', fontWeight: 700 }}>Pause Your Subscription</h3>
+            <p className={styles.hintText} style={{ margin: 0 }}>
+              Taking an off-season breath? Freeze your billing without losing your hard-earned lookbook pictures.
+            </p>
+          </div>
+
+          <div className={styles.pauseDurationGrid}>
+            {[1, 2, 3].map((m) => (
+              <div
+                key={m}
+                className={`${styles.pauseDurationCard} ${pauseMonths === m ? styles.pauseDurationCardActive : ''}`}
+                onClick={() => setPauseMonths(m as 1 | 2 | 3)}
+              >
+                <span className={styles.pauseDurationMonths}>{m} {m === 1 ? 'Month' : 'Months'}</span>
+                <span className={styles.pauseDurationLabel}>
+                  {m === 1 ? 'Quick break' : m === 2 ? 'Post-holiday' : 'Maximum lull'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.pauseHighlights}>
+            <div className={styles.pauseHighlightItem}>
+              <Symbol name="shield" size={16} style={{ color: 'var(--sf-success)' }} />
+              <span><strong>100% Photo Safety:</strong> Your catalogue pictures are never deleted during pause.</span>
+            </div>
+            <div className={styles.pauseHighlightItem}>
+              <Symbol name="credit_card_off" size={16} style={{ color: 'var(--sf-brand-indigo, #4338CA)' }} />
+              <span><strong>₦0 Billed:</strong> No card charges during your selected pause period.</span>
+            </div>
+            <div className={styles.pauseHighlightItem}>
+              <Symbol name="restart_alt" size={16} style={{ color: 'var(--sf-text-secondary)' }} />
+              <span><strong>1-Tap Resume:</strong> Unpause anytime in 1 tap whenever new client orders arrive.</span>
+            </div>
+          </div>
+
+          <p className={styles.hintText} style={{ marginBottom: '8px' }}>Reason for pause (optional):</p>
+          <div className={styles.cancelReasonList}>
+            {[
+              'Seasonal lull after holidays',
+              'Workshop renovation or travel',
+              'Low customer fabric intake',
+              'Other',
+            ].map((r) => (
+              <button
+                key={r}
+                type="button"
+                className={`${styles.cancelReasonOption} ${pauseReason === r ? styles.cancelReasonOptionActive : ''}`}
+                onClick={() => setPauseReason(r)}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.cancelActions}>
+            <Button variant="primary" fullWidth loading={pausing} onClick={handleConfirmPause}>
+              Confirm {pauseMonths}-Month Pause
+            </Button>
+            <Button variant="secondary" fullWidth onClick={() => setCancelStep('plans')}>
+              Cancel &amp; Keep Plan Active
+            </Button>
           </div>
         </>
       )}

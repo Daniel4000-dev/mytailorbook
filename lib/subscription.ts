@@ -22,6 +22,21 @@ export const FREE_RTW_MONTHLY_LIMIT = 30;
  *  client-side: the only server-only imports in this file are type-only
  *  (`import type`), fully erased at build time. */
 export const PREMIUM_STATUSES = ['active', 'past_due', 'trialing'];
+export const PAUSED_STATUSES = ['paused'];
+
+export const SUBSCRIPTION_PAUSE_MIN_MONTHS = 1;
+export const SUBSCRIPTION_PAUSE_MAX_MONTHS = 3;
+
+/** Days of safety grace after pause expires before catalogue photos can be pruned from server storage */
+export const CATALOGUE_PHOTO_PURGE_GRACE_DAYS = 14;
+
+export function isPremiumSubscription(status?: string): boolean {
+  return PREMIUM_STATUSES.includes(status ?? '');
+}
+
+export function isPausedSubscription(status?: string): boolean {
+  return PAUSED_STATUSES.includes(status ?? '');
+}
 
 export const PREMIUM_MONTHLY_PRICE_NGN = 2699;
 export const PREMIUM_YEARLY_PRICE_NGN = 26990;

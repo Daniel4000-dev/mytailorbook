@@ -5,7 +5,14 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { isOwnerLikeRole } from '@/lib/types';
-import { PREMIUM_MONTHLY_PRICE_NGN, PREMIUM_YEARLY_PRICE_NGN, TRIAL_LENGTH_DAYS, TRIAL_VERIFICATION_AMOUNT_NGN } from '@/lib/subscription';
+import {
+  PREMIUM_MONTHLY_PRICE_NGN,
+  PREMIUM_YEARLY_PRICE_NGN,
+  TRIAL_LENGTH_DAYS,
+  TRIAL_VERIFICATION_AMOUNT_NGN,
+  SUBSCRIPTION_PAUSE_MIN_MONTHS,
+  SUBSCRIPTION_PAUSE_MAX_MONTHS,
+} from '@/lib/subscription';
 import { refundTrialChargeOnce } from '@/lib/paystackRefund';
 import { validateBillingEnvironment, getPlanCode, getBillingEnv } from '@/lib/billing/environment';
 
@@ -563,6 +570,187 @@ export async function cancelSubscriptionAction(): Promise<{ success: true; acces
     .eq('paystack_environment', getBillingEnv());
 
   return { success: true, accessUntil: billingShop.current_period_end };
+}
+
+/** Pauses the caller's subscription for 1, 2, or 3 months.
+ *  Disables recurring auto-renewal on Paystack so no charges hit during the lull,
+ *  preserves lookbook and catalogue photos from being purged, and sets the pause end date.
+ *  Only the Owner can pause. */
+export async function pauseSubscriptionAction(
+  months: number,
+  reason?: string
+): Promise<{ success: true; pauseEndsAt: string } | { error: string }> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id, role')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.shop_id) return { error: 'No shop profile found' };
+  if (!isOwnerLikeRole(profile.role)) {
+    return { error: 'Only the Owner can pause the subscription' };
+  }
+
+  const { allowed } = await checkRateLimit(`pause-sub:${user.id}`, { limit: 10, windowSeconds: 3600 });
+  if (!allowed) return { error: 'Too many attempts — please try again in a few minutes.' };
+
+  const validatedMonths = Math.round(months);
+  if (validatedMonths < SUBSCRIPTION_PAUSE_MIN_MONTHS || validatedMonths > SUBSCRIPTION_PAUSE_MAX_MONTHS) {
+    return { error: `Pause duration must be between ${SUBSCRIPTION_PAUSE_MIN_MONTHS} and ${SUBSCRIPTION_PAUSE_MAX_MONTHS} months.` };
+  }
+
+  const admin = createAdminClient();
+
+  const { data: shop } = await admin
+    .from('shops')
+    .select('id, subscription_status, paystack_subscription_code, paystack_authorization_code, current_period_end, is_primary, org_id')
+    .eq('id', profile.shop_id)
+    .eq('paystack_environment', getBillingEnv())
+    .single();
+  if (!shop) return { error: 'Shop not found' };
+
+  const billingShop = shop.is_primary
+    ? shop
+    : (await admin.from('shops').select('id, subscription_status, paystack_subscription_code, paystack_authorization_code, current_period_end').eq('org_id', shop.org_id).eq('is_primary', true).eq('paystack_environment', getBillingEnv()).single()).data;
+  if (!billingShop) return { error: 'Shop not found' };
+
+  if (billingShop.subscription_status === 'paused') {
+    return { error: 'Your subscription is already paused.' };
+  }
+
+  if (billingShop.subscription_status !== 'active' && billingShop.subscription_status !== 'past_due') {
+    return { error: 'Only active subscriptions can be paused.' };
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+
+  // If there is an active Paystack subscription code, disable it on Paystack so no renewal charges occur
+  if (billingShop.paystack_subscription_code && PAYSTACK_SECRET) {
+    try {
+      const subResponse = await fetch(`https://api.paystack.co/subscription/${billingShop.paystack_subscription_code}`, {
+        headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+      });
+      const subData = await subResponse.json();
+      if (subResponse.ok && subData.status && subData.data?.email_token) {
+        await fetch('https://api.paystack.co/subscription/disable', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: billingShop.paystack_subscription_code, token: subData.data.email_token }),
+        });
+      }
+    } catch (e) {
+      console.warn('Paystack disable during pause warning:', e);
+    }
+  }
+
+  const pauseEndsAt = new Date(Date.now() + validatedMonths * 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { error: updateError } = await admin
+    .from('shops')
+    .update({
+      subscription_status: 'paused',
+      subscription_paused_at: new Date().toISOString(),
+      subscription_pause_ends_at: pauseEndsAt,
+      subscription_pause_months: validatedMonths,
+      subscription_pause_reason: reason?.trim() || 'seasonal_lull',
+      paystack_subscription_code: null,
+      grace_expires_at: null,
+      catalogue_photos_purge_warning_sent_at: null,
+    })
+    .eq('id', billingShop.id);
+
+  if (updateError) {
+    console.error('Failed to update shop to paused:', updateError);
+    return { error: 'Could not pause subscription — please try again.' };
+  }
+
+  return { success: true, pauseEndsAt };
+}
+
+/** Resumes a paused subscription immediately. If a saved authorization code exists,
+ *  attempts to re-create the subscription on Paystack. Otherwise returns needsCheckout
+ *  so the client can open Paystack checkout. */
+export async function resumeSubscriptionAction(): Promise<
+  { success: true; renewed: boolean } | { error: string } | { needsCheckout: true }
+> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id, role')
+    .eq('id', user.id)
+    .single();
+  if (!profile?.shop_id) return { error: 'No shop profile found' };
+  if (!isOwnerLikeRole(profile.role)) {
+    return { error: 'Only the Owner can manage subscription' };
+  }
+
+  const admin = createAdminClient();
+
+  const { data: shop } = await admin
+    .from('shops')
+    .select('id, subscription_status, paystack_customer_code, paystack_authorization_code, subscription_plan, trial_plan_code, is_primary, org_id')
+    .eq('id', profile.shop_id)
+    .eq('paystack_environment', getBillingEnv())
+    .single();
+  if (!shop) return { error: 'Shop not found' };
+
+  const billingShop = shop.is_primary
+    ? shop
+    : (await admin.from('shops').select('id, subscription_status, paystack_customer_code, paystack_authorization_code, subscription_plan, trial_plan_code').eq('org_id', shop.org_id).eq('is_primary', true).eq('paystack_environment', getBillingEnv()).single()).data;
+  if (!billingShop) return { error: 'Shop not found' };
+
+  if (billingShop.subscription_status !== 'paused') {
+    return { error: 'Subscription is not currently paused' };
+  }
+
+  const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+  const planCode = billingShop.subscription_plan || billingShop.trial_plan_code || getPlanCode('monthly');
+
+  // If we have saved authorization and customer code, attempt instant charge/activation
+  if (billingShop.paystack_customer_code && billingShop.paystack_authorization_code && PAYSTACK_SECRET && planCode) {
+    try {
+      const subResponse = await fetch('https://api.paystack.co/subscription', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: billingShop.paystack_customer_code,
+          plan: planCode,
+          authorization: billingShop.paystack_authorization_code,
+        }),
+      });
+      const subData = await subResponse.json();
+
+      if (subResponse.ok && subData.status) {
+        await admin
+          .from('shops')
+          .update({
+            subscription_status: 'active',
+            subscription_paused_at: null,
+            subscription_pause_ends_at: null,
+            subscription_pause_months: null,
+            subscription_pause_reason: null,
+            paystack_subscription_code: subData.data?.subscription_code || null,
+            current_period_end: subData.data?.next_payment_date || null,
+            catalogue_photos_purge_warning_sent_at: null,
+          })
+          .eq('id', billingShop.id);
+
+        return { success: true, renewed: true };
+      }
+    } catch (err) {
+      console.warn('Instant subscription resume failed, falling back to checkout:', err);
+    }
+  }
+
+  return { needsCheckout: true };
 }
 
 export async function mockToggleSubscription() {

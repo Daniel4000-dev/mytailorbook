@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { ROUTES } from '@/lib/routes';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -136,6 +137,20 @@ export default function CatalogueDetailPage() {
 
     if (!currentShop) {
       showToast('Shop profile not loaded', 'error');
+      setUploading(false);
+      return;
+    }
+
+    if (currentShop.subscriptionStatus === 'free') {
+      showToast('Lookbook photo uploads require an active Premium plan. Upgrade to upload style photos.', 'info');
+      router.push(ROUTES.settingsBilling);
+      setUploading(false);
+      return;
+    }
+
+    if (currentShop.subscriptionStatus === 'paused') {
+      showToast('Your subscription is currently paused. Resume your subscription to upload new style photos.', 'info');
+      router.push(ROUTES.settingsBilling);
       setUploading(false);
       return;
     }

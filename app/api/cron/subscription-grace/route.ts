@@ -285,5 +285,138 @@ export async function GET(request: NextRequest) {
     })));
   }
 
-  return NextResponse.json({ ok: true, trialsConverted, trialsFailed, remindedUpcoming, remindedPastDue, remindedCanceled, demoted, demotedCanceled });
+  // 6. Paused subscriptions expiring soon reminder (7 days window)
+  let remindedPaused = 0, pausedResumed = 0, pausedFailed = 0;
+  const SEVEN_DAYS_MS = 7 * DAY_MS;
+
+  const { data: pausedExpiringSoon } = await admin
+    .from('shops')
+    .select('id, subscription_pause_ends_at, last_billing_reminder_sent_at')
+    .eq('subscription_status', 'paused')
+    .eq('paystack_environment', billingEnv)
+    .not('subscription_pause_ends_at', 'is', null)
+    .lte('subscription_pause_ends_at', new Date(now.getTime() + SEVEN_DAYS_MS).toISOString())
+    .gt('subscription_pause_ends_at', now.toISOString());
+
+  for (const shop of pausedExpiringSoon || []) {
+    if (shop.last_billing_reminder_sent_at && shop.last_billing_reminder_sent_at >= todayStart) continue;
+    const daysLeft = Math.max(1, Math.ceil((new Date(shop.subscription_pause_ends_at).getTime() - now.getTime()) / DAY_MS));
+    await createAtelierNotification({
+      shopId: shop.id,
+      category: 'system',
+      tone: 'warning',
+      badgeIcon: 'pause_circle',
+      badgeBg: '#FEF3C7',
+      badgeColor: '#D97706',
+      title: 'Subscription pause ends soon',
+      subtitle: `Your workshop pause ends in ${daysLeft} day(s). Your subscription will resume to preserve your active catalogues.`,
+      actionLabel: 'Billing Settings',
+      actionHref: '/settings/billing',
+    });
+    await admin.from('shops').update({ last_billing_reminder_sent_at: now.toISOString() }).eq('id', shop.id);
+    remindedPaused++;
+  }
+
+  // 7. Paused subscriptions reached subscription_pause_ends_at -> attempt auto-resume or drop to free
+  const { data: pausedEnded } = await admin
+    .from('shops')
+    .select('id, paystack_customer_code, paystack_authorization_code, subscription_plan, trial_plan_code')
+    .eq('subscription_status', 'paused')
+    .eq('paystack_environment', billingEnv)
+    .not('subscription_pause_ends_at', 'is', null)
+    .lte('subscription_pause_ends_at', now.toISOString());
+
+  for (const shop of pausedEnded || []) {
+    const planToCharge = shop.subscription_plan || shop.trial_plan_code;
+    let resumeSuccess = false;
+
+    if (shop.paystack_customer_code && shop.paystack_authorization_code && PAYSTACK_SECRET && planToCharge) {
+      try {
+        const subResponse = await fetch('https://api.paystack.co/subscription', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer: shop.paystack_customer_code,
+            plan: planToCharge,
+            authorization: shop.paystack_authorization_code,
+          }),
+        });
+        const subData = await subResponse.json();
+        if (subResponse.ok && subData.status) {
+          resumeSuccess = true;
+          await admin
+            .from('shops')
+            .update({
+              subscription_status: 'active',
+              subscription_paused_at: null,
+              subscription_pause_ends_at: null,
+              subscription_pause_months: null,
+              subscription_pause_reason: null,
+              paystack_subscription_code: subData.data?.subscription_code || null,
+              current_period_end: subData.data?.next_payment_date || null,
+              catalogue_photos_purge_warning_sent_at: null,
+            })
+            .eq('id', shop.id);
+
+          await createAtelierNotification({
+            shopId: shop.id,
+            category: 'system',
+            tone: 'info',
+            badgeIcon: 'check_circle',
+            badgeBg: '#D1FAE5',
+            badgeColor: '#059669',
+            title: 'Welcome back! Subscription resumed',
+            subtitle: 'Your workshop pause has completed. Your catalogues and premium features are fully active.',
+            actionLabel: 'Open Dashboard',
+            actionHref: '/dashboard',
+          });
+          pausedResumed++;
+        }
+      } catch (e) {
+        console.error(`Pause resume charge error for shop ${shop.id}:`, e);
+      }
+    }
+
+    if (!resumeSuccess) {
+      await admin
+        .from('shops')
+        .update({
+          subscription_status: 'free',
+          subscription_paused_at: null,
+          subscription_pause_ends_at: null,
+          subscription_pause_months: null,
+          subscription_pause_reason: null,
+          catalogue_photos_purge_warning_sent_at: now.toISOString(),
+        })
+        .eq('id', shop.id);
+
+      await createAtelierNotification({
+        shopId: shop.id,
+        category: 'system',
+        tone: 'alert',
+        badgeIcon: 'warning',
+        badgeBg: '#FEE2E2',
+        badgeColor: '#DC2626',
+        title: 'Pause ended — 14-day catalogue grace',
+        subtitle: "Your pause ended and we couldn't renew your plan. You have 14 days of safe storage before catalogue photos are archived from the server.",
+        actionLabel: 'Renew Plan',
+        actionHref: '/settings/billing',
+      });
+      pausedFailed++;
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    trialsConverted,
+    trialsFailed,
+    remindedUpcoming,
+    remindedPastDue,
+    remindedCanceled,
+    remindedPaused,
+    pausedResumed,
+    pausedFailed,
+    demoted,
+    demotedCanceled,
+  });
 }

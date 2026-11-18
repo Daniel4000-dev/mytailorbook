@@ -90,6 +90,17 @@ export default function CataloguesPage() {
   }, [currentShop?.id]);
 
   const handleCreate = async (titleToCreate?: string) => {
+    if (currentShop?.subscriptionStatus === 'free') {
+      showToast('Style Catalogues are strictly for Premium workshops. Upgrade to create curated albums.', 'info');
+      router.push(ROUTES.settingsBilling);
+      return;
+    }
+    if (currentShop?.subscriptionStatus === 'paused') {
+      showToast('Your workshop subscription is currently paused. Resume your subscription to create new albums.', 'info');
+      router.push(ROUTES.settingsBilling);
+      return;
+    }
+
     const title = (titleToCreate || newTitle).trim();
     if (!title) {
       showToast('Please enter an album title', 'error');
@@ -156,6 +167,87 @@ export default function CataloguesPage() {
       <TopBar title="Inspiration Lookbooks" showBack={false} />
 
       <div className={styles.content}>
+        {currentShop?.subscriptionStatus === 'paused' && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            margin: '0 0 16px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(67, 56, 202, 0.08), rgba(99, 102, 241, 0.14))',
+            border: '1px solid rgba(67, 56, 202, 0.25)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Symbol name="pause_circle" size={20} style={{ color: 'var(--sf-brand-indigo, #4338CA)', flexShrink: 0 }} />
+              <div style={{ fontSize: '13px', color: 'var(--sf-text-primary)' }}>
+                <strong>Subscription Paused:</strong> All catalogue pictures and customer albums are 100% safe &amp; preserved.
+                {currentShop.subscriptionPauseEndsAt && (
+                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--sf-text-secondary)', marginTop: '2px' }}>
+                    Scheduled resume: {new Date(currentShop.subscriptionPauseEndsAt).toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push(ROUTES.settingsBilling)}
+              style={{
+                background: 'var(--sf-brand-indigo, #4338CA)',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Manage Pause
+            </button>
+          </div>
+        )}
+
+        {currentShop?.subscriptionStatus === 'free' && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            margin: '0 0 16px',
+            borderRadius: '12px',
+            background: 'var(--sf-warning-bg, #FFFBEB)',
+            border: '1px solid var(--sf-warning-border, #FDE68A)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Symbol name="workspace_premium" size={20} style={{ color: 'var(--sf-warning, #D97706)', flexShrink: 0 }} />
+              <div style={{ fontSize: '12px', color: 'var(--sf-text-secondary)', lineHeight: 1.4 }}>
+                <strong style={{ color: 'var(--sf-text-primary)' }}>Style Catalogues are a Premium Feature:</strong> High-resolution photos are retained for active and paused subscriptions (up to 3 months).
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push(ROUTES.settingsBilling)}
+              style={{
+                background: 'var(--sf-color-primary, #047857)',
+                color: '#fff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Upgrade
+            </button>
+          </div>
+        )}
+
         {/* ── Atelier Hero Liquid Glass Banner ── */}
         <div className={styles.heroBanner}>
           <div className={styles.heroText}>

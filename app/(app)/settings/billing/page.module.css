@@ -239,3 +239,136 @@
   border-color: var(--sf-accent-emerald);
   background: var(--sf-bg-surface-hover);
 }
+
+/* ── Subscription Pause Styles ───────────────────────── */
+.subActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-md);
+  margin-top: var(--sf-space-sm);
+  flex-wrap: wrap;
+}
+
+.pausePlanBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.2);
+  padding: 8px 16px;
+  border-radius: var(--sf-radius-full, 999px);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.pausePlanBtn:hover {
+  background: rgba(67, 56, 202, 0.14);
+}
+
+.pauseBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  margin: 0 0 var(--sf-space-lg);
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.06), rgba(99, 102, 241, 0.12));
+  border: 1px solid rgba(67, 56, 202, 0.2);
+  border-radius: var(--sf-radius-md);
+}
+
+.pauseBannerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pauseBannerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-brand-indigo, #4338CA);
+}
+
+.pauseBadge {
+  font-size: 11px;
+  font-weight: var(--sf-weight-bold);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+}
+
+.pauseBannerBody {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pauseDurationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: var(--sf-space-md) 0;
+}
+
+.pauseDurationCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px 10px;
+  border: 1.5px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  background: var(--sf-bg-surface);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.pauseDurationCard:hover {
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.pauseDurationCardActive {
+  border-color: var(--sf-brand-indigo, #4338CA);
+  background: rgba(67, 56, 202, 0.06);
+  box-shadow: 0 0 0 1px var(--sf-brand-indigo, #4338CA);
+}
+
+.pauseDurationMonths {
+  font-size: var(--sf-text-base);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+}
+
+.pauseDurationLabel {
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+  margin-top: 4px;
+}
+
+.pauseHighlights {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: var(--sf-space-sm) 0 var(--sf-space-lg);
+  padding: 12px 14px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm);
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+}
+
+.pauseHighlightItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

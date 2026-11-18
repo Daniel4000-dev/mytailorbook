@@ -1313,6 +1313,33 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  pause_circle: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill ? color : 'none'} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="10" y1="9" x2="10" y2="15" strokeWidth="2.5" />
+      <line x1="14" y1="9" x2="14" y2="15" strokeWidth="2.5" />
+    </svg>
+  ),
+
+  play_arrow: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="8 5 19 12 8 19 8 5" />
+    </svg>
+  ),
+
+  shield: ({ size, fill, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill ? color : 'none'} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
+
+  restart_alt: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <polyline points="3 3 3 8 8 8" />
+    </svg>
+  ),
+
   volume_up: ({ size, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />

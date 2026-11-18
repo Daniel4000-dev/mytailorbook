@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { StyleCatalogue, StyleCataloguePhoto } from '@/lib/types';
+import { getOrgSubscriptionStatus, isPremiumSubscription, isPausedSubscription } from '@/lib/subscription';
 import { revalidatePath } from 'next/cache';
 
 export async function getCataloguesAction(shopId: string): Promise<StyleCatalogue[]> {
@@ -59,6 +60,16 @@ export async function getCataloguesAction(shopId: string): Promise<StyleCatalogu
 
 export async function createCatalogueAction(shopId: string, title: string): Promise<string> {
   const supabase = await createClient();
+  const subStatus = await getOrgSubscriptionStatus(supabase, shopId);
+
+  if (isPausedSubscription(subStatus)) {
+    throw new Error('Your workshop subscription is currently paused. Resume your subscription to create new albums.');
+  }
+
+  if (!isPremiumSubscription(subStatus)) {
+    throw new Error('Style Catalogues and lookbooks are strictly a Premium feature. Upgrade to create curated customer albums.');
+  }
+
   const { data, error } = await supabase
     .from('style_catalogues')
     .insert({ shop_id: shopId, title: title.trim() })
@@ -89,6 +100,27 @@ export async function deleteCatalogueAction(catalogueId: string): Promise<void> 
 
 export async function addCataloguePhotoAction(catalogueId: string, imageUrl: string): Promise<void> {
   const supabase = await createClient();
+
+  const { data: cat, error: catError } = await supabase
+    .from('style_catalogues')
+    .select('shop_id')
+    .eq('id', catalogueId)
+    .single();
+
+  if (catError || !cat?.shop_id) {
+    throw new Error('Album not found');
+  }
+
+  const subStatus = await getOrgSubscriptionStatus(supabase, cat.shop_id);
+
+  if (isPausedSubscription(subStatus)) {
+    throw new Error('Your subscription is currently paused. Resume your subscription to upload new lookbook photos.');
+  }
+
+  if (!isPremiumSubscription(subStatus)) {
+    throw new Error('Uploading style photos to lookbooks requires an active Premium plan.');
+  }
+
   const { error } = await supabase
     .from('style_catalogue_photos')
     .insert({ catalogue_id: catalogueId, image_url: imageUrl });

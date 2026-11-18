@@ -4,8 +4,13 @@ import {
   getOrgSubscriptionStatus,
   isOrgPremium,
   isOrgPremiumByOrgId,
+  isPremiumSubscription,
+  isPausedSubscription,
   FREE_MONTHLY_ORDER_LIMIT,
   PREMIUM_STATUSES,
+  PAUSED_STATUSES,
+  SUBSCRIPTION_PAUSE_MIN_MONTHS,
+  SUBSCRIPTION_PAUSE_MAX_MONTHS,
 } from '@/lib/subscription';
 
 /** Minimal fake of the Supabase query builder used by lib/subscription.ts.
@@ -188,5 +193,27 @@ describe('isOrgPremium / isOrgPremiumByOrgId', () => {
       shops: [{ data: { subscription_status: 'active' }, error: null }],
     });
     expect(await isOrgPremiumByOrgId(client, 'org-1')).toBe(true);
+  });
+
+  describe('subscription pause and catalogue retention rules', () => {
+    it('recognizes paused subscription correctly', () => {
+      expect(isPausedSubscription('paused')).toBe(true);
+      expect(isPausedSubscription('active')).toBe(false);
+      expect(isPausedSubscription('free')).toBe(false);
+      expect(isPausedSubscription('canceled')).toBe(false);
+    });
+
+    it('treats paused subscription as non-premium for new creation', () => {
+      expect(isPremiumSubscription('paused')).toBe(false);
+      expect(isPremiumSubscription('active')).toBe(true);
+      expect(isPremiumSubscription('trialing')).toBe(true);
+      expect(isPremiumSubscription('past_due')).toBe(true);
+      expect(isPremiumSubscription('free')).toBe(false);
+    });
+
+    it('enforces pause duration bounds of 1 to 3 months', () => {
+      expect(SUBSCRIPTION_PAUSE_MIN_MONTHS).toBe(1);
+      expect(SUBSCRIPTION_PAUSE_MAX_MONTHS).toBe(3);
+    });
   });
 });
