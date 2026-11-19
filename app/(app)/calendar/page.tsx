@@ -421,7 +421,7 @@ function CalendarContent() {
               onClick={() => setCraftFilter('fitting')}
             >
               <Symbol name="checkroom" size={15} />
-              <span>Fittings Lounge</span>
+              <span>Client Fittings</span>
               <span className={`${styles.filterBadge} ${styles.filterBadgeFitting}`}>{monthCounts.fittings}</span>
             </button>
 

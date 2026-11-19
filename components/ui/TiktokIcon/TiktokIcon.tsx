@@ -21,3 +21,4 @@ export default function TiktokIcon({ size = 24, className, ...props }: TiktokIco
     </svg>
   );
 }
+

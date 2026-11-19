@@ -248,11 +248,18 @@
 .bannerCtaBtn {
   flex-shrink: 0;
   white-space: nowrap;
+  min-height: 40px;
+  padding: 0 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 639px) {
   .bannerCtaBtn {
     width: 100%;
+    min-height: 44px;
     justify-content: center;
   }
 }
