@@ -1,93 +1,158 @@
 .pageGrid {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
-  padding: var(--sf-space-md, 16px) var(--sf-space-sm) var(--sf-space-2xl) var(--sf-space-sm);
-  max-width: 800px;
+  gap: 16px;
+  padding: 8px var(--sf-space-sm) var(--sf-space-2xl) var(--sf-space-sm);
+  max-width: 640px;
   margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
   .pageGrid {
-    padding: var(--sf-space-xl, 24px) var(--sf-space-lg) var(--sf-space-2xl);
+    padding: var(--sf-space-md) var(--sf-space-lg) var(--sf-space-2xl);
   }
 }
 
-.headerActions {
+/* ── WhatsApp 'You' Header Actions ── */
+.headerRoundBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all var(--sf-transition-fast);
+}
+
+.headerRoundBtn:hover {
+  background: var(--sf-bg-surface-hover);
+}
+
+.headerRoundBtn:active {
+  transform: scale(0.96);
+}
+
+.headerRightWrap {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.headerActionBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--sf-radius-full);
+.headerCapsule {
+  display: flex;
+  align-items: center;
   background: var(--sf-bg-surface-elevated, #FFFFFF);
   border: 1px solid var(--sf-border-light);
-  color: var(--sf-text-secondary);
+  border-radius: 20px;
+  padding: 3px 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.headerCapsuleBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  border: none;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: var(--sf-text-primary);
   transition: all var(--sf-transition-fast);
 }
 
-.headerActionBtn:hover {
+.headerCapsuleBtn:active {
   background: var(--sf-bg-surface-hover);
-  color: var(--sf-text-primary);
-  border-color: var(--sf-border-default);
+  transform: scale(0.94);
 }
 
-/* ── Executive Workshop Profile Hero (Plane 2 Subject Card) ── */
-.heroCardContainer {
-  width: 100%;
-  margin-top: var(--sf-space-sm, 12px);
-  margin-bottom: var(--sf-space-xs, 4px);
+.headerCapsuleDivider {
+  width: 1px;
+  height: 16px;
+  background: var(--sf-border-light);
+  margin: 0 2px;
 }
 
-.heroProfileCard {
-  position: relative;
+/* ── WhatsApp 'You' Tab Style Executive Hero ── */
+.heroSection {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  background: linear-gradient(180deg, var(--sf-bg-surface-elevated, #FFFFFF) 0%, var(--sf-bg-surface, #F8FAFC) 100%);
-  border: 1px solid var(--sf-border-light);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 18px 18px 16px;
-  cursor: pointer;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.06);
-  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
-}
-
-.heroProfileCard:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 14px 28px -6px rgba(67, 56, 202, 0.1);
-}
-
-.heroProfileCard:active {
-  transform: scale(0.99);
-}
-
-.heroCardHeader {
-  display: flex;
   align-items: center;
-  gap: 14px;
+  text-align: center;
   width: 100%;
+  padding: 12px 0 16px;
+}
+
+/* Thought Bubble - directly attached above avatar */
+.heroBubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+}
+
+.heroBubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 6px;
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-left: 1px solid var(--sf-border-light);
+  border-right: 1px solid var(--sf-border-light);
+}
+
+.heroBubbleIcon {
+  color: var(--sf-accent-emerald, #10B981);
+  flex-shrink: 0;
+}
+
+.heroBubbleText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.heroAvatarBtn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .heroAvatarWrap {
-  position: relative;
-  width: 62px;
-  height: 62px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  border: 2px solid #FFFFFF;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   background: var(--sf-bg-surface-elevated, #FFFFFF);
-  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--sf-transition-fast);
+}
+
+.heroAvatarBtn:active .heroAvatarWrap {
+  transform: scale(0.96);
 }
 
 .heroLogoImg {
@@ -109,178 +174,99 @@
 
 .monogramInitial {
   font-family: var(--sf-font-heading, Georgia, serif);
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--sf-accent-emerald-dark, #065F46);
 }
 
-.avatarVerifiedBadge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--sf-bg-surface-elevated, #FFFFFF);
-  color: var(--sf-accent-emerald, #10B981);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-.heroMainInfo {
-  flex: 1;
-  min-width: 0;
+.heroNameBlock {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-}
-
-.heroTitleRow {
-  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
+  margin-top: 10px;
 }
 
-.heroStudioName {
-  font-family: var(--sf-font-heading, Georgia, serif);
-  font-size: 18px;
+.heroNameRow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.heroShopName {
+  font-size: 21px;
   font-weight: 700;
   color: var(--sf-text-primary);
   margin: 0;
   line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.heroStatusCapsule {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  padding: 2px 8px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald-glow, rgba(16, 185, 129, 0.1));
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.statusDotActive {
-  width: 6px;
-  height: 6px;
+.heroGreenBadge {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--sf-accent-emerald, #10B981);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
-  animation: statusPulse 2s infinite ease-in-out;
-}
-
-.statusDotPaused {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #F59E0B;
-}
-
-@keyframes statusPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.9); }
-}
-
-.statusCapsuleText {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--sf-accent-emerald-dark, #065F46);
-  letter-spacing: 0.01em;
-}
-
-.heroMetaLine {
-  font-size: 12px;
-  color: var(--sf-text-tertiary);
-  margin: 2px 0 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.heroChevronBox {
-  color: var(--sf-text-tertiary);
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+  transition: transform var(--sf-transition-fast);
 }
 
-.heroChipsStrip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--sf-border-light);
-  flex-wrap: wrap;
+.heroGreenBadge:active {
+  transform: scale(0.92);
 }
 
-.heroChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-bg-surface-hover, rgba(0, 0, 0, 0.04));
-  border: 1px solid var(--sf-border-light);
-  font-size: 11px;
-  font-weight: 600;
+.greenBadgeGlyph {
+  color: #FFFFFF;
+}
+
+.heroSubtitle {
+  font-size: 13px;
   color: var(--sf-text-secondary);
+  margin: 0;
 }
 
-.heroChipHighlight {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald-glow, rgba(16, 185, 129, 0.1));
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--sf-accent-emerald, #10B981);
-}
-
-.heroSkeletonCard {
+/* ── Grouped Settings Cards (WhatsApp Inset Groups) ── */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   width: 100%;
+}
+
+.groupCard {
   background: var(--sf-bg-surface-elevated, #FFFFFF);
   border: 1px solid var(--sf-border-light);
-  border-radius: 20px;
-  padding: 18px 18px 16px;
-  margin-top: var(--sf-space-sm, 12px);
-  margin-bottom: var(--sf-space-xs, 4px);
-  box-sizing: border-box;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-:global([data-theme='dark']) .heroProfileCard {
-  background: linear-gradient(180deg, var(--sf-bg-surface-elevated, #1E1D2D) 0%, var(--sf-bg-surface, #161526) 100%);
+:global([data-theme='dark']) .groupCard {
+  background: var(--sf-bg-surface, #1C1C1E);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-theme='dark']) .headerRoundBtn,
+:global([data-theme='dark']) .headerCapsule,
+:global([data-theme='dark']) .heroBubble {
+  background: var(--sf-bg-surface, #1C1C1E);
   border-color: rgba(255, 255, 255, 0.08);
-  border-top: 1.5px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
 }
 
-:global([data-theme='dark']) .heroSkeletonCard {
-  background: var(--sf-bg-surface, #161526);
+:global([data-theme='dark']) .heroBubble::after {
+  background: var(--sf-bg-surface, #1C1C1E);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
 :global([data-theme='dark']) .heroAvatarWrap {
-  border-color: #242236;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-
-:global([data-theme='dark']) .avatarVerifiedBadge {
-  background: #242236;
-}
-
-:global([data-theme='dark']) .statusCapsuleText {
-  color: var(--sf-accent-emerald-light, #34D399);
+  border-color: #2C2C2E;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
 :global([data-theme='dark']) .monogramInitial {

@@ -99,20 +99,50 @@ export default function SettingsPage() {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  const handleInviteFriend = () => {
+    const refCode = currentShop?.referralCode || currentShop?.slug || '';
+    const url = `${window.location.origin}/signup${refCode ? `?ref=${refCode}` : ''}`;
+    const text = `Join me on MyStitchBook — the modern management app for fashion designers and tailoring houses:\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const topBar = (
     <TopBar
-      title="Settings"
+      leftAction={
+        <button
+          type="button"
+          className={styles.headerRoundBtn}
+          onClick={() => router.push(ROUTES.styles)}
+          title="Search Garments & Styles"
+          aria-label="Search Garments & Styles"
+        >
+          <Symbol name="search" size={20} />
+        </button>
+      }
+      title={currentShop?.name || 'Settings'}
       rightAction={
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={styles.headerActionBtn}
-            onClick={handleShareStorefront}
-            title="Share Studio Storefront"
-            aria-label="Share Studio Storefront"
-          >
-            <Symbol name="share" size={18} />
-          </button>
+        <div className={styles.headerRightWrap}>
+          <div className={styles.headerCapsule}>
+            <button
+              type="button"
+              className={styles.headerCapsuleBtn}
+              onClick={handleShareStorefront}
+              title="Shop QR Code & Share"
+              aria-label="Shop QR Code & Share"
+            >
+              <Symbol name="qr_code_2" size={20} />
+            </button>
+            <div className={styles.headerCapsuleDivider} />
+            <button
+              type="button"
+              className={styles.headerCapsuleBtn}
+              onClick={() => router.push(ROUTES.settingsStudio)}
+              title="Edit Workshop Details"
+              aria-label="Edit Workshop Details"
+            >
+              <Symbol name="edit" size={18} />
+            </button>
+          </div>
           <NotificationBell />
         </div>
       }
@@ -152,241 +182,206 @@ export default function SettingsPage() {
 
   return (
     <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
-      {/* ── Executive Workshop Profile Hero ── */}
-      <div className={styles.heroCardContainer}>
+      {/* ── WhatsApp 'You' Tab Style Executive Hero ── */}
+      <section className={styles.heroSection}>
+        {/* Thought Bubble - Live Workshop Heartbeat */}
+        <div className={styles.heroBubble}>
+          <Symbol name="music_note" size={13} className={styles.heroBubbleIcon} />
+          <span className={styles.heroBubbleText}>
+            {currentShop?.vacationMode
+              ? 'Vacation Mode Paused'
+              : currentShop?.businessMode === 'rtw'
+                ? 'Ready-to-Wear Active'
+                : currentShop?.businessMode === 'hybrid'
+                  ? 'Custom & Ready-Made Active'
+                  : 'Custom Orders Active'}
+          </span>
+        </div>
+
+        {/* Centered Avatar */}
         <button
           type="button"
-          className={styles.heroProfileCard}
+          className={styles.heroAvatarBtn}
           onClick={() => router.push(ROUTES.settingsStudio)}
-          aria-label="Manage Workshop Profile and Identity"
+          aria-label="Manage Workshop Profile"
         >
-          <div className={styles.heroCardHeader}>
-            {/* Logo / Crest with verified seal */}
-            <div className={styles.heroAvatarWrap}>
-              {currentShop?.logoUrl ? (
-                <Image
-                  src={currentShop.logoUrl}
-                  alt={currentShop.name}
-                  width={64}
-                  height={64}
-                  className={styles.heroLogoImg}
-                />
-              ) : (
-                <div className={styles.heroLogoPlaceholder}>
-                  <span className={styles.monogramInitial}>
-                    {(currentShop?.name || 'S').slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className={styles.avatarVerifiedBadge} title="Verified Workshop">
-                <Symbol name="verified" size={15} fill />
-              </div>
-            </div>
-
-            {/* Shop Details */}
-            <div className={styles.heroMainInfo}>
-              <div className={styles.heroTitleRow}>
-                <h2 className={styles.heroStudioName}>{currentShop?.name || 'Your Shop'}</h2>
-              </div>
-
-              {/* Status pill with pulsing dot */}
-              <div className={styles.heroStatusCapsule}>
-                <span className={currentShop?.vacationMode ? styles.statusDotPaused : styles.statusDotActive} />
-                <span className={styles.statusCapsuleText}>
-                  {currentShop?.vacationMode
-                    ? 'Vacation Mode Paused'
-                    : currentShop?.businessMode === 'rtw'
-                      ? 'Ready-to-Wear Active'
-                      : currentShop?.businessMode === 'hybrid'
-                        ? 'Custom & RTW Active'
-                        : 'Custom Orders Active'}
+          <div className={styles.heroAvatarWrap}>
+            {currentShop?.logoUrl ? (
+              <Image
+                src={currentShop.logoUrl}
+                alt={currentShop.name}
+                width={84}
+                height={84}
+                className={styles.heroLogoImg}
+              />
+            ) : (
+              <div className={styles.heroLogoPlaceholder}>
+                <span className={styles.monogramInitial}>
+                  {(currentShop?.name || 'S').slice(0, 2).toUpperCase()}
                 </span>
               </div>
-
-              <p className={styles.heroMetaLine}>
-                {currentShop?.address || currentShop?.phone
-                  ? [currentShop?.address, currentShop?.phone].filter(Boolean).join(' · ')
-                  : 'Tap to configure workshop details'}
-              </p>
-            </div>
-
-            {/* Chevron affordance */}
-            <div className={styles.heroChevronBox}>
-              <Symbol name="chevron_right" size={20} className={styles.chevron} />
-            </div>
-          </div>
-
-          {/* Quick Stats / Meta Strip */}
-          <div className={styles.heroChipsStrip}>
-            <span className={styles.heroChip}>
-              <Symbol name="payments" size={13} />
-              <span>{currentShop?.currency || 'NGN'}</span>
-            </span>
-            <span className={styles.heroChip}>
-              <Symbol name="storefront" size={13} />
-              <span>
-                {currentShop?.businessMode === 'rtw'
-                  ? 'Ready-to-Wear'
-                  : currentShop?.businessMode === 'hybrid'
-                    ? 'Custom & RTW'
-                    : 'Bespoke Tailoring'}
-              </span>
-            </span>
-            <span className={styles.heroChipHighlight}>
-              <Symbol name="workspace_premium" size={13} />
-              <span>
-                {currentShop?.subscriptionStatus === 'active'
-                  ? 'Pro Plan'
-                  : currentShop?.subscriptionStatus === 'trialing'
-                    ? 'Free Trial'
-                    : 'Free Tier'}
-              </span>
-            </span>
+            )}
           </div>
         </button>
-      </div>
+
+        {/* Studio Name + Green Plus/Verified Seal */}
+        <div className={styles.heroNameBlock}>
+          <div className={styles.heroNameRow}>
+            <h1 className={styles.heroShopName}>{currentShop?.name || 'Your Shop'}</h1>
+            <button
+              type="button"
+              className={styles.heroGreenBadge}
+              onClick={() => router.push(ROUTES.settingsStudio)}
+              title="Edit Profile"
+              aria-label="Edit Profile"
+            >
+              <Symbol name="add" size={14} className={styles.greenBadgeGlyph} />
+            </button>
+          </div>
+          <p className={styles.heroSubtitle}>
+            @{currentShop?.slug || 'studio'} · {currentShop?.currency || 'NGN'}
+          </p>
+        </div>
+      </section>
 
       <div className={styles.groups}>
-        {/* ── Group 1: Storefront & Designs ── */}
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Storefront &amp; Styles</span>
-          <div className={styles.groupCard}>
+        {/* ── Group 1: Subscriptions, Styles, Messages, Lookbook ── */}
+        <div className={styles.groupCard}>
+          <SettingsRow
+            icon="workspace_premium"
+            label="Subscriptions"
+            subtitle={
+              currentShop?.subscriptionStatus === 'active'
+                ? 'Pro Member · Active Plan'
+                : currentShop?.subscriptionStatus === 'trialing'
+                  ? 'Free Trial Active'
+                  : currentShop?.subscriptionStatus === 'past_due'
+                    ? 'Payment Failed · Update Card'
+                    : 'Free Tier · Tap to Upgrade'
+            }
+            external
+            onClick={() => router.push(ROUTES.settingsBilling)}
+          />
+          <SettingsRow
+            icon="checkroom"
+            label="Garment Styles &amp; Base Prices"
+            subtitle={customStylesCount > 0 ? `${customStylesCount} signature styles configured` : 'Standard silhouettes & base prices'}
+            onClick={() => router.push(ROUTES.settingsStyles)}
+          />
+          <SettingsRow
+            icon="campaign"
+            label="Broadcast &amp; Client Messages"
+            subtitle="Per-stage update wording &amp; live tracking links"
+            onClick={() => router.push(ROUTES.settingsMessages)}
+          />
+          <SettingsRow
+            icon="photo_library"
+            label="Public Portfolio &amp; Lookbook"
+            subtitle={`${APP_CONFIG.domain}/studio/${currentShop?.slug || ''}`}
+            external
+            onClick={() => router.push(ROUTES.settingsPortfolio)}
+          />
+          {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
             <SettingsRow
-              icon="checkroom"
-              label="Garment Styles &amp; Base Prices"
-              subtitle={customStylesCount > 0 ? `${customStylesCount} signature styles configured` : 'Standard silhouettes & base prices'}
-              onClick={() => router.push(ROUTES.settingsStyles)}
+              icon="straighten"
+              label="Size Charts"
+              subtitle="Standard measurements for production batches"
+              onClick={() => router.push('/settings/size-charts')}
             />
-            <SettingsRow
-              icon="photo_library"
-              label="Public Portfolio &amp; Lookbook"
-              subtitle={`${APP_CONFIG.domain}/studio/${currentShop?.slug || ''}`}
-              meta={<Symbol name="open_in_new" size={15} />}
-              onClick={() => router.push(ROUTES.settingsPortfolio)}
-            />
-            <SettingsRow
-              icon="forum"
-              label="WhatsApp Client Messages"
-              subtitle="Order status updates &amp; live tracking links"
-              onClick={() => router.push(ROUTES.settingsMessages)}
-            />
-            {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
-              <SettingsRow
-                icon="straighten"
-                label="Size Charts"
-                subtitle="Standard measurements for production batches"
-                onClick={() => router.push('/settings/size-charts')}
-              />
-            )}
-          </div>
+          )}
         </div>
 
-        {/* ── Group 2: Workshop & Team Operations ── */}
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Workshop Operations</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="group"
-              label="Staff &amp; Master Cutters"
-              subtitle={`${activeStaffCount} active workshop members`}
-              meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
-              onClick={() => router.push(ROUTES.settingsStaff)}
-            />
-            <SettingsRow
-              icon="verified_user"
-              label="Production Streak &amp; Vacation Shield"
-              subtitle={currentShop?.vacationMode ? 'Vacation Mode Paused' : `${currentShop?.streakFreezes || 0} Streak Freezes · Active`}
-              onClick={() => router.push(ROUTES.settingsStudio)}
-            />
-            {FEATURE_FLAGS.orgBranchMultiTenancy && (
-              <>
-                {shops.map((branch) => (
-                  <SettingsRow
-                    key={branch.id}
-                    icon="storefront"
-                    label={branch.name}
-                    subtitle={
-                      branch.isPrimary
-                        ? (branch.address || 'Primary branch')
-                        : (branch.address || 'Branch')
-                    }
-                    meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
-                    onClick={() => { }}
-                  />
-                ))}
+        {/* ── Group 2: Workshop Operations & Team ── */}
+        <div className={styles.groupCard}>
+          <SettingsRow
+            icon="group"
+            label="Staff &amp; Master Cutters"
+            subtitle={`${activeStaffCount} active workshop members`}
+            meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
+            onClick={() => router.push(ROUTES.settingsStaff)}
+          />
+          <SettingsRow
+            icon="verified_user"
+            label="Production Streak &amp; Vacation Shield"
+            subtitle={currentShop?.vacationMode ? 'Vacation Mode Paused' : `${currentShop?.streakFreezes || 0} Streak Freezes · Active`}
+            onClick={() => router.push(ROUTES.settingsStudio)}
+          />
+          {FEATURE_FLAGS.orgBranchMultiTenancy && (
+            <>
+              {shops.map((branch) => (
                 <SettingsRow
-                  icon="add"
-                  label="Add Branch"
-                  subtitle="Add another physical location"
-                  onClick={() => setAddBranchOpen(true)}
+                  key={branch.id}
+                  icon="storefront"
+                  label={branch.name}
+                  subtitle={
+                    branch.isPrimary
+                      ? (branch.address || 'Primary branch')
+                      : (branch.address || 'Branch')
+                  }
+                  meta={branch.isPrimary ? <span className={styles.primaryBadge}>Primary</span> : undefined}
+                  onClick={() => { }}
                 />
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ── Group 3: Subscription & Plan ── */}
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Subscription</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="workspace_premium"
-              label={`${APP_CONFIG.name} Pro`}
-              subtitle={
-                currentShop?.subscriptionStatus === 'active'
-                  ? 'Active Subscription · Full Feature Access'
-                  : currentShop?.subscriptionStatus === 'trialing'
-                    ? 'Free Trial · Full Feature Access'
-                    : currentShop?.subscriptionStatus === 'past_due'
-                      ? 'Payment Failed · Update Payment Method'
-                      : 'Free Tier · Tap to Upgrade'
-              }
-              meta={
-                currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing' ? (
-                  <span className={styles.proActiveBadge}>Pro Active</span>
-                ) : (
-                  <span className={styles.upgradeBadge}>Upgrade</span>
-                )
-              }
-              onClick={() => router.push(ROUTES.settingsBilling)}
-            />
-          </div>
-        </div>
-
-        {/* ── Group 4: Preferences & Security ── */}
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Preferences &amp; Security</span>
-          <div className={styles.groupCard}>
-            <AppearanceToggle />
-            <SettingsRow
-              icon="person"
-              label="Account &amp; Login Credentials"
-              subtitle={`${user?.name || 'Owner'} · ${user?.email || 'Manage login'}`}
-              onClick={() => router.push(ROUTES.settingsAccount)}
-            />
-            {FEATURE_FLAGS.auditLog && (
+              ))}
               <SettingsRow
-                icon="history"
-                label="Security &amp; Activity Log"
-                subtitle="See who did what, and when"
-                onClick={() => router.push(ROUTES.settingsActivity)}
+                icon="add"
+                label="Add Branch"
+                subtitle="Add another physical location"
+                onClick={() => setAddBranchOpen(true)}
               />
-            )}
-          </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Group 3: Account, Privacy, Appearance, Notifications ── */}
+        <div className={styles.groupCard}>
+          <SettingsRow
+            icon="key"
+            label="Account"
+            subtitle={`${user?.name || 'Owner'} · ${user?.email || 'Login credentials'}`}
+            onClick={() => router.push(ROUTES.settingsAccount)}
+          />
+          {FEATURE_FLAGS.auditLog && (
+            <SettingsRow
+              icon="lock"
+              label="Privacy &amp; Security"
+              subtitle="Activity log and security audit"
+              onClick={() => router.push(ROUTES.settingsActivity)}
+            />
+          )}
+          <AppearanceToggle />
+          <SettingsRow
+            icon="notifications"
+            label="Notifications"
+            subtitle="Push alerts and customer status pings"
+            onClick={() => router.push('/notifications')}
+          />
+        </div>
+
+        {/* ── Group 4: Help & Referrals ── */}
+        <div className={styles.groupCard}>
+          <SettingsRow
+            icon="help_outline"
+            label="Help and feedback"
+            subtitle="Guides, tutorials &amp; WhatsApp support"
+            onClick={() => window.open('https://wa.me/2348000000000?text=Hello%20MyStitchBook%20Support', '_blank')}
+          />
+          <SettingsRow
+            icon="favorite_border"
+            label="Invite a fellow tailor"
+            subtitle="Share MyStitchBook with tailoring colleagues"
+            onClick={handleInviteFriend}
+          />
         </div>
 
         {/* ── Group 5: Session & Sign Out ── */}
-        <div className={styles.group}>
-          <span className={styles.groupLabel}>Account Session</span>
-          <div className={styles.groupCard}>
-            <SettingsRow
-              icon="logout"
-              label="Log Out"
-              subtitle={user?.email ? `Signed in as ${user.email}` : 'Sign out of your workshop account'}
-              destructive
-              onClick={() => setShowLogoutConfirm(true)}
-            />
-          </div>
+        <div className={styles.groupCard}>
+          <SettingsRow
+            icon="logout"
+            label="Log Out"
+            subtitle={user?.email ? `Signed in as ${user.email}` : 'Sign out of your workshop account'}
+            destructive
+            onClick={() => setShowLogoutConfirm(true)}
+          />
         </div>
       </div>
 

@@ -741,6 +741,39 @@ export const SVG_ICONS: Record<string, IconRenderer> = {
     </svg>
   ),
 
+  arrow_outward: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="7" y1="17" x2="17" y2="7" />
+      <polyline points="7 7 17 7 17 17" />
+    </svg>
+  ),
+
+  qr_code_2: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <line x1="7" y1="7" x2="7.01" y2="7" strokeWidth="3" />
+      <line x1="17" y1="7" x2="17.01" y2="7" strokeWidth="3" />
+      <line x1="7" y1="17" x2="7.01" y2="7" strokeWidth="3" />
+      <line x1="17" y1="17" x2="17.01" y2="7" strokeWidth="3" />
+    </svg>
+  ),
+
+  qr_code: ({ size, color = 'currentColor' }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <line x1="7" y1="7" x2="7.01" y2="7" strokeWidth="3" />
+      <line x1="17" y1="7" x2="17.01" y2="7" strokeWidth="3" />
+      <line x1="7" y1="17" x2="7.01" y2="7" strokeWidth="3" />
+      <line x1="17" y1="17" x2="17.01" y2="7" strokeWidth="3" />
+    </svg>
+  ),
+
   ios_share: ({ size, color = 'currentColor' }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />

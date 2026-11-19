@@ -13,6 +13,8 @@ interface SettingsRowProps {
   onClick: () => void;
   /** Danger-styled label for irreversible/destructive-leaning rows. */
   destructive?: boolean;
+  /** Shows diagonal arrow_outward for links/external sheets (WhatsApp Subscriptions style) */
+  external?: boolean;
 }
 
 /** A single tappable settings row matching Apple iOS / WhatsApp "You" tab standard:
@@ -24,6 +26,7 @@ export default function SettingsRow({
   meta,
   onClick,
   destructive,
+  external,
 }: SettingsRowProps) {
   return (
     <button type="button" className={styles.row} onClick={onClick}>
@@ -39,7 +42,11 @@ export default function SettingsRow({
         {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
       </span>
       {meta && <span className={styles.meta}>{meta}</span>}
-      <Symbol name="chevron_right" size={17} className={styles.chevron} />
+      <Symbol
+        name={external ? 'arrow_outward' : 'chevron_right'}
+        size={external ? 18 : 17}
+        className={styles.chevron}
+      />
     </button>
   );
 }

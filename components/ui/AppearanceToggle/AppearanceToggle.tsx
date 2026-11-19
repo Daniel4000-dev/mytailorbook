@@ -29,7 +29,7 @@ export default function AppearanceToggle() {
   return (
     <>
       <SettingsRow
-        icon="contrast"
+        icon="palette"
         label="Appearance"
         subtitle={LABELS[preference]}
         onClick={() => setOpen(true)}
