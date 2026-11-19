@@ -31,7 +31,7 @@
   padding: var(--sf-space-lg);
   border: 1px solid rgba(67, 56, 202, 0.08);
   border-top: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(67, 56, 202, 0.04),
     0 8px 24px -4px rgba(27, 27, 34, 0.06),
     0 16px 36px -8px rgba(67, 56, 202, 0.05);
@@ -148,7 +148,7 @@
   padding: 24px 26px;
   border: 1px solid rgba(67, 56, 202, 0.08);
   border-top: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(67, 56, 202, 0.04),
     0 8px 24px -4px rgba(27, 27, 34, 0.06),
     0 16px 36px -8px rgba(67, 56, 202, 0.05);
@@ -306,6 +306,7 @@
   .heroCustomerName {
     font-size: 19px;
   }
+
   .heroGarment {
     font-size: 13px;
   }
@@ -639,9 +640,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.callBtn:hover {
-  background: var(--sf-surface-variant);
-}
+  .callBtn:hover {
+    background: var(--sf-surface-variant);
+  }
 }
 
 .callBtn:active {
@@ -745,10 +746,10 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.metaEditBtn:hover {
-  background: var(--sf-bg-surface-hover);
-  color: var(--sf-accent-emerald);
-}
+  .metaEditBtn:hover {
+    background: var(--sf-bg-surface-hover);
+    color: var(--sf-accent-emerald);
+  }
 }
 
 .metaEditBtn:active {
@@ -828,9 +829,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.addLink:hover {
-  text-decoration: underline;
-}
+  .addLink:hover {
+    text-decoration: underline;
+  }
 }
 
 .addLink:active {
@@ -934,9 +935,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.saveNoteBtn:hover:not(:disabled) {
-  background: var(--sf-bg-surface-hover);
-}
+  .saveNoteBtn:hover:not(:disabled) {
+    background: var(--sf-bg-surface-hover);
+  }
 }
 
 .saveNoteBtn:active:not(:disabled) {
@@ -1198,7 +1199,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(67, 56, 202, 0.04),
     0 8px 24px -4px rgba(27, 27, 34, 0.06),
     0 16px 36px -8px rgba(67, 56, 202, 0.05);
@@ -1416,9 +1417,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.roundIconBtn:hover {
-  background: var(--sf-bg-surface-hover);
-}
+  .roundIconBtn:hover {
+    background: var(--sf-bg-surface-hover);
+  }
 }
 
 .roundIconBtn:active {
@@ -1549,9 +1550,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.recordPayBtn:hover:not(:disabled) {
-  background: var(--sf-accent-emerald-light);
-}
+  .recordPayBtn:hover:not(:disabled) {
+    background: var(--sf-accent-emerald-light);
+  }
 }
 
 .recordPayBtn:active:not(:disabled) {
@@ -1607,9 +1608,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.receiptLink:hover {
-  text-decoration: underline;
-}
+  .receiptLink:hover {
+    text-decoration: underline;
+  }
 }
 
 .receiptLink:active {
@@ -1781,9 +1782,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.markPaidBtn:hover:not(:disabled) {
-  background: var(--sf-secondary-container);
-}
+  .markPaidBtn:hover:not(:disabled) {
+    background: var(--sf-secondary-container);
+  }
 }
 
 .markPaidBtn:active:not(:disabled) {
@@ -1824,9 +1825,9 @@
 
 @media (hover: hover) and (pointer: fine) {
 
-.whatsappFab:hover {
-  transform: translateZ(0) scale(1.05);
-}
+  .whatsappFab:hover {
+    transform: translateZ(0) scale(1.05);
+  }
 }
 
 .whatsappFab:active {
@@ -1917,7 +1918,7 @@
   }
 
   .card {
-    box-shadow: 
+    box-shadow:
       0 1px 3px rgba(67, 56, 202, 0.04),
       0 8px 24px -4px rgba(27, 27, 34, 0.06),
       0 16px 36px -8px rgba(67, 56, 202, 0.05);
@@ -1941,8 +1942,14 @@
 }
 
 @keyframes bannerGlow {
-  0% { box-shadow: 0 0 8px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.1)), 0 4px 12px rgba(0, 0, 0, 0.03); }
-  100% { box-shadow: 0 0 16px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.4)), 0 4px 12px rgba(0, 0, 0, 0.03); border-color: var(--sf-warning); }
+  0% {
+    box-shadow: 0 0 8px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.1)), 0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  100% {
+    box-shadow: 0 0 16px var(--sf-warning-alpha-30, rgba(245, 158, 11, 0.4)), 0 4px 12px rgba(0, 0, 0, 0.03);
+    border-color: var(--sf-warning);
+  }
 }
 
 .exceptionBannerContent {
@@ -2030,13 +2037,23 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 768px) {
@@ -2055,8 +2072,15 @@
   }
 
   @keyframes scaleUp {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 
@@ -2254,6 +2278,7 @@
 }
 
 @media (min-width: 1024px) {
+
   .mobileStickyBottomBar,
   .mobileBottomClearance {
     display: none;
@@ -2365,7 +2390,7 @@
   background: var(--sf-bg-surface, #161526);
   border-color: rgba(99, 102, 241, 0.22);
   border-top-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 
+  box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.35),
     0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
@@ -2374,7 +2399,7 @@
   background: var(--sf-bg-surface, #161526);
   border-color: rgba(99, 102, 241, 0.22);
   border-top-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 
+  box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.35),
     0 12px 32px -4px rgba(0, 0, 0, 0.55);
 }
@@ -2457,12 +2482,13 @@
 }
 
 @media (prefers-color-scheme: dark) {
+
   :global(:root:not([data-theme="light"])) .card,
   :global(:root:not([data-theme="light"])) .visualGlanceStripCard {
     background: var(--sf-bg-surface, #161526);
     border-color: rgba(99, 102, 241, 0.22);
     border-top-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 
+    box-shadow:
       0 2px 6px rgba(0, 0, 0, 0.35),
       0 12px 32px -4px rgba(0, 0, 0, 0.55);
   }
@@ -2471,7 +2497,7 @@
     background: var(--sf-bg-surface, #161526);
     border-color: rgba(99, 102, 241, 0.22);
     border-top-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 
+    box-shadow:
       0 2px 6px rgba(0, 0, 0, 0.35),
       0 12px 32px -4px rgba(0, 0, 0, 0.55);
   }
@@ -2592,7 +2618,7 @@
   }
 }
 
-/* ── Luxury Atelier Production Dossier Components ─────────────── */
+/* ── Luxury Workshop Production Dossier Components ─────────────── */
 .heroAdvanceBtn {
   display: inline-flex;
   align-items: center;
@@ -2790,6 +2816,7 @@
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -3158,6 +3185,3 @@
   border-color: rgba(16, 185, 129, 0.35);
   color: #34D399;
 }
-
-
-

@@ -356,7 +356,7 @@ export default function BillingSettingsPage() {
                 </p>
               </div>
               <span className={styles.planBadge}>
-                {selectedPlanTab === currentMode ? 'Your Atelier Model' : 'Available Plan'}
+                {selectedPlanTab === currentMode ? 'Your Current Model' : 'Available Plan'}
               </span>
             </div>
 

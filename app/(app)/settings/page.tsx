@@ -25,7 +25,6 @@ import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
-import billingRowStyles from '@/components/ui/SettingsRow/SettingsRow.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -114,15 +113,6 @@ export default function SettingsPage() {
           >
             <Symbol name="share" size={18} />
           </button>
-          <button
-            type="button"
-            className={styles.headerActionBtn}
-            onClick={() => router.push(ROUTES.settingsStudio)}
-            title="Edit Studio Profile"
-            aria-label="Edit Studio Profile"
-          >
-            <Symbol name="edit" size={18} />
-          </button>
           <NotificationBell />
         </div>
       }
@@ -162,93 +152,110 @@ export default function SettingsPage() {
 
   return (
     <PageLayout width="narrow" className={styles.pageGrid} header={topBar}>
-      {/* ── WhatsApp 'You' Tab Style Atelier Executive Hero ── */}
-      <button
-        type="button"
-        className={styles.heroProfileCard}
-        onClick={() => router.push(ROUTES.settingsStudio)}
-        aria-label="Manage Studio Profile and Identity"
-      >
-        {/* Thought Bubble - Live Atelier Heartbeat */}
-        <div className={styles.heroBubble}>
-          <span className={styles.heroBubbleDot} />
-          <span className={styles.heroBubbleText}>
-            {currentShop?.vacationMode
-              ? 'Vacation Mode Paused'
-              : currentShop?.businessMode === 'rtw'
-                ? 'Ready-to-Wear Active'
-                : currentShop?.businessMode === 'hybrid'
-                  ? 'Custom & Ready-Made Active'
-                  : 'Custom Orders Active'}
-          </span>
-        </div>
-
-        {/* Studio Logo / Crest */}
-        <div className={styles.heroAvatarWrap}>
-          {currentShop?.logoUrl ? (
-            <Image
-              src={currentShop.logoUrl}
-              alt={currentShop.name}
-              width={86}
-              height={86}
-              className={styles.heroLogoImg}
-            />
-          ) : (
-            <div className={styles.heroLogoPlaceholder}>
-              <Symbol name="storefront" size={40} />
+      {/* ── Executive Workshop Profile Hero ── */}
+      <div className={styles.heroCardContainer}>
+        <button
+          type="button"
+          className={styles.heroProfileCard}
+          onClick={() => router.push(ROUTES.settingsStudio)}
+          aria-label="Manage Workshop Profile and Identity"
+        >
+          <div className={styles.heroCardHeader}>
+            {/* Logo / Crest with verified seal */}
+            <div className={styles.heroAvatarWrap}>
+              {currentShop?.logoUrl ? (
+                <Image
+                  src={currentShop.logoUrl}
+                  alt={currentShop.name}
+                  width={64}
+                  height={64}
+                  className={styles.heroLogoImg}
+                />
+              ) : (
+                <div className={styles.heroLogoPlaceholder}>
+                  <span className={styles.monogramInitial}>
+                    {(currentShop?.name || 'S').slice(0, 2).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className={styles.avatarVerifiedBadge} title="Verified Workshop">
+                <Symbol name="verified" size={15} fill />
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Studio Name & Identity Info */}
-        <div className={styles.heroNameGroup}>
-          <div className={styles.heroTitleRow}>
-            <h2 className={styles.heroStudioName}>{currentShop?.name || 'Your Shop'}</h2>
-            <Symbol name="verified" size={17} className={styles.verifiedIcon} />
+            {/* Shop Details */}
+            <div className={styles.heroMainInfo}>
+              <div className={styles.heroTitleRow}>
+                <h2 className={styles.heroStudioName}>{currentShop?.name || 'Your Shop'}</h2>
+              </div>
+
+              {/* Status pill with pulsing dot */}
+              <div className={styles.heroStatusCapsule}>
+                <span className={currentShop?.vacationMode ? styles.statusDotPaused : styles.statusDotActive} />
+                <span className={styles.statusCapsuleText}>
+                  {currentShop?.vacationMode
+                    ? 'Vacation Mode Paused'
+                    : currentShop?.businessMode === 'rtw'
+                      ? 'Ready-to-Wear Active'
+                      : currentShop?.businessMode === 'hybrid'
+                        ? 'Custom & RTW Active'
+                        : 'Custom Orders Active'}
+                </span>
+              </div>
+
+              <p className={styles.heroMetaLine}>
+                {currentShop?.address || currentShop?.phone
+                  ? [currentShop?.address, currentShop?.phone].filter(Boolean).join(' · ')
+                  : 'Tap to configure workshop details'}
+              </p>
+            </div>
+
+            {/* Chevron affordance */}
+            <div className={styles.heroChevronBox}>
+              <Symbol name="chevron_right" size={20} className={styles.chevron} />
+            </div>
           </div>
 
-          <div className={styles.heroBadgeRow}>
-            <span className={styles.heroModeBadge}>
-              {currentShop?.businessMode === 'rtw'
-                ? 'Ready-to-Wear'
-                : currentShop?.businessMode === 'hybrid'
-                  ? 'Custom & Ready-to-Wear'
-                  : 'Custom Tailoring'}
+          {/* Quick Stats / Meta Strip */}
+          <div className={styles.heroChipsStrip}>
+            <span className={styles.heroChip}>
+              <Symbol name="payments" size={13} />
+              <span>{currentShop?.currency || 'NGN'}</span>
             </span>
-            {currentShop?.currency && (
-              <span className={styles.heroCurrencyBadge}>{currentShop.currency}</span>
-            )}
+            <span className={styles.heroChip}>
+              <Symbol name="storefront" size={13} />
+              <span>
+                {currentShop?.businessMode === 'rtw'
+                  ? 'Ready-to-Wear'
+                  : currentShop?.businessMode === 'hybrid'
+                    ? 'Custom & RTW'
+                    : 'Bespoke Tailoring'}
+              </span>
+            </span>
+            <span className={styles.heroChipHighlight}>
+              <Symbol name="workspace_premium" size={13} />
+              <span>
+                {currentShop?.subscriptionStatus === 'active'
+                  ? 'Pro Plan'
+                  : currentShop?.subscriptionStatus === 'trialing'
+                    ? 'Free Trial'
+                    : 'Free Tier'}
+              </span>
+            </span>
           </div>
-
-          {currentShop?.address || currentShop?.phone ? (
-            <p className={styles.heroMetaLine}>
-              {currentShop?.address || ''}
-              {currentShop?.address && currentShop?.phone ? ' · ' : ''}
-              {currentShop?.phone || ''}
-            </p>
-          ) : (
-            <p className={styles.heroMetaLine}>
-              Tap to set workshop address &amp; studio details
-            </p>
-          )}
-        </div>
-      </button>
+        </button>
+      </div>
 
       <div className={styles.groups}>
-        {/* ── Group 1: Atelier Commerce & Styling ── */}
+        {/* ── Group 1: Storefront & Designs ── */}
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Storefront &amp; Styles</span>
           <div className={styles.groupCard}>
             <SettingsRow
               icon="checkroom"
               label="Garment Styles &amp; Base Prices"
-              subtitle={customStylesCount > 0 ? `${customStylesCount} signature cuts configured` : 'Standard silhouettes & base prices'}
+              subtitle={customStylesCount > 0 ? `${customStylesCount} signature styles configured` : 'Standard silhouettes & base prices'}
               onClick={() => router.push(ROUTES.settingsStyles)}
-            />
-            <SettingsRow
-              icon="forum"
-              label="WhatsApp Client Messages"
-              subtitle="Per-stage update wording &amp; tracking links"
-              onClick={() => router.push(ROUTES.settingsMessages)}
             />
             <SettingsRow
               icon="photo_library"
@@ -256,6 +263,12 @@ export default function SettingsPage() {
               subtitle={`${APP_CONFIG.domain}/studio/${currentShop?.slug || ''}`}
               meta={<Symbol name="open_in_new" size={15} />}
               onClick={() => router.push(ROUTES.settingsPortfolio)}
+            />
+            <SettingsRow
+              icon="forum"
+              label="WhatsApp Client Messages"
+              subtitle="Order status updates &amp; live tracking links"
+              onClick={() => router.push(ROUTES.settingsMessages)}
             />
             {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
               <SettingsRow
@@ -270,17 +283,18 @@ export default function SettingsPage() {
 
         {/* ── Group 2: Workshop & Team Operations ── */}
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Workshop Operations</span>
           <div className={styles.groupCard}>
             <SettingsRow
               icon="group"
               label="Staff &amp; Master Cutters"
-              subtitle={`${activeStaffCount} active staff members`}
+              subtitle={`${activeStaffCount} active workshop members`}
               meta={!currentShop || !PREMIUM_STATUSES.includes(currentShop.subscriptionStatus) ? <span className={styles.premiumBadge}>Premium</span> : undefined}
               onClick={() => router.push(ROUTES.settingsStaff)}
             />
             <SettingsRow
               icon="verified_user"
-              label="Daily Streak &amp; Vacation Shield"
+              label="Production Streak &amp; Vacation Shield"
               subtitle={currentShop?.vacationMode ? 'Vacation Mode Paused' : `${currentShop?.streakFreezes || 0} Streak Freezes · Active`}
               onClick={() => router.push(ROUTES.settingsStudio)}
             />
@@ -311,37 +325,37 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ── Group 3: Atelier Plan & Subscription ── */}
+        {/* ── Group 3: Subscription & Plan ── */}
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Subscription</span>
           <div className={styles.groupCard}>
-            <div className={billingRowStyles.row}>
-              <div className={billingRowStyles.iconWrap}>
-                <Symbol name="workspace_premium" size={21} className={billingRowStyles.iconGlyph} />
-              </div>
-              <span className={billingRowStyles.textCol}>
-                <span className={billingRowStyles.label}>{APP_CONFIG.name} Pro</span>
-                <span className={billingRowStyles.subtitle}>
-                  {currentShop?.subscriptionStatus === 'active' && 'Active Subscription'}
-                  {currentShop?.subscriptionStatus === 'trialing' && 'Free Trial'}
-                  {currentShop?.subscriptionStatus === 'past_due' && 'Payment failed'}
-                  {(!currentShop?.subscriptionStatus || currentShop.subscriptionStatus === 'free' || currentShop.subscriptionStatus === 'canceled') && 'Free Tier'}
-                </span>
-              </span>
-              {currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing' ? (
-                <button type="button" className={styles.proMemberBadge} onClick={() => router.push(ROUTES.settingsBilling)}>
-                  Pro Member
-                </button>
-              ) : (
-                <Button variant="primary" onClick={() => router.push(ROUTES.settingsBilling)} size="sm">
-                  {currentShop?.subscriptionStatus === 'past_due' ? 'Fix Payment' : 'Try free for 30 days'}
-                </Button>
-              )}
-            </div>
+            <SettingsRow
+              icon="workspace_premium"
+              label={`${APP_CONFIG.name} Pro`}
+              subtitle={
+                currentShop?.subscriptionStatus === 'active'
+                  ? 'Active Subscription · Full Feature Access'
+                  : currentShop?.subscriptionStatus === 'trialing'
+                    ? 'Free Trial · Full Feature Access'
+                    : currentShop?.subscriptionStatus === 'past_due'
+                      ? 'Payment Failed · Update Payment Method'
+                      : 'Free Tier · Tap to Upgrade'
+              }
+              meta={
+                currentShop?.subscriptionStatus === 'active' || currentShop?.subscriptionStatus === 'trialing' ? (
+                  <span className={styles.proActiveBadge}>Pro Active</span>
+                ) : (
+                  <span className={styles.upgradeBadge}>Upgrade</span>
+                )
+              }
+              onClick={() => router.push(ROUTES.settingsBilling)}
+            />
           </div>
         </div>
 
         {/* ── Group 4: Preferences & Security ── */}
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Preferences &amp; Security</span>
           <div className={styles.groupCard}>
             <AppearanceToggle />
             <SettingsRow
@@ -363,6 +377,7 @@ export default function SettingsPage() {
 
         {/* ── Group 5: Session & Sign Out ── */}
         <div className={styles.group}>
+          <span className={styles.groupLabel}>Account Session</span>
           <div className={styles.groupCard}>
             <SettingsRow
               icon="logout"

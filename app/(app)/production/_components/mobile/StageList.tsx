@@ -103,9 +103,9 @@ export default function StageList({
       </div>
 
       {!hasAnyVisible ? (
-        <div className={styles.atelierEmptyContainer}>
-          <div className={styles.atelierCrest}>
-            <div className={styles.atelierCrestHalo} />
+        <div className={styles.workshopEmptyContainer}>
+          <div className={styles.workshopCrest}>
+            <div className={styles.workshopCrestHalo} />
             <div className={styles.crestShears}>
               <Symbol name="content_cut" size={26} />
             </div>
@@ -113,10 +113,10 @@ export default function StageList({
               <Symbol name="needle" size={22} />
             </div>
           </div>
-          <h3 className={styles.atelierEmptyTitle}>
+          <h3 className={styles.workshopEmptyTitle}>
             {searchQuery || isFiltered ? 'No garments match filter' : 'Workshop floor is clear'}
           </h3>
-          <p className={styles.atelierEmptyDesc}>
+          <p className={styles.workshopEmptyDesc}>
             {searchQuery
               ? `No active orders found matching "${searchQuery}". Reset filters to see all production orders.`
               : isFiltered
@@ -133,8 +133,8 @@ export default function StageList({
               <span>Reset Search & Filters</span>
             </button>
           ) : (
-            <div className={styles.atelierActionRow}>
-              <Link href={ROUTES.orderNew} className={styles.atelierNewOrderBtn}>
+            <div className={styles.workshopActionRow}>
+              <Link href={ROUTES.orderNew} className={styles.workshopNewOrderBtn}>
                 <Symbol name="add" size={16} />
                 <span>New Garment Order</span>
               </Link>

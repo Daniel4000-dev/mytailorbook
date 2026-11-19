@@ -664,7 +664,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
 
   return (
     <>
-      {/* Atelier Toolbar: Search + Mobile Filter Button + Desktop Scope Switcher */}
+      {/* Workshop Toolbar: Search + Mobile Filter Button + Desktop Scope Switcher */}
       <div className={styles.boardToolbar}>
         <div className={styles.searchBarWrap}>
           <div className={styles.searchBar}>

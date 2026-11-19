@@ -1243,7 +1243,7 @@ function StockContent() {
                 {isBelowCost && (
                   <div className={styles.marginWarning}>
                     <Symbol name="warning" size={14} />
-                    <span>Price is below atelier production cost ({formatCurrency(cartCostTotal, currency)})</span>
+                    <span>Price is below workshop production cost ({formatCurrency(cartCostTotal, currency)})</span>
                   </div>
                 )}
               </div>

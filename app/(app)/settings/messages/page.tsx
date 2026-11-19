@@ -116,7 +116,7 @@ export default function MessageTemplatesSettingsPage() {
     const cleanIg = ig.startsWith('@') ? ig : `@${ig}`;
     const tiktok = currentShop?.socialLinks?.tiktok || '@houseofsavile';
     const cleanTiktok = tiktok.startsWith('@') ? tiktok : `@${tiktok}`;
-    const web = currentShop?.socialLinks?.website || 'savile.atelier.ng';
+    const web = currentShop?.socialLinks?.website || `${currentShop?.slug || 'savilerow'}.${APP_CONFIG.domain}`;
     const bank = currentShop?.bankDetails?.bankName
       ? `${currentShop.bankDetails.bankName} - ${currentShop.bankDetails.accountNumber || '0123456789'}`
       : 'Access Bank - 0123456789';
