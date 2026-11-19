@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import ProductionBoard from './_components/ProductionBoard';
+import ProductionBoardSkeleton from './_components/ProductionBoardSkeleton';
 import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
 import styles from './page.module.css';
 
@@ -26,7 +27,7 @@ export default function ProductionPage() {
       }
     >
       <div className={styles.boardWrapper}>
-        <Suspense fallback={null}>
+        <Suspense fallback={<ProductionBoardSkeleton />}>
           <ProductionBoard userRole={user?.role || 'Staff'} />
         </Suspense>
       </div>
