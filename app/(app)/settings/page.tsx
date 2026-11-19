@@ -18,6 +18,9 @@ import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import InstagramIcon from '@/components/ui/InstagramIcon/InstagramIcon';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
+import TiktokIcon from '@/components/ui/TiktokIcon/TiktokIcon';
 import { addBranchAction } from '@/app/actions';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
@@ -362,8 +365,13 @@ export default function SettingsPage() {
           <SettingsRow
             icon="help_outline"
             label="Help and feedback"
-            subtitle="Guides, tutorials &amp; WhatsApp support"
-            onClick={() => window.open('https://wa.me/2348000000000?text=Hello%20MyStitchBook%20Support', '_blank')}
+            subtitle={`Guides, tutorials & WhatsApp support (+234 816 375 2061)`}
+            onClick={() =>
+              window.open(
+                `https://wa.me/${APP_CONFIG.supportWhatsApp}?text=${encodeURIComponent('Hello MyStitchBook Support, I need assistance with my tailoring shop.')}`,
+                '_blank'
+              )
+            }
           />
           <SettingsRow
             icon="favorite_border"
@@ -373,7 +381,113 @@ export default function SettingsPage() {
           />
         </div>
 
-        {/* ── Group 5: Session & Sign Out ── */}
+        {/* ── Group 5: Workshop Social Hub (WhatsApp 'Also from Meta' Style) ── */}
+        <div className={styles.socialChannelsCard}>
+          <div className={styles.socialChannelsHeader}>
+            <span className={styles.socialChannelsTitle}>Workshop Social Channels</span>
+            <button
+              type="button"
+              className={styles.socialEditLink}
+              onClick={() => router.push(ROUTES.settingsStudio)}
+            >
+              Edit handles
+            </button>
+          </div>
+          <p className={styles.socialChannelsSubtitle}>
+            Connected channels are featured on your public lookbook and client tracking receipts.
+          </p>
+          <div className={styles.socialIconsGrid}>
+            <button
+              type="button"
+              className={`${styles.socialIconItem} ${currentShop?.socialLinks?.instagram ? styles.socialIconActive : ''}`}
+              onClick={() => {
+                if (currentShop?.socialLinks?.instagram) {
+                  const handle = currentShop.socialLinks.instagram
+                    .replace(/^@/, '')
+                    .replace(/.*instagram\.com\//, '')
+                    .replace(/\/$/, '');
+                  window.open(`https://instagram.com/${handle}`, '_blank');
+                } else {
+                  router.push(ROUTES.settingsStudio);
+                }
+              }}
+              title={currentShop?.socialLinks?.instagram ? `Open ${currentShop.socialLinks.instagram}` : 'Connect Instagram'}
+            >
+              <div className={styles.socialCircle}>
+                <InstagramIcon size={22} />
+              </div>
+              <span className={styles.socialLabel}>
+                {currentShop?.socialLinks?.instagram ? 'Instagram' : '+ Instagram'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.socialIconItem} ${currentShop?.socialLinks?.tiktok ? styles.socialIconActive : ''}`}
+              onClick={() => {
+                if (currentShop?.socialLinks?.tiktok) {
+                  const handle = currentShop.socialLinks.tiktok
+                    .replace(/^@/, '')
+                    .replace(/.*tiktok\.com\/@?/, '')
+                    .replace(/\/$/, '');
+                  window.open(`https://tiktok.com/@${handle}`, '_blank');
+                } else {
+                  router.push(ROUTES.settingsStudio);
+                }
+              }}
+              title={currentShop?.socialLinks?.tiktok ? `Open ${currentShop.socialLinks.tiktok}` : 'Connect TikTok'}
+            >
+              <div className={styles.socialCircle}>
+                <TiktokIcon size={20} />
+              </div>
+              <span className={styles.socialLabel}>
+                {currentShop?.socialLinks?.tiktok ? 'TikTok' : '+ TikTok'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.socialIconItem} ${currentShop?.socialLinks?.website ? styles.socialIconActive : ''}`}
+              onClick={() => {
+                if (currentShop?.socialLinks?.website) {
+                  const raw = currentShop.socialLinks.website.startsWith('http')
+                    ? currentShop.socialLinks.website
+                    : `https://${currentShop.socialLinks.website}`;
+                  window.open(raw, '_blank');
+                } else {
+                  router.push(ROUTES.settingsStudio);
+                }
+              }}
+              title={currentShop?.socialLinks?.website ? `Open ${currentShop.socialLinks.website}` : 'Connect Website'}
+            >
+              <div className={styles.socialCircle}>
+                <Symbol name="language" size={22} />
+              </div>
+              <span className={styles.socialLabel}>
+                {currentShop?.socialLinks?.website ? 'Website' : '+ Website'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.socialIconItem}
+              onClick={() =>
+                window.open(
+                  `https://wa.me/${APP_CONFIG.supportWhatsApp}?text=${encodeURIComponent('Hello MyStitchBook Support')}`,
+                  '_blank'
+                )
+              }
+              title="Official WhatsApp Support"
+            >
+              <div className={`${styles.socialCircle} ${styles.socialCircleWhatsApp}`}>
+                <WhatsappIcon size={22} />
+              </div>
+              <span className={styles.socialLabel}>Support</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Group 6: Session & Sign Out ── */}
         <div className={styles.groupCard}>
           <SettingsRow
             icon="logout"
