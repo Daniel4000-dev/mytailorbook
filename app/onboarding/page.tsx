@@ -403,15 +403,6 @@ export default function OnboardingPage() {
                 <div className={styles.actionsRow}>
                   <button
                     type="button"
-                    className={styles.backBtn}
-                    onClick={() => setStep(0)}
-                    title="View optional tour"
-                  >
-                    <Symbol name="visibility" size={16} />
-                    <span>Quick Tour</span>
-                  </button>
-                  <button
-                    type="button"
                     className={styles.primaryBtn}
                     onClick={handleProceedFromIdentity}
                     disabled={!watchedShopName.trim() || watchedShopName.trim().length < 2}

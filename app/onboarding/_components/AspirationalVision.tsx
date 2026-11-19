@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import PortfolioTemplate from '@/components/studio/PortfolioView/PortfolioTemplate';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './AspirationalVision.module.css';
 
@@ -12,75 +11,6 @@ function getMonogram(name: string): string {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
-
-const PREMIUM_MOCKS = [
-  {
-    id: 'mock-1',
-    title: 'Modern Senator Outfit',
-    category: 'Traditional',
-    startingPrice: 45000,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/premium_1.jpg', angle: 'front' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  },
-  {
-    id: 'mock-2',
-    title: 'Executive Bespoke Suit',
-    category: 'Suits',
-    startingPrice: 85000,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/premium_2.jpg', angle: 'front' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  },
-  {
-    id: 'mock-3',
-    title: 'Bespoke Lapel Detail',
-    category: 'Detail',
-    startingPrice: null,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/premium_3.jpg', angle: 'detail' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  },
-  {
-    id: 'mock-4',
-    title: 'Evening Kaftan',
-    category: 'Traditional',
-    startingPrice: 55000,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/premium_4.jpg', angle: 'front' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  },
-  {
-    id: 'mock-5',
-    title: 'Grand Agbada Ensemble',
-    category: 'Bridal & Ceremonial',
-    startingPrice: 120000,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/premium_5.jpg', angle: 'front' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  },
-  {
-    id: 'mock-6',
-    title: 'Casual Linen Set',
-    category: 'Casual',
-    startingPrice: 35000,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    displayPhotos: [{ url: '/images/mock/premium_6.jpg', angle: 'front' as any }],
-    storyModeEnabled: false,
-    storyCaption: null,
-    storyPhotos: [],
-  }
-];
 
 export default function AspirationalVision({
   shopName,
@@ -94,92 +24,77 @@ export default function AspirationalVision({
   const isRtw = businessMode === 'rtw';
   const isHybrid = businessMode === 'hybrid';
 
-  const mockPortfolio = {
-    shop: {
-      id: 'mock',
-      name: shopName || 'Your Studio',
-      slug: 'mock',
-      orgId: 'mock',
-      currency: 'NGN',
-      themeAccent: 'indigo',
-      onboardingCompleted: true,
-      defaultTrackingLinkEnabled: true,
-      streakCurrent: 0,
-      streakBest: 0,
-      streakLastCountedAt: null,
-      portfolioTemplate: 'modern',
-      portfolioAccent: 'indigo',
-      bio: isRtw
-        ? 'Curated ready-to-wear collections in luxury African and contemporary styles. Hand-finished garments in standard sizes with off-the-rack availability.'
-        : 'Started in a single room, we have spent the last decade mastering the art of bespoke tailoring. Every stitch is a testament to our dedication to the craft, and every garment is a narrative woven for the wearer.',
-      isPrimary: true,
-      ownerUid: 'mock',
-      createdAt: new Date().toISOString(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      subscriptionStatus: 'active' as any,
-    },
-    outfits: PREMIUM_MOCKS,
-    stats: {
-      completed: 120,
-      onTimePercent: 100,
-      stylesCount: 6,
-      outfitCount: 6,
-      testimonialCount: 0
-    },
-    testimonials: [],
-    photos: [],
-    ratingSummary: null,
-    isPremium: true
-  };
-
   return (
     <div className={styles.visionContainer}>
-      <div className={styles.portfolioWrapper}>
-        <PortfolioTemplate portfolio={mockPortfolio} />
-      </div>
-      
-      <motion.div 
+      <div className={styles.ambientGlow} />
+      <div className={styles.ambientGlowSecondary} />
+
+      <motion.div
         className={styles.overlay}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         <div className={styles.messageBox}>
           <div className={styles.monogram}>{getMonogram(shopName)}</div>
+
           <div className={styles.statusPill}>
             <Symbol name={isRtw || isHybrid ? 'verified' : 'workspace_premium'} size={15} />
             <span>
               {isRtw
-                ? 'Showroom Ready · Retail Brand'
+                ? 'Showroom Live · Ready-to-Wear'
                 : isHybrid
-                ? 'Workshop & Showroom Ready'
-                : 'Workshop Ready · Custom Tailoring'}
+                ? 'Workshop & Showroom Live'
+                : 'Workshop Live · Bespoke Tailoring'}
             </span>
           </div>
+
           <h2 className={styles.title}>
             {isRtw
               ? 'Your Showroom is Ready'
               : isHybrid
               ? 'Your Workshop & Showroom are Ready'
-              : 'Your Shop is Ready'}
+              : 'Your Workshop is Ready'}
           </h2>
+
           <p className={styles.subtitle}>
-            {isRtw ? (
-              <>
-                Welcome to <strong>{shopName || 'Your Shop'}</strong>. Every garment you stock automatically syncs to your public showroom floor, enables 1-tap WhatsApp ensemble orders, and powers your counter POS.
-              </>
-            ) : isHybrid ? (
-              <>
-                Welcome to <strong>{shopName || 'Your Shop'}</strong>. Your custom cutting table and ready-to-wear showroom floor are live, with seamless live tracking and counter POS sales.
-              </>
-            ) : (
-              <>
-                Welcome to <strong>{shopName || 'Your Shop'}</strong>. Every order and measurement you record automatically builds your shop portfolio, keeps cutting tables organized, and sends live tracking to your clients.
-              </>
-            )}
+            Welcome to <strong>{shopName || 'Your Workshop'}</strong>. Your bespoke management system is active. Here is what is ready for you on Day 1:
           </p>
-          <button className={styles.finishBtn} onClick={onFinish}>
-            <span>Enter Dashboard</span>
+
+          <div className={styles.blueprintGrid}>
+            <div className={styles.blueprintItem}>
+              <div className={styles.blueprintIconBox}>
+                <Symbol name="straighten" size={18} />
+              </div>
+              <div className={styles.blueprintText}>
+                <h4>Client Measurement Book</h4>
+                <p>Record full client anatomy once — remembered automatically for every future order with 1-tap WhatsApp sharing.</p>
+              </div>
+            </div>
+
+            <div className={styles.blueprintItem}>
+              <div className={styles.blueprintIconBox}>
+                <Symbol name="inventory_2" size={18} />
+              </div>
+              <div className={styles.blueprintText}>
+                <h4>Live Production Board</h4>
+                <p>Keep your cutting and sewing tables on schedule with clear deadlines and client progress links.</p>
+              </div>
+            </div>
+
+            <div className={styles.blueprintItem}>
+              <div className={styles.blueprintIconBox}>
+                <Symbol name="payments" size={18} />
+              </div>
+              <div className={styles.blueprintText}>
+                <h4>Deposit &amp; Balance Control</h4>
+                <p>Track cash deposits, outstanding client balances, and settled payments with zero debt slips.</p>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" className={styles.finishBtn} onClick={onFinish}>
+            <span>Enter Workshop Dashboard</span>
             <Symbol name="arrow_forward" size={18} />
           </button>
         </div>

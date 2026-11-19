@@ -763,6 +763,20 @@
   gap: var(--sf-space-sm);
 }
 
+@media (max-width: 440px) {
+  .actionsRow {
+    gap: 8px;
+  }
+  .backBtn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .primaryBtn {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+}
+
 .skipBtn {
   background: transparent;
   border: none;
