@@ -642,9 +642,9 @@ export default function OrderDetailPage() {
     try {
       const res = await publishOrderStoryToPortfolioAction(currentShop.id, order.id);
       if (res.success) {
-        showToast('Order photos published to your shop catalog!', 'success');
+        showToast('Order photos published to your storefront lookbook!', 'success');
       } else {
-        showToast(res.error || 'Failed to publish to catalog', 'error');
+        showToast(res.error || 'Failed to publish to storefront', 'error');
       }
     } catch {
       showToast('Failed to publish to catalog showcase', 'error');
@@ -1395,10 +1395,10 @@ export default function OrderDetailPage() {
                         className={styles.featurePortfolioBtn}
                         onClick={handlePublishToPortfolio}
                         disabled={publishingPortfolio}
-                        title="Feature this garment and its making-of sequence in your public portfolio"
+                        title="Feature this garment and its making-of sequence in your public storefront"
                       >
                         <Symbol name="auto_awesome" size={14} />
-                        <span>{publishingPortfolio ? 'Publishing…' : 'Feature'}</span>
+                        <span>{publishingPortfolio ? 'Publishing…' : 'Feature on Storefront'}</span>
                       </button>
                     )}
                     {(!isPremium && (order.images?.length || 0) >= FREE_ORDER_PROGRESS_PHOTO_LIMIT) ? (
