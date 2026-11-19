@@ -81,6 +81,7 @@
 
 .body {
   padding: var(--sf-space-lg);
+  padding-bottom: max(var(--sf-space-lg), calc(var(--sf-space-lg) + env(safe-area-inset-bottom, 0px)));
   overflow-y: auto;
   flex: 1;
   -webkit-overflow-scrolling: touch;
@@ -88,6 +89,7 @@
 
 .footer {
   padding: var(--sf-space-md) var(--sf-space-lg);
+  padding-bottom: max(var(--sf-space-md), calc(var(--sf-space-md) + env(safe-area-inset-bottom, 0px)));
   border-top: 1px solid var(--sf-border-light);
   background: transparent;
   flex-shrink: 0;

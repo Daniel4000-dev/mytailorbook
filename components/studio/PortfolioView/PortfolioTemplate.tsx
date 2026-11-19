@@ -216,9 +216,11 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             </div>
             <div className={styles.trustMetricContent}>
               <span className={styles.trustMetricValue}>
-                {stats.completed > 0 ? `${stats.completed}+` : '100+'}
+                {stats.completed > 0 ? `${stats.completed}+` : 'Custom Fit'}
               </span>
-              <span className={styles.trustMetricLabel}>Garments Completed</span>
+              <span className={styles.trustMetricLabel}>
+                {stats.completed > 0 ? 'Garments Completed' : 'Handcrafted Guarantee'}
+              </span>
             </div>
           </div>
           <div className={styles.trustMetric}>
@@ -227,9 +229,11 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             </div>
             <div className={styles.trustMetricContent}>
               <span className={styles.trustMetricValue}>
-                {stats.onTimePercent ? `${stats.onTimePercent}%` : '99%'}
+                {stats.onTimePercent ? `${stats.onTimePercent}%` : '100%'}
               </span>
-              <span className={styles.trustMetricLabel}>On-Time Completion</span>
+              <span className={styles.trustMetricLabel}>
+                {stats.onTimePercent ? 'On-Time Completion' : 'Committed Delivery'}
+              </span>
             </div>
           </div>
           <div className={styles.trustMetric}>
@@ -238,10 +242,10 @@ export default function PortfolioTemplate({ portfolio }: { portfolio: PublicPort
             </div>
             <div className={styles.trustMetricContent}>
               <span className={styles.trustMetricValue}>
-                {ratingSummary ? `${ratingSummary.average.toFixed(1)} / 5.0` : '4.9 / 5.0'}
+                {ratingSummary ? `${ratingSummary.average.toFixed(1)} / 5.0` : 'Verified'}
               </span>
               <span className={styles.trustMetricLabel}>
-                Client Satisfaction {ratingSummary?.count ? `(${ratingSummary.count})` : ''}
+                {ratingSummary?.count ? `Client Satisfaction (${ratingSummary.count})` : 'Master Tailor'}
               </span>
             </div>
           </div>
