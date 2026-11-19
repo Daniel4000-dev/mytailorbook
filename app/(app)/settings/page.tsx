@@ -294,7 +294,7 @@ export default function SettingsPage() {
           )}
         </div>
 
-        {/* ── Group 2: Workshop Operations & Team ── */}
+        {/* ── Group 2: Workshop Operations, Appearance & Notifications ── */}
         <div className={styles.groupCard}>
           <SettingsRow
             icon="group"
@@ -308,6 +308,13 @@ export default function SettingsPage() {
             label="Production Streak &amp; Vacation Shield"
             subtitle={currentShop?.vacationMode ? 'Vacation Mode Paused' : `${currentShop?.streakFreezes || 0} Streak Freezes · Active`}
             onClick={() => router.push(ROUTES.settingsStudio)}
+          />
+          <AppearanceToggle />
+          <SettingsRow
+            icon="notifications"
+            label="Notifications"
+            subtitle="Push alerts and customer status pings"
+            onClick={() => router.push('/notifications')}
           />
           {FEATURE_FLAGS.orgBranchMultiTenancy && (
             <>
@@ -335,32 +342,7 @@ export default function SettingsPage() {
           )}
         </div>
 
-        {/* ── Group 3: Account, Privacy, Appearance, Notifications ── */}
-        <div className={styles.groupCard}>
-          <SettingsRow
-            icon="key"
-            label="Account"
-            subtitle={`${user?.name || 'Owner'} · ${user?.email || 'Login credentials'}`}
-            onClick={() => router.push(ROUTES.settingsAccount)}
-          />
-          {FEATURE_FLAGS.auditLog && (
-            <SettingsRow
-              icon="lock"
-              label="Privacy &amp; Security"
-              subtitle="Activity log and security audit"
-              onClick={() => router.push(ROUTES.settingsActivity)}
-            />
-          )}
-          <AppearanceToggle />
-          <SettingsRow
-            icon="notifications"
-            label="Notifications"
-            subtitle="Push alerts and customer status pings"
-            onClick={() => router.push('/notifications')}
-          />
-        </div>
-
-        {/* ── Group 4: Help & Referrals ── */}
+        {/* ── Group 3: Help & Referrals ── */}
         <div className={styles.groupCard}>
           <SettingsRow
             icon="help_outline"
@@ -375,28 +357,55 @@ export default function SettingsPage() {
           />
           <SettingsRow
             icon="favorite_border"
-            label="Invite a fellow tailor"
+            label="Invite a friend"
             subtitle="Share MyStitchBook with tailoring colleagues"
             onClick={handleInviteFriend}
           />
         </div>
 
+        {/* ── Group 4: WhatsApp-Style Standalone Accounts Centre Card ── */}
+        <div
+          className={styles.accountsCentreCard}
+          onClick={() => router.push(ROUTES.settingsAccount)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push(ROUTES.settingsAccount);
+            }
+          }}
+          aria-label="Open Accounts Centre"
+        >
+          <div className={styles.accountsCentreLeft}>
+            <div className={styles.accountsCentreIconWrap}>
+              <Symbol name="all_inclusive" size={24} className={styles.accountsCentreIcon} />
+            </div>
+            <div className={styles.accountsCentreText}>
+              <span className={styles.accountsCentreTitle}>Accounts Centre</span>
+              <p className={styles.accountsCentreDesc}>
+                Control your profile, login credentials, privacy, and workshop devices across MyStitchBook.
+              </p>
+            </div>
+          </div>
+          <div className={styles.accountsCentreRight}>
+            <Symbol name="chevron_right" size={20} className={styles.accountsCentreChevron} />
+          </div>
+        </div>
+
         {/* ── Group 5: Workshop Social Hub (WhatsApp 'Also from Meta' Style) ── */}
-        <div className={styles.socialChannelsCard}>
-          <div className={styles.socialChannelsHeader}>
-            <span className={styles.socialChannelsTitle}>Workshop Social Channels</span>
+        <div className={styles.alsoFromSection}>
+          <div className={styles.alsoFromHeader}>
+            <span className={styles.alsoFromTitle}>Also from StitchBook</span>
             <button
               type="button"
-              className={styles.socialEditLink}
+              className={styles.alsoFromEditLink}
               onClick={() => router.push(ROUTES.settingsStudio)}
             >
               Edit handles
             </button>
           </div>
-          <p className={styles.socialChannelsSubtitle}>
-            Connected channels are featured on your public lookbook and client tracking receipts.
-          </p>
-          <div className={styles.socialIconsGrid}>
+          <div className={styles.alsoFromCard}>
             <button
               type="button"
               className={`${styles.socialIconItem} ${currentShop?.socialLinks?.instagram ? styles.socialIconActive : ''}`}
@@ -416,9 +425,7 @@ export default function SettingsPage() {
               <div className={styles.socialCircle}>
                 <InstagramIcon size={22} />
               </div>
-              <span className={styles.socialLabel}>
-                {currentShop?.socialLinks?.instagram ? 'Instagram' : '+ Instagram'}
-              </span>
+              <span className={styles.socialLabel}>Instagram</span>
             </button>
 
             <button
@@ -440,9 +447,7 @@ export default function SettingsPage() {
               <div className={styles.socialCircle}>
                 <TiktokIcon size={20} />
               </div>
-              <span className={styles.socialLabel}>
-                {currentShop?.socialLinks?.tiktok ? 'TikTok' : '+ TikTok'}
-              </span>
+              <span className={styles.socialLabel}>TikTok</span>
             </button>
 
             <button
@@ -463,9 +468,7 @@ export default function SettingsPage() {
               <div className={styles.socialCircle}>
                 <Symbol name="language" size={22} />
               </div>
-              <span className={styles.socialLabel}>
-                {currentShop?.socialLinks?.website ? 'Website' : '+ Website'}
-              </span>
+              <span className={styles.socialLabel}>Website</span>
             </button>
 
             <button
@@ -477,12 +480,12 @@ export default function SettingsPage() {
                   '_blank'
                 )
               }
-              title="Official WhatsApp Support"
+              title="Official WhatsApp Support (+234 816 375 2061)"
             >
-              <div className={`${styles.socialCircle} ${styles.socialCircleWhatsApp}`}>
+              <div className={`${styles.socialCircle} ${styles.whatsappCircle}`}>
                 <WhatsappIcon size={22} />
               </div>
-              <span className={styles.socialLabel}>Support</span>
+              <span className={styles.socialLabel}>WhatsApp</span>
             </button>
           </div>
         </div>

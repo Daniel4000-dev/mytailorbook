@@ -710,7 +710,137 @@
   font-weight: 600;
 }
 
+/* ── WhatsApp-Style Dedicated Accounts Centre Card ── */
+.accountsCentreCard {
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.accountsCentreCard:active {
+  background: var(--sf-bg-surface-hover, #F9FAFB);
+  transform: scale(0.99);
+}
+
+:global([data-theme='dark']) .accountsCentreCard {
+  background: #1C1C1E;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .accountsCentreCard:active {
+  background: #2C2C2E;
+}
+
+.accountsCentreLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+}
+
+.accountsCentreIconWrap {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.accountsCentreIcon {
+  color: var(--sf-text-primary);
+}
+
+.accountsCentreText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.accountsCentreTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  line-height: 1.25;
+}
+
+.accountsCentreDesc {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.accountsCentreRight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.accountsCentreChevron {
+  color: var(--sf-text-tertiary, #9CA3AF);
+}
+
 /* ── Workshop Social Channels Card (WhatsApp 'Also from Meta' Style) ── */
+.alsoFromSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.alsoFromHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.alsoFromTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.alsoFromEditLink {
+  background: none;
+  border: none;
+  color: var(--sf-color-primary, #047857);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.alsoFromCard {
+  background: var(--sf-bg-surface-elevated, #FFFFFF);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 18px;
+  padding: 16px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+:global([data-theme='dark']) .alsoFromCard {
+  background: #1C1C1E;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .socialChannelsCard {
   background: var(--sf-bg-surface-elevated, #FFFFFF);
   border: 1px solid var(--sf-border-light);
