@@ -347,7 +347,7 @@ export default function StudioSettingsPage() {
           </div>
         </section>
 
-        {/* WhatsApp iOS Style Grouped Card 1: Core Atelier Profile Info */}
+        {/* WhatsApp iOS Style Grouped Card 1: Core Studio Profile Info */}
         <div className={styles.groupCard}>
           <button
             type="button"

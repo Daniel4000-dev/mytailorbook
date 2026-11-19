@@ -38,9 +38,6 @@ export default function StaffSettingsPage() {
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
 
-  const [localStaffList, setLocalStaffList] = useState<User[] | null>(null);
-  const effectiveStaff = localStaffList || staffMembers;
-
   const [activeStaff, setActiveStaff] = useState<User | null>(null);
   const [sheetView, setSheetView] = useState<StaffSheetView>('actions');
   const [editName, setEditName] = useState('');
@@ -82,18 +79,6 @@ export default function StaffSettingsPage() {
     if (!activeStaff) return;
     setSavingEdit(true);
     try {
-      if (activeStaff.uid.startsWith('staff-')) {
-        setLocalStaffList((prev) =>
-          (prev || effectiveStaff).map((s) =>
-            s.uid === activeStaff.uid
-              ? { ...s, payrollType: editPayrollType, payrollAmount: editPayrollType === 'none' ? 0 : Number(editPayrollAmount) || 0 }
-              : s
-          )
-        );
-        setSheetView('actions');
-        showToast('Payroll structure updated', 'success');
-        return;
-      }
       await updateStaff(activeStaff.uid, {
         payrollType: editPayrollType,
         payrollAmount: editPayrollType === 'none' ? 0 : Number(editPayrollAmount) || 0
@@ -111,19 +96,11 @@ export default function StaffSettingsPage() {
     if (!activeStaff) return;
     setSavingEdit(true);
     try {
-      if (activeStaff.uid.startsWith('staff-')) {
-        setLocalStaffList((prev) =>
-          (prev || effectiveStaff).map((s) =>
-            s.uid === activeStaff.uid ? { ...s, name: editName, craftRole: editCraftRole } : s
-          )
-        );
-        showToast('Staff member updated', 'success');
-        closeStaffSheet();
-        return;
-      }
       await updateStaff(activeStaff.uid, { name: editName, craftRole: editCraftRole });
       showToast('Staff member updated', 'success');
       closeStaffSheet();
+    } catch {
+      showToast('Could not update staff member', 'error');
     } finally {
       setSavingEdit(false);
     }
@@ -157,19 +134,13 @@ export default function StaffSettingsPage() {
     const staff = confirmDeactivate;
     setConfirmDeactivate(null);
     const currentlyActive = staff.active !== false;
-    if (staff.uid.startsWith('staff-')) {
-      setLocalStaffList((prev) =>
-        (prev || effectiveStaff).map((s) =>
-          s.uid === staff.uid ? { ...s, active: !currentlyActive } : s
-        )
-      );
+    try {
+      await updateStaff(staff.uid, { active: !currentlyActive });
       showToast(currentlyActive ? 'Staff member deactivated' : 'Staff member reactivated', 'success');
       closeStaffSheet();
-      return;
+    } catch {
+      showToast('Could not update staff status', 'error');
     }
-    await updateStaff(staff.uid, { active: !currentlyActive });
-    showToast(currentlyActive ? 'Staff member deactivated' : 'Staff member reactivated', 'success');
-    closeStaffSheet();
   };
 
   const handleAddStaff = async (e: React.FormEvent) => {
@@ -190,25 +161,10 @@ export default function StaffSettingsPage() {
       setNewStaffCraftRole('tailor');
       setIsAddSheetOpen(false);
       showToast(`${name} added to team`, 'success');
-    } catch {
-      const newMember: User = {
-        uid: `staff-${Date.now()}`,
-        name,
-        email,
-        role: newStaffRole,
-        craftRole: newStaffCraftRole,
-        active: true,
-        payrollType: 'none',
-        shopId: currentShop?.id || 'mock-shop',
-        orgId: currentShop?.orgId || 'mock-org',
-        createdAt: new Date().toISOString(),
-      };
-      setLocalStaffList((prev) => [...(prev || effectiveStaff), newMember]);
-      setName('');
-      setEmail('');
-      setPassword('');
-      setIsAddSheetOpen(false);
-      showToast(`${name} added to team`, 'success');
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Could not add staff member';
+      setAddError(errorMsg);
+      showToast(errorMsg, 'error');
     } finally {
       setAddLoading(false);
     }
@@ -236,7 +192,7 @@ export default function StaffSettingsPage() {
           <Skeleton height={64} />
           <Skeleton height={64} />
         </div>
-      ) : effectiveStaff.length === 0 ? (
+      ) : staffMembers.length === 0 ? (
         <EmptyState
           icon={<Symbol name="group" size={40} />}
           title="No staff yet"
@@ -249,7 +205,7 @@ export default function StaffSettingsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className={styles.card}>
-            {effectiveStaff.map((staff) => {
+            {staffMembers.map((staff) => {
               const isActive = staff.active !== false;
               const craftLabel = CRAFT_ROLE_LABELS[staff.craftRole || 'general'];
               return (
