@@ -334,7 +334,7 @@ export default function OnboardingPage() {
                   This name appears on client invoices, live order tracking links, and your digital portfolio.
                 </p>
 
-                <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className={styles.formFields}>
                   {isGoogleAccount && !googleUserInfo?.name && (
                     <div>
                       <AuthInput
@@ -366,7 +366,7 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Real-time Studio Identity Preview */}
+                {/* Real-time Shop Identity Preview */}
                 <div className={styles.previewSection}>
                   <div className={styles.previewHeader}>
                     <span className={styles.previewLabel}>Shop Badge Preview</span>
@@ -376,9 +376,9 @@ export default function OnboardingPage() {
                     </span>
                   </div>
 
-                  <div className={styles.previewAtelierBody}>
+                  <div className={styles.previewShopBody}>
                     <div className={styles.monogramSeal}>{getMonogram(watchedShopName)}</div>
-                    <div className={styles.previewAtelierDetails}>
+                    <div className={styles.previewShopDetails}>
                       <h3 className={styles.previewShopName}>
                         {watchedShopName.trim() || 'Your Shop'}
                       </h3>
@@ -388,17 +388,16 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  {watchedBusinessMode === 'bespoke' ? (
-                    <div className={styles.xpBonusPill}>
-                      <Symbol name="workspace_premium" size={16} />
-                      <span>+50 Studio XP awarded upon completion</span>
-                    </div>
-                  ) : (
-                    <div className={styles.xpBonusPill}>
-                      <Symbol name="verified" size={16} />
-                      <span>Showroom &amp; POS Setup Ready</span>
-                    </div>
-                  )}
+                  <div className={styles.trustBadgePill}>
+                    <Symbol name="workspace_premium" size={16} />
+                    <span>
+                      {watchedBusinessMode === 'bespoke'
+                        ? 'Measurement Book & Client Tracker Included'
+                        : watchedBusinessMode === 'rtw'
+                        ? 'Showroom & Instant WhatsApp Catalog'
+                        : 'Full Tailoring Workshop & Showroom'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className={styles.actionsRow}>

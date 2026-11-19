@@ -1,6 +1,6 @@
 /* ============================================================
-   MyStitchBook Atelier Onboarding Styles
-   Continuous Liquid Glass Aesthetic • Bespoke Luxury Tailoring
+   MyStitchBook Workshop Onboarding Styles
+   Continuous Liquid Glass Aesthetic • Luxury Tailoring
    Strictly Zero Emojis • Fully Mobile & Web Responsive
    ============================================================ */
 
@@ -10,22 +10,22 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 100vh;
-  padding: var(--sf-space-xl) var(--sf-space-md);
+  min-height: 100dvh;
+  padding: clamp(16px, 4vw, 40px) clamp(12px, 3vw, 24px);
   box-sizing: border-box;
   background-color: var(--sf-bg-primary);
   position: relative;
   overflow-x: hidden;
 }
 
-/* Ambient atelier glow orbs in the background */
+/* Ambient glow orbs in the background */
 .ambientGlow {
   position: fixed;
   top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
+  width: min(600px, 90vw);
+  height: min(600px, 90vw);
   background: radial-gradient(circle, var(--sf-accent-emerald-glow) 0%, rgba(67, 56, 202, 0) 70%);
   pointer-events: none;
   z-index: 0;
@@ -36,8 +36,8 @@
   position: fixed;
   bottom: 5%;
   right: 15%;
-  width: 450px;
-  height: 450px;
+  width: min(450px, 75vw);
+  height: min(450px, 75vw);
   background: radial-gradient(circle, var(--sf-brand-indigo-glow) 0%, rgba(99, 102, 241, 0) 70%);
   pointer-events: none;
   z-index: 0;
@@ -55,9 +55,9 @@
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border);
   border-top: 1.5px solid rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
+  border-radius: clamp(18px, 4vw, 28px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 16px 40px -4px rgba(67, 56, 202, 0.12);
-  padding: var(--sf-space-2xl) var(--sf-space-xl);
+  padding: clamp(20px, 4vw, 36px) clamp(16px, 3.5vw, 32px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -213,16 +213,24 @@
   color: #F87171;
 }
 
-/* ── Live Atelier Preview Card (Step 1) ── */
+.formFields {
+  margin-top: var(--sf-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Live Shop Preview Card (Step 1) ── */
 .previewSection {
   margin-top: var(--sf-space-lg);
-  padding: var(--sf-space-lg);
-  background: var(--sf-sand);
-  border: 1px dashed var(--sf-border);
+  padding: clamp(14px, 3vw, 20px);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg, 16px);
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .previewHeader {
@@ -251,7 +259,7 @@
   font-weight: var(--sf-weight-semibold);
 }
 
-.previewAtelierBody {
+.previewShopBody {
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
@@ -274,7 +282,7 @@
   border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-.previewAtelierDetails {
+.previewShopDetails {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -302,23 +310,27 @@
   text-overflow: ellipsis;
 }
 
-.xpBonusPill {
+.trustBadgePill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: rgba(67, 56, 202, 0.08);
-  border-radius: var(--sf-radius-sm);
-  color: var(--sf-brand-indigo);
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--sf-accent-emerald-glow);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-accent-emerald-dark);
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   width: fit-content;
+  max-width: 100%;
+  line-height: 1.35;
 }
 
-:root[data-theme="dark"] .xpBonusPill,
-:root:not([data-theme="light"]) .xpBonusPill {
-  background: rgba(99, 102, 241, 0.16);
-  color: var(--sf-brand-indigo-light);
+:root[data-theme="dark"] .trustBadgePill,
+:root:not([data-theme="light"]) .trustBadgePill {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--sf-accent-emerald-light, #34D399);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 /* ── Interactive Selection Cards (Step 2: Operating Mode) ── */
@@ -332,8 +344,8 @@
 .selectionCard {
   display: flex;
   align-items: flex-start;
-  gap: var(--sf-space-md);
-  padding: var(--sf-space-md) var(--sf-space-lg);
+  gap: clamp(10px, 2.5vw, 16px);
+  padding: clamp(12px, 3vw, 18px);
   background: var(--sf-bg-surface);
   border: 1.5px solid var(--sf-border-light);
   border-radius: var(--sf-radius-lg, 16px);
@@ -341,7 +353,7 @@
   text-align: left;
   transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
-  min-height: 72px;
+  min-height: 68px;
   user-select: none;
 }
 
@@ -381,6 +393,7 @@
 
 .cardContent {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -391,10 +404,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cardHeading {
-  font-size: var(--sf-text-base);
+  font-size: clamp(14px, 2vw, 16px);
   font-weight: var(--sf-weight-bold);
   color: var(--sf-text-primary);
   margin: 0;
@@ -409,6 +423,7 @@
   color: var(--sf-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .selectionCardActive .cardTag {
@@ -470,9 +485,15 @@
 /* Capacity Segmented Chips */
 .capacityGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin-top: var(--sf-space-xs);
+}
+
+@media (min-width: 520px) {
+  .capacityGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .capacityChip {
@@ -480,7 +501,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 8px;
+  padding: 12px 8px;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md, 12px);
@@ -529,8 +550,8 @@
 .goalCard {
   display: flex;
   align-items: center;
-  gap: var(--sf-space-md);
-  padding: 12px 16px;
+  gap: clamp(10px, 2.5vw, 14px);
+  padding: 12px 14px;
   background: var(--sf-bg-surface);
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-md, 12px);
@@ -571,6 +592,7 @@
 
 .goalText {
   flex: 1;
+  min-width: 0;
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-medium);
   color: var(--sf-text-primary);
@@ -582,8 +604,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sf-space-md);
-  margin-top: var(--sf-space-2xl);
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-xl);
   padding-top: var(--sf-space-md);
   border-top: 1px solid var(--sf-border-light);
 }
@@ -591,7 +613,8 @@
 .backBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   background: transparent;
   border: 1px solid var(--sf-border-light);
   border-radius: var(--sf-radius-full);
@@ -599,10 +622,12 @@
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   font-family: var(--sf-font-body), sans-serif;
-  padding: 12px 20px;
+  padding: 12px 18px;
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 48px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .backBtn:hover {
@@ -614,23 +639,37 @@
 /* Plane 3 Signal Button in Adire Royal Indigo */
 .primaryBtn {
   flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
   color: #FFFFFF;
   border: 1px solid rgba(67, 56, 202, 0.4);
   border-top: 1.5px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--sf-radius-full);
-  padding: 14px 28px;
-  font-size: var(--sf-text-base);
-  font-weight: 800;
+  padding: 12px 18px;
+  font-size: var(--sf-text-sm);
+  font-weight: 700;
   font-family: var(--sf-font-body), sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
   transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   min-height: 48px;
+  text-align: center;
+}
+
+@media (min-width: 480px) {
+  .primaryBtn {
+    font-size: var(--sf-text-base);
+    padding: 14px 28px;
+    gap: 10px;
+  }
+  .backBtn {
+    gap: 8px;
+    padding: 12px 20px;
+  }
 }
 
 .primaryBtn:hover:not(:disabled) {
@@ -661,8 +700,8 @@
   position: relative;
   width: 100%;
   max-width: 320px;
-  height: 240px;
-  margin: var(--sf-space-md) auto var(--sf-space-xl);
+  height: clamp(160px, 35vh, 220px);
+  margin: var(--sf-space-sm) auto var(--sf-space-lg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -671,25 +710,25 @@
 .tourImage {
   width: auto;
   max-width: 100%;
-  max-height: 230px;
+  max-height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.08));
 }
 
 .tourTitle {
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: var(--sf-text-2xl);
+  font-size: clamp(20px, 4vw, 24px);
   font-weight: 700;
   color: var(--sf-text-primary);
   line-height: 1.3;
-  margin: 0 0 var(--sf-space-sm) 0;
+  margin: 0 0 var(--sf-space-xs) 0;
 }
 
 .tourSubtitle {
   font-size: var(--sf-text-sm);
-  line-height: 1.6;
+  line-height: 1.55;
   color: var(--sf-text-secondary);
-  max-width: 380px;
+  max-width: 400px;
   margin: 0;
 }
 
@@ -697,7 +736,7 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin: var(--sf-space-xl) 0 var(--sf-space-lg);
+  margin: var(--sf-space-lg) 0 var(--sf-space-md);
 }
 
 .tourDot {
@@ -721,7 +760,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: var(--sf-space-md);
+  gap: var(--sf-space-sm);
 }
 
 .skipBtn {

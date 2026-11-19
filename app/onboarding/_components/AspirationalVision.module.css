@@ -32,29 +32,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3); /* Darkens the background slightly to make the bright white text pop */
-  padding: var(--space-xl);
+  background: rgba(0, 0, 0, 0.45);
+  padding: clamp(16px, 4vw, 32px);
+  box-sizing: border-box;
 }
 
 .messageBox {
-  background: var(--sf-glass-bg-dark-pill, rgba(20, 20, 25, 0.75));
+  background: var(--sf-glass-bg-dark-pill, rgba(20, 20, 25, 0.82));
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border-radius: var(--radius-xl, 24px);
-  padding: 48px 32px;
+  border-radius: clamp(18px, 4vw, 24px);
+  padding: clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px);
   max-width: 500px;
+  width: 100%;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   text-align: center;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-md);
+  box-sizing: border-box;
 }
 
 .monogram {
-  width: 60px;
-  height: 60px;
+  width: clamp(52px, 8vw, 64px);
+  height: clamp(52px, 8vw, 64px);
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   display: flex;
@@ -62,21 +67,22 @@
   justify-content: center;
   color: #FFFFFF;
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 24px;
+  font-size: clamp(20px, 3.5vw, 24px);
   font-weight: 700;
   box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
   border: 2px solid rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
 }
 
-.xpPill {
+.statusPill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
   border-radius: var(--radius-full);
-  color: #F59E0B;
+  color: #34D399;
   font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -84,16 +90,17 @@
 }
 
 .title {
-  font-size: var(--text-2xl);
+  font-size: clamp(20px, 4vw, 26px);
   font-weight: 700;
   color: #FFFFFF;
   letter-spacing: -0.02em;
   margin: 0;
+  line-height: 1.25;
 }
 
 .subtitle {
-  font-size: var(--text-base);
-  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(14px, 2.5vw, 15px);
+  color: rgba(255, 255, 255, 0.88);
   line-height: 1.6;
   margin: 0;
 }
@@ -106,13 +113,16 @@
   background: linear-gradient(135deg, var(--sf-accent-emerald, #10B981), #059669);
   color: white;
   border: none;
-  padding: 16px 36px;
+  padding: 14px 32px;
   border-radius: var(--radius-full);
   font-weight: 600;
   font-size: var(--text-base);
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s ease, opacity 0.2s ease;
   margin-top: 12px;
+  min-height: 48px;
+  width: 100%;
+  max-width: 280px;
 }
 
 @media (hover: hover) and (pointer: fine) {

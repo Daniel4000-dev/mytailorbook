@@ -16,9 +16,9 @@ function getMonogram(name: string): string {
 const PREMIUM_MOCKS = [
   {
     id: 'mock-1',
-    title: 'The Modern Agbada',
+    title: 'Modern Senator Outfit',
     category: 'Traditional',
-    startingPrice: 350,
+    startingPrice: 45000,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_1.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
@@ -29,7 +29,7 @@ const PREMIUM_MOCKS = [
     id: 'mock-2',
     title: 'Executive Bespoke Suit',
     category: 'Suits',
-    startingPrice: 500,
+    startingPrice: 85000,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_2.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
@@ -49,9 +49,9 @@ const PREMIUM_MOCKS = [
   },
   {
     id: 'mock-4',
-    title: 'Evening Gown',
-    category: 'Dresses',
-    startingPrice: 400,
+    title: 'Evening Kaftan',
+    category: 'Traditional',
+    startingPrice: 55000,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_4.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
@@ -60,9 +60,9 @@ const PREMIUM_MOCKS = [
   },
   {
     id: 'mock-5',
-    title: 'Wedding Reception',
-    category: 'Bridal',
-    startingPrice: 800,
+    title: 'Grand Agbada Ensemble',
+    category: 'Bridal & Ceremonial',
+    startingPrice: 120000,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_5.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
@@ -71,9 +71,9 @@ const PREMIUM_MOCKS = [
   },
   {
     id: 'mock-6',
-    title: 'Casual Linen',
+    title: 'Casual Linen Set',
     category: 'Casual',
-    startingPrice: 200,
+    startingPrice: 35000,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayPhotos: [{ url: '/images/mock/premium_6.jpg', angle: 'front' as any }],
     storyModeEnabled: false,
@@ -146,14 +146,14 @@ export default function AspirationalVision({
       >
         <div className={styles.messageBox}>
           <div className={styles.monogram}>{getMonogram(shopName)}</div>
-          <div className={styles.xpPill}>
+          <div className={styles.statusPill}>
             <Symbol name={isRtw || isHybrid ? 'verified' : 'workspace_premium'} size={15} />
             <span>
               {isRtw
                 ? 'Showroom Ready · Retail Brand'
                 : isHybrid
-                ? 'Studio & Showroom Ready'
-                : '+50 Craft XP Unlocked · Master Tailor'}
+                ? 'Workshop & Showroom Ready'
+                : 'Workshop Ready · Custom Tailoring'}
             </span>
           </div>
           <h2 className={styles.title}>
