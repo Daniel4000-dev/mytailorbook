@@ -73,6 +73,41 @@
   margin-top: var(--sf-space-md);
   padding-top: var(--sf-space-sm);
   border-top: 1px solid var(--sf-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inviteBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  padding: 10px var(--sf-space-sm);
+  border: none;
+  background: transparent;
+  border-radius: var(--sf-radius-sm);
+  color: var(--sf-text-secondary);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.inviteBtn:hover {
+  background: var(--sf-bg-surface-hover);
+  color: var(--sf-brand-indigo, #4338ca);
+}
+
+.inviteIcon {
+  flex-shrink: 0;
+  color: var(--sf-text-tertiary);
+  transition: color var(--sf-transition-fast);
+}
+
+.inviteBtn:hover .inviteIcon {
+  color: var(--sf-brand-indigo, #4338ca);
 }
 
 .logoutBtn {

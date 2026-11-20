@@ -17,6 +17,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SettingsRow from '@/components/ui/SettingsRow/SettingsRow';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
+import InviteColleaguesModal from '@/components/ui/InviteColleaguesModal/InviteColleaguesModal';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import InstagramIcon from '@/components/ui/InstagramIcon/InstagramIcon';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -36,6 +37,7 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   // Desktop's persistent left nav (see settings/layout.tsx) already lists
   // every category — landing on the bare overview page would just show
@@ -369,10 +371,10 @@ export default function SettingsPage() {
             }
           />
           <SettingsRow
-            icon="favorite_border"
-            label="Invite a friend"
-            subtitle="Share MyStitchBook with tailoring colleagues"
-            onClick={handleInviteFriend}
+            icon="group_add"
+            label="Invite Colleagues"
+            subtitle="Share your personal invite link & code"
+            onClick={() => setInviteModalOpen(true)}
           />
         </div>
 
@@ -536,6 +538,14 @@ export default function SettingsPage() {
           </div>
         </div>
       </BottomSheet>
+
+      <InviteColleaguesModal
+        isOpen={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        referralCode={currentShop?.referralCode}
+        shopName={currentShop?.name}
+        shopSlug={currentShop?.slug}
+      />
     </PageLayout>
   );
 }

@@ -9,6 +9,7 @@ import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import InviteColleaguesModal from '@/components/ui/InviteColleaguesModal/InviteColleaguesModal';
 import styles from './layout.module.css';
 
 const NAV_ITEMS: { href: string; icon: string; label: string; rtwOnly?: boolean }[] = [
@@ -30,6 +31,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   const { currentShop } = useData();
   const { logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   if (!isDesktop) {
     return <Suspense fallback={null}>{children}</Suspense>;
@@ -61,6 +63,14 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         <div className={styles.navFooter}>
           <button
             type="button"
+            className={styles.inviteBtn}
+            onClick={() => setInviteModalOpen(true)}
+          >
+            <Symbol name="group_add" size={20} className={styles.inviteIcon} />
+            <span>Invite Colleagues</span>
+          </button>
+          <button
+            type="button"
             className={styles.logoutBtn}
             onClick={() => setShowLogoutConfirm(true)}
           >
@@ -72,6 +82,14 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       <div className={styles.content}>
         <Suspense fallback={null}>{children}</Suspense>
       </div>
+
+      <InviteColleaguesModal
+        isOpen={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        referralCode={currentShop?.referralCode}
+        shopName={currentShop?.name}
+        shopSlug={currentShop?.slug}
+      />
 
       <ConfirmDialog
         isOpen={showLogoutConfirm}
