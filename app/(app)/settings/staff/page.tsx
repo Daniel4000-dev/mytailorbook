@@ -478,7 +478,7 @@ export default function StaffSettingsPage() {
             variant="primary"
             onClick={() => {
               setIsUpsellOpen(false);
-              router.push(ROUTES.settingsWithPlansSheet());
+              router.push(ROUTES.settingsBilling);
             }}
           >
             View Plans

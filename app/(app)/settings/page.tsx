@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,12 +32,19 @@ import styles from './page.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isOwner, loading: authLoading, logout } = useAuth();
   const { currentShop, staffMembers, shops, refreshBranches, isLoaded } = useData();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.get('sheet') === 'plans') {
+      router.replace(ROUTES.settingsBilling);
+    }
+  }, [searchParams, router]);
 
   // Desktop's persistent left nav (see settings/layout.tsx) already lists
   // every category — landing on the bare overview page would just show
@@ -244,18 +251,12 @@ export default function SettingsPage() {
             </button>
           </div>
           <div className={styles.heroHandleRow}>
-            <button
-              type="button"
-              className={styles.heroHandlePill}
-              onClick={() => router.push(ROUTES.settingsStudio)}
-              title="Customize Workshop Username (@handle)"
-            >
+            <span className={styles.heroHandlePill}>
               <span className={styles.heroHandleAt}>@</span>
               <span className={styles.heroHandleText}>
                 {currentShop?.slug || (currentShop?.name ? currentShop.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : 'studio')}
               </span>
-              <Symbol name="edit" size={12} className={styles.heroHandleIcon} />
-            </button>
+            </span>
             <span className={styles.heroHandleDot}>·</span>
             <span className={styles.heroCurrencyPill}>{currentShop?.currency || 'NGN'}</span>
           </div>
