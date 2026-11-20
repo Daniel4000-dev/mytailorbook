@@ -23,8 +23,16 @@ export default function OwnPortfolioPage() {
   const { currentShop, isLoaded } = useData();
   const { showToast } = useToast();
 
-  const [portfolio, setPortfolio] = useState<PublicPortfolio | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [portfolio, setPortfolio] = useState<PublicPortfolio | null>(() => {
+    if (typeof window === 'undefined' || !currentShop?.slug) return null;
+    try {
+      const stored = localStorage.getItem(`mtb_portfolio_${currentShop.slug}`);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(!portfolio);
 
   useEffect(() => {
     if (!currentShop?.slug) {
@@ -33,12 +41,28 @@ export default function OwnPortfolioPage() {
       return;
     }
 
+    // Immediate hydration from cache if not already loaded
+    try {
+      const stored = localStorage.getItem(`mtb_portfolio_${currentShop.slug}`);
+      if (stored && !portfolio) {
+        setPortfolio(JSON.parse(stored));
+        setLoading(false);
+      }
+    } catch {
+      // Fallback to fetch
+    }
+
     getPublicShopPortfolio(currentShop.slug)
       .then((res) => {
-        setPortfolio(res || null);
+        if (res) {
+          setPortfolio(res);
+          try {
+            localStorage.setItem(`mtb_portfolio_${currentShop.slug}`, JSON.stringify(res));
+          } catch {}
+        }
       })
       .catch(() => {
-        setPortfolio(null);
+        // Retain cached data on network error
       })
       .finally(() => setLoading(false));
   }, [currentShop?.slug]);

@@ -207,7 +207,19 @@ export default function QuoteEstimatorPage() {
   const [copied, setCopied] = useState(false);
 
   // Recent Quotes Cache
-  const [recentQuotes, setRecentQuotes] = useState<SavedQuote[]>([]);
+  const [recentQuotes, setRecentQuotes] = useState<SavedQuote[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('mtb_recent_quotes_')) {
+          const raw = localStorage.getItem(key);
+          if (raw) return JSON.parse(raw);
+        }
+      }
+    } catch {}
+    return [];
+  });
   const [showRecentTray, setShowRecentTray] = useState(false);
 
   // Progressive disclosure: Show/hide advanced margin, deposit, and delivery controls

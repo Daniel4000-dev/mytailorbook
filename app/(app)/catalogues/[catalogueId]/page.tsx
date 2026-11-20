@@ -52,7 +52,7 @@ export default function CatalogueDetailPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const cachedList = currentShop?.id ? getCachedCatalogues(currentShop.id) : null;
+  const cachedList = getCachedCatalogues(currentShop?.id);
   const cachedFound = cachedList ? findByIdOrSlug(cachedList, catalogueId, (c) => c.title) : null;
 
   const [catalogue, setCatalogue] = useState<StyleCatalogue | null>(cachedFound || null);

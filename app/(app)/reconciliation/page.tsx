@@ -39,6 +39,9 @@ const getLocalDateString = (d: Date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
+const RECON_EXPENSES_KEY = (shopId: string, dateStr: string) => `mtb_recon_expenses_${shopId}_${dateStr}`;
+const RECON_REGISTER_KEY = (shopId: string, dateStr: string) => `mtb_recon_register_${shopId}_${dateStr}`;
+
 export default function ShopExpensesPage() {
   const { currentShop, orders } = useData();
   const { user, isOwner } = useAuth();
@@ -61,11 +64,33 @@ export default function ShopExpensesPage() {
 
   // Selected date (Local YYYY-MM-DD)
   const [date, setDate] = useState<string>(() => getLocalDateString());
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [dailyRegister, setDailyRegister] = useState<DailyRegisterSummary | null>(null);
+
+  // Instant SWR cache hydration
+  const [cachedData] = useState(() => {
+    if (typeof window === 'undefined') return { expenses: [], register: null };
+    try {
+      const today = getLocalDateString();
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('mtb_recon_expenses_') && key.endsWith(today)) {
+          const expRaw = localStorage.getItem(key);
+          const regKey = key.replace('mtb_recon_expenses_', 'mtb_recon_register_');
+          const regRaw = localStorage.getItem(regKey);
+          return {
+            expenses: expRaw ? JSON.parse(expRaw) : [],
+            register: regRaw ? JSON.parse(regRaw) : null,
+          };
+        }
+      }
+    } catch {}
+    return { expenses: [], register: null };
+  });
+
+  const [expenses, setExpenses] = useState<Expense[]>(cachedData.expenses);
+  const [dailyRegister, setDailyRegister] = useState<DailyRegisterSummary | null>(cachedData.register);
   const [activeTab, setActiveTab] = useState<'register' | 'expenses'>('register');
   const [physicalCount, setPhysicalCount] = useState<string>('');
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(cachedData.expenses.length === 0 && !cachedData.register);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Category filter: 'all' | ExpenseCategory
@@ -97,24 +122,56 @@ export default function ShopExpensesPage() {
     };
   }, [currentShop?.id]);
 
-  // Fetch daily register and expenses for selected date
+  // Sync cache on local updates
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentShop?.id && !initialLoading) {
+      try {
+        localStorage.setItem(RECON_EXPENSES_KEY(currentShop.id, date), JSON.stringify(expenses));
+        if (dailyRegister) {
+          localStorage.setItem(RECON_REGISTER_KEY(currentShop.id, date), JSON.stringify(dailyRegister));
+        }
+      } catch {}
+    }
+  }, [expenses, dailyRegister, currentShop?.id, date, initialLoading]);
+
+  // Fetch daily register and expenses for selected date (SWR background revalidation)
   useEffect(() => {
     if (!currentShop?.id) return;
     let isMounted = true;
 
+    // Check specific cache for this shop + date first
+    if (typeof window !== 'undefined') {
+      try {
+        const expCache = localStorage.getItem(RECON_EXPENSES_KEY(currentShop.id, date));
+        const regCache = localStorage.getItem(RECON_REGISTER_KEY(currentShop.id, date));
+        if (expCache || regCache) {
+          if (expCache) setExpenses(JSON.parse(expCache));
+          if (regCache) setDailyRegister(JSON.parse(regCache));
+          setInitialLoading(false);
+        }
+      } catch {}
+    }
+
     async function fetchData() {
-      if (!initialLoading) {
-        setIsRefreshing(true);
-      }
+      setIsRefreshing(true);
       try {
         const [expensesData, registerData] = await Promise.all([
           getExpensesByDate(currentShop!.id, date),
           getDailyRegisterSummary(currentShop!.id, date).catch(() => null),
         ]);
         if (isMounted) {
-          setExpenses(expensesData || []);
+          const validExpenses = expensesData || [];
+          setExpenses(validExpenses);
           if (registerData) {
             setDailyRegister(registerData);
+          }
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem(RECON_EXPENSES_KEY(currentShop!.id, date), JSON.stringify(validExpenses));
+              if (registerData) {
+                localStorage.setItem(RECON_REGISTER_KEY(currentShop!.id, date), JSON.stringify(registerData));
+              }
+            } catch {}
           }
         }
       } catch (err) {
@@ -132,7 +189,7 @@ export default function ShopExpensesPage() {
     return () => {
       isMounted = false;
     };
-  }, [currentShop?.id, date, initialLoading]);
+  }, [currentShop?.id, date]);
 
   // Calculations
   const totalDayExpense = useMemo(

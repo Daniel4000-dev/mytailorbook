@@ -121,7 +121,19 @@ export default function WorkshopNotesPage() {
   const { showToast } = useToast();
   const inlineInputRef = useRef<HTMLInputElement>(null);
 
-  const [notes, setNotes] = useState<WorkshopNote[]>([]);
+  const [notes, setNotes] = useState<WorkshopNote[]>(() => {
+    if (typeof window === 'undefined') return INITIAL_NOTES;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return INITIAL_NOTES;
+  });
   const [activeTab, setActiveTab] = useState<'all' | NoteCategory>('all');
   const [showCompleted, setShowCompleted] = useState(true);
 
@@ -135,7 +147,7 @@ export default function WorkshopNotesPage() {
   const [modalText, setModalText] = useState('');
   const [modalCategory, setModalCategory] = useState<NoteCategory>('shopping');
 
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(true);
 
   // Sync category with activeTab when user switches tabs
   useEffect(() => {
@@ -153,7 +165,6 @@ export default function WorkshopNotesPage() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setNotes(parsed);
-          setLoaded(true);
           return;
         }
       }
@@ -162,8 +173,6 @@ export default function WorkshopNotesPage() {
     } catch (e) {
       console.error('Failed to load notes', e);
       setNotes(INITIAL_NOTES);
-    } finally {
-      setLoaded(true);
     }
   }, []);
 

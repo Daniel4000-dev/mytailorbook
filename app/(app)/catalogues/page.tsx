@@ -48,7 +48,7 @@ export default function CataloguesPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const cached = currentShop?.id ? getCachedCatalogues(currentShop.id) : null;
+  const cached = getCachedCatalogues(currentShop?.id);
   const [catalogues, setCatalogues] = useState<StyleCatalogue[]>(cached || []);
   const [loading, setLoading] = useState<boolean>(!cached);
   const [isCreating, setIsCreating] = useState(false);
@@ -248,7 +248,7 @@ export default function CataloguesPage() {
           </div>
         )}
 
-        {/* ── Atelier Hero Liquid Glass Banner ── */}
+        {/* ── Curated Hero Liquid Glass Banner ── */}
         <div className={styles.heroBanner}>
           <div className={styles.heroText}>
             <div className={styles.heroBadgeRow}>

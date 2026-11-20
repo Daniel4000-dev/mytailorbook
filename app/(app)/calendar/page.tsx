@@ -46,7 +46,24 @@ function CalendarContent() {
   );
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [verdictEvent, setVerdictEvent] = useState<CalendarEvent | null>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const now = new Date();
+      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('mtb_calendar_') && key.endsWith(currentMonthStr)) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed;
+          }
+        }
+      }
+    } catch {}
+    return [];
+  });
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
 
   // Month navigation calculations
@@ -58,11 +75,34 @@ function CalendarContent() {
     const shopId = user?.shopId || currentShop?.id || '';
     if (!shopId || isDemoMode) return;
 
-    setIsLoadingEvents(true);
     const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-    const fetchedEvents = await getCalendarEvents(shopId, monthStr);
-    setEvents(fetchedEvents);
-    setIsLoadingEvents(false);
+    const cacheKey = `mtb_calendar_${shopId}_${monthStr}`;
+
+    // Immediate hydration from cache if switching months
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            setEvents(parsed);
+          }
+        }
+      } catch {}
+    }
+
+    setIsLoadingEvents(true);
+    try {
+      const fetchedEvents = await getCalendarEvents(shopId, monthStr);
+      setEvents(fetchedEvents);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(fetchedEvents));
+        } catch {}
+      }
+    } finally {
+      setIsLoadingEvents(false);
+    }
   };
 
   useEffect(() => {

@@ -18,12 +18,32 @@ export default function DashboardPage() {
   const { user, isOwner, loading } = useAuth();
   const { orders, staffMembers, isLoaded } = useData();
 
-  // Next-level prefetching: prefetch the 4 primary destinations a tailor navigates to from Dashboard
+  // Idle prefetching: prefetch all core destinations so page transitions happen at 0ms
   useEffect(() => {
+    // Primary immediate routes
     router.prefetch(ROUTES.production);
     router.prefetch(ROUTES.customers);
     router.prefetch(ROUTES.orderNew);
     router.prefetch(ROUTES.calendar);
+
+    // Staggered secondary routes on idle callback to prevent network contention
+    const prefetchSecondary = () => {
+      router.prefetch(ROUTES.catalogues);
+      router.prefetch(ROUTES.portfolio);
+      router.prefetch(ROUTES.fabrics);
+      router.prefetch(ROUTES.reconciliation);
+      router.prefetch(ROUTES.notes);
+      router.prefetch(ROUTES.quotes);
+      router.prefetch(ROUTES.stock);
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const handle = (window as any).requestIdleCallback(prefetchSecondary, { timeout: 2000 });
+      return () => (window as any).cancelIdleCallback(handle);
+    } else {
+      const timer = setTimeout(prefetchSecondary, 1500);
+      return () => clearTimeout(timer);
+    }
   }, [router]);
 
   const topBar = (
