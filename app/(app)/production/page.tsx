@@ -18,6 +18,7 @@ export default function ProductionPage() {
         <TopBar
           title="Production Board"
           subtitle="From first cut to final stitch."
+          showLogo
           rightAction={
             <div className={styles.headerActions}>
               <NotificationBell />

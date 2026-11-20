@@ -25,6 +25,7 @@ interface TopBarProps {
   rightAction?: ReactNode;
   actions?: ReactNode; // Fallback for existing components
   brandMode?: boolean;
+  showLogo?: boolean;
 }
 
 export default function TopBar({
@@ -36,6 +37,7 @@ export default function TopBar({
   rightAction,
   actions,
   brandMode,
+  showLogo,
 }: TopBarProps) {
   const router = useRouter();
   const { isOnline } = useNetwork();
@@ -74,48 +76,52 @@ export default function TopBar({
     </button>
   );
 
+  const brandLogo = (
+    <Link
+      href="/settings"
+      className={styles.brandLogoLink}
+      title={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
+      aria-label={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
+    >
+      <div
+        className={styles.brandLogoWrapper}
+        style={
+          xpEnabled
+            ? {
+                ['--tier-color' as string]: currentTier.color,
+              }
+            : undefined
+        }
+      >
+        <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
+        {xpEnabled && (
+          <span
+            className={styles.tierNeedleBadge}
+            style={{ backgroundColor: currentTier.color }}
+            title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsChallengeModalOpen(true);
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
+          >
+            <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+
   return (
     <>
       <header className={styles.topBar}>
         {brandMode ? (
           <div className={styles.profileHeaderContent}>
             <div className={styles.left}>
-              <Link
-                href="/settings"
-                className={styles.brandLogoLink}
-                title={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
-                aria-label={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
-              >
-                <div
-                  className={styles.brandLogoWrapper}
-                  style={
-                    xpEnabled
-                      ? {
-                          ['--tier-color' as string]: currentTier.color,
-                        }
-                      : undefined
-                  }
-                >
-                  <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
-                  {xpEnabled && (
-                    <span
-                      className={styles.tierNeedleBadge}
-                      style={{ backgroundColor: currentTier.color }}
-                      title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsChallengeModalOpen(true);
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
-                    >
-                      <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
-                    </span>
-                  )}
-                </div>
-              </Link>
+              {brandLogo}
               {leftAction}
             </div>
             <div className={styles.right}>
@@ -211,6 +217,7 @@ export default function TopBar({
           // Standard Title Layout
           <>
             <div className={styles.left}>
+              {showLogo && !showBack && brandLogo}
               {leftAction}
               {showBack && (
                 <button className={styles.backBtn} onClick={handleBack} aria-label="Go back">

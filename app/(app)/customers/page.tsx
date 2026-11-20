@@ -476,6 +476,7 @@ export default function CustomersPage() {
   const topBar = (
     <TopBar
       title="Customers"
+      showLogo
       rightAction={
         <div className={styles.headerActions}>
           <Button

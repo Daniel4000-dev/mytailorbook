@@ -367,7 +367,7 @@ function CalendarContent() {
 
   if (!isLoaded) {
     return (
-      <PageLayout header={<TopBar title="Fittings & Schedule" />}>
+      <PageLayout header={<TopBar title="Fittings & Schedule" showLogo />}>
         <div className={styles.container}>
           <div className={styles.skeletonHero} />
           <div className={styles.skeletonGrid} />
@@ -385,7 +385,7 @@ function CalendarContent() {
     : null;
 
   return (
-    <PageLayout header={<TopBar title="Fittings & Schedule" />}>
+    <PageLayout header={<TopBar title="Fittings & Schedule" showLogo />}>
       <div className={styles.container}>
         {/* Navigation & View Toggle Header */}
         <header className={styles.topControlCard}>
