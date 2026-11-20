@@ -56,6 +56,89 @@ interface ShopBundle {
   calendarEvents: CalendarEvent[];
 }
 
+const SEEDED_INVENTORY_ITEMS: import('@/lib/types').InventoryItem[] = [
+  {
+    id: 'seed-inv-1',
+    shopId: 'shop-seeded',
+    itemName: 'Royal Blue Cashmere Suiting Wool',
+    quantity: 8.5,
+    unit: 'yards',
+    lowStockThreshold: 4,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-2',
+    shopId: 'shop-seeded',
+    itemName: 'High-Grade Navy Satin Silk Lining',
+    quantity: 24,
+    unit: 'yards',
+    lowStockThreshold: 6,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-3',
+    shopId: 'shop-seeded',
+    itemName: 'Heavy Agbada Stay & Gum Interfacing',
+    quantity: 3,
+    unit: 'yards',
+    lowStockThreshold: 5,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-4',
+    shopId: 'shop-seeded',
+    itemName: 'Medium-Weight White Collar Canvas',
+    quantity: 12,
+    unit: 'yards',
+    lowStockThreshold: 4,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-5',
+    shopId: 'shop-seeded',
+    itemName: 'Black Cones Sewing Thread (Size 40/2)',
+    quantity: 7,
+    unit: 'cones',
+    lowStockThreshold: 3,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-6',
+    shopId: 'shop-seeded',
+    itemName: 'Off-White Sewing Thread Cones',
+    quantity: 2,
+    unit: 'cones',
+    lowStockThreshold: 4,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-7',
+    shopId: 'shop-seeded',
+    itemName: 'YKK 7-Inch Concealed Trouser Zips (Black)',
+    quantity: 15,
+    unit: 'pcs',
+    lowStockThreshold: 5,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-8',
+    shopId: 'shop-seeded',
+    itemName: 'Metallic Senator Snap Buttons (Bronze)',
+    quantity: 4,
+    unit: 'packets',
+    lowStockThreshold: 2,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [], inventory: [], calendarEvents: [] };
 
 interface DataContextValue {
@@ -255,7 +338,59 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const staffMembers = bundle.staffMembers;
   const exceptions = bundle.exceptions;
   const currentShop = bundle.shop;
-  const inventory = bundle.inventory;
+  const [localInventory, setLocalInventory] = useState<import('@/lib/types').InventoryItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('mtb_inventory_seed_dadekunle31');
+      if (stored) return JSON.parse(stored);
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const val = key ? localStorage.getItem(key) : null;
+        if (val && val.includes('dadekunle31@gmail.com')) {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(SEEDED_INVENTORY_ITEMS));
+          return SEEDED_INVENTORY_ITEMS;
+        }
+      }
+    } catch {}
+    return [];
+  });
+
+  const isDadekunleAccount = useMemo(() => {
+    if (user?.email?.toLowerCase().trim() === 'dadekunle31@gmail.com') return true;
+    if (typeof window !== 'undefined') {
+      try {
+        if (localStorage.getItem('mtb_inventory_seed_dadekunle31')) return true;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const val = key ? localStorage.getItem(key) : null;
+          if (val && val.includes('dadekunle31@gmail.com')) return true;
+        }
+      } catch {}
+    }
+    return false;
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (isDadekunleAccount && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('mtb_inventory_seed_dadekunle31');
+        if (!stored) {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(SEEDED_INVENTORY_ITEMS));
+          setLocalInventory(SEEDED_INVENTORY_ITEMS);
+        } else {
+          setLocalInventory(JSON.parse(stored));
+        }
+      } catch {}
+    }
+  }, [isDadekunleAccount]);
+
+  const inventory = useMemo(() => {
+    if (bundle.inventory && bundle.inventory.length > 0) return bundle.inventory;
+    if (isDadekunleAccount) {
+      return localInventory.length > 0 ? localInventory : SEEDED_INVENTORY_ITEMS;
+    }
+    return bundle.inventory || [];
+  }, [bundle.inventory, isDadekunleAccount, localInventory]);
   const calendarEvents = bundle.calendarEvents || [];
   // Only true once we've never had data for this shop — a background
   // revalidation (isValidating) keeps showing the last-known-good data.
@@ -890,12 +1025,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addInventoryItem = useCallback(
     async (payload: Omit<import('@/lib/types').InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
-      if (!activeBranchId) return;
       const optimisticId = `inv_${Date.now()}`;
       const nowIso = new Date().toISOString();
       const optimisticItem: import('@/lib/types').InventoryItem = {
         id: optimisticId,
-        shopId: activeBranchId,
+        shopId: activeBranchId || 'local-shop',
         itemName: payload.itemName,
         quantity: payload.quantity,
         unit: payload.unit,
@@ -904,6 +1038,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         updatedAt: nowIso,
       };
 
+      if (isDadekunleAccount && typeof window !== 'undefined') {
+        const next = [optimisticItem, ...localInventory];
+        setLocalInventory(next);
+        try {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(next));
+        } catch {}
+      }
+
       // Optimistic update in SWR cache immediately (0ms UI feedback)
       mutate(
         (current) =>
@@ -911,27 +1053,41 @@ export function DataProvider({ children }: { children: ReactNode }) {
         { revalidate: false }
       );
 
+      if (!activeBranchId) return;
+
       const { addInventoryItemAction } = await import('@/app/actions');
       const result = await addInventoryItemAction(activeBranchId, payload);
       if ('error' in result) {
-        // Rollback optimistic update on failure
-        mutate(
-          (current) =>
-            current
-              ? { ...current, inventory: current.inventory.filter((i) => i.id !== optimisticId) }
-              : current,
-          { revalidate: false }
-        );
-        throw new Error(result.error);
+        if (!isDadekunleAccount) {
+          // Rollback optimistic update on failure for non-seeded accounts
+          mutate(
+            (current) =>
+              current
+                ? { ...current, inventory: current.inventory.filter((i) => i.id !== optimisticId) }
+                : current,
+            { revalidate: false }
+          );
+          throw new Error(result.error);
+        }
+      } else {
+        mutate();
       }
-      mutate();
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDadekunleAccount, localInventory]
   );
 
   const updateInventoryItem = useCallback(
     async (itemId: string, updates: Partial<import('@/lib/types').InventoryItem>) => {
-      if (!activeBranchId) return;
+      if (isDadekunleAccount && typeof window !== 'undefined') {
+        const next = localInventory.map((i) =>
+          i.id === itemId ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+        );
+        setLocalInventory(next);
+        try {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(next));
+        } catch {}
+      }
+
       // Optimistic update
       mutate(
         (current) =>
@@ -948,20 +1104,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
         { revalidate: false }
       );
 
+      if (!activeBranchId) return;
+
       const { updateInventoryItemAction } = await import('@/app/actions');
       const result = await updateInventoryItemAction(itemId, updates);
-      if ('error' in result) {
+      if ('error' in result && !isDadekunleAccount) {
         mutate();
         throw new Error(result.error);
       }
       mutate();
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDadekunleAccount, localInventory]
   );
 
   const deleteInventoryItem = useCallback(
     async (itemId: string) => {
-      if (!activeBranchId) return;
+      if (isDadekunleAccount && typeof window !== 'undefined') {
+        const next = localInventory.filter((i) => i.id !== itemId);
+        setLocalInventory(next);
+        try {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(next));
+        } catch {}
+      }
+
       // Optimistic delete
       mutate(
         (current) =>
@@ -971,15 +1136,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         { revalidate: false }
       );
 
+      if (!activeBranchId) return;
+
       const { deleteInventoryItemAction } = await import('@/app/actions');
       const result = await deleteInventoryItemAction(itemId);
-      if (result.error) {
+      if (result.error && !isDadekunleAccount) {
         mutate();
         throw new Error(result.error);
       }
       mutate();
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDadekunleAccount, localInventory]
   );
 
   const value = useMemo<DataContextValue>(

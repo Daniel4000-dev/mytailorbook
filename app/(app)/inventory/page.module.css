@@ -465,3 +465,115 @@
   display: block;
 }
 
+/* Executive Material Health Hero Glass Card */
+.heroCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+:global([data-theme='dark']) .heroCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.heroStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.heroStatItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heroStatHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.heroStatValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--sf-text-primary);
+  line-height: 1.1;
+}
+
+.heroStatValueAlert {
+  color: var(--sf-error, #dc2626);
+}
+
+.heroStatValueHealthy {
+  color: var(--sf-accent-emerald, #047857);
+}
+
+/* Category Avatar */
+.categoryAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatarEmerald {
+  background: rgba(4, 120, 87, 0.1);
+  color: #047857;
+}
+
+.avatarIndigo {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+.avatarAmber {
+  background: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+}
+
+.cardLeftRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.normalStockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(4, 120, 87, 0.08);
+  color: #047857;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.lowStockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo, useDeferredValue, useEffect } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { triggerHaptic } from '@/lib/haptics';
 import { ROUTES } from '@/lib/routes';
@@ -18,131 +17,19 @@ import InventoryDetailSheet from './_components/InventoryDetailSheet';
 import type { InventoryItem } from '@/lib/types';
 import styles from './page.module.css';
 
-const SEED_STORAGE_KEY = 'mtb_inventory_seed_dadekunle31';
-
-const SEED_INVENTORY_ITEMS: InventoryItem[] = [
-  {
-    id: 'seed-inv-1',
-    shopId: 'shop-seeded',
-    itemName: 'Royal Blue Cashmere Suiting Wool',
-    quantity: 8.5,
-    unit: 'yards',
-    lowStockThreshold: 4,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-2',
-    shopId: 'shop-seeded',
-    itemName: 'High-Grade Navy Satin Silk Lining',
-    quantity: 24,
-    unit: 'yards',
-    lowStockThreshold: 6,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-3',
-    shopId: 'shop-seeded',
-    itemName: 'Heavy Agbada Stay & Gum Interfacing',
-    quantity: 3,
-    unit: 'yards',
-    lowStockThreshold: 5, // LOW STOCK TRIGGER!
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-4',
-    shopId: 'shop-seeded',
-    itemName: 'Medium-Weight White Collar Canvas',
-    quantity: 12,
-    unit: 'yards',
-    lowStockThreshold: 4,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-5',
-    shopId: 'shop-seeded',
-    itemName: 'Black Cones Sewing Thread (Size 40/2)',
-    quantity: 7,
-    unit: 'cones',
-    lowStockThreshold: 3,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-6',
-    shopId: 'shop-seeded',
-    itemName: 'Off-White Sewing Thread Cones',
-    quantity: 2,
-    unit: 'cones',
-    lowStockThreshold: 4, // LOW STOCK TRIGGER!
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-7',
-    shopId: 'shop-seeded',
-    itemName: 'YKK 7-Inch Concealed Trouser Zips (Black)',
-    quantity: 15,
-    unit: 'pcs',
-    lowStockThreshold: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'seed-inv-8',
-    shopId: 'shop-seeded',
-    itemName: 'Metallic Senator Snap Buttons (Bronze)',
-    quantity: 4,
-    unit: 'packets',
-    lowStockThreshold: 2,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 type CategoryFilter = 'all' | 'low_stock' | 'fabrics' | 'haberdashery';
+
+function getMaterialCategory(item: InventoryItem): 'fabric' | 'haberdashery' | 'notion' {
+  const lower = item.itemName.toLowerCase();
+  if (lower.includes('thread') || item.unit === 'cones') return 'notion';
+  if (lower.includes('zip') || lower.includes('button') || item.unit === 'pcs' || item.unit === 'packets') return 'haberdashery';
+  return 'fabric';
+}
 
 export default function InventoryPage() {
   const router = useRouter();
-  const { inventory: serverInventory, isLoaded, updateInventoryItem } = useData();
-  const { user } = useAuth();
+  const { inventory: activeItems, isLoaded, updateInventoryItem } = useData();
   const { showToast } = useToast();
-
-  const isDadekunle = user?.email?.trim().toLowerCase() === 'dadekunle31@gmail.com';
-
-  // Seeded inventory state for dadekunle31@gmail.com
-  const [seededItems, setSeededItems] = useState<InventoryItem[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const stored = localStorage.getItem(SEED_STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
-    } catch {}
-    return SEED_INVENTORY_ITEMS;
-  });
-
-  // Ensure initial seed is saved in localStorage for dadekunle31@gmail.com
-  useEffect(() => {
-    if (isDadekunle && typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(SEED_STORAGE_KEY);
-        if (!stored) {
-          localStorage.setItem(SEED_STORAGE_KEY, JSON.stringify(SEED_INVENTORY_ITEMS));
-          setSeededItems(SEED_INVENTORY_ITEMS);
-        }
-      } catch {}
-    }
-  }, [isDadekunle]);
-
-  // Combined inventory: If dadekunle31@gmail.com and server is empty, use seeded items
-  const activeItems = useMemo(() => {
-    if (isDadekunle && serverInventory.length === 0) {
-      return seededItems;
-    }
-    return serverInventory;
-  }, [isDadekunle, serverInventory, seededItems]);
 
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search);
@@ -167,31 +54,12 @@ export default function InventoryPage() {
 
     const newQty = Math.max(0, parseFloat((target.quantity + delta).toFixed(2)));
 
-    // If using seeded store for dadekunle31
-    if (isDadekunle && serverInventory.length === 0) {
-      const updated = seededItems.map((item) =>
-        item.id === itemId ? { ...item, quantity: newQty, updatedAt: new Date().toISOString() } : item
-      );
-      setSeededItems(updated);
-      try {
-        localStorage.setItem(SEED_STORAGE_KEY, JSON.stringify(updated));
-      } catch {}
-      showToast(
-        delta > 0
-          ? `Restocked +${delta} ${target.unit} (${target.itemName})`
-          : `Deducted ${Math.abs(delta)} ${target.unit} (${target.itemName})`,
-        'success'
-      );
-      return;
-    }
-
-    // Otherwise use live DataContext update
     try {
       await updateInventoryItem(itemId, { quantity: newQty });
       showToast(
         delta > 0
-          ? `Restocked +${delta} ${target.unit}`
-          : `Deducted ${Math.abs(delta)} ${target.unit}`,
+          ? `Restocked +${delta} ${target.unit} (${target.itemName})`
+          : `Deducted ${Math.abs(delta)} ${target.unit} (${target.itemName})`,
         'success'
       );
     } catch {
@@ -199,37 +67,15 @@ export default function InventoryPage() {
     }
   };
 
-  const handleSavedItem = (saved: InventoryItem) => {
-    if (isDadekunle && serverInventory.length === 0) {
-      const existingIdx = seededItems.findIndex((i) => i.id === saved.id);
-      let next: InventoryItem[];
-      if (existingIdx !== -1) {
-        next = [...seededItems];
-        next[existingIdx] = saved;
-      } else {
-        next = [saved, ...seededItems];
-      }
-      setSeededItems(next);
-      try {
-        localStorage.setItem(SEED_STORAGE_KEY, JSON.stringify(next));
-      } catch {}
-    }
-  };
-
-  const handleDeletedItem = (itemId: string) => {
-    if (isDadekunle && serverInventory.length === 0) {
-      const next = seededItems.filter((i) => i.id !== itemId);
-      setSeededItems(next);
-      try {
-        localStorage.setItem(SEED_STORAGE_KEY, JSON.stringify(next));
-      } catch {}
-    }
-  };
-
-  // Counts for filter pills
+  // Counts for filter pills & hero overview
   const lowStockCount = useMemo(
     () => activeItems.filter((item) => item.lowStockThreshold != null && item.quantity <= item.lowStockThreshold).length,
     [activeItems]
+  );
+
+  const healthyCount = useMemo(
+    () => Math.max(0, activeItems.length - lowStockCount),
+    [activeItems.length, lowStockCount]
   );
 
   const filtered = useMemo(() => {
@@ -243,27 +89,12 @@ export default function InventoryPage() {
         return item.lowStockThreshold != null && item.quantity <= item.lowStockThreshold;
       }
       if (categoryFilter === 'fabrics') {
-        const lower = item.itemName.toLowerCase();
-        return (
-          lower.includes('wool') ||
-          lower.includes('silk') ||
-          lower.includes('lining') ||
-          lower.includes('canvas') ||
-          lower.includes('interfacing') ||
-          lower.includes('stay') ||
-          item.unit === 'yards'
-        );
+        const cat = getMaterialCategory(item);
+        return cat === 'fabric';
       }
       if (categoryFilter === 'haberdashery') {
-        const lower = item.itemName.toLowerCase();
-        return (
-          lower.includes('thread') ||
-          lower.includes('zip') ||
-          lower.includes('button') ||
-          item.unit === 'cones' ||
-          item.unit === 'pcs' ||
-          item.unit === 'packets'
-        );
+        const cat = getMaterialCategory(item);
+        return cat === 'notion' || cat === 'haberdashery';
       }
 
       return true;
@@ -283,7 +114,40 @@ export default function InventoryPage() {
       }
     >
       <div className={styles.container}>
-        {/* Top Header & Search */}
+        {/* 1. Executive Material Health Overview Card */}
+        {activeItems.length > 0 && (
+          <div className={styles.heroCard}>
+            <div className={styles.heroStatsGrid}>
+              <div className={styles.heroStatItem}>
+                <div className={styles.heroStatHeader}>
+                  <Symbol name="inventory_2" size={13} />
+                  <span>Materials Tracked</span>
+                </div>
+                <div className={styles.heroStatValue}>{activeItems.length}</div>
+              </div>
+              <div className={styles.heroStatItem}>
+                <div className={styles.heroStatHeader}>
+                  <Symbol name="warning" size={13} />
+                  <span>Restock Needed</span>
+                </div>
+                <div className={`${styles.heroStatValue} ${lowStockCount > 0 ? styles.heroStatValueAlert : ''}`}>
+                  {lowStockCount}
+                </div>
+              </div>
+              <div className={styles.heroStatItem}>
+                <div className={styles.heroStatHeader}>
+                  <Symbol name="check_circle" size={13} />
+                  <span>In Stock</span>
+                </div>
+                <div className={`${styles.heroStatValue} ${styles.heroStatValueHealthy}`}>
+                  {healthyCount}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Top Search & Add Action */}
         <div className={styles.header}>
           <div className={styles.searchWrap} style={{ marginBottom: 0, flex: 1, marginRight: 16 }}>
             <Symbol name="search" size={18} className={styles.searchIcon} />
@@ -312,7 +176,7 @@ export default function InventoryPage() {
           </Button>
         </div>
 
-        {/* Quick Filter Chips */}
+        {/* 3. Category Navigation Filter Chips */}
         {activeItems.length > 0 && (
           <div className={styles.filterRow}>
             <button
@@ -320,7 +184,7 @@ export default function InventoryPage() {
               className={`${styles.filterChip} ${categoryFilter === 'all' ? styles.filterChipActive : ''}`}
               onClick={() => setCategoryFilter('all')}
             >
-              All Items ({activeItems.length})
+              All Materials ({activeItems.length})
             </button>
             <button
               type="button"
@@ -328,26 +192,35 @@ export default function InventoryPage() {
               onClick={() => setCategoryFilter('low_stock')}
               style={lowStockCount > 0 && categoryFilter !== 'low_stock' ? { color: 'var(--sf-error, #dc2626)', borderColor: 'rgba(239, 68, 68, 0.4)' } : undefined}
             >
-              ⚠️ Restock Needed ({lowStockCount})
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <Symbol name="warning" size={13} />
+                <span>Restock Needed ({lowStockCount})</span>
+              </span>
             </button>
             <button
               type="button"
               className={`${styles.filterChip} ${categoryFilter === 'fabrics' ? styles.filterChipActive : ''}`}
               onClick={() => setCategoryFilter('fabrics')}
             >
-              Fabrics, Canvas & Lining
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <Symbol name="texture" size={13} />
+                <span>Fabrics, Canvas & Lining</span>
+              </span>
             </button>
             <button
               type="button"
               className={`${styles.filterChip} ${categoryFilter === 'haberdashery' ? styles.filterChipActive : ''}`}
               onClick={() => setCategoryFilter('haberdashery')}
             >
-              Threads, Zips & Buttons
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <Symbol name="content_cut" size={13} />
+                <span>Threads, Zips & Buttons</span>
+              </span>
             </button>
           </div>
         )}
 
-        {/* Loading Skeletons */}
+        {/* 4. Loading Skeletons */}
         {!isLoaded && (
           <div className={styles.inventoryList}>
             {Array.from({ length: 4 }).map((_, i) => (
@@ -359,28 +232,47 @@ export default function InventoryPage() {
           </div>
         )}
 
-        {/* Inventory Cards List */}
+        {/* 5. Elegant Inventory Cards List */}
         {isLoaded && filtered.length > 0 && (
           <div className={styles.inventoryList}>
             {filtered.map((item) => {
               const isLowStock = item.lowStockThreshold != null && item.quantity <= item.lowStockThreshold;
+              const cat = getMaterialCategory(item);
+              const avatarClass =
+                cat === 'fabric'
+                  ? styles.avatarEmerald
+                  : cat === 'notion'
+                  ? styles.avatarIndigo
+                  : styles.avatarAmber;
+              const avatarIcon =
+                cat === 'fabric' ? 'texture' : cat === 'notion' ? 'straighten' : 'content_cut';
+
               return (
                 <div key={item.id} className={styles.itemCard} onClick={() => setSelectedItem(item)}>
-                  <div className={styles.itemInfo}>
-                    <span className={styles.itemName}>{item.itemName}</span>
-                    <div className={styles.itemMeta}>
-                      {isLowStock ? (
-                        <span className={styles.lowStockBadge}>⚠️ Restock Soon (≤ {item.lowStockThreshold} {item.unit})</span>
-                      ) : (
-                        item.lowStockThreshold != null && (
-                          <span>Alert at ≤ {item.lowStockThreshold} {item.unit}</span>
-                        )
-                      )}
+                  <div className={styles.cardLeftRow}>
+                    <div className={`${styles.categoryAvatar} ${avatarClass}`}>
+                      <Symbol name={avatarIcon} size={18} />
+                    </div>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemName}>{item.itemName}</span>
+                      <div className={styles.itemMeta}>
+                        {isLowStock ? (
+                          <span className={styles.lowStockBadge}>
+                            <Symbol name="warning" size={12} />
+                            <span>Restock Alert (&le; {item.lowStockThreshold} {item.unit})</span>
+                          </span>
+                        ) : item.lowStockThreshold != null ? (
+                          <span className={styles.normalStockBadge}>
+                            <Symbol name="check" size={12} />
+                            <span>In Stock (&gt; {item.lowStockThreshold} {item.unit})</span>
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 
                   <div className={styles.cardRightCol}>
-                    {/* 1-Tap Quick Usage / Restock Steppers */}
+                    {/* 1-Tap Quick Steppers */}
                     <div className={styles.quickAdjustWrap} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
@@ -389,7 +281,7 @@ export default function InventoryPage() {
                         title={`Use 1 ${item.unit}`}
                         aria-label="Deduct 1 unit"
                       >
-                        -1
+                        <Symbol name="remove" size={13} />
                       </button>
                       <button
                         type="button"
@@ -398,7 +290,7 @@ export default function InventoryPage() {
                         title={`Restock 1 ${item.unit}`}
                         aria-label="Add 1 unit"
                       >
-                        +1
+                        <Symbol name="add" size={13} />
                       </button>
                     </div>
 
@@ -415,7 +307,7 @@ export default function InventoryPage() {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* 6. Empty State */}
         {isLoaded && filtered.length === 0 && (
           <div style={{ marginTop: 24 }}>
             <EmptyState
@@ -424,7 +316,7 @@ export default function InventoryPage() {
               description={
                 search || categoryFilter !== 'all'
                   ? 'Try clearing your search or selecting another category filter.'
-                  : 'Keep track of threads, lining, collar canvas, and customer fabrics.'
+                  : 'Keep track of threads, lining, collar canvas, and workshop materials.'
               }
               action={
                 search || categoryFilter !== 'all'
@@ -440,8 +332,6 @@ export default function InventoryPage() {
         item={selectedItem === 'new' ? undefined : selectedItem ?? undefined}
         isOpen={selectedItem !== null}
         onClose={() => setSelectedItem(null)}
-        onSaved={handleSavedItem}
-        onDeleted={handleDeletedItem}
       />
     </PageLayout>
   );
