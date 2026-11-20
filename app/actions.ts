@@ -2333,7 +2333,15 @@ export async function addInventoryItemAction(shopId: string, payload: Omit<Inven
     low_stock_threshold: payload.lowStockThreshold
   };
   const { data, error } = await supabase.from('inventory').insert(row).select().single();
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message.includes('relation "public.inventory" does not exist') || error.code === '42P01') {
+      return {
+        error:
+          'Database table "inventory" does not exist yet. Please run migration 0071_create_inventory_and_order_materials.sql in Supabase SQL Editor.',
+      };
+    }
+    return { error: error.message };
+  }
   return inventoryItemFromRow(data);
 }
 
@@ -2346,14 +2354,30 @@ export async function updateInventoryItemAction(itemId: string, updates: Partial
   if (updates.lowStockThreshold !== undefined) row.low_stock_threshold = updates.lowStockThreshold;
 
   const { data, error } = await supabase.from('inventory').update(row).eq('id', itemId).select().single();
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message.includes('relation "public.inventory" does not exist') || error.code === '42P01') {
+      return {
+        error:
+          'Database table "inventory" does not exist yet. Please run migration 0071_create_inventory_and_order_materials.sql in Supabase SQL Editor.',
+      };
+    }
+    return { error: error.message };
+  }
   return inventoryItemFromRow(data);
 }
 
 export async function deleteInventoryItemAction(itemId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from('inventory').delete().eq('id', itemId);
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message.includes('relation "public.inventory" does not exist') || error.code === '42P01') {
+      return {
+        error:
+          'Database table "inventory" does not exist yet. Please run migration 0071_create_inventory_and_order_materials.sql in Supabase SQL Editor.',
+      };
+    }
+    return { error: error.message };
+  }
   return { success: true };
 }
 

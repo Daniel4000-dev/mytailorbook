@@ -891,9 +891,39 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addInventoryItem = useCallback(
     async (payload: Omit<import('@/lib/types').InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
       if (!activeBranchId) return;
+      const optimisticId = `inv_${Date.now()}`;
+      const nowIso = new Date().toISOString();
+      const optimisticItem: import('@/lib/types').InventoryItem = {
+        id: optimisticId,
+        shopId: activeBranchId,
+        itemName: payload.itemName,
+        quantity: payload.quantity,
+        unit: payload.unit,
+        lowStockThreshold: payload.lowStockThreshold,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      // Optimistic update in SWR cache immediately (0ms UI feedback)
+      mutate(
+        (current) =>
+          current ? { ...current, inventory: [optimisticItem, ...current.inventory] } : current,
+        { revalidate: false }
+      );
+
       const { addInventoryItemAction } = await import('@/app/actions');
       const result = await addInventoryItemAction(activeBranchId, payload);
-      if ('error' in result) throw new Error(result.error);
+      if ('error' in result) {
+        // Rollback optimistic update on failure
+        mutate(
+          (current) =>
+            current
+              ? { ...current, inventory: current.inventory.filter((i) => i.id !== optimisticId) }
+              : current,
+          { revalidate: false }
+        );
+        throw new Error(result.error);
+      }
       mutate();
     },
     [activeBranchId, mutate]
@@ -902,9 +932,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const updateInventoryItem = useCallback(
     async (itemId: string, updates: Partial<import('@/lib/types').InventoryItem>) => {
       if (!activeBranchId) return;
+      // Optimistic update
+      mutate(
+        (current) =>
+          current
+            ? {
+                ...current,
+                inventory: current.inventory.map((item) =>
+                  item.id === itemId
+                    ? { ...item, ...updates, updatedAt: new Date().toISOString() }
+                    : item
+                ),
+              }
+            : current,
+        { revalidate: false }
+      );
+
       const { updateInventoryItemAction } = await import('@/app/actions');
       const result = await updateInventoryItemAction(itemId, updates);
-      if ('error' in result) throw new Error(result.error);
+      if ('error' in result) {
+        mutate();
+        throw new Error(result.error);
+      }
       mutate();
     },
     [activeBranchId, mutate]
@@ -913,9 +962,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteInventoryItem = useCallback(
     async (itemId: string) => {
       if (!activeBranchId) return;
+      // Optimistic delete
+      mutate(
+        (current) =>
+          current
+            ? { ...current, inventory: current.inventory.filter((item) => item.id !== itemId) }
+            : current,
+        { revalidate: false }
+      );
+
       const { deleteInventoryItemAction } = await import('@/app/actions');
       const result = await deleteInventoryItemAction(itemId);
-      if (result.error) throw new Error(result.error);
+      if (result.error) {
+        mutate();
+        throw new Error(result.error);
+      }
       mutate();
     },
     [activeBranchId, mutate]

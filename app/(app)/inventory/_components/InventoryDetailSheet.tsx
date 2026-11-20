@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
+import { triggerHaptic } from '@/lib/haptics';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Button from '@/components/ui/Button/Button';
 import type { InventoryItem } from '@/lib/types';
@@ -16,6 +18,7 @@ interface InventoryDetailSheetProps {
 
 export default function InventoryDetailSheet({ item, isOpen, onClose }: InventoryDetailSheetProps) {
   const { addInventoryItem, updateInventoryItem, deleteInventoryItem } = useData();
+  const { showToast } = useToast();
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('yards');
@@ -51,6 +54,7 @@ export default function InventoryDetailSheet({ item, isOpen, onClose }: Inventor
           unit: unit.trim(),
           lowStockThreshold: lowStockThreshold ? parseFloat(lowStockThreshold) : undefined,
         });
+        showToast('Material updated successfully', 'success');
       } else {
         await addInventoryItem({
           itemName: itemName.trim(),
@@ -58,11 +62,13 @@ export default function InventoryDetailSheet({ item, isOpen, onClose }: Inventor
           unit: unit.trim(),
           lowStockThreshold: lowStockThreshold ? parseFloat(lowStockThreshold) : undefined,
         });
+        showToast('Material added to inventory', 'success');
       }
+      triggerHaptic('success');
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to save item');
+      showToast(err?.message || 'Failed to save material', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -74,10 +80,12 @@ export default function InventoryDetailSheet({ item, isOpen, onClose }: Inventor
     setIsSubmitting(true);
     try {
       await deleteInventoryItem(item.id);
+      showToast('Material deleted from inventory', 'info');
+      triggerHaptic('selection');
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to delete item');
+      showToast(err?.message || 'Failed to delete material', 'error');
     } finally {
       setIsSubmitting(false);
     }
