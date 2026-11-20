@@ -16,9 +16,16 @@ import {
   unlinkStudioBuddyAction,
   toggleSabbaticalAction,
   sendSewingNudgeAction,
+  searchColleaguesAction,
+  sendCircleRequestAction,
+  acceptCircleRequestAction,
+  declineCircleRequestAction,
+  cancelCircleRequestAction,
   type CircleHubData,
   type CircleBuddy,
   type PulseActivity,
+  type SearchedColleague,
+  type CircleRequest,
 } from '@/app/actions/circle';
 
 type CategoryFilter = 'all' | 'fulfillment' | 'production' | 'milestone';
@@ -54,6 +61,14 @@ function AtelierCircleContent() {
   const [selectedBuddy, setSelectedBuddy] = useState<CircleBuddy | null>(null);
   const [nudging, setNudging] = useState(false);
   const [togglingSabbatical, setTogglingSabbatical] = useState(false);
+
+  // Colleague Directory Search & Handshake states
+  const [connectTab, setConnectTab] = useState<'search' | 'invite'>('search');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchedColleague[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null);
 
   // Auto-fill and prompt connect modal if ?connect=CODE is present
   useEffect(() => {
@@ -216,6 +231,115 @@ function AtelierCircleContent() {
     }
   };
 
+  // Search colleague workshops with 300ms debounce
+  useEffect(() => {
+    if (!isConnectModalOpen || connectTab !== 'search') return;
+    const clean = searchQuery.trim().replace(/^@/, '');
+    if (clean.length < 2) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await searchColleaguesAction(clean);
+        if (res.data) {
+          setSearchResults(res.data);
+        }
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, isConnectModalOpen, connectTab]);
+
+  const handleSendCircleRequest = async (colleague: SearchedColleague) => {
+    setActionLoadingId(colleague.id);
+    try {
+      const res = await sendCircleRequestAction(colleague.id);
+      if (res.success) {
+        showToast(`Invitation sent to ${colleague.name}!`, 'success');
+        setSearchResults((prev) =>
+          prev.map((c) =>
+            c.id === colleague.id
+              ? { ...c, connectionStatus: 'request_sent', requestId: res.requestId }
+              : c
+          )
+        );
+        await loadData();
+      } else {
+        showToast(res.error || 'Failed to send request', 'error');
+      }
+    } catch {
+      showToast('Error sending invitation', 'error');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleCancelCircleRequest = async (requestId: string, colleagueId: string) => {
+    setActionLoadingId(colleagueId);
+    try {
+      const res = await cancelCircleRequestAction(requestId);
+      if (res.success) {
+        showToast('Invitation cancelled', 'info');
+        setSearchResults((prev) =>
+          prev.map((c) =>
+            c.id === colleagueId
+              ? { ...c, connectionStatus: 'can_connect', requestId: undefined }
+              : c
+          )
+        );
+        await loadData();
+      } else {
+        showToast(res.error || 'Could not cancel', 'error');
+      }
+    } catch {
+      showToast('Error cancelling request', 'error');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleAcceptRequest = async (requestId: string) => {
+    setRespondingRequestId(requestId);
+    try {
+      const res = await acceptCircleRequestAction(requestId);
+      if (res.success) {
+        showToast('Circle Invitation Accepted! You are now connected.', 'success');
+        await loadData();
+      } else {
+        showToast(res.error || 'Could not accept invitation', 'error');
+      }
+    } catch {
+      showToast('Error accepting invitation', 'error');
+    } finally {
+      setRespondingRequestId(null);
+    }
+  };
+
+  const handleDeclineRequest = async (requestId: string) => {
+    setRespondingRequestId(requestId);
+    try {
+      const res = await declineCircleRequestAction(requestId);
+      if (res.success) {
+        showToast('Invitation declined', 'info');
+        await loadData();
+      } else {
+        showToast(res.error || 'Could not decline invitation', 'error');
+      }
+    } catch {
+      showToast('Error declining invitation', 'error');
+    } finally {
+      setRespondingRequestId(null);
+    }
+  };
+
   const filteredPulses = (data?.pulses || []).filter((pulse) => {
     if (activeCategory === 'all') return true;
     return pulse.category === activeCategory;
@@ -253,6 +377,67 @@ function AtelierCircleContent() {
       </header>
 
       <div className={styles.content}>
+        {/* ── Pending Circle Handshake Invitations Banner ── */}
+        {data?.incomingRequests && data.incomingRequests.length > 0 && (
+          <section className={styles.incomingSection}>
+            <div className={styles.incomingHeader}>
+              <div className={styles.incomingTitleRow}>
+                <Symbol name="handshake" size={16} />
+                <h3 className={styles.incomingTitle}>
+                  Circle Handshake Invitations ({data.incomingRequests.length})
+                </h3>
+              </div>
+              <span className={styles.incomingSubtitle}>
+                Colleagues who want to link workshop streaks and production accountability with you
+              </span>
+            </div>
+
+            <div className={styles.incomingList}>
+              {data.incomingRequests.map((req) => (
+                <div key={req.id} className={styles.incomingCard}>
+                  <div className={styles.incomingCardLeft}>
+                    <div className={styles.incomingAvatar}>
+                      {req.senderLogoUrl ? (
+                        <img src={req.senderLogoUrl} alt={req.senderShopName} className={styles.incomingAvatarImg} />
+                      ) : (
+                        <span>{req.senderShopName.slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className={styles.incomingShopInfo}>
+                      <span className={styles.incomingShopName}>{req.senderShopName}</span>
+                      <span className={styles.incomingShopMeta}>
+                        {req.senderShopSlug ? `@${req.senderShopSlug} · ` : ''}
+                        {req.senderStreakCount > 0 ? `${req.senderStreakCount}d streak · ` : ''}
+                        <span style={{ color: req.senderTierColor }}>{req.senderTierName}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.incomingActions}>
+                    <button
+                      type="button"
+                      className={styles.incomingAcceptBtn}
+                      disabled={respondingRequestId === req.id}
+                      onClick={() => handleAcceptRequest(req.id)}
+                    >
+                      <Symbol name="check" size={14} />
+                      <span>{respondingRequestId === req.id ? 'Accepting...' : 'Accept'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.incomingDeclineBtn}
+                      disabled={respondingRequestId === req.id}
+                      onClick={() => handleDeclineRequest(req.id)}
+                    >
+                      <Symbol name="close" size={14} />
+                      <span>Decline</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── 1. Intimacy & Peer Benefits Gauge ── */}
         {benefits && (
           <section className={styles.gaugeCard}>
@@ -723,64 +908,185 @@ function AtelierCircleContent() {
               </button>
             </div>
 
-            {/* Section 1: User's Studio Code & Shareable Link */}
-            <div className={styles.codeBox}>
-              <span className={styles.codeLabel}>Your 1-Tap Invite Link</span>
-              <span className={styles.codeValue}>
-                {data?.myShop.referralCode || 'GENERATING...'}
-              </span>
-
-              <div className={styles.shareActionsRow}>
-                <button
-                  className={`${styles.actionBtn} ${styles.actionBtnOutline}`}
-                  onClick={handleCopyCode}
-                >
-                  <Symbol name="content_copy" size={15} />
-                  <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
-                </button>
-
-                <button
-                  className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
-                  onClick={handleShareWhatsApp}
-                >
-                  <Symbol name="share" size={15} />
-                  <span>Share WhatsApp</span>
-                </button>
-              </div>
+            {/* Modal Navigation Tabs */}
+            <div className={styles.modalTabs}>
+              <button
+                type="button"
+                className={`${styles.modalTab} ${connectTab === 'search' ? styles.modalTabActive : ''}`}
+                onClick={() => setConnectTab('search')}
+              >
+                <Symbol name="search" size={15} />
+                <span>Find Workshop</span>
+              </button>
+              <button
+                type="button"
+                className={`${styles.modalTab} ${connectTab === 'invite' ? styles.modalTabActive : ''}`}
+                onClick={() => setConnectTab('invite')}
+              >
+                <Symbol name="share" size={15} />
+                <span>Invite via Link</span>
+              </button>
             </div>
 
-            {/* Section 2: Enter Colleague's Code */}
-            <form onSubmit={handleConnectColleague} className={styles.inputSection}>
-              <label htmlFor="colleagueCode" className={styles.inputLabel}>
-                Enter a Tailor&#39;s Invite Code
-              </label>
-              <div className={styles.inputRow}>
-                <input
-                  id="colleagueCode"
-                  type="text"
-                  placeholder="e.g. STITCH-7F2A9B"
-                  value={colleagueCode}
-                  onChange={(e) => setColleagueCode(e.target.value.toUpperCase())}
-                  className={styles.textInput}
-                />
-                <button
-                  type="submit"
-                  disabled={linking || !colleagueCode.trim()}
-                  className={styles.connectSubmitBtn}
-                >
-                  {linking ? 'Linking...' : 'Connect'}
-                </button>
-              </div>
-
-              {linkStatus && (
-                <div
-                  className={`${styles.statusMessage} ${linkStatus.success ? styles.statusSuccess : styles.statusError
-                    }`}
-                >
-                  {linkStatus.message}
+            {/* TAB 1: Search Existing Workshop / Tailor Friend */}
+            {connectTab === 'search' && (
+              <div>
+                <div className={styles.searchBarWrap}>
+                  <Symbol name="search" size={16} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    placeholder="Search by shop name, @handle, or phone..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={styles.searchInput}
+                    autoFocus
+                  />
                 </div>
-              )}
-            </form>
+
+                <div className={styles.searchResultsList}>
+                  {searching ? (
+                    <p className={styles.searchEmptyText}>Searching tailor directory...</p>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((colleague) => (
+                      <div key={colleague.id} className={styles.colleagueCard}>
+                        <div className={styles.colleagueCardLeft}>
+                          <div className={styles.colleagueAvatar}>
+                            {colleague.logoUrl ? (
+                              <img src={colleague.logoUrl} alt={colleague.name} className={styles.colleagueAvatarImg} />
+                            ) : (
+                              <span>{colleague.name.slice(0, 2).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className={styles.colleagueInfo}>
+                            <span className={styles.colleagueName}>{colleague.name}</span>
+                            <span className={styles.colleagueMeta}>
+                              {colleague.slug ? `@${colleague.slug} · ` : ''}
+                              {colleague.streakCount > 0 ? `${colleague.streakCount}d streak · ` : ''}
+                              <span style={{ color: colleague.tierColor }}>{colleague.tierName}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className={styles.colleagueActions}>
+                          {colleague.connectionStatus === 'connected' ? (
+                            <span className={styles.colleagueStatusBadge}>
+                              <Symbol name="check_circle" size={14} />
+                              <span>Connected</span>
+                            </span>
+                          ) : colleague.connectionStatus === 'request_sent' ? (
+                            <button
+                              type="button"
+                              className={styles.colleaguePendingBtn}
+                              disabled={actionLoadingId === colleague.id}
+                              onClick={() =>
+                                colleague.requestId &&
+                                handleCancelCircleRequest(colleague.requestId, colleague.id)
+                              }
+                              title="Tap to cancel pending invitation"
+                            >
+                              <span>{actionLoadingId === colleague.id ? 'Cancelling...' : 'Pending · Cancel'}</span>
+                            </button>
+                          ) : colleague.connectionStatus === 'incoming_request' ? (
+                            <button
+                              type="button"
+                              className={styles.colleagueActionBtn}
+                              disabled={actionLoadingId === colleague.id}
+                              onClick={() =>
+                                colleague.requestId && handleAcceptRequest(colleague.requestId)
+                              }
+                            >
+                              <Symbol name="check" size={14} />
+                              <span>Accept Invite</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.colleagueActionBtn}
+                              disabled={actionLoadingId === colleague.id}
+                              onClick={() => handleSendCircleRequest(colleague)}
+                            >
+                              <Symbol name="handshake" size={14} />
+                              <span>{actionLoadingId === colleague.id ? 'Sending...' : 'Send Request'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : searchQuery.trim().length >= 2 ? (
+                    <p className={styles.searchEmptyText}>
+                      No workshops found matching &ldquo;{searchQuery.trim()}&rdquo;.
+                    </p>
+                  ) : (
+                    <p className={styles.searchEmptyText}>
+                      Type a shop name, @username, or phone number to find colleagues already using MyStitchBook.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: User's Studio Code & Shareable Link */}
+            {connectTab === 'invite' && (
+              <div>
+                <div className={styles.codeBox}>
+                  <span className={styles.codeLabel}>Your 1-Tap Invite Link</span>
+                  <span className={styles.codeValue}>
+                    {data?.myShop.referralCode || 'GENERATING...'}
+                  </span>
+
+                  <div className={styles.shareActionsRow}>
+                    <button
+                      className={`${styles.actionBtn} ${styles.actionBtnOutline}`}
+                      onClick={handleCopyCode}
+                    >
+                      <Symbol name="content_copy" size={15} />
+                      <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
+                    </button>
+
+                    <button
+                      className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+                      onClick={handleShareWhatsApp}
+                    >
+                      <Symbol name="share" size={15} />
+                      <span>Share WhatsApp</span>
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleConnectColleague} className={styles.inputSection}>
+                  <label htmlFor="colleagueCode" className={styles.inputLabel}>
+                    Or Enter an Invite Code Manually
+                  </label>
+                  <div className={styles.inputRow}>
+                    <input
+                      id="colleagueCode"
+                      type="text"
+                      placeholder="e.g. STITCH-7F2A9B"
+                      value={colleagueCode}
+                      onChange={(e) => setColleagueCode(e.target.value.toUpperCase())}
+                      className={styles.textInput}
+                    />
+                    <button
+                      type="submit"
+                      disabled={linking || !colleagueCode.trim()}
+                      className={styles.connectSubmitBtn}
+                    >
+                      {linking ? 'Linking...' : 'Connect'}
+                    </button>
+                  </div>
+
+                  {linkStatus && (
+                    <div
+                      className={`${styles.statusMessage} ${
+                        linkStatus.success ? styles.statusSuccess : styles.statusError
+                      }`}
+                    >
+                      {linkStatus.message}
+                    </div>
+                  )}
+                </form>
+              </div>
+            )}
           </div>
         </div>
       )}

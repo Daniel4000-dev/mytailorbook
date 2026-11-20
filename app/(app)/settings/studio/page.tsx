@@ -24,7 +24,7 @@ import { ROUTES } from '@/lib/routes';
 import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './page.module.css';
 
-type EditableField = 'name' | 'about' | 'phone' | 'address' | 'currency' | 'country' | null;
+type EditableField = 'name' | 'username' | 'about' | 'phone' | 'address' | 'currency' | 'country' | null;
 
 const REVENUE_BENCHMARKS = [
   { label: '500k', value: 500000 },
@@ -81,6 +81,7 @@ export default function StudioSettingsPage() {
   const handleOpenEditor = (field: EditableField) => {
     setActiveField(field);
     if (field === 'name') setDraftValue(currentShop?.name || '');
+    else if (field === 'username') setDraftValue(currentShop?.slug || '');
     else if (field === 'about') setDraftValue(currentShop?.portfolioSettings?.tagline || '');
     else if (field === 'phone') setDraftValue(currentShop?.phone || '');
     else if (field === 'address') setDraftValue(currentShop?.address || '');
@@ -96,6 +97,14 @@ export default function StudioSettingsPage() {
         if (!draftValue.trim()) return;
         await updateShop({ name: draftValue.trim() });
         showToast('Studio name updated', 'success');
+      } else if (activeField === 'username') {
+        const cleanSlug = draftValue.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (!cleanSlug || cleanSlug.length < 3) {
+          showToast('Username must be at least 3 characters', 'error');
+          return;
+        }
+        await updateShop({ slug: cleanSlug });
+        showToast('Workshop username updated', 'success');
       } else if (activeField === 'about') {
         const nextSettings = {
           ...(currentShop?.portfolioSettings || {}),
@@ -379,20 +388,17 @@ export default function StudioSettingsPage() {
             </div>
           </button>
 
-          <div className={styles.rowItem} style={{ cursor: 'default' }}>
-            <span className={styles.rowLabel}>Username</span>
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('username')}
+          >
+            <span className={styles.rowLabel}>Username / Handle</span>
             <div className={styles.rowValueWrap}>
               <span className={styles.rowValue}>@{currentShop?.slug || 'studio'}</span>
-              <button
-                type="button"
-                onClick={() => router.push(ROUTES.portfolio)}
-                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}
-                title="View Lookbook"
-              >
-                <Symbol name="open_in_new" size={16} className={styles.chevron} />
-              </button>
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
             </div>
-          </div>
+          </button>
 
           <button
             type="button"
@@ -763,6 +769,8 @@ export default function StudioSettingsPage() {
               label={
                 activeField === 'name'
                   ? 'Studio Name'
+                  : activeField === 'username'
+                  ? 'Workshop Username / Handle (@)'
                   : activeField === 'about'
                   ? 'Specialty / Tagline'
                   : activeField === 'phone'
@@ -772,7 +780,9 @@ export default function StudioSettingsPage() {
               value={draftValue}
               onChange={(e) => setDraftValue(e.target.value)}
               placeholder={
-                activeField === 'about'
+                activeField === 'username'
+                  ? 'e.g. crownstitches'
+                  : activeField === 'about'
                   ? 'e.g. Master Bespoke Agbada & Senator Tailors'
                   : activeField === 'phone'
                   ? '+234 800 000 0000'
@@ -786,6 +796,7 @@ export default function StudioSettingsPage() {
 
           <p className={styles.sheetHelp}>
             {activeField === 'name' && 'Shown on receipts, invoices, and your public customer portal.'}
+            {activeField === 'username' && 'Your unique handle used by tailor colleagues to find and connect with you on Tailor Circle, and for your public studio lookbook.'}
             {activeField === 'about' && 'Appears under your studio name on lookbooks and client quotes.'}
             {activeField === 'phone' && 'Used for client communications and invoice headers.'}
             {activeField === 'address' && 'Included on printable cutting slips and client receipts.'}

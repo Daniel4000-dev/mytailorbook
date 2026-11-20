@@ -59,6 +59,37 @@ export interface CircleBenefitsTier {
   sabbaticalCount: number;
 }
 
+export interface CircleRequest {
+  id: string;
+  senderShopId: string;
+  senderShopName: string;
+  senderShopSlug?: string;
+  senderLogoUrl?: string;
+  senderAddress?: string;
+  senderTierName: string;
+  senderTierColor: string;
+  senderStreakCount: number;
+  receiverShopId: string;
+  receiverShopName: string;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  createdAt: string;
+}
+
+export interface SearchedColleague {
+  id: string;
+  name: string;
+  slug?: string;
+  logoUrl?: string;
+  phone?: string;
+  city?: string;
+  address?: string;
+  tierName: string;
+  tierColor: string;
+  streakCount: number;
+  connectionStatus: 'connected' | 'request_sent' | 'incoming_request' | 'can_connect';
+  requestId?: string;
+}
+
 export interface CircleHubData {
   myShop: {
     id: string;
@@ -74,6 +105,8 @@ export interface CircleHubData {
   benefits: CircleBenefitsTier;
   buddies: CircleBuddy[];
   pulses: PulseActivity[];
+  incomingRequests: CircleRequest[];
+  outgoingRequests: CircleRequest[];
 }
 
 export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; error?: string }> {
@@ -334,6 +367,86 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
       }
     }
 
+    // 5. Fetch pending requests
+    const incomingRequests: CircleRequest[] = [];
+    const outgoingRequests: CircleRequest[] = [];
+
+    try {
+      const { data: incRows } = await admin
+        .from('circle_requests')
+        .select('id, sender_shop_id, receiver_shop_id, status, created_at')
+        .eq('receiver_shop_id', currentShop.id)
+        .eq('status', 'pending');
+
+      if (incRows && incRows.length > 0) {
+        const senderIds = incRows.map((r) => r.sender_shop_id);
+        const { data: senders } = await admin
+          .from('shops')
+          .select('id, name, slug, logo_url, address, xp, streak_current')
+          .in('id', senderIds);
+
+        const senderMap = new Map((senders || []).map((s) => [s.id, s]));
+
+        for (const r of incRows) {
+          const sender = senderMap.get(r.sender_shop_id);
+          const senderXp = sender?.xp || 0;
+          const tier = getTierForXp(senderXp);
+          incomingRequests.push({
+            id: r.id,
+            senderShopId: r.sender_shop_id,
+            senderShopName: sender?.name || 'Tailor Workshop',
+            senderShopSlug: sender?.slug || undefined,
+            senderLogoUrl: sender?.logo_url || undefined,
+            senderAddress: sender?.address || undefined,
+            senderTierName: tier.name,
+            senderTierColor: tier.color,
+            senderStreakCount: sender?.streak_current || 0,
+            receiverShopId: r.receiver_shop_id,
+            receiverShopName: currentShop.name,
+            status: r.status as any,
+            createdAt: r.created_at,
+          });
+        }
+      }
+
+      const { data: outRows } = await admin
+        .from('circle_requests')
+        .select('id, sender_shop_id, receiver_shop_id, status, created_at')
+        .eq('sender_shop_id', currentShop.id)
+        .eq('status', 'pending');
+
+      if (outRows && outRows.length > 0) {
+        const receiverIds = outRows.map((r) => r.receiver_shop_id);
+        const { data: receivers } = await admin
+          .from('shops')
+          .select('id, name, slug, logo_url, address, xp, streak_current')
+          .in('id', receiverIds);
+
+        const receiverMap = new Map((receivers || []).map((s) => [s.id, s]));
+
+        for (const r of outRows) {
+          const receiver = receiverMap.get(r.receiver_shop_id);
+          outgoingRequests.push({
+            id: r.id,
+            senderShopId: r.sender_shop_id,
+            senderShopName: currentShop.name,
+            senderShopSlug: currentShop.slug || undefined,
+            senderLogoUrl: currentShop.logo_url || undefined,
+            senderAddress: currentShop.address || undefined,
+            senderTierName: currentTier.name,
+            senderTierColor: currentTier.color,
+            senderStreakCount: currentShop.streak_current || 0,
+            receiverShopId: r.receiver_shop_id,
+            receiverShopName: receiver?.name || 'Tailor Workshop',
+            status: r.status as any,
+            createdAt: r.created_at,
+          });
+        }
+      }
+    } catch {
+      // Table fallback if migration 0072 not yet executed on backend
+    }
+
     return {
       data: {
         myShop: {
@@ -350,6 +463,8 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
         benefits,
         buddies,
         pulses,
+        incomingRequests,
+        outgoingRequests,
       },
     };
   } catch (err: unknown) {
@@ -531,4 +646,250 @@ function formatTimeAgo(dateString: string): string {
   if (diffHours < 24) return `${diffHours}h ago`;
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays}d ago`;
+}
+
+export async function searchColleaguesAction(query: string): Promise<{ data: SearchedColleague[]; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { data: [] };
+
+    const clean = query.trim().replace(/^@/, '');
+    if (clean.length < 2) return { data: [] };
+
+    const { data: shops, error: shopsErr } = await admin
+      .from('shops')
+      .select('id, name, slug, phone, address, logo_url, xp, streak_current, directory_discoverable')
+      .neq('id', profile.shop_id)
+      .or(`name.ilike.%${clean}%,slug.ilike.%${clean}%,phone.ilike.%${clean}%`)
+      .limit(10);
+
+    if (shopsErr || !shops) return { data: [] };
+
+    // Get current connected buddies
+    const { data: buddies } = await admin
+      .from('circle_members')
+      .select('buddy_shop_id')
+      .eq('shop_id', profile.shop_id);
+    const buddyIds = new Set((buddies || []).map((b) => b.buddy_shop_id));
+
+    // Get active requests
+    const { data: requests } = await admin
+      .from('circle_requests')
+      .select('id, sender_shop_id, receiver_shop_id, status')
+      .or(`sender_shop_id.eq.${profile.shop_id},receiver_shop_id.eq.${profile.shop_id}`)
+      .eq('status', 'pending');
+
+    const results: SearchedColleague[] = [];
+    for (const s of shops) {
+      if (s.directory_discoverable === false) continue;
+      const tier = getTierForXp(s.xp || 0);
+
+      let connectionStatus: SearchedColleague['connectionStatus'] = 'can_connect';
+      let requestId: string | undefined = undefined;
+
+      if (buddyIds.has(s.id)) {
+        connectionStatus = 'connected';
+      } else {
+        const outReq = requests?.find((r) => r.sender_shop_id === profile.shop_id && r.receiver_shop_id === s.id);
+        const inReq = requests?.find((r) => r.receiver_shop_id === profile.shop_id && r.sender_shop_id === s.id);
+        if (outReq) {
+          connectionStatus = 'request_sent';
+          requestId = outReq.id;
+        } else if (inReq) {
+          connectionStatus = 'incoming_request';
+          requestId = inReq.id;
+        }
+      }
+
+      results.push({
+        id: s.id,
+        name: s.name,
+        slug: s.slug || undefined,
+        logoUrl: s.logo_url || undefined,
+        phone: s.phone || undefined,
+        address: s.address || undefined,
+        tierName: tier.name,
+        tierColor: tier.color,
+        streakCount: s.streak_current || 0,
+        connectionStatus,
+        requestId,
+      });
+    }
+
+    return { data: results };
+  } catch (err: unknown) {
+    return { data: [], error: err instanceof Error ? err.message : 'Search failed' };
+  }
+}
+
+export async function sendCircleRequestAction(
+  receiverShopId: string
+): Promise<{ success?: boolean; requestId?: string; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'No workshop found' };
+
+    if (profile.shop_id === receiverShopId) {
+      return { error: 'You cannot connect with your own workshop' };
+    }
+
+    const { data: myShop } = await admin.from('shops').select('name').eq('id', profile.shop_id).single();
+    const senderName = myShop?.name || 'A Colleague Tailor';
+
+    // Upsert circle_requests
+    const { data: req, error } = await admin
+      .from('circle_requests')
+      .upsert(
+        {
+          sender_shop_id: profile.shop_id,
+          receiver_shop_id: receiverShopId,
+          status: 'pending',
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'sender_shop_id, receiver_shop_id' }
+      )
+      .select('id')
+      .single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    // Fire in-app & push notification to receiver
+    await createAtelierNotification({
+      shopId: receiverShopId,
+      recipientId: null,
+      category: 'system',
+      tone: 'info',
+      badgeIcon: 'handshake',
+      title: 'New Tailor Circle Invitation',
+      subtitle: `${senderName} wants to link workshops in your Tailor Circle.`,
+      actionLabel: 'Review Request',
+      actionHref: '/circle',
+    });
+
+    return { success: true, requestId: req?.id };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to send request' };
+  }
+}
+
+export async function acceptCircleRequestAction(
+  requestId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'No workshop found' };
+
+    const { data: req } = await admin
+      .from('circle_requests')
+      .select('id, sender_shop_id, receiver_shop_id')
+      .eq('id', requestId)
+      .single();
+
+    if (!req) return { error: 'Invitation not found' };
+    if (req.receiver_shop_id !== profile.shop_id) {
+      return { error: 'You cannot accept an invitation meant for another workshop' };
+    }
+
+    // 1. Mark request accepted
+    await admin
+      .from('circle_requests')
+      .update({ status: 'accepted', updated_at: new Date().toISOString() })
+      .eq('id', requestId);
+
+    // 2. Bidirectional upsert into circle_members
+    await admin.from('circle_members').upsert([
+      { shop_id: req.sender_shop_id, buddy_shop_id: req.receiver_shop_id, status: 'active' },
+      { shop_id: req.receiver_shop_id, buddy_shop_id: req.sender_shop_id, status: 'active' },
+    ], { onConflict: 'shop_id, buddy_shop_id' });
+
+    // Mirror to legacy shops.buddy_shop_id if null
+    const { data: myShop } = await admin.from('shops').select('name, buddy_shop_id').eq('id', profile.shop_id).single();
+    if (!myShop?.buddy_shop_id) {
+      await admin.from('shops').update({ buddy_shop_id: req.sender_shop_id }).eq('id', profile.shop_id);
+    }
+    const { data: senderShop } = await admin.from('shops').select('buddy_shop_id').eq('id', req.sender_shop_id).single();
+    if (!senderShop?.buddy_shop_id) {
+      await admin.from('shops').update({ buddy_shop_id: profile.shop_id }).eq('id', req.sender_shop_id);
+    }
+
+    // 3. Notify sender
+    await createAtelierNotification({
+      shopId: req.sender_shop_id,
+      recipientId: null,
+      category: 'system',
+      tone: 'info',
+      badgeIcon: 'check_circle',
+      title: 'Circle Invitation Accepted!',
+      subtitle: `${myShop?.name || 'Your colleague'} accepted your Circle invitation. Your streaks and production pulses are now connected!`,
+      actionLabel: 'Open Circle',
+      actionHref: '/circle',
+    });
+
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to accept invitation' };
+  }
+}
+
+export async function declineCircleRequestAction(
+  requestId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'No workshop found' };
+
+    await admin
+      .from('circle_requests')
+      .update({ status: 'declined', updated_at: new Date().toISOString() })
+      .match({ id: requestId, receiver_shop_id: profile.shop_id });
+
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to decline invitation' };
+  }
+}
+
+export async function cancelCircleRequestAction(
+  requestId: string
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'No workshop found' };
+
+    await admin
+      .from('circle_requests')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+      .match({ id: requestId, sender_shop_id: profile.shop_id });
+
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to cancel request' };
+  }
 }

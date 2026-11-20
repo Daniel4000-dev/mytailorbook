@@ -231,6 +231,73 @@
   margin: 0;
 }
 
+.heroHandleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.heroHandlePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.heroHandlePill:hover {
+  background: rgba(0, 0, 0, 0.07);
+  color: var(--sf-text-primary);
+  border-color: var(--sf-border);
+}
+
+:global([data-theme='dark']) .heroHandlePill {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .heroHandlePill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-primary);
+}
+
+.heroHandleAt {
+  color: var(--sf-accent-emerald, #10B981);
+  font-weight: 700;
+}
+
+.heroHandleText {
+  color: var(--sf-text-primary);
+  font-family: inherit;
+}
+
+.heroHandleIcon {
+  color: var(--sf-text-muted);
+  margin-left: 2px;
+}
+
+.heroHandleDot {
+  color: var(--sf-text-muted);
+  font-size: 12px;
+}
+
+.heroCurrencyPill {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+}
+
 /* ── Grouped Settings Cards (WhatsApp Inset Groups) ── */
 .groups {
   display: flex;

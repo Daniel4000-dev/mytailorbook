@@ -241,9 +241,22 @@ export default function SettingsPage() {
               <Symbol name="add" size={14} className={styles.greenBadgeGlyph} />
             </button>
           </div>
-          <p className={styles.heroSubtitle}>
-            @{currentShop?.slug || 'studio'} · {currentShop?.currency || 'NGN'}
-          </p>
+          <div className={styles.heroHandleRow}>
+            <button
+              type="button"
+              className={styles.heroHandlePill}
+              onClick={() => router.push(ROUTES.settingsStudio)}
+              title="Customize Workshop Username (@handle)"
+            >
+              <span className={styles.heroHandleAt}>@</span>
+              <span className={styles.heroHandleText}>
+                {currentShop?.slug || (currentShop?.name ? currentShop.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : 'studio')}
+              </span>
+              <Symbol name="edit" size={12} className={styles.heroHandleIcon} />
+            </button>
+            <span className={styles.heroHandleDot}>·</span>
+            <span className={styles.heroCurrencyPill}>{currentShop?.currency || 'NGN'}</span>
+          </div>
         </div>
       </section>
 

@@ -254,9 +254,13 @@ function exceptionFromRow(row: any): ShopException {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function shopFromRow(row: any): Shop {
+  const fallbackSlug = row.name
+    ? row.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    : 'studio';
+
   return {
     id: row.id,
-    slug: row.slug,
+    slug: row.slug || fallbackSlug,
     name: row.name,
     currency: row.currency,
     phone: row.phone || undefined,
@@ -1047,6 +1051,12 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
   if (updates.name !== undefined) row.name = updates.name;
+  if (updates.slug !== undefined) {
+    row.slug = updates.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  if ((updates as any).directoryDiscoverable !== undefined) {
+    row.directory_discoverable = (updates as any).directoryDiscoverable;
+  }
   if (updates.currency !== undefined) row.currency = updates.currency;
   if (updates.phone !== undefined) row.phone = updates.phone;
   if (updates.address !== undefined) row.address = updates.address;
