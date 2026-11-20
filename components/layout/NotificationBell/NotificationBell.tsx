@@ -10,7 +10,11 @@ import { ROUTES } from '@/lib/routes';
 import styles from './NotificationBell.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  variant?: 'default' | 'glass';
+}
+
+export default function NotificationBell({ variant = 'default' }: NotificationBellProps = {}) {
   const router = useRouter();
   const isDesktop = useIsDesktop();
   const [open, setOpen] = useState(false);
@@ -60,7 +64,7 @@ export default function NotificationBell() {
     <div className={styles.container} ref={containerRef}>
       <button
         type="button"
-        className={styles.bellBtn}
+        className={`${styles.bellBtn} ${variant === 'glass' ? styles.bellBtnGlass : ''}`}
         onClick={handleToggle}
         aria-label="Notifications"
         title="Notifications"

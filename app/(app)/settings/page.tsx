@@ -122,7 +122,7 @@ export default function SettingsPage() {
           <Symbol name="search" size={20} />
         </button>
       }
-      title={currentShop?.name || 'Settings'}
+      title="Settings"
       rightAction={
         <div className={styles.headerRightWrap}>
           <div className={styles.headerCapsule}>

@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-sm);
-  margin-top: -24px; /* Plane 3: Physically overlaps Plane 2 */
-  margin-bottom: var(--sf-space-md);
+  margin-top: 16px;
+  margin-bottom: var(--sf-space-lg);
   position: relative;
-  z-index: 10; /* Elevated above middle and back planes */
+  z-index: 10;
   width: 100%;
 }
 

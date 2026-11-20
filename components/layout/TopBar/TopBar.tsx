@@ -203,7 +203,7 @@ export default function TopBar({
                 </div>
               )}
 
-              <NotificationBell />
+              <NotificationBell variant="glass" />
 
             </div>
           </div>

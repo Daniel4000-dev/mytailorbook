@@ -1,14 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import Modal from '@/components/ui/Modal/Modal';
 import FlameIcon from '@/components/ui/FlameIcon/FlameIcon';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import DailyActivityDropdown from '@/components/dashboard/DailyActivityDropdown/DailyActivityDropdown';
-import { logStudioRestDayAction } from '@/app/actions';
 import { useData } from '@/contexts/DataContext';
-import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './StreakModal.module.css';
 
 interface StreakModalProps {
@@ -18,17 +16,14 @@ interface StreakModalProps {
 }
 
 export default function StreakModal({ isOpen, onClose, streakCount }: StreakModalProps) {
-  const { currentShop, refreshShop } = useData();
-  const [restDayLoading, setRestDayLoading] = useState(false);
-  const [restDayMsg, setRestDayMsg] = useState<{ text: string; error?: boolean } | null>(null);
+  const { currentShop } = useData();
 
   useEffect(() => {
     if (isOpen) {
-      setRestDayMsg(null);
       // Fire celebratory confetti from the sides
       const duration = 2500;
       const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
 
       const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -45,32 +40,8 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
     }
   }, [isOpen]);
 
-  const handleClaimRestDay = async () => {
-    setRestDayLoading(true);
-    setRestDayMsg(null);
-    try {
-      const res = await logStudioRestDayAction();
-      if (res?.error) {
-        setRestDayMsg({ text: res.error, error: true });
-      } else if (res?.success) {
-        const xpEnabled = isXpSystemEnabled(currentShop?.businessMode);
-        setRestDayMsg({
-          text: xpEnabled
-            ? `Rest Day logged! +10 XP awarded. (${res.restDaysRemaining} rest days remaining this week)`
-            : `Rest Day logged! Streak protected. (${res.restDaysRemaining} rest days remaining this week)`,
-        });
-        refreshShop();
-      }
-    } catch {
-      setRestDayMsg({ text: 'Could not claim rest day.', error: true });
-    } finally {
-      setRestDayLoading(false);
-    }
-  };
-
   if (!isOpen) return null;
 
-  const usedRestDays = currentShop?.restDaysUsedThisWeek || 0;
   const bestStreak = currentShop?.streakBest || streakCount;
 
   return (
@@ -125,46 +96,6 @@ export default function StreakModal({ isOpen, onClose, streakCount }: StreakModa
               <span className={styles.statValue}>3-Day Grace</span>
             </div>
           </div>
-        </div>
-
-        {/* Studio Rest Day Row */}
-        <div className={styles.restDayCard}>
-          <div className={styles.restDayHeader}>
-            <div className={styles.restDayInfo}>
-              <div className={styles.restDayTitleRow}>
-                <Symbol name="spa" size={16} className={styles.restDayIcon} />
-                <span className={styles.restDayTitle}>Studio Rest Day</span>
-              </div>
-              <span className={styles.restDayRemaining}>
-                {Math.max(0, 2 - usedRestDays)} of 2 left this week
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className={styles.restDayBtn}
-              onClick={handleClaimRestDay}
-              disabled={restDayLoading || usedRestDays >= 2}
-            >
-              {restDayLoading
-                ? 'Claiming...'
-                : usedRestDays >= 2
-                ? 'Used'
-                : isXpSystemEnabled(currentShop?.businessMode)
-                ? 'Take Rest Day (+10 XP)'
-                : 'Take Rest Day (Protect Streak)'}
-            </button>
-          </div>
-
-          <p className={styles.restDayDesc}>
-            Pauses your streak without losing momentum. Freezes inactivity counter and protects your record.
-          </p>
-
-          {restDayMsg && (
-            <span className={`${styles.restDayStatus} ${restDayMsg.error ? styles.restDayError : styles.restDaySuccess}`}>
-              {restDayMsg.text}
-            </span>
-          )}
         </div>
 
         {/* Daily Activity Dropdown */}
