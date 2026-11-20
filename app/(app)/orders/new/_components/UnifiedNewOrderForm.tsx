@@ -9,6 +9,8 @@ import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
+import { savePendingPhoto } from '@/lib/offline/mediaStore';
+import { withNetworkTimeout } from '@/lib/offline/outbox';
 import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
@@ -20,6 +22,8 @@ import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
+import VoiceTapeHUD from '@/components/orders/VoiceTapeHUD/VoiceTapeHUD';
+import { useVoiceTape } from '@/hooks/useVoiceTape';
 import type { Customer, Order, Priority } from '@/lib/types';
 import styles from './UnifiedNewOrderForm.module.css';
 
@@ -442,6 +446,84 @@ export default function UnifiedNewOrderForm() {
     );
   };
 
+  // ── Voice Tape & One-Thumb Stepper Engine ──
+  const [activeMeasureFocus, setActiveMeasureFocus] = useState<{ garmentId: string; key: string } | null>(null);
+  const [activeVoiceGarmentId, setActiveVoiceGarmentId] = useState<string | null>(null);
+
+  const currentVoiceGarment = garments.find((g) => g.id === (activeVoiceGarmentId || garments[0]?.id));
+  const currentVoiceSpec = currentVoiceGarment ? getSpecPointsForStyle(currentVoiceGarment.styleName) : DEFAULT_POINTS;
+  const voiceAllowedKeys = useMemo(() => currentVoiceSpec.map((p) => p.key), [currentVoiceSpec]);
+  const voiceKeyLabels = useMemo(() => Object.fromEntries(currentVoiceSpec.map((p) => [p.key, p.label])), [currentVoiceSpec]);
+
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    toggleListening,
+    lastCapture,
+    undoLastCapture,
+  } = useVoiceTape({
+    allowedKeys: voiceAllowedKeys,
+    keyLabels: voiceKeyLabels,
+    onPointCaptured: (key, val) => {
+      const gId = activeVoiceGarmentId || garments[0]?.id;
+      if (!gId) return;
+      handleMeasureChange(gId, key, val);
+      setActiveMeasureFocus({ garmentId: gId, key });
+      measureInputRefs.current[gId]?.[key]?.focus();
+    },
+    onCustomNoteCaptured: (note) => {
+      const gId = activeVoiceGarmentId || garments[0]?.id;
+      if (!gId) return;
+      setGarments((prev) =>
+        prev.map((g) => {
+          if (g.id !== gId) return g;
+          const currentNotes = g.measurementNotes ? `${g.measurementNotes}. ` : '';
+          return { ...g, measurementNotes: `${currentNotes}${note}` };
+        })
+      );
+      showToast(`Added to fit notes: "${note}"`, 'info');
+    },
+  });
+
+  const activePointObj = useMemo(() => {
+    if (!activeMeasureFocus) return null;
+    const g = garments.find((x) => x.id === activeMeasureFocus.garmentId);
+    if (!g) return null;
+    const spec = getSpecPointsForStyle(g.styleName);
+    const pt = spec.find((p) => p.key === activeMeasureFocus.key);
+    if (!pt) return null;
+    return {
+      key: pt.key,
+      label: pt.label,
+      value: g.measures[pt.key] || '',
+    };
+  }, [activeMeasureFocus, garments]);
+
+  const handleNudgeActive = (delta: number) => {
+    if (!activeMeasureFocus) return;
+    const g = garments.find((x) => x.id === activeMeasureFocus.garmentId);
+    if (!g) return;
+    const currentNum = parseFloat(g.measures[activeMeasureFocus.key] || '0') || 0;
+    const nextNum = Math.max(0, currentNum + delta);
+    const formatted = String(nextNum % 1 === 0 ? nextNum : Number(nextNum.toFixed(2)));
+    handleMeasureChange(activeMeasureFocus.garmentId, activeMeasureFocus.key, formatted);
+  };
+
+  const handleNextActive = () => {
+    if (!activeMeasureFocus) return;
+    const g = garments.find((x) => x.id === activeMeasureFocus.garmentId);
+    if (!g) return;
+    const spec = getSpecPointsForStyle(g.styleName);
+    const idx = spec.findIndex((p) => p.key === activeMeasureFocus.key);
+    const nextPt = spec[idx + 1];
+    if (nextPt) {
+      setActiveMeasureFocus({ garmentId: g.id, key: nextPt.key });
+      measureInputRefs.current[g.id]?.[nextPt.key]?.focus();
+    } else {
+      setActiveMeasureFocus(null);
+    }
+  };
+
   const handleAddGarment = () => {
     const nextNum = garments.length + 1;
     const defaultNextStyle = '';
@@ -475,7 +557,7 @@ export default function UnifiedNewOrderForm() {
     setGarments((prev) => prev.filter((g) => g.id !== id));
   };
 
-  // ── 3. Photos Upload ──
+  // ── 3. Photos Upload (OPay-style offline resilient) ──
   const handlePhotoUpload = async (garmentId: string, file: File, type: 'fabric' | 'styleRef') => {
     if (!currentShop?.id) return;
     const isFabric = type === 'fabric';
@@ -483,21 +565,45 @@ export default function UnifiedNewOrderForm() {
 
     try {
       const compressed = await compressImage(file, { maxDimension: 1200 });
-      const supabase = createClient();
       const ext = compressed.name.split('.').pop() || 'jpg';
       const path = `${currentShop.id}/orders/${crypto.randomUUID()}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('order-photos')
-        .upload(path, compressed, { cacheControl: '3600', upsert: false });
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        throw new Error('Offline');
+      }
+
+      const supabase = createClient();
+      const { error: uploadError } = await withNetworkTimeout(
+        supabase.storage
+          .from('order-photos')
+          .upload(path, compressed, { cacheControl: '3600', upsert: false }),
+        4000
+      );
 
       if (uploadError) throw new Error(uploadError.message);
       const url = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
 
       updateGarment(garmentId, isFabric ? { fabricImage: url } : { styleReferenceImage: url });
       showToast(`${isFabric ? 'Fabric' : 'Style'} photo uploaded`, 'success');
-    } catch (err) {
-      showToast('Could not upload photo. Please try again.', 'error');
+    } catch {
+      // Market network resilience fallback: store in local IndexedDB photo store
+      try {
+        const compressed = await compressImage(file, { maxDimension: 1200 });
+        const ext = compressed.name.split('.').pop() || 'jpg';
+        const fileName = `${crypto.randomUUID()}.${ext}`;
+        const { localUrl } = await savePendingPhoto(
+          compressed,
+          `${currentShop.id}/orders`,
+          fileName,
+          garmentId,
+          isFabric ? 'fabricImage' : 'styleReference'
+        );
+
+        updateGarment(garmentId, isFabric ? { fabricImage: localUrl } : { styleReferenceImage: localUrl });
+        showToast(`${isFabric ? 'Fabric' : 'Style'} photo saved on phone (will sync)`, 'info');
+      } catch {
+        showToast('Could not save photo.', 'error');
+      }
     } finally {
       updateGarment(garmentId, isFabric ? { uploadingFabric: false } : { uploadingStyleRef: false });
     }
@@ -1429,6 +1535,20 @@ export default function UnifiedNewOrderForm() {
                         </div>
                       )}
 
+                      <VoiceTapeHUD
+                        isListening={isListening && activeVoiceGarmentId === garment.id}
+                        onToggleListening={() => {
+                          setActiveVoiceGarmentId(garment.id);
+                          toggleListening();
+                        }}
+                        lastCapture={activeVoiceGarmentId === garment.id ? lastCapture : null}
+                        onUndoLastCapture={undoLastCapture}
+                        activePoint={activeMeasureFocus?.garmentId === garment.id ? activePointObj : null}
+                        onNudgeActive={handleNudgeActive}
+                        onNextActive={handleNextActive}
+                        isSupported={isVoiceSupported}
+                      />
+
                       <div className={styles.measureGrid}>
                         {specPoints.map((pt, ptIdx) => (
                           <div key={pt.key} className={styles.measureInputWrap}>
@@ -1448,6 +1568,7 @@ export default function UnifiedNewOrderForm() {
                                 placeholder="—"
                                 className={styles.measureInput}
                                 value={garment.measures[pt.key] || ''}
+                                onFocus={() => setActiveMeasureFocus({ garmentId: garment.id, key: pt.key })}
                                 onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {

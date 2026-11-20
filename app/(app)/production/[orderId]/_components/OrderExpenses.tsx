@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select/Select';
 import { Expense } from '@/lib/types';
 import { addExpense, getOrderExpenses } from '@/app/actions/expenses';
 import { useToast } from '@/contexts/ToastContext';
+import { enqueueOfflineMutation, withNetworkTimeout } from '@/lib/offline/outbox';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import styles from '../page.module.css';
 
@@ -43,22 +44,39 @@ export default function OrderExpenses({ orderId, shopId, totalBill, currency }: 
   const handleAddExpense = async () => {
     if (!amount || !description) return;
     setSubmitting(true);
+    const expenseData = {
+      shopId,
+      orderId,
+      amount: parseInt(amount.replace(/,/g, '')) || 0,
+      category,
+      description,
+      date: new Date().toISOString(),
+    };
+
     try {
-      const newExp = await addExpense({
-        shopId,
-        orderId,
-        amount: parseInt(amount.replace(/,/g, '')) || 0,
-        category,
-        description,
-        date: new Date().toISOString(),
-      });
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        throw new Error('Offline');
+      }
+
+      const newExp = await withNetworkTimeout(addExpense(expenseData), 4000);
       setExpenses([newExp, ...expenses]);
       setIsAdding(false);
       setAmount('');
       setDescription('');
       showToast('Expense added', 'success');
-    } catch (err) {
-      showToast('Failed to add expense', 'error');
+    } catch {
+      // Offline fallback
+      const offlineExp: Expense = {
+        id: `offline_exp_${Date.now()}`,
+        ...expenseData,
+        createdAt: new Date().toISOString(),
+      };
+      enqueueOfflineMutation('ADD_EXPENSE', { expense: expenseData });
+      setExpenses([offlineExp, ...expenses]);
+      setIsAdding(false);
+      setAmount('');
+      setDescription('');
+      showToast('Expense saved on phone (will sync)', 'info');
     } finally {
       setSubmitting(false);
     }

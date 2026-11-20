@@ -17,7 +17,7 @@ import { logStreakAction } from '@/lib/streakClient';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
-import { enqueueOfflineMutation } from '@/lib/offline/outbox';
+import { enqueueOfflineMutation, withNetworkTimeout } from '@/lib/offline/outbox';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
 import { resolveCanonicalStyleName } from '@/lib/constants';
 import { triggerHaptic } from '@/lib/haptics';
@@ -341,14 +341,63 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addOrderBatch = useCallback(
     async (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => {
       if (!activeBranchId) return [];
-      const res = await addOrderBatchAction(activeBranchId, garments);
-      if (res && 'error' in res) throw new Error(res.error);
-      mutate((current) => (current ? { ...current, orders: res.orders as Order[] } : current), { revalidate: false });
 
-      logStreakAction('created_order', 20, false).then((streakRes) => {
-        if (streakRes?.streak_bumped) mutate();
-      });
-      return res.insertedIds;
+      try {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+
+        const res = await withNetworkTimeout(addOrderBatchAction(activeBranchId, garments), 4500);
+        if (res && 'error' in res) throw new Error(res.error);
+        mutate((current) => (current ? { ...current, orders: res.orders as Order[] } : current), { revalidate: false });
+
+        logStreakAction('created_order', 20, false).then((streakRes) => {
+          if (streakRes?.streak_bumped) mutate();
+        });
+        return res.insertedIds;
+      } catch (err: any) {
+        if (
+          typeof navigator !== 'undefined' &&
+          (!navigator.onLine || err?.message === 'Offline' || err?.message === 'OfflineTimeout' || err?.message?.includes('fetch failed'))
+        ) {
+          const batchId = `offline_batch_${Date.now()}`;
+          const insertedIds: string[] = [];
+          const offlineOrders: Order[] = garments.map((g, idx) => {
+            const id = `offline_ord_${Date.now()}_${idx}`;
+            insertedIds.push(id);
+            return {
+              ...g,
+              id,
+              batchId,
+              shopId: activeBranchId,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              priority: g.priority || 'normal',
+              statusHistory: [
+                {
+                  from: 'Documented' as OrderStatus,
+                  to: g.status,
+                  changedBy: 'self',
+                  changedByName: 'You',
+                  timestamp: new Date().toISOString(),
+                },
+              ],
+            };
+          });
+
+          enqueueOfflineMutation('ADD_ORDER_BATCH', { shopId: activeBranchId, garments });
+          mutate(
+            (current) =>
+              current ? { ...current, orders: [...offlineOrders, ...current.orders] } : current,
+            { revalidate: false }
+          );
+
+          // Log streak locally
+          enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'created_order', xpAmount: 20 });
+
+          return insertedIds;
+        }
+
+        throw err;
+      }
     },
     [activeBranchId, mutate]
   );

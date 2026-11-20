@@ -13,11 +13,13 @@ export type OutboxActionType =
   | 'UPDATE_ORDER_STATUS'
   | 'UPDATE_ORDER'
   | 'ADD_ORDER'
+  | 'ADD_ORDER_BATCH'
   | 'ADD_CUSTOMER'
   | 'UPDATE_CUSTOMER_MEASUREMENTS'
   | 'UPDATE_CUSTOMER_PROFILE'
   | 'LOG_STREAK_ACTION'
-  | 'ADD_PAYMENT';
+  | 'ADD_PAYMENT'
+  | 'ADD_EXPENSE';
 
 export interface OutboxMutation<T = Record<string, unknown>> {
   id: string;
@@ -144,4 +146,32 @@ export async function replayOfflineQueue(
 
   return { syncedCount, failedCount };
 }
+
+/**
+ * Wraps an async operation in a market-resilience fast timeout (default: 4500ms).
+ * In dense African markets, hanging requests freeze the UI. If the request doesn't
+ * resolve within the timeout, this rejects immediately with an "OfflineTimeout" error,
+ * allowing optimistic outbox queueing to kick in without making the customer wait.
+ */
+export async function withNetworkTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = 4500
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error('OfflineTimeout'));
+    }, timeoutMs);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timer!);
+    return result;
+  } catch (err) {
+    clearTimeout(timer!);
+    throw err;
+  }
+}
+
 

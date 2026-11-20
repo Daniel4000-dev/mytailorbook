@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select/Select';
 import { Expense } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
+import { enqueueOfflineMutation, withNetworkTimeout } from '@/lib/offline/outbox';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import styles from './OwnerDashboard.module.css';
 
@@ -59,22 +60,39 @@ export default function GeneralExpenses({ shopId, currency }: GeneralExpensesPro
   const handleAddExpense = async () => {
     if (!amount || !description) return;
     setSubmitting(true);
+    const expenseData = {
+      shopId,
+      amount: parseInt(amount.replace(/,/g, '')) || 0,
+      category,
+      description,
+      date: new Date().toISOString(),
+    };
+
     try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        throw new Error('Offline');
+      }
+
       const { addExpense } = await import('@/app/actions/expenses');
-      const newExp = await addExpense({
-        shopId,
-        amount: parseInt(amount.replace(/,/g, '')) || 0,
-        category,
-        description,
-        date: new Date().toISOString(),
-      });
+      const newExp = await withNetworkTimeout(addExpense(expenseData), 4000);
       setExpenses([newExp, ...expenses]);
       setIsAdding(false);
       setAmount('');
       setDescription('');
       showToast('General expense logged', 'success');
-    } catch (err) {
-      showToast('Failed to log expense. Make sure migration is applied.', 'error');
+    } catch {
+      // Offline fallback: enqueue to outbox and commit locally
+      const offlineExp: Expense = {
+        id: `offline_exp_${Date.now()}`,
+        ...expenseData,
+        createdAt: new Date().toISOString(),
+      };
+      enqueueOfflineMutation('ADD_EXPENSE', { expense: expenseData });
+      setExpenses([offlineExp, ...expenses]);
+      setIsAdding(false);
+      setAmount('');
+      setDescription('');
+      showToast('Expense saved on phone (will sync)', 'info');
     } finally {
       setSubmitting(false);
     }

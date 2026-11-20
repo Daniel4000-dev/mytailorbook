@@ -1,8 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasureGuide from '@/components/orders/MeasureGuide/MeasureGuide';
+import VoiceTapeHUD from '@/components/orders/VoiceTapeHUD/VoiceTapeHUD';
+import { useVoiceTape } from '@/hooks/useVoiceTape';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import type { StyleMeasureSpec } from '@/lib/constants';
 import type { Measurements } from '@/lib/types';
@@ -54,6 +56,48 @@ export default function StyleMeasureForm({
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const allowedKeys = useMemo(() => spec.points.map((p) => p.key), [spec.points]);
+  const keyLabels = useMemo(() => Object.fromEntries(spec.points.map((p) => [p.key, p.label])), [spec.points]);
+
+  const {
+    isListening,
+    isSupported,
+    toggleListening,
+    lastCapture,
+    undoLastCapture,
+  } = useVoiceTape({
+    allowedKeys,
+    keyLabels,
+    onPointCaptured: (key, val) => {
+      onChange(key, val);
+      onActiveKeyChange?.(key);
+      inputRefs.current[key]?.focus();
+    },
+  });
+
+  const activePointObj = useMemo(() => {
+    if (!activeKey) return null;
+    const pt = spec.points.find((p) => p.key === activeKey);
+    return pt ? { key: pt.key, label: pt.label, value: values[pt.key] || '' } : null;
+  }, [activeKey, spec.points, values]);
+
+  const handleNudge = (delta: number) => {
+    if (!activeKey) return;
+    const currentNum = parseFloat(values[activeKey] || '0') || 0;
+    const nextNum = Math.max(0, currentNum + delta);
+    onChange(activeKey, String(nextNum % 1 === 0 ? nextNum : Number(nextNum.toFixed(2))));
+  };
+
+  const handleNext = () => {
+    if (!activeKey) return;
+    const idx = spec.points.findIndex((p) => p.key === activeKey);
+    const nextPt = spec.points[idx + 1];
+    if (nextPt) {
+      onActiveKeyChange?.(nextPt.key);
+      inputRefs.current[nextPt.key]?.focus();
+    }
+  };
+
   const pickField = (field: { key: string; label: string }) => {
     onAddField?.(field);
     setPickerOpen(false);
@@ -68,6 +112,17 @@ export default function StyleMeasureForm({
 
   return (
     <div className={styles.wrap}>
+      <VoiceTapeHUD
+        isListening={isListening}
+        onToggleListening={toggleListening}
+        lastCapture={lastCapture}
+        onUndoLastCapture={undoLastCapture}
+        activePoint={activePointObj}
+        onNudgeActive={handleNudge}
+        onNextActive={handleNext}
+        isSupported={isSupported}
+      />
+
       {FEATURE_FLAGS.measureGuideDiagram && spec.hasDiagram !== false && (
         <MeasureGuide
           spec={spec}

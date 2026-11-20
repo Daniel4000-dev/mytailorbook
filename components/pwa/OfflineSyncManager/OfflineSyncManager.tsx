@@ -12,12 +12,16 @@ import {
   updateOrderStatusAction,
   updateOrderAction,
   addOrderAction,
+  addOrderBatchAction,
   addCustomerAction,
   updateCustomerMeasurementsAction,
   updateCustomerProfileAction,
 } from '@/app/actions';
 import { addPayment } from '@/app/actions/order_payments';
+import { addExpense } from '@/app/actions/expenses';
 import { logStreakAction } from '@/lib/streakClient';
+import { getPendingPhotos, removePendingPhoto } from '@/lib/offline/mediaStore';
+import { createClient } from '@/lib/supabase/client';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './OfflineSyncManager.module.css';
 
@@ -54,40 +58,50 @@ export default function OfflineSyncManager() {
               payload.changedByName,
               shopId
             );
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
           }
 
           case 'UPDATE_ORDER': {
             const res = await updateOrderAction(payload.orderId, payload.updates, shopId);
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
           }
 
           case 'ADD_ORDER': {
             const res = await addOrderAction(shopId, payload.order);
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
+          }
+
+          case 'ADD_ORDER_BATCH': {
+            const res = await addOrderBatchAction(shopId, payload.garments);
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
+          }
+
+          case 'ADD_EXPENSE': {
+            await addExpense(payload.expense);
+            return { success: true };
           }
 
           case 'ADD_CUSTOMER': {
             const orgId = payload.orgId || currentShop?.orgId || shopId;
             const res = await addCustomerAction(shopId, orgId, payload.customer);
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
           }
 
           case 'UPDATE_CUSTOMER_MEASUREMENTS': {
             const orgId = payload.orgId || currentShop?.orgId || shopId;
             const res = await updateCustomerMeasurementsAction(payload.customerId, payload.measurements, orgId);
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
           }
 
           case 'UPDATE_CUSTOMER_PROFILE': {
             const orgId = payload.orgId || currentShop?.orgId || shopId;
             const res = await updateCustomerProfileAction(payload.customerId, payload.updates, orgId);
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
           }
 
           case 'ADD_PAYMENT': {
             const res = await addPayment(payload.orderId, payload.amount, payload.note, shopId);
-            return { success: !res || !('error' in res), error: res && 'error' in res ? res.error : undefined };
+            return { success: !res || !('error' in res), error: res && 'error' in res ? String((res as any).error) : undefined };
           }
 
           case 'LOG_STREAK_ACTION': {
@@ -99,9 +113,34 @@ export default function OfflineSyncManager() {
             return { success: true };
         }
       } catch (err: any) {
-        return { success: false, error: err?.message || 'Replay failed' };
+        return { success: false, error: String(err?.message || 'Replay failed') };
       }
     });
+
+    // Also silently drain pending offline photos from IndexedDB
+    try {
+      const pendingPhotos = await getPendingPhotos();
+      if (pendingPhotos.length > 0) {
+        const supabase = createClient();
+        for (const photo of pendingPhotos) {
+          const path = `${photo.folder}/${photo.fileName}`;
+          const { error: uploadErr } = await supabase.storage
+            .from('fabrics')
+            .upload(path, photo.blob, { cacheControl: '3600', upsert: true });
+
+          if (!uploadErr) {
+            const { data: { publicUrl } } = supabase.storage.from('fabrics').getPublicUrl(path);
+            const targetShopId = activeBranchId || currentShop?.id;
+            if (photo.entityId && !photo.entityId.startsWith('offline_') && targetShopId) {
+              await updateOrderAction(photo.entityId, { [photo.field]: publicUrl }, targetShopId).catch(() => {});
+            }
+            await removePendingPhoto(photo.id);
+          }
+        }
+      }
+    } catch {
+      // Background photo sync swallow
+    }
 
     syncingRef.current = false;
     setIsSyncing(false);
