@@ -4,49 +4,16 @@ import { SWRConfig } from 'swr';
 import type { ReactNode } from 'react';
 import { useToast } from '@/contexts/ToastContext';
 import { useRef } from 'react';
+import { createSmartLocalStorageProvider } from '@/lib/offline/swrCache';
 
 /**
- * localStorage-backed SWR cache provider.
+ * Smart localStorage-backed SWR cache provider.
  *
- * INVALIDATION: SWR calls cache.set() on every successful fetch and
- * cache.delete() when a key is removed. Optimistic mutates in DataContext
- * (mutate(newData, { revalidate: false })) write directly into this map,
- * so the localStorage snapshot stays consistent with in-memory state.
- * A subsequent server revalidation overwrites the entry with truth.
+ * Implements bounded LRU eviction, protects core shop bundle data,
+ * and recovers gracefully if browser quota is constrained.
  */
 function localStorageProvider() {
-  if (typeof window === 'undefined') return new Map();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let map: Map<string, any>;
-  try {
-    map = new Map(JSON.parse(localStorage.getItem('mtb-swr-cache') || '[]'));
-  } catch {
-    map = new Map();
-  }
-
-  return {
-    get: (key: string) => map.get(key),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    set: (key: string, value: any) => {
-      map.set(key, value);
-      try {
-        localStorage.setItem('mtb-swr-cache', JSON.stringify(Array.from(map.entries())));
-      } catch {
-        // Storage quota exceeded — silently skip persistence.
-      }
-    },
-    delete: (key: string) => {
-      map.delete(key);
-      try {
-        localStorage.setItem('mtb-swr-cache', JSON.stringify(Array.from(map.entries())));
-      } catch {
-        // Ignored
-      }
-    },
-    keys: () => map.keys(),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  return createSmartLocalStorageProvider();
 }
 
 export default function AppSWRConfig({ children }: { children: ReactNode }) {

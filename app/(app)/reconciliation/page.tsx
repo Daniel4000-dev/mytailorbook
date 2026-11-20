@@ -545,7 +545,6 @@ export default function ShopExpensesPage() {
   return (
     <PageLayout
       width="full"
-      padding="none"
       header={
         <TopBar
           title="Shop Expenses"

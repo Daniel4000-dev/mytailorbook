@@ -139,3 +139,59 @@ export async function removePendingPhoto(id: string): Promise<void> {
   }
 }
 
+/**
+ * Prunes expired or orphaned photos older than maxAgeDays (default 7 days)
+ * to guarantee device storage is never filled indefinitely.
+ */
+export async function pruneExpiredPendingPhotos(maxAgeDays = 7): Promise<number> {
+  try {
+    const db = await getDB();
+    const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+    
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.getAll();
+
+      req.onsuccess = () => {
+        const records = req.result as PendingPhotoRecord[];
+        let pruned = 0;
+        for (const record of records) {
+          const recordTime = new Date(record.clientTimestamp).getTime();
+          if (recordTime < cutoff || record.retryCount >= 5) {
+            store.delete(record.id);
+            pruned++;
+          }
+        }
+        if (pruned > 0) {
+          window.dispatchEvent(new CustomEvent('mtb:pending_photos_updated'));
+        }
+        resolve(pruned);
+      };
+
+      req.onerror = () => reject(req.error);
+    });
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Wipes all pending photos from IndexedDB (utility for cache resets and tests).
+ */
+export async function clearAllPendingPhotos(): Promise<void> {
+  try {
+    const db = await getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.clear();
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch {
+    // Graceful error ignore
+  }
+}
+
+
