@@ -837,127 +837,137 @@ function AtelierCircleContent() {
         )}
       </BottomSheet>
 
-      {/* ── 6. Connect Colleague Modal Sheet ── */}
-      {isConnectModalOpen && (
-        <div
-          className={styles.modalOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsConnectModalOpen(false);
-          }}
-        >
-          <div className={styles.modalSheet} role="dialog" aria-modal="true">
-            <div className={styles.modalHeader}>
-              <div className={styles.modalHeaderTitleBlock}>
-                <h3 className={styles.modalTitle}>Connect with a Colleague</h3>
-                <p className={styles.modalSubtitleText}>
-                  Find peer tailoring workshops by name, @username, or phone number to send a Tailor Circle handshake invitation.
+      {/* ── 6. Connect Colleague Drawer (Mobile BottomSheet / Desktop Modal) ── */}
+      <BottomSheet
+        isOpen={isConnectModalOpen}
+        onClose={() => {
+          setIsConnectModalOpen(false);
+          setSearchQuery('');
+          setSearchResults([]);
+        }}
+        title="Connect with a Colleague"
+        variant="modal"
+        subHeader={
+          <p className={styles.modalSubtitleText}>
+            Find colleagues already using MyStitchBook by shop name, @username, or phone number to send a Handshake request.
+          </p>
+        }
+      >
+        <div className={styles.connectDrawerContent}>
+          <div className={styles.searchBarWrap}>
+            <Symbol name="search" size={16} className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search by shop name, @handle, or phone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
+            />
+            {searchQuery.trim().length > 0 && (
+              <button
+                type="button"
+                className={styles.searchClearBtn}
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+              >
+                <Symbol name="close" size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className={styles.searchResultsList}>
+            {searching ? (
+              <div className={styles.searchLoadingState}>
+                <Symbol name="sync" size={18} className={styles.searchSpinIcon} />
+                <span>Searching tailor directory...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              searchResults.map((colleague) => (
+                <div key={colleague.id} className={styles.colleagueCard}>
+                  <div className={styles.colleagueCardLeft}>
+                    <div className={styles.colleagueAvatar}>
+                      {colleague.logoUrl ? (
+                        <img src={colleague.logoUrl} alt={colleague.name} className={styles.colleagueAvatarImg} />
+                      ) : (
+                        <span>{colleague.name.slice(0, 2).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className={styles.colleagueInfo}>
+                      <span className={styles.colleagueName}>{colleague.name}</span>
+                      <span className={styles.colleagueMeta}>
+                        {colleague.slug ? `@${colleague.slug} · ` : ''}
+                        {colleague.streakCount > 0 ? `${colleague.streakCount}d streak · ` : ''}
+                        <span style={{ color: colleague.tierColor }}>{colleague.tierName}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={styles.colleagueActions}>
+                    {colleague.connectionStatus === 'connected' ? (
+                      <span className={styles.colleagueStatusBadge}>
+                        <Symbol name="check_circle" size={14} />
+                        <span>Connected</span>
+                      </span>
+                    ) : colleague.connectionStatus === 'request_sent' ? (
+                      <button
+                        type="button"
+                        className={styles.colleaguePendingBtn}
+                        disabled={actionLoadingId === colleague.id}
+                        onClick={() =>
+                          colleague.requestId &&
+                          handleCancelCircleRequest(colleague.requestId, colleague.id)
+                        }
+                        title="Tap to cancel pending invitation"
+                      >
+                        <span>{actionLoadingId === colleague.id ? 'Cancelling...' : 'Pending · Cancel'}</span>
+                      </button>
+                    ) : colleague.connectionStatus === 'incoming_request' ? (
+                      <button
+                        type="button"
+                        className={styles.colleagueActionBtn}
+                        disabled={actionLoadingId === colleague.id}
+                        onClick={() =>
+                          colleague.requestId && handleAcceptRequest(colleague.requestId)
+                        }
+                      >
+                        <Symbol name="check" size={14} />
+                        <span>Accept Invite</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.colleagueActionBtn}
+                        disabled={actionLoadingId === colleague.id}
+                        onClick={() => handleSendCircleRequest(colleague)}
+                      >
+                        <Symbol name="handshake" size={14} />
+                        <span>{actionLoadingId === colleague.id ? 'Sending...' : 'Send Request'}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : searchQuery.trim().length >= 2 ? (
+              <p className={styles.searchEmptyText}>
+                No workshops found matching &ldquo;{searchQuery.trim()}&rdquo;.
+              </p>
+            ) : (
+              <div className={styles.searchPromptState}>
+                <div className={styles.searchPromptIconWrap}>
+                  <Symbol name="handshake" size={24} />
+                </div>
+                <p className={styles.searchPromptTitle}>Find Your Tailoring Colleagues</p>
+                <p className={styles.searchEmptyText}>
+                  Type a shop name, @username, or phone number to find colleagues already using MyStitchBook.
                 </p>
               </div>
-              <button
-                className={styles.closeBtn}
-                onClick={() => setIsConnectModalOpen(false)}
-                aria-label="Close"
-              >
-                <Symbol name="close" size={18} />
-              </button>
-            </div>
-
-            <div>
-              <div className={styles.searchBarWrap}>
-                <Symbol name="search" size={16} className={styles.searchIcon} />
-                <input
-                  type="text"
-                  placeholder="Search by shop name, @handle, or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={styles.searchInput}
-                  autoFocus
-                />
-              </div>
-
-              <div className={styles.searchResultsList}>
-                {searching ? (
-                  <p className={styles.searchEmptyText}>Searching tailor directory...</p>
-                ) : searchResults.length > 0 ? (
-                  searchResults.map((colleague) => (
-                    <div key={colleague.id} className={styles.colleagueCard}>
-                      <div className={styles.colleagueCardLeft}>
-                        <div className={styles.colleagueAvatar}>
-                          {colleague.logoUrl ? (
-                            <img src={colleague.logoUrl} alt={colleague.name} className={styles.colleagueAvatarImg} />
-                          ) : (
-                            <span>{colleague.name.slice(0, 2).toUpperCase()}</span>
-                          )}
-                        </div>
-                        <div className={styles.colleagueInfo}>
-                          <span className={styles.colleagueName}>{colleague.name}</span>
-                          <span className={styles.colleagueMeta}>
-                            {colleague.slug ? `@${colleague.slug} · ` : ''}
-                            {colleague.streakCount > 0 ? `${colleague.streakCount}d streak · ` : ''}
-                            <span style={{ color: colleague.tierColor }}>{colleague.tierName}</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className={styles.colleagueActions}>
-                        {colleague.connectionStatus === 'connected' ? (
-                          <span className={styles.colleagueStatusBadge}>
-                            <Symbol name="check_circle" size={14} />
-                            <span>Connected</span>
-                          </span>
-                        ) : colleague.connectionStatus === 'request_sent' ? (
-                          <button
-                            type="button"
-                            className={styles.colleaguePendingBtn}
-                            disabled={actionLoadingId === colleague.id}
-                            onClick={() =>
-                              colleague.requestId &&
-                              handleCancelCircleRequest(colleague.requestId, colleague.id)
-                            }
-                            title="Tap to cancel pending invitation"
-                          >
-                            <span>{actionLoadingId === colleague.id ? 'Cancelling...' : 'Pending · Cancel'}</span>
-                          </button>
-                        ) : colleague.connectionStatus === 'incoming_request' ? (
-                          <button
-                            type="button"
-                            className={styles.colleagueActionBtn}
-                            disabled={actionLoadingId === colleague.id}
-                            onClick={() =>
-                              colleague.requestId && handleAcceptRequest(colleague.requestId)
-                            }
-                          >
-                            <Symbol name="check" size={14} />
-                            <span>Accept Invite</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className={styles.colleagueActionBtn}
-                            disabled={actionLoadingId === colleague.id}
-                            onClick={() => handleSendCircleRequest(colleague)}
-                          >
-                            <Symbol name="handshake" size={14} />
-                            <span>{actionLoadingId === colleague.id ? 'Sending...' : 'Send Request'}</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : searchQuery.trim().length >= 2 ? (
-                  <p className={styles.searchEmptyText}>
-                    No workshops found matching &ldquo;{searchQuery.trim()}&rdquo;.
-                  </p>
-                ) : (
-                  <p className={styles.searchEmptyText}>
-                    Type a shop name, @username, or phone number to find colleagues already using MyStitchBook.
-                  </p>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </BottomSheet>
     </div>
   );
 }
