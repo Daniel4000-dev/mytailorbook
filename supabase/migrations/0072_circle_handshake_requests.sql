@@ -43,3 +43,4 @@ BEGIN
     WHERE id = r.id;
   END LOOP;
 END $$;
+
