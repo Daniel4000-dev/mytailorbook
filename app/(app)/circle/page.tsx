@@ -512,8 +512,14 @@ function AtelierCircleContent() {
         <div className={styles.headerLeft}>
           <button
             className={styles.backBtn}
-            onClick={() => router.push('/dashboard')}
-            aria-label="Back to dashboard"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/dashboard');
+              }
+            }}
+            aria-label="Go back"
           >
             <Symbol name="arrow_back" size={18} />
           </button>

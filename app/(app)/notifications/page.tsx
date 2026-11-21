@@ -150,6 +150,14 @@ export default function NotificationsPage() {
     system: 'System',
   };
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.dashboard);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <TopBar
@@ -162,7 +170,7 @@ export default function NotificationsPage() {
             : 'All caught up'
         }
         showBack={true}
-        onBack={() => router.push(ROUTES.dashboard)}
+        onBack={handleBack}
         rightAction={
           <div className={styles.topActions}>
             {unreadCount > 0 && (

@@ -111,6 +111,14 @@ export default function FabricsPage() {
     return synth;
   }, [customers, cuttingSlipOrder]);
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.dashboard);
+    }
+  };
+
   return (
     <PageLayout
       header={
@@ -118,7 +126,7 @@ export default function FabricsPage() {
           title="Cutting Table"
           subtitle="Client fabrics, cutting slips, and shears queue"
           showBack
-          onBack={() => router.push(ROUTES.dashboard)}
+          onBack={handleBack}
           rightAction={<NotificationBell />}
         />
       }

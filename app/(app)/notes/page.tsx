@@ -439,6 +439,14 @@ export default function WorkshopNotesPage() {
     [inlineCategory]
   );
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.dashboard);
+    }
+  };
+
   return (
     <PageLayout
       width="narrow"
@@ -448,7 +456,7 @@ export default function WorkshopNotesPage() {
           title="Workshop Notes"
           subtitle="Haberdashery shopping, craft reminders & client callbacks"
           showBack
-          onBack={() => router.push(ROUTES.dashboard)}
+          onBack={handleBack}
         />
       }
     >

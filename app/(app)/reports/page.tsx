@@ -105,6 +105,14 @@ export default function ReportsPage() {
     : (totals.collected > 0 ? 100 : 0);
   const showroomShare = totalSegregated > 0 ? 100 - bespokeShare : 0;
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.dashboard);
+    }
+  };
+
   return (
     <PageLayout
       width="full"
@@ -112,7 +120,7 @@ export default function ReportsPage() {
         <TopBar
           title="Sales & Reports"
           showBack={!isDesktop}
-          onBack={() => router.push(ROUTES.dashboard)}
+          onBack={handleBack}
         />
       }
     >
