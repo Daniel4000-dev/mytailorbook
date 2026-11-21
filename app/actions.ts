@@ -1104,7 +1104,8 @@ export async function upsertCustomStyleAction(
   name: string,
   photoUrl?: string,
   measurementFields?: { id: string; label: string }[],
-  gender?: 'male' | 'female'
+  gender?: 'male' | 'female',
+  basePrice?: number
 ): Promise<Shop | { error: string }> {
   const supabase = await createClient();
   const { data: shopRow, error: fetchError } = await supabase
@@ -1114,19 +1115,20 @@ export async function upsertCustomStyleAction(
     .single();
   if (fetchError) return { error: fetchError.message };
 
-  const existing: { name: string; photoUrl?: string; gender?: 'male' | 'female'; measurementFields?: { id: string; label: string }[] }[] =
+  const existing: { name: string; photoUrl?: string; gender?: 'male' | 'female'; basePrice?: number; measurementFields?: { id: string; label: string }[] }[] =
     shopRow?.custom_styles || [];
   const idx = existing.findIndex((s) => s.name.toLowerCase() === name.toLowerCase());
   const next =
     idx === -1
-      ? [...existing, { name, photoUrl, measurementFields, gender }]
+      ? [...existing, { name, photoUrl, measurementFields, gender, basePrice }]
       : existing.map((s, i) =>
           i === idx
             ? {
                 ...s,
                 photoUrl: photoUrl ?? s.photoUrl,
                 measurementFields: measurementFields ?? s.measurementFields,
-                gender: gender ?? s.gender,
+                gender: gender !== undefined ? gender : s.gender,
+                basePrice: basePrice !== undefined ? basePrice : s.basePrice,
               }
             : s
         );

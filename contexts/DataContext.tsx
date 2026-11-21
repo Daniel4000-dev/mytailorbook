@@ -188,7 +188,8 @@ interface DataContextValue {
     name: string,
     photoUrl?: string,
     measurementFields?: { id: string; label: string }[],
-    gender?: 'male' | 'female'
+    gender?: 'male' | 'female',
+    basePrice?: number
   ) => Promise<void>;
   renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
   logException: (type: string, reason?: string, orderId?: string) => Promise<void>;
@@ -970,10 +971,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       name: string,
       photoUrl?: string,
       measurementFields?: { id: string; label: string }[],
-      gender?: 'male' | 'female'
+      gender?: 'male' | 'female',
+      basePrice?: number
     ) => {
       if (!activeBranchId) return;
-      const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields, gender);
+      const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields, gender, basePrice);
       if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate((current) => (current ? { ...current, shop: updated as Shop } : current), { revalidate: false });
     },

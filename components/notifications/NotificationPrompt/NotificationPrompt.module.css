@@ -133,16 +133,18 @@
   padding: 8px 18px;
   border-radius: var(--sf-radius-md);
   border: none;
-  background: var(--sf-text-primary);
-  color: var(--sf-bg-primary);
+  background: var(--sf-brand-primary, #4338CA);
+  color: var(--sf-text-on-accent, #FFFFFF);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity var(--sf-transition-fast), transform 100ms ease;
+  box-shadow: 0 2px 8px -1px rgba(67, 56, 202, 0.35);
+  transition: background-color var(--sf-transition-fast), transform 100ms ease, box-shadow var(--sf-transition-fast);
 }
 
 .enableBtn:hover {
-  opacity: 0.92;
+  background: var(--sf-brand-primary-hover, #3730A3);
+  box-shadow: 0 4px 12px -1px rgba(67, 56, 202, 0.45);
 }
 
 .enableBtn:active {

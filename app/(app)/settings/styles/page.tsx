@@ -18,7 +18,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import CustomStyleFieldBuilder from '@/components/orders/CustomStyleFieldBuilder/CustomStyleFieldBuilder';
 import GarmentSilhouette from '@/components/ui/GarmentSilhouette/GarmentSilhouette';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getCurrencySymbol, getShopCurrency } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -37,11 +37,15 @@ export default function CustomStylesSettingsPage() {
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
 
+  const currencyCode = getShopCurrency(currentShop);
+  const currencySymbol = getCurrencySymbol(currencyCode);
+
   const shopStyles = currentShop?.customStyles || [];
   const displayStyles: CustomStyle[] = shopStyles;
 
   const [activeStyle, setActiveStyle] = useState<CustomStyle | null>(null);
   const [editName, setEditName] = useState('');
+  const [editPrice, setEditPrice] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [editingFields, setEditingFields] = useState(false);
@@ -51,22 +55,26 @@ export default function CustomStylesSettingsPage() {
   // Direct style creation
   const [isCreatingStyle, setIsCreatingStyle] = useState(false);
   const [newStyleName, setNewStyleName] = useState('');
+  const [newStylePrice, setNewStylePrice] = useState('');
   const [newStyleGender, setNewStyleGender] = useState<'male' | 'female' | undefined>(undefined);
   const [creatingStyle, setCreatingStyle] = useState(false);
 
   const handleCreateStyle = async () => {
     if (!newStyleName.trim()) return;
     setCreatingStyle(true);
+    const parsedBasePrice = newStylePrice.trim() ? Math.max(0, parseFloat(newStylePrice)) : undefined;
     try {
-      await upsertCustomStyle(newStyleName.trim(), undefined, undefined, newStyleGender);
+      await upsertCustomStyle(newStyleName.trim(), undefined, undefined, newStyleGender, parsedBasePrice);
       showToast('Signature style added to catalog', 'success');
       const createdStyle: CustomStyle = {
         name: newStyleName.trim(),
         gender: newStyleGender,
+        basePrice: parsedBasePrice,
         measurementFields: [],
       };
       setIsCreatingStyle(false);
       setNewStyleName('');
+      setNewStylePrice('');
       setNewStyleGender(undefined);
       openStyleSheet(createdStyle);
     } catch (err) {
@@ -79,17 +87,34 @@ export default function CustomStylesSettingsPage() {
   const openStyleSheet = (style: CustomStyle) => {
     setActiveStyle(style);
     setEditName(style.name);
+    setEditPrice(style.basePrice !== undefined && style.basePrice !== null ? String(style.basePrice) : '');
   };
 
-  const handleSaveRename = async () => {
-    if (!activeStyle || !editName.trim() || editName.trim() === activeStyle.name) return;
+  const handleSaveDetails = async () => {
+    if (!activeStyle) return;
+    const trimmedName = editName.trim();
+    if (!trimmedName) return;
+
     setSaving(true);
     try {
-      await renameCustomStyle(activeStyle.name, editName.trim());
-      showToast('Style renamed - updated across customer preferences', 'success');
+      const parsedBasePrice = editPrice.trim() ? Math.max(0, parseFloat(editPrice)) : undefined;
+
+      if (trimmedName !== activeStyle.name) {
+        await renameCustomStyle(activeStyle.name, trimmedName);
+      }
+
+      await upsertCustomStyle(
+        trimmedName,
+        activeStyle.photoUrl,
+        activeStyle.measurementFields,
+        activeStyle.gender,
+        parsedBasePrice
+      );
+
+      showToast('Style updated successfully', 'success');
       setActiveStyle(null);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not rename style', 'error');
+      showToast(err instanceof Error ? err.message : 'Could not update style', 'error');
     } finally {
       setSaving(false);
     }
@@ -120,7 +145,8 @@ export default function CustomStylesSettingsPage() {
       if (uploadError) throw new Error(uploadError.message);
       const photoUrl = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
 
-      await upsertCustomStyle(activeStyle.name, photoUrl, activeStyle.measurementFields);
+      const parsedBasePrice = editPrice.trim() ? Math.max(0, parseFloat(editPrice)) : activeStyle.basePrice;
+      await upsertCustomStyle(activeStyle.name, photoUrl, activeStyle.measurementFields, activeStyle.gender, parsedBasePrice);
       setActiveStyle((prev) => (prev ? { ...prev, photoUrl } : prev));
       showToast('Style photo saved', 'success');
     } catch (err) {
@@ -136,7 +162,8 @@ export default function CustomStylesSettingsPage() {
     const next = gender === activeStyle.gender ? undefined : gender;
     setSaving(true);
     try {
-      await upsertCustomStyle(activeStyle.name, activeStyle.photoUrl, activeStyle.measurementFields, next);
+      const parsedBasePrice = editPrice.trim() ? Math.max(0, parseFloat(editPrice)) : activeStyle.basePrice;
+      await upsertCustomStyle(activeStyle.name, activeStyle.photoUrl, activeStyle.measurementFields, next, parsedBasePrice);
       setActiveStyle((prev) => (prev ? { ...prev, gender: next } : prev));
       showToast('Style updated', 'success');
     } catch (err) {
@@ -149,12 +176,21 @@ export default function CustomStylesSettingsPage() {
   const handleSaveFields = async (fields: { id: string; label: string }[]) => {
     if (!activeStyle) return;
     try {
-      await upsertCustomStyle(activeStyle.name, activeStyle.photoUrl, fields);
+      const parsedBasePrice = editPrice.trim() ? Math.max(0, parseFloat(editPrice)) : activeStyle.basePrice;
+      await upsertCustomStyle(activeStyle.name, activeStyle.photoUrl, fields, activeStyle.gender, parsedBasePrice);
       showToast('Measurement fields saved', 'success');
       setEditingFields(false);
       setActiveStyle(null);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Could not save fields', 'error');
+    }
+  };
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.settings);
     }
   };
 
@@ -165,7 +201,7 @@ export default function CustomStylesSettingsPage() {
         <TopBar
           title="Garment Styles & Prices"
           showBack={!isDesktop}
-          onBack={() => router.push(ROUTES.settings)}
+          onBack={handleBack}
           rightAction={
             <Button variant="primary" size="sm" onClick={() => setIsCreatingStyle(true)}>
               + New Style
@@ -201,7 +237,7 @@ export default function CustomStylesSettingsPage() {
                   )}
                   {s.basePrice ? (
                     <span className={styles.priceTag}>
-                      {formatCurrency(s.basePrice, currentShop?.currency)}
+                      {formatCurrency(s.basePrice, currencyCode)}
                     </span>
                   ) : (
                     <span className={styles.priceTag}>Bespoke</span>
@@ -239,8 +275,15 @@ export default function CustomStylesSettingsPage() {
             placeholder="e.g. 3-Piece Agbada, Kaftan Suit, Corset Dress"
             autoFocus
           />
+          <Input
+            label={`Base Starting Price (${currencySymbol})`}
+            type="number"
+            value={newStylePrice}
+            onChange={(e) => setNewStylePrice(e.target.value)}
+            placeholder="e.g. 35000 (optional)"
+          />
           <p className={styles.hintText}>
-            This style will immediately be available for selection on new orders and client measurements.
+            Pre-fills sewing price when selecting this style on new orders. Leave blank for bespoke quotes.
           </p>
           <div className={styles.genderRow} role="radiogroup" aria-label="Gender">
             {(['male', 'female'] as const).map((g) => (
@@ -296,8 +339,15 @@ export default function CustomStylesSettingsPage() {
             {activeStyle?.photoUrl ? 'Change Photo' : 'Upload Style Photo'}
           </Button>
           <Input label="Style Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+          <Input
+            label={`Base Starting Price (${currencySymbol})`}
+            type="number"
+            value={editPrice}
+            onChange={(e) => setEditPrice(e.target.value)}
+            placeholder="e.g. 35000 (leave blank for bespoke quote)"
+          />
           <p className={styles.hintText}>
-            Renaming updates every customer who already has this as a preferred style.
+            Suggested sewing price. Pre-fills automatically when selecting this style on new orders.
           </p>
           <div className={styles.genderRow} role="radiogroup" aria-label="Gender">
             {(['male', 'female'] as const).map((g) => (
@@ -318,7 +368,7 @@ export default function CustomStylesSettingsPage() {
           </p>
           <div className={styles.sheetActions}>
             <Button variant="ghost" onClick={() => setActiveStyle(null)}>Cancel</Button>
-            <Button variant="primary" loading={saving} onClick={handleSaveRename}>Save Name</Button>
+            <Button variant="primary" loading={saving} onClick={handleSaveDetails}>Save Changes</Button>
           </div>
           <Button variant="secondary" onClick={() => setEditingFields(true)}>
             {activeStyle?.measurementFields?.length

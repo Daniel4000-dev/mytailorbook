@@ -317,13 +317,15 @@ export default function NewOrderWizard() {
       const next: UnitDraft[] = [];
       for (const s of basket) {
         const existing = prev.filter((u) => u.styleName === s.name);
+        const customStyle = allCustomStyles.find((cs) => cs.name.toLowerCase() === s.name.toLowerCase());
+        const suggestedBill = customStyle?.basePrice ? String(customStyle.basePrice) : '';
         for (let i = 0; i < s.count; i++) {
           next.push(
             existing[i] || {
               key: `${s.name}-${crypto.randomUUID()}`,
               styleName: s.name,
               details: s.name,
-              totalBill: '',
+              totalBill: suggestedBill,
               depositPaid: '',
               dueDate: '',
               assignedTo: '',

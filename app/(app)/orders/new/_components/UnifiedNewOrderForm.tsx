@@ -430,9 +430,16 @@ export default function UnifiedNewOrderForm() {
     const spec = getSpecPointsForStyle(finalStyle);
     const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
     const isComplete = spec.length > 0 && filledCount === spec.length;
+
+    // Auto-fill price with configured base price if price is currently empty
+    const customMatch = currentShop?.customStyles?.find((cs) => cs.name.toLowerCase() === finalStyle.toLowerCase());
+    const shouldPreFillPrice = (!current?.price || current.price.trim() === '') && customMatch?.basePrice !== undefined;
+    const finalPrice = shouldPreFillPrice ? String(customMatch!.basePrice) : current?.price || '';
+
     updateGarment(garmentId, {
       styleName: finalStyle,
       isCustomStyle: finalIsCustom,
+      price: finalPrice,
       measures,
       isFitLoaded,
       measurementNotes: notes,
