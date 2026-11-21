@@ -7,15 +7,31 @@ import { isXpSystemEnabled } from '@/lib/xp';
 import { createAtelierNotification } from '@/lib/notifications';
 import { getShopNotificationPreferences } from '@/lib/notificationPreferences';
 
+export interface GuildProfile {
+  country?: string;
+  countryCode?: string;
+  city?: string;
+  neighborhood?: string;
+  specialties?: string[];
+  machines?: string[];
+  overflowStatus?: 'open' | 'balanced' | 'booked';
+  whatsappPhone?: string;
+  isDiscoverable?: boolean;
+}
+
 export interface CircleBuddy {
   id: string;
   name: string;
   slug?: string;
   logoUrl?: string;
   phone?: string;
+  country?: string;
   city?: string;
+  neighborhood?: string;
   address?: string;
   specialties?: string[];
+  machines?: string[];
+  overflowStatus?: 'open' | 'balanced' | 'booked';
   streakCount: number;
   tierName: string;
   tierColor: string;
@@ -82,8 +98,13 @@ export interface SearchedColleague {
   slug?: string;
   logoUrl?: string;
   phone?: string;
+  country?: string;
   city?: string;
+  neighborhood?: string;
   address?: string;
+  specialties?: string[];
+  machines?: string[];
+  overflowStatus?: 'open' | 'balanced' | 'booked';
   tierName: string;
   tierColor: string;
   streakCount: number;
@@ -102,6 +123,8 @@ export interface CircleHubData {
     tierName: string;
     tierColor: string;
     status: 'active' | 'sabbatical';
+    country?: string;
+    guildProfile?: GuildProfile;
   };
   benefits: CircleBenefitsTier;
   buddies: CircleBuddy[];
@@ -131,13 +154,21 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
 
     const { data: currentShop } = await admin
       .from('shops')
-      .select('id, name, slug, phone, address, logo_url, referral_code, xp, streak_current, buddy_shop_id, buddy_streak_count, buddy_last_active_at, last_rest_day_date, custom_styles, vacation_mode')
+      .select('id, name, slug, phone, address, country, country_code, logo_url, referral_code, xp, streak_current, buddy_shop_id, buddy_streak_count, buddy_last_active_at, last_rest_day_date, custom_styles, vacation_mode, portfolio_settings')
       .eq('id', profile.shop_id)
       .single();
 
     if (!currentShop) {
       return { error: 'Workshop record unavailable' };
     }
+
+    // Extract structured Guild Profile
+    const currentGuild = ((currentShop.portfolio_settings as any)?.guild_profile || {}) as GuildProfile;
+    const currentCountry = currentGuild.country || currentShop.country || 'Nigeria';
+    const currentCity = currentGuild.city;
+    const currentNeighborhood = currentGuild.neighborhood;
+    const currentMachines = currentGuild.machines || [];
+    const currentOverflow = currentGuild.overflowStatus || 'balanced';
 
     // Ensure shop has a clean unique referral code
     let referralCode = currentShop.referral_code;
@@ -150,9 +181,11 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
     const currentShopXp = currentShop.xp || 0;
     const currentTier = getTierForXp(currentShopXp);
 
-    const specialties = Array.isArray(currentShop.custom_styles)
-      ? currentShop.custom_styles.map((s: any) => s.name).slice(0, 3)
-      : ['Bespoke Tailoring', 'Senator', 'Kaftan'];
+    const specialties = (currentGuild.specialties && currentGuild.specialties.length > 0)
+      ? currentGuild.specialties
+      : Array.isArray(currentShop.custom_styles)
+        ? currentShop.custom_styles.map((s: any) => s.name).slice(0, 3)
+        : ['Bespoke Tailoring', 'Senator', 'Kaftan'];
 
     const buddies: CircleBuddy[] = [
       {
@@ -160,9 +193,14 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
         name: currentShop.name || 'Your Workshop',
         slug: currentShop.slug || undefined,
         logoUrl: currentShop.logo_url || undefined,
-        phone: currentShop.phone || undefined,
+        phone: currentGuild.whatsappPhone || currentShop.phone || undefined,
+        country: currentCountry,
+        city: currentCity,
+        neighborhood: currentNeighborhood,
         address: currentShop.address || undefined,
         specialties,
+        machines: currentMachines,
+        overflowStatus: currentOverflow,
         streakCount: currentShop.streak_current || 0,
         tierName: currentTier.name,
         tierColor: currentTier.color,
@@ -208,7 +246,7 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
       const buddyUids = linkedShopIds.map((l) => l.buddyId);
       const { data: buddyShops } = await admin
         .from('shops')
-        .select('id, name, slug, phone, address, logo_url, streak_current, xp, streak_last_counted_at, last_rest_day_date, custom_styles, vacation_mode')
+        .select('id, name, slug, phone, address, country, country_code, logo_url, streak_current, xp, streak_last_counted_at, last_rest_day_date, custom_styles, vacation_mode, portfolio_settings')
         .in('id', buddyUids);
 
       if (buddyShops) {
@@ -217,6 +255,13 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
           const linkMeta = linkedShopIds.find((l) => l.buddyId === bShop.id);
           const buddyXp = bShop.xp || 0;
           const bTier = getTierForXp(buddyXp);
+
+          const bGuild = ((bShop.portfolio_settings as any)?.guild_profile || {}) as GuildProfile;
+          const bCountry = bGuild.country || bShop.country || 'Nigeria';
+          const bCity = bGuild.city;
+          const bNeighborhood = bGuild.neighborhood;
+          const bMachines = bGuild.machines || [];
+          const bOverflow = bGuild.overflowStatus || 'balanced';
 
           // Compute dormancy (if not active in > 5 days and not on sabbatical)
           let status: 'active' | 'sabbatical' | 'dormant' = linkMeta?.status || 'active';
@@ -230,18 +275,25 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
             }
           }
 
-          const bSpecialties = Array.isArray(bShop.custom_styles)
-            ? bShop.custom_styles.map((s: any) => s.name).slice(0, 3)
-            : ['Bespoke Cut', 'Kaftan', 'Agbada'];
+          const bSpecialties = (bGuild.specialties && bGuild.specialties.length > 0)
+            ? bGuild.specialties
+            : Array.isArray(bShop.custom_styles)
+              ? bShop.custom_styles.map((s: any) => s.name).slice(0, 3)
+              : ['Bespoke Cut', 'Kaftan', 'Agbada'];
 
           buddies.push({
             id: bShop.id,
             name: bShop.name,
             slug: bShop.slug || undefined,
             logoUrl: bShop.logo_url || undefined,
-            phone: bShop.phone || undefined,
+            phone: bGuild.whatsappPhone || bShop.phone || undefined,
+            country: bCountry,
+            city: bCity,
+            neighborhood: bNeighborhood,
             address: bShop.address || undefined,
             specialties: bSpecialties,
+            machines: bMachines,
+            overflowStatus: bOverflow,
             streakCount: bShop.streak_current || currentShop.buddy_streak_count || 0,
             tierName: bTier.name,
             tierColor: bTier.color,
@@ -460,6 +512,8 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
           tierName: currentTier.name,
           tierColor: currentTier.color,
           status: currentShop.vacation_mode ? 'sabbatical' : 'active',
+          country: currentCountry,
+          guildProfile: currentGuild,
         },
         benefits,
         buddies,
@@ -652,7 +706,74 @@ function formatTimeAgo(dateString: string): string {
   return `${diffDays}d ago`;
 }
 
-export async function searchColleaguesAction(query: string): Promise<{ data: SearchedColleague[]; error?: string }> {
+export async function saveGuildProfileAction(
+  profileData: GuildProfile
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'Workshop not found' };
+
+    const { data: shop } = await admin
+      .from('shops')
+      .select('id, portfolio_settings, country, phone, address')
+      .eq('id', profile.shop_id)
+      .single();
+
+    if (!shop) return { error: 'Shop not found' };
+
+    const existingPortfolio = (shop.portfolio_settings as Record<string, unknown>) || {};
+    const updatedPortfolio = {
+      ...existingPortfolio,
+      guild_profile: {
+        ...((existingPortfolio.guild_profile as Record<string, unknown>) || {}),
+        ...profileData,
+      },
+    };
+
+    const shopUpdates: Record<string, unknown> = {
+      portfolio_settings: updatedPortfolio,
+    };
+
+    if (profileData.country) {
+      shopUpdates.country = profileData.country;
+    }
+    if (profileData.countryCode) {
+      shopUpdates.country_code = profileData.countryCode;
+    }
+    if (profileData.whatsappPhone) {
+      shopUpdates.phone = profileData.whatsappPhone;
+    }
+    if (profileData.city || profileData.neighborhood) {
+      const parts = [profileData.neighborhood, profileData.city, profileData.country].filter(Boolean);
+      if (parts.length > 0 && !shop.address) {
+        shopUpdates.address = parts.join(', ');
+      }
+    }
+    if (typeof profileData.isDiscoverable === 'boolean') {
+      shopUpdates.directory_discoverable = profileData.isDiscoverable;
+    }
+
+    const { error: updateErr } = await admin
+      .from('shops')
+      .update(shopUpdates)
+      .eq('id', profile.shop_id);
+
+    if (updateErr) return { error: updateErr.message };
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to save guild profile' };
+  }
+}
+
+export async function searchColleaguesAction(
+  query: string,
+  filterCountry?: string
+): Promise<{ data: SearchedColleague[]; error?: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -665,12 +786,21 @@ export async function searchColleaguesAction(query: string): Promise<{ data: Sea
     const clean = query.trim().replace(/^@/, '');
     if (clean.length < 2) return { data: [] };
 
+    const { data: myShop } = await admin
+      .from('shops')
+      .select('country, portfolio_settings')
+      .eq('id', profile.shop_id)
+      .single();
+
+    const myGuild = ((myShop?.portfolio_settings as any)?.guild_profile || {}) as GuildProfile;
+    const targetCountry = filterCountry !== undefined ? filterCountry : (myGuild.country || myShop?.country || 'Nigeria');
+
     const { data: shops, error: shopsErr } = await admin
       .from('shops')
-      .select('id, name, slug, phone, address, logo_url, xp, streak_current, directory_discoverable')
+      .select('id, name, slug, phone, address, country, country_code, logo_url, xp, streak_current, directory_discoverable, portfolio_settings')
       .neq('id', profile.shop_id)
-      .or(`name.ilike.%${clean}%,slug.ilike.%${clean}%,phone.ilike.%${clean}%`)
-      .limit(10);
+      .or(`name.ilike.%${clean}%,slug.ilike.%${clean}%,phone.ilike.%${clean}%,address.ilike.%${clean}%`)
+      .limit(30);
 
     if (shopsErr || !shops) return { data: [] };
 
@@ -691,6 +821,16 @@ export async function searchColleaguesAction(query: string): Promise<{ data: Sea
     const results: SearchedColleague[] = [];
     for (const s of shops) {
       if (s.directory_discoverable === false) continue;
+      const sGuild = ((s.portfolio_settings as any)?.guild_profile || {}) as GuildProfile;
+      if (sGuild.isDiscoverable === false) continue;
+
+      const sCountry = sGuild.country || s.country || 'Nigeria';
+
+      // Geographic filtering: keep colleagues in the selected/current country
+      if (targetCountry && targetCountry !== 'All' && sCountry.toLowerCase() !== targetCountry.toLowerCase()) {
+        continue;
+      }
+
       const tier = getTierForXp(s.xp || 0);
 
       let connectionStatus: SearchedColleague['connectionStatus'] = 'can_connect';
@@ -715,8 +855,14 @@ export async function searchColleaguesAction(query: string): Promise<{ data: Sea
         name: s.name,
         slug: s.slug || undefined,
         logoUrl: s.logo_url || undefined,
-        phone: s.phone || undefined,
+        phone: sGuild.whatsappPhone || s.phone || undefined,
+        country: sCountry,
+        city: sGuild.city,
+        neighborhood: sGuild.neighborhood,
         address: s.address || undefined,
+        specialties: sGuild.specialties || [],
+        machines: sGuild.machines || [],
+        overflowStatus: sGuild.overflowStatus || 'balanced',
         tierName: tier.name,
         tierColor: tier.color,
         streakCount: s.streak_current || 0,

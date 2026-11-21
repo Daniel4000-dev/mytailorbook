@@ -10,6 +10,7 @@ import { getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
+import { COUNTRIES } from '@/components/ui/PhoneInput/countries';
 import {
   getCircleHubDataAction,
   linkStudioBuddyAction,
@@ -21,14 +22,38 @@ import {
   acceptCircleRequestAction,
   declineCircleRequestAction,
   cancelCircleRequestAction,
+  saveGuildProfileAction,
   type CircleHubData,
   type CircleBuddy,
   type PulseActivity,
   type SearchedColleague,
   type CircleRequest,
+  type GuildProfile,
 } from '@/app/actions/circle';
 
 type CategoryFilter = 'all' | 'fulfillment' | 'production' | 'milestone';
+
+const COMMON_MACHINES = [
+  'Industrial Buttonholer',
+  '5-Thread Overlocker',
+  'Computerized Embroidery',
+  'Steam Boiler Iron',
+  'Heavy Leather Walking Foot',
+  'Blind Hemmer',
+  'Fabric Pleating Press',
+  'Coverstitch Machine',
+  'Eyelet Puncher',
+];
+
+const COMMON_SPECIALTIES = [
+  'Kaftan & Agbada',
+  'Bespoke Canvas Suits',
+  'Senator & Safari Sets',
+  'Corsetry & Bridal Gowns',
+  'Traditional Native & Aso-Ebi',
+  'Blazers & Trousers',
+  'Caps, Fila & Embroidery',
+];
 
 interface SaluteState {
   flame: number;
@@ -53,6 +78,18 @@ function AtelierCircleContent() {
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [salutes, setSalutes] = useState<Record<string, SaluteState>>({});
 
+  // Guild Craft Card Modal state
+  const [isGuildCardOpen, setIsGuildCardOpen] = useState(false);
+  const [draftCountry, setDraftCountry] = useState('Nigeria');
+  const [draftCity, setDraftCity] = useState('');
+  const [draftNeighborhood, setDraftNeighborhood] = useState('');
+  const [draftMachines, setDraftMachines] = useState<string[]>([]);
+  const [draftSpecialties, setDraftSpecialties] = useState<string[]>([]);
+  const [draftOverflow, setDraftOverflow] = useState<'open' | 'balanced' | 'booked'>('open');
+  const [draftWhatsappPhone, setDraftWhatsappPhone] = useState('');
+  const [savingGuildCard, setSavingGuildCard] = useState(false);
+  const [searchCountryFilter, setSearchCountryFilter] = useState('Nigeria');
+
   // Interactive Buddy Profile BottomSheet state
   const [selectedBuddy, setSelectedBuddy] = useState<CircleBuddy | null>(null);
   const [nudging, setNudging] = useState(false);
@@ -69,6 +106,9 @@ function AtelierCircleContent() {
     const res = await getCircleHubDataAction();
     if (res.data) {
       setData(res.data);
+      if (res.data.myShop.country) {
+        setSearchCountryFilter(res.data.myShop.country);
+      }
       const initialSalutes: Record<string, SaluteState> = {};
       for (const p of res.data.pulses) {
         initialSalutes[p.id] = {
@@ -180,6 +220,58 @@ function AtelierCircleContent() {
     }
   };
 
+  const handleOpenGuildCard = () => {
+    const profile = data?.myShop.guildProfile;
+    setDraftCountry(profile?.country || data?.myShop.country || 'Nigeria');
+    setDraftCity(profile?.city || '');
+    setDraftNeighborhood(profile?.neighborhood || '');
+    setDraftMachines(profile?.machines || []);
+    setDraftSpecialties(profile?.specialties || []);
+    setDraftOverflow(profile?.overflowStatus || 'open');
+    setDraftWhatsappPhone(profile?.whatsappPhone || '');
+    setIsGuildCardOpen(true);
+  };
+
+  const handleToggleMachine = (mach: string) => {
+    setDraftMachines((prev) =>
+      prev.includes(mach) ? prev.filter((m) => m !== mach) : [...prev, mach]
+    );
+  };
+
+  const handleToggleSpecialty = (spec: string) => {
+    setDraftSpecialties((prev) =>
+      prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]
+    );
+  };
+
+  const handleSaveGuildCard = async () => {
+    setSavingGuildCard(true);
+    try {
+      const res = await saveGuildProfileAction({
+        country: draftCountry,
+        city: draftCity.trim() || undefined,
+        neighborhood: draftNeighborhood.trim() || undefined,
+        machines: draftMachines,
+        specialties: draftSpecialties,
+        overflowStatus: draftOverflow,
+        whatsappPhone: draftWhatsappPhone.trim() || undefined,
+        isDiscoverable: true,
+      });
+
+      if (res.success) {
+        showToast('Guild Craft Card updated successfully!', 'success');
+        setIsGuildCardOpen(false);
+        await loadData();
+      } else {
+        showToast(res.error || 'Failed to update Guild Card', 'error');
+      }
+    } catch {
+      showToast('Error saving Guild Card', 'error');
+    } finally {
+      setSavingGuildCard(false);
+    }
+  };
+
   // Search colleague workshops with 300ms debounce
   useEffect(() => {
     if (!isConnectModalOpen) return;
@@ -193,7 +285,7 @@ function AtelierCircleContent() {
     setSearching(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await searchColleaguesAction(clean);
+        const res = await searchColleaguesAction(clean, searchCountryFilter);
         if (res.data) {
           setSearchResults(res.data);
         }
@@ -205,7 +297,7 @@ function AtelierCircleContent() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, isConnectModalOpen]);
+  }, [searchQuery, searchCountryFilter, isConnectModalOpen]);
 
   const handleSendCircleRequest = async (colleague: SearchedColleague) => {
     setActionLoadingId(colleague.id);
@@ -326,6 +418,69 @@ function AtelierCircleContent() {
       </header>
 
       <div className={styles.content}>
+        {/* ── My Workshop Guild Card Banner ── */}
+        {data?.myShop && (
+          <section className={styles.guildCardBanner}>
+            <div className={styles.guildCardHeader}>
+              <div className={styles.guildCardIdentity}>
+                <Symbol name="workspace_premium" size={18} />
+                <span className={styles.guildCardTitle}>Your Workshop Guild Card</span>
+              </div>
+              <button
+                type="button"
+                className={styles.guildCardEditBtn}
+                onClick={handleOpenGuildCard}
+              >
+                <Symbol name="edit" size={13} />
+                <span>
+                  {data.myShop.guildProfile?.city || (data.myShop.guildProfile?.machines?.length || 0) > 0
+                    ? 'Edit Guild Card'
+                    : 'Setup Guild Card'}
+                </span>
+              </button>
+            </div>
+
+            <div className={styles.guildCardMeta}>
+              <div className={styles.guildCardLoc}>
+                <Symbol name="location_on" size={15} />
+                <span>
+                  {data.myShop.guildProfile?.neighborhood
+                    ? `${data.myShop.guildProfile.neighborhood}, `
+                    : ''}
+                  {data.myShop.guildProfile?.city ? `${data.myShop.guildProfile.city}, ` : ''}
+                  {data.myShop.guildProfile?.country || data.myShop.country || 'Location not set — tap to add your city'}
+                </span>
+              </div>
+              <span
+                className={`${styles.overflowBadge} ${
+                  styles['overflow_' + (data.myShop.guildProfile?.overflowStatus || 'open')]
+                }`}
+              >
+                {data.myShop.guildProfile?.overflowStatus === 'booked'
+                  ? 'Fully Booked'
+                  : data.myShop.guildProfile?.overflowStatus === 'balanced'
+                  ? 'Balanced Capacity'
+                  : 'Open for Overflow Work'}
+              </span>
+            </div>
+
+            {(data.myShop.guildProfile?.machines?.length || 0) > 0 ? (
+              <div className={styles.guildCardPillsRow}>
+                {data.myShop.guildProfile?.machines?.map((m) => (
+                  <span key={m} className={styles.guildMachinePill}>
+                    <Symbol name="precision_manufacturing" size={12} />
+                    <span>{m}</span>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: '12px', color: 'var(--sf-text-tertiary)', marginTop: '2px' }}>
+                No industrial machines listed yet. Tap <strong>Setup Guild Card</strong> to add your buttonholer, serger, or embroidery equipment so colleagues can find you.
+              </div>
+            )}
+          </section>
+        )}
+
         {/* ── Pending Circle Handshake Invitations Banner ── */}
         {data?.incomingRequests && data.incomingRequests.length > 0 && (
           <section className={styles.incomingSection}>
@@ -720,14 +875,46 @@ function AtelierCircleContent() {
                   </h3>
                   <Symbol name="check_circle" size={15} style={{ color: 'var(--sf-brand-indigo, #4338ca)' }} />
                 </div>
-                {(selectedBuddy.city || selectedBuddy.address) && (
-                  <span className={styles.profileLocation}>
-                    <Symbol name="location_on" size={13} />
-                    <span>{selectedBuddy.city || selectedBuddy.address}</span>
+                <span className={styles.profileLocation}>
+                  <Symbol name="location_on" size={13} />
+                  <span>
+                    {selectedBuddy.neighborhood ? `${selectedBuddy.neighborhood}, ` : ''}
+                    {selectedBuddy.city ? `${selectedBuddy.city}, ` : ''}
+                    {selectedBuddy.country || selectedBuddy.address || 'Location on file'}
                   </span>
-                )}
+                </span>
               </div>
             </div>
+
+            {/* Capacity Status & Machine Showcase */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '10px 14px', background: 'var(--sf-bg-surface-elevated, #f8fafc)', borderRadius: '8px', border: '1px solid var(--sf-border-light, #e2e8f0)', margin: '12px 0' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--sf-text-secondary)' }}>
+                Capacity Status
+              </div>
+              <span className={`${styles.overflowBadge} ${styles['overflow_' + (selectedBuddy.overflowStatus || 'balanced')]}`}>
+                {selectedBuddy.overflowStatus === 'open'
+                  ? 'Open for Overflow Work'
+                  : selectedBuddy.overflowStatus === 'booked'
+                  ? 'Fully Booked'
+                  : 'Balanced'}
+              </span>
+            </div>
+
+            {(selectedBuddy.machines?.length || 0) > 0 && (
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--sf-text-secondary)', marginBottom: '6px' }}>
+                  In-House Industrial Machines:
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {selectedBuddy.machines?.map((m) => (
+                    <span key={m} className={styles.guildMachinePill}>
+                      <Symbol name="precision_manufacturing" size={12} />
+                      <span>{m}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Specialties Tags */}
             {selectedBuddy.specialties && selectedBuddy.specialties.length > 0 && (
@@ -878,6 +1065,23 @@ function AtelierCircleContent() {
             )}
           </div>
 
+          {/* Country Filter Strip */}
+          <div className={styles.countryFilterRow}>
+            <span style={{ fontSize: '12px', color: 'var(--sf-text-secondary)', fontWeight: 600 }}>Country:</span>
+            <select
+              value={searchCountryFilter}
+              onChange={(e) => setSearchCountryFilter(e.target.value)}
+              className={styles.countryFilterSelect}
+            >
+              <option value="All">All Countries</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.name}>
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className={styles.searchResultsList}>
             {searching ? (
               <div className={styles.searchLoadingState}>
@@ -902,6 +1106,27 @@ function AtelierCircleContent() {
                         {colleague.streakCount > 0 ? `${colleague.streakCount}d streak · ` : ''}
                         <span style={{ color: colleague.tierColor }}>{colleague.tierName}</span>
                       </span>
+                      <div className={styles.colleagueDetailTags}>
+                        <span className={styles.colleagueLocationTag}>
+                          <Symbol name="location_on" size={11} />
+                          <span>
+                            {colleague.city
+                              ? `${colleague.neighborhood ? colleague.neighborhood + ', ' : ''}${colleague.city}`
+                              : colleague.country || 'Location on file'}
+                          </span>
+                        </span>
+                        {colleague.overflowStatus === 'open' && (
+                          <span className={`${styles.overflowBadge} ${styles.overflow_open}`} style={{ padding: '1px 6px', fontSize: '10px' }}>
+                            Open for Work
+                          </span>
+                        )}
+                        {colleague.machines && colleague.machines.length > 0 && (
+                          <span className={styles.colleagueMachineTag}>
+                            {colleague.machines[0]}
+                            {colleague.machines.length > 1 ? ` +${colleague.machines.length - 1}` : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -952,7 +1177,7 @@ function AtelierCircleContent() {
               ))
             ) : searchQuery.trim().length >= 2 ? (
               <p className={styles.searchEmptyText}>
-                No workshops found matching &ldquo;{searchQuery.trim()}&rdquo;.
+                No workshops found matching &ldquo;{searchQuery.trim()}&rdquo; in {searchCountryFilter}.
               </p>
             ) : (
               <div className={styles.searchPromptState}>
@@ -966,6 +1191,183 @@ function AtelierCircleContent() {
               </div>
             )}
           </div>
+        </div>
+      </BottomSheet>
+
+      {/* ── 7. Guild Craft Card Editor Drawer ── */}
+      <BottomSheet
+        isOpen={isGuildCardOpen}
+        onClose={() => setIsGuildCardOpen(false)}
+        title="My Guild Craft Card"
+        variant="modal"
+        subHeader={
+          <p className={styles.modalSubtitleText}>
+            Colleagues in your country see these details when searching for work partners and equipment.
+          </p>
+        }
+      >
+        <div className={styles.guildEditorForm}>
+          {/* Location Section */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildFormLabel}>Workshop Country</label>
+            <span className={styles.guildFormSub}>Ensures colleagues around you can discover your workshop</span>
+            <select
+              value={draftCountry}
+              onChange={(e) => setDraftCountry(e.target.value)}
+              className={styles.guildSelect}
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.name}>
+                  {c.flag} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <div className={styles.guildFormGroup} style={{ flex: 1 }}>
+              <label className={styles.guildFormLabel}>City</label>
+              <input
+                type="text"
+                placeholder="e.g. Lagos, Abuja, London"
+                value={draftCity}
+                onChange={(e) => setDraftCity(e.target.value)}
+                className={styles.guildInput}
+              />
+            </div>
+            <div className={styles.guildFormGroup} style={{ flex: 1 }}>
+              <label className={styles.guildFormLabel}>Neighborhood / District</label>
+              <input
+                type="text"
+                placeholder="e.g. Ikeja, Wuse, Lekki"
+                value={draftNeighborhood}
+                onChange={(e) => setDraftNeighborhood(e.target.value)}
+                className={styles.guildInput}
+              />
+            </div>
+          </div>
+
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildFormLabel}>Direct WhatsApp Phone</label>
+            <span className={styles.guildFormSub}>Used when colleagues tap Chat on WhatsApp for overflow work</span>
+            <input
+              type="tel"
+              placeholder="e.g. +234 801 234 5678"
+              value={draftWhatsappPhone}
+              onChange={(e) => setDraftWhatsappPhone(e.target.value)}
+              className={styles.guildInput}
+            />
+          </div>
+
+          {/* Industrial Machines */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildFormLabel}>Industrial Equipment &amp; Machines</label>
+            <span className={styles.guildFormSub}>Tap all equipment available in your workshop</span>
+            <div className={styles.guildPillsWrap}>
+              {COMMON_MACHINES.map((mach) => {
+                const isSelected = draftMachines.includes(mach);
+                return (
+                  <button
+                    key={mach}
+                    type="button"
+                    className={`${styles.guildTogglePill} ${isSelected ? styles.guildTogglePillActive : ''}`}
+                    onClick={() => handleToggleMachine(mach)}
+                  >
+                    <Symbol name={isSelected ? 'check' : 'add'} size={13} />
+                    <span>{mach}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Specialties */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildFormLabel}>Craft Specialties</label>
+            <span className={styles.guildFormSub}>What garments your workshop cuts best</span>
+            <div className={styles.guildPillsWrap}>
+              {COMMON_SPECIALTIES.map((spec) => {
+                const isSelected = draftSpecialties.includes(spec);
+                return (
+                  <button
+                    key={spec}
+                    type="button"
+                    className={`${styles.guildTogglePill} ${isSelected ? styles.guildTogglePillActive : ''}`}
+                    onClick={() => handleToggleSpecialty(spec)}
+                  >
+                    <Symbol name={isSelected ? 'check' : 'add'} size={13} />
+                    <span>{spec}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Capacity Status */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildFormLabel}>Current Workshop Capacity Status</label>
+            <span className={styles.guildFormSub}>Let colleagues know if you are accepting extra work</span>
+
+            <div
+              className={`${styles.guildRadioCard} ${draftOverflow === 'open' ? styles.guildRadioCardActive : ''}`}
+              onClick={() => setDraftOverflow('open')}
+              role="button"
+              tabIndex={0}
+            >
+              <Symbol name={draftOverflow === 'open' ? 'check_circle' : 'radio_button_unchecked'} size={18} style={{ color: draftOverflow === 'open' ? 'var(--sf-brand-indigo)' : 'var(--sf-text-secondary)' }} />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+                  Open for Overflow Work
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--sf-text-secondary)' }}>
+                  Accepting paid subcontract cuts and extra orders from colleagues
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`${styles.guildRadioCard} ${draftOverflow === 'balanced' ? styles.guildRadioCardActive : ''}`}
+              onClick={() => setDraftOverflow('balanced')}
+              role="button"
+              tabIndex={0}
+            >
+              <Symbol name={draftOverflow === 'balanced' ? 'check_circle' : 'radio_button_unchecked'} size={18} style={{ color: draftOverflow === 'balanced' ? 'var(--sf-brand-indigo)' : 'var(--sf-text-secondary)' }} />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+                  Balanced Workshop
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--sf-text-secondary)' }}>
+                  Focused on current workshop schedule
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`${styles.guildRadioCard} ${draftOverflow === 'booked' ? styles.guildRadioCardActive : ''}`}
+              onClick={() => setDraftOverflow('booked')}
+              role="button"
+              tabIndex={0}
+            >
+              <Symbol name={draftOverflow === 'booked' ? 'check_circle' : 'radio_button_unchecked'} size={18} style={{ color: draftOverflow === 'booked' ? 'var(--sf-brand-indigo)' : 'var(--sf-text-secondary)' }} />
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+                  Fully Booked
+                </div>
+                <div style={{ fontSize: '11.5px', color: 'var(--sf-text-secondary)' }}>
+                  No extra capacity this week
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className={styles.guildSaveBtn}
+            disabled={savingGuildCard}
+            onClick={handleSaveGuildCard}
+          >
+            {savingGuildCard ? 'Saving Guild Card...' : 'Save Guild Craft Card'}
+          </button>
         </div>
       </BottomSheet>
     </div>

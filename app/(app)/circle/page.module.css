@@ -1694,5 +1694,302 @@
   color: var(--sf-text-muted);
 }
 
+/* ── Guild Craft Card & Profile Styles ── */
+.guildCardBanner {
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  border-radius: var(--sf-radius-lg, 12px);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.guildCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guildCardIdentity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sf-brand-indigo, #4338ca);
+}
+
+.guildCardTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.guildCardEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--sf-bg-surface-elevated, #f3f4f6);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  border-radius: var(--sf-radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.guildCardEditBtn:hover {
+  background: var(--sf-border-light, #e5e7eb);
+}
+
+.guildCardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.guildCardLoc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+}
+
+.overflowBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full, 999px);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.overflow_open {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.overflow_balanced {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.overflow_booked {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+:global([data-theme='dark']) .overflow_open {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+:global([data-theme='dark']) .overflow_balanced {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+:global([data-theme='dark']) .overflow_booked {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.guildCardPillsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.guildMachinePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--sf-border-light, #e2e8f0);
+  border-radius: var(--sf-radius-sm, 6px);
+  font-size: 11.5px;
+  color: var(--sf-text-secondary);
+}
+
+/* ── Modal Form Controls ── */
+.guildEditorForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 20px;
+}
+
+.guildFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guildFormLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.guildFormSub {
+  font-size: 11.5px;
+  color: var(--sf-text-tertiary);
+  margin-top: -2px;
+}
+
+.guildInput {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  border-radius: var(--sf-radius-md, 8px);
+  border: 1px solid var(--sf-border-light, #cbd5e1);
+  background: var(--sf-bg-surface, #ffffff);
+  color: var(--sf-text-primary);
+  outline: none;
+  transition: border-color var(--sf-transition-fast);
+}
+
+.guildInput:focus {
+  border-color: var(--sf-brand-indigo, #4338ca);
+}
+
+.guildSelect {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  border-radius: var(--sf-radius-md, 8px);
+  border: 1px solid var(--sf-border-light, #cbd5e1);
+  background: var(--sf-bg-surface, #ffffff);
+  color: var(--sf-text-primary);
+  outline: none;
+  cursor: pointer;
+}
+
+.guildPillsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.guildTogglePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--sf-radius-full, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--sf-border-light, #cbd5e1);
+  background: var(--sf-bg-surface, #ffffff);
+  color: var(--sf-text-secondary);
+  transition: all var(--sf-transition-fast);
+}
+
+.guildTogglePillActive {
+  background: var(--sf-brand-indigo, #4338ca);
+  color: #ffffff;
+  border-color: var(--sf-brand-indigo, #4338ca);
+}
+
+.guildRadioCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--sf-radius-md, 8px);
+  border: 1px solid var(--sf-border-light, #cbd5e1);
+  background: var(--sf-bg-surface, #ffffff);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  margin-bottom: 6px;
+}
+
+.guildRadioCardActive {
+  border-color: var(--sf-brand-indigo, #4338ca);
+  background: rgba(67, 56, 202, 0.05);
+}
+
+.guildSaveBtn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: var(--sf-radius-md, 8px);
+  background: var(--sf-brand-indigo, #4338ca);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.guildSaveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Colleague detail tags in search and profile */
+.colleagueDetailTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.colleagueLocationTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+}
+
+.colleagueMachineTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--sf-bg-surface-elevated, #f1f5f9);
+  color: var(--sf-text-secondary);
+  font-size: 10.5px;
+}
+
+.countryFilterRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 10px;
+}
+
+.countryFilterSelect {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--sf-radius-md, 8px);
+  border: 1px solid var(--sf-border-light, #cbd5e1);
+  background: var(--sf-bg-surface, #ffffff);
+  color: var(--sf-text-primary);
+  outline: none;
+  cursor: pointer;
+}
+
 
 

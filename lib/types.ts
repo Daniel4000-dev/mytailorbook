@@ -69,6 +69,7 @@ export interface Shop {
     bio?: string;
     foundedYear?: number;
     notification_preferences?: import('./notificationPreferences').NotificationPreferences;
+    guild_profile?: import('@/app/actions/circle').GuildProfile;
     [key: string]: unknown;
   };
   /** Custom template for asking clients to send pictures of them wearing the garment at their event/occasion. */
