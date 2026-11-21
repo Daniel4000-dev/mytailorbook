@@ -26,7 +26,8 @@ export function isCoreWorkshopKey(key: string): boolean {
     key.includes('shop-bundle') ||
     key.includes('org-branches') ||
     key.includes('shop-settings') ||
-    key.includes('active-user')
+    key.includes('active-user') ||
+    key.includes('circle-hub')
   );
 }
 

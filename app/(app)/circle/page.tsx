@@ -1,8 +1,10 @@
 'use client';
 
 import React, { Suspense, useEffect, useState, useTransition } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import useSWR from 'swr';
+import { useData } from '@/contexts/DataContext';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
@@ -74,12 +76,37 @@ interface SaluteState {
 
 function AtelierCircleContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { showToast } = useToast();
+  const { currentShop } = useData();
   const [isPending, startTransition] = useTransition();
 
-  const [data, setData] = useState<CircleHubData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const shopId = currentShop?.id || 'current';
+
+  // Smart SWR with localStorage persistence: instantly renders cached state,
+  // then revalidates in the background without layout shifts or reload flickers.
+  const {
+    data: circleData,
+    mutate: mutateCircleData,
+    isValidating,
+  } = useSWR<CircleHubData>(
+    ['circle-hub', shopId],
+    async () => {
+      const res = await getCircleHubDataAction();
+      if (!res.data) {
+        throw new Error(res.error || 'Failed to load circle data');
+      }
+      return res.data;
+    },
+    {
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      dedupingInterval: 10_000,
+    }
+  );
+
+  const data = circleData || null;
+  const loading = !data && isValidating;
+
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   // Scope & Guild Exchange Board state
@@ -121,24 +148,20 @@ function AtelierCircleContent() {
   const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null);
 
   const loadData = async () => {
-    const res = await getCircleHubDataAction();
-    if (res.data) {
-      setData(res.data);
-      if (res.data.myShop.country) {
-        setSearchCountryFilter(res.data.myShop.country);
-      }
-      // Keep selectedBuddy in sync if sheet is open
-      if (selectedBuddy) {
-        const fresh = res.data.buddies.find((b) => b.id === selectedBuddy.id) || null;
-        setSelectedBuddy(fresh);
-      }
-    }
+    await mutateCircleData();
   };
 
   useEffect(() => {
-    setLoading(true);
-    loadData().finally(() => setLoading(false));
-  }, []);
+    if (data?.myShop?.country) {
+      setSearchCountryFilter((prev) => prev || data.myShop.country || 'Nigeria');
+    }
+    if (selectedBuddy && data?.buddies) {
+      const fresh = data.buddies.find((b) => b.id === selectedBuddy.id);
+      if (fresh && JSON.stringify(fresh) !== JSON.stringify(selectedBuddy)) {
+        setSelectedBuddy(fresh);
+      }
+    }
+  }, [data]);
 
   const formatTimeAgo = (dateString: string): string => {
     try {
