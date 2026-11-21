@@ -55,11 +55,13 @@ export default function TermsOfServicePage() {
         </p>
 
         <h2>2. Accounts</h2>
-        <h3>2.1 Eligibility</h3>
+        <h3>2.1 Eligibility &amp; Age</h3>
         <p>
-          You must provide accurate information when creating an account and keep it up to date. You&apos;re
-          responsible for keeping your login credentials confidential and for all activity that happens
-          under your account.
+          You must be at least 18 years of age (or have reached the age of majority under the laws of your jurisdiction)
+          to create an account and use {APP_CONFIG.name}. By registering an account, you represent and warrant that
+          you are at least 18 years old and have the legal capacity to enter into these terms. You must provide accurate
+          information when creating an account and keep it up to date. You&apos;re responsible for keeping your login
+          credentials confidential and for all activity that happens under your account.
         </p>
         <h3>2.2 Studio owners and staff</h3>
         <p>
@@ -122,17 +124,19 @@ export default function TermsOfServicePage() {
           use it for anything beyond running the platform for you.
         </p>
 
-        <h2>6. If You&apos;re a Studio Owner: Your Responsibilities</h2>
+        <h2>6. If You&apos;re a Studio Owner: Data Protection &amp; Customer Responsibilities</h2>
         <p>
           {APP_CONFIG.name} gives you tools to record and manage your customers&apos; information and run your
-          business — it doesn&apos;t set the terms of your relationship with your customers. You&apos;re
-          responsible for:
+          business — it doesn&apos;t set the terms of your relationship with your customers. Under the Nigeria Data
+          Protection Act 2023 (NDPA), you act as the Data Controller for your customers&apos; records, and {APP_CONFIG.name} acts
+          as your Data Processor under Section 29 of the NDPA. You represent and warrant that:
         </p>
         <ul>
-          <li>The accuracy of orders, pricing, and information you record.</li>
-          <li>Fulfilling the commitments you make to your own customers.</li>
-          <li>Having a lawful basis to collect and store your customers&apos; personal information, and being transparent with them about it.</li>
-          <li>Any disputes between you and your customers — these are yours to resolve, not ours.</li>
+          <li>The accuracy of orders, pricing, and information you record is your responsibility.</li>
+          <li>You hold a valid lawful basis under the NDPA (typically customer consent or performance of your tailoring contract) to collect, input, and store your customers&apos; personal information, phone numbers, and body measurements.</li>
+          <li>Where you record the personal data or body measurements of a child (an individual under 18 years of age, e.g. for school uniforms or children&apos;s garments), you warrant that you have obtained verifiable consent from the child&apos;s parent or legal guardian in accordance with Section 31 of the NDPA.</li>
+          <li>You will be transparent with your customers about how you use their data and will honor any requests to view, correct, or delete their information.</li>
+          <li>Any commercial disputes between you and your customers are yours to resolve.</li>
         </ul>
 
         <h2>7. Availability</h2>

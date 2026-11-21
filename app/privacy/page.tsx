@@ -50,10 +50,11 @@ export default function PrivacyPolicyPage() {
           customers.
         </div>
 
-        <h2>1. Who We Are</h2>
+        <h2>1. Who We Are &amp; Data Protection Contact</h2>
         <p>
           {APP_CONFIG.name} is operated by {CONTROLLER_NAME}. For any privacy question, request, or
-          concern, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          to contact our designated Data Protection Liaison regarding your rights under the Nigeria Data
+          Protection Act 2023 (NDPA), contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
 
         <h2>2. Information We Collect</h2>
@@ -146,12 +147,14 @@ export default function PrivacyPolicyPage() {
         <h2>8. If You&apos;re a Studio Owner: Your Responsibilities</h2>
         <p>
           Because you enter your own customers&apos; personal information — including sensitive details
-          like body measurements — into {APP_CONFIG.name}, you are responsible for:
+          like body measurements — into {APP_CONFIG.name}, you act as the Data Controller under the NDPA, and
+          we act as your Data Processor. You are responsible for:
         </p>
         <ul>
-          <li>Having a lawful basis (typically your customer&apos;s consent) to collect and store their information.</li>
+          <li>Having a lawful basis (typically your customer&apos;s explicit consent) to collect and store their personal data and body measurements.</li>
+          <li>Ensuring that whenever you record personal data of a child (under 18 years of age), you have obtained verifiable parental or guardian consent under Section 31 of the NDPA.</li>
           <li>Being transparent with your customers about how you use their data.</li>
-          <li>Responding to your customers if they ask you to correct or delete their information — you can do this directly within the app.</li>
+          <li>Responding to your customers if they ask you to access, correct, or delete their information — you can do this directly within the app.</li>
         </ul>
 
         <h2>9. Data Retention</h2>
@@ -162,15 +165,16 @@ export default function PrivacyPolicyPage() {
         </p>
 
         <h2>10. Your Rights</h2>
-        <p>Under the NDPA, you have the right to:</p>
+        <p>Under the NDPA, data subjects have the right to:</p>
         <ul>
           <li>Access the personal data we hold about you.</li>
-          <li>Request correction of inaccurate data.</li>
-          <li>Request deletion of your data, subject to legal retention requirements.</li>
+          <li>Request correction of inaccurate or incomplete data.</li>
+          <li>Request deletion (erasure) of your data, subject to statutory retention requirements.</li>
           <li>Withdraw consent where processing is based on consent (e.g., disconnecting Google sign-in).</li>
+          <li>Lodge a complaint with the Nigeria Data Protection Commission (NDPC) if you believe your rights have been infringed.</li>
         </ul>
         <p>
-          To exercise any of these rights, contact <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          To exercise any of these rights, contact our Data Protection Liaison at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We respond to statutory requests within 30 days as mandated by the NDPA.
         </p>
 
         <h2>11. Cookies &amp; Sessions</h2>
@@ -180,11 +184,17 @@ export default function PrivacyPolicyPage() {
           browser for analytics. We don&apos;t use cookies for advertising or cross-site tracking.
         </p>
 
-        <h2>12. Children&apos;s Privacy</h2>
+        <h2>12. Age Eligibility &amp; Children&apos;s Privacy</h2>
         <p>
-          {APP_CONFIG.name} is a business tool intended for adults running or working in a tailoring
-          studio. It is not directed at children, and we do not knowingly collect personal information
-          from children.
+          {APP_CONFIG.name} is a business platform intended exclusively for adult tailoring professionals
+          and studio staff. Account registration is restricted to individuals who are 18 years of age or older.
+          We do not knowingly allow children to create platform accounts.
+        </p>
+        <p>
+          Where tailoring studios record client measurements for minors (individuals under 18 years of age,
+          such as children&apos;s school uniforms or bespoke outfits), the studio owner warrants under our Terms
+          of Service that lawful parental or legal guardian consent was obtained in compliance with Section 31
+          of the NDPA.
         </p>
 
         <h2>13. Changes to This Policy</h2>
