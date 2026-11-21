@@ -2310,5 +2310,174 @@
   background: var(--sf-border-light, #cbd5e1);
 }
 
+/* ── Scope Switcher (My Circle vs City Marketplace) ── */
+.scopeSwitcherContainer {
+  display: flex;
+  align-items: center;
+  background: var(--sf-bg-surface-elevated, #f1f5f9);
+  padding: 4px;
+  border-radius: var(--sf-radius-lg, 12px);
+  border: 1px solid var(--sf-border-light, #e2e8f0);
+  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.scopeSwitchBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--sf-radius-md, 8px);
+  border: none;
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.scopeSwitchBtnActive {
+  background: var(--sf-bg-surface, #ffffff);
+  color: var(--sf-brand-indigo, #4338ca);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+:global([data-theme='dark']) .scopeSwitchBtnActive {
+  background: var(--sf-bg-surface, #1e293b);
+  color: #818cf8;
+}
+
+.scopeBadgeCount {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(67, 56, 202, 0.1);
+  color: var(--sf-brand-indigo, #4338ca);
+}
+
+:global([data-theme='dark']) .scopeBadgeCount {
+  background: rgba(129, 140, 248, 0.2);
+  color: #c7d2fe;
+}
+
+/* ── Remnant & Wholesale Marketplace Badges ── */
+.catBadge_remnant {
+  background: #fdf2f8;
+  color: #be185d;
+  border: 1px solid #fbcfe8;
+}
+
+.catBadge_wholesale {
+  background: #ecfeff;
+  color: #0e7490;
+  border: 1px solid #a5f3fc;
+}
+
+:global([data-theme='dark']) .catBadge_remnant {
+  background: rgba(244, 114, 182, 0.15);
+  color: #f472b6;
+  border-color: rgba(244, 114, 182, 0.3);
+}
+
+:global([data-theme='dark']) .catBadge_wholesale {
+  background: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.priceTagBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+:global([data-theme='dark']) .priceTagBadge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.yardageBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+:global([data-theme='dark']) .yardageBadge {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.marketplaceBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--sf-radius-lg, 12px);
+  background: linear-gradient(135deg, rgba(67, 56, 202, 0.05) 0%, rgba(99, 102, 241, 0.02) 100%);
+  border: 1px solid rgba(67, 56, 202, 0.15);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.marketplaceBannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.marketplaceBannerTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.marketplaceBannerSub {
+  font-size: 11.5px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.exchangeConnectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full, 999px);
+  background: var(--sf-bg-surface-elevated, #f1f5f9);
+  color: var(--sf-brand-indigo, #4338ca);
+  border: 1px solid rgba(67, 56, 202, 0.25);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.exchangeConnectBtn:hover {
+  background: rgba(67, 56, 202, 0.08);
+}
+
+
 
 

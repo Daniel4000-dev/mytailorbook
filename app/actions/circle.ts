@@ -49,9 +49,12 @@ export interface CircleExchangePost {
   shopName: string;
   shopLogoUrl?: string;
   whatsappPhone?: string;
-  category: 'overflow' | 'equipment' | 'fabric' | 'technique';
+  visibility?: 'circle' | 'city';
+  category: 'overflow' | 'equipment' | 'fabric' | 'technique' | 'remnant' | 'wholesale';
   title: string;
   description: string;
+  priceOrBudget?: string;
+  fabricYardage?: string;
   urgency: 'urgent_today' | 'this_week' | 'flexible';
   status: 'open' | 'fulfilled';
   createdAt: string;
@@ -403,6 +406,40 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
           });
         });
       });
+    }
+
+    // Extract public city marketplace posts from workshops in the same country
+    try {
+      const { data: marketplaceShops } = await admin
+        .from('shops')
+        .select('id, name, logo_url, phone, country, portfolio_settings')
+        .eq('country', currentCountry)
+        .neq('id', currentShop.id)
+        .limit(40);
+
+      if (marketplaceShops) {
+        const existingPostIds = new Set(exchangePosts.map((p) => p.id));
+        marketplaceShops.forEach((mShop) => {
+          const mGuild = ((mShop.portfolio_settings as any)?.guild_profile || {}) as GuildProfile;
+          const mPosts = ((mShop.portfolio_settings as any)?.exchange_posts || []) as CircleExchangePost[];
+          mPosts.forEach((p) => {
+            if ((p.visibility === 'city' || !p.visibility) && !existingPostIds.has(p.id)) {
+              existingPostIds.add(p.id);
+              exchangePosts.push({
+                ...p,
+                shopName: mShop.name,
+                shopLogoUrl: mShop.logo_url || undefined,
+                whatsappPhone: mGuild.whatsappPhone || mShop.phone || undefined,
+                city: mGuild.city,
+                country: mGuild.country || mShop.country || 'Nigeria',
+                visibility: p.visibility || 'city',
+              });
+            }
+          });
+        });
+      }
+    } catch {
+      // Graceful fallback if marketplace scan encounters error
     }
 
     // Sort exchange posts by newest first
@@ -1036,10 +1073,13 @@ export async function cancelCircleRequestAction(
 }
 
 export async function createCircleExchangePostAction(payload: {
-  category: 'overflow' | 'equipment' | 'fabric' | 'technique';
+  category: 'overflow' | 'equipment' | 'fabric' | 'technique' | 'remnant' | 'wholesale';
   title: string;
   description: string;
   urgency: 'urgent_today' | 'this_week' | 'flexible';
+  visibility?: 'circle' | 'city';
+  priceOrBudget?: string;
+  fabricYardage?: string;
 }): Promise<{ success?: boolean; post?: CircleExchangePost; error?: string }> {
   try {
     const supabase = await createClient();
@@ -1068,9 +1108,12 @@ export async function createCircleExchangePostAction(payload: {
       shopName: shop.name,
       shopLogoUrl: shop.logo_url || undefined,
       whatsappPhone: guild.whatsappPhone || shop.phone || undefined,
+      visibility: payload.visibility || 'circle',
       category: payload.category,
       title: payload.title.trim(),
       description: payload.description.trim(),
+      priceOrBudget: payload.priceOrBudget?.trim() || undefined,
+      fabricYardage: payload.fabricYardage?.trim() || undefined,
       urgency: payload.urgency,
       status: 'open',
       createdAt: new Date().toISOString(),

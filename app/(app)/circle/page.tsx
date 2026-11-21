@@ -34,7 +34,8 @@ import {
   type CircleExchangePost,
 } from '@/app/actions/circle';
 
-type ExchangeCategory = 'all' | 'overflow' | 'equipment' | 'fabric' | 'technique';
+type HubScope = 'circle' | 'marketplace';
+type ExchangeCategory = 'all' | 'overflow' | 'equipment' | 'fabric' | 'technique' | 'remnant' | 'wholesale';
 
 const COMMON_MACHINES = [
   'Industrial Buttonholer',
@@ -79,12 +80,16 @@ function AtelierCircleContent() {
   const [loading, setLoading] = useState(true);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
-  // Guild Exchange Board state
+  // Scope & Guild Exchange Board state
+  const [activeScope, setActiveScope] = useState<HubScope>('circle');
   const [exchangeCategory, setExchangeCategory] = useState<ExchangeCategory>('all');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
-  const [draftPostCategory, setDraftPostCategory] = useState<'overflow' | 'equipment' | 'fabric' | 'technique'>('overflow');
+  const [draftVisibility, setDraftVisibility] = useState<'circle' | 'city'>('circle');
+  const [draftPostCategory, setDraftPostCategory] = useState<'overflow' | 'equipment' | 'fabric' | 'technique' | 'remnant' | 'wholesale'>('overflow');
   const [draftPostTitle, setDraftPostTitle] = useState('');
   const [draftPostDescription, setDraftPostDescription] = useState('');
+  const [draftPriceOrBudget, setDraftPriceOrBudget] = useState('');
+  const [draftFabricYardage, setDraftFabricYardage] = useState('');
   const [draftPostUrgency, setDraftPostUrgency] = useState<'urgent_today' | 'this_week' | 'flexible'>('this_week');
   const [creatingPost, setCreatingPost] = useState(false);
   const [updatingPostId, setUpdatingPostId] = useState<string | null>(null);
@@ -167,12 +172,22 @@ function AtelierCircleContent() {
         title: draftPostTitle,
         description: draftPostDescription,
         urgency: draftPostUrgency,
+        visibility: draftVisibility,
+        priceOrBudget: draftPriceOrBudget.trim() || undefined,
+        fabricYardage: draftFabricYardage.trim() || undefined,
       });
       if (res.success) {
-        showToast('Guild exchange request posted to your circle!', 'success');
+        showToast(
+          draftVisibility === 'city'
+            ? 'Broadcast published to City Marketplace!'
+            : 'Request posted to your Circle of friends!',
+          'success'
+        );
         setIsCreatePostOpen(false);
         setDraftPostTitle('');
         setDraftPostDescription('');
+        setDraftPriceOrBudget('');
+        setDraftFabricYardage('');
         setDraftPostCategory('overflow');
         setDraftPostUrgency('this_week');
         await loadData();
@@ -183,6 +198,20 @@ function AtelierCircleContent() {
       showToast('Error creating request', 'error');
     } finally {
       setCreatingPost(false);
+    }
+  };
+
+  const handleConnectFromMarketplace = async (shopId: string, shopName: string) => {
+    try {
+      const res = await sendCircleRequestAction(shopId);
+      if (res.success) {
+        showToast(`Invitation sent to ${shopName}!`, 'success');
+        await loadData();
+      } else {
+        showToast(res.error || 'Failed to send invitation', 'error');
+      }
+    } catch {
+      showToast('Error sending invitation', 'error');
     }
   };
 
@@ -434,6 +463,17 @@ function AtelierCircleContent() {
   };
 
   const exchangePosts = (data?.exchangePosts || []).filter((post) => {
+    // Scope filter:
+    if (activeScope === 'circle') {
+      const isBuddyOrMe =
+        post.shopId === data?.myShop.id ||
+        (data?.buddies || []).some((b) => b.id === post.shopId);
+      if (post.visibility === 'city' && !isBuddyOrMe) return false;
+    } else {
+      if (post.visibility === 'circle' && post.shopId !== data?.myShop.id) return false;
+    }
+
+    // Category filter:
     if (exchangeCategory === 'all') return true;
     return post.category === exchangeCategory;
   });
@@ -470,8 +510,61 @@ function AtelierCircleContent() {
       </header>
 
       <div className={styles.content}>
+        {/* ── Top-Level Scope Switcher (My Circle vs City Marketplace) ── */}
+        <div className={styles.scopeSwitcherContainer}>
+          <button
+            type="button"
+            className={`${styles.scopeSwitchBtn} ${activeScope === 'circle' ? styles.scopeSwitchBtnActive : ''}`}
+            onClick={() => {
+              setActiveScope('circle');
+              setExchangeCategory('all');
+            }}
+          >
+            <Symbol name="groups" size={16} />
+            <span>My Circle</span>
+            <span className={styles.scopeBadgeCount}>{data?.buddies.length || 0}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.scopeSwitchBtn} ${activeScope === 'marketplace' ? styles.scopeSwitchBtnActive : ''}`}
+            onClick={() => {
+              setActiveScope('marketplace');
+              setExchangeCategory('all');
+            }}
+          >
+            <Symbol name="storefront" size={16} />
+            <span>City Marketplace</span>
+          </button>
+        </div>
+
+        {/* ── City Marketplace Context Banner ── */}
+        {activeScope === 'marketplace' && (
+          <div className={styles.marketplaceBanner}>
+            <div className={styles.marketplaceBannerText}>
+              <h3 className={styles.marketplaceBannerTitle}>
+                City Craft Exchange & Marketplace
+              </h3>
+              <p className={styles.marketplaceBannerSub}>
+                Explore fabric remnants, join bulk wholesale roll splits, and discover peer tailors in {data?.myShop.country || 'your city'}.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.postRequestActionBtn}
+              onClick={() => {
+                setDraftVisibility('city');
+                setIsCreatePostOpen(true);
+              }}
+            >
+              <Symbol name="add" size={14} />
+              <span>Post to Marketplace</span>
+            </button>
+          </div>
+        )}
+
         {/* ── My Workshop Guild Card Banner ── */}
-        {data?.myShop && (
+        {activeScope === 'circle' && data?.myShop && (
           <section className={styles.guildCardBanner}>
             <div className={styles.guildCardHeader}>
               <div className={styles.guildCardIdentity}>
@@ -594,8 +687,8 @@ function AtelierCircleContent() {
           </section>
         )}
 
-        {/* ── 1. Intimacy & Peer Benefits Gauge ── */}
-        {benefits && (
+        {/* ── 1. Intimacy & Peer Benefits Gauge (Circle Scope Only) ── */}
+        {activeScope === 'circle' && benefits && (
           <section className={styles.gaugeCard}>
             <div className={styles.gaugeHeader}>
               <div className={styles.gaugeTitleRow}>
@@ -667,138 +760,156 @@ function AtelierCircleContent() {
           </section>
         )}
 
-        {/* ── 2. Connected Tailors Horizontal Rail ── */}
-        <section className={styles.buddiesSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Connected Tailors</h2>
-          </div>
+        {/* ── 2. Connected Tailors Horizontal Rail (Circle Scope Only) ── */}
+        {activeScope === 'circle' && (
+          <section className={styles.buddiesSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Connected Tailors</h2>
+            </div>
 
-          <div className={styles.buddiesScroll}>
-            {data?.buddies.map((buddy) => {
-              const initials = buddy.name
-                .split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase();
-              const todayStr = new Date().toISOString().split('T')[0];
-              const isTodayActive = Boolean(
-                buddy.status === 'active' &&
-                buddy.lastActiveAt &&
-                buddy.lastActiveAt.startsWith(todayStr)
-              );
+            <div className={styles.buddiesScroll}>
+              {data?.buddies.map((buddy) => {
+                const initials = buddy.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase();
+                const todayStr = new Date().toISOString().split('T')[0];
+                const isTodayActive = Boolean(
+                  buddy.status === 'active' &&
+                  buddy.lastActiveAt &&
+                  buddy.lastActiveAt.startsWith(todayStr)
+                );
 
-              return (
-                <div
-                  key={buddy.id}
-                  className={`${styles.buddyCard} ${styles.buddyCardClickable}`}
-                  onClick={() => setSelectedBuddy(buddy)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedBuddy(buddy);
-                    }
-                  }}
-                  title={`Tap to view ${buddy.name}'s tailor profile`}
-                >
+                return (
                   <div
-                    className={`${styles.avatarRing} ${isTodayActive ? styles.avatarRingActive : ''
-                      }`}
-                    style={{ borderColor: isTodayActive ? '#10B981' : buddy.tierColor }}
-                    title={`Tier: ${buddy.tierName}${isTodayActive ? ' · Active Today' : ''}`}
+                    key={buddy.id}
+                    className={`${styles.buddyCard} ${styles.buddyCardClickable}`}
+                    onClick={() => setSelectedBuddy(buddy)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedBuddy(buddy);
+                      }
+                    }}
+                    title={`Tap to view ${buddy.name}'s tailor profile`}
                   >
-                    <div className={styles.avatarInner}>
-                      {buddy.logoUrl ? (
-                        <img src={buddy.logoUrl} alt={buddy.name} />
-                      ) : (
-                        <span>{initials}</span>
+                    <div
+                      className={`${styles.avatarRing} ${isTodayActive ? styles.avatarRingActive : ''
+                        }`}
+                      style={{ borderColor: isTodayActive ? '#10B981' : buddy.tierColor }}
+                      title={`Tier: ${buddy.tierName}${isTodayActive ? ' · Active Today' : ''}`}
+                    >
+                      <div className={styles.avatarInner}>
+                        {buddy.logoUrl ? (
+                          <img src={buddy.logoUrl} alt={buddy.name} />
+                        ) : (
+                          <span>{initials}</span>
+                        )}
+                      </div>
+                      {isTodayActive && (
+                        <span className={styles.todayCraftDot} title="Crafting Today" />
                       )}
                     </div>
-                    {isTodayActive && (
-                      <span className={styles.todayCraftDot} title="Crafting Today" />
+
+                    <div className={styles.buddyName} title={buddy.name}>
+                      {buddy.isCurrentUser ? 'Your Shop' : buddy.name}
+                    </div>
+
+                    <div className={styles.buddyMeta}>
+                      <span className={styles.streakPill}>
+                        <Symbol name="local_fire_department" size={12} />
+                        {buddy.streakCount}d
+                      </span>
+                    </div>
+
+                    {buddy.status === 'sabbatical' && (
+                      <span className={`${styles.buddyStatusPill} ${styles.statusPillSabbatical}`}>
+                        Sabbatical
+                      </span>
+                    )}
+                    {buddy.status === 'dormant' && (
+                      <span className={`${styles.buddyStatusPill} ${styles.statusPillDormant}`}>
+                        Quiet 5d
+                      </span>
+                    )}
+                    {buddy.status === 'active' && !buddy.isCurrentUser && (
+                      <span className={`${styles.buddyStatusPill} ${styles.statusPillActive}`}>
+                        Active
+                      </span>
                     )}
                   </div>
+                );
+              })}
 
-                  <div className={styles.buddyName} title={buddy.name}>
-                    {buddy.isCurrentUser ? 'Your Shop' : buddy.name}
-                  </div>
-
-                  <div className={styles.buddyMeta}>
-                    <span className={styles.streakPill}>
-                      <Symbol name="local_fire_department" size={12} />
-                      {buddy.streakCount}d
-                    </span>
-                  </div>
-
-                  {buddy.status === 'sabbatical' && (
-                    <span className={`${styles.buddyStatusPill} ${styles.statusPillSabbatical}`}>
-                      Sabbatical
-                    </span>
-                  )}
-                  {buddy.status === 'dormant' && (
-                    <span className={`${styles.buddyStatusPill} ${styles.statusPillDormant}`}>
-                      Quiet 5d
-                    </span>
-                  )}
-                  {buddy.status === 'active' && !buddy.isCurrentUser && (
-                    <span className={`${styles.buddyStatusPill} ${styles.statusPillActive}`}>
-                      Active
-                    </span>
-                  )}
+              <button
+                className={styles.addBuddyCard}
+                onClick={() => setIsConnectModalOpen(true)}
+                aria-label="Connect with a tailor"
+              >
+                <div className={styles.addIconCircle}>
+                  <Symbol name="group_add" size={18} />
                 </div>
-              );
-            })}
+                <span className={styles.addBuddyLabel}>Add Tailor</span>
+              </button>
+            </div>
+          </section>
+        )}
 
-            <button
-              className={styles.addBuddyCard}
-              onClick={() => setIsConnectModalOpen(true)}
-              aria-label="Connect with a tailor"
-            >
-              <div className={styles.addIconCircle}>
-                <Symbol name="group_add" size={18} />
-              </div>
-              <span className={styles.addBuddyLabel}>Add Tailor</span>
-            </button>
-          </div>
-        </section>
-
-        {/* ── 3. Guild Exchange Board ── */}
+        {/* ── 3. Guild Exchange Board (Adapts to Scope) ── */}
         <section className={styles.exchangeSection}>
           <div className={styles.exchangeHeaderRow}>
             <div className={styles.exchangeTitleBlock}>
-              <h2 className={styles.exchangeSectionTitle}>Guild Exchange Board</h2>
+              <h2 className={styles.exchangeSectionTitle}>
+                {activeScope === 'circle' ? 'Circle Work & Resources' : 'City Guild Marketplace'}
+              </h2>
               <p className={styles.exchangeSectionSubtitle}>
-                Share overflow cuts, borrow specialized machines, swap fabrics & source techniques
+                {activeScope === 'circle'
+                  ? 'Shared only with your connected circle of trusted friends'
+                  : 'Fabric remnants, bulk roll splits, and open requests across your city'}
               </p>
             </div>
             <button
               type="button"
               className={styles.postRequestActionBtn}
-              onClick={() => setIsCreatePostOpen(true)}
+              onClick={() => {
+                setDraftVisibility(activeScope === 'circle' ? 'circle' : 'city');
+                setIsCreatePostOpen(true);
+              }}
             >
               <Symbol name="add" size={15} />
-              <span>Post Request</span>
+              <span>{activeScope === 'circle' ? 'Post to Circle' : 'Post to Marketplace'}</span>
             </button>
           </div>
 
           {/* Category Filter Pills */}
           <div className={styles.filterTabs}>
-            {([
-              { key: 'all', label: 'All Requests' },
-              { key: 'overflow', label: 'Overflow Work' },
-              { key: 'equipment', label: 'Machine Access' },
-              { key: 'fabric', label: 'Fabric SOS' },
-              { key: 'technique', label: 'Technique' },
-            ] as { key: ExchangeCategory; label: string }[]).map((tab) => {
+            {(activeScope === 'circle'
+              ? [
+                  { key: 'all', label: 'All Requests' },
+                  { key: 'overflow', label: 'Overflow Work' },
+                  { key: 'equipment', label: 'Machine Access' },
+                  { key: 'fabric', label: 'Fabric SOS' },
+                  { key: 'technique', label: 'Technique' },
+                ]
+              : [
+                  { key: 'all', label: 'All Deals & Posts' },
+                  { key: 'remnant', label: 'Fabric Remnants' },
+                  { key: 'wholesale', label: 'Wholesale Splits' },
+                  { key: 'equipment', label: 'Machine Access' },
+                  { key: 'overflow', label: 'Overflow Work' },
+                ]
+            ).map((tab) => {
               const isActive = exchangeCategory === tab.key;
               return (
                 <button
                   key={tab.key}
                   type="button"
                   className={`${styles.tabBtn} ${isActive ? styles.tabBtnActive : ''}`}
-                  onClick={() => setExchangeCategory(tab.key)}
+                  onClick={() => setExchangeCategory(tab.key as ExchangeCategory)}
                 >
                   {tab.label}
                 </button>
@@ -816,28 +927,41 @@ function AtelierCircleContent() {
               <div className={styles.emptyIconCircle}>
                 <Symbol name="handshake" size={24} />
               </div>
-              <p className={styles.emptyTitle}>No exchange requests yet</p>
+              <p className={styles.emptyTitle}>
+                {activeScope === 'circle' ? 'No circle requests yet' : 'No marketplace deals yet'}
+              </p>
               <p className={styles.emptyText}>
-                Need extra hands for urgent delivery? Looking for specialized machine access or specific fabric? Post a request to your circle.
+                {activeScope === 'circle'
+                  ? 'Need extra hands for urgent delivery or looking for machine access? Post a request to your trusted circle.'
+                  : 'Have leftover fabric remnants to sell or looking to split a wholesale fabric roll? Post to your city marketplace.'}
               </p>
               <button
                 type="button"
                 className={styles.postRequestActionBtn}
                 style={{ marginTop: 12 }}
-                onClick={() => setIsCreatePostOpen(true)}
+                onClick={() => {
+                  setDraftVisibility(activeScope === 'circle' ? 'circle' : 'city');
+                  setIsCreatePostOpen(true);
+                }}
               >
                 <Symbol name="add" size={15} />
-                <span>Post First Request</span>
+                <span>
+                  {activeScope === 'circle' ? 'Post First Circle Request' : 'Post First Marketplace Deal'}
+                </span>
               </button>
             </div>
           ) : (
             exchangePosts.map((post) => {
               const isMine = post.shopId === data?.myShop.id;
+              const isAlreadyBuddy = (data?.buddies || []).some((b) => b.id === post.shopId);
+
               const catLabels: Record<string, string> = {
                 overflow: 'Overflow Work',
                 equipment: 'Machine Access',
                 fabric: 'Fabric SOS',
                 technique: 'Technique Advice',
+                remnant: 'Fabric Remnant',
+                wholesale: 'Wholesale Split',
               };
               const urgencyLabels: Record<string, string> = {
                 urgent_today: 'Urgent Today',
@@ -845,7 +969,7 @@ function AtelierCircleContent() {
                 flexible: 'Flexible',
               };
 
-              const claimMsg = `Hello ${post.shopName}! I saw your "${post.title}" request on Tailor Circle and wanted to connect on it.`;
+              const claimMsg = `Hello ${post.shopName}! I saw your "${post.title}" post on Tailor Circle and wanted to connect on it.`;
               const waLink = post.whatsappPhone ? getWhatsAppLink(post.whatsappPhone, claimMsg) : null;
               const isFulfilled = post.status === 'fulfilled';
 
@@ -862,6 +986,24 @@ function AtelierCircleContent() {
                       <span className={`${styles.urgencyBadge} ${styles[`urgency_${post.urgency}`] || ''}`}>
                         {urgencyLabels[post.urgency] || post.urgency}
                       </span>
+                      {post.priceOrBudget && (
+                        <span className={styles.priceTagBadge}>
+                          {post.priceOrBudget}
+                        </span>
+                      )}
+                      {post.fabricYardage && (
+                        <span className={styles.yardageBadge}>
+                          {post.fabricYardage}
+                        </span>
+                      )}
+                      {post.visibility === 'city' && (
+                        <span
+                          className={styles.yardageBadge}
+                          style={{ background: '#f0fdf4', borderColor: '#bbf7d0', color: '#15803d' }}
+                        >
+                          City Public
+                        </span>
+                      )}
                       {isFulfilled && (
                         <span className={styles.statusPillFulfilled}>
                           Fulfilled
@@ -940,17 +1082,30 @@ function AtelierCircleContent() {
                         </button>
                       </div>
                     ) : (
-                      waLink && !isFulfilled && (
-                        <a
-                          href={waLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.exchangeWhatsAppBtn}
-                        >
-                          <WhatsappIcon size={14} />
-                          <span>Coordinate on WhatsApp</span>
-                        </a>
-                      )
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        {activeScope === 'marketplace' && !isAlreadyBuddy && (
+                          <button
+                            type="button"
+                            className={styles.exchangeConnectBtn}
+                            onClick={() => handleConnectFromMarketplace(post.shopId, post.shopName)}
+                            title={`Invite ${post.shopName} to your Inner Circle`}
+                          >
+                            <Symbol name="group_add" size={13} />
+                            <span>Add to Circle</span>
+                          </button>
+                        )}
+                        {waLink && !isFulfilled && (
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.exchangeWhatsAppBtn}
+                          >
+                            <WhatsappIcon size={14} />
+                            <span>Coordinate on WhatsApp</span>
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
                 </article>
@@ -1497,21 +1652,80 @@ function AtelierCircleContent() {
       <BottomSheet
         isOpen={isCreatePostOpen}
         onClose={() => setIsCreatePostOpen(false)}
-        title="Post Guild Exchange Request"
+        title={draftVisibility === 'circle' ? 'Post to Circle (Private)' : 'Post to City Marketplace'}
       >
         <div className={styles.guildFormBody}>
           <p className={styles.guildSectionHint}>
-            Broadcast a request to your connected peer workshops. Tailors in your circle can view and coordinate with you directly on WhatsApp.
+            {draftVisibility === 'circle'
+              ? 'Visible only to your connected tailor friends. Perfect for confidential overflow cuts and borrowing machines.'
+              : 'Broadcast to all workshops across your city. Perfect for selling remnants and pooling wholesale roll splits.'}
           </p>
+
+          {/* Visibility / Audience */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildLabel}>Target Audience</label>
+            <div>
+              <div
+                className={`${styles.guildRadioCard} ${
+                  draftVisibility === 'circle' ? styles.guildRadioCardActive : ''
+                }`}
+                onClick={() => setDraftVisibility('circle')}
+                role="button"
+                tabIndex={0}
+              >
+                <Symbol
+                  name={draftVisibility === 'circle' ? 'check_circle' : 'radio_button_unchecked'}
+                  size={18}
+                  style={{
+                    color: draftVisibility === 'circle' ? 'var(--sf-brand-indigo)' : 'var(--sf-text-secondary)',
+                  }}
+                />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+                    My Circle Only (Private to Friends)
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--sf-text-secondary)' }}>
+                    Visible only to your connected tailor circle.
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className={`${styles.guildRadioCard} ${
+                  draftVisibility === 'city' ? styles.guildRadioCardActive : ''
+                }`}
+                onClick={() => setDraftVisibility('city')}
+                role="button"
+                tabIndex={0}
+              >
+                <Symbol
+                  name={draftVisibility === 'city' ? 'check_circle' : 'radio_button_unchecked'}
+                  size={18}
+                  style={{
+                    color: draftVisibility === 'city' ? 'var(--sf-brand-indigo)' : 'var(--sf-text-secondary)',
+                  }}
+                />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+                    City Marketplace (Open to City)
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--sf-text-secondary)' }}>
+                    Visible to all verified workshops in {data?.myShop.country || 'your city'}.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Request Category */}
           <div className={styles.guildFormGroup}>
-            <label className={styles.guildLabel}>Request Type</label>
+            <label className={styles.guildLabel}>Category</label>
             <div>
               {[
                 { key: 'overflow', label: 'Overflow Work', desc: 'Need extra hands / outsource cut' },
                 { key: 'equipment', label: 'Machine Access', desc: 'Borrow specialized machine' },
-                { key: 'fabric', label: 'Fabric / Trim SOS', desc: 'Source matching yardage or trims' },
+                { key: 'remnant', label: 'Fabric Remnant for Sale', desc: 'Sell or swap leftover yards of fabric' },
+                { key: 'wholesale', label: 'Wholesale Bulk Split', desc: 'Pool money with peers for roll/bale pricing' },
                 { key: 'technique', label: 'Technique Advice', desc: 'Pattern, fit, or structure guidance' },
               ].map((opt) => (
                 <div
@@ -1543,6 +1757,42 @@ function AtelierCircleContent() {
             </div>
           </div>
 
+          {/* Price / Budget / Pay */}
+          {(draftPostCategory === 'remnant' || draftPostCategory === 'wholesale' || draftPostCategory === 'overflow') && (
+            <div className={styles.guildFormGroup}>
+              <label className={styles.guildLabel}>
+                {draftPostCategory === 'remnant'
+                  ? 'Asking Price (Optional)'
+                  : draftPostCategory === 'wholesale'
+                  ? 'Cost per Yard / Slot (Optional)'
+                  : 'Payout / Budget (Optional)'}
+              </label>
+              <input
+                type="text"
+                className={styles.guildInput}
+                placeholder="e.g. ₦14,000 or ₦11,500/yd"
+                value={draftPriceOrBudget}
+                onChange={(e) => setDraftPriceOrBudget(e.target.value)}
+                maxLength={40}
+              />
+            </div>
+          )}
+
+          {/* Fabric Yardage */}
+          {(draftPostCategory === 'remnant' || draftPostCategory === 'wholesale') && (
+            <div className={styles.guildFormGroup}>
+              <label className={styles.guildLabel}>Fabric Yardage / Length (Optional)</label>
+              <input
+                type="text"
+                className={styles.guildInput}
+                placeholder="e.g. 2.5 Yards, 4 Metres, or 50m Roll Split"
+                value={draftFabricYardage}
+                onChange={(e) => setDraftFabricYardage(e.target.value)}
+                maxLength={40}
+              />
+            </div>
+          )}
+
           {/* Urgency */}
           <div className={styles.guildFormGroup}>
             <label className={styles.guildLabel}>Urgency</label>
@@ -1569,11 +1819,17 @@ function AtelierCircleContent() {
 
           {/* Request Title */}
           <div className={styles.guildFormGroup}>
-            <label className={styles.guildLabel}>Request Summary / Title</label>
+            <label className={styles.guildLabel}>Summary Title</label>
             <input
               type="text"
               className={styles.guildInput}
-              placeholder="e.g. Need buttonholes punched for 8 Senator suits by 4pm"
+              placeholder={
+                draftPostCategory === 'remnant'
+                  ? 'e.g. 2.5 yds Super 120s Navy Italian Wool remnant'
+                  : draftPostCategory === 'wholesale'
+                  ? 'e.g. 50m roll white damask split from Balogun'
+                  : 'e.g. Need buttonholes punched for 8 Senator suits by 4pm'
+              }
               value={draftPostTitle}
               onChange={(e) => setDraftPostTitle(e.target.value)}
               maxLength={120}
@@ -1586,7 +1842,7 @@ function AtelierCircleContent() {
             <textarea
               className={styles.guildInput}
               rows={4}
-              placeholder="Describe what you need, fabric type, machine specs, or what you can offer in return..."
+              placeholder="Describe color, fabric composition, machine specifications, pickup location, or coordination terms..."
               value={draftPostDescription}
               onChange={(e) => setDraftPostDescription(e.target.value)}
               style={{ resize: 'vertical' }}
@@ -1599,7 +1855,11 @@ function AtelierCircleContent() {
             disabled={creatingPost || !draftPostTitle.trim()}
             onClick={handleCreatePost}
           >
-            {creatingPost ? 'Publishing Request...' : 'Publish to Guild Board'}
+            {creatingPost
+              ? 'Publishing...'
+              : draftVisibility === 'city'
+              ? 'Publish to City Marketplace'
+              : 'Publish to My Circle'}
           </button>
         </div>
       </BottomSheet>
