@@ -64,7 +64,13 @@ export interface Shop {
   portfolioAccent: string;
   /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
    *  just mean those sections collapse in the public view. */
-  portfolioSettings?: { tagline?: string; bio?: string; foundedYear?: number };
+  portfolioSettings?: {
+    tagline?: string;
+    bio?: string;
+    foundedYear?: number;
+    notification_preferences?: import('./notificationPreferences').NotificationPreferences;
+    [key: string]: unknown;
+  };
   /** Custom template for asking clients to send pictures of them wearing the garment at their event/occasion. */
   eventPhotoTemplate?: string;
   /** Studio social media handles & web presence for lookbooks and client communication */

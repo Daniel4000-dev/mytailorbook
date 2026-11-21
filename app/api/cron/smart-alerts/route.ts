@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createAtelierNotification } from '@/lib/notifications';
+import { getShopNotificationPreferences, type NotificationPreferences } from '@/lib/notificationPreferences';
 import { toOrderSlug, toCustomerSlug } from '@/lib/slugs';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { APP_CONFIG } from '@/lib/config';
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
 
   const primaryShopsRes = await admin
     .from('shops')
-    .select('id, name, business_mode, streak_current, streak_last_counted_at, buddy_shop_id')
+    .select('id, name, business_mode, streak_current, streak_last_counted_at, buddy_shop_id, portfolio_settings')
     .order('created_at', { ascending: false })
     .limit(500);
 
@@ -154,9 +155,11 @@ export async function GET(request: NextRequest) {
   }
 
   const shopModeMap = new Map<string, BusinessMode>();
+  const shopPrefMap = new Map<string, NotificationPreferences>();
   for (const s of allShops || []) {
     const mode = (s.business_mode as BusinessMode) || 'bespoke';
     shopModeMap.set(s.id, mode);
+    shopPrefMap.set(s.id, getShopNotificationPreferences((s as any).portfolio_settings));
   }
 
   // Fetch recent notifications (last 7 days) so:
@@ -244,7 +247,7 @@ export async function GET(request: NextRequest) {
   ] = await Promise.all([
     admin
       .from('orders')
-      .select('id, shop_id, customer_name, status, is_internal_batch, due_date, updated_at, total_bill, deposit_paid, order_details, style_name')
+      .select('id, shop_id, customer_name, status, is_internal_batch, due_date, updated_at, total_bill, deposit_paid, order_details, style_name, metadata')
       .neq('status', 'Delivered'),
     admin
       .from('finished_goods')
@@ -382,6 +385,7 @@ export async function GET(request: NextRequest) {
 
     // C. Morning Kickstart & Streak Motivation (Tailored separately for Bespoke vs RTW!)
     for (const shop of allShops || []) {
+      if (shopPrefMap.get(shop.id)?.mute_daily_kickstarts) continue;
       const mode = shopModeMap.get(shop.id) || 'bespoke';
       const currentStreak = shop.streak_current || 0;
 
@@ -563,6 +567,15 @@ export async function GET(request: NextRequest) {
     );
 
     for (const order of stagnantOrders) {
+      const shopPrefs = shopPrefMap.get(order.shop_id);
+      if (
+        shopPrefs?.mute_stagnant_alerts ||
+        Boolean((order as any).metadata?.mute_stagnant_alerts) ||
+        Boolean((order as any).metadata?.mute_reminders)
+      ) {
+        continue;
+      }
+
       const alertKey = `production:${order.id}`;
       const isRtw = Boolean(order.is_internal_batch);
       const slugHref = `/production/${toOrderSlug({
@@ -604,6 +617,15 @@ export async function GET(request: NextRequest) {
     for (const order of readyOrders) {
       const balance = (order.total_bill || 0) - (order.deposit_paid || 0);
       if (balance <= 0) continue;
+
+      const shopPrefs = shopPrefMap.get(order.shop_id);
+      if (
+        shopPrefs?.mute_balance_reminders ||
+        Boolean((order as any).metadata?.mute_balance_reminders) ||
+        Boolean((order as any).metadata?.mute_reminders)
+      ) {
+        continue;
+      }
 
       const alertKey = `payments:${order.id}`;
       const slugHref = `/production/${toOrderSlug({
@@ -650,6 +672,7 @@ export async function GET(request: NextRequest) {
       }
 
       for (const [shopId, count] of Object.entries(bespokeOverdue)) {
+        if (shopPrefMap.get(shopId)?.mute_stagnant_alerts) continue;
         const title = 'Weekly Client Backlog Digest';
         const alertKey = `system:${shopId}:${title}`;
         enqueueForShop(shopId, {
@@ -790,7 +813,8 @@ export async function GET(request: NextRequest) {
     );
 
     for (const shop of allShops || []) {
-      if (shopsWithFeatureNudgeToday.has(shop.id)) continue;
+      // Feature tips are suppressed to keep the operational inbox clean and clutter-free.
+      continue;
 
       const candidateFeatures: {
         track: AlertTrack;
@@ -1110,6 +1134,7 @@ export async function GET(request: NextRequest) {
 
     // Priority 3: Evening Workshop Wrap-Up / Check-In for shops with < 2 logged actions today
     for (const shop of allShops || []) {
+      if (shopPrefMap.get(shop.id)?.mute_daily_kickstarts) continue;
       const activityCount = shopActivityMap[shop.id]?.count || 0;
       if (activityCount >= 2) continue;
 

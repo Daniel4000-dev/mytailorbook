@@ -10,6 +10,7 @@ import { formatCurrency, formatDate } from '@/lib/formatters';
 import type { Payment, PaymentMethod } from '@/lib/types';
 import { addPayment, getOrderPayments } from '@/app/actions/order_payments';
 import { updateCustomerWallet } from '@/app/actions/customers';
+import { toggleOrderReminderMuteAction } from '@/app/actions';
 import styles from '../page.module.css';
 
 interface OrderPaymentsProps {
@@ -19,15 +20,33 @@ interface OrderPaymentsProps {
   totalBill: number;
   initialAmountPaid: number;
   currency?: string;
+  initialMuteBalance?: boolean;
   onPaymentAdded: (newTotalPaid: number) => void;
+  onMuteToggled?: (muted: boolean) => void;
 }
 
-export default function OrderPayments({ orderId, customerId, walletBalance, totalBill, initialAmountPaid, currency, onPaymentAdded }: OrderPaymentsProps) {
+export default function OrderPayments({
+  orderId,
+  customerId,
+  walletBalance,
+  totalBill,
+  initialAmountPaid,
+  currency,
+  initialMuteBalance,
+  onPaymentAdded,
+  onMuteToggled,
+}: OrderPaymentsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMuted, setIsMuted] = useState(Boolean(initialMuteBalance));
+  const [togglingMute, setTogglingMute] = useState(false);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    setIsMuted(Boolean(initialMuteBalance));
+  }, [initialMuteBalance]);
 
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('transfer');
@@ -35,6 +54,26 @@ export default function OrderPayments({ orderId, customerId, walletBalance, tota
 
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0) || initialAmountPaid;
   const balance = Math.max(0, totalBill - totalPaid);
+
+  async function handleToggleMute(e: React.MouseEvent) {
+    e.stopPropagation();
+    setTogglingMute(true);
+    const nextVal = !isMuted;
+    try {
+      const res = await toggleOrderReminderMuteAction(orderId, 'mute_balance_reminders', nextVal);
+      if (res.error) {
+        showToast(res.error, 'error');
+      } else {
+        setIsMuted(nextVal);
+        onMuteToggled?.(nextVal);
+        showToast(nextVal ? 'Balance reminders muted for this order' : 'Balance reminders re-enabled', 'success');
+      }
+    } catch {
+      showToast('Failed to update balance reminder setting', 'error');
+    } finally {
+      setTogglingMute(false);
+    }
+  }
 
   useEffect(() => {
     if (isOpen && payments.length === 0) {
@@ -112,7 +151,28 @@ export default function OrderPayments({ orderId, customerId, walletBalance, tota
         style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Ledger</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Payment Ledger</h3>
+          {isMuted && (
+            <span
+              style={{
+                fontSize: '11px',
+                color: 'var(--sf-text-secondary)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'var(--sf-bg-surface-elevated, #f3f4f6)',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                border: '1px solid var(--sf-border-light, #e5e7eb)',
+              }}
+              title="Automated reminders for this balance are muted"
+            >
+              <Symbol name="notifications_off" size={12} />
+              <span>Reminders Muted</span>
+            </span>
+          )}
+        </div>
         <Symbol name={isOpen ? 'expand_less' : 'expand_more'} size={24} />
       </div>
 
@@ -135,6 +195,32 @@ export default function OrderPayments({ orderId, customerId, walletBalance, tota
                 {formatCurrency(balance, currency)}
               </span>
             </div>
+            {balance > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={handleToggleMute}
+                  disabled={togglingMute}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 10px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    borderRadius: '16px',
+                    border: '1px solid var(--sf-border-light, #e5e7eb)',
+                    background: isMuted ? 'var(--sf-bg-surface-elevated, #f3f4f6)' : 'transparent',
+                    color: isMuted ? 'var(--sf-text-secondary)' : 'var(--sf-text-primary)',
+                    cursor: 'pointer',
+                  }}
+                  title={isMuted ? 'Click to re-enable automated reminders for this balance' : 'Silence automated reminders for this balance'}
+                >
+                  <Symbol name={isMuted ? 'notifications_off' : 'notifications'} size={14} />
+                  <span>{isMuted ? 'Balance Reminders Muted' : 'Mute Balance Reminders'}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {balance > 0 && (

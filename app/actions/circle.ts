@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getTierForXp } from '@/lib/gamification';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { createAtelierNotification } from '@/lib/notifications';
+import { getShopNotificationPreferences } from '@/lib/notificationPreferences';
 
 export interface CircleBuddy {
   id: string;
@@ -608,23 +609,26 @@ export async function sendSewingNudgeAction(buddyShopId: string): Promise<{ succ
     if (!profile?.shop_id) return { error: 'No workshop found' };
 
     const { data: myShop } = await admin.from('shops').select('name').eq('id', profile.shop_id).single();
-    const { data: buddyShop } = await admin.from('shops').select('name, phone').eq('id', buddyShopId).single();
+    const { data: buddyShop } = await admin.from('shops').select('name, phone, portfolio_settings').eq('id', buddyShopId).single();
 
     const senderName = myShop?.name || 'Your Colleague Tailor';
     const recipientName = buddyShop?.name || 'Colleague';
 
-    // Dispatch in-app push & notification
-    await createAtelierNotification({
-      shopId: buddyShopId,
-      recipientId: null,
-      category: 'system',
-      tone: 'info',
-      badgeIcon: 'local_fire_department',
-      title: 'Morning Sewing Nudge!',
-      subtitle: `${senderName} is already on the cutting table! Let's get today's orders moving.`,
-      actionLabel: 'Open Workshop',
-      actionHref: '/production',
-    });
+    const buddyPrefs = getShopNotificationPreferences((buddyShop as any)?.portfolio_settings);
+    if (!buddyPrefs.mute_circle_nudges) {
+      // Dispatch in-app push & notification only if recipient hasn't muted circle nudges
+      await createAtelierNotification({
+        shopId: buddyShopId,
+        recipientId: null,
+        category: 'system',
+        tone: 'info',
+        badgeIcon: 'local_fire_department',
+        title: 'Morning Sewing Nudge!',
+        subtitle: `${senderName} is already on the cutting table! Let's get today's orders moving.`,
+        actionLabel: 'Open Workshop',
+        actionHref: '/production',
+      });
+    }
 
     const whatsappMessage = `Good day ${recipientName}! ${senderName} here. I am already at the workshop cutting table working on orders. Let's keep our Tailor Circle streak going today!`;
 

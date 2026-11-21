@@ -179,7 +179,7 @@ export default function NotificationsPage() {
             <button
               type="button"
               className={styles.settingsBtn}
-              onClick={() => router.push(ROUTES.settingsMessages)}
+              onClick={() => router.push(ROUTES.settingsAccount)}
               title="Notification Settings"
               aria-label="Notification Settings"
             >

@@ -2624,3 +2624,67 @@ export async function logStudioRestDayAction() {
     restDaysRemaining: 2 - newUsed,
   };
 }
+
+export async function toggleOrderReminderMuteAction(
+  orderId: string,
+  field: 'mute_balance_reminders' | 'mute_stagnant_alerts',
+  muted: boolean
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { data: order, error: fetchErr } = await supabase
+    .from('orders')
+    .select('id, shop_id, metadata')
+    .eq('id', orderId)
+    .single();
+
+  if (fetchErr || !order) return { error: fetchErr?.message || 'Order not found' };
+
+  const meta = (order.metadata as Record<string, unknown>) || {};
+  meta[field] = muted;
+
+  const { error: updateErr } = await supabase
+    .from('orders')
+    .update({ metadata: meta, updated_at: new Date().toISOString() })
+    .eq('id', orderId);
+
+  if (updateErr) return { error: updateErr.message };
+  return { success: true, muted };
+}
+
+export async function updateNotificationPreferencesAction(
+  shopId: string,
+  preferences: {
+    mute_balance_reminders?: boolean;
+    mute_stagnant_alerts?: boolean;
+    mute_circle_nudges?: boolean;
+    mute_daily_kickstarts?: boolean;
+  }
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { data: shop, error: fetchErr } = await supabase
+    .from('shops')
+    .select('id, portfolio_settings')
+    .eq('id', shopId)
+    .single();
+
+  if (fetchErr || !shop) return { error: fetchErr?.message || 'Shop not found' };
+
+  const portfolioSettings = (shop.portfolio_settings as Record<string, unknown>) || {};
+  const currentPrefs = (portfolioSettings.notification_preferences as Record<string, unknown>) || {};
+  const nextPrefs = { ...currentPrefs, ...preferences };
+  portfolioSettings.notification_preferences = nextPrefs;
+
+  const { error: updateErr } = await supabase
+    .from('shops')
+    .update({ portfolio_settings: portfolioSettings })
+    .eq('id', shopId);
+
+  if (updateErr) return { error: updateErr.message };
+  return { success: true, preferences: nextPrefs };
+}

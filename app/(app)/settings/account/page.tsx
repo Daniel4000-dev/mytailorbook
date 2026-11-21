@@ -15,6 +15,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from '../_components/PushNotificationToggle';
+import NotificationPreferencesCard from '../_components/NotificationPreferencesCard';
 import { compressImage } from '@/lib/compressImage';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { ROUTES } from '@/lib/routes';
@@ -103,6 +104,11 @@ export default function AccountSettingsPage() {
               <ExportDataButton shopName={currentShop?.name || 'shop'} />
             </div>
           )}
+        </div>
+
+        {/* Noise & Automated Reminder Control */}
+        <div className={styles.groupCard}>
+          <NotificationPreferencesCard />
         </div>
 
         {/* WhatsApp-Style Account Management / Danger Zone Card */}

@@ -817,6 +817,11 @@ export default function OrderDetailPage() {
                 <span className={styles.balanceHeaderDue}>
                   <Symbol name="payments" size={13} />
                   <span>{formatCurrency(balanceOwed, currentShop?.currency)} Due</span>
+                  {Boolean(order.metadata?.mute_balance_reminders) && (
+                    <span title="Automated balance reminders muted for this order" style={{ display: 'inline-flex', alignItems: 'center', opacity: 0.85 }}>
+                      <Symbol name="notifications_off" size={12} />
+                    </span>
+                  )}
                 </span>
               ) : (
                 <span className={styles.balanceHeaderPaid}>
@@ -1542,8 +1547,14 @@ export default function OrderDetailPage() {
                   totalBill={order.totalBill}
                   initialAmountPaid={order.depositPaid}
                   currency={currentShop?.currency}
+                  initialMuteBalance={Boolean(order.metadata?.mute_balance_reminders)}
                   onPaymentAdded={(newTotal) => {
                     updateOrder(order.id, { depositPaid: newTotal });
+                  }}
+                  onMuteToggled={(muted) => {
+                    updateOrder(order.id, {
+                      metadata: { ...(order.metadata || {}), mute_balance_reminders: muted },
+                    });
                   }}
                 />
               )}

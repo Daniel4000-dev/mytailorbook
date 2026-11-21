@@ -1,0 +1,110 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border-light, #f0f0f0);
+}
+
+.title {
+  font-family: var(--sf-font-heading);
+  font-size: var(--sf-text-sm);
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin: 2px 0 0 0;
+}
+
+.prefItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  padding: var(--sf-space-md);
+  border-bottom: 1px solid var(--sf-border-light, #f0f0f0);
+  background: var(--sf-bg-surface-elevated, #ffffff);
+}
+
+.prefItem:last-child {
+  border-bottom: none;
+}
+
+.prefText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.prefLabel {
+  font-size: var(--sf-text-sm);
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.prefDesc {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* Accessible Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--sf-border-strong, #cbd5e1);
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.switch input:checked + .slider {
+  background-color: var(--sf-color-primary, #047857);
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.switch input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
