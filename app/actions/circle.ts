@@ -43,6 +43,22 @@ export interface CircleBuddy {
   isCurrentUser?: boolean;
 }
 
+export interface CircleExchangePost {
+  id: string;
+  shopId: string;
+  shopName: string;
+  shopLogoUrl?: string;
+  whatsappPhone?: string;
+  category: 'overflow' | 'equipment' | 'fabric' | 'technique';
+  title: string;
+  description: string;
+  urgency: 'urgent_today' | 'this_week' | 'flexible';
+  status: 'open' | 'fulfilled';
+  createdAt: string;
+  city?: string;
+  country?: string;
+}
+
 export interface PulseActivity {
   id: string;
   shopId: string;
@@ -129,6 +145,7 @@ export interface CircleHubData {
   benefits: CircleBenefitsTier;
   buddies: CircleBuddy[];
   pulses: PulseActivity[];
+  exchangePosts: CircleExchangePost[];
   incomingRequests: CircleRequest[];
   outgoingRequests: CircleRequest[];
 }
@@ -242,14 +259,16 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
     }
 
     // 2. Fetch full shop records for all linked buddies
+    let buddyShops: any[] = [];
     if (linkedShopIds.length > 0) {
       const buddyUids = linkedShopIds.map((l) => l.buddyId);
-      const { data: buddyShops } = await admin
+      const { data } = await admin
         .from('shops')
         .select('id, name, slug, phone, address, country, country_code, logo_url, streak_current, xp, streak_last_counted_at, last_rest_day_date, custom_styles, vacation_mode, portfolio_settings')
         .in('id', buddyUids);
 
-      if (buddyShops) {
+      if (data) {
+        buddyShops = data;
         const now = new Date();
         buddyShops.forEach((bShop) => {
           const linkMeta = linkedShopIds.find((l) => l.buddyId === bShop.id);
@@ -352,73 +371,44 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
       sabbaticalCount,
     };
 
-    // 4. Build Pulses stream
-    const pulses: PulseActivity[] = [];
-    const shopIds = buddies.map((b) => b.id).filter((id) => !id.startsWith('demo-'));
+    // 4. Build Guild Exchange Posts
+    const exchangePosts: CircleExchangePost[] = [];
 
-    if (shopIds.length > 0) {
-      const { data: ledgerEvents } = await admin
-        .from('xp_ledger')
-        .select('id, shop_id, action_type, description, amount, created_at')
-        .in('shop_id', shopIds)
-        .order('created_at', { ascending: false })
-        .limit(10);
+    // Extract posts from currentShop
+    const myRawPosts = ((currentShop.portfolio_settings as any)?.exchange_posts || []) as CircleExchangePost[];
+    myRawPosts.forEach((p) => {
+      exchangePosts.push({
+        ...p,
+        shopName: currentShop.name,
+        shopLogoUrl: currentShop.logo_url || undefined,
+        whatsappPhone: currentGuild.whatsappPhone || currentShop.phone || undefined,
+        city: currentCity,
+        country: currentCountry,
+      });
+    });
 
-      if (ledgerEvents && ledgerEvents.length > 0) {
-        for (const ev of ledgerEvents) {
-          const buddy = buddies.find((b) => b.id === ev.shop_id);
-          const shopName = buddy?.name || 'Studio Member';
-          const tierNameStr = buddy?.tierName || 'Bronze Needle';
-          const tierColor = buddy?.tierColor || '#CD7F32';
-
-          let activityType: PulseActivity['activityType'] = 'cutting';
-          let category: PulseActivity['category'] = 'production';
-          let badgeLabel = 'PRODUCTION';
-          let headline = ev.description || 'Logged workshop activity';
-
-          if (ev.action_type === 'delivery' || ev.action_type === 'completed_order') {
-            activityType = 'dispatched';
-            category = 'fulfillment';
-            badgeLabel = 'DISPATCHED';
-            headline = ev.description || 'Dispatched finished bespoke garment';
-          } else if (ev.action_type === 'created_order') {
-            activityType = 'intake';
-            category = 'production';
-            badgeLabel = 'NEW INTAKE';
-            headline = ev.description || 'Logged new bespoke client order';
-          } else if (ev.action_type === 'rest_day') {
-            activityType = 'rest_day';
-            category = 'milestone';
-            badgeLabel = 'REST DAY';
-            headline = 'Studio scheduled rest day — streak protected';
-          } else if (ev.action_type === 'daily_streak' || ev.action_type === 'buddy_coop_bonus') {
-            activityType = 'streak';
-            category = 'milestone';
-            badgeLabel = 'STREAK';
-            headline = ev.description || 'Extended daily work streak';
-          }
-
-          pulses.push({
-            id: ev.id,
-            shopId: ev.shop_id,
-            shopName,
-            tierName: tierNameStr,
-            tierColor,
-            activityType,
-            category,
-            headline,
-            subtext: isXpSystemEnabled() ? `+${ev.amount} XP verified craft proof` : 'Verified craft proof',
-            badgeLabel,
-            timeAgo: formatTimeAgo(ev.created_at),
-            salutes: {
-              flame: Math.floor(Math.random() * 5) + 3,
-              needle: Math.floor(Math.random() * 4) + 2,
-              respect: Math.floor(Math.random() * 3) + 1,
-            },
+    // Extract posts from buddy shops
+    if (buddyShops) {
+      buddyShops.forEach((bShop) => {
+        const bGuild = ((bShop.portfolio_settings as any)?.guild_profile || {}) as GuildProfile;
+        const bPosts = ((bShop.portfolio_settings as any)?.exchange_posts || []) as CircleExchangePost[];
+        bPosts.forEach((p) => {
+          exchangePosts.push({
+            ...p,
+            shopName: bShop.name,
+            shopLogoUrl: bShop.logo_url || undefined,
+            whatsappPhone: bGuild.whatsappPhone || bShop.phone || undefined,
+            city: bGuild.city,
+            country: bGuild.country || bShop.country || 'Nigeria',
           });
-        }
-      }
+        });
+      });
     }
+
+    // Sort exchange posts by newest first
+    exchangePosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const pulses: PulseActivity[] = [];
 
     // 5. Fetch pending requests
     const incomingRequests: CircleRequest[] = [];
@@ -518,6 +508,7 @@ export async function getCircleHubDataAction(): Promise<{ data?: CircleHubData; 
         benefits,
         buddies,
         pulses,
+        exchangePosts,
         incomingRequests,
         outgoingRequests,
       },
@@ -1041,5 +1032,116 @@ export async function cancelCircleRequestAction(
     return { success: true };
   } catch (err: unknown) {
     return { error: err instanceof Error ? err.message : 'Failed to cancel request' };
+  }
+}
+
+export async function createCircleExchangePostAction(payload: {
+  category: 'overflow' | 'equipment' | 'fabric' | 'technique';
+  title: string;
+  description: string;
+  urgency: 'urgent_today' | 'this_week' | 'flexible';
+}): Promise<{ success?: boolean; post?: CircleExchangePost; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'Workshop not found' };
+
+    const { data: shop } = await admin
+      .from('shops')
+      .select('id, name, logo_url, phone, country, portfolio_settings')
+      .eq('id', profile.shop_id)
+      .single();
+
+    if (!shop) return { error: 'Shop not found' };
+
+    const existingPortfolio = (shop.portfolio_settings as Record<string, unknown>) || {};
+    const existingPosts = (existingPortfolio.exchange_posts as CircleExchangePost[]) || [];
+    const guild = (existingPortfolio.guild_profile as GuildProfile) || {};
+
+    const newPost: CircleExchangePost = {
+      id: 'post-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      shopId: shop.id,
+      shopName: shop.name,
+      shopLogoUrl: shop.logo_url || undefined,
+      whatsappPhone: guild.whatsappPhone || shop.phone || undefined,
+      category: payload.category,
+      title: payload.title.trim(),
+      description: payload.description.trim(),
+      urgency: payload.urgency,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+      city: guild.city,
+      country: guild.country || shop.country || 'Nigeria',
+    };
+
+    // Keep up to 25 recent posts per shop to ensure zero storage bloat
+    const updatedPosts = [newPost, ...existingPosts].slice(0, 25);
+
+    const { error: updateErr } = await admin
+      .from('shops')
+      .update({
+        portfolio_settings: {
+          ...existingPortfolio,
+          exchange_posts: updatedPosts,
+        },
+      })
+      .eq('id', profile.shop_id);
+
+    if (updateErr) return { error: updateErr.message };
+    return { success: true, post: newPost };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to publish exchange request' };
+  }
+}
+
+export async function updateCircleExchangePostStatusAction(
+  postId: string,
+  newStatus: 'open' | 'fulfilled' | 'deleted'
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: 'Unauthorized' };
+
+    const admin = createAdminClient();
+    const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+    if (!profile?.shop_id) return { error: 'Workshop not found' };
+
+    const { data: shop } = await admin
+      .from('shops')
+      .select('id, portfolio_settings')
+      .eq('id', profile.shop_id)
+      .single();
+
+    if (!shop) return { error: 'Shop not found' };
+
+    const existingPortfolio = (shop.portfolio_settings as Record<string, unknown>) || {};
+    const existingPosts = (existingPortfolio.exchange_posts as CircleExchangePost[]) || [];
+
+    let updatedPosts: CircleExchangePost[];
+    if (newStatus === 'deleted') {
+      updatedPosts = existingPosts.filter((p) => p.id !== postId);
+    } else {
+      updatedPosts = existingPosts.map((p) => (p.id === postId ? { ...p, status: newStatus } : p));
+    }
+
+    const { error: updateErr } = await admin
+      .from('shops')
+      .update({
+        portfolio_settings: {
+          ...existingPortfolio,
+          exchange_posts: updatedPosts,
+        },
+      })
+      .eq('id', profile.shop_id);
+
+    if (updateErr) return { error: updateErr.message };
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to update post status' };
   }
 }

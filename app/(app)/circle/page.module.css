@@ -1991,5 +1991,324 @@
   cursor: pointer;
 }
 
+/* ── Guild Exchange Board Styles ── */
+.exchangeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.exchangeHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.exchangeTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exchangeSectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.exchangeSectionSubtitle {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  margin: 0;
+}
+
+.postRequestActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full, 999px);
+  background: var(--sf-brand-indigo, #4338ca);
+  color: #ffffff;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.postRequestActionBtn:hover {
+  opacity: 0.92;
+}
+
+.exchangeCard {
+  background: var(--sf-bg-surface, #ffffff);
+  border: 1px solid var(--sf-border-light, #e2e8f0);
+  border-radius: var(--sf-radius-lg, 12px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color var(--sf-transition-fast);
+}
+
+.exchangeCard:hover {
+  border-color: rgba(67, 56, 202, 0.3);
+}
+
+.exchangeCardFulfilled {
+  opacity: 0.65;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+}
+
+.exchangeCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exchangeBadgesGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.catBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-sm, 6px);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catBadge_overflow {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.catBadge_equipment {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.catBadge_fabric {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.catBadge_technique {
+  background: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+
+:global([data-theme='dark']) .catBadge_overflow {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+:global([data-theme='dark']) .catBadge_equipment {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global([data-theme='dark']) .catBadge_fabric {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+:global([data-theme='dark']) .catBadge_technique {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.urgencyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full, 999px);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.urgency_urgent_today {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.urgency_this_week {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fef3c7;
+}
+
+.urgency_flexible {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+:global([data-theme='dark']) .urgency_urgent_today {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+:global([data-theme='dark']) .urgency_this_week {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global([data-theme='dark']) .urgency_flexible {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.postDateText {
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+}
+
+.exchangeTitle {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.exchangeDescription {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.45;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.exchangeFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--sf-border-light, #f1f5f9);
+  flex-wrap: wrap;
+}
+
+.exchangeShopBlock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exchangeShopAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sf-brand-indigo, #4338ca);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.exchangeShopMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.exchangeShopName {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.exchangeLocationText {
+  font-size: 11px;
+  color: var(--sf-text-tertiary);
+}
+
+.exchangeWhatsAppBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #25D366;
+  color: #ffffff;
+  border-radius: var(--sf-radius-full, 999px);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.exchangeWhatsAppBtn:hover {
+  opacity: 0.9;
+}
+
+.exchangeOwnerBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusPillFulfilled {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+:global([data-theme='dark']) .statusPillFulfilled {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.exchangeSmallBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--sf-bg-surface-elevated, #f1f5f9);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-light, #cbd5e1);
+  transition: all var(--sf-transition-fast);
+}
+
+.exchangeSmallBtn:hover {
+  background: var(--sf-border-light, #cbd5e1);
+}
+
 
 

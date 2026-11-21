@@ -23,15 +23,18 @@ import {
   declineCircleRequestAction,
   cancelCircleRequestAction,
   saveGuildProfileAction,
+  createCircleExchangePostAction,
+  updateCircleExchangePostStatusAction,
   type CircleHubData,
   type CircleBuddy,
   type PulseActivity,
   type SearchedColleague,
   type CircleRequest,
   type GuildProfile,
+  type CircleExchangePost,
 } from '@/app/actions/circle';
 
-type CategoryFilter = 'all' | 'fulfillment' | 'production' | 'milestone';
+type ExchangeCategory = 'all' | 'overflow' | 'equipment' | 'fabric' | 'technique';
 
 const COMMON_MACHINES = [
   'Industrial Buttonholer',
@@ -74,9 +77,17 @@ function AtelierCircleContent() {
 
   const [data, setData] = useState<CircleHubData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [salutes, setSalutes] = useState<Record<string, SaluteState>>({});
+
+  // Guild Exchange Board state
+  const [exchangeCategory, setExchangeCategory] = useState<ExchangeCategory>('all');
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [draftPostCategory, setDraftPostCategory] = useState<'overflow' | 'equipment' | 'fabric' | 'technique'>('overflow');
+  const [draftPostTitle, setDraftPostTitle] = useState('');
+  const [draftPostDescription, setDraftPostDescription] = useState('');
+  const [draftPostUrgency, setDraftPostUrgency] = useState<'urgent_today' | 'this_week' | 'flexible'>('this_week');
+  const [creatingPost, setCreatingPost] = useState(false);
+  const [updatingPostId, setUpdatingPostId] = useState<string | null>(null);
 
   // Guild Craft Card Modal state
   const [isGuildCardOpen, setIsGuildCardOpen] = useState(false);
@@ -109,17 +120,6 @@ function AtelierCircleContent() {
       if (res.data.myShop.country) {
         setSearchCountryFilter(res.data.myShop.country);
       }
-      const initialSalutes: Record<string, SaluteState> = {};
-      for (const p of res.data.pulses) {
-        initialSalutes[p.id] = {
-          flame: p.salutes.flame,
-          needle: p.salutes.needle,
-          respect: p.salutes.respect,
-          userSaluted: {},
-        };
-      }
-      setSalutes(initialSalutes);
-
       // Keep selectedBuddy in sync if sheet is open
       if (selectedBuddy) {
         const fresh = res.data.buddies.find((b) => b.id === selectedBuddy.id) || null;
@@ -133,29 +133,81 @@ function AtelierCircleContent() {
     loadData().finally(() => setLoading(false));
   }, []);
 
-  const handleSalute = (pulseId: string, type: 'flame' | 'needle' | 'respect') => {
-    setSalutes((prev) => {
-      const current = prev[pulseId] || {
-        flame: 0,
-        needle: 0,
-        respect: 0,
-        userSaluted: {},
-      };
-      const isAlready = Boolean(current.userSaluted[type]);
-      const nextCount = isAlready ? Math.max(0, current[type] - 1) : current[type] + 1;
+  const formatTimeAgo = (dateString: string): string => {
+    try {
+      const then = new Date(dateString).getTime();
+      const now = Date.now();
+      const diffSec = Math.floor((now - then) / 1000);
+      if (diffSec < 60) return 'Just now';
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHours = Math.floor(diffMin / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch {
+      return '';
+    }
+  };
 
-      return {
-        ...prev,
-        [pulseId]: {
-          ...current,
-          [type]: nextCount,
-          userSaluted: {
-            ...current.userSaluted,
-            [type]: !isAlready,
-          },
-        },
-      };
-    });
+  const handleCreatePost = async () => {
+    if (!draftPostTitle.trim()) {
+      showToast('Please enter a request title', 'error');
+      return;
+    }
+    if (!draftPostDescription.trim()) {
+      showToast('Please describe what you need or offer', 'error');
+      return;
+    }
+    setCreatingPost(true);
+    try {
+      const res = await createCircleExchangePostAction({
+        category: draftPostCategory,
+        title: draftPostTitle,
+        description: draftPostDescription,
+        urgency: draftPostUrgency,
+      });
+      if (res.success) {
+        showToast('Guild exchange request posted to your circle!', 'success');
+        setIsCreatePostOpen(false);
+        setDraftPostTitle('');
+        setDraftPostDescription('');
+        setDraftPostCategory('overflow');
+        setDraftPostUrgency('this_week');
+        await loadData();
+      } else {
+        showToast(res.error || 'Failed to create request', 'error');
+      }
+    } catch {
+      showToast('Error creating request', 'error');
+    } finally {
+      setCreatingPost(false);
+    }
+  };
+
+  const handleUpdatePostStatus = async (postId: string, newStatus: 'open' | 'fulfilled' | 'deleted') => {
+    setUpdatingPostId(postId);
+    try {
+      const res = await updateCircleExchangePostStatusAction(postId, newStatus);
+      if (res.success) {
+        showToast(
+          newStatus === 'fulfilled'
+            ? 'Request marked as fulfilled!'
+            : newStatus === 'deleted'
+            ? 'Request removed'
+            : 'Request reopened',
+          'success'
+        );
+        await loadData();
+      } else {
+        showToast(res.error || 'Failed to update request', 'error');
+      }
+    } catch {
+      showToast('Error updating request status', 'error');
+    } finally {
+      setUpdatingPostId(null);
+    }
   };
 
   const handleSendNudge = async (buddy: CircleBuddy) => {
@@ -381,9 +433,9 @@ function AtelierCircleContent() {
     }
   };
 
-  const filteredPulses = (data?.pulses || []).filter((pulse) => {
-    if (activeCategory === 'all') return true;
-    return pulse.category === activeCategory;
+  const exchangePosts = (data?.exchangePosts || []).filter((post) => {
+    if (exchangeCategory === 'all') return true;
+    return post.category === exchangeCategory;
   });
 
   const benefits = data?.benefits;
@@ -712,124 +764,194 @@ function AtelierCircleContent() {
           </div>
         </section>
 
-        {/* ── 3. Update Filter Tabs ── */}
-        <div className={styles.filterTabs}>
-          {(['all', 'fulfillment', 'production', 'milestone'] as CategoryFilter[]).map((tab) => {
-            const labels: Record<CategoryFilter, string> = {
-              all: 'All Updates',
-              fulfillment: 'Delivered',
-              production: 'Sewing',
-              milestone: 'Milestones',
-            };
-            const isActive = activeCategory === tab;
-            return (
-              <button
-                key={tab}
-                className={`${styles.tabBtn} ${isActive ? styles.tabBtnActive : ''}`}
-                onClick={() => setActiveCategory(tab)}
-              >
-                {labels[tab]}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ── 4. Live Workshop Activity Stream ── */}
-        <section className={styles.pulseStream}>
-          {loading ? (
-            <div className={styles.emptyState}>
-              <p className={styles.emptyText}>Loading tailor updates...</p>
-            </div>
-          ) : filteredPulses.length === 0 ? (
-            <div className={styles.emptyState}>
-              <p className={styles.emptyTitle}>No activity in this category yet</p>
-              <p className={styles.emptyText}>
-                When your connected tailors finish orders or hit milestones, their verified craft updates will appear here automatically.
+        {/* ── 3. Guild Exchange Board ── */}
+        <section className={styles.exchangeSection}>
+          <div className={styles.exchangeHeaderRow}>
+            <div className={styles.exchangeTitleBlock}>
+              <h2 className={styles.exchangeSectionTitle}>Guild Exchange Board</h2>
+              <p className={styles.exchangeSectionSubtitle}>
+                Share overflow cuts, borrow specialized machines, swap fabrics & source techniques
               </p>
             </div>
+            <button
+              type="button"
+              className={styles.postRequestActionBtn}
+              onClick={() => setIsCreatePostOpen(true)}
+            >
+              <Symbol name="add" size={15} />
+              <span>Post Request</span>
+            </button>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className={styles.filterTabs}>
+            {([
+              { key: 'all', label: 'All Requests' },
+              { key: 'overflow', label: 'Overflow Work' },
+              { key: 'equipment', label: 'Machine Access' },
+              { key: 'fabric', label: 'Fabric SOS' },
+              { key: 'technique', label: 'Technique' },
+            ] as { key: ExchangeCategory; label: string }[]).map((tab) => {
+              const isActive = exchangeCategory === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={`${styles.tabBtn} ${isActive ? styles.tabBtnActive : ''}`}
+                  onClick={() => setExchangeCategory(tab.key)}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Posts Feed */}
+          {loading ? (
+            <div className={styles.emptyState}>
+              <p className={styles.emptyText}>Loading guild exchange requests...</p>
+            </div>
+          ) : exchangePosts.length === 0 ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIconCircle}>
+                <Symbol name="handshake" size={24} />
+              </div>
+              <p className={styles.emptyTitle}>No exchange requests yet</p>
+              <p className={styles.emptyText}>
+                Need extra hands for urgent delivery? Looking for specialized machine access or specific fabric? Post a request to your circle.
+              </p>
+              <button
+                type="button"
+                className={styles.postRequestActionBtn}
+                style={{ marginTop: 12 }}
+                onClick={() => setIsCreatePostOpen(true)}
+              >
+                <Symbol name="add" size={15} />
+                <span>Post First Request</span>
+              </button>
+            </div>
           ) : (
-            filteredPulses.map((pulse: PulseActivity) => {
-              const currentSalute = salutes[pulse.id] || {
-                flame: pulse.salutes.flame,
-                needle: pulse.salutes.needle,
-                respect: pulse.salutes.respect,
-                userSaluted: {},
+            exchangePosts.map((post) => {
+              const isMine = post.shopId === data?.myShop.id;
+              const catLabels: Record<string, string> = {
+                overflow: 'Overflow Work',
+                equipment: 'Machine Access',
+                fabric: 'Fabric SOS',
+                technique: 'Technique Advice',
               };
-              const initials = pulse.shopName
-                .split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase();
+              const urgencyLabels: Record<string, string> = {
+                urgent_today: 'Urgent Today',
+                this_week: 'This Week',
+                flexible: 'Flexible',
+              };
+
+              const claimMsg = `Hello ${post.shopName}! I saw your "${post.title}" request on Tailor Circle and wanted to connect on it.`;
+              const waLink = post.whatsappPhone ? getWhatsAppLink(post.whatsappPhone, claimMsg) : null;
+              const isFulfilled = post.status === 'fulfilled';
 
               return (
-                <article key={pulse.id} className={styles.pulseCard}>
-                  {/* Pulse Header */}
-                  <div className={styles.pulseHeader}>
-                    <div className={styles.pulseSender}>
-                      <div
-                        className={styles.senderAvatar}
-                        style={{ borderColor: pulse.tierColor }}
-                      >
-                        <div className={styles.senderAvatarInner}>
-                          {initials}
-                        </div>
+                <article
+                  key={post.id}
+                  className={`${styles.exchangeCard} ${isFulfilled ? styles.exchangeCardFulfilled : ''}`}
+                >
+                  <div className={styles.exchangeCardTop}>
+                    <div className={styles.exchangeBadgesGroup}>
+                      <span className={`${styles.catBadge} ${styles[`catBadge_${post.category}`] || ''}`}>
+                        {catLabels[post.category] || post.category}
+                      </span>
+                      <span className={`${styles.urgencyBadge} ${styles[`urgency_${post.urgency}`] || ''}`}>
+                        {urgencyLabels[post.urgency] || post.urgency}
+                      </span>
+                      {isFulfilled && (
+                        <span className={styles.statusPillFulfilled}>
+                          Fulfilled
+                        </span>
+                      )}
+                    </div>
+                    <span className={styles.postDateText}>
+                      {formatTimeAgo(post.createdAt)}
+                    </span>
+                  </div>
+
+                  <h3 className={styles.exchangeTitle}>{post.title}</h3>
+                  <p className={styles.exchangeDescription}>{post.description}</p>
+
+                  <div className={styles.exchangeFooter}>
+                    <div className={styles.exchangeShopBlock}>
+                      <div className={styles.exchangeShopAvatar}>
+                        {post.shopLogoUrl ? (
+                          <img
+                            src={post.shopLogoUrl}
+                            alt={post.shopName}
+                            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          post.shopName.charAt(0).toUpperCase()
+                        )}
                       </div>
-                      <div className={styles.senderInfo}>
-                        <div className={styles.senderNameRow}>
-                          <span className={styles.senderName}>{pulse.shopName}</span>
-                          <Symbol name="check_circle" size={13} style={{ color: 'var(--sf-brand-indigo, #4338ca)' }} />
-                        </div>
-                        <span className={styles.senderTier}>{pulse.tierName}</span>
+                      <div className={styles.exchangeShopMeta}>
+                        <span className={styles.exchangeShopName}>
+                          {isMine ? `${post.shopName} (You)` : post.shopName}
+                        </span>
+                        {post.city && (
+                          <span className={styles.exchangeLocationText}>
+                            {post.city}, {post.country}
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    <div className={styles.pulseBadgeRow}>
-                      <span className={styles.pulseBadge}>{pulse.badgeLabel}</span>
-                      <span className={styles.pulseTime}>{pulse.timeAgo}</span>
-                    </div>
-                  </div>
-
-                  {/* Pulse Body */}
-                  <div className={styles.pulseBody}>
-                    <p className={styles.headline}>{pulse.headline}</p>
-                    <p className={styles.subtext}>{pulse.subtext}</p>
-                  </div>
-
-                  {/* Pulse Footer - 1-Tap Craft Salutes */}
-                  <div className={styles.pulseFooter}>
-                    <button
-                      type="button"
-                      className={`${styles.saluteBtn} ${currentSalute.userSaluted.flame ? styles.saluteBtnActive : ''
-                        }`}
-                      onClick={() => handleSalute(pulse.id, 'flame')}
-                      title="Salute: Craft Fire"
-                    >
-                      <Symbol name="local_fire_department" size={14} />
-                      <span>{currentSalute.flame}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`${styles.saluteBtn} ${currentSalute.userSaluted.needle ? styles.saluteBtnActive : ''
-                        }`}
-                      onClick={() => handleSalute(pulse.id, 'needle')}
-                      title="Salute: Precision Cut"
-                    >
-                      <Symbol name="needle" size={14} />
-                      <span>{currentSalute.needle}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className={`${styles.saluteBtn} ${currentSalute.userSaluted.respect ? styles.saluteBtnActive : ''
-                        }`}
-                      onClick={() => handleSalute(pulse.id, 'respect')}
-                      title="Salute: Tailor Respect"
-                    >
-                      <Symbol name="handshake" size={14} />
-                      <span>{currentSalute.respect}</span>
-                    </button>
+                    {isMine ? (
+                      <div className={styles.exchangeOwnerBar}>
+                        {isFulfilled ? (
+                          <button
+                            type="button"
+                            className={styles.exchangeSmallBtn}
+                            disabled={updatingPostId === post.id}
+                            onClick={() => handleUpdatePostStatus(post.id, 'open')}
+                          >
+                            <Symbol name="undo" size={13} />
+                            <span>Reopen</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.exchangeSmallBtn}
+                            disabled={updatingPostId === post.id}
+                            onClick={() => handleUpdatePostStatus(post.id, 'fulfilled')}
+                          >
+                            <Symbol name="check" size={13} />
+                            <span>Mark Fulfilled</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.exchangeSmallBtn}
+                          style={{ color: '#dc2626' }}
+                          disabled={updatingPostId === post.id}
+                          onClick={() => {
+                            if (confirm('Delete this request from the guild board?')) {
+                              handleUpdatePostStatus(post.id, 'deleted');
+                            }
+                          }}
+                        >
+                          <Symbol name="delete" size={13} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    ) : (
+                      waLink && !isFulfilled && (
+                        <a
+                          href={waLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.exchangeWhatsAppBtn}
+                        >
+                          <WhatsappIcon size={14} />
+                          <span>Coordinate on WhatsApp</span>
+                        </a>
+                      )
+                    )}
                   </div>
                 </article>
               );
@@ -1367,6 +1489,117 @@ function AtelierCircleContent() {
             onClick={handleSaveGuildCard}
           >
             {savingGuildCard ? 'Saving Guild Card...' : 'Save Guild Craft Card'}
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* ── 8. Create Guild Exchange Request BottomSheet ── */}
+      <BottomSheet
+        isOpen={isCreatePostOpen}
+        onClose={() => setIsCreatePostOpen(false)}
+        title="Post Guild Exchange Request"
+      >
+        <div className={styles.guildFormBody}>
+          <p className={styles.guildSectionHint}>
+            Broadcast a request to your connected peer workshops. Tailors in your circle can view and coordinate with you directly on WhatsApp.
+          </p>
+
+          {/* Request Category */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildLabel}>Request Type</label>
+            <div>
+              {[
+                { key: 'overflow', label: 'Overflow Work', desc: 'Need extra hands / outsource cut' },
+                { key: 'equipment', label: 'Machine Access', desc: 'Borrow specialized machine' },
+                { key: 'fabric', label: 'Fabric / Trim SOS', desc: 'Source matching yardage or trims' },
+                { key: 'technique', label: 'Technique Advice', desc: 'Pattern, fit, or structure guidance' },
+              ].map((opt) => (
+                <div
+                  key={opt.key}
+                  className={`${styles.guildRadioCard} ${
+                    draftPostCategory === opt.key ? styles.guildRadioCardActive : ''
+                  }`}
+                  onClick={() => setDraftPostCategory(opt.key as any)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <Symbol
+                    name={draftPostCategory === opt.key ? 'check_circle' : 'radio_button_unchecked'}
+                    size={18}
+                    style={{
+                      color: draftPostCategory === opt.key ? 'var(--sf-brand-indigo)' : 'var(--sf-text-secondary)',
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--sf-text-primary)' }}>
+                      {opt.label}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--sf-text-secondary)' }}>
+                      {opt.desc}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Urgency */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildLabel}>Urgency</label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { key: 'urgent_today', label: 'Urgent Today' },
+                { key: 'this_week', label: 'This Week' },
+                { key: 'flexible', label: 'Flexible' },
+              ].map((urg) => {
+                const isActive = draftPostUrgency === urg.key;
+                return (
+                  <button
+                    key={urg.key}
+                    type="button"
+                    className={`${styles.guildTogglePill} ${isActive ? styles.guildTogglePillActive : ''}`}
+                    onClick={() => setDraftPostUrgency(urg.key as any)}
+                  >
+                    {urg.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Request Title */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildLabel}>Request Summary / Title</label>
+            <input
+              type="text"
+              className={styles.guildInput}
+              placeholder="e.g. Need buttonholes punched for 8 Senator suits by 4pm"
+              value={draftPostTitle}
+              onChange={(e) => setDraftPostTitle(e.target.value)}
+              maxLength={120}
+            />
+          </div>
+
+          {/* Request Details */}
+          <div className={styles.guildFormGroup}>
+            <label className={styles.guildLabel}>Details & Specifications</label>
+            <textarea
+              className={styles.guildInput}
+              rows={4}
+              placeholder="Describe what you need, fabric type, machine specs, or what you can offer in return..."
+              value={draftPostDescription}
+              onChange={(e) => setDraftPostDescription(e.target.value)}
+              style={{ resize: 'vertical' }}
+            />
+          </div>
+
+          <button
+            type="button"
+            className={styles.guildSaveBtn}
+            disabled={creatingPost || !draftPostTitle.trim()}
+            onClick={handleCreatePost}
+          >
+            {creatingPost ? 'Publishing Request...' : 'Publish to Guild Board'}
           </button>
         </div>
       </BottomSheet>
