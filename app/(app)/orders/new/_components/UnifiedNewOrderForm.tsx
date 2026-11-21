@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { savePendingPhoto } from '@/lib/offline/mediaStore';
 import { withNetworkTimeout } from '@/lib/offline/outbox';
-import { formatNumber, formatPhone, getCurrencySymbol, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
+import { formatNumber, formatPhone, getCurrencySymbol, getShopCurrency, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
@@ -75,7 +75,7 @@ export default function UnifiedNewOrderForm() {
   } = useData();
   const { showToast } = useToast();
 
-  const currencySymbol = getCurrencySymbol(currentShop?.currency || 'NGN');
+  const currencySymbol = getCurrencySymbol(getShopCurrency(currentShop));
 
   // ── 1. Client State ──
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);

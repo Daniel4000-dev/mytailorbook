@@ -18,7 +18,13 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import { compressImage } from '@/lib/compressImage';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
 import { COUNTRIES } from '@/components/ui/PhoneInput/countries';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import { getCurrencySymbol } from '@/lib/formatters';
+import {
+  getShopCurrency,
+  detectCountryAndCurrencyFromPhone,
+  getCurrencyForCountry,
+} from '@/lib/currency';
 import SettingsSkeleton from '../_components/SettingsSkeleton';
 import { ROUTES } from '@/lib/routes';
 import { isXpSystemEnabled } from '@/lib/xp';
@@ -113,8 +119,24 @@ export default function StudioSettingsPage() {
         await updateShop({ portfolioSettings: nextSettings });
         showToast('Shop tagline updated', 'success');
       } else if (activeField === 'phone') {
-        await updateShop({ phone: draftValue.trim() || undefined });
-        showToast('WhatsApp business phone updated', 'success');
+        const cleanPhone = draftValue.trim() || undefined;
+        const updates: Record<string, unknown> = { phone: cleanPhone };
+        const detected = detectCountryAndCurrencyFromPhone(cleanPhone);
+
+        if (detected.countryName && (!currentShop?.country || currentShop.country === 'Nigeria')) {
+          updates.country = detected.countryName;
+          updates.countryCode = detected.countryCode;
+        }
+        if (detected.currency && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          updates.currency = detected.currency;
+        }
+
+        await updateShop(updates);
+        if (detected.currency && detected.currency !== 'NGN' && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          showToast(`Phone saved · Auto-detected ${detected.countryName} · Currency set to ${detected.currency}`, 'success');
+        } else {
+          showToast('WhatsApp business phone updated', 'success');
+        }
       } else if (activeField === 'address') {
         await updateShop({ address: draftValue.trim() || undefined });
         showToast('Shop address updated', 'success');
@@ -122,24 +144,20 @@ export default function StudioSettingsPage() {
         const selected = COUNTRIES.find((c) => c.name.toLowerCase() === draftValue.toLowerCase() || c.code.toLowerCase() === draftValue.toLowerCase());
         const countryName = selected ? selected.name : draftValue.trim() || undefined;
         const countryCode = selected ? selected.code : undefined;
-        const currencyMap: Record<string, string> = {
-          NG: 'NGN',
-          GH: 'GHS',
-          KE: 'KES',
-          ZA: 'ZAR',
-          GB: 'GBP',
-          US: 'USD',
-          CA: 'CAD',
-        };
+        const autoCurrency = getCurrencyForCountry(countryCode || countryName);
         const updates: Record<string, unknown> = {
           country: countryName,
           countryCode: countryCode,
         };
-        if (countryCode && currencyMap[countryCode] && (!currentShop?.currency || currentShop.currency === 'NGN')) {
-          updates.currency = currencyMap[countryCode];
+        if (autoCurrency && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          updates.currency = autoCurrency;
         }
         await updateShop(updates);
-        showToast('Country updated', 'success');
+        if (autoCurrency && autoCurrency !== 'NGN' && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          showToast(`Country updated to ${countryName} · Currency set to ${autoCurrency}`, 'success');
+        } else {
+          showToast('Country updated', 'success');
+        }
       } else if (activeField === 'currency') {
         await updateShop({ currency: draftValue });
         showToast('Currency updated', 'success');
@@ -300,7 +318,7 @@ export default function StudioSettingsPage() {
   }
 
   const initial = currentShop?.name?.charAt(0)?.toUpperCase() || 'M';
-  const currencyCode = currentShop?.currency || 'NGN';
+  const currencyCode = getShopCurrency(currentShop);
   const currencySymbol = getCurrencySymbol(currencyCode);
 
   return (
@@ -498,7 +516,7 @@ export default function StudioSettingsPage() {
             <span className={styles.rowLabel}>Currency</span>
             <div className={styles.rowValueWrap}>
               <span className={styles.rowValue}>
-                {currentShop?.currency || 'NGN'} ({currencySymbol})
+                {currencyCode} ({currencySymbol})
               </span>
               <Symbol name="chevron_right" size={18} className={styles.chevron} />
             </div>
@@ -764,6 +782,21 @@ export default function StudioSettingsPage() {
                 label: c.label,
               }))}
             />
+          ) : activeField === 'phone' ? (
+            <div style={{ marginTop: '8px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                WhatsApp Business Phone
+              </label>
+              <PhoneInput
+                value={draftValue}
+                onChange={(val) => setDraftValue(val)}
+                placeholder="7123 456789"
+                defaultCountryCode={currentShop?.countryCode || 'NG'}
+              />
+              <p style={{ fontSize: '12px', color: 'var(--sf-text-tertiary)', marginTop: '8px', lineHeight: 1.4 }}>
+                Entering an international country code will automatically suggest and select your studio currency.
+              </p>
+            </div>
           ) : (
             <Input
               label={
@@ -773,8 +806,6 @@ export default function StudioSettingsPage() {
                   ? 'Workshop Username / Handle (@)'
                   : activeField === 'about'
                   ? 'Specialty / Tagline'
-                  : activeField === 'phone'
-                  ? 'Phone Number'
                   : 'Physical Workshop Address'
               }
               value={draftValue}
@@ -784,8 +815,6 @@ export default function StudioSettingsPage() {
                   ? 'e.g. crownstitches'
                   : activeField === 'about'
                   ? 'e.g. Master Bespoke Agbada & Senator Tailors'
-                  : activeField === 'phone'
-                  ? '+234 800 000 0000'
                   : activeField === 'address'
                   ? 'Suite 4, Victoria Island, Lagos'
                   : 'Studio Name'

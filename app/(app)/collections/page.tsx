@@ -4,7 +4,7 @@ import { useState, useMemo, useDeferredValue } from 'react';
 import Link from 'next/link';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
-import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, getCurrencySymbol } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink, getTelLink, getCurrencySymbol, getShopCurrency } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
@@ -34,7 +34,7 @@ type SortOption = 'highest_balance' | 'newest' | 'name';
 
 export default function CollectionsPage() {
   const { orders, customers, currentShop, updateOrder, isLoaded, isDemoMode } = useData();
-  const currency = currentShop?.currency || 'NGN';
+  const currency = getShopCurrency(currentShop);
   const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');

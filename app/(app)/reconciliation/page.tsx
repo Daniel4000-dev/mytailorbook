@@ -8,7 +8,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { getExpensesByDate, addExpense, deleteExpense, updateExpense } from '@/app/actions/expenses';
 import { getDailyRegisterSummary, type DailyRegisterSummary, type PaymentEntrySummary } from '@/app/actions/reconciliation';
 import type { Expense, ExpenseCategory, PaymentMethod } from '@/lib/types';
-import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
+import { formatNumber, getCurrencySymbol, getShopCurrency } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -48,7 +48,8 @@ export default function ShopExpensesPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const currencySymbol = getCurrencySymbol(currentShop?.currency || 'NGN');
+  const currencyCode = getShopCurrency(currentShop);
+  const currencySymbol = getCurrencySymbol(currencyCode);
 
   const businessMode = currentShop?.businessMode || ((currentShop as any)?.business_mode) || 'bespoke';
   const isBespoke = businessMode === 'bespoke';
@@ -236,16 +237,16 @@ export default function ShopExpensesPage() {
 
   // Dynamic localized quick amounts
   const quickAmounts = useMemo(() => {
-    const curr = (currentShop?.currency || 'NGN').toUpperCase();
+    const curr = currencyCode.toUpperCase();
     if (['USD', 'EUR', 'GBP'].includes(curr)) {
       return [5, 10, 20, 50];
     }
     return [1000, 2000, 5000, 10000];
-  }, [currentShop?.currency]);
+  }, [currencyCode]);
 
   // Dynamic localized presets using workshop currency
   const workshopPresets = useMemo(() => {
-    const curr = (currentShop?.currency || 'NGN').toUpperCase();
+    const curr = currencyCode.toUpperCase();
     const isWestern = ['USD', 'EUR', 'GBP'].includes(curr);
     return [
       {

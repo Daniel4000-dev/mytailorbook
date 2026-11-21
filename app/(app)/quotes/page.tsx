@@ -8,7 +8,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import MoneyInput from '@/components/ui/MoneyInput/MoneyInput';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
-import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
+import { formatCurrency, getWhatsAppLink, getShopCurrency } from '@/lib/formatters';
 import { resolveCanonicalStyleName } from '@/lib/constants';
 import type { Customer } from '@/lib/types';
 import { useToast } from '@/contexts/ToastContext';
@@ -127,7 +127,7 @@ export default function QuoteEstimatorPage() {
   const { currentShop, customers, updateCustomerProfile } = useData();
   const { showToast } = useToast();
 
-  const currency = currentShop?.currency || 'NGN';
+  const currency = getShopCurrency(currentShop);
   const shopName = currentShop?.name || 'Tailor Shop';
 
   // Client Selection State

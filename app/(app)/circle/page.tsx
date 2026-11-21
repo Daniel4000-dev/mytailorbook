@@ -11,6 +11,8 @@ import { APP_CONFIG } from '@/lib/config';
 import { useToast } from '@/contexts/ToastContext';
 import styles from './page.module.css';
 import { COUNTRIES } from '@/components/ui/PhoneInput/countries';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
+import { detectCountryAndCurrencyFromPhone } from '@/lib/currency';
 import {
   getCircleHubDataAction,
   linkStudioBuddyAction,
@@ -1527,13 +1529,20 @@ function AtelierCircleContent() {
           <div className={styles.guildFormGroup}>
             <label className={styles.guildFormLabel}>Direct WhatsApp Phone</label>
             <span className={styles.guildFormSub}>Used when colleagues tap Chat on WhatsApp for overflow work</span>
-            <input
-              type="tel"
-              placeholder="e.g. +234 801 234 5678"
-              value={draftWhatsappPhone}
-              onChange={(e) => setDraftWhatsappPhone(e.target.value)}
-              className={styles.guildInput}
-            />
+            <div style={{ marginTop: '6px' }}>
+              <PhoneInput
+                value={draftWhatsappPhone}
+                onChange={(val) => {
+                  setDraftWhatsappPhone(val);
+                  const detected = detectCountryAndCurrencyFromPhone(val);
+                  if (detected.countryName) {
+                    setDraftCountry(detected.countryName);
+                  }
+                }}
+                placeholder="7123 456789"
+                defaultCountryCode={COUNTRIES.find(c => c.name.toLowerCase() === draftCountry.toLowerCase())?.code || 'NG'}
+              />
+            </div>
           </div>
 
           {/* Industrial Machines */}

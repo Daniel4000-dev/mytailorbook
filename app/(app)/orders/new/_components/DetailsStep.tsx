@@ -4,7 +4,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
-import { formatNumber, getCurrencySymbol } from '@/lib/formatters';
+import { formatNumber, getCurrencySymbol, getShopCurrency } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
 import { checkWeeklyCapacity } from '@/app/actions/calendar';
 import type { Customer, Priority, User } from '@/lib/types';
@@ -50,7 +50,7 @@ export default function DetailsStep({
   onPriorityChange,
 }: DetailsStepProps) {
   const { currentShop } = useData();
-  const currencySymbol = getCurrencySymbol(currentShop?.currency || 'NGN');
+  const currencySymbol = getCurrencySymbol(getShopCurrency(currentShop));
   const [stashPickerKey, setStashPickerKey] = useState<string | null>(null);
   
   const [capacityWarning, setCapacityWarning] = useState<{

@@ -27,6 +27,7 @@ import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { PREMIUM_STATUSES } from '@/lib/subscription';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
+import { getShopCurrency } from '@/lib/formatters';
 import SettingsSkeleton from './_components/SettingsSkeleton';
 import styles from './page.module.css';
 
@@ -258,7 +259,7 @@ export default function SettingsPage() {
               </span>
             </span>
             <span className={styles.heroHandleDot}>·</span>
-            <span className={styles.heroCurrencyPill}>{currentShop?.currency || 'NGN'}</span>
+            <span className={styles.heroCurrencyPill}>{getShopCurrency(currentShop)}</span>
           </div>
         </div>
       </section>

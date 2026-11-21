@@ -7,6 +7,11 @@
 import { PHONE_PREFIX } from './constants';
 import { APP_CONFIG } from './config';
 import type { OrderStatus, Order, Customer } from './types';
+export {
+  getShopCurrency,
+  detectCountryAndCurrencyFromPhone,
+  getCurrencyForCountry,
+} from './currency';
 
 /**
  * Formats a number as currency with commas.

@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getShopCurrency } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import DonutChart from './_components/DonutChart';
 import TrendChart from './_components/TrendChart';
@@ -83,7 +83,7 @@ export default function ReportsPage() {
     };
   }, [range]);
 
-  const currency = currentShop?.currency || 'NGN';
+  const currency = getShopCurrency(currentShop);
   const totals = report?.totals || EMPTY_FINANCIAL_TOTALS;
 
   const businessMode =

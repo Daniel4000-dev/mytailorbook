@@ -15,7 +15,7 @@ import Select from '@/components/ui/Select/Select';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import AddStockGarmentModal from '@/components/stock/AddStockGarmentModal/AddStockGarmentModal';
-import { formatCurrency, formatPhone, getWhatsAppLink } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getShopCurrency, getWhatsAppLink } from '@/lib/formatters';
 import {
   getStockAction,
   updateStockPriceAction,
@@ -576,7 +576,7 @@ function StockContent() {
 
   if (!dataLoaded || authLoading || loading) return null;
 
-  const currency = currentShop?.currency || 'NGN';
+  const currency = getShopCurrency(currentShop);
   const hasItemsToShow = viewMode === 'grouped' ? filteredStyleGroups.length > 0 : filteredFlatStock.length > 0;
 
   return (

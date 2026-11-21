@@ -6,6 +6,7 @@ import { getTierForXp } from '@/lib/gamification';
 import { isXpSystemEnabled } from '@/lib/xp';
 import { createAtelierNotification } from '@/lib/notifications';
 import { getShopNotificationPreferences } from '@/lib/notificationPreferences';
+import { getCurrencyForCountry, detectCountryAndCurrencyFromPhone } from '@/lib/currency';
 
 export interface GuildProfile {
   country?: string;
@@ -748,7 +749,7 @@ export async function saveGuildProfileAction(
 
     const { data: shop } = await admin
       .from('shops')
-      .select('id, portfolio_settings, country, phone, address')
+      .select('id, portfolio_settings, country, phone, address, currency')
       .eq('id', profile.shop_id)
       .single();
 
@@ -781,6 +782,14 @@ export async function saveGuildProfileAction(
       if (parts.length > 0 && !shop.address) {
         shopUpdates.address = parts.join(', ');
       }
+    }
+
+    const autoCurrency =
+      (profileData.country ? getCurrencyForCountry(profileData.country) : null) ||
+      (profileData.whatsappPhone ? detectCountryAndCurrencyFromPhone(profileData.whatsappPhone).currency : null);
+
+    if (autoCurrency && (!shop.currency || shop.currency === 'NGN')) {
+      shopUpdates.currency = autoCurrency;
     }
     if (typeof profileData.isDiscoverable === 'boolean') {
       shopUpdates.directory_discoverable = profileData.isDiscoverable;
