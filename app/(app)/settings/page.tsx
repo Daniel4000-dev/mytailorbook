@@ -406,8 +406,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ── Group 5: Workshop Social Hub (WhatsApp 'Also from Meta' Style) ── */}
-        <div className={styles.alsoFromSection}>
+        {/* ── Group 5: Workshop Social Hub (Commented out per user request) ── */}
+        {/* <div className={styles.alsoFromSection}>
           <div className={styles.alsoFromHeader}>
             <span className={styles.alsoFromTitle}>Also from StitchBook</span>
             <button
@@ -501,7 +501,7 @@ export default function SettingsPage() {
               <span className={styles.socialLabel}>WhatsApp</span>
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* ── Group 6: Session & Sign Out ── */}
         <div className={styles.groupCard}>

@@ -436,7 +436,8 @@ export default function StudioSettingsPage() {
             </div>
           </button>
 
-          <button
+          {/* Social links row commented out per user request */}
+          {/* <button
             type="button"
             className={styles.rowItem}
             onClick={openLinksEditor}
@@ -454,7 +455,7 @@ export default function StudioSettingsPage() {
               )}
               <Symbol name="chevron_right" size={18} className={styles.chevron} />
             </div>
-          </button>
+          </button> */}
 
           <button
             type="button"

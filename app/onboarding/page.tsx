@@ -207,8 +207,7 @@ export default function OnboardingPage() {
       });
 
       await refreshProfile();
-      setConfirmedShopName(data.shopName);
-      setShowVision(true);
+      window.location.href = ROUTES.dashboard;
     } catch (err) {
       setApiError(err instanceof Error ? err.message : 'Could not finish setting up your workspace');
     } finally {
@@ -216,7 +215,8 @@ export default function OnboardingPage() {
     }
   };
 
-  if (showVision) {
+  /* Portfolio preview after onboarding completion commented out */
+  /* if (showVision) {
     return (
       <AspirationalVision
         shopName={confirmedShopName}
@@ -226,7 +226,7 @@ export default function OnboardingPage() {
         }}
       />
     );
-  }
+  } */
 
   if (loading || !needsOnboarding) {
     return (
@@ -390,8 +390,8 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Real-time Digital Portfolio & Lookbook Preview */}
-                <div className={styles.previewSection}>
+                {/* Real-time Digital Portfolio & Lookbook Preview (Commented out per user request) */}
+                {/* <div className={styles.previewSection}>
                   <div className={styles.previewHeader}>
                     <div className={styles.previewHeaderLeft}>
                       <span className={styles.previewUrlBadge}>
@@ -425,7 +425,6 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  {/* Real Sample Work Showcase */}
                   <div className={styles.sampleWorkSection}>
                     <div className={styles.sampleWorkHeader}>
                       <span className={styles.sampleWorkTitle}>Lookbook Sample Work</span>
@@ -463,7 +462,7 @@ export default function OnboardingPage() {
                         : 'Full tailoring workshop & showroom included'}
                     </span>
                   </div>
-                </div>
+                </div> */}
 
                 <div className={styles.actionsRow}>
                   <button
