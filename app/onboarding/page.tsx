@@ -325,13 +325,12 @@ export default function OnboardingPage() {
         <div className={styles.stepMeta}>
           <span>Shop Setup</span>
           <span>
-            Step {step - 1} of 3 • {step === 2 ? 'Shop Name' : step === 3 ? 'What You Make' : 'Workshop Focus'}
+            Step {step === 2 ? '1' : '2'} of 2 • {step === 2 ? 'Shop Name' : 'Workshop Focus'}
           </span>
         </div>
 
         <div className={styles.stepper}>
           <div className={`${styles.stepPill} ${step >= 2 ? styles.stepPillActive : ''}`} />
-          <div className={`${styles.stepPill} ${step >= 3 ? styles.stepPillActive : ''}`} />
           <div className={`${styles.stepPill} ${step >= 4 ? styles.stepPillActive : ''}`} />
         </div>
 
