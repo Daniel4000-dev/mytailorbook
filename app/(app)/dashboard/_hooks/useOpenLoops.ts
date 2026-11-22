@@ -3,6 +3,7 @@ import { isOverdue, getBalanceOwed } from '@/lib/types';
 import type { Order, Customer, ShopException } from '@/lib/types';
 import { STYLE_MEASUREMENTS } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
+import { formatNumber, getWhatsAppLink } from '@/lib/formatters';
 
 export interface OpenLoop {
   id: string;
@@ -11,6 +12,9 @@ export interface OpenLoop {
   actionText: string;
   href: string;
   urgency: 'high' | 'medium' | 'low';
+  subtitle?: string;
+  amountAtStake?: number;
+  whatsappUrl?: string;
 }
 
 export function computeOpenLoops(
@@ -18,7 +22,9 @@ export function computeOpenLoops(
   customers: Customer[],
   exceptions: ShopException[] = [],
   businessMode = 'bespoke',
-  stockAlerts?: { lowStockCount?: number; outOfStockCount?: number }
+  stockAlerts?: { lowStockCount?: number; outOfStockCount?: number },
+  currencySymbol = '₦',
+  shopName?: string
 ): OpenLoop[] {
   const loops: OpenLoop[] = [];
   
@@ -38,6 +44,7 @@ export function computeOpenLoops(
         id: 'loop-rtw-out-of-stock',
         category: 'production',
         title: `${stockAlerts.outOfStockCount} garment style${stockAlerts.outOfStockCount === 1 ? ' is' : 's are'} sold out on your rack`,
+        subtitle: 'Restock needed immediately',
         actionText: 'Restock Rack',
         href: '/stock?action=add',
         urgency: 'high',
@@ -48,6 +55,7 @@ export function computeOpenLoops(
         id: 'loop-rtw-low-stock',
         category: 'production',
         title: `${stockAlerts.lowStockCount} garment size${stockAlerts.lowStockCount === 1 ? ' has' : 's have'} 2 or fewer pieces left`,
+        subtitle: 'Approaching stockout',
         actionText: 'View Rack',
         href: '/stock',
         urgency: 'medium',
@@ -55,19 +63,22 @@ export function computeOpenLoops(
     }
     const deliveredOrdersWithBalance = orders.filter((o) => getBalanceOwed(o) > 0 && !activeExceptionOrderIds.has(o.id));
     if (deliveredOrdersWithBalance.length > 0) {
+      const totalBalance = deliveredOrdersWithBalance.reduce((sum, o) => sum + getBalanceOwed(o), 0);
       loops.push({
         id: 'loop-balances',
         category: 'balances',
         title: `${deliveredOrdersWithBalance.length} customer${deliveredOrdersWithBalance.length === 1 ? '' : 's'} with unpaid counter balances`,
+        subtitle: `${currencySymbol}${formatNumber(totalBalance)} total collectible`,
         actionText: 'Open Collections',
         href: '/collections',
         urgency: 'high',
+        amountAtStake: totalBalance,
       });
     }
     return loops.slice(0, 3);
   }
 
-  // 1. Production Loops
+  // 1. Production Loops (Prescriptive & Cash at Stake)
   const activeOrders = orders.filter((o) => o.status !== 'Delivered' && !activeExceptionOrderIds.has(o.id));
   const staleLimit = Date.now() - 3 * 24 * 60 * 60 * 1000;
   const todayStr = now.toISOString().split('T')[0];
@@ -84,17 +95,44 @@ export function computeOpenLoops(
   });
 
   if (needsUpdateOrders.length > 0) {
+    const cashAtStake = needsUpdateOrders.reduce((sum, o) => sum + getBalanceOwed(o), 0);
+    const sortedUrgent = [...needsUpdateOrders].sort((a, b) => {
+      const aOver = isOverdue(a) ? 1 : 0;
+      const bOver = isOverdue(b) ? 1 : 0;
+      if (aOver !== bOver) return bOver - aOver;
+      return new Date(a.dueDate || '').getTime() - new Date(b.dueDate || '').getTime();
+    });
+    const topOrder = sortedUrgent[0];
+    const clientName = topOrder.customerName || customers.find((c) => c.id === topOrder.customerId)?.fullName || 'Client';
+    const isLate = isOverdue(topOrder);
+    const isDueToday = topOrder.dueDate && new Date(topOrder.dueDate).toISOString().split('T')[0] === todayStr;
+
+    let title = '';
+    if (isLate) {
+      title = `${clientName}'s ${topOrder.styleName || 'outfit'} is overdue`;
+    } else if (isDueToday) {
+      title = `${clientName}'s ${topOrder.styleName || 'outfit'} is due for delivery today`;
+    } else {
+      title = `${clientName}'s ${topOrder.styleName || 'outfit'} needs an update`;
+    }
+
+    const subtitle = cashAtStake > 0
+      ? `${currencySymbol}${formatNumber(cashAtStake)} balance ready to unlock upon delivery`
+      : `${needsUpdateOrders.length} order${needsUpdateOrders.length === 1 ? '' : 's'} in queue`;
+
     loops.push({
       id: 'loop-production',
       category: 'production',
-      title: `${needsUpdateOrders.length} order${needsUpdateOrders.length === 1 ? '' : 's'} need${needsUpdateOrders.length === 1 ? 's' : ''} an update today`,
-      actionText: 'Open Production',
-      href: '/production',
+      title,
+      subtitle,
+      actionText: 'View Order',
+      href: topOrder ? `/orders/${topOrder.id}` : '/production',
       urgency: 'high',
+      amountAtStake: cashAtStake,
     });
   }
 
-  // 2. Measurements Loops
+  // 2. Measurements Loops (1-Tap WhatsApp Request)
   const customersMissingMeasurements = activeOrders.filter((o) => {
     if (!o.styleName) return false;
     const customer = customers.find(c => c.id === o.customerId);
@@ -115,47 +153,81 @@ export function computeOpenLoops(
     const customer = customers.find(c => c.id === firstCustomerOrder.customerId);
     const missingCount = customersMissingMeasurements.length;
     
+    let whatsappUrl: string | undefined;
+    if (customer?.whatsappNumber) {
+      const clientFirst = (customer.fullName || 'there').trim().split(' ')[0];
+      const shopTitle = shopName ? `*${shopName}*` : 'our workshop';
+      const msg = `Hello ${clientFirst}, this is from ${shopTitle}. We are preparing to cut your ${firstCustomerOrder.styleName || 'outfit'}, but we still need a few body measurements to guarantee a perfect fit. When would you be free for a quick check?`;
+      whatsappUrl = getWhatsAppLink(customer.whatsappNumber, msg);
+    }
+
     loops.push({
       id: 'loop-measurements',
       category: 'measurements',
       title: missingCount === 1 
-        ? `${customer?.fullName || 'A customer'} is missing measurements`
-        : `${missingCount} active customers are missing measurements`,
-      actionText: 'Update Profile',
-      href: ROUTES.customerDetail(customer || firstCustomerOrder.customerId || ''),
+        ? `${customer?.fullName || 'Customer'} is missing measurements`
+        : `${missingCount} active clients are missing body measurements`,
+      subtitle: `Needed before cutting ${firstCustomerOrder.styleName || 'garment'}`,
+      actionText: whatsappUrl ? 'Message' : 'Record',
+      href: customer ? ROUTES.customerDetail(customer.id) : '/customers',
       urgency: 'high',
+      whatsappUrl,
     });
   }
 
-  // 3. Uncut Fabrics Loop
+  // 3. Uncut Fabrics Loop (Prescriptive Next in Queue)
   const uncutOrders = orders.filter((o) => {
     if (o.status !== 'Documented') return false;
     if (activeExceptionOrderIds.has(o.id)) return false;
-    // If flagged as awaiting fabric sourcing or client fabric drop-off, pause from urgent alert
     if (o.orderDetails?.includes('[Awaiting Sourcing]') || o.orderDetails?.includes('[Fabric Pending]')) return false;
     return true;
   });
   if (uncutOrders.length > 0) {
+    const topUncut = uncutOrders[0];
+    const clientName = topUncut.customerName || customers.find(c => c.id === topUncut.customerId)?.fullName || 'Client';
     loops.push({
       id: 'loop-fabrics',
       category: 'production',
-      title: `${uncutOrders.length} uncut fabric${uncutOrders.length === 1 ? '' : 's'} waiting on the cutting table`,
-      actionText: 'Cut Fabrics',
-      href: '/fabrics',
+      title: uncutOrders.length === 1
+        ? `Cut ${clientName}'s ${topUncut.styleName || 'fabric'} next on the cutting table`
+        : `Cut ${clientName}'s ${topUncut.styleName || 'fabric'} next (${uncutOrders.length} waiting)`,
+      subtitle: 'Next up on cutting table',
+      actionText: 'Cut Now',
+      href: `/orders/${topUncut.id}`,
       urgency: 'medium',
     });
   }
 
-  // 4. Balances Loops (Debt Recovery)
+  // 4. Balances Loops (Debt Recovery with Direct 1-Tap WhatsApp Reminder)
   const deliveredOrdersWithBalance = orders.filter((o) => o.status === 'Delivered' && getBalanceOwed(o) > 0 && !activeExceptionOrderIds.has(o.id));
   if (deliveredOrdersWithBalance.length > 0) {
+    const totalBalance = deliveredOrdersWithBalance.reduce((sum, o) => sum + getBalanceOwed(o), 0);
+    const topOrder = deliveredOrdersWithBalance[0];
+    const topCustomer = customers.find((c) => c.id === topOrder.customerId);
+    const topBalance = getBalanceOwed(topOrder);
+
+    let whatsappUrl: string | undefined;
+    if (topCustomer?.whatsappNumber) {
+      const clientFirst = (topCustomer.fullName || 'there').trim().split(' ')[0];
+      const shopTitle = shopName ? `*${shopName}*` : 'our workshop';
+      const msg = `Hello ${clientFirst}, trust you are having a wonderful day! This is a gentle reminder from ${shopTitle} regarding the remaining balance of *${currencySymbol}${formatNumber(topBalance)}* on your delivered order. Please let us know when it is convenient to balance up. Thank you!`;
+      whatsappUrl = getWhatsAppLink(topCustomer.whatsappNumber, msg);
+    }
+
+    const title = deliveredOrdersWithBalance.length === 1 && topCustomer
+      ? `${topCustomer.fullName} has ${currencySymbol}${formatNumber(topBalance)} balance to clear`
+      : `${currencySymbol}${formatNumber(totalBalance)} ready for collection across ${deliveredOrdersWithBalance.length} delivered orders`;
+
     loops.push({
       id: 'loop-balances',
       category: 'balances',
-      title: `${deliveredOrdersWithBalance.length} client${deliveredOrdersWithBalance.length === 1 ? '' : 's'} with unpaid balances ready for recovery`,
-      actionText: 'Open Collections',
+      title,
+      subtitle: 'Delivered orders awaiting final settlement',
+      actionText: whatsappUrl ? 'Remind' : 'Collect',
       href: '/collections',
       urgency: 'high',
+      amountAtStake: totalBalance,
+      whatsappUrl,
     });
   }
 
@@ -168,10 +240,12 @@ export function useOpenLoops(
   customers: Customer[],
   exceptions: ShopException[] = [],
   businessMode = 'bespoke',
-  stockAlerts?: { lowStockCount?: number; outOfStockCount?: number }
+  stockAlerts?: { lowStockCount?: number; outOfStockCount?: number },
+  currencySymbol = '₦',
+  shopName?: string
 ) {
   return useMemo(
-    () => computeOpenLoops(orders, customers, exceptions, businessMode, stockAlerts),
-    [orders, customers, exceptions, businessMode, stockAlerts?.lowStockCount, stockAlerts?.outOfStockCount]
+    () => computeOpenLoops(orders, customers, exceptions, businessMode, stockAlerts, currencySymbol, shopName),
+    [orders, customers, exceptions, businessMode, stockAlerts?.lowStockCount, stockAlerts?.outOfStockCount, currencySymbol, shopName]
   );
 }

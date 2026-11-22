@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import type { Order } from '@/lib/types';
 import { CRAFT_ROLE_LABELS } from '@/lib/types';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, getCurrencySymbol, getShopCurrency } from '@/lib/formatters';
 import { useOwnerDashboardData } from '../../_hooks/useOwnerDashboardData';
 import { useOpenLoops } from '../../_hooks/useOpenLoops';
 import { useShowroomStockMetrics } from '../../_hooks/useShowroomStockMetrics';
@@ -54,12 +54,15 @@ export default function OwnerDashboard({
     teamSnapshot,
   } = useOwnerDashboardData(orders, staffMembers);
 
+  const currencySymbol = getCurrencySymbol(getShopCurrency(currentShop));
   const openLoops = useOpenLoops(
     orders,
     customers,
     exceptions,
     businessMode,
-    { lowStockCount: showroomMetrics.lowStockCount, outOfStockCount: showroomMetrics.outOfStockCount }
+    { lowStockCount: showroomMetrics.lowStockCount, outOfStockCount: showroomMetrics.outOfStockCount },
+    currencySymbol,
+    currentShop?.name
   );
 
   const isDayOne = isRtw
