@@ -180,14 +180,17 @@ export const GARMENT_STYLES: GarmentStyle[] = [
   { name: 'Aso Ebi (Men)', subtitle: 'Matching event wear', keywords: ['aso ebi', 'asoebi'], gender: 'male', photoUrl: '/images/garments/aso-ebi-male.jpg', hidden: true },
 
   // ── Female (Active Catalogue) ────────────────────────────
+  { name: 'Suit (Women)', subtitle: 'Tailored women suiting', keywords: ['suit', 'blazer'], gender: 'female', photoUrl: '/images/garments/suit-female.jpg' },
   { name: 'Boubou', subtitle: 'Flowing formal gown', keywords: ['boubou', 'gown'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg' },
-  { name: 'Ankara Gown', subtitle: "Women's tailored gown", keywords: ['ankara', 'gown'], gender: 'female', photoUrl: '/images/garments/ankara-gown-female.jpg' },
+  { name: 'Two-Piece (Women)', subtitle: 'Matching top and bottoms', keywords: ['two piece', 'two-piece'], gender: 'female', photoUrl: '/images/garments/two-piece-female.jpg' },
   { name: 'Aso Ebi Gown', subtitle: 'Event/ceremony dress', keywords: ['aso ebi gown', 'asoebi gown', 'aso ebi'], gender: 'female', photoUrl: '/images/garments/aso-ebi-gown-female.jpg' },
-  { name: 'Two-Piece (Women)', subtitle: 'Matching top and trousers', keywords: ['two piece', 'two-piece'], gender: 'female', photoUrl: '/images/garments/two-piece-female.jpg' },
+  { name: 'Skirt', subtitle: 'Bespoke tailored skirt', keywords: ['skirt'], gender: 'female', photoUrl: '/images/garments/skirt-female.jpg' },
+  { name: 'Blouse', subtitle: 'Tailored top or blouse', keywords: ['blouse', 'top'], gender: 'female', photoUrl: '/images/garments/blouse-female.jpg' },
+  { name: 'Trouser', subtitle: 'Bespoke tailored trousers', keywords: ['trouser', 'trousers', 'pant', 'pants'], gender: 'female', photoUrl: '/images/garments/trouser-female.jpg' },
   { name: 'Skirt & Blouse', subtitle: 'Office/native combo', keywords: ['skirt', 'blouse'], gender: 'female', photoUrl: '/images/garments/skirt-blouse-female.jpg' },
-  { name: 'Suit (Women)', subtitle: 'Tailored women suiting', keywords: ['suit', 'blazer'], gender: 'female', photoUrl: '/images/garments/suit-male.jpg' },
 
   // ── Female (Soft-Hidden, Preserved for History & Backwards-Compat) ─
+  { name: 'Ankara Gown', subtitle: "Women's tailored gown", keywords: ['ankara', 'gown'], gender: 'female', photoUrl: '/images/garments/ankara-gown-female.jpg', hidden: true },
   { name: 'Senator (Women)', subtitle: 'Fitted native 2-piece', keywords: ['senator'], gender: 'female', photoUrl: '/images/garments/senator-female.jpg', hidden: true },
   { name: 'Buba & Iro', subtitle: "Traditional women's wear", keywords: ['buba', 'iro'], gender: 'female', photoUrl: '/images/garments/buba-iro-female.jpg', hidden: true },
   { name: 'Kaftan (Women)', subtitle: 'Relaxed flowing gown', keywords: ['kaftan'], gender: 'female', photoUrl: '/images/garments/kaftan-female.jpg', hidden: true },
@@ -562,6 +565,24 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
       { key: 'shirtLength', label: 'Jacket Length', hint: 'Shoulder to jacket hem', gx: 100, gy: 166 },
       { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
+    ],
+  },
+  Skirt: {
+    variant: 'wrapper',
+    points: [
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 124 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point of the hips', gx: 100, gy: 154 },
+      { key: 'dressLength', label: 'Skirt Length', hint: 'Waistline to desired skirt hem', gx: 100, gy: 258 },
+    ],
+  },
+  Blouse: {
+    variant: 'tunic',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 82 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 50 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to cuff', gx: 156, gy: 90 },
+      { key: 'shirtLength', label: 'Blouse Length', hint: 'Shoulder to bottom hem', gx: 100, gy: 168 },
     ],
   },
 };
