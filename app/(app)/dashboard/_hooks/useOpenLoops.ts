@@ -126,7 +126,7 @@ export function computeOpenLoops(
       title,
       subtitle,
       actionText: 'View Order',
-      href: topOrder ? `/orders/${topOrder.id}` : '/production',
+      href: topOrder ? ROUTES.productionOrder(topOrder) : ROUTES.production,
       urgency: 'high',
       amountAtStake: cashAtStake,
     });
@@ -193,7 +193,7 @@ export function computeOpenLoops(
         : `Cut ${clientName}'s ${topUncut.styleName || 'fabric'} next (${uncutOrders.length} waiting)`,
       subtitle: 'Next up on cutting table',
       actionText: 'Cut Now',
-      href: `/orders/${topUncut.id}`,
+      href: ROUTES.productionOrder(topUncut),
       urgency: 'medium',
     });
   }

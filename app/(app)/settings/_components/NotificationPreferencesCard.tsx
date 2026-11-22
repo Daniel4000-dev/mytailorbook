@@ -85,7 +85,8 @@ export default function NotificationPreferencesCard() {
         </label>
       </div>
 
-      <div className={styles.prefItem}>
+      {/* Tailor Circle notification preference commented out */}
+      {/* <div className={styles.prefItem}>
         <div className={styles.prefText}>
           <span className={styles.prefLabel}>Mute Tailor Circle Morning Nudges</span>
           <span className={styles.prefDesc}>
@@ -101,7 +102,7 @@ export default function NotificationPreferencesCard() {
           />
           <span className={styles.slider} />
         </label>
-      </div>
+      </div> */}
 
       <div className={styles.prefItem}>
         <div className={styles.prefText}>

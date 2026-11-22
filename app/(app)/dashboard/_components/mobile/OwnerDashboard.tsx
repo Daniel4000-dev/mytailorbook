@@ -421,7 +421,7 @@ export default function OwnerDashboard({
       {/* 5. Active Shop Sections (Unlocked once orders or showroom stock are live) */}
       {(isRtw ? showroomMetrics.totalPieces > 0 || orders.length > 0 : orders.length > 0) && (
         <>
-          {!isRtw && <PodCoOpBanner />}
+          {/* {!isRtw && <PodCoOpBanner />} */}
           <TodayPrioritiesWidget
             loops={openLoops}
             onNavigate={onNavigate}

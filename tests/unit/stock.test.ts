@@ -639,7 +639,8 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
 
       const bespokeSidebar = NAV_ITEMS.filter((item) => !(item.rtwOnly && 'bespoke' === 'bespoke'));
       expect(bespokeSidebar.map((i) => i.label)).toContain('Production');
-      expect(bespokeSidebar.map((i) => i.label)).toContain('Tailor Circle');
+      // Tailor Circle is hidden from UI navigation
+      expect(bespokeSidebar.map((i) => i.label)).not.toContain('Tailor Circle');
       expect(bespokeSidebar.map((i) => i.label)).toContain('Calendar');
       expect(bespokeSidebar.map((i) => i.label)).toContain('Customers');
       expect(bespokeSidebar.map((i) => i.label)).not.toContain('Stock / POS');
@@ -651,7 +652,7 @@ describe('Ready-to-Wear Stock Management & Garment Intake', () => {
         return true;
       });
       expect(hybridSidebar.map((i) => i.label)).toContain('Production');
-      expect(hybridSidebar.map((i) => i.label)).toContain('Tailor Circle');
+      expect(hybridSidebar.map((i) => i.label)).not.toContain('Tailor Circle');
       expect(hybridSidebar.map((i) => i.label)).toContain('Calendar');
       expect(hybridSidebar.map((i) => i.label)).toContain('Stock / POS');
       expect(hybridSidebar.map((i) => i.label)).toContain('Customers');

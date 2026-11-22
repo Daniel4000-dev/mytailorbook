@@ -318,8 +318,8 @@ export default function BillingSettingsPage() {
             </div>
           )}
 
-          {/* Plan Category Switcher: Bespoke vs RTW vs Hybrid */}
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
+          {/* Plan Category Switcher: Bespoke vs RTW vs Hybrid (Commented out: defaulting to Bespoke) */}
+          {/* <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
             {(['bespoke', 'rtw', 'hybrid'] as PlanTierType[]).map((tierKey) => {
               const tier = PLAN_TIERS[tierKey];
               const isSelected = selectedPlanTab === tierKey;
@@ -345,7 +345,7 @@ export default function BillingSettingsPage() {
                 </button>
               );
             })}
-          </div>
+          </div> */}
 
           <div className={`${styles.planCard} ${styles.planCardHighlight}`}>
             <div className={styles.planCardHeader}>

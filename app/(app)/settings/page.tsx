@@ -203,11 +203,7 @@ export default function SettingsPage() {
           <span className={styles.heroBubbleText}>
             {currentShop?.vacationMode
               ? 'Vacation Mode Paused'
-              : currentShop?.businessMode === 'rtw'
-                ? 'Ready-to-Wear Active'
-                : currentShop?.businessMode === 'hybrid'
-                  ? 'Custom & Ready-Made Active'
-                  : 'Custom Orders Active'}
+              : 'Custom Orders Active'}
           </span>
         </div>
 
@@ -301,14 +297,14 @@ export default function SettingsPage() {
             external
             onClick={() => router.push(ROUTES.settingsPortfolio)}
           />
-          {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
+          {/* {(currentShop?.businessMode === 'rtw' || currentShop?.businessMode === 'hybrid') && (
             <SettingsRow
               icon="straighten"
               label="Size Charts"
               subtitle="Standard measurements for production batches"
               onClick={() => router.push('/settings/size-charts')}
             />
-          )}
+          )} */}
         </div>
 
         {/* ── Group 2: Workshop Operations, Appearance & Notifications ── */}

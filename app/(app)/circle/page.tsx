@@ -1906,19 +1906,11 @@ function AtelierCircleContent() {
 }
 
 export default function AtelierCirclePage() {
-  return (
-    <Suspense
-      fallback={
-        <div className={styles.pageContainer}>
-          <div className={styles.content}>
-            <div className={styles.emptyState}>
-              <p className={styles.emptyText}>Loading Tailor Circle...</p>
-            </div>
-          </div>
-        </div>
-      }
-    >
-      <AtelierCircleContent />
-    </Suspense>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+
+  return null;
 }

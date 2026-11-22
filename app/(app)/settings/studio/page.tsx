@@ -523,8 +523,8 @@ export default function StudioSettingsPage() {
           </button>
         </div>
 
-        {/* Group 2: Business Model Specification */}
-        <div className={styles.groupCard}>
+        {/* Group 2: Business Model Specification (Commented out: defaulting to Bespoke) */}
+        {/* <div className={styles.groupCard}>
           <div className={styles.modeGrid}>
             <button
               type="button"
@@ -580,7 +580,7 @@ export default function StudioSettingsPage() {
               </span>
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Group 3: Capacity & Benchmarks */}
         <div className={`${styles.groupCard} ${styles.benchmarkCard}`}>

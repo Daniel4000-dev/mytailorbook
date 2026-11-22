@@ -86,7 +86,7 @@ export default function SidebarMenu() {
   };
 
   const mainGroup = visibleNavItems.filter(i => ['/dashboard', '/calendar', '/production', '/stock'].includes(i.href));
-  const workspaceGroup = visibleNavItems.filter(i => ['/customers', '/fabrics', '/circle'].includes(i.href));
+  const workspaceGroup = visibleNavItems.filter(i => ['/customers', '/fabrics'].includes(i.href));
   const marketingGroup = visibleNavItems.filter(i => ['/catalogues'].includes(i.href));
   const financeGroup = visibleNavItems.filter(i => ['/collections', '/reconciliation'].includes(i.href));
 
@@ -175,7 +175,8 @@ export default function SidebarMenu() {
             <span className={styles.menuText}>Stock / POS</span>
           </Link>
         )}
-        <Link
+        {/* Tailor Circle commented out */}
+        {/* <Link
           href={ROUTES.circle}
           prefetch={true}
           className={styles.menuItem}
@@ -184,7 +185,7 @@ export default function SidebarMenu() {
         >
           <CustomNavIcon name="groups" className={styles.menuIcon} />
           <span className={styles.menuText}>Tailor Circle</span>
-        </Link>
+        </Link> */}
         {isOwner && (
           <Link
             href={ROUTES.collections}

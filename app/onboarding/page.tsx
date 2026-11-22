@@ -153,12 +153,14 @@ export default function OnboardingPage() {
     }
   }, []);
 
-  // Handle moving from Step 2 (Identity) to Step 3 (Operating Model)
+  // Handle moving from Step 2 (Identity) directly to Step 4 (Workshop Focus)
+  // Operating model defaults to bespoke
   const handleProceedFromIdentity = async () => {
     setApiError('');
     const isValid = await trigger(['shopName', ...(isGoogleAccount ? ['name' as const] : [])]);
     if (isValid) {
-      setStep(3);
+      setValue('businessMode', 'bespoke', { shouldValidate: true });
+      setStep(4);
     }
   };
 
@@ -470,15 +472,15 @@ export default function OnboardingPage() {
                     onClick={handleProceedFromIdentity}
                     disabled={!watchedShopName.trim() || watchedShopName.trim().length < 2}
                   >
-                    <span>Next: What You Make</span>
+                    <span>Next: Workshop Focus</span>
                     <Symbol name="arrow_forward" size={18} />
                   </button>
                 </div>
               </motion.div>
             )}
 
-            {/* ── STEP 3: Operating Model ── */}
-            {step === 3 && (
+            {/* ── STEP 3: Operating Model (Commented out: defaulting to Bespoke) ── */}
+            {/* {step === 3 && (
               <motion.div
                 key="step-craft"
                 initial={{ opacity: 0, y: 12 }}
@@ -492,7 +494,6 @@ export default function OnboardingPage() {
                 </p>
 
                 <div className={styles.cardsGrid}>
-                  {/* Bespoke Option */}
                   <div
                     role="button"
                     tabIndex={0}
@@ -512,7 +513,7 @@ export default function OnboardingPage() {
                     </div>
                     <div className={styles.cardContent}>
                       <div className={styles.cardRow}>
-                        <h3 className={styles.cardHeading}>Custom & Bespoke</h3>
+                        <h3 className={styles.cardHeading}>Custom &amp; Bespoke</h3>
                         <span className={styles.cardTag}>Made to Measure</span>
                       </div>
                       <p className={styles.cardDescription}>
@@ -524,7 +525,6 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  {/* Ready to Wear Option */}
                   <div
                     role="button"
                     tabIndex={0}
@@ -548,7 +548,7 @@ export default function OnboardingPage() {
                         <span className={styles.cardTag}>Standard Sizing</span>
                       </div>
                       <p className={styles.cardDescription}>
-                        Pre-produced garments in standard sizes (S, M, L, XL). Stock inventory management, instant sales & off-the-rack fulfillment.
+                        Pre-produced garments in standard sizes (S, M, L, XL). Stock inventory management, instant sales &amp; off-the-rack fulfillment.
                       </p>
                     </div>
                     <div className={styles.checkIndicator}>
@@ -556,7 +556,6 @@ export default function OnboardingPage() {
                     </div>
                   </div>
 
-                  {/* Hybrid Option */}
                   <div
                     role="button"
                     tabIndex={0}
@@ -608,7 +607,7 @@ export default function OnboardingPage() {
                   </button>
                 </div>
               </motion.div>
-            )}
+            )} */}
 
             {/* ── STEP 4: Workshop Focus ── */}
             {step === 4 && (
@@ -709,7 +708,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     className={styles.backBtn}
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(2)}
                     disabled={submitting}
                   >
                     <Symbol name="arrow_back" size={16} />

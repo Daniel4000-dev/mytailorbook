@@ -125,7 +125,8 @@ export default function TopBar({
               {leftAction}
             </div>
             <div className={styles.right}>
-              {isBespokeOrHybrid && (
+              {/* Tailor Circle buddy stack commented out */}
+              {/* {isBespokeOrHybrid && (
                 <Link
                   href="/circle"
                   className={styles.buddyPulseBtn}
@@ -201,7 +202,7 @@ export default function TopBar({
                     </div>
                   )}
                 </Link>
-              )}
+              )} */}
 
               {isBespoke && (
                 <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
