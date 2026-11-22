@@ -181,8 +181,9 @@ export const GARMENT_STYLES: GarmentStyle[] = [
 
   // ── Female (Active Catalogue) ────────────────────────────
   { name: 'Suit (Women)', subtitle: 'Tailored women suiting', keywords: ['suit', 'blazer'], gender: 'female', photoUrl: '/images/garments/suit-female.jpg' },
-  { name: 'Boubou', subtitle: 'Flowing formal gown', keywords: ['boubou', 'gown'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg' },
-  { name: 'Two-Piece (Women)', subtitle: 'Matching top and bottoms', keywords: ['two piece', 'two-piece'], gender: 'female', photoUrl: '/images/garments/two-piece-female.jpg' },
+  { name: 'Boubou', subtitle: 'Flowing formal gown', keywords: ['boubou', 'gown', 'boubou / gown', 'bubu'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg' },
+  { name: 'Two-Piece (Women)', subtitle: 'Matching top and bottoms', keywords: ['two piece', 'two-piece', 'two piece (women)'], gender: 'female', photoUrl: '/images/garments/two-piece-female.jpg' },
+  { name: 'Boubou / Gown', subtitle: 'Flowing formal gown', keywords: ['boubou', 'gown', 'boubou / gown', 'bubu'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg', hidden: true },
   { name: 'Aso Ebi Gown', subtitle: 'Event/ceremony dress', keywords: ['aso ebi gown', 'asoebi gown', 'aso ebi'], gender: 'female', photoUrl: '/images/garments/aso-ebi-gown-female.jpg' },
   { name: 'Skirt', subtitle: 'Bespoke tailored skirt', keywords: ['skirt'], gender: 'female', photoUrl: '/images/garments/skirt-female.jpg' },
   { name: 'Blouse', subtitle: 'Tailored top or blouse', keywords: ['blouse', 'top'], gender: 'female', photoUrl: '/images/garments/blouse-female.jpg' },
@@ -211,10 +212,13 @@ export function resolveCanonicalStyleName(rawStyle: string, gender?: 'male' | 'f
   }
   const lower = trimmed.toLowerCase();
 
-  const exact = GARMENT_STYLES.find((g) => g.name.toLowerCase() === lower);
+  const pool = gender ? GARMENT_STYLES.filter((g) => g.gender === gender) : GARMENT_STYLES;
+  const exact = pool.find((g) => g.name.toLowerCase() === lower);
   if (exact) return exact.name;
 
-  const pool = gender ? GARMENT_STYLES.filter((g) => g.gender === gender) : GARMENT_STYLES;
+  const exactAny = GARMENT_STYLES.find((g) => g.name.toLowerCase() === lower);
+  if (exactAny) return exactAny.name;
+
   const keywordMatch = pool.find((g) =>
     g.keywords.some((kw) => lower.includes(kw.toLowerCase()))
   );
@@ -393,7 +397,17 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
     variant: 'gown',
     points: [
       { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
-
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 88 },
+      { key: 'gownLength', label: 'Boubou Length', hint: 'Shoulder to hem', gx: 100, gy: 256 },
+    ],
+  },
+  'Boubou / Gown': {
+    variant: 'gown',
+    points: [
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 80 },
       { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 133, gy: 48 },
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
       { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 158 },
