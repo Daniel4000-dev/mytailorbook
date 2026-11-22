@@ -33,7 +33,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   const [styleSet, setStyleSet] = useState<string[]>(customer.preferredStyles || []);
 
   // Preset chips are gendered — no mixed picker.
-  const STYLE_PRESETS = GARMENT_STYLES.filter((s) => s.gender === gender).map((s) => s.name);
+  const STYLE_PRESETS = GARMENT_STYLES.filter((s) => !s.hidden && s.gender === gender).map((s) => s.name);
   const [customStyle, setCustomStyle] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [error, setError] = useState('');

@@ -156,7 +156,7 @@ function CustomerProfileContent({
   }
 
   const genderStylePresets = useMemo(
-    () => GARMENT_STYLES.filter((s) => s.gender === (customer.gender || 'male')).map((s) => s.name),
+    () => GARMENT_STYLES.filter((s) => !s.hidden && s.gender === (customer.gender || 'male')).map((s) => s.name),
     [customer.gender]
   );
 

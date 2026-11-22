@@ -245,7 +245,7 @@ export default function UnifiedNewOrderForm() {
 
   // Catalog of styles
   const allStyles = useMemo(() => {
-    const standard = GARMENT_STYLES.map((s) => ({
+    const standard = GARMENT_STYLES.filter((s) => !s.hidden).map((s) => ({
       name: s.name,
       subtitle: s.subtitle,
       gender: s.gender,

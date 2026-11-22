@@ -69,7 +69,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
   }
 
   // Gendered — no mixed picker.
-  const genderedStyles = useMemo(() => GARMENT_STYLES.filter((s) => s.gender === customer.gender), [customer.gender]);
+  const genderedStyles = useMemo(() => GARMENT_STYLES.filter((s) => !s.hidden && s.gender === customer.gender), [customer.gender]);
   const stylePhotos = useMemo(() => getStylePhotos(genderedStyles), [genderedStyles]);
   // While per-style profiles are off, every style shares the one body
   // profile, so "Saved" means "the body profile has anything at all" —

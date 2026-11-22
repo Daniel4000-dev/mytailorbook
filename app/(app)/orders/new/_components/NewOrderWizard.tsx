@@ -139,7 +139,9 @@ export default function NewOrderWizard() {
 
   const catalog = useMemo(() => {
     const preferred = customer?.preferredStyles || [];
-    const genderStyles = customer ? GARMENT_STYLES.filter((s) => s.gender === customer.gender) : GARMENT_STYLES;
+    const genderStyles = customer
+      ? GARMENT_STYLES.filter((s) => !s.hidden && s.gender === customer.gender)
+      : GARMENT_STYLES.filter((s) => !s.hidden);
     const preset = [...genderStyles].sort((a, b) => {
       const ap = preferred.includes(a.name) ? 0 : 1;
       const bp = preferred.includes(b.name) ? 0 : 1;

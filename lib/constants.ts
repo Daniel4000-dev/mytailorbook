@@ -157,33 +157,43 @@ export interface GarmentStyle {
   keywords: string[];
   gender: 'male' | 'female';
   photoUrl: string;
+  hidden?: boolean;
 }
 
 export const GARMENT_STYLES: GarmentStyle[] = [
-  // ── Male ──────────────────────────────────────────────────
-  { name: 'Agbada', subtitle: 'Traditional 3-piece set', keywords: ['agbada'], gender: 'male', photoUrl: '/images/garments/agbada-male.jpg' },
+  // ── Male (Active Catalogue) ──────────────────────────────
   { name: 'Senator', subtitle: 'Modern native', keywords: ['senator'], gender: 'male', photoUrl: '/images/garments/senator-male.jpg' },
-  { name: 'Kaftan', subtitle: '2-piece suit', keywords: ['kaftan'], gender: 'male', photoUrl: '/images/garments/kaftan-male.jpg' },
-  { name: 'Ankara Shirt', subtitle: 'Casual print shirt', keywords: ['ankara shirt'], gender: 'male', photoUrl: '/images/garments/ankara-shirt-male.jpg' },
-  { name: 'Danshiki', subtitle: 'Casual native top', keywords: ['danshiki', 'dashiki'], gender: 'male', photoUrl: '/images/garments/danshiki-male.jpg' },
-  { name: 'Two-Piece Suit', subtitle: 'Bespoke suiting', keywords: ['suit', 'blazer'], gender: 'male', photoUrl: '/images/garments/suit-male.jpg' },
-  { name: 'Babariga', subtitle: 'Grand embroidered robe', keywords: ['babariga'], gender: 'male', photoUrl: '/images/garments/babariga-male.jpg' },
-  { name: 'Isi Agu', subtitle: 'Chieftaincy/cultural wear', keywords: ['isi agu', 'isiagu'], gender: 'male', photoUrl: '/images/garments/isi-agu-male.jpg' },
-  { name: 'Aso Ebi (Men)', subtitle: 'Matching event wear', keywords: ['aso ebi', 'asoebi'], gender: 'male', photoUrl: '/images/garments/aso-ebi-male.jpg' },
-  { name: 'Two-Piece (Men)', subtitle: 'Matching top and trousers', keywords: ['two piece', 'two-piece'], gender: 'male', photoUrl: '/images/garments/two-piece-male.jpg' },
+  { name: 'Kaftan', subtitle: '2-piece native set', keywords: ['kaftan'], gender: 'male', photoUrl: '/images/garments/kaftan-male.jpg' },
+  { name: 'Agbada', subtitle: 'Traditional 3-piece set', keywords: ['agbada'], gender: 'male', photoUrl: '/images/garments/agbada-male.jpg' },
+  { name: 'Two-Piece', subtitle: 'Matching top and trousers', keywords: ['two piece', 'two-piece'], gender: 'male', photoUrl: '/images/garments/two-piece-male.jpg' },
+  { name: 'Shirt', subtitle: 'Tailored button-up shirt', keywords: ['shirt', 'ankara shirt'], gender: 'male', photoUrl: '/images/garments/shirt-male.jpg' },
+  { name: 'Trouser', subtitle: 'Bespoke tailored trousers', keywords: ['trouser', 'trousers', 'pant', 'pants'], gender: 'male', photoUrl: '/images/garments/trouser-male.jpg' },
+  { name: 'Suit', subtitle: 'Bespoke suiting', keywords: ['suit', 'blazer', 'two-piece suit'], gender: 'male', photoUrl: '/images/garments/suit-male.jpg' },
 
-  // ── Female ────────────────────────────────────────────────
+  // ── Male (Soft-Hidden, Preserved for History & Backwards-Compat) ─
+  { name: 'Ankara Shirt', subtitle: 'Casual print shirt', keywords: ['ankara shirt'], gender: 'male', photoUrl: '/images/garments/shirt-male.jpg', hidden: true },
+  { name: 'Two-Piece (Men)', subtitle: 'Matching top and trousers', keywords: ['two piece', 'two-piece'], gender: 'male', photoUrl: '/images/garments/two-piece-male.jpg', hidden: true },
+  { name: 'Two-Piece Suit', subtitle: 'Bespoke suiting', keywords: ['suit', 'blazer'], gender: 'male', photoUrl: '/images/garments/suit-male.jpg', hidden: true },
+  { name: 'Danshiki', subtitle: 'Casual native top', keywords: ['danshiki', 'dashiki'], gender: 'male', photoUrl: '/images/garments/danshiki-male.jpg', hidden: true },
+  { name: 'Babariga', subtitle: 'Grand embroidered robe', keywords: ['babariga'], gender: 'male', photoUrl: '/images/garments/babariga-male.jpg', hidden: true },
+  { name: 'Isi Agu', subtitle: 'Chieftaincy/cultural wear', keywords: ['isi agu', 'isiagu'], gender: 'male', photoUrl: '/images/garments/isi-agu-male.jpg', hidden: true },
+  { name: 'Aso Ebi (Men)', subtitle: 'Matching event wear', keywords: ['aso ebi', 'asoebi'], gender: 'male', photoUrl: '/images/garments/aso-ebi-male.jpg', hidden: true },
+
+  // ── Female (Active Catalogue) ────────────────────────────
+  { name: 'Boubou', subtitle: 'Flowing formal gown', keywords: ['boubou', 'gown'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg' },
   { name: 'Ankara Gown', subtitle: "Women's tailored gown", keywords: ['ankara', 'gown'], gender: 'female', photoUrl: '/images/garments/ankara-gown-female.jpg' },
-  { name: 'Buba & Iro', subtitle: "Traditional women's wear", keywords: ['buba', 'iro'], gender: 'female', photoUrl: '/images/garments/buba-iro-female.jpg' },
-  { name: 'Boubou', subtitle: 'Flowing formal gown', keywords: ['boubou'], gender: 'female', photoUrl: '/images/garments/boubou-female.jpg' },
-  { name: 'Skirt & Blouse', subtitle: 'Office/native combo', keywords: ['skirt', 'blouse'], gender: 'female', photoUrl: '/images/garments/skirt-blouse-female.jpg' },
-  { name: 'Aso Ebi Gown', subtitle: 'Event/ceremony dress', keywords: ['aso ebi gown', 'asoebi gown'], gender: 'female', photoUrl: '/images/garments/aso-ebi-gown-female.jpg' },
-  { name: 'Jumpsuit', subtitle: 'Modern tailored piece', keywords: ['jumpsuit', 'jump suit'], gender: 'female', photoUrl: '/images/garments/jumpsuit-female.jpg' },
-  { name: 'Kaftan (Women)', subtitle: 'Relaxed flowing gown', keywords: ['kaftan'], gender: 'female', photoUrl: '/images/garments/kaftan-female.jpg' },
-  { name: 'Senator (Women)', subtitle: 'Fitted native 2-piece', keywords: ['senator'], gender: 'female', photoUrl: '/images/garments/senator-female.jpg' },
-  { name: 'Peplum & Wrapper', subtitle: 'Fitted top, wrapper skirt', keywords: ['peplum', 'wrapper'], gender: 'female', photoUrl: '/images/garments/peplum-wrapper-female.jpg' },
+  { name: 'Aso Ebi Gown', subtitle: 'Event/ceremony dress', keywords: ['aso ebi gown', 'asoebi gown', 'aso ebi'], gender: 'female', photoUrl: '/images/garments/aso-ebi-gown-female.jpg' },
   { name: 'Two-Piece (Women)', subtitle: 'Matching top and trousers', keywords: ['two piece', 'two-piece'], gender: 'female', photoUrl: '/images/garments/two-piece-female.jpg' },
-  { name: 'Gathers Dress', subtitle: 'Flared gathered dress', keywords: ['gathers', 'gather dress', 'gathered'], gender: 'female', photoUrl: '/images/garments/gathers-dress-female.jpg' },
+  { name: 'Skirt & Blouse', subtitle: 'Office/native combo', keywords: ['skirt', 'blouse'], gender: 'female', photoUrl: '/images/garments/skirt-blouse-female.jpg' },
+  { name: 'Suit (Women)', subtitle: 'Tailored women suiting', keywords: ['suit', 'blazer'], gender: 'female', photoUrl: '/images/garments/suit-male.jpg' },
+
+  // ── Female (Soft-Hidden, Preserved for History & Backwards-Compat) ─
+  { name: 'Senator (Women)', subtitle: 'Fitted native 2-piece', keywords: ['senator'], gender: 'female', photoUrl: '/images/garments/senator-female.jpg', hidden: true },
+  { name: 'Buba & Iro', subtitle: "Traditional women's wear", keywords: ['buba', 'iro'], gender: 'female', photoUrl: '/images/garments/buba-iro-female.jpg', hidden: true },
+  { name: 'Kaftan (Women)', subtitle: 'Relaxed flowing gown', keywords: ['kaftan'], gender: 'female', photoUrl: '/images/garments/kaftan-female.jpg', hidden: true },
+  { name: 'Peplum & Wrapper', subtitle: 'Fitted top, wrapper skirt', keywords: ['peplum', 'wrapper'], gender: 'female', photoUrl: '/images/garments/peplum-wrapper-female.jpg', hidden: true },
+  { name: 'Jumpsuit', subtitle: 'Modern tailored piece', keywords: ['jumpsuit', 'jump suit'], gender: 'female', photoUrl: '/images/garments/jumpsuit-female.jpg', hidden: true },
+  { name: 'Gathers Dress', subtitle: 'Flared gathered dress', keywords: ['gathers', 'gather dress', 'gathered'], gender: 'female', photoUrl: '/images/garments/gathers-dress-female.jpg', hidden: true },
 ];
 
 /**
@@ -495,6 +505,63 @@ export const STYLE_MEASUREMENTS: Record<string, StyleMeasureSpec> = {
       { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 128 },
 
       { key: 'gownLength', label: 'Dress Length', hint: 'Shoulder to hem', gx: 100, gy: 256 },
+    ],
+  },
+  Shirt: {
+    variant: 'tunic',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'shirtLength', label: 'Shirt Length', hint: 'Shoulder to shirt hem', gx: 100, gy: 182 },
+    ],
+  },
+  Trouser: {
+    variant: 'suit',
+    points: [
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 124 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 148 },
+      { key: 'thigh', label: 'Thigh', hint: 'Fullest part of upper leg', gx: 100, gy: 188 },
+      { key: 'knee', label: 'Knee', hint: 'Around the knee', gx: 100, gy: 220 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle hem', gx: 100, gy: 262 },
+      { key: 'ankle', label: 'Ankle / Bottom', hint: 'Trouser hem opening width', gx: 100, gy: 285 },
+    ],
+  },
+  Suit: {
+    variant: 'suit',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 124 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 148 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'shirtLength', label: 'Jacket Length', hint: 'Shoulder to jacket hem', gx: 100, gy: 166 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
+    ],
+  },
+  'Two-Piece': {
+    variant: 'tunic',
+    points: [
+      { key: 'neck', label: 'Neck', hint: 'Base of neck, relaxed', gx: 100, gy: 36 },
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'chest', label: 'Chest', hint: 'Fullest part, arms down', gx: 100, gy: 84 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'shirtLength', label: 'Top Length', hint: 'Shoulder to top hem', gx: 100, gy: 182 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
+    ],
+  },
+  'Suit (Women)': {
+    variant: 'suit',
+    points: [
+      { key: 'shoulder', label: 'Shoulder', hint: 'Bone to bone across the back', gx: 135, gy: 48 },
+      { key: 'bust', label: 'Bust', hint: 'Fullest part of the bust', gx: 100, gy: 84 },
+      { key: 'waist', label: 'Waist', hint: 'Natural waistline', gx: 100, gy: 124 },
+      { key: 'hips', label: 'Hips', hint: 'Widest point', gx: 100, gy: 148 },
+      { key: 'sleeveLength', label: 'Sleeve Length', hint: 'Shoulder seam to wrist', gx: 152, gy: 92 },
+      { key: 'shirtLength', label: 'Jacket Length', hint: 'Shoulder to jacket hem', gx: 100, gy: 166 },
+      { key: 'trouserLength', label: 'Trouser Length', hint: 'Waist to ankle', gx: 100, gy: 262 },
     ],
   },
 };
