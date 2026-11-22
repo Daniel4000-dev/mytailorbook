@@ -28,10 +28,10 @@ function slugify(text: string): string {
 const SAMPLE_SHOWCASE_ITEMS = [
   {
     id: 'sample-1',
-    title: 'Executive Bespoke Two-Piece',
+    title: 'Executive Bespoke Suit',
     category: 'Suits & Blazers',
     startingPrice: '₦85,000',
-    image: '/images/mock/premium_2.jpg',
+    image: '/images/garments/suit-male.jpg',
     tag: 'Bespoke Tailoring',
   },
   {
@@ -39,15 +39,15 @@ const SAMPLE_SHOWCASE_ITEMS = [
     title: 'Grand Ceremonial Agbada',
     category: 'Traditional & Bridal',
     startingPrice: '₦120,000',
-    image: '/images/mock/mock_agbada_1789589437748.jpg',
+    image: '/images/garments/agbada-male.jpg',
     tag: 'Signature Craft',
   },
   {
     id: 'sample-3',
-    title: 'Modern Senator Outfit',
-    category: 'Senators & Kaftans',
-    startingPrice: '₦45,000',
-    image: '/images/mock/premium_1.jpg',
+    title: 'Executive Textured Two-Piece',
+    category: 'Matching Sets',
+    startingPrice: '₦55,000',
+    image: '/images/garments/two-piece-male.jpg',
     tag: 'Everyday Luxury',
   },
 ];
