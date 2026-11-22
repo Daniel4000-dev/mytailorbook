@@ -18,8 +18,33 @@ import { onboardingSchema, type OnboardingInput } from '@/lib/validations';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import AspirationalVision from './_components/AspirationalVision';
 import styles from './page.module.css';
+
+const ONBOARDING_SAMPLE_PORTFOLIO = [
+  {
+    id: 'sample-suit',
+    name: 'Italian Wool 2-Piece Suit',
+    price: '₦85,000',
+    image: '/images/garments/suit-male.jpg',
+    tag: 'Bespoke',
+  },
+  {
+    id: 'sample-agbada',
+    name: 'Grand Ceremonial Agbada',
+    price: '₦120,000',
+    image: '/images/garments/agbada-male.jpg',
+    tag: 'Ceremonial',
+  },
+  {
+    id: 'sample-senator',
+    name: 'Classic Tailored Senator',
+    price: '₦45,000',
+    image: '/images/garments/senator-male.jpg',
+    tag: 'Signature',
+  },
+];
 
 // Welcome-tour screens shown before the studio setup — grounded in
 // features that ship (measurements capture, production pipeline + tracking)
@@ -92,7 +117,6 @@ export default function OnboardingPage() {
       weeklyCapacity: '20',
       rtwSourcingMethod: 'in-house',
       goal: 'Always knowing what is happening with their order',
-      monthlyRevenueTarget: 1500000,
       teamSize: '1-2',
       apprenticeNames: '',
     },
@@ -103,7 +127,6 @@ export default function OnboardingPage() {
   const watchedWeeklyCapacity = watch('weeklyCapacity') || '20';
   const watchedRtwSourcing = watch('rtwSourcingMethod') || 'in-house';
   const watchedGoal = watch('goal') || 'Always knowing what is happening with their order';
-  const watchedMonthlyRevenueTarget = watch('monthlyRevenueTarget') || 1500000;
   const watchedTeamSize = watch('teamSize') || '1-2';
 
   // Google gives us no signup form, so silently pre-fill from Google profile
@@ -168,8 +191,7 @@ export default function OnboardingPage() {
         isGoogleAccount ? data.name : undefined,
         data.businessMode,
         data.weeklyCapacity,
-        data.rtwSourcingMethod,
-        data.monthlyRevenueTarget
+        data.rtwSourcingMethod
       );
 
       if (result?.error) {
@@ -301,7 +323,7 @@ export default function OnboardingPage() {
         <div className={styles.stepMeta}>
           <span>Shop Setup</span>
           <span>
-            Step {step - 1} of 3 • {step === 2 ? 'Shop Name' : step === 3 ? 'What You Make' : 'Sales Target & Goals'}
+            Step {step - 1} of 3 • {step === 2 ? 'Shop Name' : step === 3 ? 'What You Make' : 'Workshop Focus'}
           </span>
         </div>
 
@@ -366,36 +388,77 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Real-time Shop Identity Preview */}
+                {/* Real-time Digital Portfolio & Lookbook Preview */}
                 <div className={styles.previewSection}>
                   <div className={styles.previewHeader}>
-                    <span className={styles.previewLabel}>Shop Badge Preview</span>
+                    <div className={styles.previewHeaderLeft}>
+                      <span className={styles.previewUrlBadge}>
+                        <Symbol name="lock" size={12} />
+                        <span>{APP_CONFIG.domain}/studio/{slugify(watchedShopName)}</span>
+                      </span>
+                      <span className={styles.previewPill}>Public Portfolio Preview</span>
+                    </div>
                     <span className={styles.verifiedBadge}>
-                      <Symbol name="verified" size={14} />
+                      <Symbol name="verified" size={13} />
                       <span>Verified Tailor</span>
                     </span>
                   </div>
 
-                  <div className={styles.previewShopBody}>
-                    <div className={styles.monogramSeal}>{getMonogram(watchedShopName)}</div>
+                  <div className={styles.previewShopBanner}>
                     <div className={styles.previewShopDetails}>
                       <h3 className={styles.previewShopName}>
-                        {watchedShopName.trim() || 'Your Shop'}
+                        {watchedShopName.trim() || 'Your Workshop Name'}
                       </h3>
-                      <p className={styles.previewSlug}>
-                        {APP_CONFIG.domain}/studio/{slugify(watchedShopName)}
+                      <p className={styles.previewTagline}>
+                        {watchedBusinessMode === 'rtw'
+                          ? 'Ready-to-Wear Showroom & Curated Ensembles'
+                          : watchedBusinessMode === 'hybrid'
+                          ? 'Bespoke Custom Tailoring & Ready-to-Wear'
+                          : 'Bespoke Tailoring & Made-to-Measure'}
                       </p>
+                    </div>
+                    <div className={styles.previewDirectOrder}>
+                      <WhatsappIcon size={13} />
+                      <span>WhatsApp Inquiries</span>
+                    </div>
+                  </div>
+
+                  {/* Real Sample Work Showcase */}
+                  <div className={styles.sampleWorkSection}>
+                    <div className={styles.sampleWorkHeader}>
+                      <span className={styles.sampleWorkTitle}>Lookbook Sample Work</span>
+                      <span className={styles.sampleWorkSub}>Published to your public catalogue</span>
+                    </div>
+                    <div className={styles.sampleWorkGrid}>
+                      {ONBOARDING_SAMPLE_PORTFOLIO.map((item) => (
+                        <div key={item.id} className={styles.sampleWorkCard}>
+                          <div className={styles.sampleImgFrame}>
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              sizes="(max-width: 600px) 30vw, 150px"
+                              className={styles.sampleImg}
+                            />
+                            <span className={styles.sampleTag}>{item.tag}</span>
+                          </div>
+                          <div className={styles.sampleMeta}>
+                            <span className={styles.sampleName}>{item.name}</span>
+                            <span className={styles.samplePrice}>From {item.price}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
                   <div className={styles.trustBadgePill}>
-                    <Symbol name="workspace_premium" size={16} />
+                    <Symbol name="workspace_premium" size={15} />
                     <span>
                       {watchedBusinessMode === 'bespoke'
-                        ? 'Measurement Book & Client Tracker Included'
+                        ? 'Measurement book & client progress tracking included'
                         : watchedBusinessMode === 'rtw'
-                        ? 'Showroom & Instant WhatsApp Catalog'
-                        : 'Full Tailoring Workshop & Showroom'}
+                        ? 'Showroom & instant WhatsApp catalogue included'
+                        : 'Full tailoring workshop & showroom included'}
                     </span>
                   </div>
                 </div>
@@ -540,14 +603,14 @@ export default function OnboardingPage() {
                     className={styles.primaryBtn}
                     onClick={handleProceedFromCraftMode}
                   >
-                    <span>Continue to Goals</span>
+                    <span>Continue to Workshop Focus</span>
                     <Symbol name="arrow_forward" size={18} />
                   </button>
                 </div>
               </motion.div>
             )}
 
-            {/* ── STEP 4: Goals & Sales Target ── */}
+            {/* ── STEP 4: Workshop Focus ── */}
             {step === 4 && (
               <motion.div
                 key="step-operations"
@@ -556,9 +619,9 @@ export default function OnboardingPage() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.22, ease: 'easeOut' }}
               >
-                <h2 className={styles.cardTitle}>Set your shop goals</h2>
+                <h2 className={styles.cardTitle}>Set your workshop focus</h2>
                 <p className={styles.cardSubtitle}>
-                  Choose the core reputation you want clients to praise you for and your monthly target.
+                  Choose the core reputation you want clients to praise you for.
                 </p>
 
                 {/* Section A: Studio Reputation / Main Goal */}
@@ -637,45 +700,6 @@ export default function OnboardingPage() {
                         <div className={styles.checkIndicator}>
                           {watchedGoal === g.val && <Symbol name="check" size={14} />}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Section D: Monthly Revenue Milestone Target */}
-                <div className={styles.sectionBlock}>
-                  <div className={styles.sectionHeader}>
-                    <Symbol name="payments" size={18} />
-                    <span>Monthly Sales Target</span>
-                  </div>
-                  <p className={styles.sectionSubtext}>
-                    Sets your monthly sales goal on your dashboard.
-                  </p>
-
-                  <div className={styles.capacityGrid}>
-                    {[
-                      { val: 500000, label: '₦500k', desc: 'Starting Out' },
-                      { val: 1500000, label: '₦1.5M', desc: 'Active Shop' },
-                      { val: 3000000, label: '₦3.0M', desc: 'Growing Brand' },
-                      { val: 5000000, label: '₦5.0M', desc: 'Large House' },
-                    ].map((item) => (
-                      <div
-                        key={item.val}
-                        role="button"
-                        tabIndex={0}
-                        className={`${styles.capacityChip} ${
-                          watchedMonthlyRevenueTarget === item.val ? styles.capacityChipActive : ''
-                        }`}
-                        onClick={() => setValue('monthlyRevenueTarget', item.val, { shouldValidate: true })}
-                        onKeyDown={(e) => {
-                          if (e.key === ' ' || e.key === 'Enter') {
-                            e.preventDefault();
-                            setValue('monthlyRevenueTarget', item.val, { shouldValidate: true });
-                          }
-                        }}
-                      >
-                        <span className={styles.capacityNum}>{item.label}</span>
-                        <span className={styles.capacityDesc}>{item.desc}</span>
                       </div>
                     ))}
                   </div>

@@ -40,6 +40,13 @@ const DEFAULT_POINTS: StyleMeasurePoint[] = [
   { key: 'ankle', label: 'Ankle', hint: '', gx: 0, gy: 0 },
 ];
 
+const formatInputWithCommas = (val: string | number | undefined | null) => {
+  if (val === undefined || val === null) return '';
+  const digits = String(val).replace(/\D/g, '');
+  if (!digits) return '';
+  return Number(digits).toLocaleString('en-US');
+};
+
 export interface GarmentDraft {
   id: string;
   styleName: string;
@@ -434,7 +441,7 @@ export default function UnifiedNewOrderForm() {
     // Auto-fill price with configured base price if price is currently empty
     const customMatch = currentShop?.customStyles?.find((cs) => cs.name.toLowerCase() === finalStyle.toLowerCase());
     const shouldPreFillPrice = (!current?.price || current.price.trim() === '') && customMatch?.basePrice !== undefined;
-    const finalPrice = shouldPreFillPrice ? String(customMatch!.basePrice) : current?.price || '';
+    const finalPrice = shouldPreFillPrice ? formatInputWithCommas(customMatch!.basePrice) : current?.price || '';
 
     updateGarment(garmentId, {
       styleName: finalStyle,
@@ -641,7 +648,7 @@ export default function UnifiedNewOrderForm() {
   // Polish 4: Auto-sync manualTotalBill to sumOfGarmentPrices when garment prices are entered
   useEffect(() => {
     if (sumOfGarmentPrices > 0) {
-      setManualTotalBill(String(sumOfGarmentPrices));
+      setManualTotalBill(formatInputWithCommas(sumOfGarmentPrices));
     }
   }, [sumOfGarmentPrices]);
 
@@ -652,7 +659,7 @@ export default function UnifiedNewOrderForm() {
     const priorityParam = searchParams.get('priority');
 
     if (depositParam && !depositPaid) {
-      setDepositPaid(depositParam);
+      setDepositPaid(formatInputWithCommas(depositParam));
     }
     if (dueDateParam) {
       setDueDate(dueDateParam);
@@ -669,13 +676,14 @@ export default function UnifiedNewOrderForm() {
 
   const numericDeposit = parseInt(depositPaid.replace(/,/g, '')) || 0;
   const numericBalance = Math.max(0, numericTotal - numericDeposit);
+  const isDepositExceedingTotal = numericTotal > 0 && numericDeposit > numericTotal;
 
   // Deposit shortcut pills
   const handleQuickDeposit = (type: '50' | 'full' | 'zero') => {
     if (type === '50') {
-      setDepositPaid(String(Math.round(numericTotal / 2)));
+      setDepositPaid(formatInputWithCommas(Math.round(numericTotal / 2)));
     } else if (type === 'full') {
-      setDepositPaid(String(numericTotal));
+      setDepositPaid(formatInputWithCommas(numericTotal));
     } else {
       setDepositPaid('0');
     }
@@ -698,6 +706,7 @@ export default function UnifiedNewOrderForm() {
 
   // ── 5. Creation & WhatsApp Receipt ──
   const [submitting, setSubmitting] = useState(false);
+  const [hasHitOrderLimit, setHasHitOrderLimit] = useState(false);
   const [completedBatch, setCompletedBatch] = useState<{
     batchId: string;
     garments: {
@@ -803,6 +812,15 @@ export default function UnifiedNewOrderForm() {
         pricingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const input = document.getElementById('manual-total-bill');
         if (input) input.focus();
+      }
+      return;
+    }
+    if (numericDeposit > numericTotal && numericTotal > 0) {
+      showToast(`Deposit cannot exceed the total order bill (${currencySymbol}${formatNumber(numericTotal)})`, 'error');
+      const depositEl = document.getElementById('deposit-paid-input');
+      if (depositEl) {
+        depositEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        depositEl.focus();
       }
       return;
     }
@@ -959,7 +977,15 @@ export default function UnifiedNewOrderForm() {
       setReceiptSheetOpen(true);
       showToast(garments.length > 1 ? `${garments.length} outfits saved!` : 'Order created successfully!', 'success');
     } catch (err: any) {
-      showToast(err.message || 'Failed to create order', 'error');
+      const errMsg = err?.message || 'Failed to create order';
+      if (
+        errMsg.toLowerCase().includes('limit') ||
+        errMsg.toLowerCase().includes('free plan') ||
+        errMsg.toLowerCase().includes('upgrade')
+      ) {
+        setHasHitOrderLimit(true);
+      }
+      showToast(errMsg, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -1069,7 +1095,6 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.cardEyebrow}>Client Registry</span>
                 <h2 className={styles.cardTitle}>Customer Information</h2>
                 <p className={styles.cardSubtitle}>Select an existing customer or add a new one</p>
               </div>
@@ -1306,7 +1331,6 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.cardEyebrow}>Garments &amp; Styles</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Style & Design` : 'Style & Design'}
                       </h2>
@@ -1475,7 +1499,6 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.cardEyebrow}>Anatomical Measurements</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Body Measurements` : 'Body Measurements'}
                       </h2>
@@ -1621,7 +1644,6 @@ export default function UnifiedNewOrderForm() {
                 <div className={styles.cardHeader}>
                   <div className={styles.cardHeaderLeft}>
                     <div>
-                      <span className={styles.cardEyebrow}>Fabric &amp; Cut Specifications</span>
                       <h2 className={styles.cardTitle}>
                         {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Style Photos'}
                       </h2>
@@ -1811,7 +1833,7 @@ export default function UnifiedNewOrderForm() {
                         className={styles.input}
                         placeholder="e.g. 35,000"
                         value={garment.price}
-                        onChange={(e) => updateGarment(garment.id, { price: e.target.value.replace(/[^0-9]/g, '') })}
+                        onChange={(e) => updateGarment(garment.id, { price: formatInputWithCommas(e.target.value) })}
                       />
                     </div>
                   </div>
@@ -1836,7 +1858,6 @@ export default function UnifiedNewOrderForm() {
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
               <div>
-                <span className={styles.cardEyebrow}>Settlement &amp; Delivery</span>
                 <h2 className={styles.cardTitle}>Price &amp; Delivery Date</h2>
                 <p className={styles.cardSubtitle}>Total bill, deposit received, and delivery date</p>
               </div>
@@ -1858,9 +1879,9 @@ export default function UnifiedNewOrderForm() {
                   type="text"
                   inputMode="numeric"
                   className={styles.input}
-                  placeholder={sumOfGarmentPrices > 0 ? String(sumOfGarmentPrices) : '0'}
+                  placeholder={sumOfGarmentPrices > 0 ? formatNumber(sumOfGarmentPrices) : '0'}
                   value={manualTotalBill}
-                  onChange={(e) => setManualTotalBill(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) => setManualTotalBill(formatInputWithCommas(e.target.value))}
                   required
                 />
               </div>
@@ -1873,14 +1894,20 @@ export default function UnifiedNewOrderForm() {
               <div className={styles.inputPrefixWrap}>
                 <span className={styles.currencyPrefix}>{currencySymbol}</span>
                 <input
+                  id="deposit-paid-input"
                   type="text"
                   inputMode="numeric"
-                  className={styles.input}
+                  className={`${styles.input} ${isDepositExceedingTotal ? styles.inputError : ''}`}
                   placeholder="0"
                   value={depositPaid}
-                  onChange={(e) => setDepositPaid(e.target.value.replace(/[^0-9]/g, ''))}
+                  onChange={(e) => setDepositPaid(formatInputWithCommas(e.target.value))}
                 />
               </div>
+              {isDepositExceedingTotal && (
+                <p className={styles.depositError}>
+                  Deposit cannot exceed total bill ({currencySymbol}{formatNumber(numericTotal)})
+                </p>
+              )}
 
               {/* 1-Tap Deposit Shortcuts */}
               {numericTotal > 0 && (
@@ -2054,25 +2081,36 @@ export default function UnifiedNewOrderForm() {
                 {currencySymbol}{formatNumber(numericTotal)}
               </span>
             </div>
-            <button
-              type="button"
-              className={styles.createOrderBtn}
-              disabled={submitting}
-              onClick={handleCreateOrder}
-            >
-              {submitting ? (
-                <span>Saving Order…</span>
-              ) : (
-                <>
-                  <span>
-                    {garments.length > 1
-                      ? `Create ${garments.length} Outfits`
-                      : 'Create Order'}
-                  </span>
-                  <Symbol name="arrow_forward" size={15} />
-                </>
-              )}
-            </button>
+            {hasHitOrderLimit ? (
+              <button
+                type="button"
+                className={`${styles.createOrderBtn} ${styles.upgradeCtaBtn}`}
+                onClick={() => router.push(ROUTES.settingsBilling)}
+              >
+                <span>Upgrade</span>
+                <Symbol name="arrow_forward" size={15} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.createOrderBtn}
+                disabled={submitting || isDepositExceedingTotal}
+                onClick={handleCreateOrder}
+              >
+                {submitting ? (
+                  <span>Saving Order…</span>
+                ) : (
+                  <>
+                    <span>
+                      {garments.length > 1
+                        ? `Create ${garments.length} Outfits`
+                        : 'Create Order'}
+                    </span>
+                    <Symbol name="arrow_forward" size={15} />
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
