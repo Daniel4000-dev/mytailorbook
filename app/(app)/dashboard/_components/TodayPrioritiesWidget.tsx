@@ -180,11 +180,11 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.waActionBtn}
-                      title="Send 1-tap WhatsApp fitting reminder"
+                      title="Send WhatsApp fitting reminder"
+                      aria-label="Send WhatsApp fitting reminder"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <WhatsappIcon size={12} />
-                      <span>Remind</span>
+                      <WhatsappIcon size={14} />
                     </a>
                   )}
                   <span className={styles.fittingBadge}>Fitting</span>
@@ -237,11 +237,11 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles.waActionBtn}
-                    title="Send 1-tap WhatsApp message"
+                    title="Send WhatsApp message"
+                    aria-label="Send WhatsApp message"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <WhatsappIcon size={12} />
-                    <span>WhatsApp</span>
+                    <WhatsappIcon size={14} />
                   </a>
                 )}
                 <div className={styles.loopActionPill}>
