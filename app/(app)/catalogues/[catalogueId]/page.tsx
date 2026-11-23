@@ -32,6 +32,7 @@ import { compressImage } from '@/lib/compressImage';
 import { getWhatsAppLink } from '@/lib/formatters';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/contexts/ToastContext';
+import { getCanonicalPublicUrl } from '@/lib/routes';
 import styles from './page.module.css';
 
 function getEstimatedYardage(title?: string): string {
@@ -271,7 +272,7 @@ export default function CatalogueDetailPage() {
   const handleGeneralBroadcast = () => {
     const slug = currentShop?.slug || 'demo';
     const shopName = currentShop?.name || 'our shop';
-    const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
+    const url = getCanonicalPublicUrl(`/catalogue/${slug}?album=${catalogue?.id}`);
     const text = `Good day! Explore our freshly curated ${catalogue?.title} inspirations from ${shopName}. Let us know which design you love: ${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     setShowBroadcast(false);
@@ -280,7 +281,7 @@ export default function CatalogueDetailPage() {
   // Individual Client WhatsApp Outreach
   const handleCustomerOutreach = (customer: Customer) => {
     const slug = currentShop?.slug || 'demo';
-    const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
+    const url = getCanonicalPublicUrl(`/catalogue/${slug}?album=${catalogue?.id}`);
     const message = `Good day ${customer.fullName}! We just updated our catalog with new ${catalogue?.title} designs that match your personal style preferences. Take a look here: ${url}`;
     const link = getWhatsAppLink(customer.whatsappNumber, message);
     window.open(link, '_blank');

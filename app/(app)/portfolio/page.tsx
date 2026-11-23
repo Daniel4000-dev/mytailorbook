@@ -11,6 +11,7 @@ import FixedBottomPortal from '@/components/ui/FixedBottomPortal/FixedBottomPort
 import PortfolioView from '@/components/studio/PortfolioView/PortfolioView';
 import { getPublicShopPortfolio } from '@/app/public-actions';
 import type { PublicPortfolio } from '@/app/public-actions';
+import { getCanonicalPublicUrl } from '@/lib/routes';
 import styles from './page.module.css';
 
 /**
@@ -69,7 +70,7 @@ export default function OwnPortfolioPage() {
 
   const handleShare = () => {
     const slug = currentShop?.slug || 'savile-row';
-    const url = `${window.location.origin}/studio/${slug}`;
+    const url = getCanonicalPublicUrl(`/studio/${slug}`);
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(url);
       showToast('Storefront link copied to clipboard!', 'success');
@@ -81,7 +82,7 @@ export default function OwnPortfolioPage() {
   const handleShareWhatsApp = () => {
     const slug = currentShop?.slug || 'savile-row';
     const shopName = currentShop?.name || 'our shop';
-    const url = `${window.location.origin}/studio/${slug}`;
+    const url = getCanonicalPublicUrl(`/studio/${slug}`);
     const text = `Greetings from ${shopName}! Explore our signature bespoke collections, handcrafted commissions, and creation stories:\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };

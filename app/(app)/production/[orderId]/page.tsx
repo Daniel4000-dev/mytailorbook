@@ -217,7 +217,7 @@ export default function OrderDetailPage() {
   // Always the canonical production domain, not whatever host this
   // request happened to come in on (e.g. a Vercel preview deployment) —
   // this link goes straight into a WhatsApp message sent to the customer.
-  const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
+  const trackingUrl = ROUTES.publicTrackUrl(order);
   // null/undefined means "never overridden" — inherit the shop's own default.
   const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
   const whatsAppMessage = customer

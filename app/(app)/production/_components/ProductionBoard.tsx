@@ -214,7 +214,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     updateOrderStatus(orderId, 'Delivered', user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
-      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
+      const trackingUrl = ROUTES.publicTrackUrl(order);
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
         customerName: customer.fullName,
@@ -313,7 +313,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     updateOrderStatus(orderId, next, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
-      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
+      const trackingUrl = ROUTES.publicTrackUrl(order);
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
         customerName: customer.fullName,
@@ -380,7 +380,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     updateOrderStatus(orderId, targetStatus, user?.uid || '', user?.name || '');
     const customer = customers.find(c => c.id === order.customerId);
     if (customer?.whatsappNumber) {
-      const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
+      const trackingUrl = ROUTES.publicTrackUrl(order);
       const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
       const msg = getOrderProgressMessage({
         customerName: customer.fullName,
@@ -467,7 +467,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
       showToast('No customer phone number available', 'error');
       return;
     }
-    const trackingUrl = `${APP_CONFIG.baseUrl}${ROUTES.track(order)}`;
+    const trackingUrl = ROUTES.publicTrackUrl(order);
     const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
     const msg = getOrderProgressMessage({
       customerName: customer.fullName,

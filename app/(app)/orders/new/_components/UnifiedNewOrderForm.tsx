@@ -994,12 +994,7 @@ export default function UnifiedNewOrderForm() {
   const getWhatsAppReceiptText = () => {
     if (!completedBatch || !selectedCustomer) return '';
     const shopName = currentShop?.name || APP_CONFIG.name;
-    const origin =
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? window.location.origin
-        : APP_CONFIG.baseUrl;
-    const trackingUrl = `${origin}${ROUTES.track(completedBatch.firstOrderId)}`;
+    const trackingUrl = ROUTES.publicTrackUrl(completedBatch.firstOrderId);
     const formattedDate = formatSafeDate(completedBatch.dueDate);
 
     const garmentLines =

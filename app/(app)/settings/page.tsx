@@ -29,6 +29,7 @@ import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import { getShopCurrency } from '@/lib/formatters';
 import SettingsSkeleton from './_components/SettingsSkeleton';
+import { getCanonicalPublicUrl } from '@/lib/routes';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
@@ -107,14 +108,14 @@ export default function SettingsPage() {
   const handleShareStorefront = () => {
     const slug = currentShop?.slug || 'savile-row';
     const shopName = currentShop?.name || 'our shop';
-    const url = `${window.location.origin}/studio/${slug}`;
+    const url = getCanonicalPublicUrl(`/studio/${slug}`);
     const text = `Greetings from ${shopName}! View our designs and catalog here:\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleInviteFriend = () => {
     const refCode = currentShop?.referralCode || currentShop?.slug || '';
-    const url = `${window.location.origin}/signup${refCode ? `?ref=${refCode}` : ''}`;
+    const url = getCanonicalPublicUrl(`/signup${refCode ? `?ref=${refCode}` : ''}`);
     const text = `Join me on MyStitchBook — the modern management app for fashion designers and tailoring houses:\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };

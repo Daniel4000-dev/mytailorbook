@@ -66,6 +66,25 @@
 
 import { toCustomerSlug, toOrderSlug, toCatalogueSlug } from './slugs';
 import type { Customer, Order, StyleCatalogue } from './types';
+import { APP_CONFIG } from './config';
+
+/**
+ * Resolves the canonical public URL for external customer-facing links
+ * (tracking, studio storefronts, catalogues, invite referrals).
+ * In local dev, preserves localhost:port for engineering convenience.
+ * In staging and production, guarantees the clean apex production domain
+ * (https://mystitchbook.com) so customers never receive dev/staging links.
+ */
+export function getCanonicalPublicUrl(path: string): string {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
+    return `${window.location.origin}${cleanPath}`;
+  }
+  return `${APP_CONFIG.baseUrl}${cleanPath}`;
+}
 
 export const ROUTES = {
   // ---- Marketing / public (bare domain) ----
@@ -169,6 +188,15 @@ export const ROUTES = {
           orderDetails?: string | null;
         })
   ) => `/track/${toOrderSlug(orderOrId, { publicToken: true })}`,
+  publicTrackUrl: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => getCanonicalPublicUrl(ROUTES.track(orderOrId)),
   receipt: (
     orderOrId:
       | string

@@ -216,15 +216,29 @@ export function resolveCanonicalStyleName(rawStyle: string, gender?: 'male' | 'f
   const exact = pool.find((g) => g.name.toLowerCase() === lower);
   if (exact) return exact.name;
 
-  const exactAny = GARMENT_STYLES.find((g) => g.name.toLowerCase() === lower);
-  if (exactAny) return exactAny.name;
-
   const keywordMatch = pool.find((g) =>
     g.keywords.some((kw) => lower.includes(kw.toLowerCase()))
   );
   if (keywordMatch) return keywordMatch.name;
 
+  const exactAny = GARMENT_STYLES.find((g) => g.name.toLowerCase() === lower);
+  if (exactAny) return exactAny.name;
+
   return trimmed;
+}
+
+/**
+ * Resolves the photo URL for a garment style, respecting customer gender when known.
+ */
+export function getGarmentStylePhoto(styleName: string, gender?: 'male' | 'female'): string {
+  if (!styleName) return '';
+  const canonical = resolveCanonicalStyleName(styleName, gender);
+  if (gender) {
+    const match = GARMENT_STYLES.find((g) => g.gender === gender && (g.name === canonical || g.name === styleName));
+    if (match?.photoUrl) return match.photoUrl;
+  }
+  const matchAny = GARMENT_STYLES.find((g) => g.name === canonical || g.name === styleName);
+  return matchAny?.photoUrl || '';
 }
 
 /* ── Style-specific measurement intake ─────────────────────────

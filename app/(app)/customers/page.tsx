@@ -20,7 +20,7 @@ import Button from '@/components/ui/Button/Button';
 import { formatCurrency, formatPhone, formatShortMonthYear, formatDate, getWhatsAppLink, getTelLink, getInitials } from '@/lib/formatters';
 import { getBalanceOwed } from '@/lib/types';
 import type { Customer, Order, StyleCatalogue } from '@/lib/types';
-import { GARMENT_STYLES, resolveCanonicalStyleName } from '@/lib/constants';
+import { GARMENT_STYLES, resolveCanonicalStyleName, getGarmentStylePhoto } from '@/lib/constants';
 import { getStylePhotoSubmissionsAction, getApprovedStyleNamesAction, getOutreachLogAction, logOutreachContactAction } from '@/app/actions';
 import { getCataloguesAction } from '@/app/actions/catalogues';
 import { shareStylePhoto } from '@/lib/share-outreach';
@@ -283,7 +283,7 @@ export default function CustomersPage() {
         name,
         count,
         hasApprovedPhoto: approvedStyleNames.has(name),
-        photoUrl: GARMENT_STYLES.find((g) => g.name === name)?.photoUrl,
+        photoUrl: getGarmentStylePhoto(name, clientFilter === 'female' ? 'female' : clientFilter === 'male' ? 'male' : undefined),
       }));
   }, [customers, clientFilter, customerStylesMap, approvedStyleNames]);
 

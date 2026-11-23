@@ -14,6 +14,7 @@ import Skeleton from '@/components/ui/Skeleton/Skeleton';
 import { StyleCatalogue, StyleCataloguePhoto } from '@/lib/types';
 import { getCataloguesAction, createCatalogueAction } from '@/app/actions/catalogues';
 import { getCachedCatalogues, setCachedCatalogues } from '@/lib/catalogueCache';
+import { getCanonicalPublicUrl } from '@/lib/routes';
 import styles from './page.module.css';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -135,7 +136,7 @@ export default function CataloguesPage() {
 
   const handleShareGeneral = () => {
     const slug = currentShop?.slug || 'your-studio';
-    const url = `${window.location.origin}/catalogue/${slug}`;
+    const url = getCanonicalPublicUrl(`/catalogue/${slug}`);
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(url);
       showToast('Public Lookbook link copied to clipboard!', 'success');
