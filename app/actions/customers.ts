@@ -1,0 +1,34 @@
+'use server';
+import { createClient } from "@/lib/supabase/server";
+
+export async function updateCustomerWallet(customerId: string, amountToAdd: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Get current balance
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('wallet_balance')
+      .eq('id', customerId)
+      .single();
+
+    if (getError) throw getError;
+
+    const currentBalance = customer.wallet_balance || 0;
+    const newBalance = currentBalance + amountToAdd;
+
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ wallet_balance: newBalance })
+      .eq('id', customerId);
+
+    if (updateError) throw updateError;
+    
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateCustomerWallet error:', err);
+    return { success: false, error: err.message };
+  }
+}

@@ -1,33 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import type { AnatomyZone } from './ThreeMannequin';
 import styles from './MeasurementAnatomy.module.css';
 
-interface MeasurementPoint {
+const ThreeMannequin = dynamic(
+  () => import('./ThreeMannequin'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className={styles.mannequinLoader}>
+        <div className={styles.mannequinLoaderSpinner} />
+        <span>Loading 3D view...</span>
+      </div>
+    ),
+  }
+);
+
+export interface MeasurementPoint {
   id: string;
   name: string;
   x: number;
   y: number;
-  /** When set, this measurement spans two landmarks (e.g. nipple to nipple)
-   *  rather than a single spot — (x,y) and (endX,endY) are drawn as a
-   *  connecting line, with the tap target at their midpoint. A single dot
-   *  can't communicate "from here to there," so these get a line instead. */
   endX?: number;
   endY?: number;
-  /** Override for where the tap target sits — the anatomically correct line
-   *  sometimes has its true geometric midpoint on top of an unrelated point
-   *  (e.g. a nipple-to-nipple line crosses right through the Bust point at
-   *  its center); this nudges just the clickable marker/label clear of it
-   *  without moving the line itself. */
   midX?: number;
   midY?: number;
 }
 
-// Note: every point below must have a unique (x, y) — two points sharing the
-// same spot means one silently sits on top of the other, making the covered
-// one invisible and unclickable in the visual view (still editable via Quick
-// List, which is why a value could be entered but never seen here).
-const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
+export const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 34, y: 24 },
   { id: 'crossFront', name: 'Across Front', x: 50, y: 28 },
@@ -53,16 +57,13 @@ const FEMALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'outseam', name: 'Outseam', x: 36.5, y: 77 },
   { id: 'crotch', name: 'Crotch', x: 44, y: 63 },
   { id: 'halfLength', name: 'Half Length', x: 30, y: 72 },
-  // Spans — two landmarks connected by a line, not a single spot. Some
-  // need a `mid` override: their true geometric midpoint would otherwise
-  // land exactly on an unrelated point (see the field comment above).
   { id: 'shoulderToBustPoint', name: 'Shoulder to Bust Point', x: 37, y: 24, endX: 43, endY: 34, midX: 44, midY: 25 },
   { id: 'nippleToNipple', name: 'Nipple to Nipple', x: 43, y: 34, endX: 57, endY: 34, midX: 44, midY: 31 },
   { id: 'shoulderToWaist', name: 'Shoulder to Waist', x: 64, y: 24, endX: 63, endY: 45, midX: 70, midY: 34 },
   { id: 'shoulderToHips', name: 'Shoulder to Hips', x: 64, y: 24, endX: 66, endY: 58, midX: 72, midY: 45 },
 ];
 
-const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
+export const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'neck', name: 'Neck', x: 50, y: 19 },
   { id: 'shoulder', name: 'Shoulder', x: 31, y: 23 },
   { id: 'crossFront', name: 'Across Front', x: 50, y: 28 },
@@ -87,12 +88,55 @@ const MALE_MEASUREMENT_POINTS: MeasurementPoint[] = [
   { id: 'outseam', name: 'Outseam', x: 37.5, y: 77 },
 ];
 
+type CategoryGroupKey = Exclude<AnatomyZone, 'all'>;
+
+const CATEGORY_META: Array<{
+  key: CategoryGroupKey;
+  title: string;
+  pointIds: string[];
+}> = [
+  {
+    key: 'upper',
+    title: 'Upper Body',
+    pointIds: ['neck', 'shoulder', 'crossFront', 'crossBack', 'chest', 'bust', 'underBust', 'stomach', 'waist', 'hips'],
+  },
+  {
+    key: 'arms',
+    title: 'Arms & Sleeves',
+    pointIds: ['armhole', 'bicep', 'sleeveLength', 'wrist'],
+  },
+  {
+    key: 'lower',
+    title: 'Lower Body',
+    pointIds: ['crotch', 'thigh', 'knee', 'calf', 'ankle', 'inseam', 'outseam', 'trouserLength'],
+  },
+  {
+    key: 'spans',
+    title: 'Lengths',
+    pointIds: [
+      'shirtLength',
+      'frontLength',
+      'backLength',
+      'napeToWaist',
+      'halfLength',
+      'dressLength',
+      'gownLength',
+      'shoulderToBustPoint',
+      'nippleToNipple',
+      'shoulderToWaist',
+      'shoulderToHips',
+    ],
+  },
+];
+
 interface MeasurementAnatomyProps {
   gender: 'male' | 'female';
   measurements: Record<string, string>;
   selectedPointId?: string;
   onPointSelect: (point: MeasurementPoint) => void;
   onValueChange?: (pointId: string, value: string) => void;
+  onValueBlur?: (pointId: string, value: string) => void;
+  notesContent?: React.ReactNode;
 }
 
 export default function MeasurementAnatomy({
@@ -101,130 +145,402 @@ export default function MeasurementAnatomy({
   selectedPointId,
   onPointSelect,
   onValueChange,
+  onValueBlur,
+  notesContent,
 }: MeasurementAnatomyProps) {
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'visual' | 'list' | 'notes'>('list');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [isFullscreenStudio, setIsFullscreenStudio] = useState(false);
+  const [studioZone, setStudioZone] = useState<AnatomyZone>('all');
+  const [studioActivePointId, setStudioActivePointId] = useState<string | undefined>(selectedPointId);
+
+  const toggleSection = (key: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   const points = gender === 'male' ? MALE_MEASUREMENT_POINTS : FEMALE_MEASUREMENT_POINTS;
-  
-  const filledCount = Object.keys(measurements).length;
+
+  const filledCount = useMemo(
+    () => points.filter((p) => measurements[p.id] && String(measurements[p.id]).trim() !== '').length,
+    [points, measurements]
+  );
   const totalCount = points.length;
+  const completionPct = Math.round((filledCount / Math.max(totalCount, 1)) * 100);
+
+  const categorizedGroups = useMemo(() => {
+    const pointMap = new Map(points.map((p) => [p.id, p]));
+    return CATEGORY_META.map((cat) => {
+      const catPoints = cat.pointIds
+        .map((id) => pointMap.get(id))
+        .filter((p): p is MeasurementPoint => Boolean(p));
+      const catFilled = catPoints.filter(
+        (p) => measurements[p.id] && String(measurements[p.id]).trim() !== ''
+      ).length;
+      return {
+        ...cat,
+        points: catPoints,
+        filledCount: catFilled,
+      };
+    }).filter((cat) => cat.points.length > 0);
+  }, [points, measurements]);
+
+  // Lock body scroll when Fullscreen 3D Studio is open
+  useEffect(() => {
+    if (!isFullscreenStudio) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreenStudio(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isFullscreenStudio]);
+
+  const activeStudioPoint = useMemo(() => {
+    const targetId = studioActivePointId || selectedPointId || points[0]?.id;
+    return points.find((p) => p.id === targetId) || points[0];
+  }, [points, studioActivePointId, selectedPointId]);
+
+  const activeStudioIndex = useMemo(
+    () => points.findIndex((p) => p.id === activeStudioPoint?.id),
+    [points, activeStudioPoint]
+  );
+
+  const stepStudioPoint = (dir: -1 | 1) => {
+    if (points.length === 0) return;
+    const nextIdx = (activeStudioIndex + dir + points.length) % points.length;
+    const nextPt = points[nextIdx];
+    if (nextPt) {
+      setStudioActivePointId(nextPt.id);
+    }
+  };
+
+  const adjustStudioValue = (delta: number) => {
+    if (!activeStudioPoint) return;
+    const raw = parseFloat(measurements[activeStudioPoint.id] || '0');
+    const base = Number.isFinite(raw) && raw > 0 ? raw : 14;
+    const nextVal = Math.max(0.5, Math.round((base + delta) * 4) / 4);
+    const formatted = String(nextVal);
+    onValueChange?.(activeStudioPoint.id, formatted);
+    onValueBlur?.(activeStudioPoint.id, formatted);
+  };
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>Body Measurements</h3>
-        <span className={styles.counter}>
-          {filledCount}/{totalCount} recorded
-        </span>
+      {/* ── Control Bar (View Mode + Recorded Count) ── */}
+      <div className={styles.controlBar}>
+        <div className={styles.segmentedTabs} role="tablist" aria-label="Measurement view mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'list'}
+            className={`${styles.segBtn} ${viewMode === 'list' ? styles.segBtnActive : ''}`}
+            onClick={() => setViewMode('list')}
+          >
+            <Symbol name="checklist" size={14} />
+            <span>List View</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'visual'}
+            className={`${styles.segBtn} ${viewMode === 'visual' ? styles.segBtnActive : ''}`}
+            onClick={() => setViewMode('visual')}
+          >
+            <Symbol name="person" size={14} />
+            <span>3D View</span>
+          </button>
+          {notesContent !== undefined && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'notes'}
+              className={`${styles.segBtn} ${viewMode === 'notes' ? styles.segBtnActive : ''}`}
+              onClick={() => setViewMode('notes')}
+            >
+              <Symbol name="notes" size={14} />
+              <span>Notes</span>
+            </button>
+          )}
+        </div>
+
+        <div className={styles.controlBarRight}>
+          <div className={styles.progressBadge} title={`${completionPct}% recorded`}>
+            <span className={styles.progressDot} />
+            <span className={styles.progressText}>
+              <strong>{filledCount}</strong>/{totalCount} saved
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className={styles.viewModeTabs}>
-        <button
-          type="button"
-          className={`${styles.viewModeBtn} ${viewMode === 'list' ? styles.viewModeBtnActive : ''}`}
-          onClick={() => setViewMode('list')}
-        >
-          Quick List
-        </button>
-        <button
-          type="button"
-          className={`${styles.viewModeBtn} ${viewMode === 'visual' ? styles.viewModeBtnActive : ''}`}
-          onClick={() => setViewMode('visual')}
-        >
-          Visual Anatomy
-        </button>
-      </div>
-
-      {viewMode === 'list' ? (
-        <div className={styles.listView}>
-          {points.map((point) => (
-            <div key={point.id} className={styles.listRow}>
-              <label htmlFor={point.id} className={styles.listLabel}>{point.name}</label>
-              <input
-                id={point.id}
-                type="text"
-                className={styles.listInput}
-                placeholder="--"
-                value={measurements[point.id] || ''}
-                onChange={(e) => onValueChange?.(point.id, e.target.value)}
-              />
-            </div>
-          ))}
+      {/* ── View Mode 1: Interactive 3D Body View ── */}
+      {viewMode === 'visual' ? (
+        <div className={styles.visualBlock}>
+          <div className={styles.anatomyContainer}>
+            <ThreeMannequin
+              gender={gender}
+              measurements={measurements}
+              selectedPointId={selectedPointId}
+              zoneFilter={studioZone}
+              onZoneFilterChange={setStudioZone}
+              onToggleFullscreen={() => {
+                setStudioActivePointId(selectedPointId || points[0]?.id);
+                setIsFullscreenStudio(true);
+              }}
+              onPointSelect={(point) => {
+                const matched = points.find((p) => p.id === point.id);
+                onPointSelect(matched || { id: point.id, name: point.name, x: 50, y: 50 });
+              }}
+            />
+          </div>
+        </div>
+      ) : viewMode === 'notes' ? (
+        /* ── View Mode 3: Fit & Posture Notes ────────────────── */
+        <div className={styles.notesContainer}>
+          {notesContent}
         </div>
       ) : (
-        <>
-          <div className={styles.anatomyContainer}>
-            <div className={styles.anatomyInner}>
-              {gender === 'female' ? (
-              <svg viewBox="0 0 100 100" className={styles.bodySvg} preserveAspectRatio="xMidYMid meet">
-                <ellipse cx="50" cy="9" rx="7" ry="9" className={styles.bodyPart} />
-                <polygon points="46,17 46,21 32,23 38,35 41,45 34,58 37,78 39,96 45,96 47,78 50,62 53,78 55,96 61,96 63,78 66,58 59,45 62,35 68,23 54,21 54,17" className={styles.bodyPart} />
-                <polygon points="32,23 26,42 20,62 26,62 31,42 38,35" className={styles.bodyPart} />
-                <polygon points="68,23 74,42 80,62 74,62 69,42 62,35" className={styles.bodyPart} />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 100 100" className={styles.bodySvg} preserveAspectRatio="xMidYMid meet">
-                <ellipse cx="50" cy="9" rx="7" ry="9" className={styles.bodyPart} />
-                <polygon points="45,17 45,21 28,22 34,35 37,48 36,58 38,78 39,96 45,96 46,78 50,63 54,78 55,96 61,96 62,78 64,58 63,48 66,35 72,22 55,21 55,17" className={styles.bodyPart} />
-                <polygon points="28,22 23,43 17,64 24,64 29,43 34,35" className={styles.bodyPart} />
-                <polygon points="72,22 77,43 83,64 76,64 71,43 66,35" className={styles.bodyPart} />
-              </svg>
-            )}
-
-            {/* Span lines — drawn first so the point markers sit on top */}
-            <svg viewBox="0 0 100 100" className={styles.spanSvg} preserveAspectRatio="xMidYMid meet">
-              {points
-                .filter((p) => p.endX !== undefined && p.endY !== undefined)
-                .map((p) => (
-                  <line
-                    key={`${p.id}-span`}
-                    x1={p.x}
-                    y1={p.y}
-                    x2={p.endX}
-                    y2={p.endY}
-                    className={`${styles.spanLine} ${measurements[p.id] ? styles.spanLineFilled : ''}`}
-                  />
-                ))}
-            </svg>
-
-            {/* Interactive measurement points */}
-            {points.map((point) => {
-              const hasMeasurement = !!measurements[point.id];
-              const isSelected = selectedPointId === point.id;
-              const isSpan = point.endX !== undefined && point.endY !== undefined;
-              const tapX = point.midX ?? (isSpan ? (point.x + point.endX!) / 2 : point.x);
-              const tapY = point.midY ?? (isSpan ? (point.y + point.endY!) / 2 : point.y);
-
-              return (
+        /* ── View Mode 2: Categorized Input Grid ──────────────── */
+        <div className={styles.categoriesStack}>
+          {categorizedGroups.map((group) => {
+            const isExpanded = Boolean(expandedSections[group.key]);
+            return (
+              <div key={group.key} className={styles.categoryCard}>
                 <button
-                  key={point.id}
-                  className={`${styles.point} ${hasMeasurement ? styles.filled : ''} ${isSelected ? styles.selected : ''} ${isSpan ? styles.spanPoint : ''}`}
-                  style={{ left: `${tapX}%`, top: `${tapY}%` }}
-                  onClick={() => onPointSelect(point)}
-                  aria-label={`${point.name}${hasMeasurement ? `: ${measurements[point.id]}` : ''}`}
+                  type="button"
+                  className={`${styles.categoryHeader} ${styles.categoryHeaderBtn} ${isExpanded ? styles.categoryHeaderExpanded : ''}`}
+                  onClick={() => toggleSection(group.key)}
+                  aria-expanded={isExpanded}
                 >
-                  <span className={styles.pointDot} />
-                  <span className={styles.pointLabel}>
-                    {hasMeasurement ? measurements[point.id] : point.name}
-                  </span>
+                  <div className={styles.categoryTitleWrap}>
+                    <h4 className={styles.categoryTitle}>{group.title}</h4>
+                    <span
+                      className={`${styles.categoryCountPill} ${
+                        group.filledCount === group.points.length ? styles.categoryCountComplete : ''
+                      }`}
+                    >
+                      {group.filledCount}/{group.points.length}
+                    </span>
+                  </div>
+                  <Symbol
+                    name={isExpanded ? 'expand_less' : 'expand_more'}
+                    size={20}
+                    className={styles.categoryChevron}
+                  />
                 </button>
-              );
-            })}
-            </div>
-          </div>
 
-          {/* Legend */}
-          <div className={styles.legend}>
-            <span className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.legendEmpty}`} />
-              Not recorded
-            </span>
-            <span className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.legendFilled}`} />
-              Recorded
-            </span>
-          </div>
-        </>
+                {isExpanded && (
+                  <div className={styles.categoryGrid}>
+                    {group.points.map((point) => {
+                      const val = measurements[point.id] || '';
+                      const hasValue = val.trim() !== '';
+                      const globalIdx = points.findIndex((p) => p.id === point.id);
+
+                      return (
+                        <div
+                          key={point.id}
+                          className={`${styles.fieldCell} ${hasValue ? styles.fieldCellFilled : ''}`}
+                        >
+                          <label htmlFor={`list-${point.id}`} className={styles.fieldLabel}>
+                            <span className={styles.fieldDot} />
+                            <span className={styles.fieldName}>{point.name}</span>
+                          </label>
+                          <div className={styles.fieldInputWrap}>
+                            <input
+                              id={`list-${point.id}`}
+                              type="text"
+                              inputMode="decimal"
+                              enterKeyHint={globalIdx < points.length - 1 ? 'next' : 'done'}
+                              className={styles.fieldInput}
+                              placeholder="--"
+                              value={val}
+                              onChange={(e) => onValueChange?.(point.id, e.target.value)}
+                              onBlur={(e) => onValueBlur?.(point.id, e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const nextPoint = points[globalIdx + 1];
+                                  if (nextPoint) {
+                                    document.getElementById(`list-${nextPoint.id}`)?.focus();
+                                  } else {
+                                    (e.target as HTMLInputElement).blur();
+                                  }
+                                }
+                              }}
+                            />
+                            <span className={styles.fieldUnit}>in</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
+
+      {/* ── Fullscreen 3D View (Portaled to document.body to guarantee 100% viewport coverage) ── */}
+      {isFullscreenStudio &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className={styles.studioBackdrop}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Measurements Full Screen"
+          >
+            <div className={styles.studioModal}>
+              {/* Header Bar */}
+              <div className={styles.studioHeader}>
+                <div className={styles.studioTitleRow}>
+                  <h3 className={styles.studioTitle}>Measurements</h3>
+                  <span className={styles.studioSavedPill}>
+                    {filledCount}/{totalCount} saved
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.studioCancelBtn}
+                  onClick={() => setIsFullscreenStudio(false)}
+                >
+                  <Symbol name="close" size={16} />
+                  <span>Close</span>
+                </button>
+              </div>
+
+              {/* Body: Full-Viewport 3D Stage + Measurement Dock */}
+              <div className={styles.studioBody}>
+                <div className={styles.studioStagePane}>
+                  <ThreeMannequin
+                    gender={gender}
+                    measurements={measurements}
+                    selectedPointId={activeStudioPoint?.id}
+                    zoneFilter={studioZone}
+                    onZoneFilterChange={setStudioZone}
+                    isFullscreen
+                    onToggleFullscreen={() => setIsFullscreenStudio(false)}
+                    onPointSelect={(pt) => {
+                      setStudioActivePointId(pt.id);
+                    }}
+                  />
+                </div>
+
+                {/* Right / Bottom Synchronized Measurement Inspector */}
+                <div className={styles.studioInspectorPane}>
+                  {activeStudioPoint && (
+                    <div className={styles.activePointCard}>
+                      <div className={styles.activePointHeader}>
+                        <button
+                          type="button"
+                          className={styles.navPointBtn}
+                          onClick={() => stepStudioPoint(-1)}
+                          title="Previous"
+                        >
+                          <Symbol name="chevron_left" size={16} />
+                        </button>
+                        <div className={styles.activePointTitleWrap}>
+                          <span className={styles.activePointStep}>
+                            {activeStudioIndex + 1} of {totalCount}
+                          </span>
+                          <h4 className={styles.activePointName}>{activeStudioPoint.name}</h4>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.navPointBtn}
+                          onClick={() => stepStudioPoint(1)}
+                          title="Next"
+                        >
+                          <Symbol name="chevron_right" size={16} />
+                        </button>
+                      </div>
+
+                      <div className={styles.activePointControls}>
+                        <button
+                          type="button"
+                          className={styles.stepperBtn}
+                          onClick={() => adjustStudioValue(-0.5)}
+                        >
+                          -0.5&Prime;
+                        </button>
+
+                        <div className={styles.activeInputBox}>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className={styles.activePointInput}
+                            placeholder="--"
+                            value={measurements[activeStudioPoint.id] || ''}
+                            onChange={(e) => onValueChange?.(activeStudioPoint.id, e.target.value)}
+                            onBlur={(e) => onValueBlur?.(activeStudioPoint.id, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                (e.target as HTMLInputElement).blur();
+                                stepStudioPoint(1);
+                              }
+                            }}
+                          />
+                          <span className={styles.activeInputUnit}>in</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.stepperBtn}
+                          onClick={() => adjustStudioValue(0.5)}
+                        >
+                          +0.5&Prime;
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Desktop Scrollable List */}
+                  <div className={styles.studioPointList}>
+                    {points
+                      .filter((p) => {
+                        if (studioZone === 'all') return true;
+                        const cat = CATEGORY_META.find((c) => c.key === studioZone);
+                        return cat ? cat.pointIds.includes(p.id) : true;
+                      })
+                      .map((pt) => {
+                        const val = measurements[pt.id] || '';
+                        const isCurrent = activeStudioPoint?.id === pt.id;
+                        return (
+                          <button
+                            key={pt.id}
+                            type="button"
+                            className={`${styles.studioListRow} ${
+                              isCurrent ? styles.studioListRowActive : ''
+                            } ${val ? styles.studioListRowFilled : ''}`}
+                            onClick={() => setStudioActivePointId(pt.id)}
+                          >
+                            <span className={styles.studioListName}>
+                              <span className={styles.studioListDot} />
+                              {pt.name}
+                            </span>
+                            <span className={styles.studioListVal}>
+                              {val ? `${val}"` : '--'}
+                            </span>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

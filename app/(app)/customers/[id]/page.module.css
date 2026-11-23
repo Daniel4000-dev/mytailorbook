@@ -1,193 +1,878 @@
+/* ============================================================
+   MyStitchBook: Luxury Instagram Profile & Apple Contacts UI
+   Smooth borderless metrics, story highlights, 3-col media grid
+   ============================================================ */
+
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xl);
-  max-width: 640px;
-  margin: 0 auto;
+  gap: var(--sf-space-lg);
   width: 100%;
   padding-bottom: var(--sf-space-xl);
 }
 
-/* On mobile this is just a plain stacking block — same visual order as
-   before the desktop split existed. */
 .profileBar {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xl);
+  gap: var(--sf-space-md);
   min-width: 0;
 }
 
-/* .railWrap wraps Financial Summary, the primary action buttons, Notes,
-   and Danger Zone — mobile: `display: contents` makes this wrapper
-   invisible to layout, so its children stack via .page's own flex gap
-   exactly as if this div didn't exist (see the order block below for why
-   the *sequence* still comes out right). Desktop: it becomes one real box
-   occupying the full height of the right column. */
-.railWrap {
-  display: contents;
+.topEditPillBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(79, 70, 229, 0.08);
+  border: 1px solid rgba(79, 70, 229, 0.16);
+  color: var(--sf-brand-indigo);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* .railWrap is `display: contents` on mobile, so its children become
-   direct flex items of .page right alongside Measurement Profiles/
-   Full-Body/Recent Orders. Without an explicit order they'd fall back to
-   DOM position, which is now wrong (Financial Summary/actions/notes/
-   danger moved next to each other in the markup so desktop can make them
-   one real spanning rail item). These values just restore mobile's
-   original visual sequence — each number matches the item's old position
-   in the file. On desktop this has no visible effect (.railWrap stops
-   being `display: contents` there, so order no longer needs to reach
-   across it) but is harmless to leave on. */
-.gaProfiles { order: 1; }
-.gaBody { order: 2; }
-.orderFinancial { order: 3; }
-.orderNotes { order: 4; }
-.gaOrders { order: 5; }
-.orderActions { order: 6; }
-.dangerZone { order: 7; }
+.topEditPillBtn:hover {
+  background: rgba(79, 70, 229, 0.14);
+}
 
-.editBtn {
+.topEditPillBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── 1. Streamlined Luxury Client Dossier Hero ────────────────── */
+.executiveCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 10px 30px -4px rgba(27, 27, 34, 0.07),
+    0 20px 48px -8px rgba(67, 56, 202, 0.06);
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global([data-theme='dark']) .executiveCard {
+  background: var(--sf-bg-surface, #1C1C1E);
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 16px 40px -4px rgba(0, 0, 0, 0.6);
+}
+
+.cardMainRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.avatarWrap {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--sf-touch-target);
-  height: var(--sf-touch-target);
-  border-radius: var(--sf-radius-full);
-  color: var(--sf-accent-emerald);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.editBtn:hover {
-  background: var(--sf-surface-variant);
-}
-}
-
-.editBtn:active {
-  background: var(--sf-surface-variant);
-  transform: scale(0.9);
+.mainAvatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
 }
 
-/* ── Profile header ─────────────────────────────────────────── */
-.profileHeader {
+.onlineBadge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #10B981;
+  border: 2.5px solid var(--sf-bg-surface, #FFFFFF);
+  z-index: 2;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
+}
+
+.activeBadge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--sf-brand-indigo, #4F46E5);
+  border: 2.5px solid var(--sf-bg-surface, #FFFFFF);
+  z-index: 2;
+}
+
+.profileDetails {
   display: flex;
   flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.nameHeaderRow {
+  display: flex;
   align-items: center;
-  text-align: center;
-  gap: var(--sf-space-sm);
-  padding-bottom: var(--sf-space-lg);
-  border-bottom: 1px solid var(--sf-border-light);
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .name {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-xl);
-  font-weight: var(--sf-weight-bold);
+  font-size: clamp(20px, 4.8vw, 24px);
+  font-weight: 900;
   color: var(--sf-text-primary);
-  margin-top: var(--sf-space-sm);
+  letter-spacing: -0.025em;
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.memberSince {
-  font-size: var(--sf-text-xs);
-  color: var(--sf-text-tertiary);
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.genderTag {
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-semibold);
+.phoneCopyPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--sf-text-secondary);
-  background: var(--sf-bg-surface-hover);
-  padding: 2px 10px;
-  border: none;
-  border-radius: 999px;
-  text-transform: capitalize;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.phoneCopyPill:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.2);
+  color: var(--sf-brand-indigo);
+}
+
+.genderBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--sf-brand-indigo);
+  background: rgba(67, 56, 202, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+}
+
+.readyBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+}
+
+.inProdBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sf-brand-indigo);
+  background: rgba(67, 56, 202, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
 }
 
 .customerAddress {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--sf-text-xs);
+  font-size: 11.5px;
   color: var(--sf-text-tertiary);
-  text-align: center;
 }
 
-.prefChips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--sf-space-xs);
-  margin-top: var(--sf-space-xs);
-}
-
-.prefChip {
+.storeCreditBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px 4px 4px;
+  gap: 4px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #B45309;
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-secondary-container);
-  color: var(--sf-accent-emerald);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
+  font-size: 10.5px;
+  font-weight: 700;
 }
 
-.prefChipPhoto {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  object-fit: cover;
+.heroStyleBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.045);
+  color: var(--sf-text-secondary);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 10.5px;
+  font-weight: 600;
 }
 
-.prefChipNoPhoto {
-  padding-left: 12px;
+.quickStyleToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  border: 1px dashed rgba(79, 70, 229, 0.35);
+  background: rgba(79, 70, 229, 0.04);
+  color: var(--sf-brand-indigo, #4F46E5);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.quickActions {
+.quickStyleToggleBtn:hover,
+.quickStyleToggleBtnActive {
+  background: rgba(79, 70, 229, 0.12);
+  border-style: solid;
+}
+
+.quickStylePickerTray {
   display: flex;
-  gap: var(--sf-space-md);
-  width: 100%;
-  max-width: 320px;
-  margin-top: var(--sf-space-md);
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.quickActionBtn {
-  flex: 1;
+.quickStyleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickStyleChip:active {
+  transform: scale(0.96);
+}
+
+.quickStyleChipActive {
+  background: var(--sf-brand-indigo, #4F46E5);
+  border-color: var(--sf-brand-indigo, #4F46E5);
+  color: #FFFFFF;
+}
+
+/* ── 2. Inset 3-Metric Executive Stats Strip ─────────────────── */
+.statsTray {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(67, 56, 202, 0.03) 0%, rgba(15, 23, 42, 0.015) 100%);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 12px 10px;
+  width: 100%;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(67, 56, 202, 0.02);
+}
+
+:global([data-theme='dark']) .statsTray {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(99, 102, 241, 0.16);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.statBox {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: var(--sf-touch-target);
-  padding: var(--sf-space-sm);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  color: var(--sf-accent-emerald);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  gap: 3px;
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: transform var(--sf-transition-fast);
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.quickActionBtn:hover {
-  background: var(--sf-surface-variant);
-}
-}
-
-.quickActionBtn:active {
-  background: var(--sf-surface-variant);
+.statBox:active {
   transform: scale(0.97);
 }
 
-/* ── Generic section shell ─────────────────────────────────── */
+.statBoxVal {
+  font-family: var(--sf-font-numeric, var(--sf-font-heading));
+  font-size: clamp(18px, 4.2vw, 21px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.settledVal {
+  color: #059669;
+}
+
+.statBoxLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+}
+
+.statBoxDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(67, 56, 202, 0.12);
+}
+
+.warn {
+  color: #D97706;
+}
+
+/* ── 3. Balanced Action Command Strip (Plane 3 Signal Surface) ── */
+.actionCommandStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.15fr) minmax(0, 0.85fr) minmax(0, 0.78fr);
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.primaryOrderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 42px;
+  padding: 0 10px;
+  min-width: 0;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.38), 0 2px 4px rgba(49, 46, 129, 0.2);
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.primaryOrderBtn:hover {
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(79, 70, 229, 0.46), 0 3px 6px rgba(49, 46, 129, 0.25);
+}
+
+.primaryOrderBtn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
+}
+
+.secondaryActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 42px;
+  padding: 0 8px;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(67, 56, 202, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  color: var(--sf-text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:global([data-theme='dark']) .secondaryActionBtn {
+  background: var(--sf-bg-surface, #1C1C1E);
+  border-color: rgba(99, 102, 241, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.secondaryActionBtn:hover {
+  border-color: rgba(67, 56, 202, 0.25);
+  background: var(--sf-bg-surface-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.secondaryActionBtn:active {
+  transform: scale(0.97);
+}
+
+.secondaryActionBtnWhatsApp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 42px;
+  padding: 0 9px;
+  min-width: 0;
+  box-sizing: border-box;
+  background: rgba(37, 211, 102, 0.12);
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  color: #15803D;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.15);
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 480px) {
+  .actionCommandStrip {
+    gap: 8px;
+  }
+  .primaryOrderBtn,
+  .secondaryActionBtnWhatsApp,
+  .secondaryActionBtn {
+    padding: 0 12px;
+    font-size: 12.5px;
+    gap: 6px;
+  }
+}
+
+.secondaryActionBtnWhatsApp:hover {
+  background: rgba(37, 211, 102, 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.22);
+}
+
+.secondaryActionBtnWhatsApp:active {
+  transform: scale(0.97);
+}
+
+/* ── 4. Segmented Rail Tab Bar ──────────────────────────────── */
+.segmentTabBar {
+  display: flex;
+  background: rgba(67, 56, 202, 0.04);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  padding: 4px;
+  border-radius: var(--sf-radius-full);
+  gap: 3px;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
+}
+
+:global([data-theme='dark']) .segmentTabBar {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(99, 102, 241, 0.16);
+}
+
+.segmentTabBar::-webkit-scrollbar {
+  display: none;
+}
+
+.segmentTabBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  color: var(--sf-text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.segmentTabBtn:active {
+  transform: scale(0.97);
+}
+
+.segmentTabActive {
+  background: var(--sf-bg-surface, #FFFFFF);
+  color: var(--sf-brand-indigo, #4F46E5);
+  font-weight: 800;
+  border: 1px solid rgba(67, 56, 202, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.12);
+}
+
+:global([data-theme='dark']) .segmentTabActive {
+  background: var(--sf-bg-surface, #1C1C1E);
+  color: #A5B4FC;
+  border-color: rgba(99, 102, 241, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ── 5. Baseline Measurements Glance Tray ───────────────────── */
+.baselineTray {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-lg, 12px);
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  width: 100%;
+}
+
+.baselineItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.baselineLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.baselineValue {
+  font-family: var(--sf-font-heading);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--sf-brand-indigo, #4F46E5);
+  line-height: 1.2;
+}
+
+.baselineDivider {
+  width: 1px;
+  height: 22px;
+  background: var(--sf-border-light);
+}
+
+/* ── 4. Saved Style Profiles (Elevated Fit Cards) ─────────────── */
+.styleProfilesSection {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.styleProfilesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.styleProfilesTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--sf-tracking-caps);
+  color: var(--sf-text-tertiary);
+}
+
+.addStyleTextBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--sf-radius-sm);
+  transition: all var(--sf-transition-fast);
+}
+
+.addStyleTextBtn:hover {
+  background: rgba(67, 56, 202, 0.08);
+}
+
+.styleProfilesTrack {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.styleProfilesTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.styleProfileCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  text-align: left;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.styleProfileCard:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border);
+}
+
+.styleProfileCard:active {
+  transform: scale(0.97);
+}
+
+.styleProfileIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sf-radius-sm);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.styleProfileInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.styleProfileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+}
+
+.styleProfileMeta {
+  font-size: 10.5px;
+  color: var(--sf-text-tertiary);
+  font-weight: 500;
+}
+
+.styleProfileEmptyCard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1.5px dashed var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  color: var(--sf-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.styleProfileEmptyCard:hover {
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+}
+
+.fitsDescription {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.fitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sf-space-sm);
+  margin-top: var(--sf-space-xs);
+}
+
+.fitCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fitCard:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: var(--sf-border);
+}
+
+.fitCard:active {
+  transform: scale(0.98);
+}
+
+.fitCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fitCardIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sf-radius-sm);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fitCardMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fitCardTitle {
+  font-family: var(--sf-font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fitCardSub {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  margin-top: 2px;
+}
+
+.fitCardAction {
+  border: none;
+  background: rgba(67, 56, 202, 0.06);
+  color: var(--sf-brand-indigo);
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background var(--sf-transition-fast);
+  flex-shrink: 0;
+}
+
+.fitCardAction:hover {
+  background: rgba(67, 56, 202, 0.12);
+}
+
+/* ── 5. Sleek Instagram Tab Bar ──────────────────────────────── */
+.igTabBar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-bottom: 1px solid var(--sf-border-light);
+  margin-top: 14px;
+}
+
+.igTabBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--sf-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.igTabActive {
+  color: var(--sf-brand-indigo);
+  font-weight: 600;
+  border-bottom-color: var(--sf-brand-indigo);
+}
+
+/* ── 6. Tab Content Shell ────────────────────────────────────── */
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+  margin-top: var(--sf-space-md);
+}
+
 .section {
   display: flex;
   flex-direction: column;
@@ -207,30 +892,51 @@
   justify-content: space-between;
 }
 
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.debtReminderBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(37, 211, 102, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--sf-transition-fast);
+}
+
+.debtReminderBtn:hover {
+  background: rgba(37, 211, 102, 0.2);
+}
+
 .newBtn {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  height: var(--sf-touch-target);
-  padding: 0 var(--sf-space-sm);
-  color: var(--sf-accent-emerald);
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-bold);
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  color: var(--sf-brand-indigo);
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: var(--sf-tracking-caps);
-  border-radius: var(--sf-radius-sm);
+  border-radius: var(--sf-radius-full);
+  background: rgba(67, 56, 202, 0.08);
+  border: none;
+  cursor: pointer;
   transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.newBtn:hover {
-  background: var(--sf-surface-variant);
-}
-}
-
 .newBtn:active {
-  background: var(--sf-surface-variant);
   transform: scale(0.95);
+  background: rgba(67, 56, 202, 0.14);
 }
 
 .emptyHint {
@@ -241,16 +947,321 @@
   font-size: var(--sf-text-sm);
   color: var(--sf-text-tertiary);
   text-align: center;
-  padding: var(--sf-space-lg) 0;
+  padding: var(--sf-space-xl) 0;
 }
 
 .emptyHintIcon {
-  font-size: 26px;
-  color: var(--sf-accent-emerald);
-  opacity: 0.5;
+  font-size: 32px;
+  color: var(--sf-brand-indigo);
+  opacity: 0.4;
 }
 
-/* ── Financial summary ─────────────────────────────────────── */
+/* ── 7. Customer Fabrics Grid ─────────────────────────────── */
+.fabricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+.fabricGridItem {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--sf-radius-sm);
+  overflow: hidden;
+  background: var(--sf-surface-container-highest);
+  cursor: zoom-in;
+}
+
+.fabricGridImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--sf-transition-fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fabricGridItem:hover .fabricGridImg {
+    transform: scale(1.03);
+  }
+}
+
+.photoRemoveBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
+  z-index: 2;
+}
+
+.photoRemoveBtn:active {
+  transform: scale(0.9);
+  opacity: 1;
+}
+
+/* ── 8. Elevated Body Measurements & Posture Dossier Cards ───── */
+.postureSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.measurementDossierCard,
+.postureDossierCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global([data-theme='dark']) .measurementDossierCard,
+:global([data-theme='dark']) .postureDossierCard {
+  background: var(--sf-bg-surface, #1C1C1E);
+  border-color: rgba(99, 102, 241, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -4px rgba(0, 0, 0, 0.55);
+}
+
+.dossierHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dossierTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dossierEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sf-brand-indigo);
+}
+
+.dossierActionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dossierActionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 11px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 23, 42, 0.035);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dossierActionPill:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.25);
+  color: var(--sf-brand-indigo);
+}
+
+.dossierActionPill:active {
+  transform: scale(0.96);
+}
+
+/* Posture & Fit Notes Dossier Card */
+.postureHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.postureTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.postureIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--sf-brand-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.postureCardTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+}
+
+.postureCardSub {
+  margin: 1px 0 0;
+  font-size: 11.5px;
+  color: var(--sf-text-tertiary);
+}
+
+.autoSavePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  font-size: 10.5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.postureTagsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.postureChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.postureChip:hover {
+  border-color: rgba(79, 70, 229, 0.35);
+  color: var(--sf-brand-indigo);
+}
+
+.postureChip:active {
+  transform: scale(0.96);
+}
+
+.postureChipActive {
+  background: rgba(79, 70, 229, 0.1);
+  border-color: var(--sf-brand-indigo);
+  color: var(--sf-brand-indigo);
+}
+
+.notesPadWrap {
+  position: relative;
+}
+
+.notesTextarea {
+  width: 100%;
+  min-height: 104px;
+  background: var(--sf-bg-surface-elevated, #f8fafc);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: var(--sf-text-primary);
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.55;
+  resize: vertical;
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.notesTextarea:focus {
+  outline: none;
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.notesTextarea::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.modalNavBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--sf-text-primary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.modalNavBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.modalNavBtn:not(:disabled):hover {
+  background: rgba(67, 56, 202, 0.1);
+  color: var(--sf-brand-indigo);
+}
+
+.fractionChip {
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo);
+  font-size: 11.5px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.fractionChip:hover {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+}
+
+.fractionChip:active {
+  transform: scale(0.95);
+}
+
+/* ── 9. Orders & Financial Health ────────────────────────────── */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -286,115 +1297,11 @@
   color: var(--sf-text-primary);
 }
 
-.warn {
-  color: var(--sf-accent-emerald-dark);
-}
-
-/* ── Measurement profile cards ─────────────────────────────── */
-.profileList {
+.orderActionRow {
   display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
+  gap: 10px;
 }
 
-.profileCard {
-  display: flex;
-  gap: var(--sf-space-md);
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  box-shadow: var(--sf-shadow-sm);
-}
-
-.profilePhoto {
-  flex-shrink: 0;
-  width: 96px;
-  background: var(--sf-surface-variant);
-  color: var(--sf-text-tertiary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profilePhoto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.profileInfo {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  padding: var(--sf-space-md);
-}
-
-.profileInfo h4 {
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
-  color: var(--sf-text-primary);
-}
-
-.profileInfo p {
-  font-size: var(--sf-text-2xs);
-  color: var(--sf-text-tertiary);
-  margin-bottom: var(--sf-space-sm);
-}
-
-.viewEditBtn {
-  align-self: flex-start;
-  padding: 6px 14px;
-  border: 1px solid var(--sf-accent-emerald);
-  color: var(--sf-accent-emerald);
-  border-radius: var(--sf-radius-sm);
-  font-size: var(--sf-text-2xs);
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-.viewEditBtn:hover {
-  background: var(--sf-accent-emerald-glow);
-}
-}
-
-.viewEditBtn:active {
-  background: var(--sf-accent-emerald-glow);
-  transform: scale(0.96);
-}
-
-/* ── Notes ──────────────────────────────────────────────────── */
-.notesTextarea {
-  width: 100%;
-  min-height: 100px;
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
-  color: var(--sf-text-primary);
-  font-family: var(--sf-font-body);
-  font-size: var(--sf-text-sm);
-  resize: vertical;
-  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
-}
-
-.notesTextarea:focus {
-  outline: none;
-  border-color: var(--sf-accent-emerald);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
-}
-
-.notesTextarea::placeholder {
-  color: var(--sf-text-tertiary);
-}
-
-/* ── Order history ──────────────────────────────────────────── */
 .orderList {
   display: flex;
   flex-direction: column;
@@ -405,25 +1312,38 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-md);
-  padding: var(--sf-space-md);
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  box-shadow: var(--sf-shadow-sm);
+  padding: 16px 18px;
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 18px;
+  box-shadow: 
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 6px 20px -4px rgba(27, 27, 34, 0.06);
   cursor: pointer;
-  transition: border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   animation: fadeInUp 0.4s ease both;
 }
 
-@media (hover: hover) and (pointer: fine) {
-
-.orderCard:hover {
-  border-color: var(--sf-accent-emerald);
+:global([data-theme='dark']) .orderCard {
+  background: var(--sf-bg-surface, #1C1C1E);
+  border-color: rgba(99, 102, 241, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 24px -4px rgba(0, 0, 0, 0.55);
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .orderCard:hover {
+    border-color: rgba(67, 56, 202, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 12px rgba(67, 56, 202, 0.08),
+      0 12px 28px -4px rgba(67, 56, 202, 0.12);
+  }
 }
 
 .orderCard:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.99);
 }
 
 .orderHeader {
@@ -471,29 +1391,13 @@
 .orderBalance {
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-bold);
-  color: var(--sf-accent-emerald-dark);
-  background: var(--sf-accent-emerald-glow);
+  color: #B45309;
+  background: #FEF3C7;
   padding: 4px 10px;
   border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-/* ── Bottom actions ─────────────────────────────────────────── */
-.actionBar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
-  padding-top: var(--sf-space-lg);
-  border-top: 1px solid var(--sf-border-light);
-}
-
-@media (min-width: 640px) {
-  .actionBar {
-    flex-direction: row;
-  }
-}
-
-/* Destructive action gets its own visually-separated card, not just
-   another section with equal weight to "Create New Order" above it. */
 .dangerZone {
   display: flex;
   flex-direction: column;
@@ -523,78 +1427,297 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Desktop overrides ──────────────────────────────────────────
-   Placed last on purpose — CSS source order decides the winner when
-   specificity ties against earlier unconditional base rules, so this
-   block must come after every base rule it touches, not just be wrapped
-   in a media query.
+/* ── 10. Dark Mode Overrides (data-theme="dark") ──────────────── */
+:global([data-theme='dark']) .avatarInner {
+  background: #0A0910;
+}
 
-   The top band (.profileBar) is deliberately left untouched otherwise —
-   same centered avatar/name/quick-actions stack as mobile, just a
-   full-width bordered card instead of a 640px-capped column.
+:global([data-theme='dark']) .onlineBadge,
+:global([data-theme='dark']) .activeBadge {
+  border-color: #0A0910;
+}
 
-   Below it: a real two-column detail view, the same split the Order
-   Detail page uses. Main column (grid-column: 1) carries the substantial
-   content — Measurement Profiles, the Full-Body diagram, Recent Orders.
-   .railWrap becomes one real box spanning the full height of the 340px
-   right column — everything about the customer rather than their garment
-   record: financial glance, primary actions, notes, the destructive
-   action. Using one real spanning box (not grid-template-areas pairing
-   rail items against specific main-column rows) avoids a bug hit on the
-   Order Detail page: when a main-column row had no content, the grid's
-   row-sizing algorithm dumped the rail's leftover height into that empty
-   row, opening a large blank gap. */
-@media (min-width: 1024px) {
-  .page {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
-    /* Needed for .railWrap's `grid-row: 1 / -1` below to mean anything —
-       without an explicit row count, line -1 has no defined target. 4
-       rows = profileBar (its own full-width row) + the 3 main-column
-       items (Measurement Profiles/Full-Body/Recent Orders). */
-    grid-template-rows: auto repeat(3, auto);
-    column-gap: var(--sf-space-xl);
-    row-gap: var(--sf-space-xl);
-    align-items: start;
-    max-width: none;
-    margin: 0;
+:global([data-theme='dark']) .name {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .genderTag {
+  background: rgba(99, 102, 241, 0.18);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .storeCreditBadge {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #FBBF24;
+}
+
+:global([data-theme='dark']) .metricVal {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .metricDivider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .appleSecondaryActionBtn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .appleSecondaryActionBtn:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme='dark']) .highlightPhotoWrap {
+  background: #161526;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+:global([data-theme='dark']) .addHighlightCard {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+:global([data-theme='dark']) .highlightTitle {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .highlightPlaceholder {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+:global([data-theme='dark']) .igTabBar {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .igTabBtn {
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .igTabActive {
+  color: #818CF8;
+  border-bottom-color: #818CF8;
+}
+
+:global([data-theme='dark']) .newBtn {
+  background: rgba(99, 102, 241, 0.16);
+  color: #818CF8;
+}
+
+:global([data-theme='dark']) .notesTextarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .statCard {
+  background: #161526;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .statValue {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .orderCard {
+  background: #161526;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .orderTitle,
+:global([data-theme='dark']) .orderAmount {
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .orderBalance {
+  color: #FBBF24;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+:global([data-theme='dark']) .dangerZone {
+  background: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+:global([data-theme='dark']) .executiveCard,
+:global([data-theme='dark']) .baselineTray,
+:global([data-theme='dark']) .measurementDossierCard,
+:global([data-theme='dark']) .postureDossierCard {
+  background: #161526;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+:global([data-theme='dark']) .phoneCopyPill,
+:global([data-theme='dark']) .dossierActionPill,
+:global([data-theme='dark']) .postureChip,
+:global([data-theme='dark']) .secondaryActionBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.09);
+  color: #cbd5e1;
+}
+
+:global([data-theme='dark']) .postureChipActive {
+  background: rgba(99, 102, 241, 0.22);
+  border-color: #818cf8;
+  color: #a5b4fc;
+}
+
+:global([data-theme='dark']) .postureCardTitle {
+  color: #ffffff;
+}
+
+:global([data-theme='dark']) .statsTray {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .segmentTabBar {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:global([data-theme='dark']) .segmentTabActive {
+  background: #1f1d33;
+  color: #a5b4fc;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ── 11. Dark Mode Overrides (prefers-color-scheme: dark) ─────── */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .avatarInner {
+    background: #0A0910;
   }
 
-  .profileBar {
-    grid-column: 1 / -1;
-    background: var(--sf-bg-surface);
-    border: 1px solid var(--sf-border-light);
-    border-radius: var(--sf-radius-xl);
-    padding: var(--sf-space-xl) var(--sf-space-lg);
+  :global(:root:not([data-theme="light"])) .onlineBadge,
+  :global(:root:not([data-theme="light"])) .activeBadge {
+    border-color: #0A0910;
   }
 
-  .gaProfiles,
-  .gaBody,
-  .gaOrders {
-    grid-column: 1;
+  :global(:root:not([data-theme="light"])) .name {
+    color: #FFFFFF;
   }
 
-  .railWrap {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sf-space-xl);
-    grid-column: 2;
-    grid-row: 2 / -1;
-    min-width: 0;
+  :global(:root:not([data-theme="light"])) .genderTag {
+    background: rgba(99, 102, 241, 0.18);
+    color: #818CF8;
   }
 
-  /* .actionBar's own 640px breakpoint predates this rail — it switches
-     to a row layout for any viewport ≥640px, with no idea it might now
-     be squeezed into a 340px column instead of the full page width.
-     Force it back to a stacked column here, sized for the rail's actual
-     width. */
-  .orderActions {
-    flex-direction: column;
+  :global(:root:not([data-theme="light"])) .storeCreditBadge {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #FBBF24;
   }
 
-  /* Flat/plain on desktop only — mobile keeps its original shadow. */
-  .orderCard,
-  .profileCard {
-    box-shadow: none;
+  :global(:root:not([data-theme="light"])) .metricVal {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .metricDivider {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .appleSecondaryActionBtn {
+    background: rgba(255, 255, 255, 0.06);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .appleSecondaryActionBtn:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(:root:not([data-theme="light"])) .highlightPhotoWrap {
+    background: #161526;
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+
+  :global(:root:not([data-theme="light"])) .addHighlightCard {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  :global(:root:not([data-theme="light"])) .highlightTitle {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .highlightPlaceholder {
+    background: rgba(99, 102, 241, 0.15);
+  }
+
+  :global(:root:not([data-theme="light"])) .igTabBar {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .igTabBtn {
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .igTabActive {
+    color: #818CF8;
+    border-bottom-color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .newBtn {
+    background: rgba(99, 102, 241, 0.16);
+    color: #818CF8;
+  }
+
+  :global(:root:not([data-theme="light"])) .notesTextarea {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .statCard {
+    background: #161526;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .statValue {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .orderCard {
+    background: #161526;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .orderTitle,
+  :global(:root:not([data-theme="light"])) .orderAmount {
+    color: #FFFFFF;
+  }
+
+  :global(:root:not([data-theme="light"])) .orderBalance {
+    color: #FBBF24;
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .dangerZone {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .executiveCard,
+  :global(:root:not([data-theme="light"])) .baselineTray {
+    background: #161526;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .statsTray {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentTabBar {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  :global(:root:not([data-theme="light"])) .segmentTabActive {
+    background: #1f1d33;
+    color: #a5b4fc;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   }
 }

@@ -17,11 +17,14 @@ export const APP_CONFIG = {
   domain,
   baseUrl: `https://${domain}`,
   supportEmail: `support@${domain}`,
+  supportPhone: '+2348163752061',
+  supportWhatsApp: '2348163752061',
   currency: 'NGN',
   locale: 'en-NG',
   phonePrefix: '234',
   social: {
     instagram: 'https://www.instagram.com/mystitchbook_',
     facebook: 'https://web.facebook.com/people/Mystitchbook/61593656157347/',
+    tiktok: 'https://www.tiktok.com/@mystitchbook',
   },
 } as const;

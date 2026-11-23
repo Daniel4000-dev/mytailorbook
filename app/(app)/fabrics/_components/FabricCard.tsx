@@ -6,9 +6,9 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './FabricCard.module.css';
 
 const STATUS_LABELS: Record<string, string> = {
-  Documented: 'Documented',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
+  Documented: 'Waiting to Cut',
+  Cutting: 'Currently Cutting',
+  Sewing: 'In Sewing',
   Ready: 'Ready',
   Delivered: 'Delivered',
 };
@@ -26,26 +26,36 @@ function formatDueDate(dateStr: string): string {
 interface FabricCardProps {
   order: Order;
   onClick: () => void;
+  onOpenSlip?: (order: Order) => void;
 }
 
-export default function FabricCard({ order, onClick }: FabricCardProps) {
+export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardProps) {
   // First image from order (intake / earliest stage photo)
   const photo = order.images?.[0]?.url ?? null;
   const overdue = isOverdue(order);
+  const isRush = order.priority === 'rush';
+  const isUrgent = order.priority === 'urgent';
+  const hasPriority = isRush || isUrgent;
+  const isClientFabric = order.materialSuppliedBy === 'customer';
+  const orderTag = `#${order.id.slice(0, 4).toUpperCase()}`;
+
+  // Extract yardage from orderDetails if mentioned (e.g. "4.0 yds", "7.0 yards")
+  const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
+  const yardage = yardageMatch ? `${yardageMatch[1]} yds` : null;
 
   return (
     <button
       type="button"
       className={styles.card}
       onClick={onClick}
-      aria-label={`View fabric for ${order.customerName}`}
+      aria-label={`View fabric for ${order.customerName || 'order'}`}
     >
-      {/* Photo area */}
+      {/* 1. Photo Area */}
       <div className={styles.photoWrap}>
         {photo ? (
           <Image
             src={photo}
-            alt={`Fabric for ${order.customerName}`}
+            alt={`Fabric for ${order.customerName || 'order'}`}
             fill
             sizes="(max-width: 768px) 50vw, 33vw"
             className={styles.photo}
@@ -53,38 +63,72 @@ export default function FabricCard({ order, onClick }: FabricCardProps) {
           />
         ) : (
           <div className={styles.noPhoto}>
-            <Symbol name="texture" size={32} className={styles.noPhotoIcon} />
+            <Symbol name="photo_camera" size={24} className={styles.noPhotoIcon} />
+            <span className={styles.noPhotoText}>Swatch Pending</span>
           </div>
         )}
 
-        {/* Priority badge — top-left */}
-        {(order.priority === 'urgent' || order.priority === 'rush') && (
-          <span className={`${styles.priorityBadge} ${order.priority === 'rush' ? styles.rush : styles.urgent}`}>
-            {order.priority === 'rush' ? '🔥 Rush' : '⚡ Urgent'}
+        {/* Minimalist Atelier Chalk Reference Tag — Top-Left */}
+        <div className={styles.chalkTag}>
+          <span className={styles.chalkTagId}>{orderTag}</span>
+          {hasPriority && (
+            <span
+              className={`${styles.rushDot} ${isRush ? styles.rushFlame : styles.rushBolt}`}
+              title={isRush ? 'Rush order' : 'Urgent order'}
+            />
+          )}
+        </div>
+
+        {/* Client Fabric Indicator — Top-Right */}
+        {isClientFabric && (
+          <span className={styles.clientClothTag}>
+            Client Cloth
           </span>
         )}
       </div>
 
-      {/* Info footer */}
+      {/* 2. Atelier Information Card */}
       <div className={styles.info}>
-        <span className={styles.customerName}>{order.customerName}</span>
+        <div className={styles.nameRow}>
+          <span className={styles.customerName}>{order.customerName || 'Walk-in Client'}</span>
+          {onOpenSlip && (
+            <button
+              type="button"
+              className={styles.quickSlipBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenSlip(order);
+              }}
+              title="Open workshop cutting slip"
+              aria-label="Open workshop cutting slip"
+            >
+              <Symbol name="straighten" size={12} />
+              <span>Slip</span>
+            </button>
+          )}
+        </div>
 
-        <div className={styles.meta}>
-          <span className={`${styles.statusPill} ${styles[`status_${order.status}`]}`}>
-            {STATUS_LABELS[order.status]}
-          </span>
+        {/* Style & Yardage Subtitle */}
+        <div className={styles.subtext}>
+          {order.styleName && <span>{order.styleName}</span>}
+          {order.styleName && yardage && <span className={styles.dotSeparator}>·</span>}
+          {yardage && <span>{yardage}</span>}
+          {!order.styleName && !yardage && <span className={styles.dimText}>Bespoke Garment</span>}
+        </div>
+
+        {/* Clean Status Dot & Due Date */}
+        <div className={styles.statusFooter}>
+          <div className={styles.statusGroup}>
+            <span className={`${styles.statusDot} ${styles[`dot_${order.status}`] || ''}`} />
+            <span className={styles.statusLabel}>{STATUS_LABELS[order.status] || order.status}</span>
+          </div>
 
           {order.dueDate && (
-            <span className={`${styles.dueDateChip} ${overdue ? styles.overdue : ''}`}>
-              <Symbol name={overdue ? 'warning' : 'schedule'} size={11} />
+            <span className={`${styles.dueDate} ${overdue ? styles.overdue : ''}`}>
               {formatDueDate(order.dueDate)}
             </span>
           )}
         </div>
-
-        {order.styleName && (
-          <span className={styles.styleName}>{order.styleName}</span>
-        )}
       </div>
     </button>
   );

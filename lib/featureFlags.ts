@@ -3,11 +3,11 @@
  *  with no other code changes needed. Nothing listed here is deleted,
  *  only conditionally rendered. */
 export const FEATURE_FLAGS = {
-  costMarginTracking: true,
+  costMarginTracking: false,
   profilePictures: false,
   customerAddress: false,
   trackingPageReminder: false,
-  financialReporting: false,
+  financialReporting: true,
   stylePhotoApprovalNotification: false,
   dataExport: false,
   auditLog: false,
@@ -28,4 +28,9 @@ export const FEATURE_FLAGS = {
    *  fully in place underneath — flipping this to true re-enables the
    *  split with no further code changes. */
   perStyleMeasurements: true,
+  /** Master plug-and-play switch for the XP gamification engine (levels, XP ledger,
+   *  and tier badges). When false (default), all XP points, levels, and tier needle badges
+   *  are detached, while Daily Streaks and Tailor Circle run completely standalone for
+   *  bespoke workshops. Flip to true to plug the XP points system back in. */
+  xpSystem: false,
 } as const;

@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
 export type PhotoAngle = 'front' | 'back' | 'side' | 'detail';
@@ -241,4 +242,128 @@ export async function deleteOutfitAction(outfitId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from('portfolio_outfits').delete().eq('id', outfitId);
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Automatically creates and publishes a portfolio outfit featuring the full
+ * creation story (cutting, sewing, baste fitting, finishing) from an order's progress photos.
+ */
+export async function publishOrderStoryToPortfolioAction(
+  shopId: string,
+  orderId: string,
+  customTitle?: string,
+  customCaption?: string
+): Promise<{ success: boolean; outfitId?: string; error?: string }> {
+  const supabase = await createClient();
+
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .select('id, images, style_name, order_details, customer_name, total_price, material_supplied_by')
+    .eq('id', orderId)
+    .single();
+
+  if (orderErr || !order) return { success: false, error: orderErr?.message || 'Order not found' };
+
+  const rawImages = (order.images || []) as { url: string; stage: string; uploadedAt?: string }[];
+  if (rawImages.length === 0) {
+    return { success: false, error: 'Order has no progress photos to publish.' };
+  }
+
+  // 1. Ensure all order photos exist in the portfolio photo pool
+  const poolRows = rawImages.map((img) => ({
+    shop_id: shopId,
+    image_url: img.url,
+    source: 'auto' as const,
+    source_order_id: orderId,
+  }));
+
+  await supabase
+    .from('portfolio_photos')
+    .upsert(poolRows, { onConflict: 'shop_id,image_url', ignoreDuplicates: true });
+
+  // 2. Fetch the corresponding portfolio photo rows to get their IDs
+  const urls = rawImages.map((img) => img.url);
+  const { data: poolPhotos, error: fetchErr } = await supabase
+    .from('portfolio_photos')
+    .select('id, image_url')
+    .eq('shop_id', shopId)
+    .in('image_url', urls);
+
+  if (fetchErr || !poolPhotos || poolPhotos.length === 0) {
+    return { success: false, error: 'Could not link photos to portfolio pool' };
+  }
+
+  const idByUrl = new Map(poolPhotos.map((p) => [p.image_url, p.id]));
+
+  // 3. Find the best display photo (Delivered or Ready or last in list)
+  const displayObj =
+    rawImages.find((p) => p.stage === 'Delivered') ||
+    rawImages.find((p) => p.stage === 'Ready') ||
+    rawImages[rawImages.length - 1];
+  const displayPhotoId = idByUrl.get(displayObj.url);
+
+  if (!displayPhotoId) {
+    return { success: false, error: 'Could not resolve display photo' };
+  }
+
+  // 4. Create the outfit row
+  const outfitTitle =
+    customTitle ||
+    order.style_name ||
+    (order.order_details ? order.order_details.slice(0, 32) : 'Bespoke Commission');
+  const outfitCaption =
+    customCaption ||
+    `Bespoke commission for ${order.customer_name || 'Bespoke Client'}. Crafted with hand-stitched detailing, bespoke fitting, and tailored finish.`;
+
+  const { data: outfit, error: outfitError } = await supabase
+    .from('portfolio_outfits')
+    .insert({
+      shop_id: shopId,
+      title: outfitTitle.trim(),
+      story_mode_enabled: true,
+      story_caption: outfitCaption.trim(),
+    })
+    .select('id')
+    .single();
+
+  if (outfitError || !outfit) {
+    return { success: false, error: outfitError?.message || 'Could not create outfit' };
+  }
+
+  // 5. Build photo join records
+  const photoRecords: {
+    outfit_id: string;
+    photo_id: string;
+    kind: 'display' | 'story';
+    angle: string | null;
+    sort_order: number;
+  }[] = [
+    {
+      outfit_id: outfit.id,
+      photo_id: displayPhotoId,
+      kind: 'display',
+      angle: 'front',
+      sort_order: 0,
+    },
+  ];
+
+  let storyIndex = 0;
+  for (const img of rawImages) {
+    const pId = idByUrl.get(img.url);
+    if (!pId) continue;
+    photoRecords.push({
+      outfit_id: outfit.id,
+      photo_id: pId,
+      kind: 'story',
+      angle: null,
+      sort_order: storyIndex++,
+    });
+  }
+
+  await supabase.from('portfolio_outfit_photos').insert(photoRecords);
+
+  revalidatePath('/portfolio');
+  revalidatePath('/settings/portfolio');
+
+  return { success: true, outfitId: outfit.id };
 }

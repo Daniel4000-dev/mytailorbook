@@ -1,6 +1,6 @@
 .skeleton {
   background: var(--sf-surface-variant);
-  border-radius: 6px;
+  border-radius: var(--sf-radius-md, 12px);
   position: relative;
   overflow: hidden;
 }
@@ -14,14 +14,43 @@
   bottom: 0;
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.4) 50%,
-    rgba(255,255,255,0) 100%
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
   animation: shimmer 1.5s infinite;
+}
+
+:global([data-theme='dark']) .skeleton {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:global([data-theme='dark']) .skeleton::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .skeleton {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  :global(:root:not([data-theme="light"])) .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
 }
 
 @keyframes shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
 }
+

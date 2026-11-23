@@ -5,7 +5,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
-import { isValidPhone, formatPhone } from '@/lib/formatters';
+import { isValidPhone, formatPhone, normalizePhone } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import type { Customer } from '@/lib/types';
@@ -22,7 +22,7 @@ interface EditCustomerSheetProps {
 /** Edits an existing customer's profile fields in place — the same fields
  *  collected in the New Client wizard, reused here instead of re-invented. */
 export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCustomerSheetProps) {
-  const { updateCustomerProfile } = useData();
+  const { updateCustomerProfile, customers, currentShop } = useData();
   const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(customer.fullName);
@@ -33,7 +33,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
   const [styleSet, setStyleSet] = useState<string[]>(customer.preferredStyles || []);
 
   // Preset chips are gendered — no mixed picker.
-  const STYLE_PRESETS = GARMENT_STYLES.filter((s) => s.gender === gender).map((s) => s.name);
+  const STYLE_PRESETS = GARMENT_STYLES.filter((s) => !s.hidden && s.gender === gender).map((s) => s.name);
   const [customStyle, setCustomStyle] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [error, setError] = useState('');
@@ -82,9 +82,44 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       setError('Enter a valid phone number.');
       return;
     }
-    if (birthdate && !/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(birthdate)) {
-      setError('Birthday format must be MM-DD.');
+    const normalizedNewPhone = normalizePhone(phone);
+    const rawInputDigits = normalizedNewPhone.replace(/\D/g, '');
+    const existingWithPhone = customers.find((c) => {
+      if (c.id === customer.id || !c.whatsappNumber) return false;
+      const dbNormalized = normalizePhone(c.whatsappNumber);
+      if (dbNormalized === normalizedNewPhone) return true;
+      const rawDbDigits = dbNormalized.replace(/\D/g, '');
+      return rawDbDigits.length >= 10 && rawInputDigits.length >= 10
+        ? rawDbDigits.slice(-10) === rawInputDigits.slice(-10)
+        : rawDbDigits === rawInputDigits;
+    });
+    if (existingWithPhone) {
+      setError(`Another client (${existingWithPhone.fullName}) is already registered with this phone number.`);
       return;
+    }
+    let cleanBirthdate: string | undefined = undefined;
+    if (birthdate.trim()) {
+      const trimmed = birthdate.trim();
+      if (/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(trimmed)) {
+        cleanBirthdate = trimmed;
+      } else if (/^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])$/.test(trimmed)) {
+        cleanBirthdate = trimmed.replace('/', '-');
+      } else {
+        const ddmMatch = trimmed.match(/^([0-2]?\d|3[01])[-/](0?[1-9]|1[0-2])$/);
+        if (ddmMatch) {
+          const day = ddmMatch[1].padStart(2, '0');
+          const month = ddmMatch[2].padStart(2, '0');
+          cleanBirthdate = `${month}-${day}`;
+        } else {
+          const ymdMatch = trimmed.match(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/);
+          if (ymdMatch) {
+            cleanBirthdate = `${ymdMatch[1]}-${ymdMatch[2]}`;
+          } else {
+            setError('Enter birthday as MM-DD or DD/MM (e.g. 05-24 or 24/05).');
+            return;
+          }
+        }
+      }
     }
     setSaving(true);
     try {
@@ -93,7 +128,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
         whatsappNumber: phone.trim(),
         gender,
         address: address.trim() || undefined,
-        birthdate: birthdate.trim() || undefined,
+        birthdate: cleanBirthdate,
         preferredStyles: styleSet,
       });
       showToast('Profile updated', 'success');
@@ -127,15 +162,17 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
             className={styles.input}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           />
         </div>
 
-        <div className={styles.field}>
+        <div className={styles.field} onKeyDown={(e) => e.key === 'Enter' && handleSave()}>
           <label className={styles.capsLabel} htmlFor="edit-phone">Phone Number (WhatsApp)</label>
           <PhoneInput
             id="edit-phone"
             value={phone}
             onChange={setPhone}
+            defaultCountryCode={currentShop?.countryCode}
           />
         </div>
 
@@ -149,6 +186,7 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
               placeholder="e.g. 12 Adeola Street, Lagos"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
             />
           </div>
         )}
@@ -159,9 +197,10 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
             id="edit-birthdate"
             type="text"
             className={styles.input}
-            placeholder="MM-DD (e.g. 05-24)"
+            placeholder="MM-DD or DD/MM (e.g. 05-24 or 24/05)"
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           />
         </div>
 

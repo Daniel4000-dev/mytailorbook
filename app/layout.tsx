@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: APP_CONFIG.name,
   },
   icons: {
@@ -77,6 +77,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
   // Previously maximumScale: 1 + userScalable: false — blocks pinch-zoom
   // entirely, which felt more "app-like" but fails WCAG 1.4.4 (flagged by
   // Lighthouse) and genuinely blocks low-vision users from zooming in
@@ -84,7 +85,7 @@ export const viewport: Viewport = {
   // zoom behavior through is the accessible default.
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
-    { media: '(prefers-color-scheme: dark)', color: '#131220' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A0910' },
   ],
 };
 
@@ -94,7 +95,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable} ${manrope.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${fraunces.variable} ${manrope.variable}`}
+    >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -105,36 +110,8 @@ export default function RootLayout({
             they're loaded scoped to that component instead of app-wide
             (see EditorialTemplate.tsx) — every other page, including the
             in-app dashboard, no longer downloads fonts it never renders. */}
-        {/* display=block (not swap) — this is an icon ligature font, so the
-            fallback-font render during load is a raw word like "dashboard",
-            not readable text worth showing early. A brief blank icon beats
-            a flash of clipped text.
-
-            icon_names subsets this to only the glyphs <Symbol> actually
-            renders — the full variable family (every icon, every
-            opsz/wght/FILL/GRAD combination) is ~3.96MB; this list brings it
-            down to ~90KB. Not available via next/font/google (Material
-            Symbols isn't in its catalog at all), so this stays a manual
-            <link>. If you add a new <Symbol name="..."> that isn't in the
-            list below, it silently renders blank (tofu), not an error —
-            regenerate the list with:
-              grep -rohE 'Symbol name="[a-z_0-9]+"' --include="*.tsx" app components \
-                | sed -E 's/Symbol name="([a-z_0-9]+)"/\1/' | sort -u
-            then also check for dynamic `name={...}` usages (ternaries,
-            `icon:` fields in data arrays) that a static grep won't catch —
-            including indirection through a lookup object, e.g.
-            components/layout/BottomNav/BottomNav.tsx's SYMBOL_MAP (this bit
-            us once already: dashboard/precision_manufacturing/settings were
-            missing because they only ever appear as object *values*, never
-            as a literal Symbol name="..." anywhere in the source).
-
-            The two lint warnings below are both inapplicable here, not
-            overlooked: next/font/google doesn't offer Material Symbols at
-            all (checked directly against its exports), and display=block
-            is the deliberate, correct choice for an icon font per the
-            comment above, not the swap the rule assumes. */}
-        {/* eslint-disable-next-line @next/next/google-font-display, @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_a_photo,add_box,add_circle,add_photo_alternate,all_inclusive,apparel,arrow_back,arrow_forward,arrow_forward_ios,assignment,auto_awesome,auto_stories,bar_chart,bookmark,broken_image,call,chat,chat_bubble,check,check_circle,checkroom,chevron_left,chevron_right,close,cloud_sync,content_copy,content_cut,contrast,credit_card_off,dark_mode,dashboard,delete,done_all,download,drag_indicator,edit,error,event,event_busy,expand_more,favorite,forum,group,handshake,history,home,hourglass_empty,image,info,inventory_2,ios_share,layers,light_mode,local_fire_department,location_on,lock_open,lock_reset,logout,menu,notification_important,notifications,notifications_off,open_in_new,palette,payments,person,person_add,person_off,photo_library,picture_as_pdf,precision_manufacturing,print,progress_activity,radar,radio_button_unchecked,receipt,receipt_long,remove,reviews,schedule,search,search_off,send,settings,share,smartphone,star,sticky_note_2,storefront,straighten,texture,toggle_on,tune,undo,upload,verified,verified_user,view_kanban,visibility,visibility_off,warning,wifi,workspace_premium&display=block" rel="stylesheet" />
+        {/* All iconography is 100% self-hosted bespoke SVG vectors via iconRegistry.tsx.
+            Zero external webfont round-trips or missing glyph failures. */}
         {/* Sets data-theme before first paint if the user has forced a
             theme — otherwise they'd see a flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_ANTI_FLASH_SCRIPT }} />

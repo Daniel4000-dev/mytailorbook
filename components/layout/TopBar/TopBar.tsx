@@ -1,12 +1,20 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSidebar } from '@/contexts/SidebarContext';
+import { useState } from 'react';
 import { useNetwork } from '@/lib/hooks/useNetwork';
+import { useData } from '@/contexts/DataContext';
 import styles from './TopBar.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import FlameIcon from "@/components/ui/FlameIcon/FlameIcon";
+import { getTierForXp, isXpSystemEnabled } from '@/lib/xp';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+import StreakModal from '@/components/ui/StreakModal/StreakModal';
+import ChallengeModal from '@/components/ui/ChallengeModal/ChallengeModal';
+import NotificationBell from '@/components/layout/NotificationBell/NotificationBell';
+import { useCircleHub } from '@/lib/hooks/useCircleHub';
 
 interface TopBarProps {
   title?: string;
@@ -17,6 +25,7 @@ interface TopBarProps {
   rightAction?: ReactNode;
   actions?: ReactNode; // Fallback for existing components
   brandMode?: boolean;
+  showLogo?: boolean;
 }
 
 export default function TopBar({
@@ -28,10 +37,14 @@ export default function TopBar({
   rightAction,
   actions,
   brandMode,
+  showLogo,
 }: TopBarProps) {
   const router = useRouter();
-  const { toggleMenu } = useSidebar();
   const { isOnline } = useNetwork();
+  const { currentShop } = useData();
+  const { peerBuddies, isCoOpSecuredToday } = useCircleHub();
+  const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+  const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false);
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -40,67 +53,205 @@ export default function TopBar({
 
   const finalRightAction = rightAction || actions;
 
+  const businessMode =
+    currentShop?.businessMode ||
+    ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
+    'bespoke';
+  const isBespokeOrHybrid = businessMode !== 'rtw';
+  const isBespoke = businessMode === 'bespoke';
+  const xpEnabled = isXpSystemEnabled(businessMode);
+  const currentStreak = currentShop?.streakCurrent || 0;
+  const xp = currentShop?.xp || 0;
+  const currentTier = getTierForXp(xp);
+
+  const streakIndicator = (
+    <button
+      type="button"
+      className={styles.streakBadge}
+      title={currentStreak > 0 ? `${currentStreak} day streak! Tap to view shop work` : 'Start daily streak'}
+      onClick={() => setIsStreakModalOpen(true)}
+      aria-label="Daily streak status and shop work"
+    >
+      <FlameIcon size={18} style={{ marginRight: '4px' }} /> <span>{currentStreak}</span>
+    </button>
+  );
+
+  const brandLogo = (
+    <Link
+      href="/settings"
+      className={styles.brandLogoLink}
+      title={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
+      aria-label={xpEnabled ? `Shop Profile • Tier: ${currentTier.name} (${xp} XP)` : 'Shop Profile & Settings'}
+    >
+      <div
+        className={styles.brandLogoWrapper}
+        style={
+          xpEnabled
+            ? {
+                ['--tier-color' as string]: currentTier.color,
+              }
+            : undefined
+        }
+      >
+        <BrandIcon className={styles.brandLogoImg} alt="MyStitchBook" />
+        {xpEnabled && (
+          <span
+            className={styles.tierNeedleBadge}
+            style={{ backgroundColor: currentTier.color }}
+            title={`Tier: ${currentTier.name} (${xp} XP) - View Tailor Challenge`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsChallengeModalOpen(true);
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Tier: ${currentTier.name} (${xp} XP)`}
+          >
+            <Symbol name="needle" size={10} style={{ color: '#ffffff' }} />
+          </span>
+        )}
+      </div>
+    </Link>
+  );
+
   return (
-    <header className={styles.topBar}>
-      {brandMode ? (
-        <div className={styles.profileHeaderContent}>
-          <div className={styles.left}>
-            <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
-              <Symbol name="menu" size={24} />
-            </button>
-            {leftAction}
-          </div>
-          <div className={styles.right}>
-            <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-              {!isOnline ? (
-                <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
-              ) : (
-                <>
-                  <Symbol name="notifications" size={24} />
-                  <span className={styles.notificationBadge} />
-                </>
+    <>
+      <header className={styles.topBar}>
+        {brandMode ? (
+          <div className={styles.profileHeaderContent}>
+            <div className={styles.left}>
+              {brandLogo}
+              {leftAction}
+            </div>
+            <div className={styles.right}>
+              {/* Tailor Circle buddy stack commented out */}
+              {/* {isBespokeOrHybrid && (
+                <Link
+                  href="/circle"
+                  className={styles.buddyPulseBtn}
+                  title={
+                    peerBuddies.length > 0
+                      ? `Tailor Circle (${peerBuddies.length} Connected${isCoOpSecuredToday ? ' · Co-Op Secured!' : ''})`
+                      : 'Connect with a tailor in Tailor Circle'
+                  }
+                  aria-label="Tailor Circle"
+                >
+                  {peerBuddies.length > 0 ? (
+                    <div className={styles.buddyAvatarStack}>
+                      {peerBuddies.slice(0, 3).map((buddy, idx) => {
+                        const initials = buddy.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase();
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const isTodayActive = Boolean(
+                          buddy.status === 'active' &&
+                            buddy.lastActiveAt &&
+                            buddy.lastActiveAt.startsWith(todayStr)
+                        );
+                        const isLast = idx === Math.min(peerBuddies.length - 1, 2);
+
+                        return (
+                          <span
+                            key={buddy.id}
+                            className={`${styles.buddyAvatar} ${
+                              isTodayActive ? styles.buddyAvatarActive : ''
+                            }`}
+                            style={{
+                              zIndex: idx + 1,
+                              backgroundColor: buddy.tierColor || '#4338CA',
+                            }}
+                            title={`${buddy.name} · ${isTodayActive ? 'Active Today' : 'Offline'}`}
+                          >
+                            {buddy.logoUrl ? (
+                              <img
+                                src={buddy.logoUrl}
+                                alt={buddy.name}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                }}
+                              />
+                            ) : (
+                              initials
+                            )}
+                            {isLast && (
+                              <span
+                                className={`${styles.buddyPulsePing} ${
+                                  isCoOpSecuredToday ? styles.buddyPulsePingGold : ''
+                                }`}
+                                aria-hidden="true"
+                              />
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div
+                      className={styles.buddyAvatarEmpty}
+                      title="Connect with a tailor in Tailor Circle"
+                    >
+                      <Symbol name="groups" size={16} />
+                      <span className={styles.buddyAvatarPlus}>+</span>
+                    </div>
+                  )}
+                </Link>
+              )} */}
+
+              {isBespoke && (
+                <div className={styles.streakContainer} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {streakIndicator}
+                </div>
               )}
-            </button>
-            <div className={styles.logoBadge}>
-              <BrandIcon className={styles.logoBadgeImg} />
+
+              <NotificationBell variant="glass" />
+
             </div>
           </div>
-        </div>
-      ) : (
-        // Standard Title Layout
-        <>
-          <div className={styles.left}>
-            {leftAction}
-            {showBack ? (
-              <button className={styles.backBtn} onClick={handleBack} aria-label="Go back">
-                <Symbol name="arrow_back" size={24} />
-              </button>
-            ) : (
-              <button className={styles.hamburgerBtn} onClick={toggleMenu} aria-label="Open menu" data-tour-id="menu">
-                <Symbol name="menu" size={24} />
-              </button>
-            )}
-          </div>
-          <div className={styles.center}>
-            {title && <h1 className={styles.title}>{title}</h1>}
-            {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
-          </div>
-          <div className={styles.right}>
-            {finalRightAction || (
-              <button className={styles.notificationBtn} onClick={() => router.push('/notifications')} aria-label="Notifications">
-                {!isOnline ? (
-                  <Symbol name="cloud_off" size={24} className={styles.offlineIcon} />
-                ) : (
-                  <>
-                    <Symbol name="notifications" size={24} />
-                    <span className={styles.notificationBadge} />
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-        </>
+        ) : (
+          // Standard Title Layout
+          <>
+            <div className={styles.left}>
+              {showLogo && !showBack && brandLogo}
+              {leftAction}
+              {showBack && (
+                <button className={styles.backBtn} onClick={handleBack} aria-label="Go back">
+                  <Symbol name="arrow_back" size={24} />
+                </button>
+              )}
+            </div>
+            <div className={styles.center}>
+              {title && <h1 className={styles.title}>{title}</h1>}
+              {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+            </div>
+            <div className={styles.right}>
+              {finalRightAction !== undefined ? finalRightAction : <NotificationBell />}
+            </div>
+          </>
+        )}
+      </header>
+
+
+      {isBespoke && (
+        <StreakModal 
+          isOpen={isStreakModalOpen} 
+          onClose={() => setIsStreakModalOpen(false)} 
+          streakCount={currentStreak} 
+        />
       )}
-    </header>
+
+      {xpEnabled && (
+        <ChallengeModal
+          isOpen={isChallengeModalOpen}
+          onClose={() => setIsChallengeModalOpen(false)}
+        />
+      )}
+    </>
   );
 }

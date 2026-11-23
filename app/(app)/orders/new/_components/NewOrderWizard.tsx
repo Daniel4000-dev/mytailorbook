@@ -139,7 +139,9 @@ export default function NewOrderWizard() {
 
   const catalog = useMemo(() => {
     const preferred = customer?.preferredStyles || [];
-    const genderStyles = customer ? GARMENT_STYLES.filter((s) => s.gender === customer.gender) : GARMENT_STYLES;
+    const genderStyles = customer
+      ? GARMENT_STYLES.filter((s) => !s.hidden && s.gender === customer.gender)
+      : GARMENT_STYLES.filter((s) => !s.hidden);
     const preset = [...genderStyles].sort((a, b) => {
       const ap = preferred.includes(a.name) ? 0 : 1;
       const bp = preferred.includes(b.name) ? 0 : 1;
@@ -317,13 +319,15 @@ export default function NewOrderWizard() {
       const next: UnitDraft[] = [];
       for (const s of basket) {
         const existing = prev.filter((u) => u.styleName === s.name);
+        const customStyle = allCustomStyles.find((cs) => cs.name.toLowerCase() === s.name.toLowerCase());
+        const suggestedBill = customStyle?.basePrice ? String(customStyle.basePrice) : '';
         for (let i = 0; i < s.count; i++) {
           next.push(
             existing[i] || {
               key: `${s.name}-${crypto.randomUUID()}`,
               styleName: s.name,
               details: s.name,
-              totalBill: '',
+              totalBill: suggestedBill,
               depositPaid: '',
               dueDate: '',
               assignedTo: '',

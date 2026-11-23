@@ -1,0 +1,2355 @@
+'use client';
+
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
+
+import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
+import { useToast } from '@/contexts/ToastContext';
+import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/compressImage';
+import { savePendingPhoto } from '@/lib/offline/mediaStore';
+import { withNetworkTimeout } from '@/lib/offline/outbox';
+import { formatNumber, formatPhone, getCurrencySymbol, getShopCurrency, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
+import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
+import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import Avatar from '@/components/ui/Avatar/Avatar';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
+import PageLayout from '@/components/layout/PageLayout/PageLayout';
+import TopBar from '@/components/layout/TopBar/TopBar';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
+import VoiceTapeHUD from '@/components/orders/VoiceTapeHUD/VoiceTapeHUD';
+import { useVoiceTape } from '@/hooks/useVoiceTape';
+import type { Customer, Order, Priority } from '@/lib/types';
+import styles from './UnifiedNewOrderForm.module.css';
+
+const DEFAULT_POINTS: StyleMeasurePoint[] = [
+  { key: 'neck', label: 'Neck', hint: '', gx: 0, gy: 0 },
+  { key: 'shoulder', label: 'Shoulder', hint: '', gx: 0, gy: 0 },
+  { key: 'chest', label: 'Chest', hint: '', gx: 0, gy: 0 },
+  { key: 'sleeveLength', label: 'Sleeve', hint: '', gx: 0, gy: 0 },
+  { key: 'waist', label: 'Waist', hint: '', gx: 0, gy: 0 },
+  { key: 'shirtLength', label: 'Top Length', hint: '', gx: 0, gy: 0 },
+  { key: 'trouserLength', label: 'Trouser Length', hint: '', gx: 0, gy: 0 },
+  { key: 'hips', label: 'Hips', hint: '', gx: 0, gy: 0 },
+  { key: 'thigh', label: 'Thigh', hint: '', gx: 0, gy: 0 },
+  { key: 'ankle', label: 'Ankle', hint: '', gx: 0, gy: 0 },
+];
+
+const formatInputWithCommas = (val: string | number | undefined | null) => {
+  if (val === undefined || val === null) return '';
+  const digits = String(val).replace(/\D/g, '');
+  if (!digits) return '';
+  return Number(digits).toLocaleString('en-US');
+};
+
+export interface GarmentDraft {
+  id: string;
+  styleName: string;
+  isCustomStyle?: boolean;
+  price: string;
+  measures: Record<string, string>;
+  measurementNotes: string;
+  isFitLoaded: boolean;
+  showTweakMeasurements: boolean;
+  fabricImage: string | null;
+  styleReferenceImage: string | null;
+  uploadingFabric: boolean;
+  uploadingStyleRef: boolean;
+  materialSuppliedBy: 'customer' | 'shop';
+  fabricNotes: string;
+}
+
+export default function UnifiedNewOrderForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const {
+    customers,
+    orders,
+    staffMembers,
+    currentShop,
+    addOrderBatch,
+    addCustomer,
+    updateCustomerStyleProfile,
+    updateCustomerMeasurements,
+    updateCustomerProfile,
+    isLoaded,
+  } = useData();
+  const { showToast } = useToast();
+
+  const currencySymbol = getCurrencySymbol(getShopCurrency(currentShop));
+
+  // ── 1. Client State ──
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const measureInputRefs = useRef<Record<string, Record<string, HTMLInputElement | null>>>({});
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showInlineNewCustomer, setShowInlineNewCustomer] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [newCustomerGender, setNewCustomerGender] = useState<'male' | 'female'>('male');
+  const [savingCustomer, setSavingCustomer] = useState(false);
+  const [isContactPickerSupported, setIsContactPickerSupported] = useState(false);
+  const hasAutoOpenedInlineRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'contacts' in navigator) {
+      setIsContactPickerSupported(true);
+    }
+  }, []);
+
+  const handleImportContact = async () => {
+    if (typeof navigator === 'undefined' || !('contacts' in navigator)) {
+      showToast('Apple iOS restricts contact importing in browsers. Please enter details manually.', 'info');
+      return;
+    }
+    try {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+      const contacts = await (navigator as any).contacts.select(props, opts);
+      if (contacts && contacts.length > 0) {
+        const contact = contacts[0];
+        if (contact.name && contact.name.length > 0) {
+          setNewCustomerName(contact.name[0]);
+        }
+        if (contact.tel && contact.tel.length > 0) {
+          const cleanedPhone = contact.tel[0].replace(/[^\d+]/g, '');
+          setNewCustomerPhone(cleanedPhone);
+        }
+        setShowInlineNewCustomer(true);
+        showToast('Contact imported! Review details below', 'success');
+      }
+    } catch (ex) {
+      console.error('Failed to select contact:', ex);
+    }
+  };
+
+  // Polish 1: Auto-carry search query into inline walk-in form
+  const handleOpenNewCustomerForm = () => {
+    const query = customerSearch.trim();
+    if (query) {
+      const digitsOnly = query.replace(/\D/g, '');
+      const lettersOnly = query.replace(/[^a-zA-Z]/g, '');
+      if (digitsOnly.length >= 4 && digitsOnly.length >= lettersOnly.length) {
+        setNewCustomerPhone(query);
+      } else {
+        setNewCustomerName(query);
+      }
+    }
+    setShowInlineNewCustomer(true);
+  };
+
+  // Pre-select if customer query param is passed
+  useEffect(() => {
+    const custId = searchParams.get('customer');
+    if (custId && customers.length > 0 && !selectedCustomer) {
+      const match = customers.find((c) => c.id === custId);
+      if (match) setSelectedCustomer(match);
+    } else if (!custId && !selectedCustomer) {
+      const nameParam = searchParams.get('customerName') || searchParams.get('clientName');
+      const phoneParam = searchParams.get('phone');
+      if (nameParam || phoneParam) {
+        setShowInlineNewCustomer(true);
+        if (nameParam) setNewCustomerName(nameParam);
+        if (phoneParam) setNewCustomerPhone(phoneParam);
+      } else if (isLoaded && customers.length === 0 && !hasAutoOpenedInlineRef.current) {
+        hasAutoOpenedInlineRef.current = true;
+        setShowInlineNewCustomer(true);
+      }
+    }
+  }, [searchParams, customers, selectedCustomer, isLoaded]);
+
+  // Pre-populate style, price, style reference image, and quote specifications if passed from Quotes or Inspiration
+  useEffect(() => {
+    const styleParam = searchParams.get('style');
+    const styleRefParam = searchParams.get('styleRef');
+    const priceParam = searchParams.get('price');
+    const notesParam = searchParams.get('notes');
+    const materialParam = searchParams.get('material');
+    if (styleParam || styleRefParam || priceParam || notesParam || materialParam) {
+      setGarments((prev) => {
+        if (prev.length === 0) return prev;
+        const first = prev[0];
+        if (
+          first.styleReferenceImage === styleRefParam &&
+          first.styleName === (styleParam || first.styleName) &&
+          first.price === (priceParam || first.price) &&
+          first.fabricNotes === (notesParam || first.fabricNotes) &&
+          first.materialSuppliedBy === (materialParam || first.materialSuppliedBy)
+        ) {
+          return prev;
+        }
+        const updatedStyleName = styleParam || first.styleName;
+        const isCustom = !GARMENT_STYLES.some((s) => s.name.toLowerCase() === updatedStyleName.toLowerCase());
+        const updatedPrice = priceParam || first.price;
+        const updatedNotes = notesParam || first.fabricNotes;
+        const updatedMaterial = (materialParam === 'shop' || materialParam === 'customer')
+          ? materialParam
+          : first.materialSuppliedBy;
+        const updated: GarmentDraft = {
+          ...first,
+          styleName: updatedStyleName,
+          isCustomStyle: isCustom,
+          price: updatedPrice,
+          styleReferenceImage: styleRefParam || first.styleReferenceImage,
+          fabricNotes: updatedNotes,
+          materialSuppliedBy: updatedMaterial,
+        };
+        return [updated, ...prev.slice(1)];
+      });
+    }
+  }, [searchParams]);
+
+  // Smart local phone number search normalization
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch.trim()) return customers.slice(0, 5);
+    const qRaw = customerSearch.trim();
+    const qLower = qRaw.toLowerCase();
+    const qDigits = qRaw.replace(/\D/g, '');
+    const qNormalized = qDigits ? normalizePhone(qDigits) : '';
+
+    return customers
+      .filter((c) => {
+        if (c.fullName.toLowerCase().includes(qLower)) return true;
+        if (c.whatsappNumber.includes(qRaw)) return true;
+        if (qDigits && c.whatsappNumber.includes(qDigits)) return true;
+        if (qNormalized && c.whatsappNumber.includes(qNormalized)) return true;
+        const localNum = c.whatsappNumber.startsWith('234') ? c.whatsappNumber.slice(3) : c.whatsappNumber;
+        if (qDigits && localNum.includes(qDigits)) return true;
+        return false;
+      })
+      .slice(0, 6);
+  }, [customers, customerSearch]);
+
+  const customerPastOrders = useMemo(() => {
+    if (!selectedCustomer) return [];
+    return orders.filter((o) => o.customerId === selectedCustomer.id);
+  }, [orders, selectedCustomer]);
+
+  // Gender filter state for garment styles
+  const [styleGenderFilter, setStyleGenderFilter] = useState<'all' | 'male' | 'female'>('all');
+
+  useEffect(() => {
+    if (selectedCustomer?.gender === 'female') {
+      setStyleGenderFilter('female');
+    } else if (selectedCustomer?.gender === 'male') {
+      setStyleGenderFilter('male');
+    } else {
+      setStyleGenderFilter('all');
+    }
+  }, [selectedCustomer]);
+
+  // Catalog of styles
+  const allStyles = useMemo(() => {
+    const standard = GARMENT_STYLES.filter((s) => !s.hidden).map((s) => ({
+      name: s.name,
+      subtitle: s.subtitle,
+      gender: s.gender,
+      photoUrl: s.photoUrl,
+    }));
+    const custom = (currentShop?.customStyles || []).map((s) => ({
+      name: s.name,
+      subtitle: 'Custom Shop Style',
+      gender: s.gender || 'male',
+      photoUrl: s.photoUrl,
+    }));
+    return [...standard, ...custom];
+  }, [currentShop?.customStyles]);
+
+  const displayedStyles = useMemo(() => {
+    if (styleGenderFilter === 'all') return allStyles;
+    return allStyles.filter((s) => !s.gender || s.gender === styleGenderFilter);
+  }, [allStyles, styleGenderFilter]);
+
+  // Last two unique outfits made by the selected customer
+  const customerRecentStyles = useMemo(() => {
+    if (!selectedCustomer) return [];
+    const custOrders = orders
+      .filter((o) => o.customerId === selectedCustomer.id && o.styleName && o.styleName.trim() !== '')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const unique: string[] = [];
+    for (const o of custOrders) {
+      if (!o.styleName) continue;
+      const trimmed = o.styleName.trim();
+      if (!trimmed) continue;
+      const canonical = resolveCanonicalStyleName(trimmed, selectedCustomer.gender);
+      const target = canonical || trimmed;
+      if (target && !unique.some((u) => u.toLowerCase() === target.toLowerCase())) {
+        unique.push(target);
+      }
+      if (unique.length >= 2) break;
+    }
+    // Fallback: check saved styleProfiles / styleMeasurements on customer
+    if (unique.length < 2 && selectedCustomer.styleMeasurements) {
+      for (const styleName of Object.keys(selectedCustomer.styleMeasurements)) {
+        if (styleName && !unique.some((u) => u.toLowerCase() === styleName.toLowerCase())) {
+          unique.push(styleName);
+        }
+        if (unique.length >= 2) break;
+      }
+    }
+    return unique;
+  }, [selectedCustomer, orders]);
+
+  // Styles ordered with the customer's top two outfits first
+  const orderedDisplayedStyles = useMemo(() => {
+    if (customerRecentStyles.length === 0) {
+      return displayedStyles;
+    }
+    const matched: typeof displayedStyles = [];
+    for (const recentName of customerRecentStyles) {
+      const match = displayedStyles.find(
+        (s) => s.name.toLowerCase() === recentName.toLowerCase()
+      );
+      if (match && !matched.some((m) => m.name.toLowerCase() === match.name.toLowerCase())) {
+        matched.push(match);
+      } else if (!match) {
+        matched.push({
+          name: recentName,
+          subtitle: 'Previous Customer Outfit',
+          gender: selectedCustomer?.gender || 'male',
+          photoUrl: '',
+        });
+      }
+    }
+    const remaining = displayedStyles.filter(
+      (s) => !matched.some((m) => m.name.toLowerCase() === s.name.toLowerCase())
+    );
+    return [...matched, ...remaining];
+  }, [displayedStyles, customerRecentStyles, selectedCustomer?.gender]);
+
+  const [expandedStylesByGarment, setExpandedStylesByGarment] = useState<Record<string, boolean>>({});
+
+  const toggleExpandStyles = (garmentId: string) => {
+    setExpandedStylesByGarment((prev) => ({
+      ...prev,
+      [garmentId]: !prev[garmentId],
+    }));
+  };
+
+  // Helper to get measurement points spec for a style
+  const getSpecPointsForStyle = (styleName: string): StyleMeasurePoint[] => {
+    if (!styleName) return DEFAULT_POINTS;
+    const spec = STYLE_MEASUREMENTS[styleName];
+    if (spec && spec.points.length > 0) return spec.points;
+    const customMatch = currentShop?.customStyles?.find((cs) => cs.name === styleName);
+    if (customMatch && customMatch.measurementFields && customMatch.measurementFields.length > 0) {
+      return customMatch.measurementFields.map((f) => ({
+        key: f.id,
+        label: f.label,
+        hint: '',
+        gx: 0,
+        gy: 0,
+      }));
+    }
+    return DEFAULT_POINTS;
+  };
+
+  // Helper to auto-load customer measurements for a style
+  const loadFitForStyle = (
+    cust: Customer | null,
+    styleName: string
+  ): { measures: Record<string, string>; isFitLoaded: boolean; notes: string } => {
+    if (!cust) return { measures: {}, isFitLoaded: false, notes: '' };
+
+    const styleProfile = styleName ? cust.styleMeasurements?.[styleName]?.measurements : undefined;
+    const pastSameOrder = styleName
+      ? orders
+          .filter((o) => o.customerId === cust.id && o.styleName === styleName && o.measurements)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+      : undefined;
+    const bodyMeasurements = cust.measurements;
+
+    // Merge baseline body measurements with style-specific measurements
+    const merged: Record<string, any> = {
+      ...(bodyMeasurements || {}),
+      ...(pastSameOrder?.measurements || {}),
+      ...(styleProfile || {}),
+    };
+
+    if (Object.keys(merged).length > 0) {
+      const stringified: Record<string, string> = {};
+      for (const [k, v] of Object.entries(merged)) {
+        if (v !== undefined && v !== null) {
+          const num = typeof v === 'number' ? v : parseFloat(String(v));
+          if (!isNaN(num) && num > 0) stringified[k] = String(num);
+        }
+      }
+      return { measures: stringified, isFitLoaded: Object.keys(stringified).length > 0, notes: cust.measurementNotes || '' };
+    }
+    return { measures: {}, isFitLoaded: false, notes: cust.measurementNotes || '' };
+  };
+
+  // ── 2. Multi-Garment State ──
+  const [garments, setGarments] = useState<GarmentDraft[]>([
+    {
+      id: 'g-1',
+      styleName: '',
+      isCustomStyle: false,
+      price: '',
+      measures: {},
+      measurementNotes: '',
+      isFitLoaded: false,
+      showTweakMeasurements: true,
+      fabricImage: null,
+      styleReferenceImage: null,
+      uploadingFabric: false,
+      uploadingStyleRef: false,
+      materialSuppliedBy: 'customer',
+      fabricNotes: '',
+    },
+  ]);
+
+  // Update measurements for all garments when client changes (Polish 2: keep open if incomplete)
+  useEffect(() => {
+    setGarments((prev) =>
+      prev.map((g) => {
+        const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, g.styleName);
+        const spec = getSpecPointsForStyle(g.styleName);
+        const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
+        const isComplete = spec.length > 0 && filledCount === spec.length;
+        return {
+          ...g,
+          measures,
+          isFitLoaded,
+          measurementNotes: notes,
+          showTweakMeasurements: !isFitLoaded || !isComplete,
+        };
+      })
+    );
+  }, [selectedCustomer]);
+
+  const updateGarment = (id: string, patch: Partial<GarmentDraft>) => {
+    setGarments((prev) => prev.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+  };
+
+  const handleStyleChange = (garmentId: string, newStyle: string, isCustom = false) => {
+    const current = garments.find((g) => g.id === garmentId);
+    const isCurrentlySelected = isCustom ? current?.isCustomStyle : current?.styleName === newStyle;
+    const finalStyle = isCurrentlySelected ? '' : newStyle;
+    const finalIsCustom = isCurrentlySelected ? false : isCustom;
+
+    const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, finalStyle);
+    const spec = getSpecPointsForStyle(finalStyle);
+    const filledCount = spec.filter((pt) => Boolean(measures[pt.key] && parseFloat(measures[pt.key]) > 0)).length;
+    const isComplete = spec.length > 0 && filledCount === spec.length;
+
+    // Auto-fill price with configured base price if price is currently empty
+    const customMatch = currentShop?.customStyles?.find((cs) => cs.name.toLowerCase() === finalStyle.toLowerCase());
+    const shouldPreFillPrice = (!current?.price || current.price.trim() === '') && customMatch?.basePrice !== undefined;
+    const finalPrice = shouldPreFillPrice ? formatInputWithCommas(customMatch!.basePrice) : current?.price || '';
+
+    updateGarment(garmentId, {
+      styleName: finalStyle,
+      isCustomStyle: finalIsCustom,
+      price: finalPrice,
+      measures,
+      isFitLoaded,
+      measurementNotes: notes,
+      showTweakMeasurements: !isFitLoaded || !isComplete,
+    });
+  };
+
+  const handleMeasureChange = (garmentId: string, pointKey: string, val: string) => {
+    setGarments((prev) =>
+      prev.map((g) => (g.id === garmentId ? { ...g, measures: { ...g.measures, [pointKey]: val } } : g))
+    );
+  };
+
+  // ── Voice Tape & One-Thumb Stepper Engine ──
+  const [activeMeasureFocus, setActiveMeasureFocus] = useState<{ garmentId: string; key: string } | null>(null);
+  const [activeVoiceGarmentId, setActiveVoiceGarmentId] = useState<string | null>(null);
+
+  const currentVoiceGarment = garments.find((g) => g.id === (activeVoiceGarmentId || garments[0]?.id));
+  const currentVoiceSpec = currentVoiceGarment ? getSpecPointsForStyle(currentVoiceGarment.styleName) : DEFAULT_POINTS;
+  const voiceAllowedKeys = useMemo(() => currentVoiceSpec.map((p) => p.key), [currentVoiceSpec]);
+  const voiceKeyLabels = useMemo(() => Object.fromEntries(currentVoiceSpec.map((p) => [p.key, p.label])), [currentVoiceSpec]);
+
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    toggleListening,
+    lastCapture,
+    undoLastCapture,
+  } = useVoiceTape({
+    allowedKeys: voiceAllowedKeys,
+    keyLabels: voiceKeyLabels,
+    onPointCaptured: (key, val) => {
+      const gId = activeVoiceGarmentId || garments[0]?.id;
+      if (!gId) return;
+      handleMeasureChange(gId, key, val);
+      setActiveMeasureFocus({ garmentId: gId, key });
+      measureInputRefs.current[gId]?.[key]?.focus();
+    },
+    onCustomNoteCaptured: (note) => {
+      const gId = activeVoiceGarmentId || garments[0]?.id;
+      if (!gId) return;
+      setGarments((prev) =>
+        prev.map((g) => {
+          if (g.id !== gId) return g;
+          const currentNotes = g.measurementNotes ? `${g.measurementNotes}. ` : '';
+          return { ...g, measurementNotes: `${currentNotes}${note}` };
+        })
+      );
+      showToast(`Added to fit notes: "${note}"`, 'info');
+    },
+  });
+
+  const activePointObj = useMemo(() => {
+    if (!activeMeasureFocus) return null;
+    const g = garments.find((x) => x.id === activeMeasureFocus.garmentId);
+    if (!g) return null;
+    const spec = getSpecPointsForStyle(g.styleName);
+    const pt = spec.find((p) => p.key === activeMeasureFocus.key);
+    if (!pt) return null;
+    return {
+      key: pt.key,
+      label: pt.label,
+      value: g.measures[pt.key] || '',
+    };
+  }, [activeMeasureFocus, garments]);
+
+  const handleNudgeActive = (delta: number) => {
+    if (!activeMeasureFocus) return;
+    const g = garments.find((x) => x.id === activeMeasureFocus.garmentId);
+    if (!g) return;
+    const currentNum = parseFloat(g.measures[activeMeasureFocus.key] || '0') || 0;
+    const nextNum = Math.max(0, currentNum + delta);
+    const formatted = String(nextNum % 1 === 0 ? nextNum : Number(nextNum.toFixed(2)));
+    handleMeasureChange(activeMeasureFocus.garmentId, activeMeasureFocus.key, formatted);
+  };
+
+  const handleNextActive = () => {
+    if (!activeMeasureFocus) return;
+    const g = garments.find((x) => x.id === activeMeasureFocus.garmentId);
+    if (!g) return;
+    const spec = getSpecPointsForStyle(g.styleName);
+    const idx = spec.findIndex((p) => p.key === activeMeasureFocus.key);
+    const nextPt = spec[idx + 1];
+    if (nextPt) {
+      setActiveMeasureFocus({ garmentId: g.id, key: nextPt.key });
+      measureInputRefs.current[g.id]?.[nextPt.key]?.focus();
+    } else {
+      setActiveMeasureFocus(null);
+    }
+  };
+
+  const handleAddGarment = () => {
+    const nextNum = garments.length + 1;
+    const defaultNextStyle = '';
+    const { measures, isFitLoaded, notes } = loadFitForStyle(selectedCustomer, defaultNextStyle);
+    const spec = getSpecPointsForStyle(defaultNextStyle);
+
+    setGarments((prev) => [
+      ...prev,
+      {
+        id: `g-${Date.now()}`,
+        styleName: defaultNextStyle,
+        isCustomStyle: false,
+        price: '',
+        measures,
+        measurementNotes: notes,
+        isFitLoaded,
+        showTweakMeasurements: true,
+        fabricImage: null,
+        styleReferenceImage: null,
+        uploadingFabric: false,
+        uploadingStyleRef: false,
+        materialSuppliedBy: 'customer',
+        fabricNotes: '',
+      },
+    ]);
+    showToast(`Added Outfit #${nextNum}`, 'info');
+  };
+
+  const handleRemoveGarment = (id: string) => {
+    if (garments.length <= 1) return;
+    setGarments((prev) => prev.filter((g) => g.id !== id));
+  };
+
+  // ── 3. Photos Upload (OPay-style offline resilient) ──
+  const handlePhotoUpload = async (garmentId: string, file: File, type: 'fabric' | 'styleRef') => {
+    if (!currentShop?.id) return;
+    const isFabric = type === 'fabric';
+    updateGarment(garmentId, isFabric ? { uploadingFabric: true } : { uploadingStyleRef: true });
+
+    try {
+      const compressed = await compressImage(file, { maxDimension: 1200 });
+      const ext = compressed.name.split('.').pop() || 'jpg';
+      const path = `${currentShop.id}/orders/${crypto.randomUUID()}.${ext}`;
+
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        throw new Error('Offline');
+      }
+
+      const supabase = createClient();
+      const { error: uploadError } = await withNetworkTimeout(
+        supabase.storage
+          .from('order-photos')
+          .upload(path, compressed, { cacheControl: '3600', upsert: false }),
+        4000
+      );
+
+      if (uploadError) throw new Error(uploadError.message);
+      const url = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
+
+      updateGarment(garmentId, isFabric ? { fabricImage: url } : { styleReferenceImage: url });
+      showToast(`${isFabric ? 'Fabric' : 'Style'} photo uploaded`, 'success');
+    } catch {
+      // Market network resilience fallback: store in local IndexedDB photo store
+      try {
+        const compressed = await compressImage(file, { maxDimension: 1200 });
+        const ext = compressed.name.split('.').pop() || 'jpg';
+        const fileName = `${crypto.randomUUID()}.${ext}`;
+        const { localUrl } = await savePendingPhoto(
+          compressed,
+          `${currentShop.id}/orders`,
+          fileName,
+          garmentId,
+          isFabric ? 'fabricImage' : 'styleReference'
+        );
+
+        updateGarment(garmentId, isFabric ? { fabricImage: localUrl } : { styleReferenceImage: localUrl });
+        showToast(`${isFabric ? 'Fabric' : 'Style'} photo saved on phone (will sync)`, 'info');
+      } catch {
+        showToast('Could not save photo.', 'error');
+      }
+    } finally {
+      updateGarment(garmentId, isFabric ? { uploadingFabric: false } : { uploadingStyleRef: false });
+    }
+  };
+
+  // ── 4. Financials & Delivery Schedule ──
+  const getDaysFromNow = (days: number) => {
+    const target = new Date();
+    target.setDate(target.getDate() + days);
+    const yyyy = target.getFullYear();
+    const mm = String(target.getMonth() + 1).padStart(2, '0');
+    const dd = String(target.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const [manualTotalBill, setManualTotalBill] = useState('');
+  const [depositPaid, setDepositPaid] = useState('');
+  const [dueDate, setDueDate] = useState(() => getDaysFromNow(7));
+  const [priority, setPriority] = useState<Priority>('normal');
+  const [assignedStaff, setAssignedStaff] = useState('');
+  const [orderNotes, setOrderNotes] = useState('');
+
+  // Auto-sum individual garment prices if provided
+  const sumOfGarmentPrices = useMemo(() => {
+    return garments.reduce((sum, g) => sum + (parseInt(g.price.replace(/,/g, '')) || 0), 0);
+  }, [garments]);
+
+  // Polish 4: Auto-sync manualTotalBill to sumOfGarmentPrices when garment prices are entered
+  useEffect(() => {
+    if (sumOfGarmentPrices > 0) {
+      setManualTotalBill(formatInputWithCommas(sumOfGarmentPrices));
+    }
+  }, [sumOfGarmentPrices]);
+
+  // Pre-populate deposit, due date, and priority if passed from Quotes or Quick Estimates
+  useEffect(() => {
+    const depositParam = searchParams.get('deposit');
+    const dueDateParam = searchParams.get('dueDate');
+    const priorityParam = searchParams.get('priority');
+
+    if (depositParam && !depositPaid) {
+      setDepositPaid(formatInputWithCommas(depositParam));
+    }
+    if (dueDateParam) {
+      setDueDate(dueDateParam);
+    }
+    if (priorityParam && (priorityParam === 'normal' || priorityParam === 'high' || priorityParam === 'urgent')) {
+      setPriority(priorityParam as Priority);
+    }
+  }, [searchParams]);
+
+  const numericTotal = useMemo(() => {
+    if (manualTotalBill) return parseInt(manualTotalBill.replace(/,/g, '')) || 0;
+    return sumOfGarmentPrices;
+  }, [manualTotalBill, sumOfGarmentPrices]);
+
+  const numericDeposit = parseInt(depositPaid.replace(/,/g, '')) || 0;
+  const numericBalance = Math.max(0, numericTotal - numericDeposit);
+  const isDepositExceedingTotal = numericTotal > 0 && numericDeposit > numericTotal;
+
+  // Deposit shortcut pills
+  const handleQuickDeposit = (type: '50' | 'full' | 'zero') => {
+    if (type === '50') {
+      setDepositPaid(formatInputWithCommas(Math.round(numericTotal / 2)));
+    } else if (type === 'full') {
+      setDepositPaid(formatInputWithCommas(numericTotal));
+    } else {
+      setDepositPaid('0');
+    }
+  };
+
+  // Workload Awareness on Due Date
+  const setQuickDate = (days: number) => {
+    setDueDate(getDaysFromNow(days));
+  };
+
+  const ordersDueOnDate = useMemo(() => {
+    if (!dueDate) return 0;
+    const targetDate = dueDate.split('T')[0];
+    return orders.filter((o) => {
+      if (!o.dueDate) return false;
+      if (o.status === 'Delivered') return false;
+      return o.dueDate.split('T')[0] === targetDate;
+    }).length;
+  }, [orders, dueDate]);
+
+  // ── 5. Creation & WhatsApp Receipt ──
+  const [submitting, setSubmitting] = useState(false);
+  const [hasHitOrderLimit, setHasHitOrderLimit] = useState(false);
+  const [completedBatch, setCompletedBatch] = useState<{
+    batchId: string;
+    garments: {
+      styleName: string;
+      price: number;
+      measures: Record<string, string>;
+      measurementNotes: string;
+      fabricNotes: string;
+      materialSuppliedBy: 'customer' | 'shop';
+      fabricImage: string | null;
+    }[];
+    totalBill: number;
+    depositPaid: number;
+    balanceDue: number;
+    dueDate: string;
+    firstOrderId: string;
+    priority: Priority;
+  } | null>(null);
+  const [receiptSheetOpen, setReceiptSheetOpen] = useState(false);
+  const [cuttingSlipOpen, setCuttingSlipOpen] = useState(false);
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomerName.trim()) {
+      showToast('Please enter the customer name', 'error');
+      return;
+    }
+    if (!newCustomerPhone.trim()) {
+      showToast('Please enter a WhatsApp number', 'error');
+      return;
+    }
+
+    setSavingCustomer(true);
+    try {
+      const created = await addCustomer({
+        fullName: newCustomerName.trim(),
+        whatsappNumber: normalizePhone(newCustomerPhone.trim()),
+        gender: newCustomerGender,
+      });
+      setSelectedCustomer(created);
+      setShowInlineNewCustomer(false);
+      setNewCustomerName('');
+      setNewCustomerPhone('');
+      showToast(`Added customer ${created.fullName}`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to add customer', 'error');
+    } finally {
+      setSavingCustomer(false);
+    }
+  };
+
+  const formatSafeDate = (dStr: string) => {
+    if (!dStr) return '';
+    const datePart = dStr.split('T')[0];
+    const parts = datePart.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+    return new Date(dStr).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const handleCreateOrder = async () => {
+    let activeCustomer = selectedCustomer;
+    if (!activeCustomer && newCustomerName.trim() && newCustomerPhone.trim()) {
+      try {
+        setSavingCustomer(true);
+        const created = await addCustomer({
+          fullName: newCustomerName.trim(),
+          whatsappNumber: normalizePhone(newCustomerPhone.trim()),
+          gender: newCustomerGender,
+        });
+        setSelectedCustomer(created);
+        setShowInlineNewCustomer(false);
+        activeCustomer = created;
+      } catch (err: any) {
+        showToast(err.message || 'Failed to save customer details', 'error');
+        return;
+      } finally {
+        setSavingCustomer(false);
+      }
+    }
+
+    if (!activeCustomer) {
+      showToast('Please select or add a customer first', 'error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (numericTotal <= 0) {
+      showToast('Please enter the price for this order', 'error');
+      const pricingEl = document.getElementById('pricing-card');
+      if (pricingEl) {
+        pricingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = document.getElementById('manual-total-bill');
+        if (input) input.focus();
+      }
+      return;
+    }
+    if (numericDeposit > numericTotal && numericTotal > 0) {
+      showToast(`Deposit cannot exceed the total order bill (${currencySymbol}${formatNumber(numericTotal)})`, 'error');
+      const depositEl = document.getElementById('deposit-paid-input');
+      if (depositEl) {
+        depositEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        depositEl.focus();
+      }
+      return;
+    }
+    if (!dueDate) {
+      showToast('Please choose a delivery / ready date', 'error');
+      const dateEl = document.getElementById('due-date-input');
+      if (dateEl) {
+        dateEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        dateEl.focus();
+      }
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const batchId = crypto.randomUUID();
+      const formattedDueDate = dueDate.includes('T') ? dueDate : `${dueDate}T12:00:00.000Z`;
+
+      // Distribute total and deposit across garments
+      const garmentCount = garments.length;
+      const unitDeposit = Math.round(numericDeposit / garmentCount);
+
+      const garmentsPayload: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[] = garments.map(
+        (g, idx) => {
+          const parsedNumericMeasures: Record<string, number> = {};
+          for (const [k, v] of Object.entries(g.measures)) {
+            const parsed = parseMeasurementValue(v);
+            if (parsed !== null && parsed > 0) parsedNumericMeasures[k] = parsed;
+          }
+
+          const unitPrice = g.price ? parseInt(g.price.replace(/,/g, '')) || 0 : Math.round(numericTotal / garmentCount);
+          // For the last unit, allocate exact remaining deposit to avoid rounding errors
+          const allocatedDeposit = idx === garmentCount - 1 ? Math.max(0, numericDeposit - unitDeposit * (garmentCount - 1)) : unitDeposit;
+
+          const inspoList: string[] = [];
+          if (g.styleReferenceImage) inspoList.push(g.styleReferenceImage);
+
+          const fabricNotePrefix = g.fabricNotes.trim() ? ` [Fabric: ${g.fabricNotes.trim()}]` : '';
+          const garmentName = g.styleName.trim() || 'Custom Outfit';
+          const details = orderNotes.trim()
+            ? `${orderNotes.trim()}${fabricNotePrefix}`
+            : `${garmentName} (${idx + 1} of ${garmentCount}) for ${activeCustomer.fullName}${fabricNotePrefix}`;
+
+          return {
+            customerId: activeCustomer.id,
+            customerName: activeCustomer.fullName,
+            orderDetails: details,
+            totalBill: unitPrice,
+            depositPaid: allocatedDeposit,
+            status: 'Documented',
+            assignedTo: assignedStaff || undefined,
+            assignedToName: staffMembers.find((s) => s.uid === assignedStaff)?.name,
+            dueDate: formattedDueDate,
+            priority,
+            measurements: parsedNumericMeasures,
+            images: g.fabricImage
+              ? [{ url: g.fabricImage, stage: 'Documented' as const, uploadedAt: new Date().toISOString() }]
+              : [],
+            inspirationImages: inspoList,
+            styleName: garmentName,
+            materialSuppliedBy: g.materialSuppliedBy,
+            materialCost: 0,
+            otherCosts: 0,
+            statusHistory: [
+              {
+                from: null,
+                to: 'Documented',
+                changedBy: user?.uid || 'unknown',
+                changedByName: user?.name || 'Tailor',
+                timestamp: new Date().toISOString(),
+              },
+            ],
+          };
+        }
+      );
+
+      const createdIds = await addOrderBatch(garmentsPayload);
+
+      // Update customer style measurements & auto-record preferred styles in profile
+      const nextPreferredStyles = new Set<string>(activeCustomer.preferredStyles || []);
+      let preferredStylesChanged = false;
+
+      for (const g of garments) {
+        const canonicalStyle = resolveCanonicalStyleName(g.styleName, activeCustomer.gender);
+        if (canonicalStyle && !nextPreferredStyles.has(canonicalStyle)) {
+          nextPreferredStyles.add(canonicalStyle);
+          preferredStylesChanged = true;
+        }
+
+        const parsedNumericMeasures: Record<string, number> = {};
+        for (const [k, v] of Object.entries(g.measures)) {
+          const parsed = parseMeasurementValue(v);
+          if (parsed !== null && parsed > 0) parsedNumericMeasures[k] = parsed;
+        }
+        if (Object.keys(parsedNumericMeasures).length > 0) {
+          await updateCustomerStyleProfile(activeCustomer.id, g.styleName || 'Custom Outfit', parsedNumericMeasures).catch(() => {});
+          await updateCustomerMeasurements(activeCustomer.id, parsedNumericMeasures).catch(() => {});
+        }
+        if (g.measurementNotes.trim() && g.measurementNotes !== activeCustomer.measurementNotes) {
+          await updateCustomerProfile(activeCustomer.id, { measurementNotes: g.measurementNotes.trim() }).catch(() => {});
+        }
+      }
+
+      if (preferredStylesChanged) {
+        await updateCustomerProfile(activeCustomer.id, {
+          preferredStyles: Array.from(nextPreferredStyles),
+        }).catch(() => {});
+      }
+
+      // Auto-sync physical fabric photos to client's stash
+      const newPhysicalFabrics = garments
+        .filter((g) => g.fabricImage && g.materialSuppliedBy === 'customer')
+        .map((g) => g.fabricImage as string);
+
+      if (newPhysicalFabrics.length > 0) {
+        const existingStashUrls = (activeCustomer.fabrics || []).map((f) =>
+          typeof f === 'string' ? f : f?.url
+        );
+        const uniqueToAdd = newPhysicalFabrics.filter((url) => !existingStashUrls.includes(url));
+        if (uniqueToAdd.length > 0) {
+          const updatedFabrics = [
+            ...(activeCustomer.fabrics || []),
+            ...uniqueToAdd.map((url) => ({
+              url,
+              stage: 'Documented' as const,
+              uploadedAt: new Date().toISOString(),
+            })),
+          ];
+          await updateCustomerProfile(activeCustomer.id, { fabrics: updatedFabrics }).catch(() => {});
+        }
+      }
+
+      const firstOrderId = createdIds?.[0] || batchId;
+
+      setCompletedBatch({
+        batchId,
+        garments: garments.map((g, i) => ({
+          styleName: g.styleName.trim() || 'Custom Outfit',
+          price: g.price ? parseInt(g.price.replace(/,/g, '')) || 0 : Math.round(numericTotal / garmentCount),
+          measures: g.measures,
+          measurementNotes: g.measurementNotes,
+          fabricNotes: g.fabricNotes,
+          materialSuppliedBy: g.materialSuppliedBy,
+          fabricImage: g.fabricImage,
+        })),
+        totalBill: numericTotal,
+        depositPaid: numericDeposit,
+        balanceDue: numericBalance,
+        dueDate: formattedDueDate,
+        firstOrderId,
+        priority,
+      });
+
+      setReceiptSheetOpen(true);
+      showToast(garments.length > 1 ? `${garments.length} outfits saved!` : 'Order created successfully!', 'success');
+    } catch (err: any) {
+      const errMsg = err?.message || 'Failed to create order';
+      if (
+        errMsg.toLowerCase().includes('limit') ||
+        errMsg.toLowerCase().includes('free plan') ||
+        errMsg.toLowerCase().includes('upgrade')
+      ) {
+        setHasHitOrderLimit(true);
+      }
+      showToast(errMsg, 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getWhatsAppReceiptText = () => {
+    if (!completedBatch || !selectedCustomer) return '';
+    const shopName = currentShop?.name || APP_CONFIG.name;
+    const trackingUrl = typeof window !== 'undefined' ? `${window.location.origin}${ROUTES.track(completedBatch.firstOrderId)}` : '';
+    const formattedDate = formatSafeDate(completedBatch.dueDate);
+
+    const garmentLines =
+      completedBatch.garments.length > 1
+        ? completedBatch.garments.map((g, i) => `  ${i + 1}. ${g.styleName} (${currencySymbol}${formatNumber(g.price)})`).join('\n')
+        : `• *Garment:* ${completedBatch.garments[0]?.styleName || 'Custom Outfit'}`;
+
+    return [
+      `Hello ${selectedCustomer.fullName.split(' ')[0]}!`,
+      `Thank you for placing your order with *${shopName}*.`,
+      ``,
+      `*Order Summary:*`,
+      garmentLines,
+      `• *Total:* ${currencySymbol}${formatNumber(completedBatch.totalBill)}`,
+      `• *Deposit Paid:* ${currencySymbol}${formatNumber(completedBatch.depositPaid)}`,
+      `• *Balance Due:* ${currencySymbol}${formatNumber(completedBatch.balanceDue)}`,
+      `• *Ready By:* ${formattedDate}`,
+      ``,
+      `Track your order's progress here:`,
+      trackingUrl,
+      ``,
+      `Thank you for your business!`,
+    ].join('\n');
+  };
+
+  const getCuttingSlipText = () => {
+    if (!completedBatch || !selectedCustomer) return '';
+    const shopName = currentShop?.name || APP_CONFIG.name;
+    const formattedDate = formatSafeDate(completedBatch.dueDate);
+
+    const lines = [
+      `CUTTING SLIP`,
+      `Shop: ${shopName}`,
+      `Order: #${completedBatch.firstOrderId.slice(-6).toUpperCase()}`,
+      `Customer: ${selectedCustomer.fullName} (${formatPhone(selectedCustomer.whatsappNumber)})`,
+      `Ready By: ${formattedDate} ${completedBatch.priority === 'urgent' ? '[URGENT / RUSH]' : ''}`,
+      `==============================`,
+    ];
+
+    completedBatch.garments.forEach((g, i) => {
+      lines.push(
+        ``,
+        `OUTFIT #${i + 1}: ${g.styleName.toUpperCase()}`,
+        `Fabric: ${g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Customer Fabric'}${g.fabricNotes ? ` (${g.fabricNotes})` : ''}`,
+        `MEASUREMENTS:`
+      );
+      const points = getSpecPointsForStyle(g.styleName);
+      points.forEach((pt) => {
+        const val = g.measures[pt.key];
+        if (val) {
+          lines.push(`• ${pt.label}: ${val}″`);
+        }
+      });
+      if (g.measurementNotes) {
+        lines.push(`Fit Notes: ${g.measurementNotes}`);
+      }
+      lines.push(`------------------------------`);
+    });
+
+    return lines.join('\n');
+  };
+
+  const handleCopyCuttingSlip = async () => {
+    const text = getCuttingSlipText();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Cutting slip copied to clipboard!', 'success');
+    } catch {
+      showToast('Could not copy to clipboard', 'error');
+    }
+  };
+
+  return (
+    <PageLayout
+      width="full"
+      padding="none"
+      header={
+        <TopBar
+          title="New Order"
+          subtitle="Record customer order and measurements"
+          showBack
+          onBack={() => {
+            const custIdParam = searchParams.get('customer');
+            if (custIdParam) {
+              router.push(ROUTES.customerDetail(custIdParam));
+            } else if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push(ROUTES.production);
+            }
+          }}
+        />
+      }
+    >
+      <div className={styles.container}>
+        {/* ── CARD 1: CUSTOMER SELECTION ── */}
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardHeaderLeft}>
+              <div>
+                <h2 className={styles.cardTitle}>Customer Information</h2>
+                <p className={styles.cardSubtitle}>Select an existing customer or add a new one</p>
+              </div>
+            </div>
+            {selectedCustomer && (
+              <button
+                type="button"
+                className={styles.changeClientBtn}
+                onClick={() => {
+                  setSelectedCustomer(null);
+                  setCustomerSearch('');
+                }}
+              >
+                <Symbol name="edit" size={13} />
+                <span>Change</span>
+              </button>
+            )}
+          </div>
+
+          {!selectedCustomer ? (
+            <div>
+              {!showInlineNewCustomer ? (
+                <>
+                  <div className={styles.searchBox}>
+                    <Symbol name="search" size={20} className={styles.searchIcon} />
+                    <input
+                      type="text"
+                      className={styles.searchInput}
+                      placeholder="Search name or phone (e.g. 0803…)"
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                    />
+                    {customerSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomerSearch('')}
+                        className={styles.clearSearchBtn}
+                      >
+                        <Symbol name="close" size={16} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className={styles.customerList}>
+                    {filteredCustomers.map((cust) => (
+                      <button
+                        key={cust.id}
+                        type="button"
+                        className={styles.customerRow}
+                        onClick={() => setSelectedCustomer(cust)}
+                      >
+                        <Avatar name={cust.fullName} size="sm" shape="squircle" />
+                        <div className={styles.customerDetails}>
+                          <span className={styles.customerName}>{cust.fullName}</span>
+                          <span className={styles.customerPhone}>
+                            {formatPhone(cust.whatsappNumber)}
+                          </span>
+                        </div>
+                        <Symbol name="arrow_forward_ios" size={14} className={styles.rowArrow} />
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredCustomers.length === 0 && customerSearch.trim() && (
+                    <div className={styles.noSearchMatch}>
+                      <p className={styles.noSearchMatchText}>
+                        No customer found for &ldquo;{customerSearch.trim()}&rdquo;
+                      </p>
+                      <button
+                        type="button"
+                        className={styles.registerSearchQueryBtn}
+                        onClick={handleOpenNewCustomerForm}
+                      >
+                        <Symbol name="person_add" size={18} />
+                        <span>Add &ldquo;{customerSearch.trim()}&rdquo; as new customer</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className={styles.clientActionRow}>
+                    <button
+                      type="button"
+                      className={styles.newClientBanner}
+                      onClick={handleOpenNewCustomerForm}
+                    >
+                      <Symbol name="person_add" size={20} />
+                      <span>New Customer? Add in seconds</span>
+                    </button>
+                    {isContactPickerSupported && (
+                      <button
+                        type="button"
+                        className={styles.importContactBtn}
+                        onClick={handleImportContact}
+                        title="Import contact from address book"
+                      >
+                        <Symbol name="contact_phone" size={18} />
+                        <span>Import Contact</span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <form onSubmit={handleCreateCustomer} className={styles.inlineForm}>
+                  <div className={styles.inlineHeaderRow}>
+                    <span className={styles.inlineTitle}>New Customer</span>
+                    {isContactPickerSupported && (
+                      <button
+                        type="button"
+                        className={styles.importContactSmallBtn}
+                        onClick={handleImportContact}
+                        title="Import from device address book"
+                      >
+                        <Symbol name="contact_phone" size={16} />
+                        <span>Import Contact</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.label}>Full Name</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="e.g. Adebayo Adeleke"
+                      value={newCustomerName}
+                      onChange={(e) => setNewCustomerName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.label}>WhatsApp Phone</label>
+                    <PhoneInput
+                      value={newCustomerPhone}
+                      onChange={setNewCustomerPhone}
+                      defaultCountryCode={currentShop?.countryCode}
+                      placeholder="0801 234 5678"
+                      required
+                    />
+                  </div>
+                  <div className={styles.formRow}>
+                    <label className={styles.label}>Gender</label>
+                    <div className={styles.segmented}>
+                      <button
+                        type="button"
+                        className={`${styles.segBtn} ${newCustomerGender === 'male' ? styles.segActive : ''}`}
+                        onClick={() => setNewCustomerGender('male')}
+                      >
+                        Male
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.segBtn} ${newCustomerGender === 'female' ? styles.segActive : ''}`}
+                        onClick={() => setNewCustomerGender('female')}
+                      >
+                        Female
+                      </button>
+                    </div>
+                  </div>
+                  <div className={styles.inlineActions}>
+                    <button
+                      type="button"
+                      className={styles.cancelBtn}
+                      onClick={() => setShowInlineNewCustomer(false)}
+                      disabled={savingCustomer}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className={styles.primaryInlineBtn}
+                      disabled={savingCustomer}
+                    >
+                      {savingCustomer ? 'Adding…' : 'Save Customer & Continue'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
+            <div className={styles.selectedClientCard}>
+              <div className={styles.selectedClientHeader}>
+                <Avatar name={selectedCustomer.fullName} size="lg" shape="squircle" />
+                <div className={styles.selectedClientDetails}>
+                  <h3 className={styles.selectedClientName}>{selectedCustomer.fullName}</h3>
+                  <p className={styles.selectedClientPhone}>
+                    {formatPhone(selectedCustomer.whatsappNumber)}
+                  </p>
+                  <div className={styles.clientBadges}>
+                    {selectedCustomer.gender && (
+                      <span className={styles.genderBadge}>
+                        {selectedCustomer.gender === 'female' ? 'Female' : selectedCustomer.gender === 'male' ? 'Male' : selectedCustomer.gender}
+                      </span>
+                    )}
+                    {customerPastOrders.length > 0 ? (
+                      <span className={styles.repeatBadge}>
+                        <Symbol name="check_circle" size={14} /> Returning Customer ({customerPastOrders.length} {customerPastOrders.length === 1 ? 'order' : 'orders'})
+                      </span>
+                    ) : (
+                      <span className={styles.newBadge}>First Order</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ── CARD 2: GARMENTS & OUTFITS (MULTI-GARMENT SUPPORT) ── */}
+        {garments.map((garment, idx) => {
+          const specPoints = getSpecPointsForStyle(garment.styleName);
+          const isMultiple = garments.length > 1;
+
+          return (
+            <div key={garment.id} className={styles.garmentSectionWrap}>
+              {/* Garment Header if multiple */}
+              {isMultiple && (
+                <div className={styles.multiGarmentBar}>
+                  <span className={styles.multiGarmentTitle}>
+                    Outfit #{idx + 1}: <strong>{garment.styleName}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.removeGarmentBtn}
+                    onClick={() => handleRemoveGarment(garment.id)}
+                    title="Remove this outfit"
+                  >
+                    <Symbol name="delete" size={16} />
+                    <span>Remove Outfit</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Style Selection */}
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardHeaderLeft}>
+                    <div>
+                      <h2 className={styles.cardTitle}>
+                        {isMultiple ? `Outfit #${idx + 1} Style & Design` : 'Style & Design'}
+                      </h2>
+                      <p className={styles.cardSubtitle}>Choose a style or enter a custom design</p>
+                    </div>
+                  </div>
+                  {garment.styleName ? <span className={styles.activeStyleTag}>{garment.styleName}</span> : null}
+                </div>
+
+                {/* Gender filter tabs */}
+                <div className={styles.genderFilterRow}>
+                  <span className={styles.genderFilterLabel}>Filter:</span>
+                  <div className={styles.genderPills}>
+                    <button
+                      type="button"
+                      className={`${styles.genderPill} ${styleGenderFilter === 'male' ? styles.genderPillActive : ''}`}
+                      onClick={() => setStyleGenderFilter('male')}
+                    >
+                      Men&apos;s
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.genderPill} ${styleGenderFilter === 'female' ? styles.genderPillActive : ''}`}
+                      onClick={() => setStyleGenderFilter('female')}
+                    >
+                      Women&apos;s
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.genderPill} ${styleGenderFilter === 'all' ? styles.genderPillActive : ''}`}
+                      onClick={() => setStyleGenderFilter('all')}
+                    >
+                      All
+                    </button>
+                  </div>
+                </div>
+
+                {(() => {
+                  const isSelectedOutsideTopTwo = Boolean(
+                    garment.styleName &&
+                    !garment.isCustomStyle &&
+                    !orderedDisplayedStyles.slice(0, 2).some((s) => s.name.toLowerCase() === garment.styleName.toLowerCase())
+                  );
+                  const isExpanded = Boolean(expandedStylesByGarment[garment.id]) || isSelectedOutsideTopTwo || garment.isCustomStyle;
+                  const visibleStyles = isExpanded ? orderedDisplayedStyles : orderedDisplayedStyles.slice(0, 2);
+                  const remainingCount = Math.max(0, orderedDisplayedStyles.length - 2);
+
+                  return (
+                    <>
+                      <div className={styles.styleGrid}>
+                        {visibleStyles.map((style) => {
+                          const isSelected = !garment.isCustomStyle && garment.styleName === style.name;
+                          const isCustomerRecent = customerRecentStyles.some(
+                            (r) => r.toLowerCase() === style.name.toLowerCase()
+                          );
+                          return (
+                            <button
+                              key={style.name}
+                              type="button"
+                              className={`${styles.styleCard} ${isSelected ? styles.styleCardActive : ''}`}
+                              onClick={() => handleStyleChange(garment.id, style.name, false)}
+                            >
+                              <div className={styles.styleThumbWrap}>
+                                {style.photoUrl ? (
+                                  <Image
+                                    src={style.photoUrl}
+                                    alt={style.name}
+                                    width={120}
+                                    height={150}
+                                    className={styles.styleImg}
+                                  />
+                                ) : (
+                                  <div className={styles.stylePlaceholder}>
+                                    <Symbol name="checkroom" size={26} />
+                                  </div>
+                                )}
+                                {isCustomerRecent && (
+                                  <span className={styles.recentStylePill}>Recent</span>
+                                )}
+                                {isSelected && (
+                                  <div className={styles.styleActiveBadge}>
+                                    <Symbol name="check" size={14} />
+                                  </div>
+                                )}
+                              </div>
+                              <div className={styles.styleCardInfo}>
+                                <span className={styles.styleName}>{style.name}</span>
+                                {style.subtitle && <span className={styles.styleSubtitle}>{style.subtitle}</span>}
+                              </div>
+                            </button>
+                          );
+                        })}
+
+                        {/* + Custom Style Button when expanded */}
+                        {isExpanded && (
+                          <button
+                            type="button"
+                            className={`${styles.styleCard} ${styles.customStyleBtnCard} ${garment.isCustomStyle ? styles.styleCardActive : ''}`}
+                            onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
+                          >
+                            <div className={styles.styleThumbWrap}>
+                              <div className={styles.customStyleThumb}>
+                                <Symbol name="edit" size={24} />
+                              </div>
+                              {garment.isCustomStyle && (
+                                <div className={styles.styleActiveBadge}>
+                                  <Symbol name="check" size={14} />
+                                </div>
+                              )}
+                            </div>
+                            <div className={styles.styleCardInfo}>
+                              <span className={styles.styleName}>+ Custom Style</span>
+                              <span className={styles.styleSubtitle}>Custom Design</span>
+                            </div>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Indication to See More / Show Fewer & Custom Style */}
+                      <div className={styles.styleControlsRow}>
+                        {remainingCount > 0 && (
+                          <button
+                            type="button"
+                            className={styles.seeMoreBtn}
+                            onClick={() => toggleExpandStyles(garment.id)}
+                            aria-expanded={isExpanded}
+                          >
+                            <Symbol name={isExpanded ? 'expand_less' : 'expand_more'} size={18} />
+                            <span>{isExpanded ? 'Show fewer styles' : `See more styles (${remainingCount})`}</span>
+                          </button>
+                        )}
+
+                        {!isExpanded && (
+                          <button
+                            type="button"
+                            className={`${styles.customStyleQuickBtn} ${garment.isCustomStyle ? styles.customStyleQuickBtnActive : ''}`}
+                            onClick={() => handleStyleChange(garment.id, garment.isCustomStyle ? garment.styleName : '', true)}
+                          >
+                            <Symbol name="edit" size={14} />
+                            <span>+ Custom Style</span>
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+
+                {/* Inline Custom Style Name Input */}
+                {garment.isCustomStyle && (
+                  <div className={styles.customStyleBox}>
+                    <label className={styles.label}>Custom Outfit / Garment Name</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="e.g. 2-Piece Boubou, Jalabiya, Dinner Tuxedo…"
+                      value={garment.styleName}
+                      onChange={(e) => updateGarment(garment.id, { styleName: e.target.value })}
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </section>
+
+              {/* Measurements */}
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardHeaderLeft}>
+                    <div>
+                      <h2 className={styles.cardTitle}>
+                        {isMultiple ? `Outfit #${idx + 1} Body Measurements` : 'Body Measurements'}
+                      </h2>
+                      <p className={styles.cardSubtitle}>
+                        {garment.styleName ? `${garment.styleName} measurements in inches (″)` : 'Measurements in inches (″)'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {(() => {
+                  const filledPoints = specPoints.filter((pt) => Boolean(garment.measures[pt.key] && parseMeasurementValue(garment.measures[pt.key])));
+                  const filledCount = filledPoints.length;
+                  const totalCount = specPoints.length;
+                  const isCompleteFit = totalCount > 0 && filledCount === totalCount;
+
+                  if (garment.isFitLoaded && isCompleteFit && !garment.showTweakMeasurements) {
+                    return (
+                      <div className={styles.fitLoadedBox}>
+                        <div className={styles.fitBanner}>
+                          <Symbol name="check_circle" size={18} className={styles.sparkleIcon} />
+                          <div>
+                            <strong>Saved measurements loaded</strong>
+                          </div>
+                        </div>
+
+                        <div className={styles.measurePillGrid}>
+                          {specPoints.map((pt) => {
+                            const val = garment.measures[pt.key];
+                            if (!val) return null;
+                            return (
+                              <div key={pt.key} className={styles.measurePill}>
+                                <span className={styles.measurePillLabel}>{pt.label}</span>
+                                <span className={styles.measurePillValue}>{val}″</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <button
+                          type="button"
+                          className={styles.adjustMeasureBtn}
+                          onClick={() => updateGarment(garment.id, { showTweakMeasurements: true })}
+                        >
+                          <Symbol name="tune" size={16} />
+                          <span>Adjust Measurements</span>
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div>
+                      {garment.isFitLoaded && isCompleteFit && garment.showTweakMeasurements && (
+                        <div className={styles.editingNotice}>
+                          <span>Adjusting measurements:</span>
+                          <button
+                            type="button"
+                            onClick={() => updateGarment(garment.id, { showTweakMeasurements: false })}
+                            className={styles.collapseTweakBtn}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      )}
+
+                      <VoiceTapeHUD
+                        isListening={isListening && activeVoiceGarmentId === garment.id}
+                        onToggleListening={() => {
+                          setActiveVoiceGarmentId(garment.id);
+                          toggleListening();
+                        }}
+                        lastCapture={activeVoiceGarmentId === garment.id ? lastCapture : null}
+                        onUndoLastCapture={undoLastCapture}
+                        activePoint={activeMeasureFocus?.garmentId === garment.id ? activePointObj : null}
+                        onNudgeActive={handleNudgeActive}
+                        onNextActive={handleNextActive}
+                        isSupported={isVoiceSupported}
+                      />
+
+                      <div className={styles.measureGrid}>
+                        {specPoints.map((pt, ptIdx) => (
+                          <div key={pt.key} className={styles.measureInputWrap}>
+                            <label htmlFor={`m-${garment.id}-${pt.key}`} className={styles.measureLabel}>
+                              {pt.label}
+                            </label>
+                            <div className={styles.measureField}>
+                              <input
+                                id={`m-${garment.id}-${pt.key}`}
+                                ref={(el) => {
+                                  if (!measureInputRefs.current[garment.id]) measureInputRefs.current[garment.id] = {};
+                                  measureInputRefs.current[garment.id][pt.key] = el;
+                                }}
+                                type="text"
+                                inputMode="decimal"
+                                enterKeyHint={ptIdx < specPoints.length - 1 ? 'next' : 'done'}
+                                placeholder="—"
+                                className={styles.measureInput}
+                                value={garment.measures[pt.key] || ''}
+                                onFocus={() => setActiveMeasureFocus({ garmentId: garment.id, key: pt.key })}
+                                onChange={(e) => handleMeasureChange(garment.id, pt.key, e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const nextPoint = specPoints[ptIdx + 1];
+                                    if (nextPoint && measureInputRefs.current[garment.id]?.[nextPoint.key]) {
+                                      measureInputRefs.current[garment.id][nextPoint.key]?.focus();
+                                    } else {
+                                      const notesEl = document.getElementById(`notes-${garment.id}`);
+                                      if (notesEl) {
+                                        notesEl.focus();
+                                      } else {
+                                        e.currentTarget.blur();
+                                      }
+                                    }
+                                  }
+                                }}
+                              />
+                              <span className={styles.inchSymbol}>IN</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className={styles.notesWrap}>
+                        <label htmlFor={`notes-${garment.id}`} className={styles.label}>Fitting &amp; Style Notes (Optional)</label>
+                        <textarea
+                          id={`notes-${garment.id}`}
+                          className={styles.textarea}
+                          rows={2}
+                          placeholder="Notes on posture, fit, or styling..."
+                          value={garment.measurementNotes}
+                          onChange={(e) => updateGarment(garment.id, { measurementNotes: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+              </section>
+
+              {/* Photos & Material */}
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardHeaderLeft}>
+                    <div>
+                      <h2 className={styles.cardTitle}>
+                        {isMultiple ? `Outfit #${idx + 1} Photos` : 'Fabric & Style Photos'}
+                      </h2>
+                      <p className={styles.cardSubtitle}>Fabric photos and style sample images</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Fabric Quick Selector */}
+                {selectedCustomer?.fabrics && selectedCustomer.fabrics.length > 0 && (
+                  <div className={styles.stashPickerWrap}>
+                    <span className={styles.stashPickerTitle}>
+                      <Symbol name="inventory_2" size={15} /> Select from {(selectedCustomer.fullName || 'Customer').trim().split(' ')[0]}&apos;s saved fabrics:
+                    </span>
+                    <div className={styles.stashSwatchesRow}>
+                      {selectedCustomer.fabrics.map((swatch, sIdx) => {
+                        const swatchUrl = typeof swatch === 'string' ? swatch : swatch?.url;
+                        if (!swatchUrl) return null;
+                        const isChosen = garment.fabricImage === swatchUrl;
+                        return (
+                          <button
+                            key={sIdx}
+                            type="button"
+                            className={`${styles.stashSwatchBtn} ${isChosen ? styles.stashSwatchChosen : ''}`}
+                            onClick={() =>
+                              updateGarment(garment.id, {
+                                fabricImage: isChosen ? null : swatchUrl,
+                                materialSuppliedBy: 'customer',
+                              })
+                            }
+                            title={`Assign Fabric #${sIdx + 1}`}
+                          >
+                            <Image src={swatchUrl} alt={`Fabric ${sIdx + 1}`} width={64} height={64} className={styles.stashSwatchImg} />
+                            {isChosen && (
+                              <div className={styles.stashSwatchCheck}>
+                                <Symbol name="check" size={14} />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className={styles.photoGrid}>
+                  {/* Fabric Photo */}
+                  <div className={styles.photoBox}>
+                    <span className={styles.photoBoxTitle}>
+                      <Symbol name="texture" size={16} /> Fabric Photo
+                    </span>
+                    <p className={styles.photoBoxDesc}>Photo of customer&apos;s fabric</p>
+
+                    {garment.fabricImage ? (
+                      <div className={styles.photoPreviewWrap}>
+                        <Image
+                          src={garment.fabricImage}
+                          alt="Fabric"
+                          width={200}
+                          height={150}
+                          className={styles.photoPreviewImg}
+                        />
+                        <button
+                          type="button"
+                          className={styles.removePhotoBtn}
+                          onClick={() => updateGarment(garment.id, { fabricImage: null })}
+                          aria-label="Remove fabric photo"
+                        >
+                          <Symbol name="close" size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className={styles.photoUploadTrigger}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          disabled={garment.uploadingFabric}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(garment.id, file, 'fabric');
+                          }}
+                        />
+                        <div className={styles.cameraIconCircle}>
+                          <Symbol name="add_a_photo" size={22} />
+                        </div>
+                        <span className={styles.photoUploadMain}>
+                          {garment.uploadingFabric ? 'Uploading…' : 'Take Fabric Photo'}
+                        </span>
+                        <span className={styles.photoUploadSub}>Camera or Gallery</span>
+                      </label>
+                    )}
+                  </div>
+
+                  {/* Style Reference Photo */}
+                  <div className={styles.photoBox}>
+                    <span className={styles.photoBoxTitle}>
+                      <Symbol name="photo_library" size={16} /> Style Photo
+                    </span>
+                    <p className={styles.photoBoxDesc}>Design sample or catalog photo</p>
+
+                    {garment.styleReferenceImage ? (
+                      <div className={styles.photoPreviewWrap}>
+                        <Image
+                          src={garment.styleReferenceImage}
+                          alt="Style Reference"
+                          width={200}
+                          height={150}
+                          className={styles.photoPreviewImg}
+                        />
+                        <button
+                          type="button"
+                          className={styles.removePhotoBtn}
+                          onClick={() => updateGarment(garment.id, { styleReferenceImage: null })}
+                          aria-label="Remove style reference"
+                        >
+                          <Symbol name="close" size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className={styles.photoUploadTrigger}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          disabled={garment.uploadingStyleRef}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handlePhotoUpload(garment.id, file, 'styleRef');
+                          }}
+                        />
+                        <div className={styles.cameraIconCircle}>
+                          <Symbol name="add_photo_alternate" size={22} />
+                        </div>
+                        <span className={styles.photoUploadMain}>
+                          {garment.uploadingStyleRef ? 'Uploading…' : 'Add Style Photo'}
+                        </span>
+                        <span className={styles.photoUploadSub}>Catalog or Photo</span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                {/* Fabric Sourcing & Yardage Notes */}
+                <div className={styles.fabricSourceWrap}>
+                  <div className={styles.formRow}>
+                    <label className={styles.label}>Fabric Provided By</label>
+                    <div className={styles.segmented}>
+                      <button
+                        type="button"
+                        className={`${styles.segBtn} ${garment.materialSuppliedBy === 'customer' ? styles.segActive : ''}`}
+                        onClick={() => updateGarment(garment.id, { materialSuppliedBy: 'customer' })}
+                      >
+                        Customer
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.segBtn} ${garment.materialSuppliedBy === 'shop' ? styles.segActive : ''}`}
+                        onClick={() => updateGarment(garment.id, { materialSuppliedBy: 'shop' })}
+                      >
+                        Shop
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow} style={{ marginTop: 10 }}>
+                    <label className={styles.label}>Fabric & Yardage Notes (Optional)</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="Fabric & yardage details (optional)"
+                      value={garment.fabricNotes}
+                      onChange={(e) => updateGarment(garment.id, { fabricNotes: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Individual Garment Price if Multiple */}
+                {isMultiple && (
+                  <div className={styles.singleGarmentPriceWrap}>
+                    <label className={styles.label}>Price for this {garment.styleName || 'Outfit'} ({currencySymbol})</label>
+                    <div className={styles.inputPrefixWrap}>
+                      <span className={styles.currencyPrefix}>{currencySymbol}</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className={styles.input}
+                        placeholder="e.g. 35,000"
+                        value={garment.price}
+                        onChange={(e) => updateGarment(garment.id, { price: formatInputWithCommas(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
+          );
+        })}
+
+        {/* ── ADD ANOTHER OUTFIT BUTTON ── */}
+        <button
+          type="button"
+          className={styles.addGarmentBanner}
+          onClick={handleAddGarment}
+        >
+          <Symbol name="add" size={20} />
+          <span>+ Add Another Outfit for {selectedCustomer?.fullName || 'this Order'}</span>
+        </button>
+
+        {/* ── CARD 5: BILLING & DELIVERY SCHEDULE ── */}
+        <section className={styles.card} id="pricing-card">
+          <div className={styles.cardHeader}>
+            <div className={styles.cardHeaderLeft}>
+              <div>
+                <h2 className={styles.cardTitle}>Price &amp; Delivery Date</h2>
+                <p className={styles.cardSubtitle}>Total bill, deposit received, and delivery date</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.pricingRow}>
+            <div className={styles.formRow}>
+              <label className={styles.label}>
+                Total Order Bill ({currencySymbol})
+                {garments.length > 1 && sumOfGarmentPrices > 0 && (
+                  <span className={styles.autoSumTag}>Sum: {currencySymbol}{formatNumber(sumOfGarmentPrices)}</span>
+                )}
+              </label>
+              <div className={styles.inputPrefixWrap}>
+                <span className={styles.currencyPrefix}>{currencySymbol}</span>
+                <input
+                  id="manual-total-bill"
+                  type="text"
+                  inputMode="numeric"
+                  className={styles.input}
+                  placeholder={sumOfGarmentPrices > 0 ? formatNumber(sumOfGarmentPrices) : '0'}
+                  value={manualTotalBill}
+                  onChange={(e) => setManualTotalBill(formatInputWithCommas(e.target.value))}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className={styles.formRow}>
+              <div className={styles.depositLabelRow}>
+                <label className={styles.label}>Deposit Paid ({currencySymbol})</label>
+              </div>
+              <div className={styles.inputPrefixWrap}>
+                <span className={styles.currencyPrefix}>{currencySymbol}</span>
+                <input
+                  id="deposit-paid-input"
+                  type="text"
+                  inputMode="numeric"
+                  className={`${styles.input} ${isDepositExceedingTotal ? styles.inputError : ''}`}
+                  placeholder="0"
+                  value={depositPaid}
+                  onChange={(e) => setDepositPaid(formatInputWithCommas(e.target.value))}
+                />
+              </div>
+              {isDepositExceedingTotal && (
+                <p className={styles.depositError}>
+                  Deposit cannot exceed total bill ({currencySymbol}{formatNumber(numericTotal)})
+                </p>
+              )}
+
+              {/* 1-Tap Deposit Shortcuts */}
+              {numericTotal > 0 && (
+                <div className={styles.depositShortcuts}>
+                  <button
+                    type="button"
+                    className={`${styles.shortcutBtn} ${numericTotal > 0 && numericDeposit === Math.round(numericTotal / 2) ? styles.shortcutBtnActive : ''}`}
+                    onClick={() => handleQuickDeposit('50')}
+                  >
+                    50% ({currencySymbol}{formatNumber(Math.round(numericTotal / 2))})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.shortcutBtn} ${numericTotal > 0 && numericDeposit === numericTotal ? styles.shortcutBtnActive : ''}`}
+                    onClick={() => handleQuickDeposit('full')}
+                  >
+                    Paid in Full ({currencySymbol}{formatNumber(numericTotal)})
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.shortcutBtn} ${numericTotal > 0 && numericDeposit === 0 && depositPaid === '0' ? styles.shortcutBtnActive : ''}`}
+                    onClick={() => handleQuickDeposit('zero')}
+                  >
+                    Zero Deposit
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Real-time Balance Calculation */}
+          <div className={styles.balanceBar}>
+            <span className={styles.balanceLabel}>Remaining Balance Due:</span>
+            <span className={styles.balanceValue}>
+              {currencySymbol}{formatNumber(numericBalance)}
+            </span>
+          </div>
+
+          {/* Delivery Date & Workload Awareness */}
+          <div className={styles.deliverySection}>
+            <label className={styles.label}>Ready Date / Delivery</label>
+            <div className={styles.quickDates}>
+              <button
+                type="button"
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(3) ? styles.quickDateBtnActive : ''}`}
+                onClick={() => setQuickDate(3)}
+              >
+                In 3 Days
+              </button>
+              <button
+                type="button"
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(7) ? styles.quickDateBtnActive : ''}`}
+                onClick={() => setQuickDate(7)}
+              >
+                In 1 Week
+              </button>
+              <button
+                type="button"
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(14) ? styles.quickDateBtnActive : ''}`}
+                onClick={() => setQuickDate(14)}
+              >
+                In 2 Weeks
+              </button>
+              <button
+                type="button"
+                className={`${styles.quickDateBtn} ${dueDate === getDaysFromNow(30) ? styles.quickDateBtnActive : ''}`}
+                onClick={() => setQuickDate(30)}
+              >
+                In 1 Month
+              </button>
+            </div>
+
+            <input
+              id="due-date-input"
+              type="date"
+              className={styles.dateInput}
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              required
+            />
+
+            {/* Workload / Capacity helper indicator */}
+            {dueDate && (
+              <div
+                className={
+                  ordersDueOnDate === 0
+                    ? styles.workloadGood
+                    : ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
+                    ? styles.workloadHeavy
+                    : styles.workloadNormal
+                }
+              >
+                <Symbol
+                  name={
+                    ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
+                      ? 'warning'
+                      : ordersDueOnDate === 0
+                      ? 'check_circle'
+                      : 'schedule'
+                  }
+                  size={16}
+                />
+                <span>
+                  {ordersDueOnDate === 0
+                    ? 'No other orders due on this day (Great date!)'
+                    : `${ordersDueOnDate} active ${ordersDueOnDate === 1 ? 'order' : 'orders'} already due on this day${
+                        ordersDueOnDate >= (currentShop?.dailyCapacity || 5)
+                          ? ` — shop daily capacity (${currentShop?.dailyCapacity || 5}) reached!`
+                          : ''
+                      }`}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Priority & Staff Assignment */}
+          <div className={styles.pricingRow}>
+            <div className={styles.formRow}>
+              <label className={styles.label}>Priority</label>
+              <div className={styles.segmented}>
+                <button
+                  type="button"
+                  className={`${styles.segBtn} ${priority === 'normal' ? styles.segActive : ''}`}
+                  onClick={() => setPriority('normal')}
+                >
+                  Normal
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.segBtn} ${priority === 'urgent' ? styles.segActiveUrgent : ''}`}
+                  onClick={() => setPriority('urgent')}
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                >
+                  <Symbol name="bolt" size={14} />
+                  <span>Urgent / Rush</span>
+                </button>
+              </div>
+            </div>
+
+            {staffMembers.length > 0 && (
+              <div className={styles.formRow}>
+                <label className={styles.label}>Assign to Staff</label>
+                <div className={styles.selectWrapper}>
+                  <select
+                    className={styles.selectInput}
+                    value={assignedStaff}
+                    onChange={(e) => setAssignedStaff(e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {staffMembers.map((s) => (
+                      <option key={s.uid} value={s.uid}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Symbol name="expand_more" size={18} className={styles.selectChevron} />
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ── LUXURY FLOATING DOCK ── */}
+        <div className={styles.floatingDock}>
+          <div className={styles.dockInner}>
+            <div className={styles.dockSummary}>
+              <span className={styles.dockLabel}>
+                {garments.length > 1 ? `${garments.length} Outfits Total` : 'Order Total'}
+              </span>
+              <span className={styles.dockTotal}>
+                {currencySymbol}{formatNumber(numericTotal)}
+              </span>
+            </div>
+            {hasHitOrderLimit ? (
+              <button
+                type="button"
+                className={`${styles.createOrderBtn} ${styles.upgradeCtaBtn}`}
+                onClick={() => router.push(ROUTES.settingsBilling)}
+              >
+                <span>Upgrade</span>
+                <Symbol name="arrow_forward" size={15} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.createOrderBtn}
+                disabled={submitting || isDepositExceedingTotal}
+                onClick={handleCreateOrder}
+              >
+                {submitting ? (
+                  <span>Saving Order…</span>
+                ) : (
+                  <>
+                    <span>
+                      {garments.length > 1
+                        ? `Create ${garments.length} Outfits`
+                        : 'Create Order'}
+                    </span>
+                    <Symbol name="arrow_forward" size={15} />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── ORDER CREATED SUCCESS & WHATSAPP RECEIPT SHEET ── */}
+      <BottomSheet
+        isOpen={receiptSheetOpen}
+        onClose={() => {
+          setReceiptSheetOpen(false);
+          router.replace(ROUTES.production);
+        }}
+        title="Order Receipt"
+      >
+        {completedBatch && selectedCustomer && (
+          <div className={styles.receiptModal}>
+            <div className={styles.successIconWrap}>
+              <Symbol name="verified" size={32} className={styles.successIcon} />
+            </div>
+
+            <h3 className={styles.receiptTitle}>Order Created Successfully</h3>
+            <p className={styles.receiptDesc}>
+              {completedBatch.garments.length > 1
+                ? `${completedBatch.garments.length} outfits for ${selectedCustomer.fullName} have been saved and sent to production.`
+                : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} has been saved and sent to production.`}
+            </p>
+
+            <div className={styles.receiptSummaryCard}>
+              <div className={styles.receiptRow}>
+                <span className={styles.receiptMuted}>Customer</span>
+                <span className={styles.receiptBold}>{selectedCustomer.fullName}</span>
+              </div>
+
+              {completedBatch.garments.length > 1 ? (
+                <div className={styles.receiptGarmentsList}>
+                  <span className={styles.receiptMuted}>Outfits:</span>
+                  {completedBatch.garments.map((g, i) => (
+                    <div key={i} className={styles.receiptGarmentSubRow}>
+                      <span>{i + 1}. {g.styleName}</span>
+                      <span className={styles.receiptBold}>{currencySymbol}{formatNumber(g.price)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.receiptRow}>
+                  <span className={styles.receiptMuted}>Garment</span>
+                  <span className={styles.receiptBold}>{completedBatch.garments[0]?.styleName}</span>
+                </div>
+              )}
+
+              <div className={styles.receiptRow}>
+                <span className={styles.receiptMuted}>Total Bill</span>
+                <span className={styles.receiptBold}>
+                  {currencySymbol}{formatNumber(completedBatch.totalBill)}
+                </span>
+              </div>
+              <div className={styles.receiptRow}>
+                <span className={styles.receiptMuted}>Deposit Paid</span>
+                <span className={styles.receiptBold}>
+                  {currencySymbol}{formatNumber(completedBatch.depositPaid)}
+                </span>
+              </div>
+              <div className={styles.receiptRow}>
+                <span className={styles.receiptMuted}>Balance Due</span>
+                <span className={styles.receiptHighlight}>
+                  {currencySymbol}{formatNumber(completedBatch.balanceDue)}
+                </span>
+              </div>
+              <div className={styles.receiptRow}>
+                <span className={styles.receiptMuted}>Ready By</span>
+                <span className={styles.receiptBold}>
+                  {formatSafeDate(completedBatch.dueDate)}
+                </span>
+              </div>
+            </div>
+
+            {/* 1-Tap WhatsApp Receipt Button */}
+            {selectedCustomer.whatsappNumber ? (
+              <a
+                href={getWhatsAppLink(selectedCustomer.whatsappNumber, getWhatsAppReceiptText())}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.whatsappReceiptBtn}
+              >
+                <WhatsappIcon size={20} />
+                <span>Send Receipt via WhatsApp</span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                className={styles.whatsappReceiptBtn}
+                disabled
+                style={{ opacity: 0.6, cursor: 'not-allowed' }}
+              >
+                <WhatsappIcon size={20} />
+                <span>No WhatsApp on File</span>
+              </button>
+            )}
+
+            {/* Workshop Cutting Slip Action */}
+            <button
+              type="button"
+              className={styles.cuttingSlipBtn}
+              onClick={() => setCuttingSlipOpen(true)}
+            >
+              <Symbol name="content_cut" size={18} />
+              <span>Print / View Cutting Slip</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.viewOrderBtn}
+              onClick={() => {
+                setReceiptSheetOpen(false);
+                router.push(ROUTES.productionOrder(completedBatch.firstOrderId));
+              }}
+            >
+              <Symbol name="visibility" size={18} />
+              <span>View Order #{completedBatch.firstOrderId.slice(-6).toUpperCase()} Details</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.finishBtn}
+              onClick={() => {
+                setReceiptSheetOpen(false);
+                router.replace(ROUTES.production);
+              }}
+            >
+              View Active Orders
+            </button>
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* ── CUTTING SLIP BOTTOMSHEET ── */}
+      <BottomSheet
+        isOpen={cuttingSlipOpen}
+        onClose={() => setCuttingSlipOpen(false)}
+        title="Cutting Slip"
+      >
+        {completedBatch && selectedCustomer && (
+          <div className={styles.cuttingSlipContainer}>
+            <div className={styles.slipActionsRow}>
+              <button
+                type="button"
+                className={styles.slipActionPrimary}
+                onClick={() => window.print()}
+              >
+                <Symbol name="print" size={18} />
+                <span>Print Slip</span>
+              </button>
+              <button
+                type="button"
+                className={styles.slipActionSecondary}
+                onClick={handleCopyCuttingSlip}
+              >
+                <Symbol name="content_copy" size={18} />
+                <span>Copy Text</span>
+              </button>
+            </div>
+
+            <div className={styles.printableSlip} id="cutting-slip-view">
+              <div className={styles.slipHeader}>
+                <div>
+                  <h3 className={styles.slipShopTitle}>{currentShop?.name || 'Tailor Shop'}</h3>
+                  <span className={styles.slipSubtitle}>CUTTING SLIP</span>
+                </div>
+                <div className={styles.slipHeaderBadgeWrap}>
+                  <span className={styles.slipOrderId}>#{completedBatch.firstOrderId.slice(-6).toUpperCase()}</span>
+                  {completedBatch.priority === 'urgent' && (
+                    <span className={styles.slipUrgentBadge} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                      <Symbol name="bolt" size={11} />
+                      <span>URGENT</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.slipClientCard}>
+                <div className={styles.slipInfoRow}>
+                  <span className={styles.slipInfoLabel}>Customer:</span>
+                  <span className={styles.slipInfoValue}>{selectedCustomer.fullName}</span>
+                </div>
+                <div className={styles.slipInfoRow}>
+                  <span className={styles.slipInfoLabel}>WhatsApp:</span>
+                  <span className={styles.slipInfoValue}>{formatPhone(selectedCustomer.whatsappNumber)}</span>
+                </div>
+                <div className={styles.slipInfoRow}>
+                  <span className={styles.slipInfoLabel}>Ready Date:</span>
+                  <span className={styles.slipInfoHighlight}>
+                    {formatSafeDate(completedBatch.dueDate)}
+                  </span>
+                </div>
+              </div>
+
+              {completedBatch.garments.map((g, idx) => {
+                const specPoints = getSpecPointsForStyle(g.styleName);
+                return (
+                  <div key={idx} className={styles.slipGarmentBlock}>
+                    <div className={styles.slipGarmentHeader}>
+                      <span className={styles.slipGarmentName}>
+                        Outfit #{idx + 1}: <strong>{g.styleName}</strong>
+                      </span>
+                      <span className={styles.slipSourceBadge}>
+                        {g.materialSuppliedBy === 'shop' ? 'Shop Fabric' : 'Customer Fabric'}
+                      </span>
+                    </div>
+
+                    {g.fabricNotes && (
+                      <div className={styles.slipFabricNote}>
+                        <strong>Fabric Note:</strong> {g.fabricNotes}
+                      </div>
+                    )}
+
+                    <div className={styles.slipMeasuresTable}>
+                      {specPoints.map((pt) => {
+                        const val = g.measures[pt.key];
+                        if (!val) return null;
+                        return (
+                          <div key={pt.key} className={styles.slipMeasureRow}>
+                            <span className={styles.slipMeasureLabel}>{pt.label}</span>
+                            <span className={styles.slipMeasureValue}>{val}″</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {g.measurementNotes && (
+                      <div className={styles.slipFitNote}>
+                        <strong>Posture & Fit:</strong> {g.measurementNotes}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </BottomSheet>
+    </PageLayout>
+  );
+}

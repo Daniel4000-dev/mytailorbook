@@ -12,10 +12,10 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Avatar from '@/components/ui/Avatar/Avatar';
 import Button from '@/components/ui/Button/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
-import AppearanceToggle from '@/components/ui/AppearanceToggle/AppearanceToggle';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
 import PushNotificationToggle from '../_components/PushNotificationToggle';
+import NotificationPreferencesCard from '../_components/NotificationPreferencesCard';
 import { compressImage } from '@/lib/compressImage';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import { ROUTES } from '@/lib/routes';
@@ -23,7 +23,7 @@ import styles from './page.module.css';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
-  const { user, isOwner, updateAvatar } = useAuth();
+  const { user, isOwner, updateAvatar, logout } = useAuth();
   const { currentShop } = useData();
   const { showToast } = useToast();
   const isDesktop = useIsDesktop();
@@ -63,38 +63,61 @@ export default function AccountSettingsPage() {
   };
 
   return (
-    <PageLayout width="narrow" header={<TopBar title="Your Account" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
-      <div className={styles.identityStrip}>
-        <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
-        <div className={styles.identityText}>
-          <span className={styles.identityName}>{user?.name}</span>
-          <span className={styles.identityRole}>{user?.role} Account</span>
+    <PageLayout width="narrow" header={<TopBar title="Account" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
+      <div className={styles.container}>
+        {/* WhatsApp-Style Identity Group Card */}
+        <div className={styles.groupCard}>
+          <div className={styles.identityRow}>
+            <Avatar name={user?.name || 'Owner'} imageUrl={user?.avatarUrl} size="lg" />
+            <div className={styles.identityText}>
+              <div className={styles.nameRow}>
+                <span className={styles.identityName}>{user?.name}</span>
+                <span className={styles.identityRole}>{user?.role}</span>
+              </div>
+              <span className={styles.identityEmail}>{user?.email}</span>
+            </div>
+          </div>
+
+          {FEATURE_FLAGS.profilePictures && (
+            <div className={styles.avatarActionsRow}>
+              <label className={styles.editPhotoAction}>
+                <input type="file" accept="image/*" hidden onChange={handleUploadAvatar} />
+                <Symbol name={uploadingAvatar ? 'progress_activity' : 'photo_camera'} size={18} />
+                <span>{uploadingAvatar ? 'Uploading…' : user?.avatarUrl ? 'Change Photo' : 'Upload Photo'}</span>
+              </label>
+              {user?.avatarUrl && (
+                <button type="button" className={styles.removePhotoAction} onClick={() => setConfirmRemoveAvatar(true)}>
+                  Remove
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* WhatsApp-Style Settings & Tools Card */}
+        <div className={styles.groupCard}>
+          <div className={styles.rowItemWrap}>
+            <PushNotificationToggle />
+          </div>
+          {FEATURE_FLAGS.dataExport && (
+            <div className={styles.rowItemWrap}>
+              <ExportDataButton shopName={currentShop?.name || 'shop'} />
+            </div>
+          )}
+        </div>
+
+        {/* Noise & Automated Reminder Control */}
+        <div className={styles.groupCard}>
+          <NotificationPreferencesCard />
+        </div>
+
+        {/* WhatsApp-Style Account Management / Danger Zone Card */}
+        <div className={styles.groupCard}>
+          <div className={styles.rowItemWrap}>
+            <AccountDangerZone isOwner={isOwner} onClosingProfile={() => router.push(ROUTES.settings)} />
+          </div>
         </div>
       </div>
-      <p className={styles.readonlyEmail}>{user?.email}</p>
-
-      <div className={styles.groupCard}>
-        <AppearanceToggle />
-      </div>
-
-      <div className={styles.card}>
-        {FEATURE_FLAGS.profilePictures && (
-          <>
-            <label className={styles.uploadBtn}>
-              <input type="file" accept="image/*" hidden onChange={handleUploadAvatar} />
-              <Symbol name={uploadingAvatar ? 'progress_activity' : 'upload'} size={18} />
-              {uploadingAvatar ? 'Uploading…' : user?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
-            </label>
-            {user?.avatarUrl && (
-              <Button variant="danger" onClick={() => setConfirmRemoveAvatar(true)}>Remove Photo</Button>
-            )}
-          </>
-        )}
-        <PushNotificationToggle />
-        {FEATURE_FLAGS.dataExport && <ExportDataButton shopName={currentShop?.name || 'shop'} />}
-      </div>
-
-      <AccountDangerZone isOwner={isOwner} onClosingProfile={() => router.push(ROUTES.settings)} />
 
       <ConfirmDialog
         isOpen={confirmRemoveAvatar}

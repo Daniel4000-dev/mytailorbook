@@ -13,21 +13,40 @@ interface SettingsRowProps {
   onClick: () => void;
   /** Danger-styled label for irreversible/destructive-leaning rows. */
   destructive?: boolean;
+  /** Shows diagonal arrow_outward for links/external sheets (WhatsApp Subscriptions style) */
+  external?: boolean;
 }
 
-/** A single tappable row: icon, label (+ optional subtitle), optional
- *  trailing meta, chevron. The building block for every grouped list in
- *  Settings — reusable rather than one bespoke card per section. */
-export default function SettingsRow({ icon, label, subtitle, meta, onClick, destructive }: SettingsRowProps) {
+/** A single tappable settings row matching Apple iOS / WhatsApp "You" tab standard:
+ *  Crisp monochrome glyph icon, label (+ optional subtitle), optional trailing meta, chevron. */
+export default function SettingsRow({
+  icon,
+  label,
+  subtitle,
+  meta,
+  onClick,
+  destructive,
+  external,
+}: SettingsRowProps) {
   return (
     <button type="button" className={styles.row} onClick={onClick}>
-      <Symbol name={icon} size={20} className={destructive ? styles.iconDanger : styles.icon} />
+      <div className={styles.iconWrap}>
+        <Symbol
+          name={icon}
+          size={21}
+          className={destructive ? styles.iconDanger : styles.iconGlyph}
+        />
+      </div>
       <span className={styles.textCol}>
         <span className={`${styles.label} ${destructive ? styles.labelDanger : ''}`}>{label}</span>
         {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
       </span>
       {meta && <span className={styles.meta}>{meta}</span>}
-      <Symbol name="chevron_right" size={18} className={styles.chevron} />
+      <Symbol
+        name={external ? 'arrow_outward' : 'chevron_right'}
+        size={external ? 18 : 17}
+        className={styles.chevron}
+      />
     </button>
   );
 }

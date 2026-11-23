@@ -1,8 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import MeasureGuide from '@/components/orders/MeasureGuide/MeasureGuide';
+import VoiceTapeHUD from '@/components/orders/VoiceTapeHUD/VoiceTapeHUD';
+import { useVoiceTape } from '@/hooks/useVoiceTape';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import type { StyleMeasureSpec } from '@/lib/constants';
 import type { Measurements } from '@/lib/types';
@@ -54,6 +56,48 @@ export default function StyleMeasureForm({
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const allowedKeys = useMemo(() => spec.points.map((p) => p.key), [spec.points]);
+  const keyLabels = useMemo(() => Object.fromEntries(spec.points.map((p) => [p.key, p.label])), [spec.points]);
+
+  const {
+    isListening,
+    isSupported,
+    toggleListening,
+    lastCapture,
+    undoLastCapture,
+  } = useVoiceTape({
+    allowedKeys,
+    keyLabels,
+    onPointCaptured: (key, val) => {
+      onChange(key, val);
+      onActiveKeyChange?.(key);
+      inputRefs.current[key]?.focus();
+    },
+  });
+
+  const activePointObj = useMemo(() => {
+    if (!activeKey) return null;
+    const pt = spec.points.find((p) => p.key === activeKey);
+    return pt ? { key: pt.key, label: pt.label, value: values[pt.key] || '' } : null;
+  }, [activeKey, spec.points, values]);
+
+  const handleNudge = (delta: number) => {
+    if (!activeKey) return;
+    const currentNum = parseFloat(values[activeKey] || '0') || 0;
+    const nextNum = Math.max(0, currentNum + delta);
+    onChange(activeKey, String(nextNum % 1 === 0 ? nextNum : Number(nextNum.toFixed(2))));
+  };
+
+  const handleNext = () => {
+    if (!activeKey) return;
+    const idx = spec.points.findIndex((p) => p.key === activeKey);
+    const nextPt = spec.points[idx + 1];
+    if (nextPt) {
+      onActiveKeyChange?.(nextPt.key);
+      inputRefs.current[nextPt.key]?.focus();
+    }
+  };
+
   const pickField = (field: { key: string; label: string }) => {
     onAddField?.(field);
     setPickerOpen(false);
@@ -68,6 +112,17 @@ export default function StyleMeasureForm({
 
   return (
     <div className={styles.wrap}>
+      <VoiceTapeHUD
+        isListening={isListening}
+        onToggleListening={toggleListening}
+        lastCapture={lastCapture}
+        onUndoLastCapture={undoLastCapture}
+        activePoint={activePointObj}
+        onNudgeActive={handleNudge}
+        onNextActive={handleNext}
+        isSupported={isSupported}
+      />
+
       {FEATURE_FLAGS.measureGuideDiagram && spec.hasDiagram !== false && (
         <MeasureGuide
           spec={spec}
@@ -101,32 +156,46 @@ export default function StyleMeasureForm({
           const isLocked = lockedKeys?.has(p.key) ?? false;
           return (
             <div key={p.key} className={`${styles.measureCard} ${activeKey === p.key ? styles.measureCardActive : ''} ${isLocked ? styles.measureCardLocked : ''}`}>
-              <div className={styles.measureMain}>
+              <div className={styles.measureInfo}>
                 <label className={styles.measureLabel} htmlFor={`m-${p.key}`}>
-                  {i + 1}. {p.label}
+                  <span className={styles.measureIndex}>{i + 1}</span> {p.label}
                 </label>
-                <span className={styles.measureHint}>{p.hint}</span>
+                {p.hint && <span className={styles.measureHint}>{p.hint}</span>}
+              </div>
+              <div className={styles.measureInputWrap}>
                 <input
                   id={`m-${p.key}`}
                   ref={(el) => { inputRefs.current[p.key] = el; }}
                   className={styles.measureInput}
-                  type="number"
+                  type="text"
                   inputMode="decimal"
-                  placeholder="00.0"
+                  enterKeyHint={i < spec.points.length - 1 ? 'next' : 'done'}
+                  placeholder="0.0"
                   value={values[p.key] || ''}
                   readOnly={isLocked}
                   onFocus={() => onActiveKeyChange?.(p.key)}
                   onChange={(e) => onChange(p.key, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const nextPoint = spec.points[i + 1];
+                      if (nextPoint && inputRefs.current[nextPoint.key]) {
+                        inputRefs.current[nextPoint.key]?.focus();
+                      } else {
+                        inputRefs.current[p.key]?.blur();
+                      }
+                    }
+                  }}
                 />
+                {isLocked && onToggleLock ? (
+                  <label className={styles.lockToggle} title="From body profile — uncheck to edit">
+                    <input type="checkbox" checked={isLocked} onChange={() => onToggleLock(p.key)} />
+                    <Symbol name="lock" size={16} />
+                  </label>
+                ) : (
+                  <span className={styles.unitTag}>IN</span>
+                )}
               </div>
-              {isLocked && onToggleLock ? (
-                <label className={styles.lockToggle} title="From body profile — uncheck to edit">
-                  <input type="checkbox" checked={isLocked} onChange={() => onToggleLock(p.key)} />
-                  <Symbol name="lock" size={16} />
-                </label>
-              ) : (
-                <span className={styles.unitTag}>IN</span>
-              )}
             </div>
           );
         })}

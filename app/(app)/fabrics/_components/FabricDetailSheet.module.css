@@ -3,8 +3,8 @@
 .heroWrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  background: var(--sf-sand);
+  aspect-ratio: 16 / 10;
+  background: #F8FAFC;
   overflow: hidden;
   border-radius: var(--sf-radius-xl) var(--sf-radius-xl) 0 0;
 }
@@ -21,15 +21,73 @@
   gap: var(--sf-space-sm);
   width: 100%;
   height: 100%;
+  padding: var(--sf-space-lg);
+  text-align: center;
+  background: #F8FAFC;
 }
 
 .heroNoPhotoIcon {
-  color: var(--sf-border);
+  color: rgba(0, 0, 0, 0.18);
 }
 
 .heroNoPhotoLabel {
   font-size: var(--sf-text-sm);
   color: var(--sf-text-tertiary);
+  font-weight: var(--sf-weight-medium);
+}
+
+.snapPhotoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+  padding: 9px 18px;
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  cursor: pointer;
+  margin-top: var(--sf-space-xs);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.25);
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.snapPhotoBtn:hover {
+  background: #3730A3;
+}
+
+.snapPhotoBtn:active {
+  transform: scale(0.97);
+}
+
+.replacePhotoBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--sf-glass-bg-dark-pill);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--sf-radius-full);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  cursor: pointer;
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.replacePhotoBtn:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.replacePhotoBtn:active {
+  transform: scale(0.96);
 }
 
 /* Status badge on hero */
@@ -38,39 +96,70 @@
   position: absolute;
   bottom: 12px;
   left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--sf-text-xs);
   font-weight: var(--sf-weight-semibold);
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
   padding: 4px 10px;
   border-radius: var(--sf-radius-full);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .status_Documented {
-  background: rgba(67, 56, 202, 0.75);
-  color: #fff;
+  background: rgba(71, 85, 105, 0.88);
+  color: #FFFFFF;
 }
 
 .status_Cutting {
-  background: rgba(67, 56, 202, 0.80);
-  color: #fff;
+  background: rgba(234, 88, 12, 0.92);
+  color: #FFFFFF;
 }
 
 .status_Sewing {
-  background: rgba(67, 56, 202, 0.85);
-  color: #fff;
+  background: rgba(67, 56, 202, 0.92);
+  color: #FFFFFF;
 }
 
 .status_Ready {
-  background: rgba(67, 56, 202, 0.92);
-  color: #fff;
+  background: rgba(5, 150, 105, 0.92);
+  color: #FFFFFF;
 }
 
+.status_Delivered,
 .status_Completed {
-  background: rgba(27, 27, 34, 0.72);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(51, 65, 85, 0.9);
+  color: #FFFFFF;
+}
+
+/* ── Provenance Banner ───────────────────────── */
+
+.provenanceBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  padding: 10px 14px;
+  border-radius: var(--sf-radius-md);
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  line-height: var(--sf-leading-normal);
+}
+
+.clientBanner {
+  background: rgba(67, 56, 202, 0.06);
+  color: #4338CA;
+  border: 1px solid rgba(67, 56, 202, 0.15);
+}
+
+.shopBanner {
+  background: rgba(5, 150, 105, 0.06);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.15);
 }
 
 /* ── Body ────────────────────────────────────── */
@@ -84,7 +173,113 @@
 
 .divider {
   height: 1px;
-  background: var(--sf-border-light);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Customer & Contact Section ─────────────── */
+
+.customerCard {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 14px 16px;
+  gap: var(--sf-space-sm);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.customerMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-sm);
+}
+
+.customerNameWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-sm);
+  min-width: 0;
+}
+
+.customerName {
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: #1C1A28;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.customerPhoneText {
+  font-size: var(--sf-text-xs);
+  color: var(--sf-text-tertiary);
+  margin-top: 1px;
+}
+
+.contactActionsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+}
+
+.callBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1C1A28;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  white-space: nowrap;
+}
+
+.callBtn:hover {
+  background: #F8FAFC;
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.callBtn:active {
+  transform: scale(0.97);
+}
+
+.whatsappBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--sf-radius-full);
+  background: #25D366;
+  color: #FFFFFF;
+  border: none;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+  transition: opacity var(--sf-transition-fast), transform var(--sf-transition-fast);
+  white-space: nowrap;
+}
+
+.whatsappBtn:hover {
+  opacity: 0.94;
+}
+
+.whatsappBtn:active {
+  transform: scale(0.97);
 }
 
 /* ── Section / Rows ──────────────────────────── */
@@ -110,7 +305,7 @@
 .rowContent {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   flex: 1;
   min-width: 0;
 }
@@ -123,7 +318,7 @@
 
 .rowValue {
   font-size: var(--sf-text-sm);
-  color: var(--sf-text-primary);
+  color: #1C1A28;
   font-weight: var(--sf-weight-medium);
   line-height: var(--sf-leading-normal);
 }
@@ -137,41 +332,631 @@
 }
 
 .priorityValue {
-  color: var(--sf-accent-emerald);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  width: fit-content;
 }
 
-/* ── CTA button ──────────────────────────────── */
+.priorityRush {
+  background: rgba(220, 38, 38, 0.08);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.16);
+}
 
-.openOrderBtn {
+.priorityUrgent {
+  background: rgba(67, 56, 202, 0.08);
+  color: #4338CA;
+  border: 1px solid rgba(67, 56, 202, 0.16);
+}
+
+/* ── Atelier Order Header ── */
+
+.sheetHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--sf-space-xs);
+}
+
+.sheetTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chalkTagBadge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--sf-font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.04em;
+}
+
+:global([data-theme='dark']) .chalkTagBadge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sheetCustomerName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sf-text-primary, #1C1A28);
+}
+
+.rushPill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.rushFlame {
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.rushBolt {
+  background: rgba(67, 56, 202, 0.1);
+  color: var(--sf-brand-indigo, #4338CA);
+  border: 1px solid rgba(67, 56, 202, 0.2);
+}
+
+.sheetMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+  flex-wrap: wrap;
+}
+
+.sheetStyle {
+  font-weight: 500;
+  color: var(--sf-text-primary);
+}
+
+.sheetYardage {
+  font-family: var(--sf-font-mono, monospace);
+  font-weight: 600;
+  color: var(--sf-brand-indigo, #4338CA);
+}
+
+:global([data-theme='dark']) .sheetYardage {
+  color: #818CF8;
+}
+
+.metaDot {
+  color: var(--sf-text-tertiary);
+  font-weight: 700;
+}
+
+.provenancePill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--sf-bg-surface-elevated, #F1F5F9);
+  color: var(--sf-text-secondary);
+  border: 1px solid var(--sf-border-light);
+}
+
+:global([data-theme='dark']) .provenancePill {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--sf-text-secondary);
+}
+
+/* ── Artisan Selector ────────────────────────── */
+
+.artisanHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.artisanChangeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo, #4338CA);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background var(--sf-transition-fast);
+}
+
+.artisanChangeBtn:hover {
+  background: rgba(67, 56, 202, 0.06);
+}
+
+.artisanSelectorWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.artisanStaffChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.staffChip {
+  padding: 4px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--sf-bg-surface-elevated, #F1F5F9);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.staffChip:hover {
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.staffChipActive {
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.customArtisanInputRow {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.artisanInput {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 12px;
+  outline: none;
+}
+
+.artisanInput:focus {
+  border-color: var(--sf-brand-indigo, #4338CA);
+}
+
+.saveArtisanBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--sf-transition-fast);
+}
+
+.saveArtisanBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Workshop Action Buttons ─────────────────── */
+
+.actionsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xs);
+  margin-top: var(--sf-space-xs);
+}
+
+.advanceBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--sf-space-sm);
   width: 100%;
-  padding: 14px var(--sf-space-md);
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
+  padding: 13px var(--sf-space-md);
+  background: var(--sf-stage-cutting, #EA580C);
+  color: #FFFFFF;
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   border-radius: var(--sf-radius-lg);
   border: none;
   cursor: pointer;
-  transition:
-    background var(--sf-transition-fast),
-    transform var(--sf-transition-fast),
-    box-shadow var(--sf-transition-fast);
-  box-shadow: var(--sf-shadow-emerald);
-  margin-top: var(--sf-space-xs);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.28);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
   touch-action: manipulation;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .openOrderBtn:hover {
-    background: var(--sf-accent-emerald-dark);
-    box-shadow: 0 12px 32px rgba(67, 56, 202, 0.3);
-  }
+.advanceBtn:hover {
+  background: #C2410C;
+}
+
+.advanceBtn:active {
+  transform: scale(0.98);
+}
+
+.passToSewingBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  padding: 13px var(--sf-space-md);
+  background: var(--sf-brand-indigo, #4338CA);
+  color: #FFFFFF;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(67, 56, 202, 0.28);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  touch-action: manipulation;
+}
+
+.passToSewingBtn:hover {
+  background: #3730A3;
+}
+
+.passToSewingBtn:active {
+  transform: scale(0.98);
+}
+
+.markReadyBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sf-space-sm);
+  width: 100%;
+  padding: 13px var(--sf-space-md);
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.28);
+  transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
+  touch-action: manipulation;
+}
+
+.markReadyBtn:hover {
+  background: #15803D;
+}
+
+.markReadyBtn:active {
+  transform: scale(0.98);
+}
+
+.sewingInfoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid var(--sf-border-light);
+}
+
+.sewingInfoText {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.4;
+}
+
+:global([data-theme='dark']) .sewingInfoBlock {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.revertBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px var(--sf-space-md);
+  background: transparent;
+  color: var(--sf-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--sf-radius-md);
+  border: 1px dashed var(--sf-border-light);
+  cursor: pointer;
+  transition: background var(--sf-transition-fast), color var(--sf-transition-fast);
+}
+
+.revertBtn:hover {
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  color: var(--sf-text-primary);
+}
+
+.secondaryActionsRow {
+  display: flex;
+  gap: var(--sf-space-xs);
+}
+
+.cuttingSlipBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 12px var(--sf-space-sm);
+  background: #FFFFFF;
+  color: #1C1A28;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.cuttingSlipBtn:hover {
+  background: #F8FAFC;
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.cuttingSlipBtn:active {
+  transform: scale(0.98);
+}
+
+.openOrderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 12px var(--sf-space-sm);
+  background: #FFFFFF;
+  color: #1C1A28;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+}
+
+.openOrderBtn:hover {
+  background: #F8FAFC;
+  border-color: rgba(0, 0, 0, 0.16);
 }
 
 .openOrderBtn:active {
   transform: scale(0.98);
+}
+
+:global([data-theme='dark']) .staffChip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .artisanInput {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .cuttingSlipBtn,
+:global([data-theme='dark']) .openOrderBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .sewingInfoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  border-radius: var(--sf-radius-lg);
+  border: 1px solid var(--sf-border-light);
+}
+
+.sewingInfoText {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.4;
+}
+
+:global([data-theme='dark']) .sewingInfoBlock {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.revertBtn {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:global([data-theme='dark']) .revertBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+}
+
+/* ── Cutting Measurements Section ── */
+.measurementsSection {
+  margin: 16px 0 6px;
+  padding: 12px 14px;
+  border-radius: var(--sf-radius-md, 10px);
+  background: var(--sf-bg-surface-elevated, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
+}
+
+.measurementsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.measurementsTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sf-text-primary);
+}
+
+.measurementsTitle {
+  font-size: 13px;
+  font-weight: var(--sf-weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.customizedBadge {
+  font-size: 10px;
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(79, 70, 229, 0.1);
+  color: #4F46E5;
+}
+
+.standardBadge {
+  font-size: 10px;
+  font-weight: var(--sf-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748B;
+}
+
+.measurementsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 8px;
+}
+
+.measurementCell {
+  padding: 6px 8px;
+  border-radius: var(--sf-radius-sm, 6px);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.measurementLabel {
+  font-size: 10px;
+  font-weight: var(--sf-weight-medium);
+  color: var(--sf-text-secondary);
+  text-transform: capitalize;
+}
+
+.measurementVal {
+  font-size: 14px;
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.noMeasurementsNotice {
+  font-size: 12px;
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+/* ── Quick Machinist Handoff in Cutting stage ── */
+.quickMachinistHandoff {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.handoffLabel {
+  font-size: 11px;
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.machinistChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.machinistChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-full);
+  font-size: 12px;
+  font-weight: var(--sf-weight-medium);
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-text-primary);
+  cursor: pointer;
+  transition: all var(--sf-transition-fast);
+}
+
+.machinistChip:hover {
+  background: var(--sf-bg-sunken);
+  border-color: var(--sf-color-brand-brown);
+}
+
+.machinistChipActive {
+  background: var(--sf-color-brand-brown, #5C3D2E);
+  color: #FFFFFF;
+  border-color: var(--sf-color-brand-brown, #5C3D2E);
+}
+
+:global([data-theme='dark']) .measurementsSection {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .measurementCell {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
 }

@@ -10,6 +10,7 @@
   top: 0;
   z-index: var(--sf-z-sticky);
   width: 100%;
+  background: transparent;
 }
 
 .contentContainer {
@@ -20,19 +21,19 @@
   width: 100%;
 }
 
-/* Mobile padding variations */
+/* Mobile padding variations - modeled identically after Dashboard full-screen width */
 .normal {
-  padding: var(--sf-space-md) 20px;
+  padding: 12px var(--sf-space-sm) var(--sf-space-2xl) var(--sf-space-sm);
 }
 
 .none {
   padding: 0;
 }
 
-/* Desktop layout padding & overrides */
+/* Desktop layout padding & overrides - matches TopBar & Dashboard desktop geometry */
 @media (min-width: 1024px) {
   .normal, .none {
-    padding: var(--sf-space-xl) var(--sf-space-lg);
+    padding: var(--sf-space-lg) var(--sf-space-lg) var(--sf-space-2xl);
     max-width: 100%;
     margin: 0;
   }

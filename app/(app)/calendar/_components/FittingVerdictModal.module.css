@@ -1,0 +1,262 @@
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 12px;
+}
+
+.clientCard {
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-card);
+  border-radius: var(--sf-radius-lg, 16px);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clientDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.clientName {
+  font-family: var(--font-fraunces, Georgia, serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.eventTitle {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.choicesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.choiceCard {
+  background: var(--sf-bg-surface);
+  border: 1.5px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-md, 12px);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.choiceCard:hover {
+  border-color: var(--sf-border-default);
+  background: var(--sf-bg-surface-variant);
+}
+
+.choiceApprovedActive {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: #10B981 !important;
+  box-shadow: 0 0 0 1px #10B981;
+}
+
+.choiceAlterationActive {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: #F59E0B !important;
+  box-shadow: 0 0 0 1px #F59E0B;
+}
+
+.choiceIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sf-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconApproved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.iconAlteration {
+  background: rgba(245, 158, 11, 0.15);
+  color: #D97706;
+}
+
+.choiceTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.choiceDesc {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notesLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-text-tertiary);
+  margin: 0;
+}
+
+.notesLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clearNotesBtn {
+  font-size: 11px;
+  font-weight: 600;
+  color: #DC2626;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.quickChipsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--sf-radius-md, 10px);
+  background: var(--sf-bg-surface-variant, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
+}
+
+.quickChipsHint {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.touchChip {
+  padding: 5px 9px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid var(--sf-border-light);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.touchChip:hover {
+  background: var(--sf-bg-sunken);
+  border-color: #F59E0B;
+  color: #D97706;
+}
+
+.magnitudeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--sf-border-light);
+}
+
+.magLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+}
+
+.magChip {
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-sm, 6px);
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.12);
+  color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.magChip:hover {
+  background: #F59E0B;
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .quickChipsWrapper {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .touchChip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+:global([data-theme='dark']) .magChip {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.notesTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border-radius: var(--sf-radius-md, 10px);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.notesTextarea:focus {
+  outline: none;
+  border-color: var(--sf-primary);
+  box-shadow: 0 0 0 2px rgba(49, 46, 129, 0.15);
+}
+
+.actionButton {
+  width: 100%;
+  margin-top: 4px;
+}
+

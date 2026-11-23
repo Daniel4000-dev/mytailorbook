@@ -1,0 +1,715 @@
+'use client';
+
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { ROUTES } from '@/lib/routes';
+import TopBar from '@/components/layout/TopBar/TopBar';
+import EmptyState from '@/components/ui/EmptyState/EmptyState';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import Button from '@/components/ui/Button/Button';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
+import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
+import Avatar from '@/components/ui/Avatar/Avatar';
+import Skeleton from '@/components/ui/Skeleton/Skeleton';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
+import { StyleCatalogue, StyleCataloguePhoto, Customer } from '@/lib/types';
+import { findByIdOrSlug } from '@/lib/slugs';
+import {
+  getCachedCatalogues,
+  updateCachedCatalogue,
+  removeCachedCatalogue,
+} from '@/lib/catalogueCache';
+import {
+  getCataloguesAction,
+  addCataloguePhotoAction,
+  deleteCataloguePhotoAction,
+  deleteCatalogueAction,
+  updateCatalogueAction,
+} from '@/app/actions/catalogues';
+import { compressImage } from '@/lib/compressImage';
+import { getWhatsAppLink } from '@/lib/formatters';
+import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/contexts/ToastContext';
+import styles from './page.module.css';
+
+function getEstimatedYardage(title?: string): string {
+  if (!title) return '4.0 yds';
+  const lower = title.toLowerCase();
+  if (lower.includes('agbada') || lower.includes('babban riga') || lower.includes('grand')) return '7.0 yds';
+  if (lower.includes('suit') || lower.includes('tuxedo') || lower.includes('blazer')) return '3.5 yds';
+  if (lower.includes('kaftan') || lower.includes('senator')) return '4.0 yds';
+  if (lower.includes('trouser') || lower.includes('pant')) return '2.5 yds';
+  if (lower.includes('shirt') || lower.includes('top')) return '2.0 yds';
+  if (lower.includes('gown') || lower.includes('dress') || lower.includes('bridal')) return '5.0 yds';
+  return '4.0 yds';
+}
+
+export default function CatalogueDetailPage() {
+  const { catalogueId } = useParams() as { catalogueId: string };
+  const { currentShop, customers, orders } = useData();
+  const router = useRouter();
+  const { showToast } = useToast();
+
+  const cachedList = getCachedCatalogues(currentShop?.id);
+  const cachedFound = cachedList ? findByIdOrSlug(cachedList, catalogueId, (c) => c.title) : null;
+
+  const [catalogue, setCatalogue] = useState<StyleCatalogue | null>(cachedFound || null);
+  const [loading, setLoading] = useState(!cachedFound);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
+
+  // Sheets and Dialogs state
+  const [showBroadcast, setShowBroadcast] = useState(false);
+  const [showEditTitle, setShowEditTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(cachedFound?.title || '');
+  const [savingTitle, setSavingTitle] = useState(false);
+
+  const [inspectedPhoto, setInspectedPhoto] = useState<StyleCataloguePhoto | null>(null);
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
+  const [isDeletingAlbum, setIsDeletingAlbum] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/catalogues');
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (currentShop) {
+        try {
+          const res = await getCataloguesAction(currentShop.id);
+          const found = findByIdOrSlug(res, catalogueId, (c) => c.title);
+          if (found) {
+            setCatalogue(found);
+            setEditedTitle(found.title);
+            updateCachedCatalogue(currentShop.id, found);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      setCatalogue(null);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [currentShop, catalogueId]);
+
+  // Smart matching across preferredStyles, custom style measurements, and past order history
+  const matchingCustomers = useMemo(() => {
+    if (!catalogue?.title || !customers || customers.length === 0) return [];
+    const catTitleLower = catalogue.title.toLowerCase().trim();
+    const catWords = catTitleLower.split(/[\s,&/-]+/).filter((w) => w.length > 2);
+
+    const matchesStyle = (styleStr?: string | null) => {
+      if (!styleStr) return false;
+      const sLower = styleStr.toLowerCase().trim();
+      if (catTitleLower.includes(sLower) || sLower.includes(catTitleLower)) return true;
+      return catWords.some((w) => sLower.includes(w));
+    };
+
+    return customers.filter((c) => {
+      if (c.preferredStyles?.some(matchesStyle)) return true;
+      if (c.styleMeasurements && Object.keys(c.styleMeasurements).some(matchesStyle)) return true;
+      if (orders?.some((o) => o.customerId === c.id && matchesStyle(o.styleName))) return true;
+      return false;
+    });
+  }, [catalogue?.title, customers, orders]);
+
+  // Multi-photo batch upload with client-side compression
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0 || !catalogue) return;
+
+    setUploading(true);
+    setUploadProgress({ current: 0, total: files.length });
+
+    if (!currentShop) {
+      showToast('Shop profile not loaded', 'error');
+      setUploading(false);
+      return;
+    }
+
+    if (currentShop.subscriptionStatus === 'free') {
+      showToast('Lookbook photo uploads require an active Premium plan. Upgrade to upload style photos.', 'info');
+      router.push(ROUTES.settingsBilling);
+      setUploading(false);
+      return;
+    }
+
+    if (currentShop.subscriptionStatus === 'paused') {
+      showToast('Your subscription is currently paused. Resume your subscription to upload new style photos.', 'info');
+      router.push(ROUTES.settingsBilling);
+      setUploading(false);
+      return;
+    }
+
+    let successCount = 0;
+    const supabase = createClient();
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setUploadProgress({ current: i + 1, total: files.length });
+      try {
+        const compressed = await compressImage(file, { maxDimension: 1200 });
+        const ext = compressed.name.split('.').pop() || 'jpg';
+        const path = `${currentShop.id}/catalogue_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('portfolio-photos')
+          .upload(path, compressed, { cacheControl: '3600', upsert: false });
+
+        if (uploadError) throw new Error(uploadError.message);
+
+        const url = supabase.storage.from('portfolio-photos').getPublicUrl(path).data.publicUrl;
+        await addCataloguePhotoAction(catalogue.id, url);
+        successCount++;
+      } catch (err: any) {
+        console.error('Error uploading photo:', err);
+      }
+    }
+
+    if (successCount > 0) {
+      showToast(`Added ${successCount} inspiration ${successCount === 1 ? 'look' : 'looks'}!`, 'success');
+      const updated = await getCataloguesAction(currentShop.id);
+      const found = updated.find((c) => c.id === catalogueId) || null;
+      setCatalogue(found);
+      if (found) {
+        updateCachedCatalogue(currentShop.id, found);
+      }
+    } else {
+      showToast('Could not upload photos. Please check your connection.', 'error');
+    }
+
+    setUploading(false);
+    setUploadProgress(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Save renamed album title
+  const handleSaveTitle = async () => {
+    if (!catalogue || !editedTitle.trim()) return;
+    setSavingTitle(true);
+    try {
+      await updateCatalogueAction(catalogue.id, editedTitle.trim());
+      const updated = { ...catalogue, title: editedTitle.trim() };
+      setCatalogue(updated);
+      if (currentShop) {
+        updateCachedCatalogue(currentShop.id, updated);
+      }
+      showToast('Album title updated', 'success');
+      setShowEditTitle(false);
+    } catch (err: any) {
+      showToast(err.message || 'Could not update title', 'error');
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
+  // Delete single photo
+  const confirmDeletePhoto = async () => {
+    if (!photoToDelete || !catalogue) return;
+    setDeleting(true);
+    try {
+      await deleteCataloguePhotoAction(photoToDelete);
+      const updatedPhotos = catalogue.photos?.filter((p) => p.id !== photoToDelete) || [];
+      const updated = { ...catalogue, photos: updatedPhotos };
+      setCatalogue(updated);
+      if (currentShop) {
+        updateCachedCatalogue(currentShop.id, updated);
+      }
+      showToast('Photo removed from album', 'success');
+
+      if (inspectedPhoto?.id === photoToDelete) {
+        setInspectedPhoto(null);
+      }
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setDeleting(false);
+      setPhotoToDelete(null);
+    }
+  };
+
+  // Delete entire album
+  const confirmDeleteAlbum = async () => {
+    if (!catalogue) return;
+    setDeleting(true);
+    try {
+      await deleteCatalogueAction(catalogue.id);
+      if (currentShop) {
+        removeCachedCatalogue(currentShop.id, catalogue.id);
+      }
+      showToast('Album deleted', 'info');
+      handleBack();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+      setDeleting(false);
+      setIsDeletingAlbum(false);
+    }
+  };
+
+  // Direct order intake handoff
+  const handleStartOrderWithPhoto = (photo: StyleCataloguePhoto) => {
+    if (!catalogue) return;
+    const styleQuery = encodeURIComponent(catalogue.title);
+    const photoQuery = encodeURIComponent(photo.imageUrl);
+    router.push(`/orders/new?style=${styleQuery}&styleRef=${photoQuery}`);
+  };
+
+  // Broadcast General WhatsApp message
+  const handleGeneralBroadcast = () => {
+    const slug = currentShop?.slug || 'demo';
+    const shopName = currentShop?.name || 'our shop';
+    const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
+    const text = `Good day! Explore our freshly curated ${catalogue?.title} inspirations from ${shopName}. Let us know which design you love: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    setShowBroadcast(false);
+  };
+
+  // Individual Client WhatsApp Outreach
+  const handleCustomerOutreach = (customer: Customer) => {
+    const slug = currentShop?.slug || 'demo';
+    const url = `${window.location.origin}/catalogue/${slug}?album=${catalogue?.id}`;
+    const message = `Good day ${customer.fullName}! We just updated our catalog with new ${catalogue?.title} designs that match your personal style preferences. Take a look here: ${url}`;
+    const link = getWhatsAppLink(customer.whatsappNumber, message);
+    window.open(link, '_blank');
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <TopBar title="Loading Album..." showBack onBack={() => router.push('/catalogues')} />
+        <div className={styles.content}>
+          <div className={styles.skeletonGrid}>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className={styles.skeletonCard}>
+                <Skeleton width="100%" height="220px" borderRadius="var(--sf-radius-lg)" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!catalogue) {
+    return (
+      <div className={styles.container}>
+        <TopBar title="Album Not Found" showBack onBack={handleBack} />
+        <div className={styles.content}>
+          <EmptyState
+            icon={<Symbol name="photo_library" size={40} />}
+            title="Album Not Found"
+            description="This collection may have been removed or reorganized."
+            action={{ label: 'Return to Lookbooks', onClick: handleBack }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const photos = catalogue.photos || [];
+
+  return (
+    <div className={styles.container}>
+      <TopBar
+        title={catalogue.title}
+        showBack
+        onBack={handleBack}
+        rightAction={
+          <button
+            type="button"
+            className={styles.headerDeleteBtn}
+            onClick={() => setIsDeletingAlbum(true)}
+            title="Delete this album"
+          >
+            <Symbol name="delete" size={18} />
+          </button>
+        }
+      />
+
+      <div className={styles.content}>
+        {/* ── Return Back to Lookbooks Navigation ── */}
+        <button
+          type="button"
+          className={styles.backBreadcrumb}
+          onClick={handleBack}
+          aria-label="Back to Lookbooks"
+        >
+          <Symbol name="arrow_back" size={16} />
+          <span>Back to Lookbooks</span>
+        </button>
+
+        {/* ── Apple Liquid Glass Album Info Card ── */}
+        <div className={styles.albumHeaderCard}>
+          <div className={styles.albumMeta}>
+            <div className={styles.badgeRow}>
+              <span className={styles.albumCountBadge}>
+                <Symbol name="collections" size={14} />
+                <span>{photos.length} {photos.length === 1 ? 'inspiration look' : 'inspiration looks'}</span>
+              </span>
+              <button
+                type="button"
+                className={styles.editTitleBtn}
+                onClick={() => {
+                  setEditedTitle(catalogue.title);
+                  setShowEditTitle(true);
+                }}
+              >
+                <Symbol name="edit" size={13} />
+                <span>Edit Title</span>
+              </button>
+            </div>
+            <p className={styles.albumTip}>
+              Consult with walk-ins on this screen. Tap any photo to inspect or convert directly into a cutting slip.
+            </p>
+          </div>
+
+          <div className={styles.albumActions}>
+            <button
+              type="button"
+              className={styles.broadcastActionBtn}
+              onClick={() => setShowBroadcast(true)}
+            >
+              <Symbol name="campaign" size={18} />
+              <span>Broadcast ({matchingCustomers.length})</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.uploadActionBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <Symbol name="add_a_photo" size={18} />
+              <span>
+                {uploading
+                  ? uploadProgress
+                    ? `Uploading ${uploadProgress.current}/${uploadProgress.total}...`
+                    : 'Uploading...'
+                  : 'Add Photos'}
+              </span>
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              ref={fileInputRef}
+              onChange={handleUpload}
+              style={{ display: 'none' }}
+            />
+          </div>
+        </div>
+
+        {/* ── Editorial Staggered Grid ── */}
+        {photos.length > 0 ? (
+          <div className={styles.masonryGrid}>
+            {photos.map((photo) => (
+              <div
+                key={photo.id}
+                className={styles.photoCard}
+                onClick={() => setInspectedPhoto(photo)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setInspectedPhoto(photo);
+                  }
+                }}
+              >
+                <img
+                  src={photo.imageUrl}
+                  alt={catalogue.title}
+                  decoding="async"
+                  loading="lazy"
+                  className={styles.photoImg}
+                />
+                <div className={styles.photoOverlay}>
+                  <div className={styles.photoActions}>
+                    <button
+                      type="button"
+                      className={styles.quickQuoteBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(photo.imageUrl)}`
+                        );
+                      }}
+                      title="Calculate price quote for this style"
+                      aria-label="Calculate price quote"
+                    >
+                      <Symbol name="calculate" size={14} />
+                      <span className={styles.actionBtnLabel}>Quote</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickOrderBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartOrderWithPhoto(photo);
+                      }}
+                      title="Start order with this style"
+                      aria-label="Sew this style"
+                    >
+                      <Symbol name="content_cut" size={14} />
+                      <span className={styles.actionBtnLabel}>Sew This</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.quickDeleteBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPhotoToDelete(photo.id);
+                      }}
+                      title="Remove photo"
+                      aria-label="Remove photo"
+                    >
+                      <Symbol name="delete" size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyCard}>
+            <EmptyState
+              icon={<Symbol name="add_a_photo" size={44} />}
+              title="No Style Photos in This Album"
+              description="Upload showroom pictures, client fitting samples, or fabric inspiration to build this collection. You can select multiple photos at once."
+              action={{
+                label: 'Add Inspiration Photos',
+                onClick: () => fileInputRef.current?.click(),
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── Photo Inspector BottomSheet ── */}
+      <BottomSheet
+        isOpen={Boolean(inspectedPhoto)}
+        onClose={() => setInspectedPhoto(null)}
+        title={catalogue.title}
+      >
+        {inspectedPhoto && (
+          <div className={styles.inspectBody}>
+            <div className={styles.inspectImgWrap}>
+              <img
+                src={inspectedPhoto.imageUrl}
+                alt={catalogue.title}
+                className={styles.inspectImg}
+              />
+            </div>
+
+            <div className={styles.inspectActions}>
+              <button
+                type="button"
+                className={styles.inspectPrimaryOrderBtn}
+                onClick={() => handleStartOrderWithPhoto(inspectedPhoto)}
+              >
+                <Symbol name="content_cut" size={18} />
+                <span>Start Order With This Style</span>
+              </button>
+
+              <button
+                type="button"
+                className={styles.inspectQuoteBtn}
+                onClick={() => {
+                  router.push(
+                    `/quotes?style=${encodeURIComponent(catalogue.title)}&styleRef=${encodeURIComponent(inspectedPhoto.imageUrl)}`
+                  );
+                }}
+              >
+                <Symbol name="calculate" size={17} />
+                <span>Calculate Quick Quote for This Look</span>
+              </button>
+
+              <div className={styles.inspectSecondaryRow}>
+                <button
+                  type="button"
+                  className={styles.inspectShareBtn}
+                  onClick={() => {
+                    const yardage = getEstimatedYardage(catalogue.title);
+                    const shopName = currentShop?.name || 'our shop';
+                    const text = `Greetings from ${shopName}! Look at this ${catalogue.title} style from our catalog: ${inspectedPhoto.imageUrl}\n\nRecommended fabric needed: ${yardage}. Contact us to tailor yours to your exact measurements!`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                >
+                  <WhatsappIcon size={16} />
+                  <span>Share on WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.inspectDeleteBtn}
+                  onClick={() => setPhotoToDelete(inspectedPhoto.id)}
+                >
+                  <Symbol name="delete" size={15} />
+                  <span>Remove</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* ── Edit Album Title Sheet ── */}
+      <BottomSheet
+        isOpen={showEditTitle}
+        onClose={() => setShowEditTitle(false)}
+        title="Rename Album"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 4px 16px' }}>
+          <div>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', display: 'block', marginBottom: '6px' }}>
+              Album Title
+            </label>
+            <input
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              placeholder="e.g. Royal Agbada Collection"
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                borderRadius: 'var(--sf-radius-md, 10px)',
+                border: '1px solid var(--sf-border-light)',
+                background: 'var(--sf-bg-surface)',
+                color: 'var(--sf-text-primary)',
+                fontSize: '15px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSaveTitle();
+                }
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setShowEditTitle(false)} disabled={savingTitle}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSaveTitle} disabled={savingTitle || !editedTitle.trim()}>
+              {savingTitle ? 'Saving...' : 'Save Title'}
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* ── VIP Client Broadcast Sheet ── */}
+      <BottomSheet
+        isOpen={showBroadcast}
+        onClose={() => setShowBroadcast(false)}
+        title="Broadcast Style Album"
+      >
+        <div className={styles.broadcastBody}>
+          <div className={styles.broadcastHeader}>
+            <div className={styles.broadcastPill}>
+              <Symbol name="person" size={14} />
+              <span>{matchingCustomers.length} Matching VIP Clients</span>
+            </div>
+            <p className={styles.broadcastSubtitle}>
+              Clients whose profile preferences match <strong>{catalogue.title}</strong> styles. Send a personalized preview to generate repeat commissions.
+            </p>
+          </div>
+
+          {matchingCustomers.length > 0 ? (
+            <div className={styles.clientList}>
+              {matchingCustomers.map((cust) => (
+                <div key={cust.id} className={styles.clientRow}>
+                  <div className={styles.clientInfo}>
+                    <Avatar name={cust.fullName} size="sm" />
+                    <div>
+                      <div className={styles.clientName}>{cust.fullName}</div>
+                      <div className={styles.clientPref}>
+                        {cust.preferredStyles?.slice(0, 2).join(', ')}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.clientMessageBtn}
+                    onClick={() => handleCustomerOutreach(cust)}
+                  >
+                    <WhatsappIcon size={14} />
+                    <span>Message</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.noMatchBox}>
+              <p>No client profiles currently have &quot;{catalogue.title}&quot; in their preferred styles list.</p>
+              <p className={styles.noMatchSub}>
+                You can still broadcast the link to all contacts via WhatsApp below.
+              </p>
+            </div>
+          )}
+
+          <div className={styles.broadcastActions}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                setShowBroadcast(false);
+                router.push(`/customers?style=${encodeURIComponent(catalogue.title)}`);
+              }}
+            >
+              <Symbol name="send" size={16} />
+              <span>Open in Clients Outbound Queue</span>
+            </Button>
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={handleGeneralBroadcast}
+            >
+              <Symbol name="campaign" size={16} />
+              <span>Share General Album on WhatsApp</span>
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* ── Confirm Dialogs ── */}
+      <ConfirmDialog
+        isOpen={Boolean(photoToDelete)}
+        onClose={() => setPhotoToDelete(null)}
+        onConfirm={confirmDeletePhoto}
+        title="Remove Photo?"
+        description="This inspiration photo will be removed from this album."
+        confirmLabel="Remove"
+        destructive={true}
+        loading={deleting}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeletingAlbum}
+        onClose={() => setIsDeletingAlbum(false)}
+        onConfirm={confirmDeleteAlbum}
+        title="Delete Entire Album?"
+        description={`Are you sure you want to delete "${catalogue.title}" and its ${photos.length} photos? This cannot be undone.`}
+        confirmLabel="Delete Album"
+        destructive={true}
+        loading={deleting}
+      />
+    </div>
+  );
+}

@@ -1,9 +1,25 @@
 'use client';
 
 import { STATUS_CONFIG } from '@/lib/constants';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import OrderListCard from '../OrderListCard';
 import type { Order, OrderStatus, Role, User } from '@/lib/types';
 import styles from './KanbanColumn.module.css';
+
+function getStageCraftIcon(status: OrderStatus) {
+  switch (status) {
+    case 'Cutting':
+      return 'content_cut';
+    case 'Sewing':
+      return 'needle';
+    case 'Ready':
+      return 'checkroom';
+    case 'Delivered':
+      return 'inventory_2';
+    default:
+      return 'checkroom';
+  }
+}
 
 interface KanbanColumnProps {
   status: OrderStatus;
@@ -23,6 +39,9 @@ interface KanbanColumnProps {
   onDragEnd: () => void;
   onDragOver: (status: OrderStatus) => void;
   onDrop: (status: OrderStatus) => void;
+  onBatchClick?: (batchId: string) => void;
+  onViewCuttingSlip?: (order: Order) => void;
+  onWhatsApp?: (order: Order) => void;
 }
 
 /** One stage as a real Kanban column — desktop only. Cards are dragged
@@ -42,6 +61,9 @@ export default function KanbanColumn({
   onDragEnd,
   onDragOver,
   onDrop,
+  onBatchClick,
+  onViewCuttingSlip,
+  onWhatsApp,
 }: KanbanColumnProps) {
   return (
     <div
@@ -56,12 +78,21 @@ export default function KanbanColumn({
       }}
     >
       <div className={styles.columnHeader}>
-        <h3 className={styles.columnTitle}>{STATUS_CONFIG[status].label}</h3>
+        <div className={styles.columnTitleArea}>
+          <span className={styles.stageDot} data-stage={status} />
+          <h3 className={styles.columnTitle}>{STATUS_CONFIG[status].label}</h3>
+        </div>
         <span className={styles.columnCount}>{totalCount}</span>
       </div>
       <div className={styles.columnBody}>
         {orders.length === 0 ? (
-          <div className={styles.columnEmpty}>Drop an order here</div>
+          <div className={styles.columnEmpty}>
+            <div className={styles.emptyIconBadge}>
+              <Symbol name={getStageCraftIcon(status)} size={18} />
+            </div>
+            <span className={styles.emptyTitle}>No garments</span>
+            <span className={styles.emptyHint}>Drag orders here to move to {STATUS_CONFIG[status].label}</span>
+          </div>
         ) : (
           orders.map((order, i) => (
             <OrderListCard
@@ -72,6 +103,7 @@ export default function KanbanColumn({
               onOpen={() => onOpen(order.id)}
               staffMembers={staffMembers}
               onReassign={onReassign}
+              onBatchClick={onBatchClick}
               hideFooterActions
               draggable
               onDragStart={(e) => {
@@ -79,6 +111,8 @@ export default function KanbanColumn({
                 onDragStart(order.id);
               }}
               onDragEnd={onDragEnd}
+              onViewCuttingSlip={onViewCuttingSlip}
+              onWhatsApp={onWhatsApp}
             />
           ))
         )}

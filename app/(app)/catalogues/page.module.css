@@ -1,0 +1,810 @@
+/* ============================================================
+   Lookbook Hub Dashboard Styles
+   Pinterest Visual Discovery • Apple Atelier Aesthetics
+   Continuous Liquid Glass • Strictly Zero Emojis
+   ============================================================ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--sf-bg-primary);
+  padding-bottom: var(--sf-space-3xl);
+  position: relative;
+}
+
+.content {
+  padding: 12px var(--sf-space-sm) var(--sf-space-2xl) var(--sf-space-sm);
+  max-width: 100%;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-lg);
+}
+
+@media (min-width: 1024px) {
+  .content {
+    padding: var(--sf-space-lg) var(--sf-space-lg) var(--sf-space-2xl);
+  }
+}
+
+/* ── Workshop Hero Liquid Glass Banner (Plane 1 & 2) ── */
+.heroBanner {
+  background: var(--sf-bg-surface);
+  border: 1px solid rgba(67, 56, 202, 0.1);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.98);
+  border-radius: 22px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 10px 28px -4px rgba(67, 56, 202, 0.08),
+    0 20px 40px -10px rgba(15, 23, 42, 0.05);
+}
+
+:global([data-theme='dark']) .heroBanner {
+  border-color: rgba(99, 102, 241, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 12px 32px -4px rgba(0, 0, 0, 0.45);
+}
+
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .heroBanner {
+    background: var(--sf-glass-bg);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  }
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heroBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.heroPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(67, 56, 202, 0.06);
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--sf-brand-indigo);
+}
+
+.heroTitle {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sf-text-primary);
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sf-text-secondary);
+  max-width: 620px;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Plane 3: Signal Button (Luminous Adire Indigo) */
+.primaryCreateBtn {
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
+  border: none;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.5);
+  padding: 10px 22px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-family: var(--sf-font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.38), 0 2px 4px rgba(67, 56, 202, 0.2);
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 44px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primaryCreateBtn:hover {
+    background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+    box-shadow: 0 8px 24px rgba(67, 56, 202, 0.45), 0 3px 6px rgba(67, 56, 202, 0.25);
+    transform: translateY(-1.5px);
+  }
+}
+
+.primaryCreateBtn:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.3);
+}
+
+.secondaryShareBtn {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border: 1px solid rgba(67, 56, 202, 0.1);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  padding: 10px 18px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--sf-font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.18s ease;
+  min-height: 44px;
+}
+
+.secondaryShareBtn:hover {
+  background: var(--sf-bg-surface-hover);
+  border-color: rgba(67, 56, 202, 0.2);
+  transform: translateY(-1px);
+}
+
+.previewBtn {
+  background: rgba(67, 56, 202, 0.04);
+  color: var(--sf-brand-indigo);
+  border: 1px solid rgba(67, 56, 202, 0.12);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  padding: 10px 16px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--sf-font-body), sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  min-height: 44px;
+}
+
+.previewBtn:hover {
+  background: rgba(67, 56, 202, 0.08);
+}
+
+/* ── Apple Segmented Control (Albums vs Feed) ── */
+.segmentedWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.segmentedControl {
+  display: inline-flex;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 4px;
+  border-radius: var(--sf-radius-full);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  gap: 4px;
+}
+
+:global([data-theme='dark']) .segmentedControl {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.segmentBtn {
+  background: transparent;
+  border: none;
+  padding: 7px 18px;
+  border-radius: var(--sf-radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sf-font-body), sans-serif;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.segmentBtn:hover {
+  color: var(--sf-text-primary);
+}
+
+.segmentBtnActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(67, 56, 202, 0.08);
+}
+
+:global([data-theme='dark']) .segmentBtnActive {
+  border-top-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Albums Grid (Plane 2 Tactile Board Cards) ── */
+.albumsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 640px) {
+  .albumsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.albumCard {
+  background: var(--sf-bg-surface);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  box-shadow: 
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 8px 24px -4px rgba(67, 56, 202, 0.06),
+    0 16px 36px -8px rgba(15, 23, 42, 0.04);
+}
+
+:global([data-theme='dark']) .albumCard {
+  border-color: rgba(99, 102, 241, 0.16);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 8px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
+.albumCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 4px 12px rgba(15, 23, 42, 0.06),
+    0 16px 36px -4px rgba(67, 56, 202, 0.16),
+    0 24px 48px -8px rgba(15, 23, 42, 0.08);
+  border-color: rgba(67, 56, 202, 0.2);
+}
+
+.albumCard:active {
+  transform: scale(0.98);
+}
+
+/* Pinterest Board Collage (1 large + 2 stacked small) */
+.albumCollage {
+  width: 100%;
+  aspect-ratio: 4 / 3.8;
+  background: var(--sf-sand);
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.collageMain {
+  flex: 2;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.collageHalf {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: rgba(67, 56, 202, 0.06);
+}
+
+.collageSide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+}
+
+.collageSideThumb {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: rgba(67, 56, 202, 0.06);
+}
+
+.collageImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.albumCard:hover .collageImg {
+  transform: scale(1.03);
+}
+
+.emptyCollage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--sf-text-tertiary);
+  font-size: 12px;
+}
+
+.collageCountBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--sf-glass-bg-dark-pill);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.albumInfo {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.albumHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Extreme Scale Contrast: Large bold style title */
+.albumTitle {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.albumArrow {
+  color: var(--sf-text-tertiary);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.albumCard:hover .albumArrow {
+  transform: translateX(2px);
+  color: var(--sf-brand-indigo);
+}
+
+/* Extreme Scale Contrast: Tiny micro-caps label */
+.albumSub {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sf-text-tertiary);
+}
+
+/* ── Editorial Staggered Grid (Plane 2 Pin Cards) ── */
+.masonryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .masonryGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .masonryGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 330px) {
+  .masonryGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.pinCard {
+  container-type: inline-size;
+  container-name: pincard;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  box-shadow: 
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 6px 20px -4px rgba(67, 56, 202, 0.06);
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+:global([data-theme='dark']) .pinCard {
+  border-color: rgba(99, 102, 241, 0.16);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 6px 20px -4px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 640px) {
+  .pinCard {
+    border-radius: 16px;
+  }
+}
+
+.pinCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 4px 12px rgba(15, 23, 42, 0.06),
+    0 14px 28px -4px rgba(67, 56, 202, 0.14);
+}
+
+.pinImg {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  background: var(--sf-bg-surface-secondary, rgba(67, 56, 202, 0.04));
+}
+
+.pinAlbumBadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-glass-bg-dark-pill);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pinOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(15, 14, 23, 0.88) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.pinCard:hover .pinOverlay,
+.pinCard:focus-within .pinOverlay {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .pinOverlay {
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(15, 14, 23, 0.8) 100%);
+  }
+}
+
+.pinActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.pinBtnLabel {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.pinQuoteBtn {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(15, 14, 23, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.pinQuoteBtn:hover {
+  background: rgba(26, 25, 38, 0.95);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.pinQuoteBtn:active {
+  transform: scale(0.96);
+}
+
+/* Plane 3: Signal Order Button */
+.pinOrderBtn {
+  flex: 1.25;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--sf-radius-full);
+  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pinOrderBtn:hover {
+  background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.5);
+  transform: translateY(-1px);
+}
+
+.pinOrderBtn:active {
+  transform: scale(0.96);
+}
+
+/* Container query: switch to icon-only mode when card is narrow */
+@container pincard (max-width: 200px) {
+  .pinBtnLabel {
+    display: none !important;
+  }
+  .pinQuoteBtn,
+  .pinOrderBtn {
+    padding: 0;
+    gap: 0;
+  }
+}
+
+/* Media query fallback */
+@media (max-width: 520px) {
+  .pinBtnLabel {
+    display: none !important;
+  }
+  .pinQuoteBtn,
+  .pinOrderBtn {
+    padding: 0;
+    gap: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .pinActions {
+    gap: 4px;
+  }
+  .pinQuoteBtn,
+  .pinOrderBtn {
+    height: 30px;
+    padding: 0;
+    gap: 0;
+  }
+}
+
+/* ── Empty State & Quick Start ── */
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.quickStartCard {
+  background: var(--sf-bg-surface);
+  border: 1px dashed rgba(67, 56, 202, 0.25);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px -4px rgba(67, 56, 202, 0.05);
+}
+
+:global([data-theme='dark']) .quickStartCard {
+  border-color: rgba(99, 102, 241, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+}
+
+.quickStartTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quickStartPresets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.presetChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border-light);
+  color: var(--sf-brand-indigo);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.presetChip:hover {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo);
+  transform: translateY(-1px);
+}
+
+/* ── Create Album Sheet ── */
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 0 4px 16px;
+}
+
+.sheetSubtitle {
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
+.titleInput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--sf-radius-md, 10px);
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.titleInput:focus {
+  border-color: var(--sf-brand-indigo);
+}
+
+.presetSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presetLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.presetChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.presetChipActive {
+  background: var(--sf-brand-indigo);
+  color: #FFFFFF;
+  border-color: var(--sf-brand-indigo);
+}
+
+.sheetActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}

@@ -1,0 +1,433 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getFinancialReport, type FinancialReport } from '@/app/actions';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
+import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import PageLayout from '@/components/layout/PageLayout/PageLayout';
+import TopBar from '@/components/layout/TopBar/TopBar';
+import Symbol from '@/components/ui/Symbol/Symbol';
+import { formatCurrency, getShopCurrency } from '@/lib/formatters';
+import { ROUTES } from '@/lib/routes';
+import DonutChart from './_components/DonutChart';
+import TrendChart from './_components/TrendChart';
+import DebtMeter from './_components/DebtMeter';
+import styles from './page.module.css';
+
+type RangeKey = 'month' | '30d' | 'all';
+
+const RANGE_LABELS: Record<RangeKey, string> = {
+  month: 'This Month',
+  '30d': 'Last 30 Days',
+  all: 'All Time',
+};
+
+function fromDateFor(range: RangeKey): string | undefined {
+  const now = new Date();
+  if (range === 'month') {
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  }
+  if (range === '30d') {
+    return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  }
+  return undefined;
+}
+
+const EMPTY_FINANCIAL_TOTALS: FinancialReport['totals'] = {
+  collected: 0,
+  outstanding: 0,
+  revenueWithCostData: 0,
+  costTotal: 0,
+  marginTotal: 0,
+  ordersWithCostCount: 0,
+  totalExpenses: 0,
+  netProfit: 0,
+  expenseBreakdown: [],
+  trendData: [],
+  bespokeRevenue: 0,
+  bespokeCollected: 0,
+  bespokeOutstanding: 0,
+  bespokeOrdersCount: 0,
+  showroomRevenue: 0,
+  showroomCollected: 0,
+  showroomUnitsSold: 0,
+  showroomOrdersCount: 0,
+};
+
+export default function ReportsPage() {
+  const router = useRouter();
+  const isDesktop = useIsDesktop();
+  const { currentShop } = useData();
+
+  const [range, setRange] = useState<RangeKey>('month');
+  const [report, setReport] = useState<FinancialReport | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getFinancialReport(fromDateFor(range))
+      .then((res) => {
+        if (cancelled) return;
+        if (!res || 'error' in res || !res.data) {
+          setReport(null);
+        } else {
+          setReport(res.data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setReport(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [range]);
+
+  const currency = getShopCurrency(currentShop);
+  const totals = report?.totals || EMPTY_FINANCIAL_TOTALS;
+
+  const businessMode =
+    currentShop?.businessMode ||
+    ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
+    'bespoke';
+  const isBespoke = businessMode === 'bespoke';
+  const isRtw = businessMode === 'rtw';
+  const isHybrid = businessMode === 'hybrid';
+
+  const marginPercent =
+    totals.revenueWithCostData > 0
+      ? Math.round((totals.marginTotal / totals.revenueWithCostData) * 100)
+      : null;
+
+  const totalSegregated = (totals.bespokeRevenue || 0) + (totals.showroomRevenue || 0);
+  const bespokeShare = totalSegregated > 0
+    ? Math.round(((totals.bespokeRevenue || 0) / totalSegregated) * 100)
+    : (totals.collected > 0 ? 100 : 0);
+  const showroomShare = totalSegregated > 0 ? 100 - bespokeShare : 0;
+
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.dashboard);
+    }
+  };
+
+  return (
+    <PageLayout
+      width="full"
+      header={
+        <TopBar
+          title="Sales & Reports"
+          showBack={!isDesktop}
+          onBack={handleBack}
+        />
+      }
+    >
+      <div className={styles.container}>
+        {/* Header Bar: Scope and Time Range Filter */}
+        <div className={styles.heroBar}>
+          <div className={styles.introCol}>
+            <h1 className={styles.title}>Shop Profit &amp; Reports</h1>
+            <p className={styles.subtitle}>Track your sales, expenses, profits, and customer balances</p>
+          </div>
+
+          <div className={styles.rangeRow} role="group" aria-label="Time horizon">
+            {(Object.keys(RANGE_LABELS) as RangeKey[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={`${styles.rangeBtn} ${range === key ? styles.rangeBtnActive : ''}`}
+                onClick={() => setRange(key)}
+              >
+                {RANGE_LABELS[key]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 4-Pillar Dominant Metrics */}
+        <div className={styles.metricsGrid}>
+          <div className={styles.metricCard}>
+            <div className={styles.metricHeader}>
+              <span className={styles.metricLabel}>Gross Collected</span>
+              <div className={styles.metricIconWrap}>
+                <Symbol name="payments" size={16} />
+              </div>
+            </div>
+            <span className={styles.metricValue}>{formatCurrency(totals.collected, currency)}</span>
+            <span className={styles.metricSub}>
+              {isRtw
+                ? `${totals.showroomUnitsSold} pieces sold`
+                : `${totals.ordersWithCostCount} costed commissions`}
+            </span>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricHeader}>
+              <span className={styles.metricLabel}>Net Margin</span>
+              <div className={styles.metricIconWrap} style={{ color: 'var(--sf-color-primary, #047857)' }}>
+                <Symbol name="trending_up" size={16} />
+              </div>
+            </div>
+            <span className={styles.metricValue}>
+              {marginPercent !== null ? `${marginPercent}%` : '--'}
+            </span>
+            <span className={styles.metricSub}>Net profit: {formatCurrency(totals.netProfit, currency)}</span>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricHeader}>
+              <span className={styles.metricLabel}>Receivables (Debt)</span>
+              <div className={styles.metricIconWrap} style={{ color: 'var(--sf-warning, #d97706)' }}>
+                <Symbol name="account_balance_wallet" size={16} />
+              </div>
+            </div>
+            <span className={styles.metricValue} style={{ color: totals.outstanding > 0 ? 'var(--sf-warning, #d97706)' : undefined }}>
+              {formatCurrency(totals.outstanding, currency)}
+            </span>
+            <span className={styles.metricSub}>Client balances due</span>
+          </div>
+
+          <div className={styles.metricCard}>
+            <div className={styles.metricHeader}>
+              <span className={styles.metricLabel}>Workshop Outflow</span>
+              <div className={styles.metricIconWrap}>
+                <Symbol name="receipt_long" size={16} />
+              </div>
+            </div>
+            <span className={styles.metricValue}>{formatCurrency(totals.totalExpenses, currency)}</span>
+            <span className={styles.metricSub}>Wages &amp; material cost</span>
+          </div>
+        </div>
+
+        {/* Channel Breakdown: Specific to Business Configuration */}
+        {isHybrid ? (
+          /* Hybrid Configuration: Full Comparison & Segregation */
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="bar_chart" size={18} />
+                Revenue Segregation: Bespoke vs Showroom
+              </span>
+              <span className={styles.metricSub}>
+                {totals.bespokeOrdersCount + totals.showroomOrdersCount} total orders
+              </span>
+            </div>
+
+            {/* Split Ratio Bar */}
+            <div
+              className={styles.channelSplitTrack}
+              role="progressbar"
+              aria-valuenow={bespokeShare}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              title={`Bespoke: ${bespokeShare}% | Showroom: ${showroomShare}%`}
+            >
+              <div className={styles.channelSplitBespoke} style={{ width: `${bespokeShare}%` }} />
+              <div className={styles.channelSplitShowroom} style={{ width: `${showroomShare}%` }} />
+            </div>
+
+            <div className={styles.channelsGrid}>
+              <div className={styles.channelCard}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="straighten" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Bespoke Tailoring</span>
+                  </div>
+                  <span className={styles.channelShareBadge}>{bespokeShare}% of sales</span>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.bespokeRevenue || totals.collected, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>{totals.bespokeOrdersCount} commissions</span>
+                  <span>Collected: {formatCurrency(totals.bespokeCollected || totals.collected, currency)}</span>
+                </div>
+              </div>
+
+              <div className={styles.channelCard}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="checkroom" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Ready-to-Wear Showroom</span>
+                  </div>
+                  <span className={styles.channelShareBadge}>{showroomShare}% of sales</span>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.showroomRevenue, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>{totals.showroomUnitsSold} pieces sold ({totals.showroomOrdersCount} sales)</span>
+                  <span>Collected: {formatCurrency(totals.showroomCollected, currency)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : isRtw ? (
+          /* Pure RTW Configuration: Showroom Inventory & Sales Focus */
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="checkroom" size={18} />
+                Ready-to-Wear Showroom Performance
+              </span>
+              <span className={styles.metricSub}>
+                {totals.showroomUnitsSold} pieces sold across {totals.showroomOrdersCount} checkouts
+              </span>
+            </div>
+
+            <div className={styles.channelsGrid}>
+              <div className={styles.channelCard} style={{ flex: 1 }}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="point_of_sale" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Showroom Gross Revenue</span>
+                  </div>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.showroomRevenue || totals.collected, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>Collected: {formatCurrency(totals.showroomCollected || totals.collected, currency)}</span>
+                  <span>
+                    Avg piece: {totals.showroomUnitsSold > 0 ? formatCurrency(Math.round((totals.showroomRevenue || totals.collected) / totals.showroomUnitsSold), currency) : '--'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Pure Bespoke Configuration: Custom Commissions & Craft Focus */
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="straighten" size={18} />
+                Bespoke Tailoring Performance
+              </span>
+              <span className={styles.metricSub}>
+                {totals.bespokeOrdersCount} tailored client commissions
+              </span>
+            </div>
+
+            <div className={styles.channelsGrid}>
+              <div className={styles.channelCard} style={{ flex: 1 }}>
+                <div className={styles.channelCardHeader}>
+                  <div className={styles.channelTitleWrap}>
+                    <div className={styles.channelIconWrap}>
+                      <Symbol name="content_cut" size={16} />
+                    </div>
+                    <span className={styles.channelTitle}>Custom Commission Value</span>
+                  </div>
+                </div>
+                <span className={styles.channelAmount}>
+                  {formatCurrency(totals.bespokeRevenue || totals.collected, currency)}
+                </span>
+                <div className={styles.channelStatsRow}>
+                  <span>Collected: {formatCurrency(totals.bespokeCollected || totals.collected, currency)}</span>
+                  <span>
+                    Avg ticket: {totals.bespokeOrdersCount > 0 ? formatCurrency(Math.round((totals.bespokeRevenue || totals.collected) / totals.bespokeOrdersCount), currency) : '--'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Collections Pulse & Debt Recovery Ratio */}
+        <div className={styles.panelCard}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>
+              <Symbol name="account_balance" size={18} />
+              Collection vs Outstanding Receivables
+            </span>
+            <button
+              type="button"
+              className={styles.rangeBtn}
+              onClick={() => router.push(ROUTES.collections)}
+              style={{ fontSize: '12px', padding: '4px 10px', border: '1px solid var(--sf-border-light)' }}
+            >
+              Open Collections
+            </button>
+          </div>
+          <DebtMeter
+            collected={totals.collected}
+            outstanding={totals.outstanding}
+            currency={currency}
+          />
+        </div>
+
+        {/* Revenue & Expenses Trajectory Trend */}
+        <div className={styles.panelCard}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>
+              <Symbol name="trending_up" size={18} />
+              Revenue vs Expense Trajectory
+            </span>
+          </div>
+          <TrendChart data={totals.trendData} />
+        </div>
+
+        {/* Most Profitable Signature Silhouette */}
+        {totals.mostProfitableStyle && (
+          <div className={styles.panelCard}>
+            <div className={styles.panelHeader}>
+              <span className={styles.panelTitle}>
+                <Symbol name="star" size={18} />
+                Most Profitable Signature Silhouette
+              </span>
+              <span className={styles.profitableBadge}>Highest Margin</span>
+            </div>
+            <div className={styles.profitableCutWrap}>
+              <div className={styles.cutInfo}>
+                <span className={styles.cutName}>{totals.mostProfitableStyle.styleName}</span>
+                <span className={styles.cutCount}>{totals.mostProfitableStyle.count} commissions tailored</span>
+              </div>
+              <div className={styles.cutProfitWrap}>
+                <span className={styles.cutProfitVal}>
+                  +{formatCurrency(totals.mostProfitableStyle.profit, currency)}
+                </span>
+                <span className={styles.cutProfitLabel}>Net Workshop Margin</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expense Breakdown Allocation */}
+        <div className={styles.panelCard}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>
+              <Symbol name="monitoring" size={18} />
+              Workshop Expense Allocation
+            </span>
+          </div>
+          <DonutChart data={totals.expenseBreakdown} />
+        </div>
+
+        {/* Workshop Operational Expenses Ledger */}
+        <div className={styles.panelCard}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>
+              <Symbol name="receipt_long" size={18} />
+              Operational Outflow Categories
+            </span>
+          </div>
+          <div className={styles.expenseList}>
+            {totals.expenseBreakdown.map((exp) => (
+              <div key={exp.label} className={styles.expenseRow}>
+                <span className={styles.expenseName}>{exp.label}</span>
+                <span className={styles.expenseAmount}>{formatCurrency(exp.value, currency)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </PageLayout>
+  );
+}

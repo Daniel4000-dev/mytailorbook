@@ -64,6 +64,9 @@
  * the APP_PREFIXES redirect (auth pages are the example of that).
  */
 
+import { toCustomerSlug, toOrderSlug, toCatalogueSlug } from './slugs';
+import type { Customer, Order, StyleCatalogue } from './types';
+
 export const ROUTES = {
   // ---- Marketing / public (bare domain) ----
   home: '/',
@@ -91,8 +94,9 @@ export const ROUTES = {
   // ---- Authenticated app (app.<domain>) ----
   dashboard: '/dashboard',
   customers: '/customers',
-  customerNew: '/customers/new',
-  customerDetail: (id: string) => `/customers/${id}`,
+  customerNew: '/customers',
+  customerDetail: (customerOrId: string | (Pick<Customer, 'id'> & { fullName?: string | null })) =>
+    `/customers/${toCustomerSlug(customerOrId)}`,
   orderNew: '/orders/new',
   orderNewForCustomer: (customerId: string) => `/orders/new?customer=${customerId}`,
   /** No bare /orders page exists — this is a prefix-only entry (used by
@@ -100,7 +104,19 @@ export const ROUTES = {
    *  grouped as one auth/domain rule in proxy.ts. */
   ordersPrefix: '/orders',
   production: '/production',
-  productionOrder: (orderId: string) => `/production/${orderId}`,
+  productionOrder: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => `/production/${toOrderSlug(orderOrId)}`,
+  catalogues: '/catalogues',
+  catalogueDetail: (catalogueOrId: string | (Pick<StyleCatalogue, 'id'> & { title?: string | null })) =>
+    `/catalogues/${toCatalogueSlug(catalogueOrId)}`,
+  circle: '/circle',
   /** Was missing from every classification list below until this refactor
    *  found it (proxy.ts's default-protect-everything-not-public behavior
    *  meant it was still auth-gated, but it stayed on the marketing domain
@@ -108,7 +124,15 @@ export const ROUTES = {
    *  robots.ts never knew it existed). Exactly the class of bug this file
    *  exists to prevent — see the blast-radius notes at the top. */
   fabrics: '/fabrics',
+  collections: '/collections',
+  inventory: '/inventory',
+  quotes: '/quotes',
+  stock: '/stock', // New RTW Stock / POS route
+  reports: '/reports', // Standalone Financial Intelligence & Margin Telemetry
+  reconciliation: '/reconciliation',
+  notes: '/notes',
   calendar: '/calendar',
+  calendarWithFilter: (filter: string) => `/calendar?filter=${filter}`,
   onboarding: '/onboarding',
   notifications: '/notifications',
   styles: '/styles',
@@ -132,10 +156,28 @@ export const ROUTES = {
   // ---- Internal admin (app.<domain>, platform-admin only — see
   //      lib/admin/requireAdmin.ts; not a shop-tenant route) ----
   admin: '/admin',
+  adminBroadcasts: '/admin/broadcasts',
+  adminSettings: '/admin/settings',
 
   // ---- Public-by-link (bare domain, not indexed) ----
-  track: (orderId: string) => `/track/${orderId}`,
-  receipt: (orderId: string) => `/receipt/${orderId}`,
+  track: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => `/track/${toOrderSlug(orderOrId, { publicToken: true })}`,
+  receipt: (
+    orderOrId:
+      | string
+      | (Pick<Order, 'id'> & {
+          customerName?: string | null;
+          styleName?: string | null;
+          orderDetails?: string | null;
+        })
+  ) => `/receipt/${toOrderSlug(orderOrId, { publicToken: true })}`,
 
   // ---- Public tenant content (bare domain, indexed) ----
   studio: (slug: string) => `/studio/${slug}`,
@@ -184,7 +226,7 @@ export function isPublicPath(pathname: string) {
  *  what lives at app.<domain> once the two are split by hostname. Auth
  *  pages count as app-side even though they're unauthenticated, since
  *  they're part of getting into the app, not marketing content. */
-export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.calendar, ROUTES.admin, '/auth'];
+export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.collections, ROUTES.inventory, ROUTES.quotes, ROUTES.stock, ROUTES.reports, ROUTES.reconciliation, ROUTES.notes, ROUTES.calendar, ROUTES.circle, ROUTES.admin, '/auth'];
 
 export function isAppPath(pathname: string) {
   if ((AUTH_PAGES as readonly string[]).includes(pathname)) return true;
@@ -212,7 +254,15 @@ export const SEARCH_DISALLOW = [
   ROUTES.notifications,
   ROUTES.onboarding,
   ROUTES.fabrics,
+  ROUTES.collections,
+  ROUTES.inventory,
+  ROUTES.quotes,
+  ROUTES.stock,
+  ROUTES.reports,
+  ROUTES.reconciliation,
+  ROUTES.notes,
   ROUTES.calendar,
+  ROUTES.circle,
   ROUTES.admin,
   ROUTES.login,
   ROUTES.signup,

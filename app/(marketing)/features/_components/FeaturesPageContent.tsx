@@ -11,66 +11,94 @@ import styles from './FeaturesPageContent.module.css';
 const FEATURES = [
   {
     icon: 'view_kanban',
-    kicker: 'Workflow',
-    title: 'A production board built for tailoring',
-    text: 'Move every order through your own stages — Documented, Cutting, Sewing, Ready, Delivered — and see exactly where each garment stands at a glance. Nothing slips through the cracks when your whole workshop is visualized in one board.',
-    bullets: ['Customizable stages', 'Deadline tracking', 'Priority flags for rush orders'],
+    kicker: 'The Cutting Table Transformation',
+    title: 'Stop fabric mix-ups, ruined lace, and apprentice cutting mistakes',
+    text: 'The minute a customer delivers their fabric, snap a photo and record yardage, fabric type (cashmere, jacquard, aso-oke, silk, lace), and design notes. Generate a clean digital cutting slip for your cutters so apprentices know the exact styling details, necklines, and pocket depths without guessing or cutting the wrong side of the cloth.',
+    bullets: [
+      'Fabric intake photo archive with yardage, bolt notes, and client tags',
+      'Apprentice-proof cutting slips with exact allowances & styling sketches',
+      'Clear status stages: Documented → Cutting → Sewing → Fitting → Ready',
+    ],
     image: '/images/marketing/sewing-machine-hands.jpg',
     premium: false,
   },
   {
     icon: 'straighten',
-    kicker: 'Management',
-    title: 'Digital client profiles, done properly',
-    text: 'Full measurement sets, preferred styles, and fabric notes for every customer — searchable, organized, and shared with your team. Unlimited customers, forever, on every plan.',
-    bullets: ['Unlimited customer records', 'Per-style measurement templates', 'Order history at a glance'],
+    kicker: 'Measurement Vault & Anatomy Science',
+    title: 'Permanent anatomical records that never get lost, torn, or misplaced',
+    text: 'Paper notebooks get misread, torn, or misplaced when you travel. Store complete anatomical measurements for Senator wear, 3-Piece Agbada, Kaftan, Corsets, and Bridal wear. Track posture nuances (sloping shoulder, prominent stomach, swayback) and compare past measurements side-by-side to guarantee returning clients an effortless, perfect fit.',
+    bullets: [
+      '30+ precision anatomical landmarks + custom bespoke templates (Senator, Agbada, Kaftan, Bridal)',
+      'Posture, body slope, and fitting nuance notes permanently attached to client records',
+      'Compare past vs. new measurements side-by-side across visits',
+    ],
     image: '/images/marketing/measuring-hands.jpg',
     premium: false,
   },
   {
-    icon: 'checkroom',
-    kicker: 'Customization',
-    title: 'Custom styles that match how you actually work',
-    text: 'Set up your own style templates — Agbada, Kaftan, Senator, or anything you design — with the exact measurement fields each one needs. Unlimited, free, forever.',
-    bullets: ['Unlimited custom styles', 'Per-style measurement fields', 'Reused instantly on new orders'],
-    image: '/images/marketing/home-final-cta-stitching.jpg',
-    premium: false,
-  },
-  {
-    icon: 'share',
-    kicker: 'Customer Experience',
-    title: 'A tracking link your customers actually want',
-    text: 'Send a link over WhatsApp and let your customer follow their order as a photo timeline — no login, no app to download, no more "any update?" texts interrupting your day.',
-    bullets: ['Public, no-login tracking page', 'Photo updates at every stage', 'You control what gets shared'],
+    icon: 'straighten',
+    kicker: 'Fitting Session & Alteration Mastery',
+    title: 'Turn tense fitting sessions into confident, flawless second-try perfection',
+    text: 'Schedule try-on sessions directly in your shop calendar. During the fitting, record verdicts (Perfect Fit, Minor Adjustment, Rework) with exact chalk-line reference photos and seamstress instructions. Never repeat the same alteration twice.',
+    bullets: [
+      'Fitting appointment calendar with automatic client WhatsApp reminders',
+      'Visual alteration logs with photo annotations and seam adjustments',
+      'Fitting history records so every subsequent outfit fits even better',
+    ],
     image: '/images/marketing/features-tracking-link.jpg',
     premium: false,
   },
   {
-    icon: 'photo_library',
-    kicker: 'Showcase',
-    title: 'A public portfolio, generated automatically',
-    text: 'Every shop gets a free public portfolio page built from your finished work — no separate website needed. Choose from three templates: Modern, Editorial, or Heritage.',
-    bullets: ['Three template styles to choose from', 'Auto-updates from your finished orders', 'Shareable link for social/WhatsApp'],
-    image: '/images/marketing/atelier-review.jpg',
+    icon: 'share',
+    kicker: 'Client Experience & Digital Prestige',
+    title: 'End repetitive "is it ready?" phone calls while commanding luxury respect',
+    text: 'Delight clients with a private, no-login WhatsApp link where their outfit\'s story unfolds. When their Agbada or evening gown is pressed, they see a live photo update of their finished piece. Plus, share your seasonal catalogues and public lookbook to attract high-paying clients.',
+    bullets: [
+      'Zero-friction live web link (no app download or login required for clients)',
+      'Automated progress photos (Cutting, Assembling, Hand-beading, Final Pressing)',
+      'Digital lookbooks and curated seasonal catalogues ready to share on WhatsApp',
+    ],
+    image: '/images/marketing/hands-dark-fabric.jpg',
     premium: false,
   },
   {
     icon: 'receipt_long',
-    kicker: 'Paperwork',
-    title: 'Receipts and invoices, without the spreadsheet',
-    text: "Generate a clean, professional receipt or invoice the moment payment comes in — unlimited, on every plan. It's part of running your business properly, not something we hold back for later.",
-    bullets: ['Unlimited receipts & invoices', 'Deposit and balance tracking', 'Shareable link for your customer'],
+    kicker: 'Financial Clarity & Debt Recovery',
+    title: 'Collect every naira you earned without begging, chasing, or awkwardness',
+    text: 'See every single outstanding balance across your entire workshop in one calm Debtors Ledger. Issue formal digital quotes, send instant PDF e-Receipts, and send courteous one-tap WhatsApp payment reminders formatted with your shop\'s bank account details.',
+    bullets: [
+      'Dedicated Debtors Ledger showing exact deposits vs. balances due across all orders',
+      'Courteous, one-tap WhatsApp payment reminders formatted with your bank account',
+      'Instant digital e-Receipts & professional branded quotes',
+    ],
     image: '/images/marketing/tablet-indigo-fabric.jpg',
     premium: false,
   },
   {
     icon: 'group',
-    kicker: 'Growing Teams',
-    title: 'Staff accounts, when your team grows',
-    text: "Bring on team members with their own logins, track who's handling each order, and keep everyone working from the same production board. This is where a shop that's genuinely grown pays for the software that got it there.",
-    bullets: ['Individual staff logins', 'Role-based access (Staff, Branch Manager, Accountant)', 'Full activity visibility'],
+    kicker: 'Team Delegation & Trade Secret Protection',
+    title: 'Empower your cutters and tailors without exposing client contacts or revenue',
+    text: 'Protect your hard-earned client list and financial privacy. Give Cutters, Tailors, and Beaders access to only the cutting slips and garment photos they need to work. Keep client phone numbers and revenue ledgers strictly restricted to you and your branch manager.',
+    bullets: [
+      'Role-based permissions (Cutter, Tailor, Beader, QC, Manager, Accountant)',
+      'Client contact numbers and revenue masked from workshop floor staff',
+      'Multi-branch switcher with full activity audit trails across all locations',
+    ],
     image: '/images/marketing/features-staff-team.jpg',
     premium: true,
+  },
+  {
+    icon: 'storefront',
+    kicker: 'Showroom & Retail Inventory',
+    title: 'Sell ready-to-wear racks alongside custom bespoke orders',
+    text: 'Expand your business beyond custom bespoke orders. Track ready-to-wear inventory across rack sizes (XS to 3XL), monitor low-stock thresholds, and ring up walk-in sales at the counter with instant discounts and WhatsApp receipts.',
+    bullets: [
+      'Multi-size inventory matrix (XS–3XL) with rack location tags',
+      'Counter POS checkout with instant discounts and customer attribution',
+      'Automatic low-stock warnings before popular styles run out',
+    ],
+    image: '/images/marketing/home-final-cta-stitching.jpg',
+    premium: false,
   },
 ];
 
@@ -88,10 +116,10 @@ export default function FeaturesPageContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className={styles.heroEyebrow}>Everything in one place</span>
-          <h1 className={styles.heroHeadline}>Master every stitch. Command your studio.</h1>
+          <span className={styles.heroEyebrow}>The Complete Workshop Transformation</span>
+          <h1 className={styles.heroHeadline}>Your craft creates beauty. Now your shop runs with calm, undeniable control.</h1>
           <p className={styles.heroSubhead}>
-            From the first measurement to the final delivery — and everything your customer sees along the way.
+            See how every frustrating bottleneck in your workshop — mixed-up fabrics, lost measurements, apprentice mistakes, and awkward debt calls — turns into a smooth, dignified workflow.
           </p>
         </motion.div>
       </section>
@@ -130,17 +158,17 @@ export default function FeaturesPageContent() {
         <Image src="/images/marketing/tablet-indigo-fabric.jpg" alt="" fill sizes="100vw" className={styles.finalCtaBg} />
         <div className={styles.finalCtaScrim} />
         <motion.div className={styles.finalCtaInner} {...reveal()}>
-          <h2 className={styles.finalCtaTitle}>See what fits your shop.</h2>
+          <h2 className={styles.finalCtaTitle}>Your craft is ready for this level of calm and control.</h2>
           <p className={styles.finalCtaBody}>
-            Every feature above except staff accounts is free, forever, with no card required to start.
+            Every bespoke tool above is free forever for solo tailors. No debit card required, no trial expiration, and works 100% offline.
           </p>
           <div className={styles.finalCtaActions}>
             <Link href={ROUTES.signup} className={styles.ctaPrimary}>
-              Start Free — No Card Required
+              Start Free — No Card Needed
               <Symbol name="arrow_forward" size={18} />
             </Link>
             <Link href={ROUTES.pricing} className={styles.ctaSecondary}>
-              Compare Plans
+              Compare Plans &amp; Pricing
             </Link>
           </div>
         </motion.div>

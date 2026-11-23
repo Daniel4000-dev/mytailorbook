@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import { getPublicOrderView } from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { STATUS_CONFIG } from '@/lib/constants';
-import { formatCurrency, formatPhone } from '@/lib/formatters';
+import { formatCurrency, formatPhone, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
 import ReceiptActions from './_components/ReceiptActions';
 import styles from './page.module.css';
 
@@ -20,8 +23,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
     return (
       <div className={styles.page}>
         <div className={styles.card}>
-          <h2>Receipt Not Found</h2>
-          <p>This order could not be located.</p>
+          <div className={styles.cardInner} style={{ textAlign: 'center' }}>
+            <h2>Receipt Not Found</h2>
+            <p style={{ marginTop: '8px', color: 'var(--receipt-muted)' }}>
+              This order receipt could not be located. Please check the link or contact your tailor.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -29,11 +36,28 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
   const { order, customer, shop } = view;
   const balanceOwed = getBalanceOwed(order);
-  const issuedDate = new Date().toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
+  const issuedDate = new Date(order.createdAt || Date.now()).toLocaleDateString('en-NG', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const clientStageLabel =
+    {
+      Documented: 'Order Confirmed',
+      Cutting: 'Fabric & Cutting',
+      Sewing: 'Tailoring & Stitching',
+      Ready: 'Ready for Collection',
+      Delivered: 'Completed & Received',
+    }[order.status] || STATUS_CONFIG[order.status]?.label || order.status;
 
   return (
     <div className={styles.page}>
-      <div className={styles.actionsBar}>
+      <div className={`${styles.actionsBar} noPrint`}>
+        <Link href={ROUTES.track(order)} className={styles.trackPill}>
+          <Symbol name="visibility" size={16} />
+          <span>Track Garment</span>
+        </Link>
         <ReceiptActions fileName={`receipt-${order.id.slice(-8).toUpperCase()}`} />
       </div>
 
@@ -68,7 +92,12 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
           <section className={styles.billTo}>
             <span className={styles.sectionLabel}>Billed To</span>
             <span className={styles.customerName}>{order.customerName}</span>
-            {customer && <span className={styles.customerPhone}>{formatPhone(customer.whatsappNumber)}</span>}
+            {customer &&
+              customer.whatsappNumber &&
+              !customer.whatsappNumber.startsWith('000000000') &&
+              !customer.whatsappNumber.startsWith('23400') && (
+                <span className={styles.customerPhone}>{formatPhone(customer.whatsappNumber)}</span>
+              )}
           </section>
 
           <div className={styles.dividerDashed} />
@@ -80,7 +109,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
                 <tr>
                   <td className={styles.lineItemDesc}>
                     {order.orderDetails}
-                    <span className={styles.lineItemMeta}>{STATUS_CONFIG[order.status].label}</span>
+                    <span className={styles.lineItemMeta}>{clientStageLabel}</span>
                   </td>
                   <td className={styles.amountCol}>{formatCurrency(order.totalBill, shop?.currency)}</td>
                 </tr>
@@ -136,6 +165,21 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderI
 
           <footer className={styles.footer}>
             <p>Thank you for choosing {shop?.name || APP_CONFIG.name}.</p>
+            {shop?.phone && (
+              <p className={styles.atelierContact}>
+                <a
+                  href={getWhatsAppLink(
+                    shop.phone,
+                    `Hello ${shop.name || APP_CONFIG.name}, I have a question regarding my receipt for order #${order.id.slice(-8).toUpperCase()}.`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.waLink}
+                >
+                  <Symbol name="chat" size={14} /> Contact Tailor on WhatsApp
+                </a>
+              </p>
+            )}
             <p className={styles.poweredBy}>Powered by {APP_CONFIG.name}</p>
           </footer>
         </div>

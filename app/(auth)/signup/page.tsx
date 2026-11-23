@@ -35,6 +35,14 @@ export default function SignupPage() {
   const emailWatcher = watch('email');
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) {
+        document.cookie = `mtb_ref_code=${encodeURIComponent(ref.trim().toUpperCase())}; path=/; max-age=${30 * 24 * 3600}; SameSite=Lax`;
+      }
+    }
+
     const handleFocus = () => {
       setGoogleLoading(false);
     };
@@ -211,7 +219,7 @@ export default function SignupPage() {
         </button>
 
         <p className={styles.agreeRow}>
-          By signing up, you agree to our{' '}
+          By signing up, you confirm you are at least 18 years old and agree to our{' '}
           <Link href={ROUTES.terms} target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
           and{' '}
           <Link href={ROUTES.privacy} target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.

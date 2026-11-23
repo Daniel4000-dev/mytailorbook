@@ -1,8 +1,8 @@
-import Link from 'next/link';
+import { useState } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { formatPhone } from '@/lib/formatters';
-import { ROUTES } from '@/lib/routes';
 import type { Customer } from '@/lib/types';
+import AddCustomerSheet from '@/app/(app)/customers/_components/AddCustomerSheet';
 import styles from '../page.module.css';
 
 interface CustomerStepProps {
@@ -14,6 +14,8 @@ interface CustomerStepProps {
 }
 
 export default function CustomerStep({ customerQuery, onQueryChange, filteredCustomers, isLoaded, onSelect }: CustomerStepProps) {
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+
   return (
     <div className={styles.col}>
       <div className={styles.searchWrap}>
@@ -50,9 +52,19 @@ export default function CustomerStep({ customerQuery, onQueryChange, filteredCus
           <p className={styles.emptyNote}>No client matches “{customerQuery}”.</p>
         )}
       </div>
-      <Link href={ROUTES.customerNew} className={styles.newClientLink}>
+      <button
+        type="button"
+        onClick={() => setIsAddSheetOpen(true)}
+        className={styles.newClientLink}
+      >
         <Symbol name="person_add" size={20} /> Walk-in? Register a new client
-      </Link>
+      </button>
+
+      <AddCustomerSheet
+        isOpen={isAddSheetOpen}
+        onClose={() => setIsAddSheetOpen(false)}
+        onCustomerCreated={(newClient) => onSelect(newClient)}
+      />
     </div>
   );
 }

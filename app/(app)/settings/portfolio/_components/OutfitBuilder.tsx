@@ -5,6 +5,7 @@ import Image from 'next/image';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Input from '@/components/ui/Input/Input';
 import TextArea from '@/components/ui/TextArea/TextArea';
+import Symbol from '@/components/ui/Symbol/Symbol';
 import { useToast } from '@/contexts/ToastContext';
 import {
   createOutfitAction,
@@ -156,7 +157,11 @@ export default function OutfitBuilder({ isOpen, onClose, shopId, pool, editingOu
                     onClick={() => toggleDisplay(p.id)}
                   >
                     <Image src={p.imageUrl} alt="" fill sizes="120px" />
-                    {selected && <span className={styles.checkBadge}>✓</span>}
+                    {selected && (
+                      <span className={styles.checkBadge}>
+                        <Symbol name="check" size={12} />
+                      </span>
+                    )}
                   </button>
                   {selected && (
                     <select
@@ -201,7 +206,11 @@ export default function OutfitBuilder({ isOpen, onClose, shopId, pool, editingOu
                     onClick={() => toggleStory(p.id)}
                   >
                     <Image src={p.imageUrl} alt="" fill sizes="120px" />
-                    {selected && <span className={styles.checkBadge}>✓</span>}
+                    {selected && (
+                      <span className={styles.checkBadge}>
+                        <Symbol name="check" size={12} />
+                      </span>
+                    )}
                   </button>
                 );
               })}

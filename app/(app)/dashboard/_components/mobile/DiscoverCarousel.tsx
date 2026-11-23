@@ -1,20 +1,32 @@
 'use client';
 
-import { useState, type UIEvent } from 'react';
+import { useState, useRef, type UIEvent } from 'react';
+import { useData } from '@/contexts/DataContext';
 import Image from 'next/image';
 import { DISCOVER_CARDS } from '../discoverCards';
 import styles from '../../page.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
 
 // ============================================================
-// Discover Carousel — a swipeable pointer to features that add real
-// value but aren't sitting on the bottom nav (public tracking, the
-// portfolio link, WhatsApp wording, the style measurement guides).
-// Each card's CTA lands on the exact screen that does the thing.
+// Discover Carousel — a calm, non-intrusive swipeable guide
+// to powerful features (portfolio, tracking, WhatsApp wording, custom styles).
+// Displays for the first 30 days of signup (top for first 10, then bottom).
 // ============================================================
 
 export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: string) => void }) {
+  const { currentShop } = useData();
   const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-hide completely after 30 days
+  if (currentShop?.createdAt) {
+    const createdAt = new Date(currentShop.createdAt);
+    const now = new Date();
+    const daysOld = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
+    if (daysOld > 30) {
+      return null;
+    }
+  }
 
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -26,9 +38,9 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
   return (
     <div className={styles.discoverSection}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>Discover</span>
+        <span className={styles.sectionTitle}>Studio Tips & Features</span>
       </div>
-      <div className={styles.discoverScroll} onScroll={handleScroll}>
+      <div ref={scrollRef} className={styles.discoverScroll} onScroll={handleScroll}>
         {DISCOVER_CARDS.map((card) => (
           <button
             key={card.title}
@@ -41,7 +53,7 @@ export default function DiscoverCarousel({ onNavigate }: { onNavigate: (href: st
               <span className={styles.discoverTitle}>{card.title}</span>
               <span className={styles.discoverDesc}>{card.description}</span>
               <span className={styles.discoverCta}>
-                {card.cta} <Symbol name="chevron_right" />
+                {card.cta} <Symbol name="chevron_right" size={14} />
               </span>
             </div>
             {card.image && (

@@ -1,17 +1,26 @@
 'use client';
 
+import { useRef, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import type { Order } from '@/lib/types';
+import type { Order, OrderPhoto, OrderStatus } from '@/lib/types';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
+import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { compressImage } from '@/lib/compressImage';
+import { createClient } from '@/lib/supabase/client';
+import { getWhatsAppLink, getTelLink, formatPhone } from '@/lib/formatters';
+import { MEASUREMENT_LABELS } from '@/lib/constants';
 import { ROUTES } from '@/lib/routes';
 import styles from './FabricDetailSheet.module.css';
 
 const STATUS_LABELS: Record<string, string> = {
-  Documented: 'Documented',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
+  Documented: 'Waiting to Cut',
+  Cutting: 'Currently Cutting',
+  Sewing: 'In Sewing',
   Ready: 'Ready',
   Delivered: 'Delivered',
 };
@@ -33,73 +42,298 @@ interface FabricDetailSheetProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenCuttingSlip?: (order: Order) => void;
+  onUpdateOrderStatus?: (orderId: string, newStatus: OrderStatus) => Promise<void>;
+  onAssignArtisan?: (orderId: string, artisanName: string) => Promise<void>;
 }
 
-export default function FabricDetailSheet({ order, isOpen, onClose }: FabricDetailSheetProps) {
+export default function FabricDetailSheet({
+  order,
+  isOpen,
+  onClose,
+  onOpenCuttingSlip,
+  onUpdateOrderStatus,
+  onAssignArtisan,
+}: FabricDetailSheetProps) {
   const router = useRouter();
+  const { customers, currentShop, staffMembers, updateOrder, updateOrderStatus } = useData();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const [isEditingArtisan, setIsEditingArtisan] = useState(false);
+  const [customArtisanName, setCustomArtisanName] = useState('');
+
+  const customer = useMemo(() => {
+    if (!order) return null;
+    return (
+      customers.find(
+        (c) =>
+          c.id === order.customerId ||
+          (c.fullName && c.fullName.toLowerCase() === order.customerName?.toLowerCase())
+      ) || null
+    );
+  }, [customers, order]);
+
+  const orderMeasurementEntries = useMemo(() => {
+    if (!order?.measurements) return [];
+    return Object.entries(order.measurements).filter(
+      ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+    );
+  }, [order?.measurements]);
+
+  const usingOrderMeasurements = orderMeasurementEntries.length > 0;
+  const measurementEntries = useMemo(() => {
+    if (usingOrderMeasurements) return orderMeasurementEntries;
+    if (!customer?.measurements) return [];
+    return Object.entries(customer.measurements).filter(
+      ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+    );
+  }, [usingOrderMeasurements, orderMeasurementEntries, customer?.measurements]);
 
   if (!order) return null;
 
   const photo = order.images?.[0]?.url ?? null;
   const overdue = isOverdue(order);
+  const isRush = order.priority === 'rush';
+  const isUrgent = order.priority === 'urgent';
+  const hasPriority = isRush || isUrgent;
+  const isClientFabric = order.materialSuppliedBy === 'customer';
+  const isShopFabric = order.materialSuppliedBy === 'shop';
+
+  // Yardage extraction
+  const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
+  const yardage = yardageMatch ? `${yardageMatch[1]} yds` : null;
+
+  const shopName = currentShop?.name || 'our shop';
+  const clientPhone = customer?.whatsappNumber;
+  const clientName = customer?.fullName || order.customerName || 'Walk-in Client';
+
+  const whatsappLink = useMemo(() => {
+    if (!clientPhone || !order) return null;
+    const garmentStyle = order.styleName || 'bespoke order';
+    const text = `Good day ${clientName}, this is ${shopName}. We are preparing to cut the fabric for your ${garmentStyle} order (#${order.id.slice(0, 4).toUpperCase()}) and wanted to quickly confirm the details with you.`;
+    return getWhatsAppLink(clientPhone, text);
+  }, [clientPhone, clientName, order, shopName]);
 
   const handleOpenOrder = () => {
     onClose();
-    router.push(ROUTES.productionOrder(order.id));
+    router.push(ROUTES.productionOrder(order));
+  };
+
+  const handleTransition = async (targetStatus: OrderStatus, successMessage: string) => {
+    setIsAdvancing(true);
+    try {
+      if (onUpdateOrderStatus) {
+        await onUpdateOrderStatus(order.id, targetStatus);
+      } else {
+        await updateOrderStatus(
+          order.id,
+          targetStatus,
+          user?.uid || 'tailor',
+          user?.name || 'Master Cutter'
+        );
+      }
+      showToast(successMessage, 'success');
+      if (targetStatus === 'Cutting' && onOpenCuttingSlip) {
+        onOpenCuttingSlip(order);
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update order stage', 'error');
+    } finally {
+      setIsAdvancing(false);
+    }
+  };
+
+  const handleAssign = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    try {
+      if (onAssignArtisan) {
+        await onAssignArtisan(order.id, trimmed);
+      } else {
+        await updateOrder(order.id, { assignedToName: trimmed });
+      }
+      showToast(`Tailor assigned to ${trimmed}!`, 'success');
+      setIsEditingArtisan(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to assign tailor', 'error');
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    setIsUploading(true);
+    try {
+      const compressed = await compressImage(file);
+      let url: string;
+      try {
+        const supabase = createClient();
+        const ext = compressed.name.split('.').pop() || 'jpg';
+        const path = `${order.shopId}/${order.id}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage.from('order-photos').upload(path, compressed, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+        if (error) throw error;
+        url = supabase.storage.from('order-photos').getPublicUrl(path).data.publicUrl;
+      } catch {
+        // Fallback to object URL in offline or demo environment
+        url = URL.createObjectURL(file);
+      }
+      const newPhoto: OrderPhoto = {
+        url,
+        stage: order.status,
+        uploadedAt: new Date().toISOString(),
+      };
+      await updateOrder(order.id, {
+        images: [...(order.images || []), newPhoto],
+      });
+      showToast('Fabric photo attached to order!', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to attach photo', 'error');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
   };
 
   return (
-    <BottomSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      noPadding
-    >
+    <BottomSheet isOpen={isOpen} onClose={onClose} noPadding>
+      {/* Hidden file input for in-place photo capture */}
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        ref={fileInputRef}
+        onChange={handlePhotoUpload}
+        style={{ display: 'none' }}
+      />
+
       {/* Hero photo */}
       <div className={styles.heroWrap}>
         {photo ? (
-          <Image
-            src={photo}
-            alt={`Fabric for ${order.customerName}`}
-            fill
-            sizes="(max-width: 1024px) 100vw, 480px"
-            className={styles.heroPhoto}
-            unoptimized
-          />
+          <>
+            <Image
+              src={photo}
+              alt={`Fabric for ${clientName}`}
+              fill
+              sizes="(max-width: 1024px) 100vw, 480px"
+              className={styles.heroPhoto}
+              unoptimized
+            />
+            <button
+              type="button"
+              className={styles.replacePhotoBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              aria-label="Change fabric photo"
+            >
+              <Symbol name="photo_camera" size={14} />
+              <span>{isUploading ? 'Uploading…' : 'Change Photo'}</span>
+            </button>
+          </>
         ) : (
           <div className={styles.heroNoPhoto}>
-            <Symbol name="texture" size={48} className={styles.heroNoPhotoIcon} />
-            <span className={styles.heroNoPhotoLabel}>No fabric photo yet</span>
+            <Symbol name="texture" size={44} className={styles.heroNoPhotoIcon} />
+            <span className={styles.heroNoPhotoLabel}>No fabric swatch photo yet</span>
+            <button
+              type="button"
+              className={styles.snapPhotoBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Symbol name="photo_camera" size={16} />
+              <span>{isUploading ? 'Uploading…' : 'Snap / Upload Swatch'}</span>
+            </button>
           </div>
         )}
 
         {/* Status badge overlaid on photo */}
         <span className={`${styles.statusBadge} ${styles[`status_${order.status}`]}`}>
-          {STATUS_LABELS[order.status]}
+          {STATUS_LABELS[order.status] || order.status}
         </span>
       </div>
 
       {/* Body */}
       <div className={styles.body}>
-        {/* Customer */}
-        <div className={styles.section}>
-          <div className={styles.row}>
-            <Symbol name="person" size={16} className={styles.rowIcon} />
-            <div className={styles.rowContent}>
-              <span className={styles.rowLabel}>Customer</span>
-              <span className={styles.rowValue}>{order.customerName}</span>
-            </div>
+        {/* Atelier Order Header */}
+        <div className={styles.sheetHeaderInfo}>
+          <div className={styles.sheetTitleRow}>
+            <span className={styles.chalkTagBadge}>
+              {`#${order.id.slice(0, 4).toUpperCase()}`}
+            </span>
+            <span className={styles.sheetCustomerName}>{clientName}</span>
+            {hasPriority && (
+              <span className={`${styles.rushPill} ${isRush ? styles.rushFlame : styles.rushBolt}`}>
+                {isRush ? 'Rush' : 'Urgent'}
+              </span>
+            )}
           </div>
+
+          <div className={styles.sheetMetaRow}>
+            {order.styleName && <span className={styles.sheetStyle}>{order.styleName}</span>}
+            {order.styleName && yardage && <span className={styles.metaDot}>·</span>}
+            {yardage && <span className={styles.sheetYardage}>{yardage}</span>}
+            {(order.styleName || yardage) && (isClientFabric || isShopFabric) && (
+              <span className={styles.metaDot}>·</span>
+            )}
+            {isClientFabric && <span className={styles.provenancePill}>Client Cloth</span>}
+            {isShopFabric && <span className={styles.provenancePill}>Shop Material</span>}
+          </div>
+        </div>
+
+        {/* Customer & Direct Contact Card */}
+        <div className={styles.customerCard}>
+          <div className={styles.customerMetaRow}>
+            <div className={styles.customerNameWrap}>
+              <Symbol name="person" size={18} className={styles.rowIcon} />
+              <div>
+                <span className={styles.customerName}>{clientName}</span>
+                {clientPhone && <div className={styles.customerPhoneText}>{formatPhone(clientPhone)}</div>}
+              </div>
+            </div>
+
+            {clientPhone && (
+              <a
+                href={getTelLink(clientPhone)}
+                className={styles.callBtn}
+                aria-label={`Call ${clientName}`}
+              >
+                <Symbol name="call" size={14} />
+                <span>Call</span>
+              </a>
+            )}
+          </div>
+
+          {whatsappLink && (
+            <div className={styles.contactActionsRow}>
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.whatsappBtn}
+              >
+                <WhatsappIcon size={15} />
+                <span>Clarify on WhatsApp</span>
+              </a>
+            </div>
+          )}
         </div>
 
         <div className={styles.divider} />
 
-        {/* Order details */}
+        {/* Order & Cutting Details */}
         <div className={styles.section}>
           {order.styleName && (
             <div className={styles.row}>
               <Symbol name="checkroom" size={16} className={styles.rowIcon} />
               <div className={styles.rowContent}>
-                <span className={styles.rowLabel}>Style</span>
+                <span className={styles.rowLabel}>Garment Style</span>
                 <span className={styles.rowValue}>{order.styleName}</span>
               </div>
             </div>
@@ -109,56 +343,217 @@ export default function FabricDetailSheet({ order, isOpen, onClose }: FabricDeta
             <div className={styles.row}>
               <Symbol name="notes" size={16} className={styles.rowIcon} />
               <div className={styles.rowContent}>
-                <span className={styles.rowLabel}>Details</span>
+                <span className={styles.rowLabel}>Cutting & Design Instructions</span>
                 <span className={styles.rowValue}>{order.orderDetails}</span>
               </div>
             </div>
           )}
 
-          {order.assignedToName && (
-            <div className={styles.row}>
-              <Symbol name="engineering" size={16} className={styles.rowIcon} />
-              <div className={styles.rowContent}>
-                <span className={styles.rowLabel}>Assigned to</span>
-                <span className={styles.rowValue}>{order.assignedToName}</span>
+          {/* Assigned Tailor Section with Interactive Reassignment */}
+          <div className={styles.row}>
+            <Symbol name="engineering" size={16} className={styles.rowIcon} />
+            <div className={styles.rowContent}>
+              <div className={styles.artisanHeaderRow}>
+                <span className={styles.rowLabel}>Assigned Tailor / Cutter</span>
+                <button
+                  type="button"
+                  className={styles.artisanChangeBtn}
+                  onClick={() => setIsEditingArtisan(!isEditingArtisan)}
+                >
+                  <Symbol name={isEditingArtisan ? 'close' : 'edit'} size={12} />
+                  <span>{isEditingArtisan ? 'Cancel' : 'Change'}</span>
+                </button>
               </div>
+
+              {!isEditingArtisan ? (
+                <span className={styles.rowValue}>
+                  {order.assignedToName || 'Unassigned (Waiting to Cut)'}
+                </span>
+              ) : (
+                <div className={styles.artisanSelectorWrap}>
+                  {staffMembers && staffMembers.length > 0 && (
+                    <div className={styles.artisanStaffChips}>
+                      {staffMembers.map((staff) => (
+                        <button
+                          key={staff.uid}
+                          type="button"
+                          className={`${styles.staffChip} ${order.assignedToName === staff.name ? styles.staffChipActive : ''}`}
+                          onClick={() => handleAssign(staff.name)}
+                        >
+                          {staff.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className={styles.customArtisanInputRow}>
+                    <input
+                      type="text"
+                      className={styles.artisanInput}
+                      placeholder="Or enter tailor / cutter name…"
+                      value={customArtisanName}
+                      onChange={(e) => setCustomArtisanName(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.saveArtisanBtn}
+                      onClick={() => handleAssign(customArtisanName)}
+                      disabled={!customArtisanName.trim()}
+                    >
+                      Assign Tailor
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {order.dueDate && (
             <div className={styles.row}>
-              <Symbol name={overdue ? 'warning' : 'event'} size={16} className={`${styles.rowIcon} ${overdue ? styles.overdueIcon : ''}`} />
+              <Symbol
+                name={overdue ? 'warning' : 'event'}
+                size={16}
+                className={`${styles.rowIcon} ${overdue ? styles.overdueIcon : ''}`}
+              />
               <div className={styles.rowContent}>
-                <span className={styles.rowLabel}>Due date</span>
+                <span className={styles.rowLabel}>Workshop Due Date</span>
                 <span className={`${styles.rowValue} ${overdue ? styles.overdueText : ''}`}>
-                  {formatDate(order.dueDate)}{overdue ? ' · Overdue' : ''}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {(order.priority === 'urgent' || order.priority === 'rush') && (
-            <div className={styles.row}>
-              <Symbol name="local_fire_department" size={16} className={styles.rowIcon} />
-              <div className={styles.rowContent}>
-                <span className={styles.rowLabel}>Priority</span>
-                <span className={`${styles.rowValue} ${styles.priorityValue}`}>
-                  {order.priority === 'rush' ? '🔥 Rush' : '⚡ Urgent'}
+                  {formatDate(order.dueDate)}
+                  {overdue ? ' · Overdue' : ''}
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* CTA */}
-        <button
-          type="button"
-          className={styles.openOrderBtn}
-          onClick={handleOpenOrder}
-        >
-          <Symbol name="open_in_new" size={18} />
-          Open full order
-        </button>
+        {/* ── Cutting Table Key Measurements Grid ── */}
+        <div className={styles.measurementsSection}>
+          <div className={styles.measurementsHeader}>
+            <div className={styles.measurementsTitleWrap}>
+              <Symbol name="straighten" size={15} />
+              <span className={styles.measurementsTitle}>Cutting Measurements</span>
+            </div>
+            {usingOrderMeasurements ? (
+              <span className={styles.customizedBadge}>Custom to this garment</span>
+            ) : measurementEntries.length > 0 ? (
+              <span className={styles.standardBadge}>Client Profile</span>
+            ) : null}
+          </div>
+
+          {measurementEntries.length > 0 ? (
+            <div className={styles.measurementsGrid}>
+              {measurementEntries.map(([key, val]) => (
+                <div key={key} className={styles.measurementCell}>
+                  <span className={styles.measurementLabel}>{MEASUREMENT_LABELS[key] || key}</span>
+                  <span className={styles.measurementVal}>{String(val)}&quot;</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.noMeasurementsNotice}>
+              No body measurements recorded yet on customer profile.
+            </p>
+          )}
+        </div>
+
+        {/* Workshop CTAs & Stage Transitions */}
+        <div className={styles.actionsGroup}>
+          {order.status === 'Documented' && (
+            <button
+              type="button"
+              className={styles.advanceBtn}
+              onClick={() => handleTransition('Cutting', 'Moved to Cutting (On the Shears)!')}
+              disabled={isAdvancing}
+            >
+              <Symbol name="content_cut" size={18} />
+              <span>{isAdvancing ? 'Advancing Stage…' : 'Start Cutting Cloth'}</span>
+            </button>
+          )}
+
+          {order.status === 'Cutting' && (
+            <>
+              {staffMembers && staffMembers.length > 0 && (
+                <div className={styles.quickMachinistHandoff}>
+                  <span className={styles.handoffLabel}>Assign Tailor &amp; Pass to Sewing:</span>
+                  <div className={styles.machinistChipsRow}>
+                    {staffMembers.map((staff) => (
+                      <button
+                        key={staff.uid}
+                        type="button"
+                        className={`${styles.machinistChip} ${order.assignedToName === staff.name ? styles.machinistChipActive : ''}`}
+                        onClick={async () => {
+                          await handleAssign(staff.name);
+                          await handleTransition('Sewing', `Cloth cut! Handed to ${staff.name} at sewing machine.`);
+                        }}
+                        disabled={isAdvancing}
+                      >
+                        <Symbol name="person" size={12} />
+                        <span>{staff.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                className={styles.passToSewingBtn}
+                onClick={() => handleTransition('Sewing', 'Cloth cut! Garment passed to sewing machine.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="precision_manufacturing" size={18} />
+                <span>{isAdvancing ? 'Updating Stage…' : 'Pass to Sewing Machine'}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.revertBtn}
+                onClick={() => handleTransition('Documented', 'Returned to Waiting to Cut.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="arrow_back" size={14} />
+                <span>Return to Waiting to Cut</span>
+              </button>
+            </>
+          )}
+
+          {order.status === 'Sewing' && (
+            <div className={styles.sewingInfoBlock}>
+              <div className={styles.sewingInfoText}>
+                <Symbol name="precision_manufacturing" size={16} />
+                <span>Cloth is cut and currently at the sewing machine. Tracking assembly continues on the Production Board.</span>
+              </div>
+              <button
+                type="button"
+                className={styles.revertBtn}
+                onClick={() => handleTransition('Cutting', 'Returned to Cutting Table.')}
+                disabled={isAdvancing}
+              >
+                <Symbol name="arrow_back" size={14} />
+                <span>Return to Cutting Table</span>
+              </button>
+            </div>
+          )}
+
+          <div className={styles.secondaryActionsRow}>
+            {onOpenCuttingSlip && (
+              <button
+                type="button"
+                className={styles.cuttingSlipBtn}
+                onClick={() => {
+                  onClose();
+                  onOpenCuttingSlip(order);
+                }}
+              >
+                <Symbol name="straighten" size={16} />
+                <span>Cutting Slip</span>
+              </button>
+            )}
+
+            <button type="button" className={styles.openOrderBtn} onClick={handleOpenOrder}>
+              <Symbol name="open_in_new" size={16} />
+              <span>Full Order</span>
+            </button>
+          </div>
+        </div>
       </div>
     </BottomSheet>
   );

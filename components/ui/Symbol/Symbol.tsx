@@ -1,35 +1,74 @@
+import React from 'react';
 import styles from './Symbol.module.css';
+import { SVG_ICONS } from './iconRegistry';
 
 interface SymbolProps {
-  /** Material Symbols icon name, e.g. "content_cut" */
+  /** Icon name, e.g. "needle", "content_cut", "menu", "check_circle" */
   name: string;
   /** Render the filled variant */
   fill?: boolean;
-  /** Font size in px (Material Symbols are square glyphs) */
+  /** Font size in px (Icons are square glyphs) */
   size?: number;
   className?: string;
   style?: React.CSSProperties;
 }
 
 /**
- * Material Symbols icon — the icon system of the new design.
- * Renders from the self-hosted "Material Symbols Outlined" variable font;
- * `fill` flips the FILL axis for active/selected states.
+ * Universal Symbol Icon Component
+ * Prioritizes native, bulletproof SVG vector icons so glyphs never break
+ * across devices, offline modes, or missing web fonts.
+ * Gracefully falls back to Material Symbols Outlined font if unmapped.
  */
 export default function Symbol({ name, fill = false, size = 24, className = '', style }: SymbolProps) {
+  const customSvgRenderer = SVG_ICONS[name];
+
+  if (customSvgRenderer) {
+    const color = (style?.color as string) || 'currentColor';
+    return (
+      <span
+        className={`${styles.symbol} ${className}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: size,
+          height: size,
+          verticalAlign: 'middle',
+          flexShrink: 0,
+          ...style,
+        }}
+        aria-hidden="true"
+      >
+        {customSvgRenderer({ size, fill, color })}
+      </span>
+    );
+  }
+
+  // Resilient vector fallback if an unmapped icon name is ever provided
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(`[Symbol] Icon "${name}" is not registered in iconRegistry.tsx`);
+  }
+
+  const color = (style?.color as string) || 'currentColor';
   return (
     <span
-      className={`material-symbols-outlined ${styles.symbol} ${className}`}
+      className={`${styles.symbol} ${className}`}
       style={{
-        fontSize: size,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         width: size,
         height: size,
-        fontVariationSettings: fill ? "'FILL' 1" : undefined,
+        verticalAlign: 'middle',
+        flexShrink: 0,
         ...style,
       }}
       aria-hidden="true"
     >
-      {name}
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+        <circle cx="12" cy="12" r="8" strokeDasharray="3 3" opacity="0.6" />
+        <circle cx="12" cy="12" r="2" fill={color} />
+      </svg>
     </span>
   );
 }

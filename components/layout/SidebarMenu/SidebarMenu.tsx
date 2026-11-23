@@ -1,48 +1,94 @@
 'use client';
 
-import { useState } from 'react';
-
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSidebar } from '@/contexts/SidebarContext';
+import styles from './SidebarMenu.module.css';
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { useSidebar } from '@/contexts/SidebarContext';
-import { APP_CONFIG } from '@/lib/config';
-import Link from 'next/link';
-import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
-import { useRouter, usePathname } from 'next/navigation';
+import { NAV_ITEMS } from '@/lib/constants';
+import CustomNavIcon from "@/components/ui/CustomNavIcon/CustomNavIcon";
+import Symbol from '@/components/ui/Symbol/Symbol';
+import { ROUTES } from '@/lib/routes';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import { ExportDataButton, AccountDangerZone } from '@/components/settings/AccountDangerZone';
-import { NAV_ITEMS } from '@/lib/constants';
-import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
-import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import { ROUTES } from '@/lib/routes';
-import styles from './SidebarMenu.module.css';
-import Symbol from '@/components/ui/Symbol/Symbol';
 import OnlineIndicator from '@/components/ui/OnlineIndicator/OnlineIndicator';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+import CircleIconButton from '@/components/ui/CircleIconButton/CircleIconButton';
 
 export default function SidebarMenu() {
-  const { logout, isOwner, loading: authLoading } = useAuth();
-  const { currentShop, shops, activeBranchId, setActiveBranchId, isLoaded } = useData();
-  const shopName = currentShop?.name || APP_CONFIG.name;
   const { isMenuOpen, setMenuOpen, isCollapsed, toggleCollapse } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
   const [showProfile, setShowProfile] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.ownerOnly || isOwner);
+  const { isOwner, user, logout } = useAuth();
+  const { currentShop, shops, activeBranchId, setActiveBranchId } = useData();
+  const initial = user?.name?.charAt(0) || user?.email?.charAt(0) || 'U';
 
-  const handleLogout = async () => {
-    setMenuOpen(false);
-    await logout();
-    router.push(ROUTES.login);
+  const mode = currentShop?.businessMode || 'bespoke';
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.ownerOnly && !isOwner) return false;
+    if (item.bespokeOnly && mode === 'rtw') return false;
+    if (item.rtwOnly && mode === 'bespoke') return false;
+    return true;
+  });
+
+  const shopName = currentShop?.name || 'Studio';
+
+  async function handleLogout() {
+    logout();
+  }
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const renderNavGroup = (title: string, items: typeof visibleNavItems, additionalLinks?: React.ReactNode) => {
+    if (items.length === 0 && !additionalLinks) return null;
+    return (
+      <div className={styles.navSection}>
+        <div className={styles.navSectionTitle}>{title}</div>
+        {items.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          return (
+            <Link
+              href={item.href}
+              key={item.href}
+              prefetch={true}
+              className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
+              onClick={() => setMenuOpen(false)}
+              onMouseEnter={() => router.prefetch(item.href)}
+              onTouchStart={() => router.prefetch(item.href)}
+              title={isCollapsed ? item.label : undefined}
+              data-tour-id={item.tourId}
+            >
+              <CustomNavIcon name={item.icon} className={styles.menuIcon} />
+              <span className={styles.menuText}>{item.label}</span>
+            </Link>
+          );
+        })}
+        {additionalLinks}
+      </div>
+    );
   };
 
-  // Both the real shop name and the Portfolio/Style Gallery links depend on
-  // currentShop/role resolving — rendering before then shows a generic
-  // wordmark and a shorter nav that visibly grows/renames itself a beat
-  // later. Same tradeoff BottomNav already makes: waiting an extra beat for
-  // a stable, correct-on-first-paint sidebar reads far better than content
-  // jumping under the user's cursor.
-  if (authLoading || !isLoaded) return null;
+  const mainGroup = visibleNavItems.filter(i => ['/dashboard', '/calendar', '/production', '/stock'].includes(i.href));
+  const workspaceGroup = visibleNavItems.filter(i => ['/customers', '/fabrics'].includes(i.href));
+  const marketingGroup = visibleNavItems.filter(i => ['/catalogues'].includes(i.href));
+  const financeGroup = visibleNavItems.filter(i => ['/collections', '/reconciliation'].includes(i.href));
 
   return (
     <div className={`${styles.sidebar} ${isMenuOpen ? styles.open : ''} ${isCollapsed ? styles.collapsed : ''}`}>
@@ -50,9 +96,9 @@ export default function SidebarMenu() {
       <div className={styles.topRow}>
         {/* Mobile Top Row (Profile Avatar and Close Button) */}
         <div className={styles.mobileTopRow}>
-          <CircleIconButton 
-            icon={<Symbol name="person" className={styles.iconUser} />} 
-            onClick={() => setShowProfile(true)} 
+          <CircleIconButton
+            icon={<CustomNavIcon name="person" className={styles.iconUser} />}
+            onClick={() => setShowProfile(true)}
             ariaLabel="Profile Settings"
           />
           <BrandIcon alt={shopName} className={styles.mobileLogo} />
@@ -70,9 +116,7 @@ export default function SidebarMenu() {
         </div>
       </div>
 
-      {/* Only shown once an org actually has a second branch — every org
-          today has exactly one, so this stays hidden for all of them. */}
-      {FEATURE_FLAGS.orgBranchMultiTenancy && isOwner && shops.length > 1 && (
+      {FEATURE_FLAGS.orgBranchMultiTenancy && isOwner && shops && shops.length > 1 && (
         <select
           className={styles.branchSwitcher}
           value={activeBranchId ?? ''}
@@ -87,122 +131,181 @@ export default function SidebarMenu() {
         </select>
       )}
 
-      {/* Mobile-only Portfolio/Style Gallery links — Settings moved to the
-          bottom nav's 4th tab, so it no longer needs a separate entry here.
-          Style Gallery isn't in NAV_ITEMS (which also feeds the bottom nav)
-          since it's a secondary, occasional destination, not a daily tab. */}
+      {/* Mobile-only Nav (Flattened for bottom sheet style) */}
       <div className={styles.mobileOnlyNav}>
         <Link
           href={ROUTES.calendar}
+          prefetch={true}
           className={styles.menuItem}
           onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.calendar)}
         >
-          <Symbol name="calendar_month" className={styles.menuIcon} />
+          <CustomNavIcon name="calendar_month" className={styles.menuIcon} />
           <span className={styles.menuText}>Calendar</span>
         </Link>
         <Link
           href={ROUTES.portfolio}
+          prefetch={true}
           className={styles.menuItem}
           onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.portfolio)}
         >
-          <Symbol name="favorite" className={styles.menuIcon} />
+          <CustomNavIcon name="favorite" className={styles.menuIcon} />
           <span className={styles.menuText}>My Portfolio</span>
         </Link>
         <Link
-          href={ROUTES.styles}
+          href={ROUTES.catalogues}
+          prefetch={true}
           className={styles.menuItem}
           onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.catalogues)}
         >
-          <Symbol name="photo_library" className={styles.menuIcon} />
-          <span className={styles.menuText}>Style Gallery</span>
+          <CustomNavIcon name="collections_bookmark" className={styles.menuIcon} />
+          <span className={styles.menuText}>Lookbooks</span>
         </Link>
+        {isOwner && (mode === 'rtw' || mode === 'hybrid') && (
+          <Link
+            href={ROUTES.stock}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.stock)}
+          >
+            <CustomNavIcon name="storefront" className={styles.menuIcon} />
+            <span className={styles.menuText}>Stock / POS</span>
+          </Link>
+        )}
+        {/* Tailor Circle commented out */}
+        {/* <Link
+          href={ROUTES.circle}
+          prefetch={true}
+          className={styles.menuItem}
+          onClick={() => setMenuOpen(false)}
+          onTouchStart={() => router.prefetch(ROUTES.circle)}
+        >
+          <CustomNavIcon name="groups" className={styles.menuIcon} />
+          <span className={styles.menuText}>Tailor Circle</span>
+        </Link> */}
+        {isOwner && (
+          <Link
+            href={ROUTES.collections}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.collections)}
+          >
+            <CustomNavIcon name="account_balance_wallet" className={styles.menuIcon} />
+            <span className={styles.menuText}>Collections</span>
+          </Link>
+        )}
+        {isOwner && (
+          <Link
+            href={ROUTES.reconciliation}
+            prefetch={true}
+            className={styles.menuItem}
+            onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.reconciliation)}
+          >
+            <CustomNavIcon name="point_of_sale" className={styles.menuIcon} />
+            <span className={styles.menuText}>Cash Book</span>
+          </Link>
+        )}
         {isOwner && (
           <Link
             href={ROUTES.settings}
+            prefetch={true}
             className={styles.menuItem}
             onClick={() => setMenuOpen(false)}
+            onTouchStart={() => router.prefetch(ROUTES.settings)}
           >
-            <Symbol name="settings" className={styles.menuIcon} />
+            <CustomNavIcon name="settings" className={styles.menuIcon} />
             <span className={styles.menuText}>Settings</span>
           </Link>
         )}
       </div>
 
-      {/* Primary Main Navigation (Desktop only, hidden on mobile sidebar) —
-          Settings is deliberately excluded from this map and rendered last,
-          after My Portfolio / Style Gallery, matching the order the mobile
-          sidebar already uses (see mobileOnlyNav above). */}
+      {/* Desktop Grouped Navigation */}
       <nav className={styles.mainNav}>
-        {visibleNavItems.filter((item) => item.href !== ROUTES.settings).map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          return (
-            <Link
-              href={item.href}
-              key={item.href}
-              className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
-              onClick={() => setMenuOpen(false)}
-              title={isCollapsed ? item.label : undefined}
-              data-tour-id={item.tourId}
-            >
-              <Symbol name={item.icon} className={styles.menuIcon} />
-              <span className={styles.menuText}>{item.label}</span>
+        {renderNavGroup('Main', mainGroup)}
+        {renderNavGroup('Workspace', workspaceGroup)}
+        {renderNavGroup('Storefront', marketingGroup, (
+          currentShop ? (
+            <Link href={ROUTES.portfolio} className={styles.menuItem} title={isCollapsed ? 'My Portfolio' : undefined} onClick={() => setMenuOpen(false)}>
+              <CustomNavIcon name="favorite" className={styles.menuIcon} />
+              <span className={styles.menuText}>My Portfolio</span>
             </Link>
-          );
-        })}
-        {/* Opens in-app (same tab) — the Share button on the page itself
-            hands out the actual public /studio/[slug] link to visitors. */}
-        {currentShop && (
-          <Link
-            href={ROUTES.portfolio}
-            className={styles.menuItem}
-            title={isCollapsed ? 'My Portfolio' : undefined}
-          >
-            <Symbol name="favorite" className={styles.menuIcon} />
-            <span className={styles.menuText}>My Portfolio</span>
-          </Link>
-        )}
-        {currentShop && (
-          <Link
-            href={ROUTES.styles}
-            className={styles.menuItem}
-            title={isCollapsed ? 'Style Gallery' : undefined}
-          >
-            <Symbol name="photo_library" className={styles.menuIcon} />
-            <span className={styles.menuText}>Style Gallery</span>
-          </Link>
-        )}
-        {isOwner && (
-          <Link
-            href={ROUTES.settings}
-            className={`${styles.menuItem} ${pathname.startsWith(ROUTES.settings) ? styles.active : ''}`}
-            title={isCollapsed ? 'Settings' : undefined}
-          >
-            <Symbol name="settings" className={styles.menuIcon} />
-            <span className={styles.menuText}>Settings</span>
-          </Link>
-        )}
+          ) : null
+        ))}
+        {renderNavGroup('Finance', financeGroup)}
       </nav>
 
-      {/* Footer Navigation (Logout + connection indicator) */}
-      <div className={styles.footer}>
-        {/* Show inline on mobile; desktop shows it under the shop name in the
-            branding area (hidden when collapsed). */}
+      {/* Mobile Footer */}
+      <div className={styles.mobileFooter}>
         <OnlineIndicator className={styles.mobileOnlineIndicator} />
-        <button 
-          className={styles.logoutBtn} 
+        <button
+          className={styles.logoutBtn}
           onClick={handleLogout}
-          title={isCollapsed ? "Logout" : undefined}
         >
-          <Symbol name="logout" className={styles.logoutIcon} />
+          <CustomNavIcon name="logout" className={styles.logoutIcon} />
           <span className={styles.logoutText}>Logout</span>
         </button>
+      </div>
 
-        <button 
+      {/* Desktop Footer */}
+      <div className={styles.desktopFooter} ref={profileMenuRef}>
+        <OnlineIndicator className={styles.mobileOnlineIndicator} />
+
+        {/* Profile Card / User Menu */}
+        <button
+          className={styles.profileCard}
+          onClick={() => setShowProfileMenu(!showProfileMenu)}
+          title={isCollapsed ? "User Menu" : undefined}
+        >
+          <div className={styles.profileAvatar}>
+            {initial.toUpperCase()}
+          </div>
+          <div className={styles.profileInfo}>
+            <span className={styles.profileName}>{user?.name || user?.email || 'Staff User'}</span>
+            <span className={styles.profileRole}>{isOwner ? 'Owner' : 'Tailor'}</span>
+          </div>
+        </button>
+
+        {showProfileMenu && (
+          <div className={styles.profileMenu}>
+            {isOwner && (
+              <Link
+                href={ROUTES.settings}
+                className={styles.profileMenuItem}
+                onClick={() => { setShowProfileMenu(false); setMenuOpen(false); }}
+              >
+                <CustomNavIcon name="settings" />
+                Settings
+              </Link>
+            )}
+            <button
+              className={styles.profileMenuItem}
+              onClick={() => { setShowProfileMenu(false); setShowProfile(true); }}
+            >
+              <CustomNavIcon name="person" />
+              Your Profile
+            </button>
+            <div className={styles.profileMenuDivider} />
+            <button
+              className={`${styles.profileMenuItem} ${styles.danger}`}
+              onClick={() => { setShowProfileMenu(false); handleLogout(); }}
+            >
+              <CustomNavIcon name="logout" />
+              Log Out
+            </button>
+          </div>
+        )}
+
+        <button
           className={styles.collapseToggle}
           onClick={toggleCollapse}
           title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
-          <Symbol name={isCollapsed ? "chevron_right" : "chevron_left"} className={styles.logoutIcon} />
+          <CustomNavIcon name={isCollapsed ? "chevron_right" : "chevron_left"} className={styles.logoutIcon} />
           <span className={styles.logoutText}>Collapse</span>
         </button>
       </div>
@@ -236,7 +339,7 @@ export default function SidebarMenu() {
               cursor: 'pointer'
             }}
           >
-            <Symbol name="logout" />
+            <CustomNavIcon name="logout" />
             Logout
           </button>
 
@@ -248,4 +351,3 @@ export default function SidebarMenu() {
     </div>
   );
 }
-

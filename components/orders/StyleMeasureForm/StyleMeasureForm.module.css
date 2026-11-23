@@ -17,7 +17,7 @@
   padding: 8px 14px;
   border-radius: var(--sf-radius-full);
   background: var(--sf-surface-variant);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
   transition: background-color var(--sf-transition-fast);
@@ -37,33 +37,42 @@
 .measureList {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-md);
+  gap: 10px;
 }
 
 .measureCard {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--sf-space-md);
   background: var(--sf-bg-surface);
   border-radius: var(--sf-radius-md);
   border: 1px solid var(--sf-border-light);
-  border-left: 4px solid transparent;
-  padding: var(--sf-space-md);
-  box-shadow: var(--sf-shadow-sm);
-  transition: border-color var(--sf-transition-fast);
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast), background-color var(--sf-transition-fast);
 }
 
-.measureCardActive {
-  border-left-color: var(--sf-accent-emerald);
+@media (min-width: 768px) {
+  .measureCard {
+    padding: 12px 16px;
+  }
+}
+
+.measureCardActive,
+.measureCard:focus-within {
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 3px var(--sf-brand-indigo-glow);
 }
 
 .measureCardLocked {
   background: var(--sf-surface-variant);
+  opacity: 0.85;
 }
 
 .measureCardLocked .measureInput {
   color: var(--sf-text-secondary);
-  border-bottom-style: dashed;
+  background: transparent;
 }
 
 .lockToggle {
@@ -165,65 +174,102 @@
   align-items: center;
   gap: 4px;
   font-size: var(--sf-text-xs);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-brand-indigo);
 }
 
-.measureMain {
+.measureInfo {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .measureLabel {
-  display: block;
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
-  text-transform: uppercase;
-  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
 }
 
-.measureCardActive .measureLabel {
-  color: var(--sf-accent-emerald);
+.measureIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: var(--sf-surface-variant);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sf-text-secondary);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.measureCardActive .measureLabel,
+.measureCard:focus-within .measureLabel {
+  color: var(--sf-brand-indigo);
+}
+
+.measureCardActive .measureIndex,
+.measureCard:focus-within .measureIndex {
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
 }
 
 .measureHint {
   display: block;
   font-size: var(--sf-text-xs);
   color: var(--sf-text-tertiary);
-  margin: 2px 0 6px;
+  padding-left: 28px;
+}
+
+.measureInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .measureInput {
-  width: 100%;
-  border: none;
-  border-bottom: 2px solid var(--sf-border);
-  background: transparent;
+  width: 96px;
+  height: 42px;
+  text-align: right;
+  border: 1px solid transparent;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-surface-variant);
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-2xl);
+  font-size: var(--sf-text-xl);
+  font-weight: var(--sf-weight-bold);
   color: var(--sf-text-primary);
-  padding: 2px 0 4px;
-  transition: border-color var(--sf-transition-fast);
+  padding: 0 10px;
+  transition: all var(--sf-transition-fast);
 }
 
 .measureInput::placeholder {
-  color: var(--sf-border);
+  color: var(--sf-text-tertiary);
+  opacity: 0.5;
 }
 
 .measureInput:focus {
   outline: none;
-  border-bottom-color: var(--sf-accent-emerald);
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo-glow);
 }
 
 .unitTag {
   flex-shrink: 0;
-  padding: 8px 12px;
-  border-radius: var(--sf-radius-full);
-  background: var(--sf-accent-emerald-glow);
-  color: var(--sf-accent-emerald);
-  font-size: var(--sf-text-xs);
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-brand-indigo-glow);
+  color: var(--sf-brand-indigo);
+  font-size: 11px;
   font-weight: var(--sf-weight-bold);
   letter-spacing: var(--sf-tracking-caps);
-  margin-bottom: 4px;
 }
 
 /* ── Desktop override ──────────────────────────────────────────

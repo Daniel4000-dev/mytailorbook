@@ -3,10 +3,12 @@
 import { cache } from 'react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
-import { sendPushToShop } from '@/lib/push';
+import { createAtelierNotification } from '@/lib/notifications';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
 import { canSendReminder } from '@/lib/types';
 import { isOrgPremiumByOrgId } from '@/lib/subscription';
+import { extractCanonicalId, toOrderSlug } from '@/lib/slugs';
+import { FEATURE_FLAGS } from '@/lib/featureFlags';
 
 // A real customer refreshing their own tracking page a few times is
 // normal; a scraper hitting many different order/shop IDs from one IP in
@@ -23,7 +25,7 @@ const WRITE_LIMIT = { limit: 5, windowSeconds: 3600 };
  * only ever used for an exact single-order lookup by ID — never a list or
  * search — which keeps the exposure limited to "if you have the link."
  */
-export async function getPublicOrderView(orderId: string): Promise<{
+export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
   order: Order;
   customer: Customer | null;
   shop: Shop | null;
@@ -33,9 +35,38 @@ export async function getPublicOrderView(orderId: string): Promise<{
   if (!allowed) return null;
 
   const admin = createAdminClient();
+  const orderId = extractCanonicalId(orderIdOrSlug);
 
-  const { data: row, error } = await admin.from('orders').select('*').eq('id', orderId).single();
-  if (error || !row) return null;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let row: any = null;
+  if (isUuid) {
+    const { data: rows } = await admin
+      .from('orders')
+      .select('*')
+      .or(`id.eq.${orderId},batch_id.eq.${orderId}`)
+      .order('created_at', { ascending: true })
+      .limit(1);
+    row = rows?.[0];
+  } else {
+    // Try stored `slug` column first (from migration 0067), fallback to id match
+    const { data: slugRows } = await admin
+      .from('orders')
+      .select('*')
+      .eq('slug', orderIdOrSlug)
+      .limit(1);
+    row = slugRows?.[0];
+    if (!row) {
+      const { data: idRows } = await admin
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .limit(1);
+      row = idRows?.[0];
+    }
+  }
+
+  if (!row) return null;
 
   const order: Order = {
     id: row.id,
@@ -54,10 +85,60 @@ export async function getPublicOrderView(orderId: string): Promise<{
     inspirationImages: row.inspiration_images || [],
     statusHistory: row.status_history || [],
     payments: row.payments || [],
+    measurements: row.measurements || undefined,
+    styleName: row.style_name || undefined,
     lastReminderAt: row.last_reminder_at || undefined,
+    metadata: row.metadata || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+
+  // Automated Customer Receipt & Verification Ping:
+  // Award +15 XP and alert the shop the very first time their customer actually
+  // opens the live tracking link on their own phone.
+  const orderMetadata = (row.metadata as Record<string, unknown>) || {};
+  if (!orderMetadata.clientViewedAt && row.shop_id) {
+    const nowIso = new Date().toISOString();
+    const updatedMeta = {
+      ...orderMetadata,
+      clientViewedAt: nowIso,
+      clientViewsCount: 1,
+    };
+    order.metadata = updatedMeta;
+
+    // Asynchronously log to DB and notify tailor
+    (async () => {
+      try {
+        await admin.from('orders').update({ metadata: updatedMeta }).eq('id', row.id);
+
+        if (FEATURE_FLAGS.xpSystem) {
+          const { data: currentShop } = await admin.from('shops').select('xp').eq('id', row.shop_id).single();
+          if (currentShop) {
+            await admin.from('shops').update({ xp: (currentShop.xp || 0) + 15 }).eq('id', row.shop_id);
+            await admin.from('xp_ledger').insert({
+              shop_id: row.shop_id,
+              action_type: 'verified_tracking_opened',
+              xp_awarded: 15,
+              order_id: row.id,
+            });
+          }
+        }
+
+        await createAtelierNotification({
+          shopId: row.shop_id,
+          category: 'clients',
+          tone: 'info',
+          title: 'Client Opened Live Tracker',
+          subtitle: `${row.customer_name || 'Your customer'} opened their live tracking link!`,
+          orderId: row.id,
+          actionLabel: 'View Order',
+          actionHref: `/production/${row.id}`,
+        });
+      } catch (err) {
+        console.error('[track] Failed to record client view ping:', err);
+      }
+    })();
+  }
 
   const [{ data: customerRow }, { data: shopRow }] = await Promise.all([
     admin.from('customers').select('*').eq('id', order.customerId).single(),
@@ -74,6 +155,7 @@ export async function getPublicOrderView(orderId: string): Promise<{
         whatsappNumber: customerRow.whatsapp_number,
         gender: customerRow.gender,
         measurements: customerRow.measurements || undefined,
+        fabrics: customerRow.fabrics || undefined,
         createdAt: customerRow.created_at,
       }
     : null;
@@ -98,6 +180,9 @@ export async function getPublicOrderView(orderId: string): Promise<{
         // on this public page; no other billing detail is exposed here.
         subscriptionStatus: isPremium ? 'active' : 'free',
         defaultTrackingLinkEnabled: shopRow.default_tracking_link_enabled ?? true,
+        xp: shopRow.xp ?? 0,
+        streakCurrent: shopRow.streak_current ?? 0,
+        streakBest: shopRow.streak_best ?? 0,
       }
     : null;
 
@@ -106,7 +191,8 @@ export async function getPublicOrderView(orderId: string): Promise<{
 
 /** Comments a customer has left on their order, for display on the public
  *  tracking page (read-back of what they've written so far). */
-export async function getPublicOrderComments(orderId: string): Promise<OrderComment[]> {
+export async function getPublicOrderComments(orderIdOrSlug: string): Promise<OrderComment[]> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('order_comments')
@@ -130,7 +216,8 @@ export async function getPublicOrderComments(orderId: string): Promise<OrderComm
  * One-directional (the tailor reads it in the Order Detail Sheet; any
  * reply happens over WhatsApp, same as everywhere else in this app).
  */
-export async function submitOrderComment(orderId: string, message: string): Promise<{ success: boolean; error?: string }> {
+export async function submitOrderComment(orderIdOrSlug: string, message: string): Promise<{ success: boolean; error?: string }> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const trimmed = message.trim();
   if (!trimmed) return { success: false, error: 'Comment cannot be empty.' };
   if (trimmed.length > 1000) return { success: false, error: 'Comment is too long.' };
@@ -157,9 +244,18 @@ export async function submitOrderComment(orderId: string, message: string): Prom
   // "new comment" without querying the comments table per order.
   await admin.from('orders').update({ last_comment_at: new Date().toISOString() }).eq('id', orderId);
 
-  sendPushToShop(order.shop_id, null, {
+  createAtelierNotification({
+    shopId: order.shop_id,
+    category: 'clients',
+    tone: 'warning',
+    actorName: order.customer_name,
+    badgeIcon: 'chat',
+    badgeBg: '#E0E7FF',
+    badgeColor: '#4F46E5',
     title: `${order.customer_name} left a comment`,
-    body: trimmed.length > 80 ? trimmed.slice(0, 80) + '…' : trimmed,
+    subtitle: trimmed.length > 80 ? trimmed.slice(0, 80) + '...' : trimmed,
+    actionLabel: 'Reply',
+    actionHref: `/production/${toOrderSlug({ id: order.id, customerName: order.customer_name })}`,
     orderId,
   }).catch(() => {});
 
@@ -172,7 +268,8 @@ export async function submitOrderComment(orderId: string, message: string): Prom
  * here server-side (client-side disabling is just for immediate UX
  * feedback, not the real guard) rather than trusting the caller.
  */
-export async function submitOrderReminder(orderId: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
+export async function submitOrderReminder(orderIdOrSlug: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const ip = await getRequestIp();
   const { allowed } = await checkRateLimit(`reminder:${ip}`, WRITE_LIMIT);
   if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
@@ -190,9 +287,18 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
   const { error: updateError } = await admin.from('orders').update({ last_reminder_at: now }).eq('id', orderId);
   if (updateError) return { success: false, error: updateError.message };
 
-  sendPushToShop(order.shop_id, null, {
+  createAtelierNotification({
+    shopId: order.shop_id,
+    category: 'clients',
+    tone: 'warning',
+    actorName: order.customer_name,
+    badgeIcon: 'notifications',
+    badgeBg: '#FEF3C7',
+    badgeColor: '#D97706',
     title: `${order.customer_name} sent a reminder about their order`,
-    body: `Status: ${order.status}`,
+    subtitle: `Status: ${order.status}`,
+    actionLabel: 'Send WhatsApp',
+    actionHref: `/production/${toOrderSlug({ id: order.id, customerName: order.customer_name })}`,
     orderId,
   }).catch(() => {});
 
@@ -202,7 +308,8 @@ export async function submitOrderReminder(orderId: string): Promise<{ success: b
 /** Whether this order already has a rating — the tracking page uses this to
  *  decide between showing the "leave a review" prompt or a thank-you state,
  *  since the table's unique constraint means only one is ever possible. */
-export async function hasOrderRatingAction(orderId: string): Promise<boolean> {
+export async function hasOrderRatingAction(orderIdOrSlug: string): Promise<boolean> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
   const { count } = await admin
     .from('order_ratings')
@@ -219,10 +326,11 @@ export async function hasOrderRatingAction(orderId: string): Promise<boolean> {
  * in Settings → Manage Portfolio. Never shown publicly until approved.
  */
 export async function submitOrderRatingAction(
-  orderId: string,
+  orderIdOrSlug: string,
   rating: number,
   comment?: string
 ): Promise<{ success: boolean; error?: string }> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return { success: false, error: 'Rating must be between 1 and 5 stars.' };
   }
@@ -259,9 +367,20 @@ export async function submitOrderRatingAction(
     return { success: false, error: insertError.message };
   }
 
-  sendPushToShop(order.shop_id, null, {
+  createAtelierNotification({
+    shopId: order.shop_id,
+    category: 'clients',
+    tone: 'info',
+    actorName: order.customer_name,
+    badgeIcon: 'star',
+    badgeBg: '#FEF9C3',
+    badgeColor: '#CA8A04',
     title: `${order.customer_name} left a ${rating}-star review`,
-    body: trimmedComment ? (trimmedComment.length > 80 ? trimmedComment.slice(0, 80) + '…' : trimmedComment) : 'Awaiting your approval to go public.',
+    subtitle: trimmedComment
+      ? (trimmedComment.length > 80 ? trimmedComment.slice(0, 80) + '...' : trimmedComment)
+      : 'Awaiting your approval to go public.',
+    actionLabel: 'Review',
+    actionHref: '/settings/portfolio',
     orderId,
   }).catch(() => {});
 
@@ -272,19 +391,25 @@ export async function submitOrderRatingAction(
  *  any one tracking link can reach all of their items — without this, batch
  *  grouping exists only on the tailor's side and a 3-garment drop-off means
  *  juggling 3 unrelated links. Minimal fields only: no financials exposed. */
-export async function getPublicBatchSiblings(orderId: string): Promise<
+export async function getPublicBatchSiblings(orderIdOrSlug: string): Promise<
   { id: string; orderDetails: string; status: Order['status'] }[]
 > {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
 
-  const { data: order } = await admin.from('orders').select('batch_id').eq('id', orderId).single();
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+  const query = isUuid
+    ? admin.from('orders').select('id, batch_id').eq('id', orderId)
+    : admin.from('orders').select('id, batch_id').eq('slug', orderIdOrSlug);
+  const { data: orderRows } = await query.limit(1);
+  const order = orderRows?.[0];
   if (!order?.batch_id) return [];
 
   const { data: siblings } = await admin
     .from('orders')
     .select('id, order_details, status')
     .eq('batch_id', order.batch_id)
-    .neq('id', orderId)
+    .neq('id', order.id)
     .order('created_at', { ascending: true });
 
   return (siblings || []).map((row) => ({
@@ -338,6 +463,7 @@ export interface PublicPortfolio {
     id: string;
     slug: string;
     name: string;
+    currency?: string;
     phone?: string;
     address?: string;
     logoUrl?: string;
@@ -345,6 +471,8 @@ export interface PublicPortfolio {
     tagline?: string;
     bio?: string;
     foundedYear?: number;
+    xp?: number;
+    streakCurrent?: number;
   };
   outfits: PortfolioOutfit[];
   /** Every outfit's cover photo, cover-first — only used for the OG/
@@ -381,7 +509,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
-    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id')
+    .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id, currency, xp, streak_current')
     .eq('slug', slug)
     .single();
   if (shopErr || !shopRow) return null;
@@ -508,6 +636,7 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       id: shopRow.id,
       slug: shopRow.slug,
       name: shopRow.name,
+      currency: shopRow.currency || 'NGN',
       phone: shopRow.phone || undefined,
       address: shopRow.address || undefined,
       logoUrl: shopRow.logo_url || undefined,
@@ -515,6 +644,8 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
       tagline: settings.tagline || undefined,
       bio: settings.bio || undefined,
       foundedYear: settings.foundedYear || undefined,
+      xp: shopRow.xp ?? 0,
+      streakCurrent: shopRow.streak_current ?? 0,
     },
     outfits,
     photos,
@@ -549,7 +680,8 @@ function mapEventRow(row: any): CalendarEvent {
   };
 }
 
-export const getPublicOrderEvents = cache(async (orderId: string): Promise<CalendarEvent[]> => {
+export const getPublicOrderEvents = cache(async (orderIdOrSlug: string): Promise<CalendarEvent[]> => {
+  const orderId = extractCanonicalId(orderIdOrSlug);
   const supabase = createAdminClient();
   
   const { data, error } = await supabase

@@ -5,9 +5,20 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit } from '@/lib/audit';
 import { checkOrderQuota, isOrgPremiumByOrgId } from '@/lib/subscription';
-import { sendPushToShop } from '@/lib/push';
+import { createAtelierNotification } from '@/lib/notifications';
+import { toOrderSlug } from '@/lib/slugs';
+import { isXpSystemEnabled, recordServerXpLedger } from '@/lib/xp';
+
+const STAGE_BADGE_ICON: Record<OrderStatus, string> = {
+  Documented: 'assignment',
+  Cutting: 'content_cut',
+  Sewing: 'settings',
+  Ready: 'check_circle',
+  Delivered: 'inventory_2',
+};
 import { formatCurrency } from '@/lib/formatters';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException } from '@/lib/types';
+import { resolveCanonicalStyleName } from '@/lib/constants';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem, CalendarEvent, CalendarEventType } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 
 // ----------------------------------------------------------------------
@@ -115,6 +126,17 @@ function orderFromRow(row: any): Order {
     otherCosts: row.other_costs || 0,
     lastReminderAt: row.last_reminder_at || undefined,
     includeTrackingLink: row.include_tracking_link,
+    isInternalBatch: row.is_internal_batch || false,
+    batchSizes: row.batch_sizes || undefined,
+    fabricPreShrunk: row.metadata?.fabricPreShrunk ?? undefined,
+    remnantsReturned: row.metadata?.remnantsReturned ?? undefined,
+    artisanAssignments: row.metadata?.artisanAssignments ?? undefined,
+    isRescueJob: row.metadata?.isRescueJob ?? undefined,
+    requiresToile: row.metadata?.requiresToile ?? undefined,
+    customPockets: row.metadata?.customPockets ?? undefined,
+    courierDetails: row.metadata?.courierDetails ?? undefined,
+    shippingDetails: row.metadata?.shippingDetails ?? undefined,
+    metadata: row.metadata || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -145,6 +167,20 @@ function orderToRow(shopId: string, o: Partial<Order>) {
   if (o.materialCost !== undefined) row.material_cost = o.materialCost;
   if (o.otherCosts !== undefined) row.other_costs = o.otherCosts;
   if (o.includeTrackingLink !== undefined) row.include_tracking_link = o.includeTrackingLink;
+  if (o.isInternalBatch !== undefined) row.is_internal_batch = o.isInternalBatch;
+  if (o.batchSizes !== undefined) row.batch_sizes = o.batchSizes;
+
+  const metadata: Record<string, unknown> = {};
+  if (o.fabricPreShrunk !== undefined) metadata.fabricPreShrunk = o.fabricPreShrunk;
+  if (o.remnantsReturned !== undefined) metadata.remnantsReturned = o.remnantsReturned;
+  if (o.artisanAssignments !== undefined) metadata.artisanAssignments = o.artisanAssignments;
+  if (o.isRescueJob !== undefined) metadata.isRescueJob = o.isRescueJob;
+  if (o.requiresToile !== undefined) metadata.requiresToile = o.requiresToile;
+  if (o.customPockets !== undefined) metadata.customPockets = o.customPockets;
+  if (o.courierDetails !== undefined) metadata.courierDetails = o.courierDetails;
+  if (o.shippingDetails !== undefined) metadata.shippingDetails = o.shippingDetails;
+  if (Object.keys(metadata).length > 0) row.metadata = metadata;
+
   return row;
 }
 
@@ -169,11 +205,16 @@ function customerFromRow(row: any): Customer {
     gender: row.gender,
     preferredStyles: row.preferred_styles || undefined,
     measurements: row.measurements || undefined,
+    measurementsUpdatedAt: row.measurements_updated_at || undefined,
+    measurementsHistory: row.measurements_history || undefined,
     measurementNotes: row.measurement_notes || undefined,
     styleMeasurements: row.style_measurements && Object.keys(row.style_measurements).length > 0 ? row.style_measurements : undefined,
     fabrics: row.fabrics || undefined,
     address: row.address || undefined,
+    secondaryPhone: row.metadata?.secondaryPhone || undefined,
+    payerName: row.metadata?.payerName || undefined,
     birthdate: row.birthdate || undefined,
+    wallet_balance: row.wallet_balance !== undefined && row.wallet_balance !== null ? Number(row.wallet_balance) : 0,
     createdAt: row.created_at,
   };
 }
@@ -189,6 +230,9 @@ function userFromRow(row: any): User {
     orgId: row.org_id,
     active: row.active,
     avatarUrl: row.avatar_url || undefined,
+    payrollType: row.payroll_type || undefined,
+    payrollAmount: row.payroll_amount || undefined,
+    craftRole: row.craft_role || undefined,
     createdAt: row.created_at,
   };
 }
@@ -210,9 +254,13 @@ function exceptionFromRow(row: any): ShopException {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function shopFromRow(row: any): Shop {
+  const fallbackSlug = row.name
+    ? row.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    : 'studio';
+
   return {
     id: row.id,
-    slug: row.slug,
+    slug: row.slug || fallbackSlug,
     name: row.name,
     currency: row.currency,
     phone: row.phone || undefined,
@@ -221,6 +269,8 @@ function shopFromRow(row: any): Shop {
     createdAt: row.created_at,
     orgId: row.org_id,
     isPrimary: row.is_primary,
+    weeklyCapacity: row.weekly_capacity,
+    dailyCapacity: row.daily_capacity,
     customStyles: row.custom_styles || [],
     logoUrl: row.logo_url || undefined,
     outreachTemplate: row.outreach_template || undefined,
@@ -238,8 +288,24 @@ function shopFromRow(row: any): Shop {
     defaultTrackingLinkEnabled: row.default_tracking_link_enabled ?? true,
     streakCurrent: row.streak_current || 0,
     streakBest: row.streak_best || 0,
+    streakFreezes: row.streak_freezes || 0,
+    workDays: row.work_days || [1,2,3,4,5,6],
+    vacationMode: row.vacation_mode || false,
+    xp: row.xp || 0,
+    gems: row.gems || 0,
+    dailyQuests: row.daily_quests || {},
     streakLastCountedAt: row.streak_last_counted_at || undefined,
     onboardingGoal: row.onboarding_goal || undefined,
+    monthlyRevenueTarget: row.monthly_revenue_target !== null ? Number(row.monthly_revenue_target) : undefined,
+    businessMode: row.business_mode || 'bespoke',
+    referralCode: row.referral_code || undefined,
+    referredByShopId: row.referred_by_shop_id || undefined,
+    referralRewardClaimed: row.referral_reward_claimed || false,
+    buddyShopId: row.buddy_shop_id || undefined,
+    buddyStreakCount: row.buddy_streak_count || 0,
+    buddyLastActiveAt: row.buddy_last_active_at || undefined,
+    restDaysUsedThisWeek: row.rest_days_used_this_week || 0,
+    lastRestDayDate: row.last_rest_day_date || undefined,
   };
 }
 
@@ -261,21 +327,43 @@ function shopFromRow(row: any): Shop {
 // stops the worst case from being literally unbounded until then.
 const SHOP_BUNDLE_ROW_LIMIT = 2000;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function calendarEventFromRow(row: any): CalendarEvent {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    title: row.title,
+    description: row.description || undefined,
+    type: row.type as CalendarEventType,
+    date: row.date,
+    startTime: row.start_time || undefined,
+    endTime: row.end_time || undefined,
+    relatedOrderId: row.related_order_id || undefined,
+    relatedCustomerId: row.related_customer_id || undefined,
+    assignedTo: row.assigned_to || undefined,
+    status: row.status || 'pending',
+    createdAt: row.created_at,
+  };
+}
+
 export async function getShopBundle(shopId: string, orgId: string) {
   const supabase = await createClient();
-  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes] = await Promise.all([
-    supabase.from('shops').select(
-      'id, slug, name, phone, address, owner_id, created_at, org_id, is_primary, custom_styles, logo_url, outreach_template, stage_message_templates, portfolio_template, portfolio_accent, portfolio_settings, paystack_customer_code, paystack_subscription_code, subscription_plan, subscription_status, grace_expires_at, trial_ends_at, trial_used_at, default_tracking_link_enabled, onboarding_goal'
-    ).eq('id', shopId).single(),
-    supabase.from('customers').select(
-      'id, shop_id, full_name, whatsapp_number, gender, preferred_styles, measurements, style_measurements, address, created_at'
-    ).eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
-    supabase.from('orders').select(
-      'id, shop_id, customer_id, customer_name, order_details, total_bill, deposit_paid, status, assigned_to, assigned_to_name, due_date, priority, measurements, images, inspiration_images, batch_id, last_comment_at, comments_seen_at, status_history, payments, style_name, material_supplied_by, material_cost, other_costs, last_reminder_at, include_tracking_link, created_at, updated_at'
-    ).eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
-    supabase.from('profiles').select('id, name, email, role, shop_id, org_id, active, avatar_url, created_at').eq('shop_id', shopId),
-    supabase.from('shop_exceptions').select('*').eq('shop_id', shopId)
+  const [shopRes, customersRes, ordersRes, profilesRes, exceptionsRes, inventoryRes, calendarRes] = await Promise.all([
+    supabase.from('shops').select('*').eq('id', shopId).single(),
+    supabase.from('customers').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
+    supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }).limit(SHOP_BUNDLE_ROW_LIMIT),
+    supabase.from('profiles').select('*').eq('shop_id', shopId),
+    supabase.from('shop_exceptions').select('*').eq('shop_id', shopId),
+    supabase.from('inventory').select('*').eq('shop_id', shopId),
+    supabase.from('calendar_events').select('*').eq('shop_id', shopId).order('date', { ascending: true }).limit(500),
   ]);
+
+  if (shopRes.error) console.error('shopRes error:', shopRes.error);
+  if (customersRes.error) console.error('customersRes error:', customersRes.error);
+  if (ordersRes.error) console.error('ordersRes error:', ordersRes.error);
+  if (profilesRes.error) console.error('profilesRes error:', profilesRes.error);
+  if (inventoryRes.error) console.error('inventoryRes error:', inventoryRes.error);
+  if (calendarRes.error) console.error('calendarRes error:', calendarRes.error);
 
   return {
     shop: shopRes.data ? shopFromRow(shopRes.data) : null,
@@ -283,6 +371,8 @@ export async function getShopBundle(shopId: string, orgId: string) {
     orders: (ordersRes.data || []).map(orderFromRow),
     staffMembers: (profilesRes.data || []).map(userFromRow),
     exceptions: (exceptionsRes.data || []).map(exceptionFromRow),
+    inventory: (inventoryRes.data || []).map(inventoryItemFromRow),
+    calendarEvents: (calendarRes.data || []).map(calendarEventFromRow),
   };
 }
 
@@ -453,8 +543,25 @@ export async function addOrderAction(shopId: string, order: Omit<Order, 'id' | '
     return { error: `Free plan limit reached: ${quota.limit} orders this month. Upgrade to keep creating orders.` };
   }
 
-  const { error } = await supabase.from('orders').insert(orderToRow(shopId, order));
+  const { data: insertedOrder, error } = await supabase
+    .from('orders')
+    .insert(orderToRow(shopId, order))
+    .select('id')
+    .single();
   if (error) return { error: error.message };
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  await logAudit({
+    shopId,
+    actorId,
+    actorName: order.assignedToName || 'Tailor',
+    action: 'order.created',
+    entityType: 'order',
+    entityId: insertedOrder?.id ?? null,
+    diff: { customerName: order.customerName, orderDetails: order.orderDetails },
+  });
+
   return getOrders(shopId);
 }
 
@@ -485,6 +592,18 @@ export async function addOrderBatchAction(
     .select('id, customer_id, assigned_to, order_details, due_date');
     
   if (error) return { error: error.message };
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  await logAudit({
+    shopId,
+    actorId,
+    actorName: 'Tailor',
+    action: 'order.created',
+    entityType: 'order',
+    entityId: insertedOrders?.[0]?.id ?? null,
+    diff: { batchSize: garments.length, customerName: garments[0]?.customerName },
+  });
 
   // Phase 2: Reverse-Scheduling Automations
   if (insertedOrders && insertedOrders.length > 0) {
@@ -532,7 +651,9 @@ export async function addOrderBatchAction(
     }
   }
 
-  return getOrders(shopId);
+  const orders = await getOrders(shopId);
+  if ('error' in orders) return { error: orders.error };
+  return { orders, insertedIds: (insertedOrders || []).map((o) => o.id as string) };
 }
 
 export async function updateOrderStatusAction(
@@ -546,7 +667,7 @@ export async function updateOrderStatusAction(
 
   const { data: current, error: fetchError } = await supabase
     .from('orders')
-    .select('status, status_history, customer_name')
+    .select('status, status_history, customer_name, is_internal_batch, batch_sizes, style_name')
     .eq('id', orderId)
     .single();
   if (fetchError) return { error: fetchError.message };
@@ -562,6 +683,30 @@ export async function updateOrderStatusAction(
     .eq('id', orderId);
   if (error) return { error: error.message };
 
+  if (newStatus === 'Delivered' && current.is_internal_batch && current.batch_sizes) {
+    const styleName = current.style_name || 'Unknown Garment';
+    // batch_sizes is { size: string, quantity: number }[]
+    const sizes = Array.isArray(current.batch_sizes) ? current.batch_sizes : [];
+    
+    for (const bs of sizes) {
+      if (!bs.size || !bs.quantity) continue;
+      // Find existing
+      const { data: existing } = await supabase
+        .from('finished_goods')
+        .select('id, quantity')
+        .eq('shop_id', shopId)
+        .eq('name', styleName)
+        .eq('size', bs.size)
+        .single();
+        
+      if (existing) {
+        await supabase.from('finished_goods').update({ quantity: existing.quantity + bs.quantity }).eq('id', existing.id);
+      } else {
+        await supabase.from('finished_goods').insert({ shop_id: shopId, name: styleName, size: bs.size, quantity: bs.quantity, price: 0 });
+      }
+    }
+  }
+
   await logAudit({
     shopId,
     actorId: changedBy,
@@ -572,9 +717,19 @@ export async function updateOrderStatusAction(
     diff: { fromStatus: current.status, toStatus: newStatus },
   });
 
-  sendPushToShop(shopId, changedBy, {
+  createAtelierNotification({
+    shopId,
+    excludeActorId: changedBy,
+    category: 'production',
+    tone: 'info',
+    actorName: changedByName,
+    badgeIcon: STAGE_BADGE_ICON[newStatus],
+    badgeBg: '#D1FAE5',
+    badgeColor: '#059669',
     title: `${current.customer_name}'s order moved to ${newStatus}`,
-    body: `By ${changedByName}`,
+    subtitle: `By ${changedByName}`,
+    actionLabel: 'View Order',
+    actionHref: `/production/${toOrderSlug({ id: orderId, customerName: current.customer_name })}`,
     orderId,
   }).catch(() => {});
 
@@ -611,9 +766,19 @@ export async function updateOrderAction(orderId: string, updates: Partial<Order>
     if (lastPayment) {
       const { data: orderRow } = await supabase.from('orders').select('customer_name').eq('id', orderId).single();
       const { data: shopRow } = await supabase.from('shops').select('currency').eq('id', shopId).single();
-      sendPushToShop(shopId, actorId, {
+      createAtelierNotification({
+        shopId,
+        excludeActorId: actorId,
+        category: 'payments',
+        tone: 'info',
+        actorName,
+        badgeIcon: 'payments',
+        badgeBg: '#ECFDF5',
+        badgeColor: '#047857',
         title: `Payment recorded for ${orderRow?.customer_name ?? 'an order'}`,
-        body: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
+        subtitle: `${formatCurrency(lastPayment.amount, shopRow?.currency || 'NGN')} — by ${actorName}`,
+        actionLabel: 'View Receipt',
+        actionHref: `/production/${toOrderSlug({ id: orderId, customerName: orderRow?.customer_name })}`,
         orderId,
       }).catch(() => {});
     }
@@ -668,6 +833,10 @@ export async function addCustomerAction(
   customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>
 ) {
   const supabase = await createClient();
+  const customerMeta: Record<string, unknown> = {};
+  if (customer.secondaryPhone) customerMeta.secondaryPhone = customer.secondaryPhone;
+  if (customer.payerName) customerMeta.payerName = customer.payerName;
+
   const { data, error } = await supabase
     .from('customers')
     .insert({
@@ -680,10 +849,23 @@ export async function addCustomerAction(
       measurement_notes: customer.measurementNotes || null,
       address: customer.address || null,
       birthdate: customer.birthdate || null,
+      metadata: Object.keys(customerMeta).length > 0 ? customerMeta : {},
     })
     .select()
     .single();
   if (error) return { error: error.message };
+
+  const { data: authData } = await supabase.auth.getUser();
+  const actorId = authData?.user?.id ?? null;
+  await logAudit({
+    shopId,
+    actorId,
+    actorName: 'Tailor',
+    action: 'customer.created',
+    entityType: 'customer',
+    entityId: data?.id ?? null,
+    diff: { fullName: customer.fullName },
+  });
 
   const customers = await getCustomers(orgId);
   return { newCustomer: customerFromRow(data), customers };
@@ -691,8 +873,56 @@ export async function addCustomerAction(
 
 export async function updateCustomerMeasurementsAction(customerId: string, measurements: Measurements, orgId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from('customers').update({ measurements }).eq('id', customerId);
+  
+  // 1. Fetch current measurements and history
+  const { data: current, error: fetchError } = await supabase
+    .from('customers')
+    .select('shop_id, full_name, measurements, measurements_updated_at, measurements_history')
+    .eq('id', customerId)
+    .single();
+    
+  if (fetchError) return { error: fetchError.message };
+
+  // 2. Add current to history if it exists, has actual data, and is a different session (> 10 mins)
+  const history = Array.isArray(current.measurements_history) ? [...current.measurements_history] : [];
+  const now = new Date();
+  const lastUpdated = current.measurements_updated_at ? new Date(current.measurements_updated_at) : null;
+  const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
+  if (isDifferentSession && current.measurements && Object.keys(current.measurements).length > 0) {
+    history.unshift({
+      date: current.measurements_updated_at || now.toISOString(),
+      measurements: current.measurements
+    });
+  }
+
+  // 3. Update with new measurements and history
+  const { error } = await supabase.from('customers').update({ 
+    measurements,
+    measurements_updated_at: now.toISOString(),
+    measurements_history: history
+  }).eq('id', customerId);
+  
   if (error) return { error: error.message };
+
+  if (current.shop_id) {
+    const { data: authData } = await supabase.auth.getUser();
+    const actorId = authData?.user?.id ?? null;
+    let actorName = 'Unknown';
+    if (actorId) {
+      const { data: actorProfile } = await supabase.from('profiles').select('name').eq('id', actorId).single();
+      actorName = actorProfile?.name || actorName;
+    }
+    await logAudit({
+      shopId: current.shop_id,
+      actorId,
+      actorName,
+      action: 'customer.measurements_updated',
+      entityType: 'customer',
+      entityId: customerId,
+      diff: { customerName: current.full_name, pointsCount: Object.keys(measurements || {}).length },
+    });
+  }
+
   return getCustomers(orgId);
 }
 
@@ -706,7 +936,7 @@ export async function updateCustomerStyleProfileAction(
   const supabase = await createClient();
   const { data: current, error: fetchError } = await supabase
     .from('customers')
-    .select('style_measurements')
+    .select('style_measurements, preferred_styles, gender')
     .eq('id', customerId)
     .single();
   if (fetchError) return { error: fetchError.message };
@@ -714,16 +944,40 @@ export async function updateCustomerStyleProfileAction(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const existing = (current?.style_measurements as Record<string, any>) || {};
   const currentStyleData = existing[styleName] || {};
+
+  const history = Array.isArray(currentStyleData.history) ? [...currentStyleData.history] : [];
+  const now = new Date();
+  const lastUpdated = currentStyleData.updatedAt ? new Date(currentStyleData.updatedAt) : null;
+  const isDifferentSession = !lastUpdated || (now.getTime() - lastUpdated.getTime() > 10 * 60 * 1000);
+  if (isDifferentSession && currentStyleData.measurements && Object.keys(currentStyleData.measurements).length > 0) {
+    history.unshift({
+      date: currentStyleData.updatedAt || now.toISOString(),
+      measurements: currentStyleData.measurements
+    });
+  }
+
   const updated = {
     ...existing,
     [styleName]: {
       ...currentStyleData,
       measurements,
-      updatedAt: new Date().toISOString(),
+      history,
+      updatedAt: now.toISOString(),
       ...(notes !== undefined && { notes })
     },
   };
-  const { error } = await supabase.from('customers').update({ style_measurements: updated }).eq('id', customerId);
+
+  const currentPreferred = Array.isArray(current?.preferred_styles) ? (current.preferred_styles as string[]) : [];
+  const canonicalStyle = resolveCanonicalStyleName(styleName, current?.gender as 'male' | 'female' | undefined);
+  const nextPreferred =
+    canonicalStyle && !currentPreferred.includes(canonicalStyle)
+      ? [...currentPreferred, canonicalStyle]
+      : currentPreferred;
+
+  const { error } = await supabase
+    .from('customers')
+    .update({ style_measurements: updated, preferred_styles: nextPreferred })
+    .eq('id', customerId);
   if (error) return { error: error.message };
   return getCustomers(orgId);
 }
@@ -746,7 +1000,7 @@ export async function deleteCustomerStyleProfileAction(customerId: string, style
 
 export async function updateCustomerProfileAction(
   customerId: string,
-  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>,
+  updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate' | 'secondaryPhone' | 'payerName'>>,
   orgId: string
 ) {
   const supabase = await createClient();
@@ -759,6 +1013,14 @@ export async function updateCustomerProfileAction(
   if (updates.measurementNotes !== undefined) row.measurement_notes = updates.measurementNotes;
   if (updates.fabrics !== undefined) row.fabrics = updates.fabrics;
   if (updates.birthdate !== undefined) row.birthdate = updates.birthdate;
+
+  if (updates.secondaryPhone !== undefined || updates.payerName !== undefined) {
+    const { data: existingCust } = await supabase.from('customers').select('metadata').eq('id', customerId).single();
+    const meta = { ...((existingCust?.metadata as Record<string, unknown>) || {}) };
+    if (updates.secondaryPhone !== undefined) meta.secondaryPhone = updates.secondaryPhone;
+    if (updates.payerName !== undefined) meta.payerName = updates.payerName;
+    row.metadata = meta;
+  }
 
   if (Object.keys(row).length === 0) return null;
   const { error } = await supabase.from('customers').update(row).eq('id', customerId);
@@ -777,6 +1039,9 @@ export async function updateStaffAction(uid: string, updates: Partial<User>, sho
 
   if (updates.active !== undefined) row.active = updates.active;
   if (updates.avatarUrl !== undefined) row.avatar_url = updates.avatarUrl || null;
+  if (updates.payrollType !== undefined) row.payroll_type = updates.payrollType;
+  if (updates.payrollAmount !== undefined) row.payroll_amount = updates.payrollAmount;
+  if (updates.craftRole !== undefined) row.craft_role = updates.craftRole;
   const { error } = await supabase.from('profiles').update(row).eq('id', uid);
   if (error) return { error: error.message };
   return getStaff(shopId);
@@ -786,6 +1051,12 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
   if (updates.name !== undefined) row.name = updates.name;
+  if (updates.slug !== undefined) {
+    row.slug = updates.slug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  if ((updates as any).directoryDiscoverable !== undefined) {
+    row.directory_discoverable = (updates as any).directoryDiscoverable;
+  }
   if (updates.currency !== undefined) row.currency = updates.currency;
   if (updates.phone !== undefined) row.phone = updates.phone;
   if (updates.address !== undefined) row.address = updates.address;
@@ -798,9 +1069,25 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.portfolioSettings !== undefined) row.portfolio_settings = updates.portfolioSettings;
   if (updates.defaultTrackingLinkEnabled !== undefined) row.default_tracking_link_enabled = updates.defaultTrackingLinkEnabled;
   if (updates.streakCurrent !== undefined) row.streak_current = updates.streakCurrent;
+  if (updates.vacationMode !== undefined) row.vacation_mode = updates.vacationMode;
+  if (updates.workDays !== undefined) row.work_days = updates.workDays;
+  if (updates.gems !== undefined) row.gems = updates.gems;
+  if (updates.dailyQuests !== undefined) row.daily_quests = updates.dailyQuests;
+  if (updates.xp !== undefined) row.xp = updates.xp;
   if (updates.streakBest !== undefined) row.streak_best = updates.streakBest;
+  if (updates.streakFreezes !== undefined) row.streak_freezes = updates.streakFreezes;
   if (updates.streakLastCountedAt !== undefined) row.streak_last_counted_at = updates.streakLastCountedAt;
-  const { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
+  if (updates.weeklyCapacity !== undefined) row.weekly_capacity = updates.weeklyCapacity;
+  if (updates.dailyCapacity !== undefined) row.daily_capacity = updates.dailyCapacity;
+  if (updates.monthlyRevenueTarget !== undefined) row.monthly_revenue_target = updates.monthlyRevenueTarget;
+  if (updates.businessMode !== undefined) row.business_mode = updates.businessMode;
+  let { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
+  if (error && error.message.includes('monthly_revenue_target')) {
+    delete row.monthly_revenue_target;
+    const retry = await supabase.from('shops').update(row).eq('id', shopId).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
   if (error) return { error: error.message };
   return shopFromRow(data);
 }
@@ -817,7 +1104,8 @@ export async function upsertCustomStyleAction(
   name: string,
   photoUrl?: string,
   measurementFields?: { id: string; label: string }[],
-  gender?: 'male' | 'female'
+  gender?: 'male' | 'female',
+  basePrice?: number
 ): Promise<Shop | { error: string }> {
   const supabase = await createClient();
   const { data: shopRow, error: fetchError } = await supabase
@@ -827,19 +1115,20 @@ export async function upsertCustomStyleAction(
     .single();
   if (fetchError) return { error: fetchError.message };
 
-  const existing: { name: string; photoUrl?: string; gender?: 'male' | 'female'; measurementFields?: { id: string; label: string }[] }[] =
+  const existing: { name: string; photoUrl?: string; gender?: 'male' | 'female'; basePrice?: number; measurementFields?: { id: string; label: string }[] }[] =
     shopRow?.custom_styles || [];
   const idx = existing.findIndex((s) => s.name.toLowerCase() === name.toLowerCase());
   const next =
     idx === -1
-      ? [...existing, { name, photoUrl, measurementFields, gender }]
+      ? [...existing, { name, photoUrl, measurementFields, gender, basePrice }]
       : existing.map((s, i) =>
           i === idx
             ? {
                 ...s,
                 photoUrl: photoUrl ?? s.photoUrl,
                 measurementFields: measurementFields ?? s.measurementFields,
-                gender: gender ?? s.gender,
+                gender: gender !== undefined ? gender : s.gender,
+                basePrice: basePrice !== undefined ? basePrice : s.basePrice,
               }
             : s
         );
@@ -1064,10 +1353,20 @@ export async function createStylePhotoSubmissionAction(
     .single();
   if (error) return { error: error.message };
   
-  sendPushToShop(shopId, uploadedBy, {
-    title: 'Style Photo Pending Approval',
-    body: `${uploadedByName} uploaded a new photo for '${styleName}' — tap to review and publish.`,
-    url: '/settings',
+  createAtelierNotification({
+    shopId,
+    excludeActorId: uploadedBy,
+    category: 'clients',
+    tone: 'warning',
+    actorName: uploadedByName,
+    badgeIcon: 'photo_camera',
+    badgeBg: '#FEF3C7',
+    badgeColor: '#D97706',
+    title: `Style photo for "${styleName}" needs approval`,
+    subtitle: `Uploaded by ${uploadedByName}`,
+    thumbnailUrl: photoUrl,
+    actionLabel: 'Review',
+    actionHref: `/styles/${encodeURIComponent(styleName)}`,
   }).catch(() => {});
 
   return stylePhotoSubmissionFromRow(data);
@@ -1613,6 +1912,21 @@ export interface FinancialReportBranch {
   costTotal: number;
   marginTotal: number;
   ordersWithCostCount: number;
+  mostProfitableOrder?: { id: string; customerName: string; styleName: string; profit: number };
+  mostProfitableStyle?: { styleName: string; profit: number; count: number };
+  expenseBreakdown: { label: string; value: number }[];
+  trendData: { label: string; revenue: number; expenses: number }[];
+  totalExpenses: number;
+  netProfit: number;
+  // Showroom vs Bespoke Segregated Channels
+  bespokeRevenue: number;
+  bespokeCollected: number;
+  bespokeOutstanding: number;
+  bespokeOrdersCount: number;
+  showroomRevenue: number;
+  showroomCollected: number;
+  showroomUnitsSold: number;
+  showroomOrdersCount: number;
 }
 
 export interface FinancialReport {
@@ -1646,10 +1960,10 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 
   const admin = createAdminClient();
 
-  const premium = await isOrgPremiumByOrgId(admin, profile.org_id);
-  if (!premium) {
-    return { error: 'Financial reports require a premium subscription. Upgrade from Settings to view analytics.' };
-  }
+  // const premium = await isOrgPremiumByOrgId(admin, profile.org_id);
+  // if (!premium) {
+  //   return { error: 'Financial reports require a premium subscription. Upgrade from Settings to view analytics.' };
+  // }
 
   const { data: shops, error: shopsError } = await admin
     .from('shops')
@@ -1662,51 +1976,190 @@ export async function getFinancialReport(fromDate?: string): Promise<{ data?: Fi
 
   let ordersQuery = admin
     .from('orders')
-    .select('shop_id, total_bill, deposit_paid, status, material_cost, other_costs, created_at')
+    .select('id, shop_id, customer_name, style_name, total_bill, deposit_paid, status, material_cost, other_costs, created_at, metadata')
     .in('shop_id', shops.map((s) => s.id));
   if (fromDate) ordersQuery = ordersQuery.gte('created_at', fromDate);
   const { data: orders, error: ordersError } = await ordersQuery;
   if (ordersError) return { error: ordersError.message };
 
+  let expensesQuery = admin
+    .from('expenses')
+    .select('id, shop_id, order_id, amount, category, date')
+    .in('shop_id', shops.map((s) => s.id));
+  if (fromDate) expensesQuery = expensesQuery.gte('date', fromDate);
+  const { data: expenses } = await expensesQuery; // don't crash if it fails, maybe table doesn't exist yet
+
+  const allExpenses = expenses || [];
+
   const branches: FinancialReportBranch[] = shops.map((shop) => {
     const shopOrders = (orders || []).filter((o) => o.shop_id === shop.id);
+    const shopExpenses = allExpenses.filter((e) => e.shop_id === shop.id);
     return {
       shopId: shop.id,
       shopName: shop.name,
       isPrimary: shop.is_primary,
-      ...rollup(shopOrders),
+      ...rollup(shopOrders, shopExpenses),
     };
   });
 
-  const totals = rollup(orders || []);
+  const totals = rollup(orders || [], allExpenses);
 
   return { data: { branches, totals } };
 }
 
 function emptyTotals(): FinancialReport['totals'] {
-  return { collected: 0, outstanding: 0, revenueWithCostData: 0, costTotal: 0, marginTotal: 0, ordersWithCostCount: 0 };
+  return {
+    collected: 0,
+    outstanding: 0,
+    revenueWithCostData: 0,
+    costTotal: 0,
+    marginTotal: 0,
+    ordersWithCostCount: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    expenseBreakdown: [],
+    trendData: [],
+    bespokeRevenue: 0,
+    bespokeCollected: 0,
+    bespokeOutstanding: 0,
+    bespokeOrdersCount: 0,
+    showroomRevenue: 0,
+    showroomCollected: 0,
+    showroomUnitsSold: 0,
+    showroomOrdersCount: 0,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rollup(rows: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' | 'isPrimary'> {
+function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' | 'isPrimary'> {
   let collected = 0;
   let outstanding = 0;
   let revenueWithCostData = 0;
   let costTotal = 0;
   let ordersWithCostCount = 0;
 
-  for (const row of rows) {
+  let bespokeRevenue = 0;
+  let bespokeCollected = 0;
+  let bespokeOutstanding = 0;
+  let bespokeOrdersCount = 0;
+  let showroomRevenue = 0;
+  let showroomCollected = 0;
+  let showroomUnitsSold = 0;
+  let showroomOrdersCount = 0;
+
+  const expensesByOrder: Record<string, number> = {};
+  for (const exp of expenses) {
+    costTotal += exp.amount || 0;
+    if (exp.order_id) {
+      expensesByOrder[exp.order_id] = (expensesByOrder[exp.order_id] || 0) + (exp.amount || 0);
+    }
+  }
+
+  const profitByOrder: Record<string, { id: string; customerName: string; styleName: string; profit: number }> = {};
+  const profitByStyle: Record<string, { profit: number; count: number }> = {};
+
+  for (const row of orders) {
     collected += row.deposit_paid || 0;
     if (row.status !== 'Delivered') outstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
 
-    const materialCost = row.material_cost || 0;
-    const otherCosts = row.other_costs || 0;
-    if (materialCost > 0 || otherCosts > 0) {
+    const isPosCounter =
+      row.metadata?.channel === 'pos_counter' ||
+      row.metadata?.sales_channel === 'pos_counter' ||
+      row.metadata?.order_type === 'rtw_counter_sale';
+
+    if (isPosCounter) {
+      showroomOrdersCount += 1;
+      showroomRevenue += row.total_bill || 0;
+      showroomCollected += row.deposit_paid || 0;
+      if (Array.isArray(row.metadata?.items)) {
+        for (const item of row.metadata.items) {
+          showroomUnitsSold += Number(item.quantity) || 1;
+        }
+      } else {
+        showroomUnitsSold += 1;
+      }
+    } else {
+      bespokeOrdersCount += 1;
+      bespokeRevenue += row.total_bill || 0;
+      bespokeCollected += row.deposit_paid || 0;
+      if (row.status !== 'Delivered') {
+        bespokeOutstanding += (row.total_bill || 0) - (row.deposit_paid || 0);
+      }
+    }
+
+    const oldMaterialCost = row.material_cost || 0;
+    const oldOtherCosts = row.other_costs || 0;
+    const oldCost = oldMaterialCost + oldOtherCosts;
+    const newCost = expensesByOrder[row.id] || 0;
+    const totalRowCost = oldCost + newCost; // Support both systems seamlessly
+
+    if (totalRowCost > 0) {
       ordersWithCostCount += 1;
       revenueWithCostData += row.total_bill || 0;
-      costTotal += materialCost + otherCosts;
+      
+      const profit = (row.total_bill || 0) - totalRowCost;
+      profitByOrder[row.id] = { id: row.id, customerName: row.customer_name, styleName: row.style_name || 'Custom', profit };
+      
+      if (row.style_name) {
+        if (!profitByStyle[row.style_name]) {
+          profitByStyle[row.style_name] = { profit: 0, count: 0 };
+        }
+        profitByStyle[row.style_name].profit += profit;
+        profitByStyle[row.style_name].count += 1;
+      }
+    }
+    
+    // Add legacy costs to global costTotal since they aren't in the expenses table
+    costTotal += oldCost;
+  }
+
+  let mostProfitableOrder;
+  for (const order of Object.values(profitByOrder)) {
+    if (!mostProfitableOrder || order.profit > mostProfitableOrder.profit) {
+      mostProfitableOrder = order;
     }
   }
+
+  let mostProfitableStyle;
+  for (const [styleName, stats] of Object.entries(profitByStyle)) {
+    const avgProfit = stats.profit / stats.count;
+    if (!mostProfitableStyle || avgProfit > (mostProfitableStyle.profit / mostProfitableStyle.count)) {
+      mostProfitableStyle = { styleName, profit: avgProfit, count: stats.count };
+    }
+  }
+
+  const expensesByCategory: Record<string, number> = { material: 0, labor: 0, outsourced: 0, logistics: 0, general: 0 };
+  for (const exp of expenses) {
+    if (exp.category) {
+      expensesByCategory[exp.category] = (expensesByCategory[exp.category] || 0) + (exp.amount || 0);
+    }
+  }
+
+  const expenseBreakdown = [
+    { label: 'Materials', value: expensesByCategory.material || 0, color: '#3b82f6' },
+    { label: 'Labor', value: expensesByCategory.labor || 0, color: '#10b981' },
+    { label: 'Outsourced', value: expensesByCategory.outsourced || 0, color: '#f59e0b' },
+    { label: 'Logistics', value: expensesByCategory.logistics || 0, color: '#8b5cf6' },
+    { label: 'General', value: expensesByCategory.general || 0, color: '#ef4444' },
+  ];
+
+  // Group by month for trend data
+  const trendMap: Record<string, { revenue: number; expenses: number }> = {};
+  for (const row of orders) {
+    const month = new Date(row.created_at).toLocaleString('default', { month: 'short' });
+    if (!trendMap[month]) trendMap[month] = { revenue: 0, expenses: 0 };
+    trendMap[month].revenue += row.total_bill || 0;
+  }
+  for (const exp of expenses) {
+    const month = new Date(exp.date).toLocaleString('default', { month: 'short' });
+    if (!trendMap[month]) trendMap[month] = { revenue: 0, expenses: 0 };
+    trendMap[month].expenses += exp.amount || 0;
+  }
+  
+  const trendData = Object.entries(trendMap).map(([label, data]) => ({ label, revenue: data.revenue, expenses: data.expenses }));
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const netProfit = collected - totalExpenses;
 
   return {
     collected,
@@ -1715,6 +2168,20 @@ function rollup(rows: any[]): Omit<FinancialReportBranch, 'shopId' | 'shopName' 
     costTotal,
     marginTotal: revenueWithCostData - costTotal,
     ordersWithCostCount,
+    mostProfitableOrder,
+    mostProfitableStyle,
+    expenseBreakdown,
+    trendData,
+    totalExpenses,
+    netProfit,
+    bespokeRevenue,
+    bespokeCollected,
+    bespokeOutstanding,
+    bespokeOrdersCount,
+    showroomRevenue,
+    showroomCollected,
+    showroomUnitsSold,
+    showroomOrdersCount,
   };
 }
 
@@ -1727,7 +2194,8 @@ export async function savePushSubscriptionAction(subscription: { endpoint: strin
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return { error: 'Not signed in' };
 
-  const { error } = await supabase.from('push_subscriptions').upsert(
+  const admin = createAdminClient();
+  const { error } = await admin.from('push_subscriptions').upsert(
     {
       profile_id: authData.user.id,
       endpoint: subscription.endpoint,
@@ -1744,11 +2212,481 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<{ 
   const { data: authData } = await supabase.auth.getUser();
   if (!authData?.user) return { error: 'Not signed in' };
 
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from('push_subscriptions')
     .delete()
     .eq('endpoint', endpoint)
     .eq('profile_id', authData.user.id);
   if (error) return { error: error.message };
   return {};
+}
+
+export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: string; success?: boolean; sentCount?: number }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData?.user) return { error: 'Not signed in' };
+
+  if (delaySeconds > 0) {
+    await new Promise((r) => setTimeout(r, delaySeconds * 1000));
+  }
+
+  const { sendPushToProfile } = await import('@/lib/push');
+  const result = await sendPushToProfile(authData.user.id, {
+    title: 'Atelier Test Alert',
+    body: 'Lock screen push notification and icon badge verified successfully.',
+    url: '/notifications',
+  });
+
+  if (!result.success) {
+    return {
+      error:
+        result.error ||
+        'No active device subscription found in database. Tap Disable and Re-enable Notifications to register this device.',
+    };
+  }
+
+  return { success: true, sentCount: result.sentCount };
+}
+
+export async function sendTestSmartAlertAction(
+  segment: 'morning' | 'midday' | 'evening' | 'auto' = 'auto',
+  delaySeconds = 3
+): Promise<{ error?: string; success?: boolean; sentCount?: number; alertTitle?: string }> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData?.user) return { error: 'Not signed in' };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('shop_id')
+    .eq('id', authData.user.id)
+    .single();
+
+  if (!profile?.shop_id) {
+    return { error: 'Shop profile not found' };
+  }
+
+  if (delaySeconds > 0) {
+    await new Promise((r) => setTimeout(r, delaySeconds * 1000));
+  }
+
+  const { NextRequest } = await import('next/server');
+  const { GET: runSmartAlertsCron } = await import('@/app/api/cron/smart-alerts/route');
+
+  const segmentParam = segment === 'auto' ? '' : `&segment=${segment}`;
+  const reqUrl = `http://localhost/api/cron/smart-alerts?shopId=${encodeURIComponent(profile.shop_id)}&slot=1&force=1${segmentParam}`;
+  const secret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const req = new NextRequest(reqUrl, {
+    headers: {
+      authorization: `Bearer ${secret}`,
+    },
+  });
+
+  const res = await runSmartAlertsCron(req);
+  const body = (await res.json()) as {
+    ok?: boolean;
+    error?: string;
+    pushDevicesSent?: number;
+    dispatchedAlerts?: Array<{ title: string; pushSentCount: number; pushError?: string }>;
+  };
+
+  if (!res.ok || !body.ok) {
+    return { error: body.error || 'Smart alert cron failed to execute' };
+  }
+
+  const dispatched = body.dispatchedAlerts?.[0];
+  if (!dispatched) {
+    return { error: 'No candidate smart alert queued for your shop' };
+  }
+
+  return {
+    success: true,
+    sentCount: dispatched.pushSentCount || body.pushDevicesSent || 1,
+    alertTitle: dispatched.title,
+  };
+}
+
+// --- Inventory ---
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function inventoryItemFromRow(row: any): InventoryItem {
+  return {
+    id: row.id,
+    shopId: row.shop_id,
+    itemName: row.item_name,
+    quantity: row.quantity,
+    unit: row.unit,
+    lowStockThreshold: row.low_stock_threshold,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function getInventoryAction(shopId: string): Promise<InventoryItem[] | { error: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('inventory')
+    .select('*')
+    .eq('shop_id', shopId)
+    .order('item_name', { ascending: true });
+
+  if (error) return { error: error.message };
+  return (data || []).map(inventoryItemFromRow);
+}
+
+export async function addInventoryItemAction(shopId: string, payload: Omit<InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) {
+  const supabase = await createClient();
+  const row = {
+    shop_id: shopId,
+    item_name: payload.itemName,
+    quantity: payload.quantity,
+    unit: payload.unit,
+    low_stock_threshold: payload.lowStockThreshold
+  };
+  const { data, error } = await supabase.from('inventory').insert(row).select().single();
+  if (error) {
+    if (error.message.includes('relation "public.inventory" does not exist') || error.code === '42P01') {
+      return {
+        error:
+          'Database table "inventory" does not exist yet. Please run migration 0071_create_inventory_and_order_materials.sql in Supabase SQL Editor.',
+      };
+    }
+    return { error: error.message };
+  }
+  return inventoryItemFromRow(data);
+}
+
+export async function updateInventoryItemAction(itemId: string, updates: Partial<InventoryItem>) {
+  const supabase = await createClient();
+  const row: Record<string, unknown> = {};
+  if (updates.itemName !== undefined) row.item_name = updates.itemName;
+  if (updates.quantity !== undefined) row.quantity = updates.quantity;
+  if (updates.unit !== undefined) row.unit = updates.unit;
+  if (updates.lowStockThreshold !== undefined) row.low_stock_threshold = updates.lowStockThreshold;
+
+  const { data, error } = await supabase.from('inventory').update(row).eq('id', itemId).select().single();
+  if (error) {
+    if (error.message.includes('relation "public.inventory" does not exist') || error.code === '42P01') {
+      return {
+        error:
+          'Database table "inventory" does not exist yet. Please run migration 0071_create_inventory_and_order_materials.sql in Supabase SQL Editor.',
+      };
+    }
+    return { error: error.message };
+  }
+  return inventoryItemFromRow(data);
+}
+
+export async function deleteInventoryItemAction(itemId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('inventory').delete().eq('id', itemId);
+  if (error) {
+    if (error.message.includes('relation "public.inventory" does not exist') || error.code === '42P01') {
+      return {
+        error:
+          'Database table "inventory" does not exist yet. Please run migration 0071_create_inventory_and_order_materials.sql in Supabase SQL Editor.',
+      };
+    }
+    return { error: error.message };
+  }
+  return { success: true };
+}
+
+export async function assignMaterialToOrderAction(shopId: string, orderId: string, itemId: string, quantity: number) {
+  const supabase = await createClient();
+  
+  // 1. Fetch current inventory
+  const { data: item, error: itemError } = await supabase
+    .from('inventory')
+    .select('quantity')
+    .eq('id', itemId)
+    .single();
+    
+  if (itemError) return { error: itemError.message };
+  
+  const currentQuantity = item.quantity;
+  if (currentQuantity < quantity) {
+    return { error: 'Not enough inventory' };
+  }
+  
+  // 2. Deduct inventory
+  const { error: updateError } = await supabase
+    .from('inventory')
+    .update({ quantity: currentQuantity - quantity })
+    .eq('id', itemId);
+    
+  if (updateError) return { error: updateError.message };
+  
+  // 3. Record assignment
+  const { error: insertError } = await supabase
+    .from('order_materials')
+    .insert({
+      shop_id: shopId,
+      order_id: orderId,
+      inventory_item_id: itemId,
+      quantity
+    });
+    
+  if (insertError) return { error: insertError.message };
+  
+  return { success: true };
+}
+
+export async function getOrderMaterialsAction(orderId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('order_materials')
+    .select('*, inventory:inventory_item_id(item_name, unit)')
+    .eq('order_id', orderId);
+    
+  if (error) return { error: error.message };
+  return data;
+}
+
+// ----------------------------------------------------------------------
+// Master Tailor Challenge Server Actions
+// ----------------------------------------------------------------------
+
+export async function getChallengeLeaderboardAction() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+  const currentShopId = profile?.shop_id;
+
+  // Get top 10 shops
+  const { data: topShops, error } = await admin
+    .from('shops')
+    .select('id, name, logo_url, xp, streak_current')
+    .order('xp', { ascending: false })
+    .limit(10);
+
+  if (error) return { error: error.message };
+
+  // Calculate user's overall rank
+  let userRank = 1;
+  let userXp = 0;
+  if (currentShopId) {
+    const { data: userShop } = await admin.from('shops').select('xp').eq('id', currentShopId).single();
+    userXp = userShop?.xp || 0;
+    const { count } = await admin
+      .from('shops')
+      .select('*', { count: 'exact', head: true })
+      .gt('xp', userXp);
+    userRank = (count || 0) + 1;
+  }
+
+  // Count how many have hit 5000 XP (Machines won)
+  const { count: winnersCount } = await admin
+    .from('shops')
+    .select('*', { count: 'exact', head: true })
+    .gte('xp', 5000);
+
+  const machinesRemaining = Math.max(0, 3 - (winnersCount || 0));
+
+  // Lazy import getTierForXp
+  const { getTierForXp } = await import('@/lib/gamification');
+
+  const leaderboard = (topShops || []).map((s, index) => {
+    const tier = getTierForXp(s.xp || 0);
+    return {
+      shopId: s.id,
+      shopName: s.name,
+      avatarUrl: s.logo_url || undefined,
+      xp: s.xp || 0,
+      tierName: tier.name,
+      tierColor: tier.color,
+      tierIcon: tier.icon,
+      rank: index + 1,
+      streakCurrent: s.streak_current || 0,
+      isCurrentUser: s.id === currentShopId,
+    };
+  });
+
+  // Also fetch buddy info if linked
+  let buddyInfo: { name: string; avatarUrl?: string; lastActiveAt?: string; streakCount: number } | null = null;
+  if (currentShopId) {
+    const { data: shop } = await admin.from('shops').select('buddy_shop_id, buddy_streak_count').eq('id', currentShopId).single();
+    if (shop?.buddy_shop_id) {
+      const { data: bShop } = await admin.from('shops').select('name, logo_url, streak_last_counted_at').eq('id', shop.buddy_shop_id).single();
+      if (bShop) {
+        buddyInfo = {
+          name: bShop.name,
+          avatarUrl: bShop.logo_url || undefined,
+          lastActiveAt: bShop.streak_last_counted_at || undefined,
+          streakCount: shop.buddy_streak_count || 0,
+        };
+      }
+    }
+  }
+
+  return {
+    leaderboard,
+    userRank,
+    userXp,
+    machinesRemaining,
+    buddyInfo,
+  };
+}
+
+export async function linkStudioBuddyAction(buddyCode: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+  if (!profile?.shop_id) return { error: 'No shop found' };
+
+  const cleanCode = buddyCode.trim().toUpperCase();
+  const { data: buddyShop } = await admin
+    .from('shops')
+    .select('id, name')
+    .eq('referral_code', cleanCode)
+    .single();
+
+  if (!buddyShop) {
+    return { error: 'Colleague code not found. Check the code and try again.' };
+  }
+
+  if (buddyShop.id === profile.shop_id) {
+    return { error: 'You cannot link with your own studio!' };
+  }
+
+  // Bidirectional link
+  await admin.from('shops').update({ buddy_shop_id: buddyShop.id }).eq('id', profile.shop_id);
+  await admin.from('shops').update({ buddy_shop_id: profile.shop_id }).eq('id', buddyShop.id);
+
+  return { success: true, buddyName: buddyShop.name };
+}
+
+export async function logStudioRestDayAction() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('shop_id').eq('id', user.id).single();
+  if (!profile?.shop_id) return { error: 'No shop found' };
+
+  const { data: shop } = await admin
+    .from('shops')
+    .select('id, xp, rest_days_used_this_week, last_rest_day_date, streak_current, streak_best, business_mode')
+    .eq('id', profile.shop_id)
+    .single();
+
+  if (!shop) return { error: 'Shop not found' };
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (shop.last_rest_day_date === todayStr) {
+    return { error: "You've already claimed a Studio Rest Day for today!" };
+  }
+
+  const used = shop.rest_days_used_this_week || 0;
+  if (used >= 2) {
+    return { error: 'You have used your 2 Studio Rest Days for this week.' };
+  }
+
+  const xpEnabled = isXpSystemEnabled(shop.business_mode || 'bespoke');
+  const xpAwarded = xpEnabled ? 10 : 0;
+  const newUsed = used + 1;
+  const newStreak = (shop.streak_current || 0) + 1;
+  const newBest = Math.max(newStreak, shop.streak_best || 0);
+
+  const updateData: Record<string, unknown> = {
+    rest_days_used_this_week: newUsed,
+    last_rest_day_date: todayStr,
+    streak_current: newStreak,
+    streak_best: newBest,
+    streak_last_counted_at: new Date().toISOString(),
+  };
+
+  if (xpAwarded > 0) {
+    updateData.xp = (shop.xp || 0) + xpAwarded;
+  }
+
+  await admin.from('shops').update(updateData).eq('id', shop.id);
+
+  if (xpAwarded > 0) {
+    await recordServerXpLedger(admin, {
+      shop_id: shop.id,
+      amount: xpAwarded,
+      action_type: 'rest_day',
+      description: 'Studio Rest Day claimed',
+    });
+  }
+
+  return {
+    success: true,
+    xpAwarded,
+    newStreak,
+    restDaysRemaining: 2 - newUsed,
+  };
+}
+
+export async function toggleOrderReminderMuteAction(
+  orderId: string,
+  field: 'mute_balance_reminders' | 'mute_stagnant_alerts',
+  muted: boolean
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { data: order, error: fetchErr } = await supabase
+    .from('orders')
+    .select('id, shop_id, metadata')
+    .eq('id', orderId)
+    .single();
+
+  if (fetchErr || !order) return { error: fetchErr?.message || 'Order not found' };
+
+  const meta = (order.metadata as Record<string, unknown>) || {};
+  meta[field] = muted;
+
+  const { error: updateErr } = await supabase
+    .from('orders')
+    .update({ metadata: meta, updated_at: new Date().toISOString() })
+    .eq('id', orderId);
+
+  if (updateErr) return { error: updateErr.message };
+  return { success: true, muted };
+}
+
+export async function updateNotificationPreferencesAction(
+  shopId: string,
+  preferences: {
+    mute_balance_reminders?: boolean;
+    mute_stagnant_alerts?: boolean;
+    mute_circle_nudges?: boolean;
+    mute_daily_kickstarts?: boolean;
+  }
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { data: shop, error: fetchErr } = await supabase
+    .from('shops')
+    .select('id, portfolio_settings')
+    .eq('id', shopId)
+    .single();
+
+  if (fetchErr || !shop) return { error: fetchErr?.message || 'Shop not found' };
+
+  const portfolioSettings = (shop.portfolio_settings as Record<string, unknown>) || {};
+  const currentPrefs = (portfolioSettings.notification_preferences as Record<string, unknown>) || {};
+  const nextPrefs = { ...currentPrefs, ...preferences };
+  portfolioSettings.notification_preferences = nextPrefs;
+
+  const { error: updateErr } = await supabase
+    .from('shops')
+    .update({ portfolio_settings: portfolioSettings })
+    .eq('id', shopId);
+
+  if (updateErr) return { error: updateErr.message };
+  return { success: true, preferences: nextPrefs };
 }

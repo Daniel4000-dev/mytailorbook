@@ -1,22 +1,145 @@
+/* ── Apple iOS Atelier Segmented Control ─────────── */
+
+.stageSegmentedWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--sf-space-md);
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  /* Bleed to margins on mobile for smooth gesture edge swipe */
+  margin-left: calc(-1 * var(--sf-margin-mobile, 16px));
+  margin-right: calc(-1 * var(--sf-margin-mobile, 16px));
+  padding-left: var(--sf-margin-mobile, 16px);
+  padding-right: var(--sf-margin-mobile, 16px);
+}
+
+.stageSegmentedWrap::-webkit-scrollbar {
+  display: none;
+}
+
+.stageSegmentedControl {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(120, 120, 128, 0.1);
+  padding: 3px;
+  border-radius: var(--sf-radius-full, 9999px);
+  min-width: 100%;
+}
+
+:global([data-theme='dark']) .stageSegmentedControl {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stageSegmentBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  border-radius: var(--sf-radius-full, 9999px);
+  font-family: var(--sf-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.stageSegmentBtn:active {
+  transform: scale(0.97);
+}
+
+.stageSegmentActive {
+  background: var(--sf-bg-surface, #FFFFFF);
+  color: var(--sf-text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+:global([data-theme='dark']) .stageSegmentActive {
+  background: var(--sf-bg-surface-elevated, #201E34);
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.stageSegmentCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--sf-radius-full, 9999px);
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .stageSegmentCount {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-secondary);
+}
+
+.stageSegmentActive .stageSegmentCount {
+  background: var(--sf-text-primary, #1C1A28);
+  color: var(--sf-bg-surface, #FFFFFF);
+}
+
+:global([data-theme='dark']) .stageSegmentActive .stageSegmentCount {
+  background: #FFFFFF;
+  color: #161526;
+}
+
+.stageSegmentCountUrgent {
+  color: #DC2626 !important;
+}
+
+.stageSegmentActive .stageSegmentCountUrgent {
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
+}
+
 /* ── Search bar ─────────────────────────────── */
 
 .searchWrap {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-xl);
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+  border-radius: var(--sf-radius-full);
   padding: 0 var(--sf-space-md);
   gap: var(--sf-space-sm);
-  box-shadow: var(--sf-shadow-xs);
-  margin-bottom: var(--sf-space-md);
+  box-shadow: none;
+  margin-bottom: var(--sf-space-sm);
   transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
 }
 
+:global([data-theme='dark']) .searchWrap {
+  background: var(--sf-bg-surface, #161526);
+  border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .searchWrap {
+    background: var(--sf-bg-surface, #161526);
+    border-color: var(--sf-border, rgba(99, 102, 241, 0.2));
+  }
+}
+
 .searchWrap:focus-within {
-  border-color: var(--sf-border-focus);
-  box-shadow: 0 0 0 3px var(--sf-accent-emerald-glow);
+  border-color: var(--sf-brand-indigo, #4338CA);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
+}
+
+:global([data-theme='dark']) .searchWrap:focus-within {
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .searchIcon {
@@ -53,7 +176,7 @@
   width: 24px;
   height: 24px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-surface-variant);
+  background: var(--sf-bg-surface-elevated, #F1F5F9);
   color: var(--sf-text-tertiary);
   border: none;
   cursor: pointer;
@@ -61,9 +184,15 @@
   transition: background var(--sf-transition-fast), transform var(--sf-transition-fast);
 }
 
+:global([data-theme='dark']) .clearBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sf-text-secondary);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .clearBtn:hover {
-    background: var(--sf-border);
+    background: #E2E8F0;
+    color: var(--sf-text-primary);
   }
 }
 
@@ -71,73 +200,12 @@
   transform: scale(0.9);
 }
 
-/* ── Filter pills row ────────────────────────── */
-
-.filtersRow {
-  display: flex;
-  gap: var(--sf-space-xs);
-  overflow-x: auto;
-  padding-bottom: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-md);
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  /* Bleed to edges on mobile to align with content */
-  margin-left: calc(-1 * var(--sf-margin-mobile));
-  padding-left: var(--sf-margin-mobile);
-  padding-right: var(--sf-margin-mobile);
-}
-
-.filtersRow::-webkit-scrollbar {
-  display: none;
-}
-
-.pill {
-  flex-shrink: 0;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: var(--sf-radius-full);
-  border: 1px solid var(--sf-border-light);
-  background: var(--sf-bg-surface);
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-  cursor: pointer;
-  transition:
-    background var(--sf-transition-fast),
-    color var(--sf-transition-fast),
-    border-color var(--sf-transition-fast),
-    box-shadow var(--sf-transition-fast);
-  white-space: nowrap;
-  touch-action: manipulation;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .pill:hover {
-    background: var(--sf-surface-variant);
-    border-color: var(--sf-border);
-  }
-}
-
-.pillActive {
-  background: var(--sf-accent-emerald);
-  color: var(--sf-text-on-accent);
-  border-color: var(--sf-accent-emerald);
-  box-shadow: var(--sf-shadow-emerald);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .pillActive:hover {
-    background: var(--sf-accent-emerald-dark);
-    border-color: var(--sf-accent-emerald-dark);
-  }
-}
-
 /* ── Gallery grid ────────────────────────────── */
 
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--sf-space-sm);
+  gap: var(--sf-space-md);
   animation: fadeInUp 250ms ease both;
 }
 
@@ -151,30 +219,28 @@
 @media (min-width: 768px) {
   .grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: var(--sf-space-lg);
   }
 }
 
-/* A photo gallery grid should use a wide desktop screen's real estate
-   rather than stopping at the same 4 columns as a tablet — more, smaller
-   tiles read as a considered gallery wall instead of a mobile grid just
-   given more horizontal room. */
 @media (min-width: 1024px) {
   .grid {
     grid-template-columns: repeat(5, 1fr);
-    gap: var(--sf-space-md);
+    gap: var(--sf-space-lg);
   }
 }
 
 @media (min-width: 1440px) {
   .grid {
     grid-template-columns: repeat(6, 1fr);
+    gap: var(--sf-space-lg);
   }
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -188,6 +254,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--sf-space-xs);
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 10px;
 }
 
 /* ── Empty state ─────────────────────────────── */
@@ -200,17 +270,21 @@
   padding: var(--sf-space-3xl) var(--sf-space-lg);
   gap: var(--sf-space-sm);
   animation: fadeIn 300ms ease;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .emptyIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--sf-radius-full);
-  background: var(--sf-sand);
-  color: var(--sf-border);
+  background: #F8FAFC;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--sf-text-tertiary);
   margin-bottom: var(--sf-space-xs);
 }
 
@@ -223,55 +297,7 @@
 .emptyDesc {
   font-size: var(--sf-text-sm);
   color: var(--sf-text-secondary);
-  max-width: 280px;
+  max-width: 320px;
   line-height: var(--sf-leading-relaxed);
   margin-top: 2px;
-}
-
-.toggleNoPhotoBtn {
-  margin-top: var(--sf-space-md);
-  height: 38px;
-  padding: 0 var(--sf-space-md);
-  border-radius: var(--sf-radius-full);
-  border: 1px solid var(--sf-border);
-  background: transparent;
-  color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-  cursor: pointer;
-  transition: background var(--sf-transition-fast), border-color var(--sf-transition-fast), transform var(--sf-transition-fast);
-  touch-action: manipulation;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .toggleNoPhotoBtn:hover {
-    background: var(--sf-surface-variant);
-    border-color: var(--sf-border);
-  }
-}
-
-.toggleNoPhotoBtn:active {
-  transform: scale(0.97);
-  background: var(--sf-surface-variant);
-}
-
-/* ── No-photo toggle (inline when grid has items) ── */
-
-.noPhotoToggle {
-  display: flex;
-  align-items: center;
-  gap: var(--sf-space-sm);
-  margin-top: var(--sf-space-md);
-  font-size: var(--sf-text-sm);
-  color: var(--sf-text-secondary);
-  cursor: pointer;
-  user-select: none;
-}
-
-.noPhotoCheckbox {
-  accent-color: var(--sf-accent-emerald);
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  flex-shrink: 0;
 }

@@ -14,7 +14,8 @@
   letter-spacing: 0.02em;
   line-height: 1;
   border: 1px solid var(--sf-border-light);
-  backdrop-filter: blur(4px);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
 }
 
 /* ── Sizes ──────────────────────────────────────────────── */

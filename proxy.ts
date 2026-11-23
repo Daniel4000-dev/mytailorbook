@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES, isPublicPath, isAppPath, MARKETING_PATHS } from '@/lib/routes';
 
-const ROOT_DOMAIN = APP_CONFIG.domain;
+const ROOT_DOMAIN = APP_CONFIG.domain.replace(/^(dev\.app\.|app\.|dev\.)/, '');
 const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
 
 // Keeps app.<domain> and the bare marketing domain each showing only their
@@ -12,6 +12,8 @@ const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
 function crossDomainRedirect(request: NextRequest): NextResponse | null {
   const host = request.headers.get('host');
   const { pathname, search } = request.nextUrl;
+
+  if (!host || host.startsWith('dev.')) return null;
 
   if (host === ROOT_DOMAIN && isAppPath(pathname)) {
     return NextResponse.redirect(new URL(`https://${APP_DOMAIN}${pathname}${search}`), 308);
@@ -57,7 +59,7 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -128,6 +130,6 @@ export const config = {
      *   Googlebot has no session cookie and must see the raw file, not a
      *   /login redirect)
      */
-    '/((?!_next/static|_next/image|favicon.ico|app-icon-light.ico|app-icon-dark.ico|apple-touch-icon.png|images/|icons/|manifest.webmanifest|api/|google[a-z0-9]+\\.html).*)',
+    '/((?!_next/static|_next/image|favicon.ico|app-icon-light.ico|app-icon-dark.ico|apple-touch-icon.png|images/|icons/|models/|manifest.webmanifest|api/|google[a-z0-9]+\\.html).*)',
   ],
 };

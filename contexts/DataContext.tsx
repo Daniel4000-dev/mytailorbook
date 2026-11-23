@@ -10,12 +10,17 @@ import {
   type ReactNode,
 } from 'react';
 import useSWR from 'swr';
-import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException } from '@/lib/types';
+import type { Order, Customer, OrderStatus, Measurements, User, Shop, ShopException, AtelierCraftRole, CalendarEvent } from '@/lib/types';
 import { normalizePhone } from '@/lib/formatters';
 import { useAuth } from '@/contexts/AuthContext';
+import { logStreakAction } from '@/lib/streakClient';
+import { isXpSystemEnabled } from '@/lib/xp';
 import { createStaffAccount } from '@/app/auth-actions';
 import { createClient } from '@/lib/supabase/client';
+import { enqueueOfflineMutation, withNetworkTimeout } from '@/lib/offline/outbox';
 import { getClientCookie, setClientCookie } from '@/lib/client-cookies';
+import { resolveCanonicalStyleName } from '@/lib/constants';
+import { triggerHaptic } from '@/lib/haptics';
 import {
   getShopBundle,
   getOrgBranches,
@@ -47,9 +52,94 @@ interface ShopBundle {
   staffMembers: User[];
   shop: Shop | null;
   exceptions: ShopException[];
+  inventory: import('@/lib/types').InventoryItem[];
+  calendarEvents: CalendarEvent[];
 }
 
-const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [] };
+const SEEDED_INVENTORY_ITEMS: import('@/lib/types').InventoryItem[] = [
+  {
+    id: 'seed-inv-1',
+    shopId: 'shop-seeded',
+    itemName: 'Royal Blue Cashmere Suiting Wool',
+    quantity: 8.5,
+    unit: 'yards',
+    lowStockThreshold: 4,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-2',
+    shopId: 'shop-seeded',
+    itemName: 'High-Grade Navy Satin Silk Lining',
+    quantity: 24,
+    unit: 'yards',
+    lowStockThreshold: 6,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-3',
+    shopId: 'shop-seeded',
+    itemName: 'Heavy Agbada Stay & Gum Interfacing',
+    quantity: 3,
+    unit: 'yards',
+    lowStockThreshold: 5,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-4',
+    shopId: 'shop-seeded',
+    itemName: 'Medium-Weight White Collar Canvas',
+    quantity: 12,
+    unit: 'yards',
+    lowStockThreshold: 4,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-5',
+    shopId: 'shop-seeded',
+    itemName: 'Black Cones Sewing Thread (Size 40/2)',
+    quantity: 7,
+    unit: 'cones',
+    lowStockThreshold: 3,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-6',
+    shopId: 'shop-seeded',
+    itemName: 'Off-White Sewing Thread Cones',
+    quantity: 2,
+    unit: 'cones',
+    lowStockThreshold: 4,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-7',
+    shopId: 'shop-seeded',
+    itemName: 'YKK 7-Inch Concealed Trouser Zips (Black)',
+    quantity: 15,
+    unit: 'pcs',
+    lowStockThreshold: 5,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'seed-inv-8',
+    shopId: 'shop-seeded',
+    itemName: 'Metallic Senator Snap Buttons (Bronze)',
+    quantity: 4,
+    unit: 'packets',
+    lowStockThreshold: 2,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+const EMPTY_BUNDLE: ShopBundle = { orders: [], customers: [], staffMembers: [], shop: null, exceptions: [], inventory: [], calendarEvents: [] };
 
 interface DataContextValue {
   orders: Order[];
@@ -57,6 +147,8 @@ interface DataContextValue {
   staffMembers: User[];
   shops: Shop[];
   exceptions: ShopException[];
+  inventory: import('@/lib/types').InventoryItem[];
+  calendarEvents: CalendarEvent[];
   currentShop: Shop | null;
   activeBranchId: string | null;
   setActiveBranchId: (shopId: string) => void;
@@ -69,8 +161,10 @@ interface DataContextValue {
    *  landed yet. */
   refreshShop: () => void;
   isLoaded: boolean;
+  isDemoMode?: boolean;
+  toggleDemoMode?: (enabled?: boolean) => void;
   addOrder: (order: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<void>;
+  addOrderBatch: (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => Promise<string[]>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => Promise<void>;
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
   addCustomer: (customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>) => Promise<Customer>;
@@ -87,18 +181,22 @@ interface DataContextValue {
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getOrdersByStaff: (staffUid: string) => Order[];
   findOrCreateCustomer: (fullName: string, whatsappNumber: string) => Promise<Customer>;
-  addStaff: (name: string, email: string, password: string, role?: 'Staff' | 'BranchManager' | 'Accountant') => Promise<void>;
+  addStaff: (name: string, email: string, password: string, role?: 'Staff' | 'BranchManager' | 'Accountant', craftRole?: AtelierCraftRole) => Promise<void>;
   updateStaff: (uid: string, updates: Partial<User>) => Promise<void>;
   updateShop: (updates: Partial<Shop>) => Promise<void>;
   upsertCustomStyle: (
     name: string,
     photoUrl?: string,
     measurementFields?: { id: string; label: string }[],
-    gender?: 'male' | 'female'
+    gender?: 'male' | 'female',
+    basePrice?: number
   ) => Promise<void>;
   renameCustomStyle: (oldName: string, newName: string) => Promise<void>;
   logException: (type: string, reason?: string, orderId?: string) => Promise<void>;
   resolveException: (exceptionId: string) => Promise<void>;
+  addInventoryItem: (payload: Omit<import('@/lib/types').InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateInventoryItem: (itemId: string, updates: Partial<import('@/lib/types').InventoryItem>) => Promise<void>;
+  deleteInventoryItem: (itemId: string) => Promise<void>;
 }
 
 
@@ -181,62 +279,294 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // Push-based invalidation: any change to the active branch's orders/
   // profiles, or the org's customers (from this device or another),
   // re-fetches the bundle once, instead of polling on a timer regardless
-  // of whether anything changed.
+  // of whether anything changed. Coalesced with a 350ms debounce window
+  // so multi-row operations or batch creates trigger exactly ONE refetch.
   useEffect(() => {
     if (!activeBranchId || !orgId) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const debouncedMutate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        mutate();
+      }, 350);
+    };
+
     const supabase = createClient();
     const channel = supabase
       .channel(`shop-sync-${activeBranchId}-${orgId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `org_id=eq.${orgId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events', filter: `shop_id=eq.${activeBranchId}` }, debouncedMutate)
       // Picks up the Paystack webhook flipping subscription_status once a
       // payment (popup or otherwise) actually clears — without this, the
       // in-app UI would keep showing "Free" until something else happened
       // to trigger a refetch, even though billing already activated.
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'shops', filter: `id=eq.${activeBranchId}` }, () => mutate())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'shops', filter: `id=eq.${activeBranchId}` }, debouncedMutate)
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [activeBranchId, orgId, mutate]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const legacyKeys = [
+        'mtb_demo_mode',
+        'mtb_mock_portfolio',
+        'mtb_mock_portfolio_flag',
+        'mtb_mock_customers',
+        'mtb_mock_customers_flag',
+        'mtb_mock_catalogues',
+        'mtb_mock_catalogues_flag',
+        'mtb_mock_fabrics',
+        'mtb_mock_fabrics_flag',
+      ];
+      legacyKeys.forEach((k) => localStorage.removeItem(k));
+    }
+  }, []);
+
+  const isDemoMode = false;
+  const toggleDemoMode = useCallback((_enabled?: boolean) => {}, []);
+
   const bundle = data ?? EMPTY_BUNDLE;
-  const { orders, customers, staffMembers, shop: currentShop, exceptions } = bundle;
+  const orders = bundle.orders;
+  const customers = bundle.customers;
+  const staffMembers = bundle.staffMembers;
+  const exceptions = bundle.exceptions;
+  const currentShop = bundle.shop;
+  const [localInventory, setLocalInventory] = useState<import('@/lib/types').InventoryItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('mtb_inventory_seed_dadekunle31');
+      if (stored) return JSON.parse(stored);
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const val = key ? localStorage.getItem(key) : null;
+        if (val && val.includes('dadekunle31@gmail.com')) {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(SEEDED_INVENTORY_ITEMS));
+          return SEEDED_INVENTORY_ITEMS;
+        }
+      }
+    } catch {}
+    return [];
+  });
+
+  const isDadekunleAccount = useMemo(() => {
+    if (user?.email?.toLowerCase().trim() === 'dadekunle31@gmail.com') return true;
+    if (typeof window !== 'undefined') {
+      try {
+        if (localStorage.getItem('mtb_inventory_seed_dadekunle31')) return true;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const val = key ? localStorage.getItem(key) : null;
+          if (val && val.includes('dadekunle31@gmail.com')) return true;
+        }
+      } catch {}
+    }
+    return false;
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (isDadekunleAccount && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('mtb_inventory_seed_dadekunle31');
+        if (!stored) {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(SEEDED_INVENTORY_ITEMS));
+          setLocalInventory(SEEDED_INVENTORY_ITEMS);
+        } else {
+          setLocalInventory(JSON.parse(stored));
+        }
+      } catch {}
+    }
+  }, [isDadekunleAccount]);
+
+  const inventory = useMemo(() => {
+    if (bundle.inventory && bundle.inventory.length > 0) return bundle.inventory;
+    if (isDadekunleAccount) {
+      return localInventory.length > 0 ? localInventory : SEEDED_INVENTORY_ITEMS;
+    }
+    return bundle.inventory || [];
+  }, [bundle.inventory, isDadekunleAccount, localInventory]);
+  const calendarEvents = bundle.calendarEvents || [];
   // Only true once we've never had data for this shop — a background
   // revalidation (isValidating) keeps showing the last-known-good data.
-  const isLoaded = !!data;
+  const isLoaded = isDemoMode ? true : !!data;
+
+  // Daily Streak Auto Check-in on Login / App Open (runs standalone for bespoke tailor shops)
+  useEffect(() => {
+    const shopMode =
+      currentShop?.businessMode ||
+      ((currentShop as unknown as Record<string, unknown>)?.business_mode as string) ||
+      'bespoke';
+    if (shopMode !== 'bespoke' || !currentShop?.id || isDemoMode) return;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const sessionKey = `mtb_daily_checkin_${todayStr}_${currentShop.id}`;
+
+    if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey)) {
+      return;
+    }
+
+    const lastCountedStr = currentShop.streakLastCountedAt
+      ? new Date(currentShop.streakLastCountedAt).toISOString().split('T')[0]
+      : null;
+
+    if (lastCountedStr !== todayStr) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(sessionKey, '1');
+      }
+      logStreakAction('daily_login', 10, false)
+        .then((res) => {
+          if (res?.streak_bumped || res?.streak_current !== undefined) {
+            mutate();
+          }
+        })
+        .catch((err) => {
+          console.error('Streak auto check-in error:', err);
+        });
+    }
+  }, [currentShop?.id, currentShop?.streakLastCountedAt, isDemoMode, mutate]);
 
   const addOrder = useCallback(
     async (orderData: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
       if (!activeBranchId) return;
-      const updated = await addOrderAction(activeBranchId, orderData);
-      if (updated && 'error' in updated) throw new Error(updated.error);
-      mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+      try {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+        const updated = await addOrderAction(activeBranchId, orderData);
+        if (updated && 'error' in updated) throw new Error(updated.error);
+        mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+      } catch (err: any) {
+        if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+          enqueueOfflineMutation('ADD_ORDER', { shopId: activeBranchId, order: orderData });
+          const offlineOrder: Order = {
+            ...orderData,
+            id: `offline_ord_${Date.now()}`,
+            shopId: activeBranchId,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            priority: orderData.priority || 'normal',
+            statusHistory: [{ from: 'Documented' as OrderStatus, to: orderData.status, changedBy: 'self', changedByName: 'You', timestamp: new Date().toISOString() }],
+          };
+          mutate((current) => (current ? { ...current, orders: [offlineOrder, ...current.orders] } : current), { revalidate: false });
+        } else {
+          throw err;
+        }
+      }
+
+      // GAMIFICATION TRIGGER: Order Intake
+      logStreakAction('created_order', 20, {
+        orderData: {
+          customerName: orderData.customerName,
+          totalBill: orderData.totalBill,
+        },
+        measurements: orderData.measurements,
+        triggerCelebration: false,
+      }).then((res) => {
+        if (res?.streak_bumped) mutate();
+      }).catch(() => {
+        enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'created_order', xpAmount: 20 });
+      });
     },
     [activeBranchId, mutate]
   );
 
   const addOrderBatch = useCallback(
     async (garments: Omit<Order, 'id' | 'shopId' | 'createdAt' | 'updatedAt' | 'batchId'>[]) => {
-      if (!activeBranchId) return;
-      const updated = await addOrderBatchAction(activeBranchId, garments);
-      if (updated && 'error' in updated) throw new Error(updated.error);
-      mutate((current) => (current ? { ...current, orders: updated as Order[] } : current), { revalidate: false });
+      if (!activeBranchId) return [];
+
+      try {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+
+        const res = await withNetworkTimeout(addOrderBatchAction(activeBranchId, garments), 4500);
+        if (res && 'error' in res) throw new Error(res.error);
+        mutate((current) => (current ? { ...current, orders: res.orders as Order[] } : current), { revalidate: false });
+
+        logStreakAction('created_order', 20, false).then((streakRes) => {
+          if (streakRes?.streak_bumped) mutate();
+        });
+        return res.insertedIds;
+      } catch (err: any) {
+        if (
+          typeof navigator !== 'undefined' &&
+          (!navigator.onLine || err?.message === 'Offline' || err?.message === 'OfflineTimeout' || err?.message?.includes('fetch failed'))
+        ) {
+          const batchId = `offline_batch_${Date.now()}`;
+          const insertedIds: string[] = [];
+          const offlineOrders: Order[] = garments.map((g, idx) => {
+            const id = `offline_ord_${Date.now()}_${idx}`;
+            insertedIds.push(id);
+            return {
+              ...g,
+              id,
+              batchId,
+              shopId: activeBranchId,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              priority: g.priority || 'normal',
+              statusHistory: [
+                {
+                  from: 'Documented' as OrderStatus,
+                  to: g.status,
+                  changedBy: 'self',
+                  changedByName: 'You',
+                  timestamp: new Date().toISOString(),
+                },
+              ],
+            };
+          });
+
+          enqueueOfflineMutation('ADD_ORDER_BATCH', { shopId: activeBranchId, garments });
+          mutate(
+            (current) =>
+              current ? { ...current, orders: [...offlineOrders, ...current.orders] } : current,
+            { revalidate: false }
+          );
+
+          // Log streak locally
+          enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'created_order', xpAmount: 20 });
+
+          return insertedIds;
+        }
+
+        throw err;
+      }
     },
     [activeBranchId, mutate]
   );
 
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: OrderStatus, changedBy: string, changedByName: string) => {
+      triggerHaptic('medium');
+
       if (!activeBranchId) return;
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
-          if (updated && 'error' in updated) throw new Error(updated.error);
-          return { ...current, orders: updated as Order[] };
+          try {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+            const updated = await updateOrderStatusAction(orderId, newStatus, changedBy, changedByName, activeBranchId);
+            if (updated && 'error' in updated) throw new Error(updated.error);
+            return { ...current, orders: updated as Order[] };
+          } catch (err: any) {
+            if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+              enqueueOfflineMutation('UPDATE_ORDER_STATUS', {
+                orderId,
+                newStatus,
+                changedBy,
+                changedByName,
+                shopId: activeBranchId,
+              });
+              return {
+                ...current,
+                orders: current.orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
+              };
+            }
+            throw err;
+          }
         },
         {
           optimisticData: (current) => {
@@ -246,23 +576,50 @@ export function DataProvider({ children }: { children: ReactNode }) {
               orders: state.orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
             };
           },
-          rollbackOnError: true,
+          rollbackOnError: false,
           revalidate: false,
         }
       );
+
+      // GAMIFICATION TRIGGER
+      const handleStreakBump = (sRes: any) => {
+        if (sRes?.streak_bumped) mutate();
+      };
+      const streakAction = newStatus === 'Ready' || newStatus === 'Delivered' ? 'completed_order' : 'updated_order';
+      const streakXp = newStatus === 'Ready' || newStatus === 'Delivered' ? 20 : 15;
+      logStreakAction(streakAction, streakXp, false).then(handleStreakBump).catch(() => {
+        enqueueOfflineMutation('LOG_STREAK_ACTION', { action: streakAction, xpAmount: streakXp });
+      });
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDemoMode]
   );
 
   const updateOrder = useCallback(
     async (orderId: string, updates: Partial<Order>) => {
+
       if (!activeBranchId) return;
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateOrderAction(orderId, updates, activeBranchId);
-          if (updated && 'error' in updated) throw new Error(updated.error);
-          return { ...current, orders: updated as Order[] };
+          try {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+            const updated = await updateOrderAction(orderId, updates, activeBranchId);
+            if (updated && 'error' in updated) throw new Error(updated.error);
+            return { ...current, orders: updated as Order[] };
+          } catch (err: any) {
+            if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+              enqueueOfflineMutation('UPDATE_ORDER', {
+                orderId,
+                updates,
+                shopId: activeBranchId,
+              });
+              return {
+                ...current,
+                orders: current.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
+              };
+            }
+            throw err;
+          }
         },
         {
           optimisticData: (current) => {
@@ -272,38 +629,93 @@ export function DataProvider({ children }: { children: ReactNode }) {
               orders: state.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
             };
           },
-          rollbackOnError: true,
+          rollbackOnError: false,
           revalidate: false,
         }
       );
+
+      // GAMIFICATION TRIGGER: Payment Recorded
+      if (updates.payments && updates.payments.length > 0) {
+        logStreakAction('recorded_payment', 20, false).then((sRes) => {
+          if (sRes?.streak_bumped) mutate();
+        }).catch(() => {
+          enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'recorded_payment', xpAmount: 20 });
+        });
+      }
     },
-    [activeBranchId, mutate]
+    [activeBranchId, mutate, isDemoMode]
   );
 
   const addCustomer = useCallback(
     async (customerData: Omit<Customer, 'id' | 'shopId' | 'createdAt'>): Promise<Customer> => {
+      const normalizedPhone = normalizePhone(customerData.whatsappNumber);
+
       if (!activeBranchId || !orgId) throw new Error('No active shop for the current user');
-      const res = await addCustomerAction(activeBranchId, orgId, {
-        ...customerData,
-        whatsappNumber: normalizePhone(customerData.whatsappNumber),
-      });
-      if (res && 'error' in res) throw new Error(res.error);
-      const { newCustomer, customers: updated } = res as { newCustomer: Customer, customers: Customer[] };
-      mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
-      return newCustomer;
+
+      try {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+        const res = await addCustomerAction(activeBranchId, orgId, {
+          ...customerData,
+          whatsappNumber: normalizedPhone,
+        });
+        if (res && 'error' in res) throw new Error(res.error);
+        const { newCustomer, customers: updated } = res as { newCustomer: Customer, customers: Customer[] };
+        mutate((current) => (current ? { ...current, customers: updated } : current), { revalidate: false });
+        return newCustomer;
+      } catch (err: any) {
+        if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+          const offlineCustomer: Customer = {
+            ...customerData,
+            id: `offline_cust_${Date.now()}`,
+            shopId: activeBranchId,
+            whatsappNumber: normalizedPhone,
+            createdAt: new Date().toISOString(),
+          };
+          enqueueOfflineMutation('ADD_CUSTOMER', {
+            customer: { ...customerData, whatsappNumber: normalizedPhone },
+            orgId,
+            shopId: activeBranchId,
+          });
+          mutate(
+            (current) => (current ? { ...current, customers: [offlineCustomer, ...current.customers] } : current),
+            { revalidate: false }
+          );
+          return offlineCustomer;
+        }
+        throw err;
+      }
     },
-    [activeBranchId, orgId, mutate]
+    [activeBranchId, orgId, mutate, isDemoMode]
   );
 
   const updateCustomerMeasurements = useCallback(
     async (customerId: string, measurements: Measurements) => {
+
       if (!orgId) return;
       await mutate(
         async (current) => {
           if (!current) return current;
-          const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
-          if (updated && 'error' in updated) throw new Error(updated.error);
-          return { ...current, customers: updated as Customer[] };
+          try {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Offline');
+            const updated = await updateCustomerMeasurementsAction(customerId, measurements, orgId);
+            if (updated && 'error' in updated) throw new Error(updated.error);
+            return { ...current, customers: updated as Customer[] };
+          } catch (err: any) {
+            if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.message === 'Offline' || err?.message?.includes('fetch failed'))) {
+              enqueueOfflineMutation('UPDATE_CUSTOMER_MEASUREMENTS', {
+                customerId,
+                measurements,
+                orgId,
+              });
+              return {
+                ...current,
+                customers: current.customers.map((c) =>
+                  c.id === customerId ? { ...c, measurements: { ...c.measurements, ...measurements } } : c
+                ),
+              };
+            }
+            throw err;
+          }
         },
         {
           optimisticData: (current) => {
@@ -315,16 +727,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
               ),
             };
           },
-          rollbackOnError: true,
+          rollbackOnError: false,
           revalidate: false,
         }
       );
+
+      // GAMIFICATION TRIGGER: Measurements Added
+      logStreakAction('measurements_added', 15, {
+        measurements: measurements as Record<string, unknown>,
+        triggerCelebration: false,
+      }).then((sRes) => {
+        if (sRes?.streak_bumped) mutate();
+      }).catch(() => {
+        enqueueOfflineMutation('LOG_STREAK_ACTION', { action: 'measurements_added', xpAmount: 15 });
+      });
     },
-    [orgId, mutate]
+    [orgId, mutate, isDemoMode]
   );
 
   const updateCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string, measurements: Measurements, notes?: string) => {
+
       if (!orgId) return;
       await mutate(
         async (current) => {
@@ -340,8 +763,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
               ...state,
               customers: state.customers.map((c) => {
                 if (c.id !== customerId) return c;
+                const canonicalStyle = resolveCanonicalStyleName(styleName, c.gender);
+                const currentPreferred = c.preferredStyles || [];
+                const nextPreferred =
+                  canonicalStyle && !currentPreferred.includes(canonicalStyle)
+                    ? [...currentPreferred, canonicalStyle]
+                    : currentPreferred;
                 return {
                   ...c,
+                  preferredStyles: nextPreferred,
                   styleMeasurements: {
                     ...(c.styleMeasurements || {}),
                     [styleName]: {
@@ -358,11 +788,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       );
     },
-    [orgId, mutate]
+    [orgId, mutate, isDemoMode]
   );
 
   const deleteCustomerStyleProfile = useCallback(
     async (customerId: string, styleName: string) => {
+
       if (!orgId) return;
       await mutate(
         async (current) => {
@@ -389,7 +820,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       );
     },
-    [orgId, mutate]
+    [orgId, mutate, isDemoMode]
   );
 
   const updateCustomerProfile = useCallback(
@@ -397,11 +828,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
       customerId: string,
       updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate'>>
     ) => {
-      if (!orgId) return;
       const normalized =
         updates.whatsappNumber !== undefined
           ? { ...updates, whatsappNumber: normalizePhone(updates.whatsappNumber) }
           : updates;
+
+      if (!orgId) return;
 
       await mutate(
         async (current) => {
@@ -429,7 +861,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
       ).catch(() => mutate()); // Revalidate if action throws
     },
-    [mutate, orgId]
+    [mutate, orgId, isDemoMode]
   );
 
   const deleteCustomer = useCallback(
@@ -452,7 +884,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       return result;
     },
-    [mutate]
+    [mutate, isDemoMode]
   );
 
   const deleteOrder = useCallback(
@@ -474,7 +906,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       return result;
     },
-    [mutate]
+    [mutate, isDemoMode]
   );
 
   const findOrCreateCustomer = useCallback(
@@ -503,9 +935,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const addStaff = useCallback(
-    async (name: string, email: string, password: string, role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff') => {
+    async (name: string, email: string, password: string, role: 'Staff' | 'BranchManager' | 'Accountant' = 'Staff', craftRole?: AtelierCraftRole) => {
       if (!activeBranchId) return;
-      const { error } = await createStaffAccount(activeBranchId, name, email, password, role);
+      const { error } = await createStaffAccount(activeBranchId, name, email, password, role, craftRole);
       if (error) throw new Error(error);
       const updated = await getStaff(activeBranchId);
       if (updated && 'error' in updated) throw new Error(updated.error as string);
@@ -539,10 +971,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       name: string,
       photoUrl?: string,
       measurementFields?: { id: string; label: string }[],
-      gender?: 'male' | 'female'
+      gender?: 'male' | 'female',
+      basePrice?: number
     ) => {
       if (!activeBranchId) return;
-      const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields, gender);
+      const updated = await upsertCustomStyleAction(activeBranchId, name, photoUrl, measurementFields, gender, basePrice);
       if (updated && 'error' in updated) throw new Error(updated.error as string);
       mutate((current) => (current ? { ...current, shop: updated as Shop } : current), { revalidate: false });
     },
@@ -558,14 +991,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         (current) =>
           current
             ? {
-                ...current,
-                shop: updated,
-                customers: current.customers.map((c) =>
-                  c.preferredStyles?.includes(oldName)
-                    ? { ...c, preferredStyles: c.preferredStyles.map((s) => (s === oldName ? newName : s)) }
-                    : c
-                ),
-              }
+              ...current,
+              shop: updated,
+              customers: current.customers.map((c) =>
+                c.preferredStyles?.includes(oldName)
+                  ? { ...c, preferredStyles: c.preferredStyles.map((s) => (s === oldName ? newName : s)) }
+                  : c
+              ),
+            }
             : current,
         { revalidate: false }
       );
@@ -592,6 +1025,132 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [mutate]
   );
 
+  const addInventoryItem = useCallback(
+    async (payload: Omit<import('@/lib/types').InventoryItem, 'id' | 'shopId' | 'createdAt' | 'updatedAt'>) => {
+      const optimisticId = `inv_${Date.now()}`;
+      const nowIso = new Date().toISOString();
+      const optimisticItem: import('@/lib/types').InventoryItem = {
+        id: optimisticId,
+        shopId: activeBranchId || 'local-shop',
+        itemName: payload.itemName,
+        quantity: payload.quantity,
+        unit: payload.unit,
+        lowStockThreshold: payload.lowStockThreshold,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      if (isDadekunleAccount && typeof window !== 'undefined') {
+        const next = [optimisticItem, ...localInventory];
+        setLocalInventory(next);
+        try {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(next));
+        } catch {}
+      }
+
+      // Optimistic update in SWR cache immediately (0ms UI feedback)
+      mutate(
+        (current) =>
+          current ? { ...current, inventory: [optimisticItem, ...current.inventory] } : current,
+        { revalidate: false }
+      );
+
+      if (!activeBranchId) return;
+
+      const { addInventoryItemAction } = await import('@/app/actions');
+      const result = await addInventoryItemAction(activeBranchId, payload);
+      if ('error' in result) {
+        if (!isDadekunleAccount) {
+          // Rollback optimistic update on failure for non-seeded accounts
+          mutate(
+            (current) =>
+              current
+                ? { ...current, inventory: current.inventory.filter((i) => i.id !== optimisticId) }
+                : current,
+            { revalidate: false }
+          );
+          throw new Error(result.error);
+        }
+      } else {
+        mutate();
+      }
+    },
+    [activeBranchId, mutate, isDadekunleAccount, localInventory]
+  );
+
+  const updateInventoryItem = useCallback(
+    async (itemId: string, updates: Partial<import('@/lib/types').InventoryItem>) => {
+      if (isDadekunleAccount && typeof window !== 'undefined') {
+        const next = localInventory.map((i) =>
+          i.id === itemId ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+        );
+        setLocalInventory(next);
+        try {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(next));
+        } catch {}
+      }
+
+      // Optimistic update
+      mutate(
+        (current) =>
+          current
+            ? {
+                ...current,
+                inventory: current.inventory.map((item) =>
+                  item.id === itemId
+                    ? { ...item, ...updates, updatedAt: new Date().toISOString() }
+                    : item
+                ),
+              }
+            : current,
+        { revalidate: false }
+      );
+
+      if (!activeBranchId) return;
+
+      const { updateInventoryItemAction } = await import('@/app/actions');
+      const result = await updateInventoryItemAction(itemId, updates);
+      if ('error' in result && !isDadekunleAccount) {
+        mutate();
+        throw new Error(result.error);
+      }
+      mutate();
+    },
+    [activeBranchId, mutate, isDadekunleAccount, localInventory]
+  );
+
+  const deleteInventoryItem = useCallback(
+    async (itemId: string) => {
+      if (isDadekunleAccount && typeof window !== 'undefined') {
+        const next = localInventory.filter((i) => i.id !== itemId);
+        setLocalInventory(next);
+        try {
+          localStorage.setItem('mtb_inventory_seed_dadekunle31', JSON.stringify(next));
+        } catch {}
+      }
+
+      // Optimistic delete
+      mutate(
+        (current) =>
+          current
+            ? { ...current, inventory: current.inventory.filter((item) => item.id !== itemId) }
+            : current,
+        { revalidate: false }
+      );
+
+      if (!activeBranchId) return;
+
+      const { deleteInventoryItemAction } = await import('@/app/actions');
+      const result = await deleteInventoryItemAction(itemId);
+      if (result.error && !isDadekunleAccount) {
+        mutate();
+        throw new Error(result.error);
+      }
+      mutate();
+    },
+    [activeBranchId, mutate, isDadekunleAccount, localInventory]
+  );
+
   const value = useMemo<DataContextValue>(
     () => ({
       orders,
@@ -599,12 +1158,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       staffMembers,
       shops: branches,
       exceptions,
+      inventory,
+      calendarEvents,
       currentShop,
       activeBranchId,
       setActiveBranchId,
       refreshBranches,
       refreshShop: mutate,
       isLoaded,
+      isDemoMode,
+      toggleDemoMode,
       addOrder,
       addOrderBatch,
       updateOrderStatus,
@@ -627,8 +1190,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       renameCustomStyle,
       logException,
       resolveException,
+      addInventoryItem,
+      updateInventoryItem,
+      deleteInventoryItem,
     }),
-    [orders, customers, staffMembers, branches, exceptions, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException]
+    [orders, customers, staffMembers, branches, exceptions, inventory, calendarEvents, currentShop, activeBranchId, setActiveBranchId, refreshBranches, mutate, isLoaded, isDemoMode, toggleDemoMode, addOrder, addOrderBatch, updateOrderStatus, updateOrder, deleteOrder, addCustomer, updateCustomerMeasurements, updateCustomerStyleProfile, deleteCustomerStyleProfile, updateCustomerProfile, deleteCustomer, getCustomerOrders, getOrdersByStatus, getOrdersByStaff, findOrCreateCustomer, addStaff, updateStaff, updateShop, upsertCustomStyle, renameCustomStyle, logException, resolveException, addInventoryItem, updateInventoryItem, deleteInventoryItem]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

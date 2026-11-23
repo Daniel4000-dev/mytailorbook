@@ -33,6 +33,16 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
 
   const collected = useMemo(() => orders.reduce((sum, o) => sum + o.depositPaid, 0), [orders]);
 
+  const monthlyRevenue = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    return orders.filter(o => {
+      const d = new Date(o.createdAt || new Date());
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    }).reduce((sum, o) => sum + o.totalBill, 0);
+  }, [orders]);
+
   const projected = useMemo(
     () => orders.filter((o) => o.status !== 'Delivered').reduce((sum, o) => sum + getBalanceOwed(o), 0),
     [orders]
@@ -79,15 +89,46 @@ export function useOwnerDashboardData(orders: Order[], staffMembers: ReturnType<
   const visibleAttentionItems = attentionItems.slice(0, ATTENTION_LIMIT);
   const hasMoreAttentionItems = attentionItems.length > ATTENTION_LIMIT;
 
+  const uncutFabricsCount = useMemo(
+    () => orders.filter((o) => o.status === 'Documented').length,
+    [orders]
+  );
+
+  const inProductionCount = useMemo(
+    () => orders.filter((o) => o.status === 'Cutting' || o.status === 'Sewing').length,
+    [orders]
+  );
+
+  const readyCount = useMemo(
+    () => orders.filter((o) => o.status === 'Ready').length,
+    [orders]
+  );
+
+  const debtTotal = useMemo(
+    () => orders.reduce((sum, o) => sum + Math.max(0, o.totalBill - o.depositPaid), 0),
+    [orders]
+  );
+
+  const debtorsCount = useMemo(
+    () => orders.filter((o) => o.totalBill > o.depositPaid).length,
+    [orders]
+  );
+
   return {
     hideCollected,
     hideProjected,
     toggleHideCollected,
     toggleHideProjected,
     collected,
+    monthlyRevenue,
     projected,
     urgentCount,
     dueTodayCount,
+    uncutFabricsCount,
+    inProductionCount,
+    readyCount,
+    debtTotal,
+    debtorsCount,
     teamSnapshot,
     visibleAttentionItems,
     hasMoreAttentionItems,

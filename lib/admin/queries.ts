@@ -23,6 +23,9 @@ export interface OverviewStats {
   signups30d: number;
   revenueLast30dNgn: number;
   cancellations30d: number;
+  bespokeShopsCount: number;
+  rtwShopsCount: number;
+  hybridShopsCount: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +53,9 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     signups30d,
     { data: revenueEvents },
     cancellations30d,
+    bespokeShopsCount,
+    rtwShopsCount,
+    hybridShopsCount,
   ] = await Promise.all([
     count(admin, 'organizations', (q) => q.not('owner_id', 'is', null)),
     count(admin, 'shops', (q) => q.not('owner_id', 'is', null)),
@@ -63,6 +69,9 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     count(admin, 'subscription_events', (q) =>
       q.in('event_type', ['subscription.disable', 'subscription.not_renew']).gte('created_at', d30)
     ),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).or('business_mode.eq.bespoke,business_mode.is.null')),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).eq('business_mode', 'rtw')),
+    count(admin, 'shops', (q) => q.not('owner_id', 'is', null).eq('business_mode', 'hybrid')),
   ]);
 
   const revenueLast30dNgn = (revenueEvents ?? []).reduce((sum, e) => sum + (e.amount_kobo ?? 0), 0) / 100;
@@ -80,6 +89,9 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     signups30d,
     revenueLast30dNgn,
     cancellations30d,
+    bespokeShopsCount,
+    rtwShopsCount,
+    hybridShopsCount,
   };
 }
 
@@ -124,6 +136,19 @@ export interface AffiliatePerformance {
   active: boolean;
   signups: number;
   premiumConversions: number;
+  monthlyRevenueGeneratedNgn: number;
+}
+
+export interface ReferredShopItem {
+  id: string;
+  name: string;
+  createdAt: string;
+  ownerEmail: string | null;
+  businessMode: string;
+  subscriptionStatus: string | null;
+  subscriptionPlan: string | null;
+  customerCount: number;
+  orderCount: number;
 }
 
 export async function getAffiliatePerformance(): Promise<AffiliatePerformance[]> {
@@ -155,15 +180,32 @@ export async function getAffiliatePerformance(): Promise<AffiliatePerformance[]>
 
   return (affiliates ?? []).map((a) => {
     const orgIds = orgIdsByAffiliate.get(a.id) ?? [];
+    const premiumConversions = orgIds.filter((id) => premiumOrgIds.has(id)).length;
     return {
       id: a.id,
       name: a.name,
       code: a.code,
       active: a.active,
       signups: orgIds.length,
-      premiumConversions: orgIds.filter((id) => premiumOrgIds.has(id)).length,
+      premiumConversions,
+      monthlyRevenueGeneratedNgn: premiumConversions * MONTHLY_PRICE_NGN,
     };
   });
+}
+
+export async function getAffiliateReferredShops(affiliateId: string): Promise<ReferredShopItem[]> {
+  const { rows } = await getOrganizations({ affiliateId, pageSize: 100 });
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    createdAt: r.createdAt,
+    ownerEmail: r.ownerEmail,
+    businessMode: r.businessMode,
+    subscriptionStatus: r.subscriptionStatus,
+    subscriptionPlan: r.subscriptionPlan,
+    customerCount: r.customerCount,
+    orderCount: r.orderCount,
+  }));
 }
 
 export interface RateLimitHotspot {
@@ -207,6 +249,7 @@ export interface OrganizationListRow {
   createdAt: string;
   ownerEmail: string | null;
   shopCount: number;
+  businessMode: string;
   subscriptionStatus: string | null;
   subscriptionPlan: string | null;
   customerCount: number;
@@ -224,6 +267,7 @@ export interface OrganizationListResult {
 export interface OrganizationFilters {
   search?: string;
   status?: string;
+  mode?: string;
   affiliateId?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -252,6 +296,17 @@ async function resolveOrgIdConstraints(admin: AdminClient, filters: Organization
 
   if (filters.status) {
     const { data: shops } = await admin.from('shops').select('org_id').eq('subscription_status', filters.status);
+    constraints.push(new Set((shops ?? []).map((s) => s.org_id as string)));
+  }
+
+  if (filters.mode) {
+    let modeQuery = admin.from('shops').select('org_id');
+    if (filters.mode === 'bespoke') {
+      modeQuery = modeQuery.or('business_mode.eq.bespoke,business_mode.is.null');
+    } else {
+      modeQuery = modeQuery.eq('business_mode', filters.mode);
+    }
+    const { data: shops } = await modeQuery;
     constraints.push(new Set((shops ?? []).map((s) => s.org_id as string)));
   }
 
@@ -292,7 +347,7 @@ export async function getOrganizations(
   const ownerIds = rows.map((o) => o.owner_id as string).filter(Boolean);
 
   const [{ data: shops }, { data: owners }, customerCounts, orderCounts] = await Promise.all([
-    admin.from('shops').select('org_id, name, subscription_status, subscription_plan').in('org_id', orgIds),
+    admin.from('shops').select('org_id, name, business_mode, subscription_status, subscription_plan').in('org_id', orgIds),
     ownerIds.length > 0
       ? admin.from('profiles').select('id, email').in('id', ownerIds)
       : Promise.resolve({ data: [] as { id: string; email: string | null }[] }),
@@ -300,10 +355,10 @@ export async function getOrganizations(
     Promise.all(orgIds.map((id) => count(admin, 'orders', (q) => q.eq('org_id', id)))),
   ]);
 
-  const shopsByOrg = new Map<string, { name: string; subscription_status: string | null; subscription_plan: string | null }[]>();
+  const shopsByOrg = new Map<string, { name: string; business_mode: string | null; subscription_status: string | null; subscription_plan: string | null }[]>();
   for (const shop of shops ?? []) {
     const list = shopsByOrg.get(shop.org_id as string) ?? [];
-    list.push(shop as { name: string; subscription_status: string | null; subscription_plan: string | null });
+    list.push(shop as { name: string; business_mode: string | null; subscription_status: string | null; subscription_plan: string | null });
     shopsByOrg.set(shop.org_id as string, list);
   }
   const ownerEmailById = new Map((owners ?? []).map((o) => [o.id, o.email]));
@@ -317,6 +372,7 @@ export async function getOrganizations(
       createdAt: org.created_at as string,
       ownerEmail: ownerEmailById.get(org.owner_id as string) ?? null,
       shopCount: orgShops.length,
+      businessMode: primary?.business_mode || 'bespoke',
       subscriptionStatus: primary?.subscription_status ?? null,
       subscriptionPlan: primary?.subscription_plan ?? null,
       customerCount: customerCounts[i],
@@ -347,17 +403,43 @@ export interface OrganizationDetail {
   shops: {
     id: string;
     name: string;
+    slug: string | null;
     isPrimary: boolean;
+    businessMode: 'bespoke' | 'rtw' | 'hybrid' | null;
     subscriptionStatus: string | null;
     subscriptionPlan: string | null;
     currentPeriodEnd: string | null;
     graceExpiresAt: string | null;
+    streakCurrent: number;
+    streakBest: number;
+    streakFreezes: number;
+    xp: number;
+    createdAt: string | null;
   }[];
   customerCount: number;
   orderCount: number;
   ordersByStatus: Record<string, number>;
   staffCount: number;
+  team: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: string | null;
+    avatarUrl: string | null;
+    lastActiveAt: string | null;
+    createdAt: string;
+    active: boolean;
+  }[];
   billingEvents: { eventType: string; status: string; amountKobo: number | null; createdAt: string }[];
+  auditLogs: {
+    id: string;
+    adminName: string | null;
+    action: string;
+    targetType: string;
+    targetId: string | null;
+    diff: Record<string, unknown> | null;
+    createdAt: string;
+  }[];
 }
 
 export async function getOrganizationDetail(orgId: string): Promise<OrganizationDetail | null> {
@@ -370,16 +452,21 @@ export async function getOrganizationDetail(orgId: string): Promise<Organization
     .maybeSingle();
   if (!org) return null;
 
-  const [{ data: shops }, { data: owner }, { data: orders }, staffCount, { data: billingEvents }] = await Promise.all([
+  const [{ data: shops }, { data: owner }, { data: orders }, { data: teamProfiles }, { data: billingEvents }] = await Promise.all([
     admin
       .from('shops')
-      .select('id, name, is_primary, subscription_status, subscription_plan, current_period_end, grace_expires_at')
-      .eq('org_id', orgId),
+      .select('id, name, slug, is_primary, business_mode, subscription_status, subscription_plan, current_period_end, grace_expires_at, streak_current, streak_best, streak_freezes, xp, created_at')
+      .eq('org_id', orgId)
+      .order('is_primary', { ascending: false }),
     org.owner_id
       ? admin.from('profiles').select('name, email').eq('id', org.owner_id).maybeSingle()
       : Promise.resolve({ data: null as { name: string; email: string | null } | null }),
     admin.from('orders').select('status').eq('org_id', orgId),
-    count(admin, 'profiles', (q) => q.eq('org_id', orgId)),
+    admin
+      .from('profiles')
+      .select('id, name, email, role, avatar_url, last_active_at, created_at, active')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: true }),
     admin
       .from('subscription_events')
       .select('event_type, status, amount_kobo, created_at')
@@ -388,6 +475,16 @@ export async function getOrganizationDetail(orgId: string): Promise<Organization
   ]);
 
   const customerCount = await count(admin, 'customers', (q) => q.eq('org_id', orgId));
+
+  const shopIds = (shops ?? []).map((s) => s.id);
+  const targetIds = [orgId, ...shopIds];
+
+  const { data: auditLogs } = await admin
+    .from('admin_audit_log')
+    .select('id, admin_name, action, target_type, target_id, diff, created_at')
+    .in('target_id', targetIds)
+    .order('created_at', { ascending: false })
+    .limit(25);
 
   const ordersByStatus: Record<string, number> = {};
   for (const o of orders ?? []) {
@@ -404,21 +501,47 @@ export async function getOrganizationDetail(orgId: string): Promise<Organization
     shops: (shops ?? []).map((s) => ({
       id: s.id,
       name: s.name,
+      slug: s.slug ?? null,
       isPrimary: s.is_primary,
+      businessMode: (s.business_mode as 'bespoke' | 'rtw' | 'hybrid' | null) ?? 'bespoke',
       subscriptionStatus: s.subscription_status,
       subscriptionPlan: s.subscription_plan,
       currentPeriodEnd: s.current_period_end,
       graceExpiresAt: s.grace_expires_at,
+      streakCurrent: Number(s.streak_current) || 0,
+      streakBest: Number(s.streak_best) || 0,
+      streakFreezes: Number(s.streak_freezes) || 0,
+      xp: Number(s.xp) || 0,
+      createdAt: s.created_at ?? null,
     })),
     customerCount,
     orderCount: (orders ?? []).length,
     ordersByStatus,
-    staffCount,
+    staffCount: (teamProfiles ?? []).length,
+    team: (teamProfiles ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      email: p.email,
+      role: p.role,
+      avatarUrl: p.avatar_url,
+      lastActiveAt: p.last_active_at,
+      createdAt: p.created_at,
+      active: p.active,
+    })),
     billingEvents: (billingEvents ?? []).map((e) => ({
       eventType: e.event_type,
       status: e.status,
       amountKobo: e.amount_kobo,
       createdAt: e.created_at,
+    })),
+    auditLogs: (auditLogs ?? []).map((l) => ({
+      id: l.id,
+      adminName: l.admin_name,
+      action: l.action,
+      targetType: l.target_type,
+      targetId: l.target_id,
+      diff: l.diff as Record<string, unknown> | null,
+      createdAt: l.created_at,
     })),
   };
 }
@@ -541,19 +664,36 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       .map(([role, count]) => ({ role, count }))
       .sort((a, b) => b.count - a.count);
 
-    // 2. Fetch action performers (Power Users) from audit_log
-    const { data: actions } = await admin
-      .from('audit_log')
-      .select('shop_id, created_at, action, actor_name, entity_type')
-      .gte('created_at', weeklyThreshold)
-      .order('created_at', { ascending: false });
+    // 2. Fetch action performers (Power Users) from BOTH audit_log AND xp_ledger
+    // (because xp_ledger records order creations, customer additions, measurement updates,
+    // and stage transitions that weren't previously written to audit_log)
+    const [{ data: actions }, { data: xpActions }] = await Promise.all([
+      admin
+        .from('audit_log')
+        .select('shop_id, created_at, action, actor_name, entity_type')
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false }),
+      admin
+        .from('xp_ledger')
+        .select('shop_id, created_at, action_type, user_id')
+        .neq('action_type', 'daily_login')
+        .gte('created_at', weeklyThreshold)
+        .order('created_at', { ascending: false }),
+    ]);
 
     // Group actions by shopId and globally
-    const actionCounts: Record<string, { total: number, breakdown: Record<string, number> }> = {};
+    const actionCounts: Record<string, { total: number; breakdown: Record<string, number> }> = {};
     const globalDist: Record<string, number> = {};
-    const feedRows = (actions || []).slice(0, 50); // top 50 recent
+    const combinedFeed: {
+      shop_id: string;
+      created_at: string;
+      action: string;
+      actor_name: string;
+      entity_type: string;
+    }[] = [];
 
-    for (const actionRow of (actions || [])) {
+    for (const actionRow of actions || []) {
+      if (!actionRow.shop_id) continue;
       if (!actionCounts[actionRow.shop_id]) {
         actionCounts[actionRow.shop_id] = { total: 0, breakdown: {} };
       }
@@ -561,7 +701,37 @@ export async function getActiveUsersStats(): Promise<ActiveUserStats> {
       const act = actionRow.action || 'Unknown';
       actionCounts[actionRow.shop_id].breakdown[act] = (actionCounts[actionRow.shop_id].breakdown[act] || 0) + 1;
       globalDist[act] = (globalDist[act] || 0) + 1;
+      combinedFeed.push({
+        shop_id: actionRow.shop_id,
+        created_at: actionRow.created_at,
+        action: act,
+        actor_name: actionRow.actor_name || 'Tailor',
+        entity_type: actionRow.entity_type || 'shop',
+      });
     }
+
+    for (const xpRow of xpActions || []) {
+      if (!xpRow.shop_id) continue;
+      // Avoid double counting actions that are already in audit_log (like order_stage_move / payment_logged)
+      // unless audit_log had no entries for this shop
+      const act = `craft.${xpRow.action_type || 'activity'}`;
+      if (!actionCounts[xpRow.shop_id]) {
+        actionCounts[xpRow.shop_id] = { total: 0, breakdown: {} };
+      }
+      actionCounts[xpRow.shop_id].total++;
+      actionCounts[xpRow.shop_id].breakdown[act] = (actionCounts[xpRow.shop_id].breakdown[act] || 0) + 1;
+      globalDist[act] = (globalDist[act] || 0) + 1;
+      combinedFeed.push({
+        shop_id: xpRow.shop_id,
+        created_at: xpRow.created_at,
+        action: act,
+        actor_name: 'Shop Member',
+        entity_type: 'workshop',
+      });
+    }
+
+    combinedFeed.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    const feedRows = combinedFeed.slice(0, 50); // top 50 recent
 
     const globalActionDistribution = Object.entries(globalDist)
       .map(([action, count]) => ({ action, count }))

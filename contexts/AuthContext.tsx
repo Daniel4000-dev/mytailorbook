@@ -180,15 +180,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // instant this is set, so the frame where `user`/shop data clears to
     // empty is never actually painted.
     setIsLoggingOut(true);
-    await supabase.auth.signOut();
-    setUser(null);
-    setNeedsOnboarding(false);
-    setGoogleUserInfo(null);
-    // Otherwise the next person to use this device/browser would get
-    // folded into the previous user's identity.
-    resetAnalytics();
-    // Clear offline SWR cache so another user on this device does not see it.
-    localStorage.removeItem('mtb-swr-cache');
+    try {
+      // Race signOut against a 1.5s timeout so a slow Supabase network call
+      // or offline condition never blocks the user on a spinner.
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ]);
+    } catch (err) {
+      console.warn('Sign out warning:', err);
+    } finally {
+      setUser(null);
+      setNeedsOnboarding(false);
+      setGoogleUserInfo(null);
+      // Otherwise the next person to use this device/browser would get
+      // folded into the previous user's identity.
+      resetAnalytics();
+      // Clear offline SWR cache so another user on this device does not see it.
+      localStorage.removeItem('mtb-swr-cache');
+      // Direct hard redirect to /login ensures all memory/state/service-worker
+      // caches are cleanly flushed and lands on the login page immediately.
+      window.location.href = ROUTES.login;
+    }
   }, [supabase]);
 
   const resetPassword = useCallback(async (email: string) => {

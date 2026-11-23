@@ -12,6 +12,7 @@ import { getStylePhotos } from '@/lib/style-photos';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { parseMeasurementValue } from '@/lib/formatters';
 import type { Customer, Measurements } from '@/lib/types';
 import styles from './StyleProfileSheet.module.css';
 
@@ -68,7 +69,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
   }
 
   // Gendered — no mixed picker.
-  const genderedStyles = useMemo(() => GARMENT_STYLES.filter((s) => s.gender === customer.gender), [customer.gender]);
+  const genderedStyles = useMemo(() => GARMENT_STYLES.filter((s) => !s.hidden && s.gender === customer.gender), [customer.gender]);
   const stylePhotos = useMemo(() => getStylePhotos(genderedStyles), [genderedStyles]);
   // While per-style profiles are off, every style shares the one body
   // profile, so "Saved" means "the body profile has anything at all" —
@@ -93,8 +94,8 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
     if (!styleName) return;
     const measurements: Measurements = {};
     Object.entries(values).forEach(([key, val]) => {
-      const num = parseFloat(val);
-      if (!isNaN(num)) (measurements as unknown as Record<string, number>)[key] = num;
+      const num = parseMeasurementValue(val);
+      if (num !== null) (measurements as unknown as Record<string, number>)[key] = num;
     });
     if (Object.keys(measurements).length === 0) {
       showToast('Enter at least one measurement before saving', 'error');
@@ -157,7 +158,7 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
               </Button>
             )}
             <Button variant="primary" fullWidth onClick={handleSave} loading={saving}>
-              {saving ? 'Saving…' : 'Save Styles'}
+              {saving ? 'Saving…' : 'Save Measurements'}
             </Button>
           </div>
         ) : undefined
@@ -181,11 +182,11 @@ export default function StyleProfileSheet({ isOpen, onClose, customer, initialSt
             }
           />
           <div style={{ padding: '0 20px' }}>
-            <h3 className={styles.sectionTitle} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>Fit Preferences & Amendments</h3>
+            <h3 className={styles.sectionTitle} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px' }}>Fit Preferences & Notes</h3>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Record unique body quirks, preferred looseness/tightness, or past amendments here..."
+              placeholder="Record fitting preferences, preferred looseness or tightness, or past adjustments here..."
               style={{
                 width: '100%',
                 minHeight: '120px',

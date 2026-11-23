@@ -14,7 +14,16 @@
   justify-content: center;
   cursor: pointer;
   color: var(--sf-text-secondary);
-  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  transition: color var(--sf-transition-fast), transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.bellBtnGlass {
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+  color: var(--sf-text-primary);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -68,11 +77,23 @@
 }
 
 .panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--sf-space-md) var(--sf-space-lg);
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-sm);
   color: var(--sf-text-primary);
   border-bottom: 1px solid var(--sf-border-light);
+}
+
+.headerUnreadBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
+  background: rgba(4, 120, 87, 0.1);
+  color: var(--sf-color-primary, #047857);
 }
 
 .emptyState {

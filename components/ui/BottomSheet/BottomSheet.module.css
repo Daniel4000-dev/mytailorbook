@@ -2,8 +2,8 @@
   position: fixed;
   inset: 0;
   background: var(--sf-bg-overlay);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: var(--sf-z-sheet);
 }
 
@@ -13,7 +13,11 @@
   left: 0;
   right: 0;
   z-index: calc(var(--sf-z-sheet) + 1);
-  background: var(--sf-bg-surface);
+  background: var(--sf-glass-bg-sheet);
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-top: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-sheet);
   border-top-left-radius: var(--sf-radius-xl);
   border-top-right-radius: var(--sf-radius-xl);
   max-height: 85dvh;
@@ -77,6 +81,7 @@
 
 .body {
   padding: var(--sf-space-lg);
+  padding-bottom: max(var(--sf-space-lg), calc(var(--sf-space-lg) + env(safe-area-inset-bottom, 0px)));
   overflow-y: auto;
   flex: 1;
   -webkit-overflow-scrolling: touch;
@@ -84,8 +89,9 @@
 
 .footer {
   padding: var(--sf-space-md) var(--sf-space-lg);
+  padding-bottom: max(var(--sf-space-md), calc(var(--sf-space-md) + env(safe-area-inset-bottom, 0px)));
   border-top: 1px solid var(--sf-border-light);
-  background: var(--sf-bg-surface);
+  background: transparent;
   flex-shrink: 0;
 }
 
@@ -120,8 +126,12 @@
     width: min(90vw, 440px);
     height: auto;
     max-height: 80dvh;
-    border-radius: var(--sf-radius-lg);
-    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+    border-radius: var(--sf-radius-xl, 22px);
+    border: var(--sf-glass-border);
+    box-shadow: var(--sf-glass-shadow-sheet);
+    background: var(--sf-glass-bg-sheet);
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
   }
 
   /* vaul adds a same-background ::after stretching 200% past the panel's
@@ -138,12 +148,14 @@
      edge, then jump-snap into the centered position. Override with a
      higher-specificity selector (class + every attribute vaul's own
      rule matches) and a centered fade/scale animation instead. */
-  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='open'].contentModal {
+  .content[data-vaul-drawer].contentModal[data-state='open'],
+  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-state='open'].contentModal {
     animation-name: modalCenterIn;
     animation-duration: 0.25s;
   }
 
-  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-vaul-drawer-direction='right'][data-state='closed'].contentModal {
+  .content[data-vaul-drawer].contentModal[data-state='closed'],
+  .content[data-vaul-drawer][data-vaul-snap-points='false'][data-state='closed'].contentModal {
     animation-name: modalCenterOut;
     animation-duration: 0.2s;
   }

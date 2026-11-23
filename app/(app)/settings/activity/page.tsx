@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { getAuditLogAction } from '@/app/actions';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
@@ -10,6 +11,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import type { AuditLogEntry } from '@/lib/types';
+import { formatCurrency } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -25,11 +27,11 @@ const ACTION_LABELS: Record<string, string> = {
   'shop.deleted': 'deleted the shop',
 };
 
-function describeEntry(entry: AuditLogEntry): string {
+function describeEntry(entry: AuditLogEntry, currency?: string): string {
   const label = ACTION_LABELS[entry.action] || entry.action;
   const diff = entry.diff || {};
   if (entry.action === 'order.status_changed') return `moved an order from ${diff.fromStatus} to ${diff.toStatus}`;
-  if (entry.action === 'payment.recorded' && diff.amount) return `recorded a payment of ₦${diff.amount}`;
+  if (entry.action === 'payment.recorded' && diff.amount) return `recorded a payment of ${formatCurrency(Number(diff.amount), currency)}`;
   if (entry.action === 'order.deleted' && diff.customerName) return `deleted ${diff.customerName}'s order`;
   if (entry.action === 'customer.deleted' && diff.customerName) return `deleted customer ${diff.customerName}`;
   if (entry.action === 'staff.created' && diff.staffName) return `added staff member ${diff.staffName}`;
@@ -46,9 +48,15 @@ export default function ActivityLogPage() {
   const [entries, setEntries] = useState<AuditLogEntry[] | null>(null);
 
   useEffect(() => {
-    if (!currentShop?.id) return;
+    if (!currentShop?.id) {
+      setEntries([]);
+      return;
+    }
     getAuditLogAction(currentShop.id).then((result) => {
-      if (!result || 'error' in result) { setEntries([]); return; }
+      if (!result || 'error' in result) {
+        setEntries([]);
+        return;
+      }
       setEntries(result);
     }).catch(() => setEntries([]));
   }, [currentShop?.id]);
@@ -67,7 +75,7 @@ export default function ActivityLogPage() {
             <div key={entry.id} className={styles.row}>
               <div className={styles.rowMain}>
                 <span className={styles.actorName}>{entry.actorName}</span>{' '}
-                <span className={styles.description}>{describeEntry(entry)}</span>
+                <span className={styles.description}>{describeEntry(entry, currentShop?.currency)}</span>
               </div>
               <span className={styles.timestamp}>{new Date(entry.createdAt).toLocaleString('en-NG', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
             </div>

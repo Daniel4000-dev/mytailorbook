@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { APP_CONFIG } from '@/lib/config';
 import {
   formatCurrency,
   formatNumber,
@@ -10,7 +11,10 @@ import {
   formatMonthYear,
   formatShortMonthYear,
   getWhatsAppLink,
+  getTelLink,
   getOrderProgressMessage,
+  parseMeasurementValue,
+  formatMeasurementsSummary,
 } from '@/lib/formatters';
 
 describe('formatCurrency', () => {
@@ -132,6 +136,20 @@ describe('getWhatsAppLink', () => {
   });
 });
 
+describe('getTelLink', () => {
+  it('builds normalized tel: link from 080... format', () => {
+    expect(getTelLink('08012345678')).toBe('tel:+2348012345678');
+  });
+
+  it('builds normalized tel: link from +234 format without double plus', () => {
+    expect(getTelLink('+2348012345678')).toBe('tel:+2348012345678');
+  });
+
+  it('returns # when phone is empty', () => {
+    expect(getTelLink('')).toBe('#');
+  });
+});
+
 describe('getOrderProgressMessage', () => {
   it('substitutes name, shop, and link into the built-in default for a stage', () => {
     const message = getOrderProgressMessage({
@@ -170,3 +188,65 @@ describe('getOrderProgressMessage', () => {
     expect(message).toBe('Hey Chioma, custom update from Baan Wears: https://mystitchbook.com/track/abc123');
   });
 });
+
+describe('parseMeasurementValue', () => {
+  it('parses pure integers and decimals', () => {
+    expect(parseMeasurementValue('42')).toBe(42);
+    expect(parseMeasurementValue('15.5')).toBe(15.5);
+    expect(parseMeasurementValue(38.25)).toBe(38.25);
+  });
+
+  it('strips inch quotes and surrounding whitespace', () => {
+    expect(parseMeasurementValue(' 16.5" ')).toBe(16.5);
+    expect(parseMeasurementValue('42”')).toBe(42);
+  });
+
+  it('parses fractions like 15 1/2 and 38 1/4', () => {
+    expect(parseMeasurementValue('15 1/2')).toBe(15.5);
+    expect(parseMeasurementValue('38 1/4')).toBe(38.25);
+    expect(parseMeasurementValue('40 3/4"')).toBe(40.75);
+    expect(parseMeasurementValue('1/2')).toBe(0.5);
+  });
+
+  it('returns null for empty, placeholder or invalid strings', () => {
+    expect(parseMeasurementValue('')).toBeNull();
+    expect(parseMeasurementValue('--')).toBeNull();
+    expect(parseMeasurementValue('abc')).toBeNull();
+    expect(parseMeasurementValue(undefined)).toBeNull();
+    expect(parseMeasurementValue(null)).toBeNull();
+  });
+});
+
+describe('formatMeasurementsSummary', () => {
+  it('formats customer measurements with labels and notes', () => {
+    const text = formatMeasurementsSummary({
+      customerName: 'Amina Yusuf',
+      gender: 'female',
+      measurements: { bust: 38, waist: 30, hips: 42 },
+      notes: 'Prefers slightly loose bust fitting',
+      labels: { bust: 'Bust', waist: 'Waist', hips: 'Hips' },
+    });
+
+    expect(text).toContain('*Measurements: Amina Yusuf*');
+    expect(text).toContain('Gender: Female');
+    expect(text).toContain('• Bust: 38"');
+    expect(text).toContain('• Waist: 30"');
+    expect(text).toContain('• Hips: 42"');
+    expect(text).toContain('*Notes:* Prefers slightly loose bust fitting');
+    expect(text).toContain(`— via ${APP_CONFIG.name}`);
+  });
+
+  it('handles empty measurements gracefully', () => {
+    const text = formatMeasurementsSummary({
+      customerName: 'Chidi Okafor',
+      gender: 'male',
+      measurements: {},
+    });
+
+    expect(text).toContain('*Measurements: Chidi Okafor*');
+    expect(text).toContain('Gender: Male');
+    expect(text).toContain('_No measurements recorded yet_');
+  });
+});
+
+

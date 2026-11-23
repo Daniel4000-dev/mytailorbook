@@ -1,95 +1,197 @@
-/* Labeled bottom bar: white surface, rounded top corners, active item
-   marked by a small indigo "drip" indicator instead of a filled pill. */
+/* Floating glassmorphic pill bottom nav — Apple iOS Optics */
 .nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: max(16px, calc(16px + env(safe-area-inset-bottom, 0px)));
+  left: 16px;
+  right: 16px;
+  width: calc(100% - 32px);
+  max-width: 440px;
+  height: 64px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 12px 8px calc(12px + var(--sf-safe-area-bottom));
-  background: var(--sf-bg-surface);
-  border-radius: 24px 24px 0 0;
-  /* Two layers: a tight, closer shadow so the rounded top corners actually
-     read against a page that's now the same white as the bar itself, plus
-     the wider soft glow for the "floating above the page" depth. */
-  box-shadow: 0 -1px 6px rgba(27, 27, 34, 0.07), var(--sf-shadow-xl);
+  padding: 0 10px;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-radius: var(--sf-radius-full, 9999px);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
   z-index: var(--sf-z-sticky);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center bottom;
+  will-change: transform, opacity;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, background-color 0.2s ease, box-shadow 0.28s ease;
 }
 
-/* The <Link> itself carries no box styling — useLinkStatus (read by the
-   .item div below) only works in a Link descendant, so the pill/icon/label
-   all live one level in. display:contents keeps Link out of the flex flow
-   entirely, so .item is what actually behaves as .nav's flex child. */
+.nav.navCompact {
+  transform: translate3d(0, 6px, 0) scale(0.88);
+  opacity: 0.88;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav.navCompact:hover {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+    box-shadow: var(--sf-glass-shadow-floating);
+  }
+}
+
+.nav.navCompact:active {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+  box-shadow: var(--sf-glass-shadow-floating);
+}
+
+:global([data-theme='dark']) .nav {
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: var(--sf-glass-shadow-floating);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+:global([data-theme='dark']) .nav.navCompact {
+  transform: translate3d(0, 6px, 0) scale(0.88);
+  opacity: 0.88;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.35),
+    0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+:global([data-theme='dark']) .nav.navCompact:hover,
+:global([data-theme='dark']) .nav.navCompact:active {
+  transform: translate3d(0, 0, 0) scale(1);
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .nav {
+    background: var(--sf-glass-gradient, var(--sf-glass-bg));
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    border: var(--sf-glass-border);
+    box-shadow: var(--sf-glass-shadow-floating);
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  :global(:root:not([data-theme="light"])) .nav.navCompact {
+    transform: translate3d(0, 6px, 0) scale(0.88);
+    opacity: 0.88;
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.35),
+      0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  :global(:root:not([data-theme="light"])) .nav.navCompact:hover,
+  :global(:root:not([data-theme="light"])) .nav.navCompact:active {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+
 .linkReset {
   display: contents;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Nav Item (Apple iOS floating pill with inner active capsule) */
 .item {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--sf-text-secondary);
-  opacity: 0.8;
+  opacity: 0.75;
   text-decoration: none;
-  padding: 4px 16px;
-  border-radius: var(--sf-radius-full);
-  transition: opacity var(--sf-transition-fast), color var(--sf-transition-fast);
+  height: 44px;
+  flex: 1;
+  max-width: 68px;
+  min-width: 44px;
+  border-radius: var(--sf-radius-pill, 9999px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.item:hover {
-  opacity: 1;
-}
-}
-
-.item:active .icon {
-  transform: scale(0.9);
+  .item:hover {
+    opacity: 1;
+    background-color: var(--sf-glass-active-pill);
+  }
 }
 
-/* No pill fill on the active item — instead a small rectangular indigo
-   marker sits at the very top of the bar above the icon, solid at the
-   top edge and fading to transparent toward the bottom, matching the
-   reference's active-tab indicator exactly (a gradient bar, not a
-   tapering shape). */
+.item:active {
+  transform: scale(0.92);
+  transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Active state: Subtle frosted highlight pill matching Apple / Bible app reference */
 .active {
-  background: none;
-  color: var(--sf-accent-emerald);
+  background-color: var(--sf-glass-active-pill) !important;
+  color: var(--sf-text-primary);
   opacity: 1;
 }
 
-.active::before {
-  content: '';
+:global([data-theme='dark']) .active {
+  background-color: var(--sf-glass-active-pill) !important;
+  color: var(--sf-text-primary);
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+/* Emerald Activity Dot (Unread Notification Badge) */
+.activityDot {
   position: absolute;
-  /* -12px cancels .nav's padding-top, so this starts exactly at the bar's
-     own top edge rather than floating above it. */
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 6px;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(to bottom, var(--sf-accent-emerald) 0%, rgba(67, 56, 202, 0) 100%);
+  top: 0px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--sf-accent-emerald, #10B981);
+  border: 1.5px solid var(--sf-bg-surface);
+  z-index: 2;
 }
 
 .icon {
-  margin-bottom: 4px;
-  transition: transform 150ms ease;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  color: inherit;
 }
 
-.label {
-  font-family: var(--sf-font-body);
-  font-size: var(--sf-text-xs);
-  line-height: 16px;
-  font-weight: var(--sf-weight-bold);
-  letter-spacing: var(--sf-tracking-caps);
+/* Profile circular avatar item — unified with standard active pill highlight */
+.avatarWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 2px;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navAvatar {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* ── Desktop Layout ────────────────────────────────────────── */

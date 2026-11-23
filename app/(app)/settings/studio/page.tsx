@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
@@ -12,54 +12,269 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
 import Select from '@/components/ui/Select/Select';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import ConfirmDialog from '@/components/ui/ConfirmDialog/ConfirmDialog';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { compressImage } from '@/lib/compressImage';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants';
+import { COUNTRIES } from '@/components/ui/PhoneInput/countries';
+import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
+import { getCurrencySymbol } from '@/lib/formatters';
+import {
+  getShopCurrency,
+  detectCountryAndCurrencyFromPhone,
+  getCurrencyForCountry,
+} from '@/lib/currency';
 import SettingsSkeleton from '../_components/SettingsSkeleton';
 import { ROUTES } from '@/lib/routes';
+import { isXpSystemEnabled } from '@/lib/xp';
 import styles from './page.module.css';
+
+type EditableField = 'name' | 'username' | 'about' | 'phone' | 'address' | 'currency' | 'country' | null;
+
+const REVENUE_BENCHMARKS = [
+  { label: '500k', value: 500000 },
+  { label: '1m', value: 1000000 },
+  { label: '2.5m', value: 2500000 },
+  { label: '5m', value: 5000000 },
+  { label: '10m', value: 10000000 },
+];
 
 export default function StudioSettingsPage() {
   const router = useRouter();
   const { currentShop, updateShop, isLoaded } = useData();
   const { showToast } = useToast();
-  // Desktop's persistent left nav (see settings/layout.tsx) already
-  // provides navigation — a "back" arrow that returns to the redirecting
-  // overview page is redundant there, so it only shows on mobile.
   const isDesktop = useIsDesktop();
-
-  const [shopName, setShopName] = useState('');
-  const [shopPhone, setShopPhone] = useState('');
-  const [shopAddress, setShopAddress] = useState('');
-  const [shopCurrency, setShopCurrency] = useState('NGN');
-  const [savingShop, setSavingShop] = useState(false);
-
-  // currentShop resolves asynchronously — sync the form once it actually
-  // changes (first load, or switching shops) rather than only at first
-  // mount, when it's often still undefined. Adjusted during render
-  // (React's own guidance for deriving state from a changed prop) rather
-  // than in an effect — same pattern used elsewhere in this codebase
-  // (e.g. ProductionBoard's prevUserRole).
-  const [syncedShopId, setSyncedShopId] = useState<string | undefined>(undefined);
-  if (currentShop && currentShop.id !== syncedShopId) {
-    setSyncedShopId(currentShop.id);
-    setShopName(currentShop.name || '');
-    setShopPhone(currentShop.phone || '');
-    setShopAddress(currentShop.address || '');
-    setShopCurrency(currentShop.currency || 'NGN');
-  }
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
 
-  const handleSaveShop = async () => {
-    setSavingShop(true);
+  // Field editor modal/sheet state
+  const [activeField, setActiveField] = useState<EditableField>(null);
+  const [draftValue, setDraftValue] = useState('');
+  const [savingField, setSavingField] = useState(false);
+
+  // Social Links state
+  const [linksOpen, setLinksOpen] = useState(false);
+  const [draftInstagram, setDraftInstagram] = useState('');
+  const [draftTiktok, setDraftTiktok] = useState('');
+  const [draftWebsite, setDraftWebsite] = useState('');
+  const [savingLinks, setSavingLinks] = useState(false);
+
+  // Bank Settlement state
+  const [bankOpen, setBankOpen] = useState(false);
+  const [draftBankName, setDraftBankName] = useState('');
+  const [draftAccountNumber, setDraftAccountNumber] = useState('');
+  const [draftAccountName, setDraftAccountName] = useState('');
+  const [savingBank, setSavingBank] = useState(false);
+
+  // Benchmarks state
+  const [targetRevenue, setTargetRevenue] = useState<number>(currentShop?.monthlyRevenueTarget || 1000000);
+  const [weeklyCap, setWeeklyCap] = useState<number>(currentShop?.weeklyCapacity || 5);
+  const [dailyCap, setDailyCap] = useState<number>(currentShop?.dailyCapacity || 2);
+  const [savingCapacity, setSavingCapacity] = useState(false);
+
+  // Sync capacity from shop when loaded
+  const [syncedShopId, setSyncedShopId] = useState<string | undefined>(undefined);
+  if (currentShop && currentShop.id !== syncedShopId) {
+    setSyncedShopId(currentShop.id);
+    setTargetRevenue(currentShop.monthlyRevenueTarget || 1000000);
+    setWeeklyCap(currentShop.weeklyCapacity || 5);
+    setDailyCap(currentShop.dailyCapacity || 2);
+  }
+
+  const handleOpenEditor = (field: EditableField) => {
+    setActiveField(field);
+    if (field === 'name') setDraftValue(currentShop?.name || '');
+    else if (field === 'username') setDraftValue(currentShop?.slug || '');
+    else if (field === 'about') setDraftValue(currentShop?.portfolioSettings?.tagline || '');
+    else if (field === 'phone') setDraftValue(currentShop?.phone || '');
+    else if (field === 'address') setDraftValue(currentShop?.address || '');
+    else if (field === 'country') setDraftValue(currentShop?.country || 'Nigeria');
+    else if (field === 'currency') setDraftValue(currentShop?.currency || 'NGN');
+  };
+
+  const handleSaveField = async () => {
+    if (!activeField) return;
+    setSavingField(true);
     try {
-      await updateShop({ name: shopName, phone: shopPhone || undefined, address: shopAddress || undefined, currency: shopCurrency });
-      showToast('Studio profile updated', 'success');
+      if (activeField === 'name') {
+        if (!draftValue.trim()) return;
+        await updateShop({ name: draftValue.trim() });
+        showToast('Studio name updated', 'success');
+      } else if (activeField === 'username') {
+        const cleanSlug = draftValue.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (!cleanSlug || cleanSlug.length < 3) {
+          showToast('Username must be at least 3 characters', 'error');
+          return;
+        }
+        await updateShop({ slug: cleanSlug });
+        showToast('Workshop username updated', 'success');
+      } else if (activeField === 'about') {
+        const nextSettings = {
+          ...(currentShop?.portfolioSettings || {}),
+          tagline: draftValue.trim() || undefined,
+        };
+        await updateShop({ portfolioSettings: nextSettings });
+        showToast('Shop tagline updated', 'success');
+      } else if (activeField === 'phone') {
+        const cleanPhone = draftValue.trim() || undefined;
+        const updates: Record<string, unknown> = { phone: cleanPhone };
+        const detected = detectCountryAndCurrencyFromPhone(cleanPhone);
+
+        if (detected.countryName && (!currentShop?.country || currentShop.country === 'Nigeria')) {
+          updates.country = detected.countryName;
+          updates.countryCode = detected.countryCode;
+        }
+        if (detected.currency && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          updates.currency = detected.currency;
+        }
+
+        await updateShop(updates);
+        if (detected.currency && detected.currency !== 'NGN' && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          showToast(`Phone saved · Auto-detected ${detected.countryName} · Currency set to ${detected.currency}`, 'success');
+        } else {
+          showToast('WhatsApp business phone updated', 'success');
+        }
+      } else if (activeField === 'address') {
+        await updateShop({ address: draftValue.trim() || undefined });
+        showToast('Shop address updated', 'success');
+      } else if (activeField === 'country') {
+        const selected = COUNTRIES.find((c) => c.name.toLowerCase() === draftValue.toLowerCase() || c.code.toLowerCase() === draftValue.toLowerCase());
+        const countryName = selected ? selected.name : draftValue.trim() || undefined;
+        const countryCode = selected ? selected.code : undefined;
+        const autoCurrency = getCurrencyForCountry(countryCode || countryName);
+        const updates: Record<string, unknown> = {
+          country: countryName,
+          countryCode: countryCode,
+        };
+        if (autoCurrency && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          updates.currency = autoCurrency;
+        }
+        await updateShop(updates);
+        if (autoCurrency && autoCurrency !== 'NGN' && (!currentShop?.currency || currentShop.currency === 'NGN')) {
+          showToast(`Country updated to ${countryName} · Currency set to ${autoCurrency}`, 'success');
+        } else {
+          showToast('Country updated', 'success');
+        }
+      } else if (activeField === 'currency') {
+        await updateShop({ currency: draftValue });
+        showToast('Currency updated', 'success');
+      }
+      setActiveField(null);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update', 'error');
     } finally {
-      setSavingShop(false);
+      setSavingField(false);
+    }
+  };
+
+  const openLinksEditor = () => {
+    setDraftInstagram(currentShop?.socialLinks?.instagram || '');
+    setDraftTiktok(currentShop?.socialLinks?.tiktok || '');
+    setDraftWebsite(currentShop?.socialLinks?.website || '');
+    setLinksOpen(true);
+  };
+
+  const handleSaveLinks = async () => {
+    setSavingLinks(true);
+    try {
+      const formattedInsta = draftInstagram.trim()
+        ? (draftInstagram.trim().startsWith('@') || draftInstagram.trim().includes('http') ? draftInstagram.trim() : `@${draftInstagram.trim()}`)
+        : undefined;
+      const formattedTiktok = draftTiktok.trim()
+        ? (draftTiktok.trim().startsWith('@') || draftTiktok.trim().includes('http') ? draftTiktok.trim() : `@${draftTiktok.trim()}`)
+        : undefined;
+      await updateShop({
+        socialLinks: {
+          instagram: formattedInsta,
+          tiktok: formattedTiktok,
+          website: draftWebsite.trim() || undefined,
+        },
+      });
+      showToast('Social media links updated', 'success');
+      setLinksOpen(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update links', 'error');
+    } finally {
+      setSavingLinks(false);
+    }
+  };
+
+  const openBankEditor = () => {
+    setDraftBankName(currentShop?.bankDetails?.bankName || '');
+    setDraftAccountNumber(currentShop?.bankDetails?.accountNumber || '');
+    setDraftAccountName(currentShop?.bankDetails?.accountName || '');
+    setBankOpen(true);
+  };
+
+  const handleSaveBank = async () => {
+    setSavingBank(true);
+    try {
+      await updateShop({
+        bankDetails: {
+          bankName: draftBankName.trim() || undefined,
+          accountNumber: draftAccountNumber.trim() || undefined,
+          accountName: draftAccountName.trim() || undefined,
+        },
+      });
+      showToast('Bank transfer details updated', 'success');
+      setBankOpen(false);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to update bank details', 'error');
+    } finally {
+      setSavingBank(false);
+    }
+  };
+
+  const handleCopyBankDetails = async () => {
+    const bankString = `Bank: ${draftBankName || currentShop?.bankDetails?.bankName || 'GTBank'}\nAccount: ${draftAccountNumber || currentShop?.bankDetails?.accountNumber || '0123456789'}\nName: ${draftAccountName || currentShop?.bankDetails?.accountName || currentShop?.name || 'Studio Bespoke'}`;
+    await navigator.clipboard.writeText(bankString);
+    showToast('Bank details copied to clipboard', 'success');
+  };
+
+  const handleOpenSocial = (type: 'instagram' | 'tiktok' | 'website') => {
+    let url = '';
+    if (type === 'instagram') {
+      const handle = (draftInstagram || currentShop?.socialLinks?.instagram || '').replace(/^@/, '').replace(/.*instagram\.com\//, '').replace(/\/$/, '');
+      if (!handle) return;
+      url = `https://instagram.com/${handle}`;
+    } else if (type === 'tiktok') {
+      const handle = (draftTiktok || currentShop?.socialLinks?.tiktok || '').replace(/^@/, '').replace(/.*tiktok\.com\/@?/, '').replace(/\/$/, '');
+      if (!handle) return;
+      url = `https://tiktok.com/@${handle}`;
+    } else if (type === 'website') {
+      let raw = (draftWebsite || currentShop?.socialLinks?.website || '');
+      if (!raw) return;
+      if (!raw.startsWith('http://') && !raw.startsWith('https://')) raw = `https://${raw}`;
+      url = raw;
+    }
+    if (url) window.open(url, '_blank');
+  };
+
+  const handleSelectBusinessMode = async (mode: 'bespoke' | 'rtw' | 'hybrid') => {
+    try {
+      await updateShop({ businessMode: mode });
+      showToast('Shop business mode updated', 'success');
+    } catch {
+      showToast('Failed to update business model', 'error');
+    }
+  };
+
+  const handleSaveBenchmarks = async (rev: number, weekly: number, daily: number) => {
+    setSavingCapacity(true);
+    try {
+      await updateShop({
+        monthlyRevenueTarget: rev,
+        weeklyCapacity: weekly,
+        dailyCapacity: daily,
+      });
+      showToast('Production benchmark updated', 'success');
+    } catch {
+      showToast('Failed to update capacity', 'error');
+    } finally {
+      setSavingCapacity(false);
     }
   };
 
@@ -81,7 +296,7 @@ export default function StudioSettingsPage() {
       await updateShop({ logoUrl });
       showToast('Logo updated', 'success');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to upload logo', 'error');
+      showToast(err instanceof Error ? err.message : 'Failed to upload photo', 'error');
     } finally {
       setUploadingLogo(false);
       e.target.value = '';
@@ -96,62 +311,726 @@ export default function StudioSettingsPage() {
 
   if (!isLoaded) {
     return (
-      <PageLayout width="narrow" header={<TopBar title="Your Studio" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
+      <PageLayout width="narrow" header={<TopBar title="Profile" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
         <SettingsSkeleton />
       </PageLayout>
     );
   }
 
+  const initial = currentShop?.name?.charAt(0)?.toUpperCase() || 'M';
+  const currencyCode = getShopCurrency(currentShop);
+  const currencySymbol = getCurrencySymbol(currencyCode);
+
   return (
-    <PageLayout width="narrow" header={<TopBar title="Your Studio" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Studio Profile</h3>
-        <div className={styles.card}>
-          <Input label="Shop / Studio Name" value={shopName} onChange={(e) => setShopName(e.target.value)} required />
-          <Select
-            label="Shop Currency"
-            value={shopCurrency}
-            onChange={(e) => setShopCurrency(e.target.value)}
-            options={SUPPORTED_CURRENCIES.map(c => ({ value: c.code, label: c.label }))}
+    <PageLayout width="narrow" header={<TopBar title="Profile" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
+      <div className={styles.container}>
+        {/* WhatsApp iOS Style Centered Avatar Hero */}
+        <section className={styles.avatarSection} aria-label="Studio Photo">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleUploadLogo}
           />
-          <Input label="Phone (shown on receipts)" value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="08012345678" />
-          <Input label="Address" value={shopAddress} onChange={(e) => setShopAddress(e.target.value)} placeholder="Shop address" />
-          <div className={styles.actions}>
-            <Button variant="primary" loading={savingShop} onClick={handleSaveShop}>Save</Button>
+          <button
+            type="button"
+            className={styles.avatarWrap}
+            onClick={() => fileInputRef.current?.click()}
+            title="Tap to change studio crest"
+          >
+            {currentShop?.logoUrl ? (
+              <Image
+                src={currentShop.logoUrl}
+                alt={currentShop.name || 'Studio Crest'}
+                width={104}
+                height={104}
+                className={styles.avatarImg}
+              />
+            ) : (
+              <div className={styles.avatarPlaceholder}>
+                <span className={styles.avatarCrestLetter}>{initial}</span>
+              </div>
+            )}
+          </button>
+          <div className={styles.avatarActions}>
+            <button
+              type="button"
+              className={styles.editPhotoBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingLogo}
+            >
+              {uploadingLogo ? 'Uploading...' : 'Edit photo'}
+            </button>
+            {currentShop?.logoUrl && (
+              <button
+                type="button"
+                className={styles.removePhotoBtn}
+                onClick={() => setConfirmRemoveLogo(true)}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </section>
+
+        {/* WhatsApp iOS Style Grouped Card 1: Core Studio Profile Info */}
+        <div className={styles.groupCard}>
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('name')}
+          >
+            <span className={styles.rowLabel}>Name</span>
+            <div className={styles.rowValueWrap}>
+              <span className={styles.rowValue}>{currentShop?.name || 'Set Studio Name'}</span>
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('about')}
+          >
+            <span className={styles.rowLabel}>About</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.portfolioSettings?.tagline ? (
+                <span className={styles.rowValue}>{currentShop.portfolioSettings.tagline}</span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Share shop specialty
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('username')}
+          >
+            <span className={styles.rowLabel}>Username / Handle</span>
+            <div className={styles.rowValueWrap}>
+              <span className={styles.rowValue}>@{currentShop?.slug || 'studio'}</span>
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('phone')}
+          >
+            <span className={styles.rowLabel}>Phone number</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.phone ? (
+                <span className={styles.rowValue}>{currentShop.phone}</span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Add WhatsApp number
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          {/* Social links row commented out per user request */}
+          {/* <button
+            type="button"
+            className={styles.rowItem}
+            onClick={openLinksEditor}
+          >
+            <span className={styles.rowLabel}>Links</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.socialLinks?.instagram || currentShop?.socialLinks?.tiktok || currentShop?.socialLinks?.website ? (
+                <span className={styles.rowValue}>
+                  {currentShop.socialLinks.instagram || currentShop.socialLinks.tiktok || currentShop.socialLinks.website}
+                </span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Add links
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button> */}
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={openBankEditor}
+          >
+            <span className={styles.rowLabel}>Bank Details</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.bankDetails?.bankName ? (
+                <span className={styles.rowValue}>
+                  {currentShop.bankDetails.bankName} · {currentShop.bankDetails.accountNumber}
+                </span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Add bank account for transfers
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('address')}
+          >
+            <span className={styles.rowLabel}>Address</span>
+            <div className={styles.rowValueWrap}>
+              {currentShop?.address ? (
+                <span className={styles.rowValue}>{currentShop.address}</span>
+              ) : (
+                <span className={`${styles.rowValue} ${styles.rowValuePlaceholder}`}>
+                  Add shop address
+                </span>
+              )}
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('country')}
+          >
+            <span className={styles.rowLabel}>Country</span>
+            <div className={styles.rowValueWrap}>
+              <span className={styles.rowValue}>
+                {currentShop?.country || 'Nigeria'}
+              </span>
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={styles.rowItem}
+            onClick={() => handleOpenEditor('currency')}
+          >
+            <span className={styles.rowLabel}>Currency</span>
+            <div className={styles.rowValueWrap}>
+              <span className={styles.rowValue}>
+                {currencyCode} ({currencySymbol})
+              </span>
+              <Symbol name="chevron_right" size={18} className={styles.chevron} />
+            </div>
+          </button>
+        </div>
+
+        {/* Group 2: Business Model Specification (Commented out: defaulting to Bespoke) */}
+        {/* <div className={styles.groupCard}>
+          <div className={styles.modeGrid}>
+            <button
+              type="button"
+              className={`${styles.modeCard} ${(currentShop?.businessMode || 'bespoke') === 'bespoke' ? styles.modeCardActive : ''}`}
+              onClick={() => handleSelectBusinessMode('bespoke')}
+            >
+              <div className={styles.modeHeader}>
+                <span className={styles.modeTitle}>Bespoke Only</span>
+                {(currentShop?.businessMode || 'bespoke') === 'bespoke' && (
+                  <span style={{ color: 'var(--sf-color-primary, #047857)', display: 'inline-flex' }}>
+                    <Symbol name="verified" size={16} />
+                  </span>
+                )}
+              </div>
+              <span className={styles.modeDesc}>
+                100% custom made-to-measure orders tailored for individual clients.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.modeCard} ${currentShop?.businessMode === 'rtw' ? styles.modeCardActive : ''}`}
+              onClick={() => handleSelectBusinessMode('rtw')}
+            >
+              <div className={styles.modeHeader}>
+                <span className={styles.modeTitle}>Ready-to-Wear</span>
+                {currentShop?.businessMode === 'rtw' && (
+                  <span style={{ color: 'var(--sf-color-primary, #047857)', display: 'inline-flex' }}>
+                    <Symbol name="verified" size={16} />
+                  </span>
+                )}
+              </div>
+              <span className={styles.modeDesc}>
+                Standardized sizing collections produced in batches for direct sale.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.modeCard} ${currentShop?.businessMode === 'hybrid' ? styles.modeCardActive : ''}`}
+              onClick={() => handleSelectBusinessMode('hybrid')}
+            >
+              <div className={styles.modeHeader}>
+                <span className={styles.modeTitle}>Hybrid House</span>
+                {currentShop?.businessMode === 'hybrid' && (
+                  <span style={{ color: 'var(--sf-color-primary, #047857)', display: 'inline-flex' }}>
+                    <Symbol name="verified" size={16} />
+                  </span>
+                )}
+              </div>
+              <span className={styles.modeDesc}>
+                Both custom bespoke commissions and off-the-rack capsule drops.
+              </span>
+            </button>
+          </div>
+        </div> */}
+
+        {/* Group 3: Capacity & Benchmarks */}
+        <div className={`${styles.groupCard} ${styles.benchmarkCard}`}>
+          <div>
+            <label className={styles.capacityLabel}>
+              Monthly Revenue Goal ({currencySymbol})
+            </label>
+            <Input
+              value={String(targetRevenue)}
+              onChange={(e) => setTargetRevenue(Number(e.target.value.replace(/[^0-9]/g, '')))}
+              placeholder="1000000"
+            />
+            <div className={styles.benchmarkPills}>
+              {REVENUE_BENCHMARKS.map((bm) => (
+                <button
+                  key={bm.value}
+                  type="button"
+                  className={`${styles.benchmarkChip} ${targetRevenue === bm.value ? styles.benchmarkChipActive : ''}`}
+                  onClick={() => {
+                    setTargetRevenue(bm.value);
+                    handleSaveBenchmarks(bm.value, weeklyCap, dailyCap);
+                  }}
+                >
+                  {currencySymbol}{bm.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.capacityGrid}>
+            <div className={styles.capacityCol}>
+              <span className={styles.capacityLabel}>Weekly Garment Cap</span>
+              <div className={styles.stepperRow}>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => {
+                    const next = Math.max(1, weeklyCap - 1);
+                    setWeeklyCap(next);
+                    handleSaveBenchmarks(targetRevenue, next, dailyCap);
+                  }}
+                >
+                  -
+                </button>
+                <span className={styles.stepperVal}>{weeklyCap} / wk</span>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => {
+                    const next = weeklyCap + 1;
+                    setWeeklyCap(next);
+                    handleSaveBenchmarks(targetRevenue, next, dailyCap);
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.capacityCol}>
+              <span className={styles.capacityLabel}>Daily Cutting Cap</span>
+              <div className={styles.stepperRow}>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => {
+                    const next = Math.max(1, dailyCap - 1);
+                    setDailyCap(next);
+                    handleSaveBenchmarks(targetRevenue, weeklyCap, next);
+                  }}
+                >
+                  -
+                </button>
+                <span className={styles.stepperVal}>{dailyCap} / day</span>
+                <button
+                  type="button"
+                  className={styles.stepperBtn}
+                  onClick={() => {
+                    const next = dailyCap + 1;
+                    setDailyCap(next);
+                    handleSaveBenchmarks(targetRevenue, weeklyCap, next);
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+            <Button
+              variant="primary"
+              loading={savingCapacity}
+              onClick={() => handleSaveBenchmarks(targetRevenue, weeklyCap, dailyCap)}
+            >
+              Save Benchmarks
+            </Button>
+          </div>
+        </div>
+
+        {/* Group 4: Heartbeat & Streaks */}
+        <div className={styles.groupCard}>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleText}>
+              <span className={styles.toggleTitle}>Vacation Mode</span>
+              <p className={styles.toggleHint}>
+                Pause your daily streak while your shop is closed for holidays or rest.
+              </p>
+            </div>
+            <label className="toggleSwitch">
+              <input
+                type="checkbox"
+                checked={currentShop?.vacationMode || false}
+                onChange={async (e) => {
+                  try {
+                    await updateShop({ vacationMode: e.target.checked });
+                    showToast(e.target.checked ? 'Vacation Mode enabled' : 'Vacation Mode disabled');
+                  } catch {
+                    showToast('Failed to update Vacation Mode', 'error');
+                  }
+                }}
+              />
+              <span className="toggleSlider"></span>
+            </label>
+          </div>
+
+          <div className={styles.freezeRow}>
+            <div className={styles.toggleText}>
+              <span className={styles.toggleTitle}>
+                Emergency Streak Freezes: {currentShop?.streakFreezes || 0}
+              </span>
+              <p className={styles.toggleHint}>
+                Shields your streak on unplanned workshop disruptions. You also get 2 weekly studio rest days.
+              </p>
+            </div>
+            {isXpSystemEnabled(currentShop?.businessMode) && (
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  const xp = currentShop?.xp || 0;
+                  if (xp >= 100) {
+                    try {
+                      await updateShop({ xp: xp - 100, streakFreezes: (currentShop?.streakFreezes || 0) + 1 });
+                      showToast('Acquired 1 emergency Streak Freeze!');
+                    } catch {
+                      showToast('Failed to update streak freezes', 'error');
+                    }
+                  } else {
+                    showToast('You need at least 100 XP to acquire an emergency freeze.', 'error');
+                  }
+                }}
+              >
+                Get Freeze (100 XP)
+              </Button>
+            )}
           </div>
         </div>
       </div>
 
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Shop Logo</h3>
-        <div className={styles.card}>
-          <div className={styles.logoPreviewWrap}>
-            {currentShop?.logoUrl ? (
-              <Image src={currentShop.logoUrl} alt="" width={200} height={200} className={styles.logoPreview} />
-            ) : (
-              <div className={styles.logoPreviewEmpty}>
-                <Symbol name="storefront" size={36} />
-              </div>
-            )}
-          </div>
-          <p className={styles.hintText}>Shown on receipts and your public portfolio page.</p>
-          <label className={styles.uploadBtn}>
-            <input type="file" accept="image/*" hidden onChange={handleUploadLogo} />
-            <Symbol name={uploadingLogo ? 'progress_activity' : 'upload'} size={18} />
-            {uploadingLogo ? 'Uploading…' : 'Upload Photo'}
-          </label>
-          {currentShop?.logoUrl && (
-            <Button variant="danger" onClick={() => setConfirmRemoveLogo(true)}>Remove Logo</Button>
+      {/* Field Editor Bottom Sheet */}
+      <BottomSheet
+        isOpen={!!activeField}
+        onClose={() => setActiveField(null)}
+        title={
+          activeField === 'name'
+            ? 'Shop Name'
+            : activeField === 'about'
+            ? 'Shop Specialty (About)'
+            : activeField === 'phone'
+            ? 'WhatsApp Business Number'
+            : activeField === 'address'
+            ? 'Shop Address'
+            : activeField === 'country'
+            ? 'Country of Operation'
+            : activeField === 'currency'
+            ? 'Currency'
+            : undefined
+        }
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          {activeField === 'country' ? (
+            <Select
+              label="Operating Country"
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
+              options={COUNTRIES.map((c) => ({
+                value: c.name,
+                label: `${c.flag} ${c.name} (+${c.dialCode})`,
+              }))}
+            />
+          ) : activeField === 'currency' ? (
+            <Select
+              label="Select Currency"
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
+              options={SUPPORTED_CURRENCIES.map((c) => ({
+                value: c.code,
+                label: c.label,
+              }))}
+            />
+          ) : activeField === 'phone' ? (
+            <div style={{ marginTop: '8px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--sf-text-secondary)', marginBottom: '6px', display: 'block' }}>
+                WhatsApp Business Phone
+              </label>
+              <PhoneInput
+                value={draftValue}
+                onChange={(val) => setDraftValue(val)}
+                placeholder="7123 456789"
+                defaultCountryCode={currentShop?.countryCode || 'NG'}
+              />
+              <p style={{ fontSize: '12px', color: 'var(--sf-text-tertiary)', marginTop: '8px', lineHeight: 1.4 }}>
+                Entering an international country code will automatically suggest and select your studio currency.
+              </p>
+            </div>
+          ) : (
+            <Input
+              label={
+                activeField === 'name'
+                  ? 'Studio Name'
+                  : activeField === 'username'
+                  ? 'Workshop Username / Handle (@)'
+                  : activeField === 'about'
+                  ? 'Specialty / Tagline'
+                  : 'Physical Workshop Address'
+              }
+              value={draftValue}
+              onChange={(e) => setDraftValue(e.target.value)}
+              placeholder={
+                activeField === 'username'
+                  ? 'e.g. crownstitches'
+                  : activeField === 'about'
+                  ? 'e.g. Master Bespoke Agbada & Senator Tailors'
+                  : activeField === 'address'
+                  ? 'Suite 4, Victoria Island, Lagos'
+                  : 'Studio Name'
+              }
+              autoFocus
+            />
           )}
+
+          <p className={styles.sheetHelp}>
+            {activeField === 'name' && 'Shown on receipts, invoices, and your public customer portal.'}
+            {activeField === 'username' && 'Your unique handle used by tailor colleagues to find and connect with you on Tailor Circle, and for your public studio lookbook.'}
+            {activeField === 'about' && 'Appears under your studio name on lookbooks and client quotes.'}
+            {activeField === 'phone' && 'Used for client communications and invoice headers.'}
+            {activeField === 'address' && 'Included on printable cutting slips and client receipts.'}
+            {activeField === 'country' && 'Sets your operating country, phone dial code defaults, and invoice headers.'}
+            {activeField === 'currency' && 'Prices across orders, quotes, and catalog items will display this currency.'}
+          </p>
+
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setActiveField(null)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingField} onClick={handleSaveField}>
+              Save
+            </Button>
+          </div>
         </div>
-      </div>
+      </BottomSheet>
+
+      {/* Links & Social Presence Bottom Sheet */}
+      <BottomSheet
+        isOpen={linksOpen}
+        onClose={() => setLinksOpen(false)}
+        title="Social Media & Links"
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          <Input
+            label="Instagram Handle"
+            value={draftInstagram}
+            onChange={(e) => setDraftInstagram(e.target.value)}
+            placeholder="@houseofsavile"
+          />
+
+          <Input
+            label="TikTok Handle"
+            value={draftTiktok}
+            onChange={(e) => setDraftTiktok(e.target.value)}
+            placeholder="@savilecouture"
+          />
+
+          <Input
+            label="Website URL"
+            value={draftWebsite}
+            onChange={(e) => setDraftWebsite(e.target.value)}
+            placeholder="houseofsavile.com"
+          />
+
+          {(draftInstagram || draftTiktok || draftWebsite) && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+              {draftInstagram && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSocial('instagram')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--sf-border-light)',
+                    background: 'var(--sf-bg-surface-sunken)',
+                    color: 'var(--sf-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Symbol name="open_in_new" size={14} /> Visit Instagram
+                </button>
+              )}
+              {draftTiktok && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSocial('tiktok')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--sf-border-light)',
+                    background: 'var(--sf-bg-surface-sunken)',
+                    color: 'var(--sf-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Symbol name="open_in_new" size={14} /> Visit TikTok
+                </button>
+              )}
+              {draftWebsite && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSocial('website')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid var(--sf-border-light)',
+                    background: 'var(--sf-bg-surface-sunken)',
+                    color: 'var(--sf-text-primary)',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Symbol name="open_in_new" size={14} /> Open Website
+                </button>
+              )}
+            </div>
+          )}
+
+          <p className={styles.sheetHelp}>
+            Used to auto-populate the {'{instagram}'} variable in client messages (e.g. event photo requests) and displayed on your public lookbook.
+          </p>
+
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setLinksOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingLinks} onClick={handleSaveLinks}>
+              Save Links
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* Bank Settlement Details Bottom Sheet */}
+      <BottomSheet
+        isOpen={bankOpen}
+        onClose={() => setBankOpen(false)}
+        title="Bank Transfer Details"
+        variant="modal"
+      >
+        <div className={styles.sheetBody}>
+          <Input
+            label="Bank Name"
+            value={draftBankName}
+            onChange={(e) => setDraftBankName(e.target.value)}
+            placeholder="e.g. Guaranty Trust Bank (GTBank)"
+          />
+
+          <Input
+            label="Account Number"
+            value={draftAccountNumber}
+            onChange={(e) => setDraftAccountNumber(e.target.value)}
+            placeholder="0123456789"
+          />
+
+          <Input
+            label="Account Name"
+            value={draftAccountName}
+            onChange={(e) => setDraftAccountName(e.target.value)}
+            placeholder="e.g. House of Savile Bespoke Ltd"
+          />
+
+          {(draftBankName || draftAccountNumber) && (
+            <div style={{ marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={handleCopyBankDetails}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '999px',
+                  border: '1px solid var(--sf-border-light)',
+                  background: 'var(--sf-bg-surface-sunken)',
+                  color: 'var(--sf-text-primary)',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Symbol name="content_copy" size={14} /> Test Copy Bank Details
+              </button>
+            </div>
+          )}
+
+          <p className={styles.sheetHelp}>
+            Auto-injected into quotes, receipts, invoices, and WhatsApp deposit payment reminders via the {'{bank_details}'} tag.
+          </p>
+
+          <div className={styles.sheetActions}>
+            <Button variant="ghost" onClick={() => setBankOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" loading={savingBank} onClick={handleSaveBank}>
+              Save Bank Details
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
 
       <ConfirmDialog
         isOpen={confirmRemoveLogo}
         onClose={() => setConfirmRemoveLogo(false)}
         onConfirm={handleRemoveLogo}
-        title="Remove your shop logo?"
-        description="Receipts and your public portfolio will show your studio name instead."
+        title="Remove your studio crest?"
+        description="Receipts and your public portfolio will display your studio name in text instead."
         confirmLabel="Remove"
       />
     </PageLayout>

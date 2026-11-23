@@ -2,34 +2,116 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sf-space-md) 0;
-  margin-bottom: var(--sf-space-md);
+  padding: 14px 4px 10px 4px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--sf-border-light);
+  width: 100%;
+}
+
+.bannerClickable {
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s ease;
+}
+
+.bannerClickable:hover {
+  opacity: 0.85;
+}
+
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bannerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapseChevron {
+  color: var(--sf-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.stageIconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sf-radius-sm);
+  background: var(--sf-surface-container-high);
+  color: var(--sf-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stageIconWrap[data-stage='Documented'] {
+  background: var(--sf-stage-documented-bg);
+  color: var(--sf-stage-documented);
+}
+
+.stageIconWrap[data-stage='Cutting'] {
+  background: var(--sf-stage-cutting-bg);
+  color: var(--sf-stage-cutting);
+}
+
+.stageIconWrap[data-stage='Sewing'] {
+  background: var(--sf-stage-sewing-bg);
+  color: var(--sf-stage-sewing);
+}
+
+.stageIconWrap[data-stage='Ready'] {
+  background: var(--sf-stage-ready-bg);
+  color: var(--sf-stage-ready);
+}
+
+.stageIconWrap[data-stage='Delivered'] {
+  background: var(--sf-stage-completed-bg);
+  color: var(--sf-stage-completed);
 }
 
 .title {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-2xl);
-  line-height: 32px;
-  font-weight: var(--sf-weight-semibold);
+  font-size: 16.5px;
+  line-height: 1.25;
+  font-weight: 800;
   color: var(--sf-text-primary);
-  white-space: nowrap;
-}
-
-/* "Documented Phase" at 24px serif + count chip is tight on small
-   phones — step the title down before letting anything wrap. */
-@media (max-width: 420px) {
-  .title {
-    font-size: var(--sf-text-xl);
-  }
+  letter-spacing: -0.015em;
+  margin: 0;
 }
 
 .countChip {
-  font-size: var(--sf-text-sm);
-  font-weight: var(--sf-weight-medium);
-  color: var(--sf-text-secondary);
-  background: var(--sf-bg-surface-hover);
-  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--sf-brand-indigo, #4F46E5);
+  background: rgba(67, 56, 202, 0.08);
+  padding: 3px 10px;
   border-radius: var(--sf-radius-full);
   white-space: nowrap;
+}
+
+:global([data-theme='dark']) .banner {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .countChip {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .banner {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .countChip {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
 }

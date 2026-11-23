@@ -1,107 +1,137 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { getCalendarEvents, updateEventStatus } from '@/app/actions/calendar';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useData } from '@/contexts/DataContext';
+import { updateEventStatus } from '@/app/actions/calendar';
+import { ROUTES } from '@/lib/routes';
 import type { CalendarEvent } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
-import Link from 'next/link';
+import styles from './TodaysAgendaWidget.module.css';
 
 export default function TodaysAgendaWidget() {
-  const { user } = useAuth();
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { calendarEvents, orders, isLoaded } = useData();
+  const [localStatuses, setLocalStatuses] = useState<Record<string, 'pending' | 'completed'>>({});
 
-  useEffect(() => {
-    if (!user?.shopId) return;
-    const fetchToday = async () => {
-      const today = new Date();
-      const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      const allMonth = await getCalendarEvents(user.shopId, monthStr);
-      
-      const todayStr = today.toISOString().split('T')[0];
-      setEvents(allMonth.filter(e => e.date === todayStr));
-      setIsLoading(false);
-    };
-    fetchToday();
-  }, [user?.shopId]);
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
 
-  if (isLoading) return null;
+  // Merge today's calendar events with orders due today — fully synchronous, 0ms lag
+  const events = useMemo(() => {
+    const list: CalendarEvent[] = (calendarEvents || [])
+      .filter((e) => (e.date || '').split('T')[0] === todayStr)
+      .map((e) => (localStatuses[e.id] ? { ...e, status: localStatuses[e.id] } : e));
 
-  const pendingCount = events.filter(e => e.status !== 'completed').length;
+    // Merge in any orders due today that aren't already represented as deadlines
+    (orders || []).forEach((order) => {
+      if (order.dueDate && order.dueDate.split('T')[0] === todayStr) {
+        const alreadyHasDeadline = list.some(
+          (e) => e.relatedOrderId === order.id || e.id === `order-deadline-${order.id}`
+        );
+        if (!alreadyHasDeadline) {
+          list.push({
+            id: `order-deadline-${order.id}`,
+            shopId: order.shopId,
+            title: `${order.customerName} Delivery`,
+            date: todayStr,
+            type: 'dispatch',
+            relatedOrderId: order.id,
+            relatedCustomerId: order.customerId,
+            description: order.orderDetails,
+            status: order.status === 'Delivered' ? 'completed' : 'pending',
+            createdAt: order.createdAt,
+          });
+        }
+      }
+    });
+
+    return list.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+  }, [calendarEvents, orders, todayStr, localStatuses]);
+
+  if (!isLoaded) return null;
+
+  const pendingCount = events.filter((e) => e.status !== 'completed').length;
+  const fittingsCount = events.filter((e) => e.type === 'fitting').length;
 
   return (
-    <div style={{
-      background: 'var(--sf-bg-surface)',
-      borderRadius: 'var(--sf-radius-xl)',
-      padding: 'var(--sf-space-lg)',
-      marginBottom: 'var(--sf-space-md)',
-      border: '1px solid var(--sf-border-color)',
-      boxShadow: 'var(--sf-shadow-sm)',
-      width: '100%',
-      boxSizing: 'border-box'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sf-space-md)' }}>
-        <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--sf-text-primary)', margin: 0 }}>
-          Today&apos;s Agenda
-        </h2>
-        {pendingCount > 0 && (
-          <span style={{ background: 'var(--sf-accent-red)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
-            {pendingCount} Pending
+    <div className={styles.widget}>
+      <div className={styles.header}>
+        <div className={styles.titleRow}>
+          <span className={styles.titleIcon}>
+            <Symbol name="calendar_today" size={17} />
           </span>
-        )}
+          <h2 className={styles.title}>Today&apos;s Schedule &amp; Fittings</h2>
+          {pendingCount > 0 && (
+            <span className={styles.pendingBadge}>{pendingCount} Pending</span>
+          )}
+          {fittingsCount > 0 && (
+            <span className={styles.fittingCountBadge}>{fittingsCount} Try-ons</span>
+          )}
+        </div>
+        <Link href={ROUTES.calendarWithFilter('fitting')} className={styles.calendarLink}>
+          <span>Lounge</span>
+          <Symbol name="chevron_right" size={14} />
+        </Link>
       </div>
 
       {events.length === 0 ? (
-        <EmptyState
-          icon={<Symbol name="event_busy" size={32} />}
-          title="No events scheduled for today"
-          description="Enjoy the breather or check the full calendar."
-          size="sm"
-        />
+        <div className={styles.emptyState}>
+          <div className={styles.emptyLeft}>
+            <Symbol name="calendar_today" size={16} className={styles.emptyIcon} />
+            <span className={styles.emptyText}>No fittings or appointments scheduled today</span>
+          </div>
+          <Link href={ROUTES.calendarWithFilter('fitting')} className={styles.scheduleBtn}>
+            <Symbol name="add" size={12} />
+            <span>Schedule</span>
+          </Link>
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {events.map(evt => {
+        <div className={styles.eventList}>
+          {events.map((evt) => {
             const isCompleted = evt.status === 'completed';
+            const isFitting = evt.type === 'fitting';
+            const isDeadline = evt.id.startsWith('order-deadline-') || evt.type === 'dispatch';
+
             return (
-              <div key={evt.id} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                background: 'var(--sf-bg-surface-hover)',
-                borderRadius: 'var(--sf-radius-md)',
-                opacity: isCompleted ? 0.6 : 1
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button 
-                    onClick={async () => {
-                      const newStatus = isCompleted ? 'pending' : 'completed';
-                      setEvents(prev => prev.map(p => p.id === evt.id ? { ...p, status: newStatus } : p));
-                      await updateEventStatus(evt.id, newStatus);
-                    }}
-                    style={{
-                      width: 24, height: 24, borderRadius: '50%',
-                      border: `1px solid ${isCompleted ? 'var(--sf-text-primary)' : 'var(--sf-border-base)'}`,
-                      background: isCompleted ? 'var(--sf-text-primary)' : 'transparent',
-                      color: isCompleted ? 'var(--sf-bg-primary)' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer'
-                    }}
+              <div
+                key={evt.id}
+                className={`${styles.eventItem} ${isCompleted ? styles.eventItemCompleted : ''}`}
+              >
+                <div className={styles.eventLeft}>
+                  {!isDeadline && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const newStatus = isCompleted ? 'pending' : 'completed';
+                        setLocalStatuses((prev) => ({ ...prev, [evt.id]: newStatus }));
+                        await updateEventStatus(evt.id, newStatus);
+                      }}
+                      className={`${styles.checkBtn} ${isCompleted ? styles.checkBtnCompleted : ''}`}
+                      title={isCompleted ? 'Mark as pending' : 'Mark as done'}
+                      aria-label={isCompleted ? 'Mark as pending' : 'Mark as done'}
+                    >
+                      <Symbol name="check" size={12} />
+                    </button>
+                  )}
+                  <span
+                    className={`${styles.eventTitle} ${isCompleted ? styles.eventTitleCompleted : ''
+                      }`}
                   >
-                    <Symbol name="check" size={16} />
-                  </button>
-                  <span style={{ 
-                    fontSize: '0.875rem', 
-                    fontWeight: 500, 
-                    color: 'var(--sf-text-primary)',
-                    textDecoration: isCompleted ? 'line-through' : 'none'
-                  }}>
                     {evt.title}
                   </span>
+                  {isFitting && (
+                    <span className={styles.fittingMiniPill}>Fitting</span>
+                  )}
+                  {isDeadline && (
+                    <span className={styles.deadlineMiniPill}>Dispatch</span>
+                  )}
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--sf-text-secondary)' }}>
+                <span className={styles.eventTime}>
                   {evt.startTime || 'All day'}
                 </span>
               </div>
@@ -109,17 +139,6 @@ export default function TodaysAgendaWidget() {
           })}
         </div>
       )}
-      <Link href="/calendar" style={{
-        display: 'block',
-        textAlign: 'center',
-        marginTop: 'var(--sf-space-md)',
-        fontSize: '0.875rem',
-        fontWeight: 600,
-        color: 'var(--sf-accent-blue)',
-        textDecoration: 'none'
-      }}>
-        Open Full Calendar
-      </Link>
     </div>
   );
 }

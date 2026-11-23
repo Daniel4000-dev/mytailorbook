@@ -4,55 +4,100 @@
   flex: 1 1 0;
   min-width: 280px;
   max-width: 340px;
-  /* Without this, nested flex columns default to min-height:auto at every
-     level, so the browser shrinks cards to fit the constrained column
-     height instead of letting .columnBody scroll — the classic "flex
-     children get squashed instead of scrolling" bug. */
   min-height: 0;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-md);
+  background: var(--sf-bg-surface, #FFFFFF);
+  border: 1px solid rgba(67, 56, 202, 0.08);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 16px;
   max-height: 100%;
-  /* Tried adding shadow-xs here for consistency with the app's stated
-     "shadows carry separation" rule — an independent review measured it
-     live and found it genuinely imperceptible against the existing 1px
-     border (4% opacity is below the visibility threshold at this size).
-     Consistency with a written rule isn't worth a change nobody can
-     see, so left as border-only. The dropTarget state below keeps its
-     shadow — that one's confirmed visible and useful. */
-  transition: background-color var(--sf-transition-fast), border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+  box-shadow:
+    0 1px 3px rgba(67, 56, 202, 0.04),
+    0 8px 24px -4px rgba(27, 27, 34, 0.06),
+    0 16px 36px -8px rgba(67, 56, 202, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:global([data-theme='dark']) .column {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(99, 102, 241, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -4px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .column {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(99, 102, 241, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -4px rgba(0, 0, 0, 0.55);
+  }
 }
 
 .column.dropTarget {
-  background: var(--sf-accent-emerald-glow);
-  border-color: var(--sf-accent-emerald);
-  box-shadow: var(--sf-shadow-emerald);
+  background: var(--sf-brand-indigo-glow);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo), 0 8px 30px var(--sf-brand-indigo-glow);
 }
 
 .columnHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: var(--sf-space-sm);
-  margin-bottom: var(--sf-space-sm);
-  border-bottom: 1px solid var(--sf-border-light);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
+}
+
+.columnTitleArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stageDot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-text-secondary);
+  flex-shrink: 0;
+}
+
+.stageDot[data-stage='Documented'] {
+  background: var(--sf-stage-documented);
+}
+
+.stageDot[data-stage='Cutting'] {
+  background: var(--sf-stage-cutting);
+}
+
+.stageDot[data-stage='Sewing'] {
+  background: var(--sf-stage-sewing);
+}
+
+.stageDot[data-stage='Ready'] {
+  background: var(--sf-stage-ready);
+}
+
+.stageDot[data-stage='Delivered'] {
+  background: var(--sf-stage-completed);
 }
 
 .columnTitle {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-base);
-  font-weight: var(--sf-weight-semibold);
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
   color: var(--sf-text-primary);
 }
 
 .columnCount {
-  font-size: var(--sf-text-xs);
-  font-weight: var(--sf-weight-medium);
-  color: var(--sf-text-secondary);
-  background: var(--sf-bg-surface-hover);
-  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--sf-brand-indigo, #4F46E5);
+  background: rgba(67, 56, 202, 0.08);
+  padding: 2px 8px;
   border-radius: var(--sf-radius-full);
 }
 
@@ -64,42 +109,145 @@
   flex: 1;
   min-height: 0;
   padding-bottom: var(--sf-space-sm);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
 }
 
-.columnBody > * {
+.columnBody::-webkit-scrollbar {
+  width: 4px;
+}
+
+.columnBody::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+
+.columnBody>* {
   flex-shrink: 0;
 }
 
 .columnEmpty {
-  border: 1px dashed var(--sf-border-light);
-  border-radius: var(--sf-radius-sm);
-  padding: var(--sf-space-lg);
+  border: 1.5px dashed var(--sf-border);
+  border-radius: 12px;
+  background: var(--sf-sand);
+  padding: 24px 16px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 120px;
+}
+
+.emptyIconBadge {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-surface-container-high);
   color: var(--sf-text-tertiary);
-  font-size: var(--sf-text-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.emptyTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
+.emptyHint {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--sf-text-tertiary);
 }
 
 .showMoreBtn {
   width: 100%;
-  padding: var(--sf-space-sm);
+  padding: 9px;
   border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-sm);
+  border-radius: 10px;
   color: var(--sf-accent-emerald);
-  font-weight: var(--sf-weight-semibold);
-  font-size: var(--sf-text-xs);
+  font-weight: 600;
+  font-size: 12px;
   flex-shrink: 0;
-  transition: background-color var(--sf-transition-fast), transform var(--sf-transition-fast);
+  background: var(--sf-bg-surface);
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.showMoreBtn:hover {
-  background: var(--sf-surface-variant);
-}
+  .showMoreBtn:hover {
+    background: var(--sf-bg-surface-elevated);
+    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.08);
+  }
 }
 
 .showMoreBtn:active {
   transform: scale(0.98);
-  background: var(--sf-surface-variant);
+  background: var(--sf-surface-container-high);
 }
 
+/* Dark mode adjustments */
+:global([data-theme='dark']) .column {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+:global([data-theme='dark']) .columnHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='dark']) .columnCount {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sf-text-secondary);
+}
+
+:global([data-theme='dark']) .columnEmpty {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+:global([data-theme='dark']) .showMoreBtn {
+  background: var(--sf-bg-surface, #161526);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #34D399;
+}
+
+:global([data-theme='dark']) .showMoreBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .column {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  }
+
+  :global(:root:not([data-theme="light"])) .columnHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root:not([data-theme="light"])) .columnCount {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sf-text-secondary);
+  }
+
+  :global(:root:not([data-theme="light"])) .columnEmpty {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  :global(:root:not([data-theme="light"])) .showMoreBtn {
+    background: var(--sf-bg-surface, #161526);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #34D399;
+  }
+
+  :global(:root:not([data-theme="light"])) .showMoreBtn:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}

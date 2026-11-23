@@ -1,10 +1,24 @@
-.identityStrip {
+.container {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--sf-space-2xl);
+  margin-top: var(--sf-space-sm);
+}
+
+.groupCard {
+  background: var(--sf-bg-surface-elevated, #ffffff);
+  border-radius: var(--sf-radius-lg, 16px);
+  border: 1px solid var(--sf-border-light, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  margin-bottom: var(--sf-space-lg, 20px);
+}
+
+.identityRow {
   display: flex;
   align-items: center;
   gap: var(--sf-space-md);
-  width: 100%;
-  padding: var(--sf-space-sm) 0;
-  margin-top: var(--sf-space-sm);
+  padding: var(--sf-space-lg) var(--sf-space-md);
 }
 
 .identityText {
@@ -14,73 +28,86 @@
   min-width: 0;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sf-space-xs);
+  flex-wrap: wrap;
+}
+
 .identityName {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-lg);
+  font-size: var(--sf-text-base);
   font-weight: 700;
   color: var(--sf-text-primary);
 }
 
 .identityRole {
-  font-size: var(--sf-text-xs);
+  font-size: 11px;
   font-weight: 600;
-  color: var(--sf-text-secondary);
+  color: var(--sf-color-primary, #047857);
+  background: rgba(4, 120, 87, 0.08);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full);
   text-transform: uppercase;
-  letter-spacing: var(--sf-tracking-caps);
-  margin-top: 2px;
+  letter-spacing: 0.04em;
 }
 
-.readonlyEmail {
+.identityEmail {
   font-size: var(--sf-text-sm);
-  color: var(--sf-text-tertiary);
-  margin: 0 0 var(--sf-space-lg);
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+  word-break: break-all;
 }
 
-/* Unpadded — for self-contained row components like AppearanceToggle
-   that already include their own SettingsRow padding. */
-.groupCard {
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  overflow: hidden;
-  box-shadow: var(--sf-shadow-xs);
-  margin-bottom: var(--sf-space-xl);
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sf-space-md);
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  padding: var(--sf-space-lg);
-  box-shadow: var(--sf-shadow-xs);
-  margin-bottom: var(--sf-space-xl);
-}
-
-.uploadBtn {
+.avatarActionsRow {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--sf-space-sm);
+  padding: 10px var(--sf-space-md);
+  border-top: 1px solid var(--sf-border-light, #f0f0f0);
+  background: var(--sf-bg-surface, #fafafa);
+}
+
+.editPhotoAction {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  height: var(--sf-touch-target);
-  border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-sm);
-  color: var(--sf-accent-emerald);
+  color: var(--sf-color-primary, #047857);
   font-weight: var(--sf-weight-semibold);
   font-size: var(--sf-text-sm);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  padding: 4px 8px;
+  border-radius: var(--sf-radius-sm);
+  transition: background 0.15s ease;
 }
 
-.uploadBtn:active {
-  background: var(--sf-bg-surface-hover);
+.editPhotoAction:hover,
+.editPhotoAction:active {
+  background: rgba(4, 120, 87, 0.08);
 }
 
-/* Desktop-only — flat instead of shadowed, matching the rest of the app. */
+.removePhotoAction {
+  background: none;
+  border: none;
+  color: var(--sf-color-danger, #dc2626);
+  font-size: var(--sf-text-xs);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--sf-radius-full);
+  font-family: inherit;
+}
+
+.rowItemWrap {
+  padding: var(--sf-space-md);
+}
+
+.rowItemWrap:not(:last-child) {
+  border-bottom: 1px solid var(--sf-border-light, #f0f0f0);
+}
+
 @media (min-width: 1024px) {
-  .card,
   .groupCard {
     box-shadow: none;
   }

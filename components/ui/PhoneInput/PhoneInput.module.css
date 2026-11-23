@@ -36,21 +36,23 @@
 
 .input {
   flex: 1;
-  background: var(--sf-bg-surface);
-  border: 1px solid var(--sf-border);
-  border-radius: 0 var(--sf-radius-md) var(--sf-radius-md) 0;
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
+  border-radius: 0 var(--sf-radius-sm) var(--sf-radius-sm) 0;
   padding: 0 var(--sf-space-md);
   color: var(--sf-text-primary);
   font-family: var(--sf-font-body);
   font-size: var(--sf-text-base);
   height: 48px;
   width: 100%;
+  transition: all var(--sf-transition-fast);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--sf-accent-emerald);
-  box-shadow: 0 0 0 1px var(--sf-accent-emerald);
+  background: var(--sf-bg-surface);
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 2px var(--sf-brand-indigo-glow);
 }
 
 .input::placeholder {
@@ -59,10 +61,10 @@
 
 .countryBtn {
   appearance: none;
-  background: var(--sf-bg-surface-elevated);
-  border: 1px solid var(--sf-border);
-  border-right: none;
-  border-radius: var(--sf-radius-md) 0 0 var(--sf-radius-md);
+  background: var(--sf-surface-variant);
+  border: 1px solid transparent;
+  border-right: 1px solid var(--sf-border-light);
+  border-radius: var(--sf-radius-sm) 0 0 var(--sf-radius-sm);
   padding: 0 var(--sf-space-sm) 0 var(--sf-space-md);
   color: var(--sf-text-primary);
   font-family: var(--sf-font-body);
@@ -74,11 +76,12 @@
   display: flex;
   align-items: center;
   gap: var(--sf-space-xs);
+  transition: all var(--sf-transition-fast);
 }
 
 .countryBtn:focus {
   outline: none;
-  border-color: var(--sf-accent-emerald);
+  border-color: var(--sf-brand-indigo);
 }
 
 .searchWrap {

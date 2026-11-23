@@ -1,9 +1,14 @@
 'use client';
 
 import { type ReactNode } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { APP_CONFIG } from '@/lib/config';
+import { ROUTES } from '@/lib/routes';
+import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
+import BrandWordmark from '@/components/ui/BrandWordmark/BrandWordmark';
+import ThemeTogglePill from '@/components/ui/ThemeTogglePill/ThemeTogglePill';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './layout.module.css';
 
@@ -12,10 +17,23 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const isCustomAuth = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
   const isSignup = pathname === '/signup';
 
-
-
   return (
     <div className={`${styles.authLayout} ${isCustomAuth ? styles.loginLayout : ''} ${isSignup ? styles.signupLayout : ''}`}>
+      {/* Top-Left (LHS) SaaS Brand Link back to Landing Page */}
+      <Link
+        href={ROUTES.home}
+        className={styles.topLeftBrandLink}
+        aria-label={`Back to ${APP_CONFIG.name} home page`}
+      >
+        <BrandIcon className={styles.topLeftBrandIcon} />
+        <BrandWordmark height={20} />
+      </Link>
+
+      {/* Top-Right Theme Toggle for Instant Light/Dark Switching */}
+      <div className={styles.topRightThemeWrap}>
+        <ThemeTogglePill />
+      </div>
+
       {isCustomAuth ? (
         <div className={styles.splitWrapper}>
           {/* Left: Login/Signup/ForgotPassword Form */}

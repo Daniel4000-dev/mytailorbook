@@ -1,0 +1,130 @@
+/* ============================================================
+   Add Customer Sheet Styles
+   Calm, responsive bottom drawer for adding new clients.
+   ============================================================ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 6px;
+}
+
+.errorBanner {
+  background: var(--sf-error-bg);
+  color: var(--sf-error);
+  border-radius: var(--sf-radius-md);
+  padding: 10px 14px;
+  font-size: var(--sf-text-sm);
+  font-weight: var(--sf-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sf-text-secondary);
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  background: var(--sf-sand);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  font-family: var(--sf-font-body);
+  font-size: var(--sf-text-base);
+  color: var(--sf-text-primary);
+  transition: border-color var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.input::placeholder {
+  color: var(--sf-text-tertiary);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--sf-brand-indigo);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+}
+
+/* ── Garment Focus Segmented Control ───────────────────────── */
+.segmented {
+  display: flex;
+  height: 48px;
+  padding: 4px;
+  background: var(--sf-surface-container-high);
+  border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border-light);
+  gap: 4px;
+}
+
+.segment {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: var(--sf-radius-sm);
+  font-family: var(--sf-font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .segment:hover {
+    color: var(--sf-text-primary);
+  }
+}
+
+.segmentActive {
+  background: var(--sf-bg-surface);
+  color: var(--sf-brand-indigo);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.12);
+}
+
+:global([data-theme="dark"]) .segmentActive {
+  background: var(--sf-bg-surface-elevated);
+  color: var(--sf-brand-indigo-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Fixed Footer Actions ───────────────────────────────────── */
+.footerActions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.cancelBtn {
+  flex: 1;
+  height: 48px !important;
+  border-radius: var(--sf-radius-md) !important;
+  font-weight: 600 !important;
+}
+
+.saveBtn {
+  flex: 2;
+  height: 48px !important;
+  border-radius: var(--sf-radius-md) !important;
+  font-weight: 700 !important;
+}
+

@@ -1,0 +1,384 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* 9:16 Story Card Layout */
+.storyCard {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 580px;
+  background: radial-gradient(circle at top right, #1E1B4B 0%, #0F172A 50%, #030712 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Top Bar */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.brandBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.verifiedPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+
+/* Studio Hero */
+.studioHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.studioMonogram {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid #F59E0B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #FFFFFF;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+.studioName {
+  font-size: 22px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.tierPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Stats Bento */
+.statsBento {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.bentoCell {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bentoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bentoContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.bentoNum {
+  font-size: 16px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.1;
+}
+
+.bentoLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Badges Section */
+.badgesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.badgesTitle {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.badgeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 60px;
+}
+
+.badgeIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeLabel {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Celebration Callout */
+.celebrationBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 14px;
+  padding: 10px 14px;
+  width: 100%;
+  animation: pulseCelebration 2s infinite ease-in-out;
+}
+
+@keyframes pulseCelebration {
+  0%, 100% { border-color: rgba(245, 158, 11, 0.4); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.2); }
+  50% { border-color: rgba(245, 158, 11, 0.8); box-shadow: 0 0 14px 2px rgba(245, 158, 11, 0.25); }
+}
+
+.celebrationIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.celebrationText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.celebrationTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #F59E0B;
+}
+
+.celebrationSubtitle {
+  font-size: 11px;
+  color: var(--sf-text-primary, #FFFFFF);
+  line-height: 1.3;
+}
+
+/* Viral Invite Code Banner */
+.inviteBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: 8px 12px;
+  width: 100%;
+  text-align: center;
+}
+
+.inviteCodePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #38BDF8;
+}
+
+.inviteCodePill strong {
+  color: #FFFFFF;
+  background: rgba(56, 189, 248, 0.2);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.inviteSubtext {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Card Footer */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+}
+
+.watermarkTag {
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Action Buttons */
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.whatsappStatusBtn {
+  background: #25D366;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.whatsappStatusBtn:hover {
+  opacity: 0.9;
+}
+
+/* Mobile & Small Screen Refinements */
+@media (max-width: 480px) {
+  .container {
+    gap: 14px;
+  }
+
+  .storyCard {
+    padding: 18px 14px;
+    border-radius: 20px;
+    max-height: 520px;
+  }
+
+  .studioMonogram {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .studioName {
+    font-size: 18px;
+  }
+
+  .bentoCell {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .bentoNum {
+    font-size: 14px;
+  }
+
+  .bentoLabel {
+    font-size: 9px;
+  }
+
+  .inviteBanner {
+    padding: 6px 10px;
+  }
+
+  .inviteCodePill {
+    font-size: 10px;
+  }
+
+  .inviteSubtext {
+    font-size: 8px;
+  }
+
+  .whatsappStatusBtn {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+}
+

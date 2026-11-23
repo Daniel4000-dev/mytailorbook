@@ -1,9 +1,9 @@
-import Image from 'next/image';
 import { motion, Variants } from 'framer-motion';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import { useData } from '@/contexts/DataContext';
+import { isXpSystemEnabled } from '@/lib/xp';
 import type { OpenLoop } from '../_hooks/useOpenLoops';
 import { useMilestones } from '../_hooks/useMilestones';
-import { useStreakEvaluation } from '../_hooks/useStreakEvaluation';
 import styles from './ShopTodayCard.module.css';
 
 export default function ShopTodayCard({
@@ -16,20 +16,34 @@ export default function ShopTodayCard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shop: any;
 }) {
-  useStreakEvaluation();
   const { milestones } = useMilestones();
+  const { calendarEvents } = useData();
+  const businessMode = shop?.businessMode || shop?.business_mode || 'bespoke';
+  const isBespoke = businessMode !== 'rtw';
+  const xpEnabled = isXpSystemEnabled(businessMode);
   const isAllCaughtUp = loops.length === 0;
-  const currentStreak = shop?.streakCurrent || 0;
+  const currentStreak = isBespoke ? (shop?.streakCurrent || 0) : 0;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isMarketRunToday = (calendarEvents || []).some(
+    (e) => e.date === todayStr && e.type === 'market_run'
+  );
 
   // Contextual copy for the assistant
   let title = "Your shop is on track";
-  let subtitle = "You're all caught up ✓";
+  let subtitle = "You're all caught up";
   let emotion = "neutral";
 
   // Check if any milestone was just recently hit (current is very close to target or exactly target)
   const newlyHitMilestone = milestones.find(m => m.achieved && m.current >= m.target && m.current <= m.target + 2);
 
-  if (newlyHitMilestone && isAllCaughtUp) {
+  if (isMarketRunToday) {
+    title = "Out Sourcing Materials";
+    subtitle = isBespoke && currentStreak > 0
+      ? `Fabric market run active today. Your ${currentStreak}-day streak is fully protected!`
+      : 'Fabric market run active today — happy sourcing!';
+    emotion = "celebratory";
+  } else if (newlyHitMilestone && isAllCaughtUp) {
     title = "Milestone reached!";
     subtitle = `${newlyHitMilestone.title}. Look at you running an actual system!`;
     emotion = "celebratory";
@@ -37,7 +51,7 @@ export default function ShopTodayCard({
     title = "Needs Attention";
     subtitle = `${loops.length} item${loops.length === 1 ? '' : 's'} need attention before today is done.`;
     emotion = "concerned";
-  } else if (currentStreak > 0) {
+  } else if (isBespoke && currentStreak > 0) {
     title = "Your shop is on track";
     if (shop?.onboardingGoal) {
       subtitle = `You are on a ${currentStreak}-day streak! You are successfully building your reputation for ${shop.onboardingGoal.toLowerCase()}.`;
@@ -78,16 +92,7 @@ export default function ShopTodayCard({
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={`${styles.assistantAvatar} ${styles[`assistant_${emotion}`]}`}>
-          <Image
-            src={mascotSrc}
-            alt="Studio Assistant"
-            width={64}
-            height={64}
-            className={styles.mascotImage}
-            unoptimized
-          />
-        </div>
+
         <div className={styles.headerContent}>
           <h2 className={styles.title}>{title}</h2>
           <p className={styles.subtitle}>{subtitle}</p>
@@ -97,7 +102,11 @@ export default function ShopTodayCard({
       {!isAllCaughtUp && (
         <p className={styles.criteriaHint}>
           <Symbol name="info" size={14} className={styles.hintIcon} /> 
-          <span>Clear all items before midnight to maintain your streak!</span>
+          <span>
+            {xpEnabled
+              ? 'Clear all items before midnight to maintain your streak!'
+              : 'Clear these items before the end of the workday to stay on schedule.'}
+          </span>
         </p>
       )}
 

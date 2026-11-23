@@ -1,71 +1,225 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Breadcrumb & Top Bar ── */
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  flex-wrap: wrap;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sf-text-xs);
+  font-weight: var(--sf-weight-semibold);
+  color: var(--sf-text-secondary);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--sf-radius-pill, 999px);
+  background: var(--sf-bg-secondary);
+  border: 1px solid var(--sf-border);
+  transition: all 0.15s ease;
+}
+
+.backLink:hover {
+  color: var(--sf-text-primary);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* ── Hero Header ── */
+.heroCard {
+  background: var(--sf-bg-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg, 12px);
+  padding: var(--sf-space-lg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.headingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  flex-wrap: wrap;
+}
+
 .heading {
   font-family: var(--sf-font-heading);
   font-size: var(--sf-text-2xl);
-  margin-bottom: var(--sf-space-xs);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: 0 0 6px 0;
 }
 
 .subheading {
   color: var(--sf-text-secondary);
   font-size: var(--sf-text-sm);
-  margin-bottom: var(--sf-space-lg);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.cardGrid {
+.ownerTag {
+  color: var(--sf-text-primary);
+  font-weight: var(--sf-weight-semibold);
+}
+
+.affiliateChip {
+  font-family: var(--sf-font-mono, monospace);
+  font-size: 11px;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── KPI Grid ── */
+.kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--sf-space-md);
-  margin-bottom: var(--sf-space-xl);
 }
 
-.card {
+.kpiCard {
   display: flex;
   flex-direction: column;
-  gap: var(--sf-space-xs);
+  gap: 4px;
   padding: var(--sf-space-md);
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-md);
   background: var(--sf-bg-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  position: relative;
+  overflow: hidden;
 }
 
-.cardLabel {
-  font-size: var(--sf-text-xs);
+.kpiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpiLabel {
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: var(--sf-tracking-caps);
   color: var(--sf-text-secondary);
+  font-weight: 600;
 }
 
-.cardValue {
+.kpiIconWrap {
+  color: var(--sf-text-secondary);
+  opacity: 0.8;
+}
+
+.kpiValue {
   font-family: var(--sf-font-heading);
-  font-size: var(--sf-text-xl);
+  font-size: 28px;
   font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  line-height: 1.1;
+  margin-top: 4px;
 }
 
+.kpiNote {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  margin-top: 2px;
+}
+
+/* ── Section Container ── */
 .section {
-  margin-bottom: var(--sf-space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sf-space-md);
+  flex-wrap: wrap;
+}
+
+.sectionTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .sectionHeading {
+  font-family: var(--sf-font-heading);
   font-size: var(--sf-text-lg);
-  font-weight: var(--sf-weight-semibold);
-  margin-bottom: var(--sf-space-md);
+  font-weight: var(--sf-weight-bold);
+  color: var(--sf-text-primary);
+  margin: 0;
 }
 
-.empty {
+.sectionSubhead {
+  font-size: var(--sf-text-xs);
   color: var(--sf-text-secondary);
-  font-size: var(--sf-text-sm);
+  margin: 0;
 }
 
-.statusRow {
+/* ── Production Pipeline / Orders by Status ── */
+.pipelineBox {
+  background: var(--sf-bg-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg, 12px);
+  padding: var(--sf-space-md);
+}
+
+.pipelineGrid {
   display: flex;
-  gap: var(--sf-space-sm);
+  gap: var(--sf-space-xs);
   flex-wrap: wrap;
 }
 
 .statusPill {
-  padding: 4px var(--sf-space-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: var(--sf-radius-pill, 999px);
   background: var(--sf-bg-secondary);
-  font-size: var(--sf-text-sm);
+  border: 1px solid var(--sf-border);
+  font-size: var(--sf-text-xs);
+  font-weight: 500;
+  color: var(--sf-text-primary);
+}
+
+.statusCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+/* ── Tables ── */
+.tableCard {
+  background: var(--sf-bg-primary);
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg, 12px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .tableWrap {
@@ -74,22 +228,113 @@
 
 .table {
   width: 100%;
-  min-width: 520px;
   border-collapse: collapse;
-  font-size: var(--sf-text-sm);
-}
-
-.table th,
-.table td {
+  font-size: var(--sf-text-xs);
   text-align: left;
-  padding: var(--sf-space-sm) var(--sf-space-md);
-  border-bottom: 1px solid var(--sf-border);
 }
 
 .table th {
+  background: var(--sf-bg-secondary);
   color: var(--sf-text-secondary);
-  font-weight: var(--sf-weight-semibold);
+  font-weight: 600;
   text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--sf-border);
+  color: var(--sf-text-primary);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+/* ── Staff / Profiles ── */
+.profileCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.profileNameCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileName {
+  font-weight: 600;
+  color: var(--sf-text-primary);
+}
+
+.profileEmail {
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+}
+
+.roleBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.roleOwner {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+}
+
+.roleManager {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0284c7;
+}
+
+.roleStaff {
+  background: var(--sf-bg-secondary);
+  color: var(--sf-text-secondary);
+}
+
+/* ── Audit Trail ── */
+.auditDiff {
+  font-family: var(--sf-font-mono, monospace);
+  font-size: 11px;
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-secondary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: var(--sf-space-lg);
+  text-align: center;
+  color: var(--sf-text-secondary);
   font-size: var(--sf-text-xs);
-  letter-spacing: var(--sf-tracking-caps);
 }

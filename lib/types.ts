@@ -28,19 +28,24 @@ export interface Shop {
    *  never regenerated on rename so shared links keep working. */
   slug: string;
   name: string;
+  directoryDiscoverable?: boolean;
   currency?: string;
   phone?: string;
   address?: string;
+  country?: string;
+  countryCode?: string;
   ownerUid: string;
   createdAt: string;
   orgId: string;
   isPrimary: boolean;
+  weeklyCapacity?: number;
+  dailyCapacity?: number;
   /** Shop-defined one-off garment styles beyond the built-in catalog —
    *  remembered across future orders once created, same as built-in styles.
    *  `measurementFields` is the shop's own named+ordered field list for
    *  this style (set via the field builder); absent/empty means the style
    *  still falls back to the generic DEFAULT_MEASURE_SPEC. */
-  customStyles?: { name: string; photoUrl?: string; gender?: 'male' | 'female'; measurementFields?: { id: string; label: string }[] }[];
+  customStyles?: { name: string; photoUrl?: string; gender?: 'male' | 'female'; basePrice?: number; measurementFields?: { id: string; label: string }[] }[];
   /** Shown on receipts and the public portfolio, replacing the plain text
    *  name there once set. */
   logoUrl?: string;
@@ -59,13 +64,41 @@ export interface Shop {
   portfolioAccent: string;
   /** Free-form portfolio copy: tagline, bio/story, founding year. Absent keys
    *  just mean those sections collapse in the public view. */
-  portfolioSettings?: { tagline?: string; bio?: string; foundedYear?: number };
-  /** Maximum number of orders the shop can handle per week before showing capacity warnings. */
-  weeklyCapacity?: number;
+  portfolioSettings?: {
+    tagline?: string;
+    bio?: string;
+    foundedYear?: number;
+    notification_preferences?: import('./notificationPreferences').NotificationPreferences;
+    guild_profile?: import('@/app/actions/circle').GuildProfile;
+    [key: string]: unknown;
+  };
+  /** Custom template for asking clients to send pictures of them wearing the garment at their event/occasion. */
+  eventPhotoTemplate?: string;
+  /** Studio social media handles & web presence for lookbooks and client communication */
+  socialLinks?: {
+    instagram?: string;
+    tiktok?: string;
+    website?: string;
+    facebook?: string;
+  };
+  /** Direct bank transfer details auto-injected into quotes, receipts and WhatsApp deposit reminders */
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+  };
+  monthlyRevenueTarget?: number;
   paystackCustomerCode?: string;
   paystackSubscriptionCode?: string;
   subscriptionPlan?: string;
-  subscriptionStatus: 'free' | 'trialing' | 'active' | 'past_due' | 'canceled';
+  subscriptionStatus: 'free' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'paused';
+  /** Set when subscription is paused by user (1 to 3 months) */
+  subscriptionPausedAt?: string;
+  subscriptionPauseEndsAt?: string;
+  subscriptionPauseMonths?: number;
+  subscriptionPauseReason?: string;
+  cataloguePhotosPurgeWarningSentAt?: string;
+  cataloguePhotosPurgedAt?: string;
   /** Only set while subscriptionStatus is 'past_due' — the 3-day grace
    *  deadline from migration 0026, after which the daily cron
    *  (app/api/cron/subscription-grace) demotes the shop to 'free'. */
@@ -87,10 +120,41 @@ export interface Shop {
   streakCurrent?: number;
   /** The highest streak ever achieved by this shop. */
   streakBest?: number;
+  streakFreezes?: number;
+  workDays?: number[];
+  vacationMode?: boolean;
+  xp?: number;
+  gems?: number;
+  dailyQuests?: any;
   /** The UTC timestamp of the last day the streak was successfully incremented. */
   streakLastCountedAt?: string;
   /** The future identity goal chosen by the tailor during onboarding */
   onboardingGoal?: string;
+  /** Determines if the shop operates as a bespoke tailor, a ready-to-wear brand, or both */
+  businessMode?: 'bespoke' | 'rtw' | 'hybrid';
+  /** Master Tailor Challenge & Equipment Grant */
+  referralCode?: string;
+  referredByShopId?: string;
+  referralRewardClaimed?: boolean;
+  buddyShopId?: string;
+  buddyShopName?: string;
+  buddyStreakCount?: number;
+  buddyLastActiveAt?: string;
+  restDaysUsedThisWeek?: number;
+  lastRestDayDate?: string;
+}
+
+export interface ChallengeLeaderboardEntry {
+  shopId: string;
+  shopName: string;
+  avatarUrl?: string;
+  xp: number;
+  tierName: string;
+  tierColor: string;
+  tierIcon: string;
+  rank: number;
+  streakCurrent: number;
+  isCurrentUser?: boolean;
 }
 
 export interface ShopException {
@@ -144,15 +208,29 @@ export interface OrderComment {
 
 export type Priority = 'normal' | 'urgent' | 'rush';
 
+export type AtelierCraftRole = 'cutter' | 'tailor' | 'apprentice' | 'finisher' | 'embroiderer' | 'general';
+
+export const CRAFT_ROLE_LABELS: Record<AtelierCraftRole, string> = {
+  cutter: 'Master Cutter',
+  tailor: 'Tailor / Machinist',
+  apprentice: 'Apprentice / Trainee',
+  finisher: 'Finisher / Presser',
+  embroiderer: 'Embroiderer',
+  general: 'Shop Staff',
+};
+
 export interface User {
   uid: string;
   name: string;
   email: string;
   role: Role;
+  craftRole?: AtelierCraftRole;
   shopId: string;
   orgId: string;
   active?: boolean; // undefined/true = active, false = deactivated
   avatarUrl?: string;
+  payrollType?: 'piece_rate' | 'percentage' | 'salary' | 'none';
+  payrollAmount?: number;
   createdAt: string;
 }
 
@@ -191,6 +269,8 @@ export interface Measurements {
   calf?: number;
   ankle?: number;
   crotch?: number;
+  /** Shoe heel height offset in inches for evening gowns or wide trousers */
+  heelHeight?: number;
   notes?: string;
   /** Custom garment styles collect their own shop-defined field keys
    *  (see lib/constants.ts buildCustomStyleSpec) — these don't have a
@@ -205,6 +285,22 @@ export interface Measurements {
 export interface StyleMeasurementProfile {
   measurements: Measurements;
   updatedAt: string;
+  history?: { date: string; measurements: Measurements }[];
+}
+
+export interface StyleCataloguePhoto {
+  id: string;
+  catalogueId: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export interface StyleCatalogue {
+  id: string;
+  shopId: string;
+  title: string;
+  createdAt: string;
+  photos?: StyleCataloguePhoto[];
 }
 
 export interface Customer {
@@ -213,16 +309,23 @@ export interface Customer {
   fullName: string;
   whatsappNumber: string;
   gender: 'male' | 'female';
+  wallet_balance?: number;
   /** Styles this client usually commissions (chips in the new-client
    *  wizard) — e.g. ['Agbada', 'Senator']. */
   preferredStyles?: string[];
   measurements?: Measurements;
+  measurementsUpdatedAt?: string;
+  measurementsHistory?: { date: string; measurements: Measurements }[];
   measurementNotes?: string;
   /** Keyed by garment style name (matches GARMENT_STYLES / STYLE_MEASUREMENTS). */
   styleMeasurements?: Record<string, StyleMeasurementProfile>;
   /** Uncut fabric photos dropped off by the customer (Stash). */
   fabrics?: OrderPhoto[];
   address?: string;
+  /** Secondary phone line or spouse/assistant contact */
+  secondaryPhone?: string;
+  /** Name of frequent third-party payer (e.g. spouse, assistant, parent) */
+  payerName?: string;
   /** Format: MM-DD for birthdays (no year to protect privacy/reduce friction) */
   birthdate?: string;
   createdAt: string;
@@ -277,17 +380,62 @@ export interface StatusChange {
 export interface PaymentRecord {
   id: string;
   amount: number;
+  method?: PaymentMethod | string;
   note?: string;
   recordedBy: string;      // User uid
   recordedByName: string;  // User display name
   timestamp: string;
 }
 
+export type PaymentMethod = 'cash' | 'transfer' | 'pos' | 'store_credit';
+
+export interface Payment {
+  id: string;
+  shop_id: string;
+  order_id: string;
+  amount: number;
+  method: PaymentMethod;
+  reference_note?: string;
+  date: string;
+  created_at: string;
+}
+
+export type ExpenseCategory = 'material' | 'labor' | 'outsourced' | 'logistics' | 'general';
+
+export interface Expense {
+  id: string;
+  shopId: string;
+  orderId?: string;
+  amount: number;
+  category: ExpenseCategory;
+  description: string;
+  date: string;
+  method?: PaymentMethod;
+  createdAt?: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  shopId: string;
+  itemName: string;
+  quantity: number;
+  unit: string;
+  lowStockThreshold?: number;
+  /** True when inventory item is consigned by an external designer/artisan */
+  isConsignment?: boolean;
+  consignorName?: string;
+  consignorCutPercent?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Order {
   id: string;
   shopId: string;
-  customerId: string;
-  customerName: string;
+  customerId?: string; // Optional for RTW batches
+  customerName?: string; // Optional for RTW batches
+  isInternalBatch?: boolean;
+  batchSizes?: { size: string; quantity: number }[];
   orderDetails: string;
   totalBill: number;
   depositPaid: number;
@@ -321,6 +469,31 @@ export interface Order {
   materialSuppliedBy?: 'shop' | 'customer';
   materialCost?: number;
   otherCosts?: number;
+  /** True when fabric was pre-treated (sponged/pre-shrunk) prior to cutting */
+  fabricPreShrunk?: boolean;
+  /** True when leftover fabric remnants/offcuts were returned to the customer upon collection */
+  remnantsReturned?: boolean;
+  /** Multi-artisan specialization handoff assignments for shared assembly */
+  artisanAssignments?: { role: AtelierCraftRole; staffId: string; staffName: string }[];
+  /** Flag for emergency rescue triage from a botched outside tailor */
+  isRescueJob?: boolean;
+  /** Flag for orders requiring a muslin/calico toile mockup fitting prior to luxury fabric cut */
+  requiresToile?: boolean;
+  /** Specialized ergonomic or security pockets requested by client */
+  customPockets?: string[];
+  /** Dispatch rider handover details for local motorcycle couriers */
+  courierDetails?: {
+    riderName: string;
+    riderPhone: string;
+    bikeNumber?: string;
+    feePaidBy: 'shop' | 'customer';
+  };
+  /** International diaspora air freight details */
+  shippingDetails?: {
+    airwayBill: string;
+    destinationCountry: string;
+    customsDeclaration: string;
+  };
   /** When a customer last clicked "Send a reminder" on the public tracking
    *  page — rate-limited server-side to once per calendar day per order. */
   lastReminderAt?: string;
@@ -328,6 +501,8 @@ export interface Order {
    *  public tracking link. undefined/null means "inherit the shop's
    *  defaultTrackingLinkEnabled" — most orders never set this explicitly. */
   includeTrackingLink?: boolean | null;
+  /** JSON metadata for extended workshop tracking (e.g. clientViewedAt, clientViewsCount, etc.) */
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -389,6 +564,12 @@ export interface NavItem {
   ownerOnly?: boolean;
   /** Sidebar only — omit from the mobile bottom nav to prevent crowding */
   hideFromBottomNav?: boolean;
+  /** Business modes where this item should be hidden from bottom nav (e.g. ['bespoke', 'hybrid']) */
+  hideFromBottomNavModes?: ('bespoke' | 'rtw' | 'hybrid')[];
+  /** Only show in RTW or Hybrid mode */
+  rtwOnly?: boolean;
+  /** Only show in Bespoke or Hybrid mode */
+  bespokeOnly?: boolean;
   /** Rendered as this item's `data-tour-id` on both BottomNav and
    *  SidebarMenu's matching link, so AppTour (components/system/AppTour)
    *  can find and spotlight the real on-screen element regardless of
@@ -432,5 +613,107 @@ export interface CalendarEvent {
   relatedCustomerId?: string;
   assignedTo?: string; // Staff UID
   status?: 'pending' | 'completed';
+  createdAt: string;
+}
+
+export interface SizeChart {
+  id: string;
+  shopId: string;
+  name: string;
+  measurements: Record<string, string>; // e.g., { "S": "Chest 38, Length 28", "M": "Chest 40, Length 30" }
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinishedGoodMetadata {
+  category?: string;
+  color?: string;
+  fabric?: string;
+  costPrice?: number;
+  rackLocation?: string;
+  parentGarmentName?: string;
+  sku?: string;
+  imageUrl?: string;
+  pairedAccessoryIds?: string[];
+  [key: string]: any;
+}
+
+export interface FinishedGood {
+  id: string;
+  shopId: string;
+  name: string;
+  size: string;
+  quantity: number;
+  price: number;
+  sku?: string;
+  metadata?: FinishedGoodMetadata;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AddStockGarmentInput {
+  name: string;
+  category?: string;
+  price: number;
+  costPrice?: number;
+  color?: string;
+  fabric?: string;
+  rackLocation?: string;
+  sku?: string;
+  imageUrl?: string;
+  pairedAccessoryIds?: string[];
+  sizes: Array<{ size: string; quantity: number }>;
+}
+
+export interface PublicShowroomSize {
+  id: string;
+  size: string;
+  quantity: number;
+}
+
+export interface PublicShowroomAccessory {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  quantity: number;
+  color?: string;
+}
+
+export interface PublicShowroomItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  color?: string;
+  fabric?: string;
+  rackLocation?: string;
+  imageUrl?: string;
+  totalQuantity: number;
+  sizes: PublicShowroomSize[];
+  isAccessory: boolean;
+  pairedAccessories?: PublicShowroomAccessory[];
+}
+
+export interface PublicShowroomPayload {
+  shop: {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl?: string | null;
+    phone?: string | null;
+    currency: string;
+    address?: string | null;
+  };
+  items: PublicShowroomItem[];
+  accessories: PublicShowroomAccessory[];
+}
+
+export interface PosSale {
+  id: string;
+  shopId: string;
+  totalAmount: number;
+  method: PaymentMethod;
+  items: { goodId: string; name: string; size: string; quantity: number; price: number }[];
   createdAt: string;
 }

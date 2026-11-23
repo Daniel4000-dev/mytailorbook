@@ -7,15 +7,17 @@ import styles from './PhoneInput.module.css';
 interface PhoneInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
   value?: string;
   onChange?: (value: string) => void;
+  defaultCountryCode?: string;
 }
 
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
-  ({ value = '', onChange, className, ...props }, ref) => {
+  ({ value = '', onChange, defaultCountryCode, className, ...props }, ref) => {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     // 1. Determine the country code and local number from the incoming value
-    let matchedCountry = COUNTRIES[0]; // Default: NG
+    const fallbackCountry = (defaultCountryCode ? COUNTRIES.find(c => c.code.toUpperCase() === defaultCountryCode.toUpperCase()) : null) || COUNTRIES[0];
+    let matchedCountry = fallbackCountry;
     const digits = value.replace(/\D/g, '');
     let localNumber = value;
 
@@ -30,10 +32,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     } else if (digits.length >= 10) {
       // Handle legacy numbers (e.g. 234803... or 0803...)
       if (digits.startsWith('234')) {
-        matchedCountry = COUNTRIES[0]; // NG
+        matchedCountry = COUNTRIES.find(c => c.code === 'NG') || COUNTRIES[0];
         localNumber = digits.slice(3);
       } else if (digits.startsWith('0')) {
-        matchedCountry = COUNTRIES[0]; // NG
+        matchedCountry = fallbackCountry;
         localNumber = digits; // allow the 0 to stay in the local part if they just typed it
       }
     }
@@ -83,6 +85,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           className={styles.input}
           value={localNumber}
           onChange={handleNumberChange}
+          maxLength={props.maxLength ?? matchedCountry.maxDigits ?? 15}
         />
 
         <BottomSheet 

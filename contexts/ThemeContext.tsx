@@ -13,55 +13,95 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'sf-theme';
 
-function updateMetaThemeColor(pref: ThemePreference | null) {
-  const lightColor = '#FFFFFF';
-  const darkColor = '#131220';
-  
-  const lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]') as HTMLMetaElement | null;
-  const darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]') as HTMLMetaElement | null;
-  
-  if (lightMeta && darkMeta) {
-    if (pref === 'light') {
-      lightMeta.content = lightColor;
-      darkMeta.content = lightColor;
-    } else if (pref === 'dark') {
-      lightMeta.content = darkColor;
-      darkMeta.content = darkColor;
-    } else {
-      lightMeta.content = lightColor;
-      darkMeta.content = darkColor;
-    }
+export function syncThemeColor(pref: ThemePreference | null, isMenuOpen: boolean = false) {
+  if (typeof window === 'undefined') return;
+
+  const isDark =
+    pref === 'dark' ||
+    ((!pref || pref === 'system') &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const color = isMenuOpen
+    ? (isDark ? '#1B1A2B' : '#E9E8F0')
+    : (isDark ? '#0A0910' : '#FFFFFF');
+
+  // Immediately apply data-theme attribute on both documentElement and body so tokens.css and CSS modules always match
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  if (document.body) {
+    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }
+
+  // Set background colors inline for instant painting of root and safe areas
+  document.documentElement.style.backgroundColor = color;
+  if (document.body) {
+    document.body.style.backgroundColor = color;
+  }
+
+  // Direct unconstrained theme-color meta tag for instant browser chrome & PWA status bar repaint
+  let directMeta = document.querySelector('meta[name="theme-color"]:not([media])') as HTMLMetaElement | null;
+  if (!directMeta) {
+    directMeta = document.createElement('meta');
+    directMeta.name = 'theme-color';
+    document.head.appendChild(directMeta);
+  }
+  directMeta.setAttribute('content', color);
+
+  // Keep media-specific meta tags in sync as well
+  const lightMeta = document.querySelector('meta[name="theme-color"][media*="light"]') as HTMLMetaElement | null;
+  const darkMeta = document.querySelector('meta[name="theme-color"][media*="dark"]') as HTMLMetaElement | null;
+  if (lightMeta) {
+    lightMeta.setAttribute('content', pref === 'dark' ? color : (isMenuOpen ? '#E9E8F0' : '#FFFFFF'));
+  }
+  if (darkMeta) {
+    darkMeta.setAttribute('content', pref === 'light' ? color : (isMenuOpen ? '#1B1A2B' : '#0A0910'));
   }
 }
 
 function applyTheme(pref: ThemePreference) {
   const root = document.documentElement;
-  if (pref === 'system') root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', pref);
-  
-  updateMetaThemeColor(pref);
+  const isDark =
+    pref === 'dark' ||
+    (pref === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  if (document.body) {
+    document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }
+
+  if (pref === 'system') {
+    root.setAttribute('data-theme-preference', 'system');
+  } else {
+    root.removeAttribute('data-theme-preference');
+  }
+
+  syncThemeColor(pref);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // The inline script in the root layout's <head> already set the
-  // correct data-theme attribute before paint (avoiding a flash of the
-  // wrong theme) — this just needs to agree with it on first render.
   const [preference, setPreferenceState] = useState<ThemePreference>('system');
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as ThemePreference | null;
-    if (stored === 'light' || stored === 'dark' || stored === 'system') {
-      // Deferred a tick so this reads as an async sync-with-external-store,
-      // not a synchronous setState-in-effect (the inline anti-flash script
-      // in <head> already applied the correct data-theme before paint —
-      // this is only catching this context's own React state up to match).
-      Promise.resolve().then(() => {
-        setPreferenceState(stored);
-        updateMetaThemeColor(stored);
-      });
-    } else {
-      updateMetaThemeColor('system');
-    }
+    const initialPref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+
+    setPreferenceState(initialPref);
+    applyTheme(initialPref);
+
+    // Listen to OS system color scheme changes when in 'system' mode
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = () => {
+      const currentStored = window.localStorage.getItem(STORAGE_KEY) as ThemePreference | null;
+      if (!currentStored || currentStored === 'system') {
+        applyTheme('system');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleSystemChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemChange);
   }, []);
 
   const setPreference = useCallback((pref: ThemePreference) => {
@@ -86,27 +126,27 @@ export const THEME_ANTI_FLASH_SCRIPT = `
 (function() {
   try {
     var pref = localStorage.getItem('${STORAGE_KEY}');
-    var lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]');
-    var darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]');
+    var isDark = pref === 'dark' || ((!pref || pref === 'system') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var color = isDark ? '#0A0910' : '#FFFFFF';
     
-    if (pref === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-      if (lightMeta && darkMeta) {
-        lightMeta.content = '#FFFFFF';
-        darkMeta.content = '#FFFFFF';
-      }
-    } else if (pref === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      if (lightMeta && darkMeta) {
-        lightMeta.content = '#131220';
-        darkMeta.content = '#131220';
-      }
-    } else {
-      if (lightMeta && darkMeta) {
-        lightMeta.content = '#FFFFFF';
-        darkMeta.content = '#131220';
-      }
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    if (!pref || pref === 'system') {
+      document.documentElement.setAttribute('data-theme-preference', 'system');
     }
+    
+    document.documentElement.style.backgroundColor = color;
+    if (document.body) {
+      document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.body.style.backgroundColor = color;
+    }
+    
+    var directMeta = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (!directMeta) {
+      directMeta = document.createElement('meta');
+      directMeta.name = 'theme-color';
+      document.head.appendChild(directMeta);
+    }
+    directMeta.setAttribute('content', color);
   } catch (e) {}
 })();
 `;

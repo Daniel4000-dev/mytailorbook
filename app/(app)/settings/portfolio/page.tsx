@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,12 +30,15 @@ import {
   type PortfolioOutfit,
 } from './actions';
 import { ROUTES } from '@/lib/routes';
+import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
 const MIN_FOUNDED_YEAR = 1950;
 
-export default function PortfolioCurationSettingsPage() {
+function PortfolioCurationSettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldOpenNew = searchParams.get('new') === '1';
   const { currentShop, updateShop } = useData();
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -46,7 +49,7 @@ export default function PortfolioCurationSettingsPage() {
   const [outfits, setOutfits] = useState<PortfolioOutfit[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [builderOpen, setBuilderOpen] = useState(false);
+  const [builderOpen, setBuilderOpen] = useState(shouldOpenNew);
   const [editingOutfit, setEditingOutfit] = useState<PortfolioOutfit | undefined>(undefined);
 
   const [tagline, setTagline] = useState('');
@@ -66,21 +69,27 @@ export default function PortfolioCurationSettingsPage() {
   }
 
   const load = useCallback(async () => {
-    if (!currentShop?.id) return;
+    if (!currentShop?.id) {
+      setPool([]);
+      setOutfits([]);
+      setIsLoaded(true);
+      return;
+    }
     try {
       await syncAutoPortfolioPhotosAction(currentShop.id);
       const [poolPhotos, outfitList] = await Promise.all([
         getPortfolioPoolAction(currentShop.id),
         getPortfolioOutfitsAction(currentShop.id),
       ]);
-      setPool(poolPhotos);
-      setOutfits(outfitList);
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Could not load your portfolio', 'error');
+      setPool(poolPhotos || []);
+      setOutfits(outfitList || []);
+    } catch {
+      setPool([]);
+      setOutfits([]);
     } finally {
       setIsLoaded(true);
     }
-  }, [currentShop, showToast]);
+  }, [currentShop?.id]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -271,6 +280,23 @@ export default function PortfolioCurationSettingsPage() {
                     >
                       <Symbol name="delete" size={16} />
                     </span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      className={styles.shareOutfitBtn}
+                      title="Share to WhatsApp"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!currentShop?.slug) {
+                          showToast('Set your public profile URL first', 'error');
+                          return;
+                        }
+                        const url = `https://wa.me/?text=${encodeURIComponent(`Check out this design from ${currentShop.name}: https://${APP_CONFIG.domain}/studio/${currentShop.slug}?outfit=${o.id}`)}`;
+                        window.open(url, '_blank');
+                      }}
+                    >
+                      <Symbol name="share" size={16} />
+                    </span>
                   </button>
                 );
               })}
@@ -318,5 +344,13 @@ export default function PortfolioCurationSettingsPage() {
         />
       )}
     </PageLayout>
+  );
+}
+
+export default function PortfolioCurationSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <PortfolioCurationSettingsContent />
+    </Suspense>
   );
 }

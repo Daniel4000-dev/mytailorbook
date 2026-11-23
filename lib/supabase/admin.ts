@@ -1,19 +1,94 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
+import { PRODUCTION_SUPABASE_PROJECT_REF, STAGING_SUPABASE_PROJECT_REF } from '@/lib/billing/environment';
+
+function getProjectRef(url?: string): string {
+  if (!url) return '';
+  try {
+    const parsed = new URL(url);
+    const match = parsed.hostname.match(/^([a-z0-9]+)\.supabase\.co$/);
+    return match ? match[1] : '';
+  } catch {
+    return '';
+  }
+}
+
+function parseJwtPayload(token: string): { role?: string; ref?: string } {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return {};
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch {
+    return {};
+  }
+}
+
+function validateAdminEnvironment() {
+  const dbEnv = process.env.DATABASE_ENV;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+
+  if (!supabaseUrl) throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL is missing');
+  
+  const actualRef = getProjectRef(supabaseUrl);
+  if (!actualRef) throw new Error('Malformed NEXT_PUBLIC_SUPABASE_URL');
+
+  if (dbEnv === 'production') {
+    if (actualRef !== PRODUCTION_SUPABASE_PROJECT_REF) {
+      throw new Error('CRITICAL: DATABASE_ENV is production but Supabase URL does not match production project ref');
+    }
+  } else if (dbEnv === 'staging') {
+    if (actualRef !== STAGING_SUPABASE_PROJECT_REF) {
+      throw new Error('CRITICAL: DATABASE_ENV is staging but Supabase URL does not match staging project ref');
+    }
+    if ((actualRef as string) === PRODUCTION_SUPABASE_PROJECT_REF) {
+      throw new Error('CRITICAL: Staging environment MUST NOT connect to production Supabase');
+    }
+  } else if (dbEnv === 'development') {
+    if ((actualRef as string) === PRODUCTION_SUPABASE_PROJECT_REF) {
+      throw new Error('CRITICAL: Development environment MUST NOT connect to production Supabase');
+    }
+  } else {
+    throw new Error('DATABASE_ENV must be production, staging, or development');
+  }
+
+  const rawService = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const rawSecret = process.env.SUPABASE_SECRET_KEY;
+
+  if ((rawService && (rawService.startsWith('sb_publishable_') || rawService.startsWith('pk_'))) ||
+      (rawSecret && (rawSecret.startsWith('sb_publishable_') || rawSecret.startsWith('pk_')))) {
+    throw new Error('CRITICAL: Admin client requires a secret key, but a publishable/public key was provided.');
+  }
+
+  const secretKey = rawService || rawSecret;
+  if (!secretKey) {
+    throw new Error('CRITICAL: SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is missing');
+  }
+
+  const payload = parseJwtPayload(secretKey);
+  if (payload.role && payload.role !== 'service_role') {
+    throw new Error(`CRITICAL: Admin client requires a key with role "service_role", but provided key has role "${payload.role}".`);
+  }
+  if (payload.ref && actualRef && payload.ref !== actualRef) {
+    throw new Error(`CRITICAL: Admin client key belongs to project "${payload.ref}", but database URL points to "${actualRef}".`);
+  }
+}
 
 /**
- * Admin client — SERVER-SIDE ONLY. Uses the service_role key, which bypasses
+ * Admin client — SERVER-SIDE ONLY. Uses the service_role/secret key, which bypasses
  * every Row Level Security policy. Only ever call this from server actions,
- * and only for operations a normal user isn't allowed to do themselves
- * (e.g. creating a brand-new shop, or an Owner provisioning a staff account).
- *
- * The `server-only` import makes it a build error to accidentally import
- * this file from a client component.
+ * and only for operations a normal user isn't allowed to do themselves.
  */
 export function createAdminClient() {
+  validateAdminEnvironment();
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    supabaseUrl!,
+    secretKey!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 }

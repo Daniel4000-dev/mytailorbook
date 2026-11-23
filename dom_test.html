@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; height: 100vh; }
+  .shell {
+    height: 100vh;
+    transform: scale(0.68) translate(76%, 8vh);
+    background: red;
+  }
+</style>
+</head>
+<body>
+<div class="shell" id="s"></div>
+<script>
+  const rect = document.getElementById('s').getBoundingClientRect();
+  console.log("Top:", rect.top / window.innerHeight * 100, "vh");
+</script>
+</body>
+</html>

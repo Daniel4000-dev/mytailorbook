@@ -1,7 +1,9 @@
+import { useState } from 'react';
+import Link from 'next/link';
 import { ORDER_STATUSES, STATUS_CONFIG } from '@/lib/constants';
+import { ROUTES } from '@/lib/routes';
 import FilterPill from '@/components/ui/FilterPill/FilterPill';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import EmptyState from '@/components/ui/EmptyState/EmptyState';
 import type { Order, OrderStatus, Role, User } from '@/lib/types';
 import StageBanner from './StageBanner';
 import OrderListCard from '../OrderListCard';
@@ -26,6 +28,11 @@ interface StageListProps {
   onAdvance: (orderId: string) => void;
   onRevert: (orderId: string) => void;
   onReassign: (orderId: string, staffUid: string, staffName: string) => void;
+  onBatchClick?: (batchId: string) => void;
+  onViewCuttingSlip?: (order: Order) => void;
+  onWhatsApp?: (order: Order) => void;
+  onResetFilters?: () => void;
+  isFiltered?: boolean;
 }
 
 /** Stage filter pills, then vertical stage-by-stage sections of compact
@@ -47,65 +54,141 @@ export default function StageList({
   onAdvance,
   onRevert,
   onReassign,
+  onBatchClick,
+  onViewCuttingSlip,
+  onWhatsApp,
+  onResetFilters,
+  isFiltered,
 }: StageListProps) {
+  const [collapsedStages, setCollapsedStages] = useState<Record<string, boolean>>({});
+
+  const toggleStageCollapse = (status: OrderStatus) => {
+    setCollapsedStages((prev) => ({
+      ...prev,
+      [status]: !prev[status],
+    }));
+  };
+
   return (
     <>
-      <div className={`${styles.pillRow} ${styles.stagePills}`}>
-        <FilterPill
-          label="All"
-          active={stageFilter === ALL_FILTER}
-          onClick={() => setStageFilter(ALL_FILTER)}
-        />
-        {ORDER_STATUSES.map((status) => (
-          <FilterPill
-            key={status}
-            label={STATUS_CONFIG[status].label}
-            count={getOrdersByStatus(status).length}
-            active={stageFilter === status}
-            onClick={() => setStageFilter(stageFilter === status ? ALL_FILTER : status)}
-          />
-        ))}
+      <div className={styles.stageSegmentedWrap}>
+        <div className={styles.stageSegmentedControl} role="tablist" aria-label="Filter stages">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={stageFilter === ALL_FILTER}
+            className={`${styles.stageSegmentBtn} ${stageFilter === ALL_FILTER ? styles.stageSegmentActive : ''}`}
+            onClick={() => setStageFilter(ALL_FILTER)}
+          >
+            <span>All</span>
+          </button>
+          {ORDER_STATUSES.map((status) => {
+            const count = getOrdersByStatus(status).length;
+            const isActive = stageFilter === status;
+            return (
+              <button
+                key={status}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`${styles.stageSegmentBtn} ${isActive ? styles.stageSegmentActive : ''}`}
+                onClick={() => setStageFilter(isActive ? ALL_FILTER : status)}
+              >
+                <span>{STATUS_CONFIG[status].label}</span>
+                {count > 0 && <span className={styles.stageSegmentCount}>{count}</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {!hasAnyVisible ? (
-        <EmptyState
-          icon={<Symbol name="checkroom" size={40} />}
-          title="Nothing here yet"
-          description={searchQuery ? 'No orders match your search.' : 'Orders in this stage will appear here.'}
-        />
+        <div className={styles.workshopEmptyContainer}>
+          <div className={styles.workshopCrest}>
+            <div className={styles.workshopCrestHalo} />
+            <div className={styles.crestShears}>
+              <Symbol name="content_cut" size={26} />
+            </div>
+            <div className={styles.crestNeedle}>
+              <Symbol name="needle" size={22} />
+            </div>
+          </div>
+          <h3 className={styles.workshopEmptyTitle}>
+            {searchQuery || isFiltered ? 'No garments match filter' : 'Workshop floor is clear'}
+          </h3>
+          <p className={styles.workshopEmptyDesc}>
+            {searchQuery
+              ? `No active orders found matching "${searchQuery}". Reset filters to see all production orders.`
+              : isFiltered
+              ? 'No orders found for the selected stage or criteria. Try clearing filters to view other orders in production.'
+              : 'Every stitch and cut is accounted for. New garment orders and batch commissions will appear here as they enter production.'}
+          </p>
+          {isFiltered && onResetFilters ? (
+            <button
+              type="button"
+              className={styles.resetFiltersBtn}
+              onClick={onResetFilters}
+            >
+              <Symbol name="close" size={13} />
+              <span>Reset Search & Filters</span>
+            </button>
+          ) : (
+            <div className={styles.workshopActionRow}>
+              <Link href={ROUTES.orderNew} className={styles.workshopNewOrderBtn}>
+                <Symbol name="add" size={16} />
+                <span>New Garment Order</span>
+              </Link>
+            </div>
+          )}
+        </div>
       ) : (
         visibleStages.map((status) => {
           const stageOrders = getOrdersByStatus(status);
           if (stageOrders.length === 0) return null;
+          const isCollapsible = stageFilter === ALL_FILTER;
+          const isCollapsed = Boolean(isCollapsible && collapsedStages[status]);
           const visibleCount = stageVisibleCounts[status] ?? stagePageSize;
           const shown = stageOrders.slice(0, visibleCount);
           return (
             <section key={status} className={styles.stageSection}>
-              <StageBanner status={status} count={stageOrders.length} />
-              <div className={styles.cardList}>
-                {shown.map((order, i) => (
-                  <OrderListCard
-                    key={order.id}
-                    order={order}
-                    userRole={userRole}
-                    index={i}
-                    onOpen={() => onOpen(order.id)}
-                    onAdvance={() => onAdvance(order.id)}
-                    onRevert={() => onRevert(order.id)}
-                    staffMembers={staffMembers}
-                    onReassign={onReassign}
-                  />
-                ))}
-              </div>
-              {stageOrders.length > visibleCount && (
-                <button
-                  type="button"
-                  className={styles.showMoreBtn}
-                  onClick={() => onShowMore(status)}
-                >
-                  Show {Math.min(stagePageSize, stageOrders.length - visibleCount)} more (
-                  {stageOrders.length - visibleCount} remaining)
-                </button>
+              <StageBanner
+                status={status}
+                count={stageOrders.length}
+                isCollapsible={isCollapsible}
+                isCollapsed={isCollapsed}
+                onToggleCollapse={() => toggleStageCollapse(status)}
+              />
+              {!isCollapsed && (
+                <>
+                  <div className={styles.cardList}>
+                    {shown.map((order, i) => (
+                      <OrderListCard
+                        key={order.id}
+                        order={order}
+                        userRole={userRole}
+                        index={i}
+                        onOpen={() => onOpen(order.id)}
+                        onAdvance={() => onAdvance(order.id)}
+                        onRevert={() => onRevert(order.id)}
+                        staffMembers={staffMembers}
+                        onReassign={onReassign}
+                        onBatchClick={onBatchClick}
+                        onViewCuttingSlip={onViewCuttingSlip}
+                        onWhatsApp={onWhatsApp}
+                      />
+                    ))}
+                  </div>
+                  {stageOrders.length > visibleCount && (
+                    <button
+                      type="button"
+                      className={styles.showMoreBtn}
+                      onClick={() => onShowMore(status)}
+                    >
+                      Show {Math.min(stagePageSize, stageOrders.length - visibleCount)} more (
+                      {stageOrders.length - visibleCount} remaining)
+                    </button>
+                  )}
+                </>
               )}
             </section>
           );

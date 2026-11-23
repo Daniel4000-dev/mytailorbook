@@ -13,9 +13,7 @@
   position: sticky;
   top: 0;
   z-index: var(--sf-z-sticky);
-  background: color-mix(in srgb, var(--sf-bg-primary) 88%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--sf-bg-surface);
   border-bottom: 1px solid var(--sf-border-light);
 }
 

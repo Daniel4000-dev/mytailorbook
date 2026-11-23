@@ -4,20 +4,58 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--sf-top-bar-height);
-  padding: 0 var(--sf-space-md);
-  background: var(--sf-bg-primary);
+  height: calc(var(--sf-top-bar-height) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: var(--sf-space-md);
+  padding-right: var(--sf-space-md);
+  padding-bottom: 0;
+  box-sizing: border-box;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-bottom: var(--sf-glass-border-subtle);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.40);
   z-index: var(--sf-z-sticky);
   width: 100%;
+  transform: translateZ(0);
+  will-change: transform;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+:global([data-theme='dark']) .topBar {
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border-bottom: var(--sf-glass-border-subtle);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .topBar {
+    background: var(--sf-glass-gradient, var(--sf-glass-bg));
+    backdrop-filter: var(--sf-glass-backdrop);
+    -webkit-backdrop-filter: var(--sf-glass-backdrop);
+    border-bottom: var(--sf-glass-border-subtle);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), inset 0 -1px 1px 0 rgba(255, 255, 255, 0.12);
+  }
 }
 
 /* Profile mode's banner is taller than the standard bar — let the bar grow to fit it. */
 .topBar:has(.profileHeaderContent) {
   height: auto;
-  padding: var(--sf-space-sm) var(--sf-space-sm);
+  padding-top: calc(var(--sf-space-sm) + env(safe-area-inset-top, 0px));
+  padding-left: var(--sf-space-sm);
+  padding-right: var(--sf-space-sm);
+  padding-bottom: var(--sf-space-sm);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
 }
 
-.left, .right {
+.left,
+.right {
   display: flex;
   align-items: center;
   gap: var(--sf-space-sm);
@@ -38,20 +76,197 @@
   padding: 0 var(--sf-space-sm);
 }
 
-.backBtn, .notificationBtn {
+.backBtn,
+.notificationBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--sf-radius-full);
-  background: transparent;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
   color: var(--sf-text-primary);
-  border: none;
   cursor: pointer;
-  transition: background var(--sf-transition-fast);
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast), background var(--sf-transition-fast);
   -webkit-tap-highlight-color: transparent;
   position: relative;
+}
+
+.buddyPulseBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+  padding: 4px 8px;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--sf-transition-fast), box-shadow var(--sf-transition-fast);
+}
+
+.buddyPulseBtn:focus-visible {
+  outline: 2px solid var(--sf-color-accent, #6366F1);
+  outline-offset: 3px;
+  border-radius: var(--sf-radius-full);
+}
+
+.buddyPulseBtn:active {
+  transform: scale(0.94);
+}
+
+.buddyAvatarStack {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.buddyAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  border: 2px solid var(--sf-bg-primary);
+  margin-left: -9px;
+  position: relative;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+  transition: transform var(--sf-transition-fast);
+}
+
+.buddyAvatar:first-child {
+  margin-left: 0;
+}
+
+.buddyAvatarOne {
+  background: linear-gradient(135deg, #4338CA, #6366F1);
+}
+
+.buddyAvatarTwo {
+  background: linear-gradient(135deg, #D97706, #F59E0B);
+}
+
+.buddyAvatarThree {
+  background: linear-gradient(135deg, #059669, #10B981);
+  animation: buddyAvatarBreathe 3.2s ease-in-out infinite;
+}
+
+.buddyPulsePing {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  border: 1.5px solid var(--sf-bg-primary);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+  pointer-events: none;
+}
+
+.buddyPulsePing::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  border: 1.5px solid #10B981;
+  animation: buddyRadarPing 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.buddyPulsePingGold {
+  background: #F59E0B;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+}
+
+.buddyPulsePingGold::after {
+  border-color: #F59E0B;
+}
+
+.buddyAvatarActive {
+  border-color: #10B981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.45);
+}
+
+.buddyAvatarEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sf-bg-surface, rgba(255, 255, 255, 0.08));
+  border: 1px dashed var(--sf-border-focus, #6366F1);
+  color: var(--sf-color-accent, #6366F1);
+  position: relative;
+  transition: transform var(--sf-transition-fast), background var(--sf-transition-fast);
+}
+
+.buddyAvatarPlus {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #6366F1;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+@keyframes buddyRadarPing {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  65% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes buddyAvatarBreathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .buddyPulseBtn:hover .buddyAvatar {
+    transform: translateY(-1px);
+  }
+  .buddyPulseBtn:hover .buddyAvatarThree {
+    transform: translateY(-1px) scale(1.1);
+  }
 }
 
 .notificationBadge {
@@ -71,21 +286,30 @@
 }
 
 @keyframes pulseOffline {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
-
-.backBtn:hover, .notificationBtn:hover {
-  background: var(--sf-bg-surface-elevated);
+  .backBtn:hover,
+  .notificationBtn:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 18px -2px rgba(0, 0, 0, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+  }
 }
-}
 
-.backBtn:active {
-  background: var(--sf-bg-surface-hover);
-  transform: scale(0.95);
+.backBtn:active,
+.notificationBtn:active {
+  transform: scale(0.92);
 }
 
 .title {
@@ -109,18 +333,18 @@
   margin-top: 2px;
 }
 
-/* Profile Mode Styles — a warm banner echoing the auth screens' hero panel */
+/* Profile Mode Styles — a clean, edge-to-edge header row matching Apple/Instagram standards */
 .profileHeaderContent {
   display: flex;
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, var(--sf-bg-surface) 0%, var(--sf-accent-gold-soft) 100%);
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-lg);
-  padding: var(--sf-space-sm) var(--sf-space-md) var(--sf-space-sm) var(--sf-space-xs);
-  margin: var(--sf-space-sm) 0;
-  box-shadow: var(--sf-shadow-xs);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
 }
 
 .greetingWrapper {
@@ -143,35 +367,138 @@
   color: var(--sf-text-primary);
 }
 
-/* Hamburger button to open the sidebar on mobile */
-.hamburgerBtn {
+/* Brand logo icon on the left of the header */
+.brandLogoWrap,
+.brandLogoLink {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  text-decoration: none;
   border-radius: var(--sf-radius-full);
-  background: transparent;
-  color: var(--sf-text-primary);
-  border: none;
-  cursor: pointer;
-  transition: background var(--sf-transition-fast);
+  transition: transform 120ms ease, opacity 120ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .hamburgerBtn:hover {
-    background: var(--sf-bg-surface-elevated);
+.brandLogoLink:active,
+.brandLogoLinkBtn:active {
+  transform: scale(0.94);
+  opacity: 0.9;
+}
+
+.brandLogoLinkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sf-radius-full);
+  outline: none;
+}
+
+.storyPulseWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sf-radius-full);
+  cursor: pointer;
+}
+
+/* Outer Gradient Ring (Instagram / Spotify Story Style) */
+.storyRing {
+  position: absolute;
+  inset: -3.5px;
+  border-radius: var(--sf-radius-full);
+  padding: 2.5px;
+  background: linear-gradient(135deg, #f59e0b 0%, #10b981 50%, #6366f1 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: storyRingRotate 6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Rhythmic Expanding Radar Beep Pulse */
+.storyRadarBeep {
+  position: absolute;
+  inset: -6px;
+  border-radius: var(--sf-radius-full);
+  border: 2px solid rgba(245, 158, 11, 0.85);
+  opacity: 0;
+  animation: storyBeepPulse 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes storyRingRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes storyBeepPulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.95;
+    border-color: rgba(245, 158, 11, 0.85);
+  }
+  50% {
+    transform: scale(1.36);
+    opacity: 0;
+    border-color: rgba(99, 102, 241, 0);
+  }
+  100% {
+    transform: scale(1.42);
+    opacity: 0;
+    border-color: transparent;
   }
 }
 
-.hamburgerBtn:active {
-  background: var(--sf-bg-surface-hover);
-  transform: scale(0.95);
+.brandLogoWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--sf-radius-full);
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
 }
+
+.brandLogoWrapper:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 18px -2px rgba(0, 0, 0, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.brandLogoWrapper:active {
+  transform: scale(0.92);
+}
+
+.brandLogoImg {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.hamburgerBtn {
+  display: none;
+}
+
 
 /* Desktop Styles */
 @media (min-width: 1024px) {
+
   /* Also targets the same :has() compound selector above — a bare
      `.topBar` here loses to it on specificity (a :has() pseudo-class
      counts like an extra class) regardless of source order, which was
@@ -179,7 +506,8 @@
      even on desktop. */
   .topBar,
   .topBar:has(.profileHeaderContent) {
-    height: 72px; /* standard dashboard topbar height */
+    height: 72px;
+    /* standard dashboard topbar height */
     padding: 0 var(--sf-space-lg);
     background-color: var(--sf-bg-primary) !important;
   }
@@ -241,4 +569,138 @@
   width: 18px;
   height: 18px;
   object-fit: contain;
+}
+
+/* Animated Streak Badge replacing the brand logo */
+@keyframes flameFlicker {
+  0% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
+
+  50% {
+    transform: scale(1.15) rotate(4deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 87, 34, 0.8));
+  }
+
+  100% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
+}
+
+@keyframes streakPop {
+  0% {
+    transform: scale(0.95);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+
+.streakBadge:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.25);
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 87, 34, 0.2));
+}
+
+.streakBadge svg {
+  animation: flameFlicker 2s ease-in-out infinite alternate;
+  transform-origin: bottom center;
+}
+
+.streakBadge:hover {
+  transform: scale(1.05);
+}
+
+.streakBadge span {
+  color: #FF5722;
+}
+
+/* Animated Streak Badge replacing the brand logo */
+.streakContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+}
+
+@keyframes flameFlicker {
+  0% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
+
+  50% {
+    transform: scale(1.15) rotate(4deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 87, 34, 0.8));
+  }
+
+  100% {
+    transform: scale(1) rotate(-2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px rgba(255, 152, 0, 0.5));
+  }
+}
+
+@keyframes streakPop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.streakBadge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  background: var(--sf-glass-gradient, var(--sf-glass-bg));
+  backdrop-filter: var(--sf-glass-backdrop);
+  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  border: var(--sf-glass-border);
+  border-radius: var(--sf-radius-full);
+  color: #FF5722;
+  font-family: var(--sf-font-mono);
+  font-weight: var(--sf-weight-bold);
+  font-size: 13px;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+  animation: streakPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.streakBadge:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 18px -2px rgba(255, 87, 34, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.streakBadge:active {
+  transform: scale(0.92);
+}
+
+.streakBadge svg {
+  animation: flameFlicker 2s ease-in-out infinite alternate;
+  transform-origin: bottom center;
 }

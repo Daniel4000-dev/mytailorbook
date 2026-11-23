@@ -1,0 +1,86 @@
+.sparkContainer {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-24px) scale(0.95);
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.24s ease;
+}
+
+.sparkVisible {
+  transform: translateX(-50%) translateY(0) scale(1);
+  opacity: 1;
+}
+
+.sparkHidden {
+  transform: translateX(-50%) translateY(-20px) scale(0.95);
+  opacity: 0;
+}
+
+.sparkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--sf-radius-full, 9999px);
+  background: rgba(19, 18, 32, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(99, 102, 241, 0.25);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  animation: sparkGlowPulse 2.4s ease-in-out infinite;
+}
+
+:global([data-theme='light']) .sparkChip {
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.22);
+}
+
+.xpBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #FBBF24;
+  font-weight: 700;
+}
+
+.streakBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #FDBA74;
+  font-weight: 600;
+}
+
+.podBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6EE7B7;
+  font-weight: 600;
+}
+
+.divider {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  line-height: 1;
+}
+
+@keyframes sparkGlowPulse {
+  0%, 100% {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 12px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(245, 158, 11, 0.45);
+  }
+}
+

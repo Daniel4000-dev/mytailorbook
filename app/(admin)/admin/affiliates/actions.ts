@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/admin/requireAdmin';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { logAdminAction } from '@/lib/admin/queries';
+import { logAdminAction, getAffiliateReferredShops, ReferredShopItem } from '@/lib/admin/queries';
 
 /** Server Actions are independently callable endpoints regardless of
  *  which UI links to them — requireAdmin() here is the actual boundary,
@@ -80,4 +80,16 @@ export async function renameAffiliate(id: string, name: string): Promise<{ error
   revalidatePath('/admin/affiliates');
   revalidatePath('/admin');
   return {};
+}
+
+export async function getAffiliateReferredShopsAction(
+  affiliateId: string
+): Promise<{ shops?: ReferredShopItem[]; error?: string }> {
+  try {
+    await requireAdmin();
+    const shops = await getAffiliateReferredShops(affiliateId);
+    return { shops };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to retrieve attributed tailor shops' };
+  }
 }

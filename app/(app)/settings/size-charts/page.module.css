@@ -1,0 +1,104 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card {
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card:active {
+  transform: scale(0.98);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  margin: 0;
+}
+
+.measurements {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.measurementRow {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--sf-border-subtle);
+}
+
+.measurementRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sizeKey {
+  font-weight: 600;
+  color: var(--sf-text-primary);
+  width: 40px;
+}
+
+.sizeValue {
+  color: var(--sf-text-secondary);
+  font-size: 14px;
+}
+
+.sheetContent {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sheetContent h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: var(--sf-text-primary);
+}
+
+.textareaWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.textareaWrap label {
+  font-size: 14px;
+  color: var(--sf-text-secondary);
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--sf-border-subtle);
+  border-radius: 8px;
+  background: var(--sf-bg-surface);
+  color: var(--sf-text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--sf-accent-emerald);
+}

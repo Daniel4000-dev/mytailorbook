@@ -6,18 +6,20 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ROUTES } from '@/lib/routes';
-import { DataProvider } from '@/contexts/DataContext';
+import { DataProvider, useData } from '@/contexts/DataContext';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, syncThemeColor } from '@/contexts/ThemeContext';
 import BottomNav from '@/components/layout/BottomNav/BottomNav';
 import FAB from '@/components/ui/FAB/FAB';
-import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import SidebarMenu from '@/components/layout/SidebarMenu/SidebarMenu';
 import LogoutOverlay from '@/components/layout/LogoutOverlay/LogoutOverlay';
 import InstallPrompt from '@/components/pwa/InstallPrompt/InstallPrompt';
-import AppTour from '@/components/system/AppTour/AppTour';
+import NotificationPrompt from '@/components/notifications/NotificationPrompt/NotificationPrompt';
 import DesktopGate from '@/components/DesktopGate/DesktopGate';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import CraftSpark from '@/components/ui/CraftSpark/CraftSpark';
+import BadgeCelebrationModal from '@/components/gamification/BadgeCelebrationModal/BadgeCelebrationModal';
+import OfflineSyncManager from '@/components/pwa/OfflineSyncManager/OfflineSyncManager';
 import styles from './layout.module.css';
 
 /** Plays the 360ms entrance animation, then drops it entirely (not just
@@ -44,21 +46,34 @@ function PageEnter({ children }: { children: ReactNode }) {
 }
 
 function AppLayoutContent({ children }: { children: ReactNode }) {
-  const { isMenuOpen, setMenuOpen, isCollapsed, isCreateMenuOpen, openCreateMenu, closeCreateMenu } = useSidebar();
+  const { isMenuOpen, setMenuOpen, isCollapsed } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { needsOnboarding, loading: authLoading, isLoggingOut } = useAuth();
   const { preference } = useTheme();
+  const { currentShop } = useData();
+  const isRtw = currentShop?.businessMode === 'rtw';
 
   // The new-client wizard is a focused, transactional flow — global nav
   // and the create-FAB get out of its way (it brings its own action bar).
-  const isTransactional = pathname === '/customers/new' || pathname === '/orders/new';
+  const isTransactional = pathname === '/orders/new';
+  const isDashboard = pathname === '/' || pathname === '/dashboard';
   // The FAB creates orders/customers — not a relevant action on Settings
-  // (it would float over the Register Employee form) or on an order's own
+  // (it would float over the Register Employee form), on the Dashboard
+  // (which already has its own primary New Order button), or on an order's own
   // page, which has its floating WhatsApp shortcut in the same spot.
   // The in-app portfolio preview also skips it, as the portfolio has its
   // own WhatsApp FAB in that corner.
-  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/fabrics') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional;
+  const showFab = !pathname.startsWith('/settings') && !pathname.startsWith('/portfolio') && !pathname.startsWith('/calendar') && !/^\/production\/./.test(pathname) && !isTransactional && !isDashboard;
+
+  // Prefetch critical creation route so tapping the FAB opens immediately
+  useEffect(() => {
+    if (isRtw) {
+      router.prefetch(`${ROUTES.stock}?action=add`);
+    } else {
+      router.prefetch(ROUTES.orderNew);
+    }
+  }, [isRtw, router]);
 
   // First-time Google sign-in: a real Supabase session exists but no shop/
   // profile yet (OAuth gave no chance to ask for a shop name up front).
@@ -84,20 +99,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   }, [authLoading, needsOnboarding]);
 
   useEffect(() => {
-    const isDark = preference === 'dark' || (preference === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
-    const color = isMenuOpen 
-      ? (isDark ? '#1B1A2B' : '#E9E8F0') 
-      : (isDark ? '#131220' : '#FFFFFF');
-      
-    const lightMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: light)"]');
-    const darkMeta = document.querySelector('meta[name="theme-color"][media="(prefers-color-scheme: dark)"]');
-    
-    if (lightMeta) lightMeta.setAttribute('content', color);
-    if (darkMeta) darkMeta.setAttribute('content', color);
-    
-    document.documentElement.style.backgroundColor = '';
-    document.body.style.backgroundColor = color;
+    syncThemeColor(preference, isMenuOpen);
   }, [isMenuOpen, preference]);
 
   if (isLoggingOut) {
@@ -124,7 +126,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       <div
         className={`${styles.appShell} ${isMenuOpen ? styles.menuOpen : ''} ${isCollapsed ? styles.sidebarCollapsed : ''}`}
       >
-        <main className={styles.main}>
+        <main className={`${styles.main} ${isTransactional ? styles.mainTransactional : ''}`}>
           <PageEnter key={pathname}>{children}</PageEnter>
         </main>
         {/* Sits on top of the shrunk page while the menu is open, so a tap
@@ -154,59 +156,24 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
           equivalent button in SidebarMenu on desktop (see SidebarContext). */}
       {!isMenuOpen && showFab && (
         <FAB
-          onClick={openCreateMenu}
+          onClick={() => {
+            if (isRtw) {
+              router.push(`${ROUTES.stock}?action=add`);
+            } else {
+              router.push(ROUTES.orderNew);
+            }
+          }}
           icon={<Symbol name="add" />}
-          label="Create action"
+          label={isRtw ? 'Add Garment' : 'New Order'}
           tourId="fab"
         />
       )}
       {!isMenuOpen && !isTransactional && <BottomNav />}
       {!isMenuOpen && <InstallPrompt />}
-      {/* Self-gating (see AppTour) — only ever actually renders once, on
-          first login, and skipped entirely mid-wizard so it never covers
-          the focused customer/order creation flow. */}
-      {!isTransactional && <AppTour />}
-
-      {/* Create Action Menu — opened by the FAB on mobile, or by the
-          equivalent button in SidebarMenu on desktop (see SidebarContext). */}
-      <BottomSheet
-        isOpen={isCreateMenuOpen}
-        onClose={closeCreateMenu}
-        title="New Order"
-        variant="modal"
-      >
-        <div className={styles.actionMenu}>
-          <p className={styles.actionMenuHint}>Select the client profile to begin.</p>
-          <Link
-            href={ROUTES.orderNew}
-            className={styles.actionOption}
-            onClick={closeCreateMenu}
-          >
-            <span className={styles.actionOptionIcon}>
-              <Symbol name="group" fill size={24} />
-            </span>
-            <span className={styles.actionOptionText}>
-              <span className={styles.actionOptionTitle}>Existing Customer</span>
-              <span className={styles.actionOptionDesc}>Select from your client roster</span>
-            </span>
-            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </Link>
-          <Link
-            href={ROUTES.customerNew}
-            className={styles.actionOption}
-            onClick={closeCreateMenu}
-          >
-            <span className={styles.actionOptionIcon}>
-              <Symbol name="person_add" fill size={24} />
-            </span>
-            <span className={styles.actionOptionText}>
-              <span className={styles.actionOptionTitle}>Walk-in / New Customer</span>
-              <span className={styles.actionOptionDesc}>Create a new measurement profile</span>
-            </span>
-            <Symbol name="arrow_forward_ios" size={16} className={styles.actionOptionChevron} />
-          </Link>
-        </div>
-      </BottomSheet>
+      {!isMenuOpen && !isTransactional && <NotificationPrompt />}
+      <CraftSpark />
+      <BadgeCelebrationModal />
+      <OfflineSyncManager />
     </div>
   );
 }

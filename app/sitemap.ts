@@ -4,6 +4,8 @@ import { APP_CONFIG } from '@/lib/config';
 import { getBlogSlugs, getBlogPostBySlug } from '@/lib/blog';
 import { ROUTES } from '@/lib/routes';
 
+export const dynamic = 'force-dynamic';
+
 /** Dynamic — the only real indexable content here is each shop's public
  *  portfolio, and that's tenant data, not something a static file can list.
  *  Only shops with at least one real garment photo are included: a
@@ -11,19 +13,29 @@ import { ROUTES } from '@/lib/routes';
  *  engine's time, and would just read as a thin/empty page. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = `https://${APP_CONFIG.domain}`;
-  const admin = createAdminClient();
-
-  const { data: orders } = await admin.from('orders').select('shop_id, images');
-  const { data: shops } = await admin.from('shops').select('id, slug');
-  const slugById = new Map((shops || []).map((s) => [s.id, s.slug]));
-
+  const slugById = new Map<string, string>();
   const shopLastPhoto = new Map<string, string>();
-  for (const o of orders || []) {
-    const images = (o.images || []) as { uploadedAt: string }[];
-    if (images.length === 0) continue;
-    const latest = images.reduce((a, b) => (a.uploadedAt > b.uploadedAt ? a : b)).uploadedAt;
-    const existing = shopLastPhoto.get(o.shop_id);
-    if (!existing || latest > existing) shopLastPhoto.set(o.shop_id, latest);
+
+  try {
+    const admin = createAdminClient();
+    const [ordersRes, shopsRes] = await Promise.all([
+      admin.from('orders').select('shop_id, images'),
+      admin.from('shops').select('id, slug'),
+    ]);
+
+    for (const s of shopsRes.data || []) {
+      slugById.set(s.id, s.slug);
+    }
+
+    for (const o of ordersRes.data || []) {
+      const images = (o.images || []) as { uploadedAt: string }[];
+      if (images.length === 0) continue;
+      const latest = images.reduce((a, b) => (a.uploadedAt > b.uploadedAt ? a : b)).uploadedAt;
+      const existing = shopLastPhoto.get(o.shop_id);
+      if (!existing || latest > existing) shopLastPhoto.set(o.shop_id, latest);
+    }
+  } catch {
+    // Fall back gracefully if DB is unreachable during build/offline
   }
 
   const blogSlugs = getBlogSlugs();

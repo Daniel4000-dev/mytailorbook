@@ -247,7 +247,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s;
   cursor: pointer;
+}
+
+.deleteOutfitBtn:hover {
+  background: var(--sf-danger);
+}
+
+.shareOutfitBtn {
+  position: absolute;
+  top: 6px;
+  right: 38px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.shareOutfitBtn:hover {
+  background: var(--sf-nav);
 }
 
 .poolCard {
