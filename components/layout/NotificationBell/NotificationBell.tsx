@@ -51,7 +51,7 @@ export default function NotificationBell({ variant = 'default' }: NotificationBe
     } else if (n.orderId) {
       router.push(`/production?order=${n.orderId}`);
     } else {
-      router.push(ROUTES.notifications);
+      router.push(`${ROUTES.notifications}?id=${n.id}`);
     }
   };
 
