@@ -2663,6 +2663,8 @@ export async function updateNotificationPreferencesAction(
     mute_stagnant_alerts?: boolean;
     mute_circle_nudges?: boolean;
     mute_daily_kickstarts?: boolean;
+    mute_staff_push?: boolean;
+    quiet_hours_enabled?: boolean;
   }
 ) {
   const supabase = await createClient();

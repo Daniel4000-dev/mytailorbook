@@ -26,6 +26,13 @@ export interface AtelierNotificationPayload {
   pushUrl?: string;
 }
 
+function isWithinQuietHours(): boolean {
+  // Quiet hours: 10:00 PM (22:00) to 7:00 AM (07:00)
+  const now = new Date();
+  const hours = now.getHours();
+  return hours >= 22 || hours < 7;
+}
+
 /**
  * Persist a notification row in `atelier_notifications` and fire Web Push
  * in the same call. The DB row is the source of truth; push is best-effort.
@@ -42,6 +49,26 @@ export async function createAtelierNotification(
   // Guard: if a notification explicitly targets the actor themselves, drop it.
   if (payload.recipientId && payload.excludeActorId && payload.recipientId === payload.excludeActorId) {
     return { pushSentCount: 0 };
+  }
+
+  // Fetch shop notification preferences to respect noise control and quiet hours
+  let shouldSuppressPush = false;
+  try {
+    const { data: shopRow } = await admin
+      .from('shops')
+      .select('portfolio_settings')
+      .eq('id', payload.shopId)
+      .maybeSingle();
+
+    const prefs = (shopRow?.portfolio_settings as any)?.notification_preferences || {};
+    if (prefs.mute_staff_push && (payload.category === 'production' || Boolean(payload.actorName))) {
+      shouldSuppressPush = true;
+    }
+    if (prefs.quiet_hours_enabled && payload.tone !== 'alert' && isWithinQuietHours()) {
+      shouldSuppressPush = true;
+    }
+  } catch {
+    // Non-blocking fallback
   }
 
   const pushPayload = {
@@ -91,6 +118,10 @@ export async function createAtelierNotification(
       console.error('[atelier_notifications] insert failed:', error.message);
     }
 
+    if (shouldSuppressPush) {
+      return { pushSentCount: 0 };
+    }
+
     try {
       const res = await sendPushToShop(
         payload.shopId,
@@ -128,6 +159,10 @@ export async function createAtelierNotification(
 
   if (error) {
     console.error('[atelier_notifications] insert failed:', error.message);
+  }
+
+  if (shouldSuppressPush) {
+    return { pushSentCount: 0 };
   }
 
   try {

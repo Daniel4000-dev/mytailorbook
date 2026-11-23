@@ -20,7 +20,7 @@ export default function NotificationBell({ variant = 'default' }: NotificationBe
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { notifications, isLoaded } = useNotifications();
-  const { readIds, markRead } = useNotificationReadState();
+  const { readIds, markRead, markAllRead } = useNotificationReadState();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -69,16 +69,32 @@ export default function NotificationBell({ variant = 'default' }: NotificationBe
         aria-label="Notifications"
         title="Notifications"
       >
-        {unreadCount > 0 && <span className={styles.badgeCount}>{unreadCount}</span>}
+        {unreadCount > 0 && (
+          <span className={styles.badgeCount}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+        )}
         <Symbol name="notifications" className={styles.bellIcon} />
       </button>
 
       {open && (
         <div className={styles.panel}>
           <div className={styles.panelHeader}>
-            <span>Notifications</span>
+            <div className={styles.headerLeft}>
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className={styles.headerUnreadBadge}>
+                  {unreadCount > 9 ? '9+ new' : `${unreadCount} new`}
+                </span>
+              )}
+            </div>
             {unreadCount > 0 && (
-              <span className={styles.headerUnreadBadge}>{unreadCount} new</span>
+              <button
+                type="button"
+                className={styles.markAllBtn}
+                onClick={() => markAllRead(notifications.map((n) => n.id))}
+                title="Mark all notifications as read"
+              >
+                Mark all read
+              </button>
             )}
           </div>
           {!isLoaded ? (
