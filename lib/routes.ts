@@ -209,6 +209,7 @@ export const ROUTES = {
 
   // ---- Public tenant content (bare domain, indexed) ----
   studio: (slug: string) => `/studio/${slug}`,
+  publicCatalogue: (slug: string) => `/catalogue/${slug}`,
 
   // ---- Well-known files ----
   robotsTxt: '/robots.txt',
@@ -243,7 +244,7 @@ export const PUBLIC_PATHS = [
   ROUTES.offline,
 ];
 
-export const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/studio/', '/auth/', '/blog/'];
+export const PUBLIC_PREFIXES = ['/track/', '/receipt/', '/studio/', '/catalogue/', '/auth/', '/blog/'];
 
 export function isPublicPath(pathname: string) {
   if ((PUBLIC_PATHS as readonly string[]).includes(pathname)) return true;
@@ -254,7 +255,7 @@ export function isPublicPath(pathname: string) {
  *  what lives at app.<domain> once the two are split by hostname. Auth
  *  pages count as app-side even though they're unauthenticated, since
  *  they're part of getting into the app, not marketing content. */
-export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.collections, ROUTES.inventory, ROUTES.quotes, ROUTES.stock, ROUTES.reports, ROUTES.reconciliation, ROUTES.notes, ROUTES.calendar, ROUTES.circle, ROUTES.admin, '/auth'];
+export const APP_PREFIXES = [ROUTES.dashboard, ROUTES.customers, ROUTES.ordersPrefix, ROUTES.production, ROUTES.catalogues, ROUTES.settings, ROUTES.styles, ROUTES.notifications, ROUTES.onboarding, ROUTES.portfolio, ROUTES.fabrics, ROUTES.collections, ROUTES.inventory, ROUTES.quotes, ROUTES.stock, ROUTES.reports, ROUTES.reconciliation, ROUTES.notes, ROUTES.calendar, ROUTES.circle, ROUTES.admin, '/auth'];
 
 export function isAppPath(pathname: string) {
   if ((AUTH_PAGES as readonly string[]).includes(pathname)) return true;
@@ -277,6 +278,7 @@ export const SEARCH_DISALLOW = [
   ROUTES.customers,
   ROUTES.ordersPrefix,
   ROUTES.production,
+  ROUTES.catalogues,
   ROUTES.settings,
   ROUTES.styles,
   ROUTES.notifications,

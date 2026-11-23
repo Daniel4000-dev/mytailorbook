@@ -18,10 +18,11 @@ describe('isPublicPath', () => {
     expect(isPublicPath(ROUTES.blog)).toBe(true);
   });
 
-  it('treats public-by-link prefixes (track/receipt/studio) as public', () => {
+  it('treats public-by-link prefixes (track/receipt/studio/catalogue) as public', () => {
     expect(isPublicPath(ROUTES.track('order-123'))).toBe(true);
     expect(isPublicPath(ROUTES.receipt('order-123'))).toBe(true);
     expect(isPublicPath(ROUTES.studio('some-shop'))).toBe(true);
+    expect(isPublicPath('/catalogue/some-shop')).toBe(true);
   });
 
   it('does not treat authenticated app pages as public', () => {
@@ -40,6 +41,8 @@ describe('isAppPath', () => {
     expect(isAppPath(ROUTES.settingsBilling)).toBe(true);
     expect(isAppPath(ROUTES.orderNew)).toBe(true);
     expect(isAppPath(ROUTES.fabrics)).toBe(true);
+    expect(isAppPath(ROUTES.catalogues)).toBe(true);
+    expect(isAppPath(ROUTES.catalogueDetail('eid-collection'))).toBe(true);
   });
 
   it('treats auth pages as app paths (they belong on app.<domain>)', () => {
@@ -89,8 +92,9 @@ describe('SEARCH_DISALLOW (robots.txt)', () => {
     expect(SEARCH_DISALLOW).not.toContain(ROUTES.portfolioExamples);
   });
 
-  it('includes /fabrics (the gap this refactor found and fixed)', () => {
+  it('includes /fabrics and /catalogues (the gaps this refactor found and fixed)', () => {
     expect(SEARCH_DISALLOW).toContain(ROUTES.fabrics);
+    expect(SEARCH_DISALLOW).toContain(ROUTES.catalogues);
   });
 });
 

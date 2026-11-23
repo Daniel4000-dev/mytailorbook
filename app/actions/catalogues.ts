@@ -137,14 +137,21 @@ export async function deleteCataloguePhotoAction(photoId: string): Promise<void>
 }
 
 export async function getPublicCataloguesAction(slug: string): Promise<StyleCatalogue[]> {
-  const supabase = await createClient();
-  const { data: shopRow, error: shopErr } = await supabase
-    .from('shops')
-    .select('id')
-    .eq('slug', slug)
-    .single();
-    
-  if (shopErr || !shopRow) return [];
-  
-  return getCataloguesAction(shopRow.id);
+  try {
+    if (!slug || !slug.trim()) return [];
+    const cleanParam = slug.trim();
+    const supabase = await createClient();
+    const { data: shopRow, error: shopErr } = await supabase
+      .from('shops')
+      .select('id')
+      .or(`slug.eq.${cleanParam},id.eq.${cleanParam}`)
+      .maybeSingle();
+
+    if (shopErr || !shopRow) return [];
+
+    return getCataloguesAction(shopRow.id);
+  } catch (err: any) {
+    console.warn('Failed to fetch public catalogues:', err?.message);
+    return [];
+  }
 }

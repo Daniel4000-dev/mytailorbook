@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useDeferredValue } from 'react';
+import { useMemo, useState, useDeferredValue, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useNotifications, type NotificationItem, type NotificationCategory } from '@/lib/hooks/useNotifications';
@@ -11,6 +11,7 @@ import TopBar from '@/components/layout/TopBar/TopBar';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import SearchBar from '@/components/ui/SearchBar/SearchBar';
 import Skeleton from '@/components/ui/Skeleton/Skeleton';
+import NotificationDetailSheet from './_components/NotificationDetailSheet';
 import styles from './page.module.css';
 
 type FilterTab = 'all' | 'unread' | NotificationCategory;
@@ -87,6 +88,34 @@ export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set());
+
+  // Deep-link support: auto-open notification if ?id=<notificationId> in URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get('id');
+    if (targetId && notifications.length > 0) {
+      const match = notifications.find((n) => n.id === targetId);
+      if (match) {
+        setSelectedNotification(match);
+        markRead(match.id);
+      }
+    }
+  }, [notifications, markRead]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !readIds.has(n.id) && !n.readAt).length,
@@ -134,7 +163,15 @@ export default function NotificationsPage() {
       router.push(n.href);
     } else if (n.orderId) {
       router.push(`/production?order=${n.orderId}`);
+    } else {
+      setSelectedNotification(n);
     }
+  };
+
+  const handleOpenDetail = (n: NotificationItem, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    markRead(n.id);
+    setSelectedNotification(n);
   };
 
   const handleMarkAll = () => {
@@ -335,6 +372,8 @@ export default function NotificationsPage() {
                   const isUnread = !readIds.has(n.id) && !n.readAt;
                   const semantic = getCategorySemantic(n.category, n.tone);
                   const actor = n.actorName || '';
+                  const isExpanded = expandedIds.has(n.id);
+                  const isLongSubtitle = (n.subtitle?.length ?? 0) > 100 || (n.subtitle?.includes('\n') ?? false);
 
                   return (
                     <article
@@ -392,7 +431,24 @@ export default function NotificationsPage() {
                           {isUnread && <span className={styles.unreadDot} aria-label="Unread notification" />}
                         </div>
                         {n.subtitle && (
-                          <span className={styles.cardSubtitle}>{n.subtitle}</span>
+                          <span
+                            className={`${styles.cardSubtitle} ${isExpanded ? styles.cardSubtitleExpanded : ''}`}
+                          >
+                            {n.subtitle}
+                          </span>
+                        )}
+                        {isLongSubtitle && (
+                          <button
+                            type="button"
+                            className={styles.readMoreBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(n.id);
+                            }}
+                          >
+                            <span>{isExpanded ? 'Show less' : 'Read more'}</span>
+                            <Symbol name={isExpanded ? 'expand_less' : 'expand_more'} size={14} />
+                          </button>
                         )}
                         <div className={styles.cardMetaRow}>
                           <span className={styles.timeTag}>
@@ -409,6 +465,16 @@ export default function NotificationsPage() {
                             >
                               <span>{n.actionLabel}</span>
                               <Symbol name="chevron_right" size={12} />
+                            </button>
+                          )}
+                          {!n.href && !n.orderId && (
+                            <button
+                              type="button"
+                              className={styles.viewDetailPill}
+                              onClick={(e) => handleOpenDetail(n, e)}
+                            >
+                              <Symbol name="visibility" size={12} />
+                              <span>View details</span>
                             </button>
                           )}
                         </div>
@@ -436,6 +502,17 @@ export default function NotificationsPage() {
           ))
         )}
       </main>
+
+      {/* Full Notification Detail Sheet */}
+      <NotificationDetailSheet
+        notification={selectedNotification}
+        isOpen={Boolean(selectedNotification)}
+        onClose={() => setSelectedNotification(null)}
+        onNavigate={(href) => {
+          setSelectedNotification(null);
+          router.push(href);
+        }}
+      />
     </div>
   );
 }

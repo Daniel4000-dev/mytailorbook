@@ -1,0 +1,227 @@
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sf-space-md, 16px);
+  padding: 4px 0 16px 0;
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--sf-radius-full, 9999px);
+  background: rgba(67, 56, 202, 0.08);
+  color: var(--sf-brand-indigo, #4338ca);
+  text-transform: capitalize;
+}
+
+.toneAlertBadge {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.toneProductionBadge {
+  background: rgba(71, 85, 105, 0.1);
+  color: #334155;
+}
+
+.toneClientsBadge {
+  background: rgba(67, 56, 202, 0.08);
+  color: #4338ca;
+}
+
+.tonePaymentsBadge {
+  background: rgba(5, 150, 105, 0.1);
+  color: #047857;
+}
+
+.readStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sf-text-secondary, #58556d);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 8px;
+  border-radius: var(--sf-radius-full, 9999px);
+}
+
+:global([data-theme='dark']) .readStatusPill {
+  background: rgba(255, 255, 255, 0.06);
+  color: #a5a3bc;
+}
+
+.readDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #059669;
+}
+
+.unreadDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sf-brand-indigo, #4338ca);
+}
+
+.title {
+  font-family: var(--sf-font-heading);
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--sf-text-primary, #272535);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.metaCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.08));
+  border-radius: var(--sf-radius-md, 14px);
+}
+
+:global([data-theme='dark']) .metaCard {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.senderAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--sf-surface-container-high, rgba(67, 56, 202, 0.08));
+  color: var(--sf-brand-indigo, #4338ca);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.senderAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.metaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.senderName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-primary, #272535);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: var(--sf-text-secondary, #58556d);
+}
+
+.messageContentBox {
+  background: #ffffff;
+  border: 1px solid var(--sf-border-light, rgba(67, 56, 202, 0.09));
+  border-radius: var(--sf-radius-md, 14px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+:global([data-theme='dark']) .messageContentBox {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.messageText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--sf-text-primary, #272535);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mediaWrap {
+  margin-top: 4px;
+  border-radius: var(--sf-radius-sm, 10px);
+  overflow: hidden;
+  border: 1px solid var(--sf-border-light, #e2e8f0);
+}
+
+.mediaImg {
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.actionBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--sf-brand-indigo, #4338ca);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--sf-radius-md, 14px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionBtnPrimary:hover {
+  background: #3730a3;
+  transform: translateY(-1px);
+}
+
+.closeBtn {
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--sf-text-secondary, #58556d);
+  border: 1px solid var(--sf-border, #cbd5e1);
+  border-radius: var(--sf-radius-md, 14px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: #f1f5f9;
+  color: var(--sf-text-primary, #272535);
+}
+
