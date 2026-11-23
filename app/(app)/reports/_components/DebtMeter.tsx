@@ -16,31 +16,22 @@ export default function DebtMeter({
   const collectedPct = total > 0 ? Math.round((collected / total) * 100) : 0;
   const outstandingPct = total > 0 ? 100 - collectedPct : 0;
 
-  const healthStatus =
-    total === 0
-      ? { label: 'Ready to Track', color: '#4338CA', bg: 'rgba(67, 56, 202, 0.08)' }
-      : collectedPct >= 80
-      ? { label: 'Strong Liquidity', color: '#059669', bg: 'rgba(16, 185, 129, 0.12)' }
-      : collectedPct >= 55
-      ? { label: 'Moderate Receivables', color: '#D97706', bg: 'rgba(245, 158, 11, 0.14)' }
-      : { label: 'High Uncollected Balance', color: '#E11D48', bg: 'rgba(225, 29, 72, 0.12)' };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-      {/* Top Status Summary Strip */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+      {/* Editorial Ratio Header */}
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'baseline',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '10px',
+          gap: '8px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
           <span
             style={{
-              fontSize: '26px',
+              fontSize: '24px',
               fontWeight: 700,
               color: 'var(--sf-text-primary)',
               letterSpacing: '-0.02em',
@@ -49,52 +40,37 @@ export default function DebtMeter({
           >
             {collectedPct}%
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--sf-text-secondary)', fontWeight: 500 }}>
-            of total billed value collected in cash ({formatCurrency(total, currency)} total)
+          <span style={{ fontSize: '12.5px', color: 'var(--sf-text-secondary)' }}>
+            collected of {formatCurrency(total, currency)} total billed
           </span>
         </div>
-
-        <span
-          style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            padding: '4px 10px',
-            borderRadius: '999px',
-            color: healthStatus.color,
-            background: healthStatus.bg,
-          }}
-        >
-          {healthStatus.label}
-        </span>
       </div>
 
-      {/* Dual-Tone Segmented Gauge Bar */}
+      {/* Two-Tone Sartorial Bar: Solid Adire Indigo vs Woven Diagonal Hatch */}
       <div
         style={{
           display: 'flex',
           width: '100%',
-          height: '14px',
-          borderRadius: '999px',
+          height: '12px',
+          borderRadius: '4px',
           overflow: 'hidden',
-          background: 'var(--sf-bg-surface-sunken, rgba(67, 56, 202, 0.08))',
-          gap: total > 0 && collected > 0 && outstanding > 0 ? '3px' : '0',
-          padding: '2px',
+          background: 'var(--sf-bg-surface-sunken, #F1F5F9)',
+          border: '1px solid var(--sf-border-light, rgba(67, 56, 202, 0.12))',
         }}
         role="progressbar"
         aria-valuenow={collectedPct}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        {total > 0 ? (
+        {total > 0 && (
           <>
             {collectedPct > 0 && (
               <div
                 style={{
                   width: `${collectedPct}%`,
                   height: '100%',
-                  borderRadius: '999px',
-                  background: 'linear-gradient(90deg, #059669 0%, #10B981 100%)',
-                  transition: 'width 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+                  backgroundColor: '#4338CA',
+                  transition: 'width 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               />
             )}
@@ -103,73 +79,53 @@ export default function DebtMeter({
                 style={{
                   width: `${outstandingPct}%`,
                   height: '100%',
-                  borderRadius: '999px',
-                  background: 'linear-gradient(90deg, #F59E0B 0%, #D97706 100%)',
-                  transition: 'width 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+                  backgroundImage:
+                    'repeating-linear-gradient(45deg, rgba(67, 56, 202, 0.22) 0px, rgba(67, 56, 202, 0.22) 3px, transparent 3px, transparent 7px)',
+                  backgroundColor: 'rgba(67, 56, 202, 0.06)',
+                  transition: 'width 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
                 }}
               />
             )}
           </>
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '999px',
-              background: 'rgba(67, 56, 202, 0.12)',
-            }}
-          />
         )}
       </div>
 
-      {/* Split Comparison Cards */}
+      {/* Ledger Breakdown Row */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gridTemplateColumns: '1fr 1fr',
           gap: '12px',
+          paddingTop: '4px',
         }}
       >
         <div
           style={{
-            padding: '12px 14px',
-            borderRadius: '14px',
-            background: 'rgba(16, 185, 129, 0.06)',
-            border: '1px solid rgba(16, 185, 129, 0.18)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px',
+            gap: '2px',
+            padding: '10px 12px',
+            borderRadius: '10px',
+            background: 'var(--sf-bg-surface-sunken, #F8FAFC)',
+            border: '1px solid var(--sf-border-light, rgba(67, 56, 202, 0.08))',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span
-                style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#10B981',
-                }}
-              />
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  color: '#059669',
-                }}
-              >
-                Cash Collected
-              </span>
-            </div>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#059669' }}>
-              {collectedPct}%
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '2px',
+                backgroundColor: '#4338CA',
+              }}
+            />
+            <span style={{ fontSize: '11.5px', color: 'var(--sf-text-secondary)', fontWeight: 500 }}>
+              Collected
             </span>
           </div>
           <span
             style={{
-              fontSize: '18px',
+              fontSize: '16px',
               fontWeight: 700,
               color: 'var(--sf-text-primary)',
               fontVariantNumeric: 'tabular-nums',
@@ -181,44 +137,33 @@ export default function DebtMeter({
 
         <div
           style={{
-            padding: '12px 14px',
-            borderRadius: '14px',
-            background: 'rgba(245, 158, 11, 0.07)',
-            border: '1px solid rgba(245, 158, 11, 0.22)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px',
+            gap: '2px',
+            padding: '10px 12px',
+            borderRadius: '10px',
+            background: 'var(--sf-bg-surface-sunken, #F8FAFC)',
+            border: '1px solid var(--sf-border-light, rgba(67, 56, 202, 0.08))',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span
-                style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#F59E0B',
-                }}
-              />
-              <span
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  color: '#D97706',
-                }}
-              >
-                Client Receivables
-              </span>
-            </div>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#D97706' }}>
-              {outstandingPct}%
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '2px',
+                border: '1px solid rgba(67, 56, 202, 0.45)',
+                backgroundImage:
+                  'repeating-linear-gradient(45deg, rgba(67, 56, 202, 0.35) 0px, rgba(67, 56, 202, 0.35) 2px, transparent 2px, transparent 4px)',
+              }}
+            />
+            <span style={{ fontSize: '11.5px', color: 'var(--sf-text-secondary)', fontWeight: 500 }}>
+              Unpaid Balance
             </span>
           </div>
           <span
             style={{
-              fontSize: '18px',
+              fontSize: '16px',
               fontWeight: 700,
               color: 'var(--sf-text-primary)',
               fontVariantNumeric: 'tabular-nums',

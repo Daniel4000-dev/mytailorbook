@@ -9,7 +9,11 @@ interface DataPoint {
   color?: string;
 }
 
-const PALETTE = ['#4338CA', '#10B981', '#F59E0B', '#EC4899', '#06B6D4'];
+/**
+ * Tonal Adire Indigo & Slate palette — follows the two-color system in tokens.css
+ * (variants of #4338CA indigo and neutral charcoal/slate, never rainbow neon).
+ */
+const TONAL_INDIGO_PALETTE = ['#1E1B4B', '#4338CA', '#6366F1', '#94A3B8', '#CBD5E1'];
 
 export default function DonutChart({
   data,
@@ -21,7 +25,7 @@ export default function DonutChart({
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const total = data.reduce((acc, d) => acc + (d.value || 0), 0);
 
-  const radius = 74;
+  const radius = 68;
   const circumference = 2 * Math.PI * radius;
 
   let accumulatedAngle = 0;
@@ -35,7 +39,7 @@ export default function DonutChart({
       index: i,
       pct,
       percentLabel: total > 0 ? Math.round(pct * 100) : 0,
-      color: d.color || PALETTE[i % PALETTE.length],
+      color: TONAL_INDIGO_PALETTE[i % TONAL_INDIGO_PALETTE.length],
       strokeLength,
       offset,
     };
@@ -50,18 +54,18 @@ export default function DonutChart({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
         alignItems: 'center',
         gap: '24px',
         width: '100%',
       }}
     >
-      {/* Interactive SVG Donut with Center Telemetry Readout */}
+      {/* Tonal Ring with Center Ledger Readout */}
       <div
         style={{
           position: 'relative',
-          width: '204px',
-          height: '204px',
+          width: '184px',
+          height: '184px',
           margin: '0 auto',
           display: 'flex',
           alignItems: 'center',
@@ -69,76 +73,60 @@ export default function DonutChart({
         }}
       >
         <svg
-          width="204"
-          height="204"
-          viewBox="0 0 200 200"
-          style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}
+          width="184"
+          height="184"
+          viewBox="0 0 184 184"
+          style={{ transform: 'rotate(-90deg)' }}
           role="img"
-          aria-label="Workshop expense allocation ring"
+          aria-label="Expense breakdown ring"
         >
-          {/* Base Ring Track */}
           <circle
-            cx="100"
-            cy="100"
+            cx="92"
+            cy="92"
             r={radius}
             fill="none"
-            stroke="var(--sf-bg-surface-sunken, rgba(67, 56, 202, 0.08))"
-            strokeWidth="22"
+            stroke="var(--sf-bg-surface-sunken, #F1F5F9)"
+            strokeWidth="18"
           />
 
-          {total > 0 ? (
+          {total > 0 &&
             segments.map((seg) => {
               if (seg.value <= 0) return null;
               const isHovered = hoveredIdx === seg.index;
               return (
                 <circle
                   key={seg.label}
-                  cx="100"
-                  cy="100"
+                  cx="92"
+                  cy="92"
                   r={radius}
                   fill="none"
                   stroke={seg.color}
-                  strokeWidth={isHovered ? 27 : 22}
-                  strokeDasharray={`${Math.max(seg.strokeLength - 2, 1)} ${circumference}`}
+                  strokeWidth={isHovered ? 22 : 18}
+                  strokeDasharray={`${Math.max(seg.strokeLength - 1.5, 1)} ${circumference}`}
                   strokeDashoffset={seg.offset}
-                  strokeLinecap="butt"
                   style={{
                     cursor: 'pointer',
-                    transition: 'stroke-width 0.2s ease, opacity 0.2s ease',
-                    opacity: hoveredIdx === null || isHovered ? 1 : 0.45,
+                    transition: 'stroke-width 0.18s ease, opacity 0.18s ease',
+                    opacity: hoveredIdx === null || isHovered ? 1 : 0.4,
                   }}
                   onMouseEnter={() => setHoveredIdx(seg.index)}
                   onMouseLeave={() => setHoveredIdx(null)}
                   onClick={() => setHoveredIdx(isHovered ? null : seg.index)}
                 />
               );
-            })
-          ) : (
-            /* Zero-Expense Calm Ready Ring */
-            <circle
-              cx="100"
-              cy="100"
-              r={radius}
-              fill="none"
-              stroke="rgba(16, 185, 129, 0.28)"
-              strokeWidth="16"
-              strokeDasharray="8 6"
-            />
-          )}
+            })}
         </svg>
 
-        {/* Center Readout Inside Donut Hole */}
         <div
           style={{
             position: 'absolute',
-            inset: '34px',
+            inset: '30px',
             borderRadius: '50%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
-            padding: '8px',
             pointerEvents: 'none',
           }}
         >
@@ -147,15 +135,15 @@ export default function DonutChart({
               fontSize: '10px',
               fontWeight: 600,
               textTransform: 'uppercase',
-              letterSpacing: '0.07em',
+              letterSpacing: '0.06em',
               color: 'var(--sf-text-tertiary)',
             }}
           >
-            {activeSegment ? activeSegment.label : total > 0 ? 'Total Outflow' : 'Zero Outflow'}
+            {activeSegment ? activeSegment.label : 'Total Spend'}
           </span>
           <span
             style={{
-              fontSize: '16px',
+              fontSize: '15px',
               fontWeight: 700,
               color: 'var(--sf-text-primary)',
               marginTop: '2px',
@@ -166,25 +154,23 @@ export default function DonutChart({
               ? formatCurrency(activeSegment.value, currency)
               : formatCurrency(total, currency)}
           </span>
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 600,
-              color: activeSegment ? activeSegment.color : 'var(--sf-text-secondary)',
-              marginTop: '2px',
-            }}
-          >
-            {activeSegment
-              ? `${activeSegment.percentLabel}% of spend`
-              : total > 0
-              ? '100% allocated'
-              : '100% lean'}
-          </span>
+          {activeSegment && (
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: 'var(--sf-text-secondary)',
+                marginTop: '1px',
+              }}
+            >
+              {activeSegment.percentLabel}%
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Interactive Category Allocation Bars */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+      {/* Clean Ledger Table Rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
         {segments.map((seg) => {
           const isHovered = hoveredIdx === seg.index;
           return (
@@ -197,11 +183,9 @@ export default function DonutChart({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '5px',
-                padding: '8px 10px',
-                borderRadius: '12px',
-                background: isHovered
-                  ? 'var(--sf-bg-surface-sunken, rgba(67, 56, 202, 0.06))'
-                  : 'transparent',
+                padding: '6px 8px',
+                borderRadius: '8px',
+                background: isHovered ? 'rgba(67, 56, 202, 0.04)' : 'transparent',
                 cursor: 'pointer',
                 transition: 'background-color 0.15s ease',
               }}
@@ -217,14 +201,14 @@ export default function DonutChart({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span
                     style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '3px',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '2px',
                       backgroundColor: seg.color,
                       flexShrink: 0,
                     }}
                   />
-                  <span style={{ fontWeight: 600, color: 'var(--sf-text-primary)' }}>
+                  <span style={{ fontWeight: 500, color: 'var(--sf-text-secondary)' }}>
                     {seg.label}
                   </span>
                 </div>
@@ -241,10 +225,9 @@ export default function DonutChart({
                   </span>
                   <span
                     style={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      color: 'var(--sf-text-secondary)',
-                      minWidth: '34px',
+                      fontSize: '11.5px',
+                      color: 'var(--sf-text-tertiary)',
+                      minWidth: '32px',
                       textAlign: 'right',
                     }}
                   >
@@ -253,23 +236,21 @@ export default function DonutChart({
                 </div>
               </div>
 
-              {/* Proportional Micro-Bar */}
               <div
                 style={{
                   width: '100%',
-                  height: '6px',
-                  borderRadius: '999px',
-                  background: 'var(--sf-bg-surface-sunken, rgba(67, 56, 202, 0.08))',
+                  height: '4px',
+                  borderRadius: '2px',
+                  background: 'var(--sf-bg-surface-sunken, #F1F5F9)',
                   overflow: 'hidden',
                 }}
               >
                 <div
                   style={{
-                    width: `${Math.max(seg.percentLabel, seg.value > 0 ? 4 : 0)}%`,
+                    width: `${Math.max(seg.percentLabel, seg.value > 0 ? 3 : 0)}%`,
                     height: '100%',
-                    borderRadius: '999px',
                     backgroundColor: seg.color,
-                    transition: 'width 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
+                    transition: 'width 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
                   }}
                 />
               </div>
