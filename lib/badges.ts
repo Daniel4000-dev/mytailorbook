@@ -212,9 +212,18 @@ export function countVerifiedTrackingViews(orders: Order[] = []): number {
 }
 
 /**
+ * Master feature toggle for workshop badges.
+ * Suspended until full rollout.
+ */
+export const BADGES_ENABLED = false;
+
+/**
  * Evaluates which badges a tailor has unlocked based on current studio statistics.
  */
 export function evaluateAtelierBadges(stats: BadgeEvaluationContext): AtelierBadge[] {
+  if (!BADGES_ENABLED) {
+    return [];
+  }
   return ATELIER_BADGES_CATALOG.map((b) => {
     let progress = 0;
 

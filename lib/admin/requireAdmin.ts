@@ -33,7 +33,7 @@ export async function requireAdmin() {
     // If the user is the master account (dadekunle31@gmail.com), auto-seed or permit
     // access so dev/staging doesn't 404 due to missing manual SQL insertion.
     const platformAdminEmails = ['dadekunle31@gmail.com'];
-    if (user.email && platformAdminEmails.includes(user.email.toLowerCase())) {
+    if (user.email && platformAdminEmails.includes(user.email.toLowerCase().trim())) {
       try {
         const adminClient = createAdminClient();
         await adminClient.from('platform_admins').upsert(

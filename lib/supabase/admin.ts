@@ -26,13 +26,20 @@ function parseJwtPayload(token: string): { role?: string; ref?: string } {
 }
 
 function validateAdminEnvironment() {
-  const dbEnv = process.env.DATABASE_ENV;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 
   if (!supabaseUrl) throw new Error('NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL is missing');
   
   const actualRef = getProjectRef(supabaseUrl);
   if (!actualRef) throw new Error('Malformed NEXT_PUBLIC_SUPABASE_URL');
+
+  const dbEnv =
+    process.env.DATABASE_ENV ||
+    (actualRef === PRODUCTION_SUPABASE_PROJECT_REF
+      ? 'production'
+      : actualRef === STAGING_SUPABASE_PROJECT_REF
+      ? 'staging'
+      : 'development');
 
   if (dbEnv === 'production') {
     if (actualRef !== PRODUCTION_SUPABASE_PROJECT_REF) {

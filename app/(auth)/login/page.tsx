@@ -32,6 +32,15 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('password') || url.searchParams.has('email')) {
+        url.searchParams.delete('password');
+        url.searchParams.delete('email');
+        window.history.replaceState({}, '', url.pathname + (url.search || ''));
+      }
+    }
+
     const handleFocus = () => {
       setGoogleLoading(false);
     };
@@ -84,7 +93,15 @@ export default function LoginPage() {
         <BrandWordmark height={30} />
       </div>
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      <form
+        method="post"
+        action="#"
+        className={styles.form}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(onSubmit)(e);
+        }}
+      >
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         {/* Email Field */}

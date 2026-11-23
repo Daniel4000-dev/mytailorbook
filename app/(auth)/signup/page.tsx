@@ -36,8 +36,14 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const ref = params.get('ref');
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('password') || url.searchParams.has('email') || url.searchParams.has('name')) {
+        url.searchParams.delete('password');
+        url.searchParams.delete('email');
+        url.searchParams.delete('name');
+        window.history.replaceState({}, '', url.pathname + (url.search || ''));
+      }
+      const ref = url.searchParams.get('ref');
       if (ref) {
         document.cookie = `mtb_ref_code=${encodeURIComponent(ref.trim().toUpperCase())}; path=/; max-age=${30 * 24 * 3600}; SameSite=Lax`;
       }
@@ -122,7 +128,15 @@ export default function SignupPage() {
         <BrandWordmark height={30} />
       </div>
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      <form
+        method="post"
+        action="#"
+        className={styles.form}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(onSubmit)(e);
+        }}
+      >
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         {/* Full Name Field */}

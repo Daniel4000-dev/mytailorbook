@@ -30,10 +30,17 @@ export interface OverviewStats {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function count(admin: AdminClient, table: string, filter?: (q: any) => any, select = 'id') {
-  let query = admin.from(table).select(select, { count: 'exact', head: true });
-  if (filter) query = filter(query);
-  const { count: c } = await query;
-  return c ?? 0;
+  try {
+    let query = admin.from(table).select(select, { count: 'exact', head: true });
+    if (filter) query = filter(query);
+    const { count: c, error } = await query;
+    if (error) {
+      return 0;
+    }
+    return c ?? 0;
+  } catch {
+    return 0;
+  }
 }
 
 export async function getOverviewStats(): Promise<OverviewStats> {
@@ -65,7 +72,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     count(admin, 'orders', (q) => q.not('shops.owner_id', 'is', null).gte('created_at', d30), 'id, shops!inner(id, owner_id)'),
     count(admin, 'organizations', (q) => q.not('owner_id', 'is', null).gte('created_at', d7)),
     count(admin, 'organizations', (q) => q.not('owner_id', 'is', null).gte('created_at', d30)),
-    admin.from('subscription_events').select('amount_kobo').eq('event_type', 'charge.success').gte('created_at', d30),
+    Promise.resolve(admin.from('subscription_events').select('amount_kobo').eq('event_type', 'charge.success').gte('created_at', d30)).catch(() => ({ data: [] })),
     count(admin, 'subscription_events', (q) =>
       q.in('event_type', ['subscription.disable', 'subscription.not_renew']).gte('created_at', d30)
     ),
@@ -74,7 +81,11 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     count(admin, 'shops', (q) => q.not('owner_id', 'is', null).eq('business_mode', 'hybrid')),
   ]);
 
-  const revenueLast30dNgn = (revenueEvents ?? []).reduce((sum, e) => sum + (e.amount_kobo ?? 0), 0) / 100;
+  const revenueLast30dNgn = ((revenueEvents as { amount_kobo: number | null }[] | null) ?? []).reduce((sum, e) => sum + (e.amount_kobo ?? 0), 0) / 100;
+  const bespokeActual =
+    bespokeShopsCount === 0 && rtwShopsCount === 0 && hybridShopsCount === 0 && totalShops > 0
+      ? totalShops
+      : bespokeShopsCount;
 
   return {
     totalOrganizations,
@@ -89,7 +100,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     signups30d,
     revenueLast30dNgn,
     cancellations30d,
-    bespokeShopsCount,
+    bespokeShopsCount: bespokeActual,
     rtwShopsCount,
     hybridShopsCount,
   };
@@ -152,45 +163,51 @@ export interface ReferredShopItem {
 }
 
 export async function getAffiliatePerformance(): Promise<AffiliatePerformance[]> {
-  const admin = createAdminClient();
+  try {
+    const admin = createAdminClient();
 
-  const [{ data: affiliates }, { data: orgs }] = await Promise.all([
-    admin.from('affiliates').select('id, name, code, active').order('created_at', { ascending: false }),
-    admin.from('organizations').select('id, referred_by_affiliate_id').not('referred_by_affiliate_id', 'is', null).not('owner_id', 'is', null),
-  ]);
+    const [{ data: affiliates, error: affErr }, { data: orgs, error: orgsErr }] = await Promise.all([
+      admin.from('affiliates').select('id, name, code, active').order('created_at', { ascending: false }),
+      admin.from('organizations').select('id, referred_by_affiliate_id').not('referred_by_affiliate_id', 'is', null).not('owner_id', 'is', null),
+    ]);
 
-  const orgIdsByAffiliate = new Map<string, string[]>();
-  for (const org of orgs ?? []) {
-    const affId = org.referred_by_affiliate_id as string;
-    const list = orgIdsByAffiliate.get(affId) ?? [];
-    list.push(org.id as string);
-    orgIdsByAffiliate.set(affId, list);
+    if (affErr || orgsErr) return [];
+
+    const orgIdsByAffiliate = new Map<string, string[]>();
+    for (const org of orgs ?? []) {
+      const affId = org.referred_by_affiliate_id as string;
+      const list = orgIdsByAffiliate.get(affId) ?? [];
+      list.push(org.id as string);
+      orgIdsByAffiliate.set(affId, list);
+    }
+
+    const allReferredOrgIds = (orgs ?? []).map((o) => o.id as string);
+    let premiumOrgIds = new Set<string>();
+    if (allReferredOrgIds.length > 0) {
+      const { data: premiumShops } = await admin
+        .from('shops')
+        .select('org_id')
+        .in('org_id', allReferredOrgIds)
+        .in('subscription_status', PREMIUM_STATUSES as unknown as string[]);
+      premiumOrgIds = new Set((premiumShops ?? []).map((s) => s.org_id as string));
+    }
+
+    return (affiliates ?? []).map((a) => {
+      const orgIds = orgIdsByAffiliate.get(a.id) ?? [];
+      const premiumConversions = orgIds.filter((id) => premiumOrgIds.has(id)).length;
+      return {
+        id: a.id,
+        name: a.name,
+        code: a.code,
+        active: a.active,
+        signups: orgIds.length,
+        premiumConversions,
+        monthlyRevenueGeneratedNgn: premiumConversions * MONTHLY_PRICE_NGN,
+      };
+    });
+  } catch {
+    return [];
   }
-
-  const allReferredOrgIds = (orgs ?? []).map((o) => o.id as string);
-  let premiumOrgIds = new Set<string>();
-  if (allReferredOrgIds.length > 0) {
-    const { data: premiumShops } = await admin
-      .from('shops')
-      .select('org_id')
-      .in('org_id', allReferredOrgIds)
-      .in('subscription_status', PREMIUM_STATUSES as unknown as string[]);
-    premiumOrgIds = new Set((premiumShops ?? []).map((s) => s.org_id as string));
-  }
-
-  return (affiliates ?? []).map((a) => {
-    const orgIds = orgIdsByAffiliate.get(a.id) ?? [];
-    const premiumConversions = orgIds.filter((id) => premiumOrgIds.has(id)).length;
-    return {
-      id: a.id,
-      name: a.name,
-      code: a.code,
-      active: a.active,
-      signups: orgIds.length,
-      premiumConversions,
-      monthlyRevenueGeneratedNgn: premiumConversions * MONTHLY_PRICE_NGN,
-    };
-  });
 }
 
 export async function getAffiliateReferredShops(affiliateId: string): Promise<ReferredShopItem[]> {
@@ -220,21 +237,26 @@ export interface RateLimitHotspot {
  *  the same reason getSignupSeries is: not enough volume yet to justify a
  *  SQL group-by RPC. */
 export async function getRateLimitHotspots(limit = 10): Promise<RateLimitHotspot[]> {
-  const admin = createAdminClient();
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  try {
+    const admin = createAdminClient();
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-  const { data } = await admin.from('rate_limit_hits').select('key').gte('created_at', since);
+    const { data, error } = await admin.from('rate_limit_hits').select('key').gte('created_at', since);
+    if (error) return [];
 
-  const counts = new Map<string, number>();
-  for (const row of data ?? []) {
-    const key = row.key as string;
-    counts.set(key, (counts.get(key) ?? 0) + 1);
+    const counts = new Map<string, number>();
+    for (const row of data ?? []) {
+      const key = row.key as string;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    return Array.from(counts.entries())
+      .map(([key, hits]) => ({ key, hits }))
+      .sort((a, b) => b.hits - a.hits)
+      .slice(0, limit);
+  } catch {
+    return [];
   }
-
-  return Array.from(counts.entries())
-    .map(([key, hits]) => ({ key, hits }))
-    .sort((a, b) => b.hits - a.hits)
-    .slice(0, limit);
 }
 
 export async function listAffiliates(): Promise<{ id: string; name: string; code: string }[]> {

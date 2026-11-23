@@ -16,6 +16,12 @@ import styles from './BadgeCelebrationModal.module.css';
 const STORAGE_KEY = 'unlocked_atelier_badge_ids';
 
 export default function BadgeCelebrationModal() {
+  // Master feature switch: Badges feature is currently suspended
+  return null;
+}
+
+// Suspended implementation preserved below for future activation:
+function _SuspendedBadgeCelebrationModal() {
   const { currentShop, customers, orders, refreshShop } = useData();
   const { showToast } = useToast();
   const [celebratedBadge, setCelebratedBadge] = useState<AtelierBadge | null>(null);

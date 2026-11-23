@@ -172,7 +172,8 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       {!isMenuOpen && <InstallPrompt />}
       {!isMenuOpen && !isTransactional && <NotificationPrompt />}
       <CraftSpark />
-      <BadgeCelebrationModal />
+      {/* Badge celebration feature suspended until public rollout */}
+      {/* <BadgeCelebrationModal /> */}
       <OfflineSyncManager />
     </div>
   );

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import {
   getOverviewStats,
@@ -102,14 +103,16 @@ export default async function AdminOverviewPage({
           </p>
         </div>
 
-        <AdminModeFilter
-          counts={{
-            all: stats.totalShops,
-            bespoke: stats.bespokeShopsCount,
-            rtw: stats.rtwShopsCount,
-            hybrid: stats.hybridShopsCount,
-          }}
-        />
+        <Suspense fallback={null}>
+          <AdminModeFilter
+            counts={{
+              all: stats.totalShops,
+              bespoke: stats.bespokeShopsCount,
+              rtw: stats.rtwShopsCount,
+              hybrid: stats.hybridShopsCount,
+            }}
+          />
+        </Suspense>
       </div>
 
       {/* ── Metric Cards Grid ── */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BrandIcon from '@/components/ui/BrandIcon/BrandIcon';
 
@@ -20,6 +20,18 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('password') || url.searchParams.has('confirmPw') || url.searchParams.has('email')) {
+        url.searchParams.delete('password');
+        url.searchParams.delete('confirmPw');
+        url.searchParams.delete('email');
+        window.history.replaceState({}, '', url.pathname + (url.search || ''));
+      }
+    }
+  }, []);
 
   const {
     register,
@@ -81,7 +93,15 @@ export default function ResetPasswordPage() {
         <BrandWordmark height={32} />
       </div>
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      <form
+        method="post"
+        action="#"
+        className={styles.form}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(onSubmit)(e);
+        }}
+      >
         {apiError && <div className={styles.errorBanner}>{apiError}</div>}
 
         <p className={styles.subheading}>Choose a new password for your account.</p>
