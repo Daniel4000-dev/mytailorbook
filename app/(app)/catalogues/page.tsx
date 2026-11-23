@@ -165,7 +165,7 @@ export default function CataloguesPage() {
 
   return (
     <div className={styles.container}>
-      <TopBar title="Inspiration Lookbooks" showBack={false} />
+      <TopBar title="Inspiration Lookbooks" showBack onBack={() => router.push(ROUTES.dashboard)} />
 
       <div className={styles.content}>
         {currentShop?.subscriptionStatus === 'paused' && (
