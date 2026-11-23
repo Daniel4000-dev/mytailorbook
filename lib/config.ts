@@ -9,7 +9,14 @@
    domain on purpose and does not need to match it.
    ============================================================ */
 
-const domain = process.env.NEXT_PUBLIC_SITE_DOMAIN || 'mystitchbooks.com';
+const rawDomain = (process.env.NEXT_PUBLIC_SITE_DOMAIN || 'mystitchbook.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/.*$/, '')
+  .trim();
+
+// Strip any dev/app/staging prefixes so public customer links, WhatsApp shares,
+// and canonical metadata always point to the clean apex production domain.
+const domain = rawDomain.replace(/^(dev\.app\.|app\.|dev\.|staging\.)/, '') || 'mystitchbook.com';
 
 export const APP_CONFIG = {
   name: 'MyStitchBook',
