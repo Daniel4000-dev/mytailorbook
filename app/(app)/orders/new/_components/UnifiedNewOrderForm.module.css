@@ -1935,16 +1935,16 @@
 
 .slipShopTitle {
   margin: 0;
-  font-size: 17px;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--sf-text-primary);
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
 
 .slipSubtitle {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: #64748b;
   letter-spacing: 0.5px;
 }
@@ -1958,9 +1958,9 @@
 
 .slipOrderId {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #0f172a;
+  color: var(--sf-text-primary);
 }
 
 .slipUrgentBadge {
@@ -1994,8 +1994,8 @@
 }
 
 .slipInfoValue {
-  color: #0f172a;
-  font-weight: 700;
+  color: var(--sf-text-primary);
+  font-weight: 600;
 }
 
 .slipInfoHighlight {
@@ -2018,7 +2018,7 @@
 
 .slipGarmentName {
   font-size: 14px;
-  color: #0f172a;
+  color: var(--sf-text-primary);
   font-weight: 600;
 }
 
@@ -2060,8 +2060,8 @@
 }
 
 .slipMeasureValue {
-  font-weight: 800;
-  color: #0f172a;
+  font-weight: 600;
+  color: var(--sf-text-primary);
 }
 
 .slipFitNote {

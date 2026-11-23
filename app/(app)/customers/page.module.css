@@ -593,14 +593,14 @@
 }
 
 .customerName {
-  font-size: 15.5px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--sf-text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .genderSubtle {
@@ -957,7 +957,7 @@
 
 .outboundLeadTitle {
   font-size: 14.5px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--sf-text-primary);
   letter-spacing: -0.01em;
 }

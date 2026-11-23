@@ -78,14 +78,11 @@
    --sf-amber: #6366F1;
    --sf-ochre: #4338CA;
 
-   /* ── Colors: Text (near-black blended with the accent, not flat
-     gray — R/G/B were previously ~equal, which reads as generic
-     near-black rather than deliberately toned to the brand; these lean
-     the same direction as the indigo accent (R slightly > G, B raised)
-     so text never feels like a mismatched, off-the-shelf dark gray) ── */
-   --sf-text-primary: #1C1A28;
-   --sf-text-secondary: #55536A;
-   --sf-text-tertiary: #615E77;
+   /* ── Colors: Text (Refined warm charcoal blended with subtle brand tint,
+     avoiding harsh jet-black bleeding while preserving high contrast) ── */
+   --sf-text-primary: #272535;
+   --sf-text-secondary: #58556D;
+   --sf-text-tertiary: #6E6B84;
    --sf-text-on-accent: #FFFFFF;
    --sf-text-gold: #4338CA;
    --sf-text-accent: #4338CA;

@@ -537,9 +537,10 @@
 
 .sectionTitle {
   font-family: var(--sf-font-heading);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15.5px;
+  font-weight: 600;
   color: var(--sf-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .cardHeaderRow {
@@ -705,9 +706,9 @@
 }
 
 .teamName {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13px;
-  color: var(--sf-text-primary, #111827);
+  color: var(--sf-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1742,8 +1743,8 @@
 
 .teamBenchTitle {
   font-size: 15px;
-  font-weight: 700;
-  color: var(--sf-text-primary, #111827);
+  font-weight: 600;
+  color: var(--sf-text-primary);
   letter-spacing: -0.01em;
   margin: 0;
 }
@@ -1868,8 +1869,8 @@
 
 .registerTitle {
   font-size: 15px;
-  font-weight: 700;
-  color: var(--sf-text-primary, #111827);
+  font-weight: 600;
+  color: var(--sf-text-primary);
   letter-spacing: -0.01em;
   margin: 0;
 }
@@ -1947,8 +1948,8 @@
 
 .registerCustomer {
   font-size: 13px;
-  font-weight: 600;
-  color: var(--sf-text-primary, #111827);
+  font-weight: 550;
+  color: var(--sf-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1973,8 +1974,8 @@
 
 .registerAmount {
   font-size: 13px;
-  font-weight: 700;
-  color: var(--sf-text-primary, #111827);
+  font-weight: 600;
+  color: var(--sf-text-primary);
 }
 
 .registerMethodBadge {

@@ -206,7 +206,7 @@
 .customerName {
   font-size: var(--sf-text-sm);
   font-weight: var(--sf-weight-semibold);
-  color: #1C1A28;
+  color: var(--sf-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

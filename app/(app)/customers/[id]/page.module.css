@@ -133,12 +133,12 @@
 
 .name {
   font-family: var(--sf-font-heading);
-  font-size: clamp(20px, 4.8vw, 24px);
-  font-weight: 900;
+  font-size: clamp(20px, 4.5vw, 23px);
+  font-weight: 650;
   color: var(--sf-text-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -332,11 +332,11 @@
 .statBoxVal {
   font-family: var(--sf-font-numeric, var(--sf-font-heading));
   font-size: clamp(18px, 4.2vw, 21px);
-  font-weight: 900;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--sf-text-primary);
   line-height: 1.1;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
 }
 
 .settledVal {
