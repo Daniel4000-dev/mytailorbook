@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import BroadcastComposer from './BroadcastComposer';
+import BroadcastDetailModal from './BroadcastDetailModal';
+import { getBroadcastDetailAction, type BroadcastDetailResult } from './actions';
 import styles from './page.module.css';
 
 interface BroadcastHistoryItem {
@@ -34,9 +36,33 @@ function formatDate(iso: string) {
 
 export default function BroadcastsClient({ initialHistory }: BroadcastsClientProps) {
   const [history, setHistory] = useState<BroadcastHistoryItem[]>(initialHistory);
+  const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);
+  const [detailData, setDetailData] = useState<BroadcastDetailResult | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const handleRefresh = () => {
     window.location.reload();
+  };
+
+  const handleOpenDetail = async (broadcastId: string) => {
+    setSelectedBroadcastId(broadcastId);
+    setLoadingDetail(true);
+    setDetailData(null);
+    try {
+      const res = await getBroadcastDetailAction(broadcastId);
+      if (res.success && res.data) {
+        setDetailData(res.data);
+      }
+    } catch (err) {
+      console.error('[BroadcastsClient] Error loading broadcast details:', err);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedBroadcastId(null);
+    setDetailData(null);
   };
 
   return (
@@ -68,7 +94,12 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
 
       <div className={styles.historyCard}>
         <div className={styles.historyHeader}>
-          <h3 className={styles.historyTitle}>Recent Broadcast Dispatches</h3>
+          <div>
+            <h3 className={styles.historyTitle}>Recent Broadcast Dispatches</h3>
+            <p className={styles.historySubtitle}>
+              Click any dispatch row below to monitor individual recipient delivery, read receipts, and device push statuses.
+            </p>
+          </div>
           <span className={styles.historyCount}>{history.length} logged</span>
         </div>
 
@@ -85,14 +116,23 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
                   <th>Delivered In-App</th>
                   <th>Device Pushes</th>
                   <th>Dispatched By</th>
-                  <th>Date & Time</th>
+                  <th>Date &amp; Time</th>
+                  <th>Activity</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((item) => (
-                  <tr key={item.id}>
+                  <tr
+                    key={item.id}
+                    className={styles.clickableRow}
+                    onClick={() => handleOpenDetail(item.id)}
+                    title="Click to view recipient delivery and read receipts"
+                  >
                     <td>
-                      <strong>{item.title}</strong>
+                      <div className={styles.titleCell}>
+                        <strong>{item.title}</strong>
+                        <span className={styles.clickHint}>Click to view recipient activity</span>
+                      </div>
                     </td>
                     <td>
                       <span className={styles.targetBadge}>
@@ -101,7 +141,11 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
                     </td>
                     <td>
                       <span className={styles.audienceBadge}>
-                        {item.targetAudience === 'owners_only' ? 'Owners Only' : item.targetAudience === 'staff_only' ? 'Staff Only' : 'Everyone'}
+                        {item.targetAudience === 'owners_only'
+                          ? 'Owners Only'
+                          : item.targetAudience === 'staff_only'
+                          ? 'Staff Only'
+                          : 'Everyone'}
                       </span>
                     </td>
                     <td>
@@ -116,6 +160,18 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
                     </td>
                     <td>{item.adminName}</td>
                     <td>{formatDate(item.createdAt)}</td>
+                    <td>
+                      <button
+                        className={styles.inspectBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDetail(item.id);
+                        }}
+                      >
+                        <Symbol name="visibility" size={14} />
+                        Inspect
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -123,6 +179,15 @@ export default function BroadcastsClient({ initialHistory }: BroadcastsClientPro
           </div>
         )}
       </div>
+
+      {/* Broadcast Recipient Detail Modal */}
+      {selectedBroadcastId && (
+        <BroadcastDetailModal
+          data={detailData}
+          loading={loadingDetail}
+          onClose={handleCloseDetail}
+        />
+      )}
     </div>
   );
 }

@@ -274,11 +274,19 @@ export async function sendBroadcastAction(payload: BroadcastPayload): Promise<Br
 
   // Batch insert in chunks of 100 to avoid payload size limits
   const CHUNK_SIZE = 100;
+  const insertedNotificationIds: string[] = [];
+
   for (let i = 0; i < notificationRows.length; i += CHUNK_SIZE) {
     const chunk = notificationRows.slice(i, i + CHUNK_SIZE);
-    const { error: insertErr } = await admin.from('atelier_notifications').insert(chunk);
+    const { data: inserted, error: insertErr } = await admin
+      .from('atelier_notifications')
+      .insert(chunk)
+      .select('id');
+
     if (insertErr) {
       console.error('[Broadcast] Failed inserting notification batch:', insertErr);
+    } else if (inserted) {
+      inserted.forEach((r) => insertedNotificationIds.push(r.id));
     }
   }
 
@@ -323,6 +331,8 @@ export async function sendBroadcastAction(payload: BroadcastPayload): Promise<Br
       target_id: `${shops.length}_shops`,
       diff: {
         title: titleRaw,
+        message: messageRaw,
+        tone: payload.tone,
         targetMode: payload.targetMode,
         targetPlan: payload.targetPlan,
         targetAudience: payload.targetAudience,
@@ -330,6 +340,7 @@ export async function sendBroadcastAction(payload: BroadcastPayload): Promise<Br
         shopsCount: shops.length,
         recipientsCount: notificationRows.length,
         pushCount: totalPushSent,
+        notificationIds: insertedNotificationIds,
       },
     });
   } catch {
@@ -367,4 +378,211 @@ export async function getRecentBroadcastsAction(limit = 10) {
     pushCount: (row.diff as any)?.pushCount || 0,
     createdAt: row.created_at,
   }));
+}
+
+export interface BroadcastRecipientDetail {
+  notificationId: string;
+  shopId: string;
+  shopName: string;
+  businessMode: string;
+  recipientId: string | null;
+  recipientName: string;
+  recipientRole: string;
+  recipientEmail?: string | null;
+  status: 'read' | 'unread';
+  readAt: string | null;
+  deliveredAt: string;
+  hasPushDevice: boolean;
+  pushEndpointsCount: number;
+}
+
+export interface BroadcastDetailResult {
+  id: string;
+  title: string;
+  message?: string;
+  tone: 'info' | 'warning' | 'alert';
+  targetMode: string;
+  targetPlan: string;
+  targetAudience: string;
+  targetFeature?: string;
+  adminName: string;
+  dispatchedAt: string;
+  summary: {
+    totalDelivered: number;
+    totalRead: number;
+    totalUnread: number;
+    readRatePercent: number;
+    pushDevicesCount: number;
+    pushPushesSent: number;
+  };
+  recipients: BroadcastRecipientDetail[];
+}
+
+export async function getBroadcastDetailAction(broadcastId: string): Promise<{ success: boolean; data?: BroadcastDetailResult; error?: string }> {
+  await requireAdmin();
+  const admin = createAdminClient();
+
+  const { data: auditRow, error: auditErr } = await admin
+    .from('admin_audit_log')
+    .select('id, admin_name, diff, created_at')
+    .eq('id', broadcastId)
+    .single();
+
+  if (auditErr || !auditRow) {
+    return { success: false, error: 'Broadcast dispatch record not found.' };
+  }
+
+  const diff = (auditRow.diff as any) || {};
+  const notificationIds: string[] = Array.isArray(diff.notificationIds) ? diff.notificationIds : [];
+
+  let notifRows: Array<{
+    id: string;
+    shop_id: string;
+    recipient_id: string | null;
+    title: string;
+    subtitle: string | null;
+    read_at: string | null;
+    created_at: string;
+  }> = [];
+
+  if (notificationIds.length > 0) {
+    const { data: rows } = await admin
+      .from('atelier_notifications')
+      .select('id, shop_id, recipient_id, title, subtitle, read_at, created_at')
+      .in('id', notificationIds);
+    notifRows = (rows as any) || [];
+  } else {
+    // Fallback for previous dispatches: query by timestamp window around audit record
+    const createdAtDate = new Date(auditRow.created_at);
+    const windowStart = new Date(createdAtDate.getTime() - 10 * 60 * 1000).toISOString();
+    const windowEnd = new Date(createdAtDate.getTime() + 10 * 60 * 1000).toISOString();
+
+    const { data: rows } = await admin
+      .from('atelier_notifications')
+      .select('id, shop_id, recipient_id, title, subtitle, read_at, created_at')
+      .eq('category', 'system')
+      .gte('created_at', windowStart)
+      .lte('created_at', windowEnd)
+      .order('created_at', { ascending: false });
+
+    const rawRows = (rows as any) || [];
+    const targetTitle = (diff.title || '').trim().toLowerCase();
+
+    if (targetTitle) {
+      const prefix = targetTitle.split('{')[0].trim().toLowerCase();
+      notifRows = rawRows.filter((r: any) => {
+        if (!r.title) return false;
+        const t = r.title.toLowerCase();
+        return prefix ? t.includes(prefix) : t === targetTitle;
+      });
+      // If none matched prefix, fallback to all rawRows in that window
+      if (notifRows.length === 0) {
+        notifRows = rawRows;
+      }
+    } else {
+      notifRows = rawRows;
+    }
+  }
+
+  const shopIds = Array.from(new Set(notifRows.map((n) => n.shop_id).filter(Boolean)));
+  const { data: shops } = await admin
+    .from('shops')
+    .select('id, name, business_mode, owner_id')
+    .in('id', shopIds);
+  const shopMap = new Map((shops || []).map((s) => [s.id, s]));
+
+  const { data: profiles } = await admin
+    .from('profiles')
+    .select('id, shop_id, name, role, email')
+    .in('shop_id', shopIds);
+
+  type ProfileItem = NonNullable<typeof profiles>[number];
+  const profileMap = new Map<string, ProfileItem>((profiles || []).map((p) => [p.id, p]));
+  const profilesByShop = new Map<string, ProfileItem[]>();
+  for (const p of profiles || []) {
+    const list = profilesByShop.get(p.shop_id) || [];
+    list.push(p);
+    profilesByShop.set(p.shop_id, list);
+  }
+
+  const allProfileIds = (profiles || []).map((p) => p.id);
+  const { data: pushSubs } = await admin
+    .from('push_subscriptions')
+    .select('id, profile_id')
+    .in('profile_id', allProfileIds);
+
+  const pushSubsByProfile = new Map<string, number>();
+  for (const s of pushSubs || []) {
+    pushSubsByProfile.set(s.profile_id, (pushSubsByProfile.get(s.profile_id) || 0) + 1);
+  }
+
+  const recipients: BroadcastRecipientDetail[] = notifRows.map((notif) => {
+    const shop = shopMap.get(notif.shop_id);
+    const shopStaff = profilesByShop.get(notif.shop_id) || [];
+
+    let recipientProfile: ProfileItem | null = notif.recipient_id ? profileMap.get(notif.recipient_id) || null : null;
+    if (!recipientProfile) {
+      recipientProfile =
+        shopStaff.find((p) => p.role === 'Owner' || p.role === 'OrgAdmin' || p.id === shop?.owner_id) ||
+        shopStaff[0] ||
+        null;
+    }
+
+    let pushEndpointsCount = 0;
+    if (notif.recipient_id) {
+      pushEndpointsCount = pushSubsByProfile.get(notif.recipient_id) || 0;
+    } else {
+      pushEndpointsCount = shopStaff.reduce((acc, p) => acc + (pushSubsByProfile.get(p.id) || 0), 0);
+    }
+
+    const isRead = Boolean(notif.read_at);
+
+    return {
+      notificationId: notif.id,
+      shopId: notif.shop_id,
+      shopName: shop?.name || 'Workshop',
+      businessMode: shop?.business_mode || 'bespoke',
+      recipientId: notif.recipient_id,
+      recipientName: recipientProfile?.name || (notif.recipient_id ? 'Tailor' : 'Workshop Team'),
+      recipientRole: recipientProfile?.role || 'Shop Owner',
+      recipientEmail: recipientProfile?.email || null,
+      status: isRead ? 'read' : 'unread',
+      readAt: notif.read_at,
+      deliveredAt: notif.created_at,
+      hasPushDevice: pushEndpointsCount > 0,
+      pushEndpointsCount,
+    };
+  });
+
+  const totalDelivered = recipients.length;
+  const totalRead = recipients.filter((r) => r.status === 'read').length;
+  const totalUnread = totalDelivered - totalRead;
+  const readRatePercent = totalDelivered > 0 ? Math.round((totalRead / totalDelivered) * 100) : 0;
+  const pushDevicesCount = recipients.filter((r) => r.hasPushDevice).length;
+  const pushPushesSent = (diff.pushCount as number) || 0;
+
+  return {
+    success: true,
+    data: {
+      id: auditRow.id,
+      title: diff.title || 'Broadcast Announcement',
+      message: diff.message || notifRows[0]?.subtitle || undefined,
+      tone: diff.tone || 'info',
+      targetMode: diff.targetMode || 'all',
+      targetPlan: diff.targetPlan || 'all',
+      targetAudience: diff.targetAudience || 'all',
+      targetFeature: diff.targetFeature || 'all',
+      adminName: auditRow.admin_name,
+      dispatchedAt: auditRow.created_at,
+      summary: {
+        totalDelivered,
+        totalRead,
+        totalUnread,
+        readRatePercent,
+        pushDevicesCount,
+        pushPushesSent,
+      },
+      recipients,
+    },
+  };
 }
