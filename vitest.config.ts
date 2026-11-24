@@ -3,8 +3,8 @@ import path from 'node:path';
 
 export default defineConfig({
   test: {
-    environment: 'node',
-    include: ['tests/unit/**/*.test.ts', 'tests/rls/**/*.test.ts'],
+    environment: 'happy-dom',
+    include: ['tests/unit/**/*.test.{ts,tsx}', 'tests/rls/**/*.test.{ts,tsx}'],
     testTimeout: 20000,
   },
   resolve: {

@@ -51,6 +51,9 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -62,6 +65,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "happy-dom": "^21.0.4",
     "picomatch": "^4.0.7",
     "typescript": "^5",
     "vitest": "^4.1.10",
