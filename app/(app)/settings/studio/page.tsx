@@ -937,7 +937,7 @@ export default function StudioSettingsPage() {
           )}
 
           <p className={styles.sheetHelp}>
-            Used to auto-populate the {'{instagram}'} variable in client messages (e.g. event photo requests) and displayed on your public lookbook.
+            Displayed on your public lookbook and shared with customers.
           </p>
 
           <div className={styles.sheetActions}>
@@ -981,7 +981,7 @@ export default function StudioSettingsPage() {
           />
 
           <p className={styles.sheetHelp}>
-            Auto-injected into quotes, receipts, invoices, and WhatsApp deposit payment reminders via the {'{bank_details}'} tag.
+            Shown on quotes, receipts, and payment reminders so customers can pay you easily.
           </p>
 
           <div className={styles.sheetActions}>
