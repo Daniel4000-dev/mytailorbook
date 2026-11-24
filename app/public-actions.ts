@@ -1,7 +1,9 @@
 'use server';
 
 import { cache } from 'react';
+import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { getRequestIp, checkRateLimit } from '@/lib/rateLimit';
 import { createAtelierNotification } from '@/lib/notifications';
 import type { Order, Customer, Shop, OrderComment } from '@/lib/types';
@@ -98,7 +100,10 @@ async function resolvePublicOrderRow(admin: ReturnType<typeof createAdminClient>
   return null;
 }
 
-export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
+export async function getPublicOrderView(
+  orderIdOrSlug: string,
+  options?: { recordView?: boolean }
+): Promise<{
   order: Order;
   customer: Customer | null;
   shop: Shop | null;
@@ -138,21 +143,55 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
   };
 
   // Automated Customer Receipt & Verification Ping:
-  // Award +15 XP and alert the shop the very first time their customer actually
-  // opens the live tracking link on their own phone.
+  // Only runs when explicitly requested by the actual page body (`options?.recordView === true`,
+  // never during generateMetadata or link unfurling), and ONLY when the visitor is NOT the tailor
+  // or a staff member of the workshop.
   const orderMetadata = (row.metadata as Record<string, unknown>) || {};
-  if (!orderMetadata.clientViewedAt && row.shop_id) {
-    const nowIso = new Date().toISOString();
-    const updatedMeta = {
-      ...orderMetadata,
-      clientViewedAt: nowIso,
-      clientViewsCount: 1,
-    };
-    order.metadata = updatedMeta;
-
-    // Asynchronously log to DB and notify tailor
+  if (options?.recordView && !orderMetadata.clientViewedAt && row.shop_id) {
     (async () => {
       try {
+        // 1. Check if this browser belongs to an authenticated tailor/staff member
+        let viewerUid: string | null = null;
+        try {
+          const cookieStore = await cookies();
+          viewerUid = cookieStore.get('mtb_tailor_uid')?.value || null;
+          if (!viewerUid) {
+            const serverSupabase = await createClient();
+            const { data: authData } = await serverSupabase.auth.getUser();
+            viewerUid = authData?.user?.id || null;
+          }
+        } catch {
+          // No session/cookies available
+        }
+
+        if (viewerUid) {
+          // If the viewer is a registered tailor/staff in `profiles` (especially of this shop/org)
+          // or is the shop owner, skip firing the customer view notification.
+          const { data: viewerProfile } = await admin
+            .from('profiles')
+            .select('id, shop_id')
+            .eq('id', viewerUid)
+            .maybeSingle();
+          if (viewerProfile) {
+            return;
+          }
+          const { data: ownedShop } = await admin
+            .from('shops')
+            .select('id')
+            .eq('id', row.shop_id)
+            .eq('owner_id', viewerUid)
+            .maybeSingle();
+          if (ownedShop) {
+            return;
+          }
+        }
+
+        const nowIso = new Date().toISOString();
+        const updatedMeta = {
+          ...orderMetadata,
+          clientViewedAt: nowIso,
+          clientViewsCount: 1,
+        };
         await admin.from('orders').update({ metadata: updatedMeta }).eq('id', row.id);
 
         if (FEATURE_FLAGS.xpSystem) {

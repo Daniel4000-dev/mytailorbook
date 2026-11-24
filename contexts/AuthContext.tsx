@@ -198,6 +198,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resetAnalytics();
       // Clear offline SWR cache so another user on this device does not see it.
       localStorage.removeItem('mtb-swr-cache');
+      // Clear parent-domain tailor identity cookie on logout
+      document.cookie = 'mtb_tailor_uid=; path=/; max-age=0';
+      document.cookie = `mtb_tailor_uid=; path=/; domain=.${window.location.hostname.replace(/^(dev\.app\.|app\.|dev\.|staging\.)/, '')}; max-age=0`;
       // Direct hard redirect to /login ensures all memory/state/service-worker
       // caches are cleanly flushed and lands on the login page immediately.
       window.location.href = ROUTES.login;

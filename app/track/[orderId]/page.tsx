@@ -92,7 +92,7 @@ export default async function TrackOrderPage({
   params: Promise<{ orderId: string }>;
 }) {
   const { orderId } = await params;
-  const view = await getPublicOrderView(orderId);
+  const view = await getPublicOrderView(orderId, { recordView: true });
 
   if (!view) {
     return (
@@ -120,6 +120,102 @@ export default async function TrackOrderPage({
     getPublicOrderEvents(order.id),
   ]);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
+  const deliveredDate = stageDate(order.statusHistory, 'Delivered');
+
+  // Once the order is Delivered AND the customer's review has been collected,
+  // terminate the active tracking session and render a clean "Your Order is Completed" screen.
+  if (isDelivered && alreadyRated) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div className={styles.atelierBlock}>
+            {shop?.logoUrl ? (
+              <div className={styles.atelierLogoWrap}>
+                <Image
+                  src={shop.logoUrl}
+                  alt={shop.name}
+                  width={38}
+                  height={38}
+                  className={styles.atelierLogo}
+                />
+              </div>
+            ) : (
+              <div className={styles.atelierMonogram}>
+                {(shop?.name || APP_CONFIG.name).charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className={styles.atelierText}>
+              <span className={styles.atelierName}>{shop?.name || APP_CONFIG.name}</span>
+              <span className={styles.atelierBadge}>
+                <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
+                Verified Tailor
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <main className={styles.main}>
+          <section className={styles.completedArchiveCard}>
+            <div className={styles.completedArchiveBadge}>
+              <Symbol name="check_circle" size={28} />
+            </div>
+            <span className={styles.completedArchiveOverline}>
+              Order #{order.id.slice(0, 4).toUpperCase()} · Closed
+            </span>
+            <h1 className={styles.completedArchiveTitle}>Your Order is Completed</h1>
+            <p className={styles.completedArchiveText}>
+              <strong>{order.orderDetails}</strong> was delivered
+              {deliveredDate
+                ? ` on ${deliveredDate.toLocaleDateString('en-NG', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}`
+                : ''}{' '}
+              and your review has been received. This live tracking link is now closed.
+            </p>
+
+            <div className={styles.completedArchiveActions}>
+              <Link href={ROUTES.receipt(order)} className={styles.completedReceiptBtn}>
+                <Symbol name="receipt_long" size={16} />
+                <span>View Digital Receipt</span>
+              </Link>
+              {shop?.slug && (
+                <Link href={ROUTES.studio(shop.slug)} className={styles.completedSecondaryBtn}>
+                  <Symbol name="storefront" size={16} />
+                  <span>Visit {shop.name}</span>
+                </Link>
+              )}
+              {shop?.phone && (
+                <a
+                  href={getWhatsAppLink(
+                    shop.phone,
+                    `Hello ${shop.name}, thank you for my completed order (${order.orderDetails}).`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.completedSecondaryBtn}
+                >
+                  <WhatsappIcon size={15} />
+                  <span>Contact Tailor</span>
+                </a>
+              )}
+            </div>
+          </section>
+        </main>
+
+        <footer className={styles.footer}>
+          <p>
+            Crafted with care at {shop?.name || APP_CONFIG.name}
+            <span className={styles.footerDivider}>•</span>
+            <span>
+              Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
+            </span>
+          </p>
+        </footer>
+      </div>
+    );
+  }
 
   const todayStr = new Date().toISOString().split('T')[0];
   const upcomingAppointments = events.filter(
@@ -142,7 +238,8 @@ export default async function TrackOrderPage({
       ? 'Target today'
       : 'Final touches in progress';
 
-  const visibleStages = STATUS_ORDER.filter((s, i) => s !== 'Delivered' || i <= currentStepIndex);
+  // Never show a 'Delivered' stage card in the timeline
+  const visibleStages = STATUS_ORDER.filter((s) => s !== 'Delivered');
 
   const photosFor = (status: OrderStatus): OrderPhoto[] =>
     (order.images || []).filter((p) => p.stage === status);
@@ -152,7 +249,6 @@ export default async function TrackOrderPage({
     order.images && order.images.length > 0
       ? order.images[order.images.length - 1].url
       : order.inspirationImages?.[0] || customer?.fabrics?.[0]?.url || null;
-  const deliveredDate = stageDate(order.statusHistory, 'Delivered');
 
   // Extract documented fit measurements (either on order or customer profile)
   const rawMeasurements =
@@ -385,39 +481,38 @@ export default async function TrackOrderPage({
           fabrics={customer?.fabrics}
         />
 
-        {/* Rating shown first on delivery */}
-        {isDelivered && (
+        {/* When Delivered (and awaiting review), replace the progress timeline with the Review Card */}
+        {isDelivered ? (
           <RatingForm
             orderId={order.id}
             shopName={shop?.name || APP_CONFIG.name}
             alreadyRated={alreadyRated}
           />
+        ) : (
+          /* ── 2. Craftsmanship Timeline with Sartorial SVG Blueprints (Only while in production) ── */
+          <section className={styles.timeline}>
+            <div className={styles.timelineRail} aria-hidden="true" />
+            {visibleStages.map((status, index) => {
+              const isCompleted = index < currentStepIndex;
+              const isCurrent = index === currentStepIndex;
+              const isPending = index > currentStepIndex;
+
+              return (
+                <TimelineStage
+                  key={status}
+                  status={status}
+                  isCompleted={isCompleted}
+                  isCurrent={isCurrent}
+                  isPending={isPending}
+                  date={stageDate(order.statusHistory, status)}
+                  photos={photosFor(status)}
+                  dueDate={order.dueDate}
+                  assignedToName={order.assignedToName}
+                />
+              );
+            })}
+          </section>
         )}
-
-        {/* ── 2. Craftsmanship Timeline with Sartorial SVG Blueprints ── */}
-        <section className={styles.timeline}>
-          <div className={styles.timelineRail} aria-hidden="true" />
-          {visibleStages.map((status, index) => {
-            const isCompleted =
-              index < currentStepIndex || (index === currentStepIndex && status === 'Delivered');
-            const isCurrent = index === currentStepIndex && status !== 'Delivered';
-            const isPending = index > currentStepIndex;
-
-            return (
-              <TimelineStage
-                key={status}
-                status={status}
-                isCompleted={isCompleted}
-                isCurrent={isCurrent}
-                isPending={isPending}
-                date={stageDate(order.statusHistory, status)}
-                photos={photosFor(status)}
-                dueDate={order.dueDate}
-                assignedToName={order.assignedToName}
-              />
-            );
-          })}
-        </section>
 
         {/* ── 3. Documented Fit Profile Card (Makes Photo-less Orders Look Rich & Personal) ── */}
         {measurementEntries.length > 0 && (

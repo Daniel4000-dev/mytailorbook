@@ -92,6 +92,21 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Set a parent-domain marker cookie (`.mystitchbooks.com` / `.mystitchbook.com`) when a tailor/staff member
+  // is authenticated so public `/track/...` pages on the root domain know this browser belongs to a tailor
+  // and will never trigger a false "Client Opened Live Tracker" notification when the tailor previews links.
+  if (user) {
+    const rawHost = request.headers.get('host')?.replace(/:\d+$/, '') || '';
+    const isLocal = rawHost === 'localhost' || rawHost === '127.0.0.1';
+    const rootDomain = rawHost.replace(/^(dev\.app\.|app\.|dev\.|staging\.)/, '');
+    response.cookies.set('mtb_tailor_uid', user.id, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      ...(isLocal || rawHost.endsWith('.vercel.app') ? {} : { domain: `.${rootDomain}` }),
+    });
+  }
+
   // Deliberately excludes /reset-password — a logged-in user following a
   // password-reset link should still be able to reset it, not get bounced
   // to /dashboard before they can.

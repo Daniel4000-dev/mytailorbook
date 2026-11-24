@@ -1953,10 +1953,10 @@ export default function OrderDetailPage() {
             router.push(ROUTES.customerDetail(customer || order.customerId));
           }
         }}
-        title="Any Fit Amendments?"
-        description="Since you're delivering this order, did you make any final adjustments to the garment? You can record them now so the customer's next outfit fits perfectly from the start."
-        confirmLabel="Record Amendments"
-        cancelLabel="No, Fits Perfectly"
+        title="Any Fit Changes?"
+        description="Did you make any final size adjustments during fitting? Save them now so their next outfit fits right away."
+        confirmLabel="Update Fit"
+        cancelLabel="No, All Good"
         destructive={false}
       />
 

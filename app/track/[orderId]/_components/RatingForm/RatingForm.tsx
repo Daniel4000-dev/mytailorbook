@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
 import { submitOrderRatingAction } from '@/app/public-actions';
 import styles from './RatingForm.module.css';
 import Symbol from '@/components/ui/Symbol/Symbol';
@@ -16,6 +16,7 @@ interface RatingFormProps {
 }
 
 export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFormProps) {
+  const router = useRouter();
   const [submitted, setSubmitted] = useState(alreadyRated);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -33,6 +34,7 @@ export default function RatingForm({ orderId, shopName, alreadyRated }: RatingFo
     const result = await submitOrderRatingAction(orderId, rating, comment.trim() || undefined);
     if (result.success) {
       setSubmitted(true);
+      router.refresh();
     } else {
       setError(result.error || 'Could not send your review. Please try again.');
     }

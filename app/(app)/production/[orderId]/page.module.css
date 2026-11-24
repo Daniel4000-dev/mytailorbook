@@ -1130,9 +1130,16 @@
 .sectionActions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
-  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .sectionActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 .copySpecBtn {
