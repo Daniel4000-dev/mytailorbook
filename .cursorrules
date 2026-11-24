@@ -1,0 +1,13 @@
+# MyTailorBook Cursor Rules
+
+## Mandatory Component Mount & Integration Testing
+- Whenever developing or fixing features in MyTailorBook, write Vitest + happy-dom + @testing-library/react component tests.
+- Pure unit tests of isolated logic functions alone are forbidden as sole verification for UI features.
+- Test Rich, Sparse, and Edge-Case data states.
+- Verify user clicks, inputs, and state changes.
+
+## Development Constraints
+- Zero Emojis in code, commits, and UI copy.
+- Never use the words "atelier" or "specialist embellishment".
+- Push exclusively to `origin staging`. Never merge to `main`.
+- Ensure `npx tsc --noEmit` and `npm run test:unit` pass cleanly.
