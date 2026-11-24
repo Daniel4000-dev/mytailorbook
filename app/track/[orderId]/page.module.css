@@ -1206,54 +1206,75 @@
 
 
 
-/* ── Apple Wallet-Style Sartorial Commission Pass Hero ───────── */
-.commissionPass {
+/* ── Clean Apple-Inspired Live Activity Hero Card ───────────── */
+.liveHeroCard {
   position: relative;
-  overflow: hidden;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
   border-radius: 24px;
-  padding: 22px 20px 18px;
-  background-color: #1E1B4B;
-  background-image:
-    radial-gradient(ellipse 75% 55% at 85% -10%, rgba(129, 140, 248, 0.28), transparent 70%),
-    radial-gradient(ellipse 55% 45% at 10% 110%, rgba(67, 56, 202, 0.35), transparent 65%),
-    repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.022) 0px,
-      rgba(255, 255, 255, 0.022) 1px,
-      transparent 1px,
-      transparent 7px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      rgba(255, 255, 255, 0.016) 0px,
-      rgba(255, 255, 255, 0.016) 1px,
-      transparent 1px,
-      transparent 7px
-    ),
-    linear-gradient(155deg, #1E1B4B 0%, #312E81 52%, #4338CA 100%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px;
   box-shadow:
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.26),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.45),
-    0 16px 38px rgba(30, 27, 75, 0.3);
-  color: #ffffff;
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 12px 32px -8px rgba(30, 27, 75, 0.07);
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.passStitchBorder {
-  position: absolute;
-  inset: 6px;
-  border-radius: 19px;
-  border: 1px dashed rgba(255, 255, 255, 0.16);
-  pointer-events: none;
-  z-index: 1;
+:global([data-theme='dark']) .liveHeroCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
-.passTopRow {
-  position: relative;
-  z-index: 2;
+.storyCatchupBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(67, 56, 202, 0.08);
+  border: 1px solid rgba(67, 56, 202, 0.18);
+  color: #4338CA;
+  font-size: 12.5px;
+  line-height: 1.4;
+  animation: catchupSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+:global([data-theme='dark']) .storyCatchupBanner {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #A5B4FC;
+}
+
+@keyframes catchupSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.storyCatchupPulse {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4338CA;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.storyCatchupText {
+  flex: 1;
+}
+
+.liveHeroTopBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1261,184 +1282,438 @@
   flex-wrap: wrap;
 }
 
-.passChipGroup {
+.liveHeroBadges {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.passOrderChip {
+.liveHeroStatusPill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
+  gap: 7px;
+  padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 11px;
+  background: rgba(67, 56, 202, 0.08);
+  color: #4338CA;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #ffffff;
+  letter-spacing: 0.01em;
 }
 
-.passStyleChip {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: rgba(12, 10, 36, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
+:global([data-theme='dark']) .liveHeroStatusPill {
+  background: rgba(99, 102, 241, 0.18);
+  color: #A5B4FC;
 }
 
-.passBody {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.liveHeroPulseDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4338CA;
+  animation: livePulse 1.6s ease-in-out infinite;
 }
 
-.passClientOverline {
+:global([data-theme='dark']) .liveHeroPulseDot {
+  background: #818CF8;
+}
+
+.liveHeroOrderRef {
   font-size: 11.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: rgba(255, 255, 255, 0.68);
+  font-weight: 650;
+  color: var(--sf-text-tertiary);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
 }
 
-.passTitle {
-  margin: 0;
-  font-family: var(--sf-font-heading);
-  font-size: clamp(22px, 4.5vw, 30px);
-  font-weight: 700;
-  line-height: 1.22;
-  letter-spacing: -0.02em;
-  color: #ffffff;
+:global([data-theme='dark']) .liveHeroOrderRef {
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.passSubtitle {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.78);
-  max-width: 58ch;
-}
-
-.passProgressSection {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 2px;
-}
-
-.passProgressMeta {
+.liveHeroBody {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  gap: 16px;
 }
 
-.passProgressStage {
-  font-weight: 650;
-  color: #ffffff;
-}
-
-.passProgressStepCount {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.72);
-  font-variant-numeric: tabular-nums;
-}
-
-.passSegmentsTrack {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.liveHeroCopy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
-.passSegmentCol {
+.liveHeroClientTag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
+.liveHeroTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: clamp(21px, 4vw, 28px);
+  font-weight: 750;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  color: var(--sf-text-primary);
+}
+
+.liveHeroMetaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.liveHeroMetaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--sf-text-secondary);
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+:global([data-theme='dark']) .liveHeroMetaChip {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.liveHeroMetaHighlight {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 650;
+  color: #4338CA;
+  background: rgba(67, 56, 202, 0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+:global([data-theme='dark']) .liveHeroMetaHighlight {
+  background: rgba(99, 102, 241, 0.18);
+  color: #A5B4FC;
+}
+
+.liveHeroMediaFrame {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+@media (min-width: 640px) {
+  .liveHeroMediaFrame {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+.liveHeroMediaFrame:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 16px rgba(67, 56, 202, 0.16);
+}
+
+.liveHeroMediaImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.liveHeroMediaTag {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.liveHeroSilhouetteFrame {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  border: 1px solid var(--sf-border-light);
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  color: #4338CA;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-}
-
-.passSegmentBar {
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  overflow: hidden;
-  position: relative;
-}
-
-.passSegmentFilled {
-  background: #ffffff;
-}
-
-.passSegmentActive {
-  background: #ffffff;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.75);
-}
-
-.passSegmentLabel {
-  font-size: 10.5px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.52);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.passSegmentLabelLit {
-  color: rgba(255, 255, 255, 0.92);
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
   font-weight: 650;
+  flex-shrink: 0;
 }
 
-.passFooterDeck {
+:global([data-theme='dark']) .liveHeroSilhouetteFrame {
+  background: rgba(255, 255, 255, 0.04);
+  color: #A5B4FC;
+}
+
+/* ── Animated 4-Stage Apple Live Activity Progress Bar ──────── */
+.liveStepperWrap {
+  position: relative;
+  padding-top: 8px;
+}
+
+.liveStepperTrack {
+  position: absolute;
+  top: 22px;
+  left: 28px;
+  right: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--sf-border-light, #E2E8F0);
+  overflow: hidden;
+  z-index: 1;
+}
+
+:global([data-theme='dark']) .liveStepperTrack {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.liveStepperFill {
+  height: 100%;
+  background: #4338CA;
+  border-radius: 999px;
+  transition: width 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.liveStepperNodes {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  background: rgba(12, 10, 36, 0.48);
-  border-radius: 14px;
-  padding: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
+  grid-template-columns: repeat(4, 1fr);
 }
 
-.passDeckCell {
+.liveStepItem {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  min-width: 0;
+  align-items: center;
+  gap: 6px;
 }
 
-.passDeckLabel {
-  font-size: 9.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.6);
+.liveStepDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--sf-bg-surface);
+  border: 2px solid var(--sf-border, #CBD5E1);
+  color: var(--sf-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.45s ease,
+    transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.45s ease;
 }
 
-.passDeckValue {
-  font-size: 12.5px;
-  font-weight: 650;
+:global([data-theme='dark']) .liveStepDot {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.liveStepDone .liveStepDot {
+  background: #4338CA;
+  border-color: #4338CA;
   color: #ffffff;
-  white-space: nowrap;
+}
+
+.liveStepNow .liveStepDot {
+  background: #4338CA;
+  border-color: #4338CA;
+  color: #ffffff;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 5px rgba(67, 56, 202, 0.15);
+}
+
+.liveStepDotMorph {
+  animation: stepArrivalBounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes stepArrivalBounce {
+  0% {
+    transform: scale(0.8);
+  }
+  55% {
+    transform: scale(1.26);
+    box-shadow: 0 0 0 8px rgba(67, 56, 202, 0.24);
+  }
+  100% {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 5px rgba(67, 56, 202, 0.15);
+  }
+}
+
+.liveStepLabel {
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--sf-text-tertiary);
+  transition: color 0.35s ease, font-weight 0.35s ease;
+}
+
+.liveStepDone .liveStepLabel,
+.liveStepNow .liveStepLabel {
+  color: var(--sf-text-primary);
+  font-weight: 700;
+}
+
+.stageJustAdvanced .photoCard,
+.stageJustAdvanced .blueprintCard {
+  animation: stageCardSpotlight 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes stageCardSpotlight {
+  0% {
+    transform: translateY(8px) scale(0.98);
+    box-shadow: 0 0 0 0 rgba(67, 56, 202, 0.35);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 12px 32px rgba(67, 56, 202, 0.22);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Editorial Multi-Image Stage Album Collage ──────────────── */
+.stageAlbumDuo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  height: 220px;
+  background: var(--sf-border-light);
+}
+
+.stageAlbumCollage {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 3px;
+  height: 236px;
+  background: var(--sf-border-light);
+}
+
+@media (min-width: 768px) {
+  .stageAlbumDuo,
+  .stageAlbumCollage {
+    height: 290px;
+  }
+}
+
+.stageAlbumLead {
+  position: relative;
+  height: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.stageAlbumSide {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.stageAlbumSideCell {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.stageAlbumImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.photoInteractiveWrap:hover .stageAlbumImg {
+  transform: scale(1.02);
+}
+
+.stageAlbumMoreOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(3px);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stageAlbumModalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 4px 0 16px;
+}
+
+.stageAlbumModalItem {
+  position: relative;
+  border: 1px solid var(--sf-border-light);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  padding: 0;
+  cursor: zoom-in;
+  aspect-ratio: 4 / 5;
+}
+
+.stageAlbumModalImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stageAlbumModalMeta {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
 }
 
 /* ── Sartorial SVG Blueprint Card for Photo-less Stages ─────── */

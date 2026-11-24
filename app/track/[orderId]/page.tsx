@@ -17,10 +17,10 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
 import ReminderButton from './_components/ReminderButton/ReminderButton';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
-import TimelineStage, { CLIENT_STAGE_HEADLINES } from './_components/TimelineStage';
+import { CLIENT_STAGE_HEADLINES } from './_components/TimelineStage';
+import LiveTrackingJourney from './_components/LiveTrackingJourney';
 import SelectedDesignCard from './_components/SelectedDesignCard';
 import RatingForm from './_components/RatingForm/RatingForm';
-import ShareTrackButton from './_components/ShareTrackButton';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
@@ -182,10 +182,21 @@ export default async function TrackOrderPage({
     (order.images || []).filter((p) => p.stage === status);
 
   const balanceOwed = getBalanceOwed(order);
-  const latestPhoto =
+  const latestProgressPhoto =
     order.images && order.images.length > 0
       ? order.images[order.images.length - 1].url
-      : order.inspirationImages?.[0] || customer?.fabrics?.[0]?.url || null;
+      : null;
+  const outfitReferenceUrl =
+    order.inspirationImages?.[0] || customer?.fabrics?.[0]?.url || null;
+
+  const stagesPayload = visibleStages.map((s) => {
+    const d = stageDate(order.statusHistory, s);
+    return {
+      status: s,
+      dateIso: d ? d.toISOString() : null,
+      photos: photosFor(s),
+    };
+  });
 
   // Extract documented fit measurements (either on order or customer profile)
   const rawMeasurements =
@@ -205,8 +216,6 @@ export default async function TrackOrderPage({
     order.totalBill > 0
       ? Math.min(100, Math.max(0, Math.round((order.depositPaid / order.totalBill) * 100)))
       : 100;
-
-  const activePassStep = isDelivered ? 4 : Math.min(4, Math.max(1, currentStepIndex + 1));
 
   return (
     <div className={styles.page}>
@@ -285,132 +294,24 @@ export default async function TrackOrderPage({
       </header>
 
       <main className={styles.main}>
-        {/* ── 1. Apple Wallet-Style Sartorial Commission Pass Hero ── */}
-        <section className={styles.commissionPass}>
-          <div className={styles.passStitchBorder} aria-hidden="true" />
-
-          <div className={styles.passTopRow}>
-            <div className={styles.passChipGroup}>
-              <span className={styles.passOrderChip}>
-                <Symbol name="verified" size={14} />
-                <span>Order #{order.id.slice(0, 4).toUpperCase()}</span>
-              </span>
-              {order.styleName && (
-                <span className={styles.passStyleChip}>{order.styleName}</span>
-              )}
-            </div>
-
-            <ShareTrackButton
-              orderId={order.id}
-              orderTitle={order.orderDetails}
-              shopName={shop?.name || APP_CONFIG.name}
-              shopLogoUrl={shop?.logoUrl || null}
-              customerName={order.customerName}
-              stageHeadline={CLIENT_STAGE_HEADLINES[order.status]}
-              status={order.status}
-              photoUrl={latestPhoto}
-              dueDate={order.dueDate}
-              completedDate={deliveredDate ? deliveredDate.toISOString() : null}
-              isDelivered={isDelivered}
-            />
-          </div>
-
-          <div className={styles.passBody}>
-            <span className={styles.passClientOverline}>
-              Prepared for {order.customerName || 'Valued Client'}
-            </span>
-            <h1 className={styles.passTitle}>{order.orderDetails}</h1>
-            <p className={styles.passSubtitle}>
-              {isDelivered
-                ? `Completed and delivered by ${shop ? shop.name : 'your tailor'}. Thank you for your patronage.`
-                : `Crafted to your individual measurements${
-                    shop ? ` at ${shop.name}` : ''
-                  }. Follow each tailoring milestone below.`}
-            </p>
-          </div>
-
-          {/* 4-Step Illuminated Progress Rail inside Pass */}
-          <div className={styles.passProgressSection}>
-            <div className={styles.passProgressMeta}>
-              <span className={styles.passProgressStage}>
-                {CLIENT_STAGE_HEADLINES[order.status]}
-              </span>
-              <span className={styles.passProgressStepCount}>
-                {isDelivered ? 'Completed (100%)' : `Step ${activePassStep} of 4`}
-              </span>
-            </div>
-
-            <div className={styles.passSegmentsTrack} role="progressbar" aria-valuenow={activePassStep} aria-valuemin={1} aria-valuemax={4}>
-              {PASS_SEGMENTS.map((seg, idx) => {
-                const segFilled = isDelivered || idx < currentStepIndex;
-                const segActive = !isDelivered && idx === currentStepIndex;
-                return (
-                  <div key={seg.status} className={styles.passSegmentCol}>
-                    <div
-                      className={`${styles.passSegmentBar} ${
-                        segFilled
-                          ? styles.passSegmentFilled
-                          : segActive
-                          ? styles.passSegmentActive
-                          : ''
-                      }`}
-                    />
-                    <span
-                      className={`${styles.passSegmentLabel} ${
-                        segFilled || segActive ? styles.passSegmentLabelLit : ''
-                      }`}
-                    >
-                      {seg.shortLabel}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Recessed Pass Telemetry Deck */}
-          <div className={styles.passFooterDeck}>
-            <div className={styles.passDeckCell}>
-              <span className={styles.passDeckLabel}>Status</span>
-              <span className={styles.passDeckValue}>
-                {CLIENT_STAGE_HEADLINES[order.status]}
-              </span>
-            </div>
-
-            <div className={styles.passDeckCell}>
-              <span className={styles.passDeckLabel}>
-                {isDelivered ? 'Delivered On' : 'Target Date'}
-              </span>
-              <span className={styles.passDeckValue}>
-                {isDelivered && deliveredDate
-                  ? deliveredDate.toLocaleDateString('en-NG', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })
-                  : order.dueDate
-                  ? new Date(order.dueDate).toLocaleDateString('en-NG', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                    })
-                  : 'Scheduled'}
-              </span>
-            </div>
-
-            <div className={styles.passDeckCell}>
-              <span className={styles.passDeckLabel}>Timeline</span>
-              <span className={styles.passDeckValue}>
-                {isDelivered
-                  ? 'Received'
-                  : daysRemainingLabel ||
-                    (measurementEntries.length > 0
-                      ? `${measurementEntries.length} fit specs`
-                      : 'In production')}
-              </span>
-            </div>
-          </div>
-        </section>
+        {/* ── 1 & 2. Clean Apple Live Activity Hero + Animated Stage Replay Journey ── */}
+        <LiveTrackingJourney
+          orderId={order.id}
+          orderTitle={order.orderDetails}
+          styleName={order.styleName}
+          customerName={order.customerName}
+          shopName={shop?.name || APP_CONFIG.name}
+          shopLogoUrl={shop?.logoUrl || null}
+          actualStatus={order.status}
+          dueDate={order.dueDate}
+          completedDateIso={deliveredDate ? deliveredDate.toISOString() : null}
+          daysRemainingLabel={daysRemainingLabel}
+          assignedToName={order.assignedToName}
+          latestPhotoUrl={latestProgressPhoto}
+          outfitReferenceUrl={outfitReferenceUrl}
+          stages={stagesPayload}
+          specsCount={measurementEntries.length}
+        />
 
         {/* Selected design & fabric reference card */}
         <SelectedDesignCard
@@ -418,37 +319,13 @@ export default async function TrackOrderPage({
           fabrics={customer?.fabrics}
         />
 
-        {/* When Delivered (and awaiting review), replace the progress timeline with the Review Card */}
-        {isDelivered ? (
+        {/* When Delivered (and awaiting review), show the Review Card */}
+        {isDelivered && (
           <RatingForm
             orderId={order.id}
             shopName={shop?.name || APP_CONFIG.name}
             alreadyRated={alreadyRated}
           />
-        ) : (
-          /* ── 2. Craftsmanship Timeline with Sartorial SVG Blueprints (Only while in production) ── */
-          <section className={styles.timeline}>
-            <div className={styles.timelineRail} aria-hidden="true" />
-            {visibleStages.map((status, index) => {
-              const isCompleted = index < currentStepIndex;
-              const isCurrent = index === currentStepIndex;
-              const isPending = index > currentStepIndex;
-
-              return (
-                <TimelineStage
-                  key={status}
-                  status={status}
-                  isCompleted={isCompleted}
-                  isCurrent={isCurrent}
-                  isPending={isPending}
-                  date={stageDate(order.statusHistory, status)}
-                  photos={photosFor(status)}
-                  dueDate={order.dueDate}
-                  assignedToName={order.assignedToName}
-                />
-              );
-            })}
-          </section>
         )}
 
         {/* ── 3. Documented Fit Profile Card (Makes Photo-less Orders Look Rich & Personal) ── */}

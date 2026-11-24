@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
+import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import type { OrderStatus, OrderPhoto } from '@/lib/types';
 import styles from '../page.module.css';
@@ -238,6 +239,7 @@ interface TimelineStageProps {
   isCompleted: boolean;
   isCurrent: boolean;
   isPending: boolean;
+  isJustAdvanced?: boolean;
   date: Date | null;
   photos: OrderPhoto[];
   dueDate: string | null | undefined;
@@ -249,16 +251,27 @@ export default function TimelineStage({
   isCompleted,
   isCurrent,
   isPending,
+  isJustAdvanced = false,
   date,
   photos,
   dueDate,
   assignedToName,
 }: TimelineStageProps) {
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
+  const [albumOpen, setAlbumOpen] = useState(false);
   const photo = photos[photos.length - 1];
+  const hasMultiplePhotos = photos.length > 1;
 
   const handleOpenPhoto = (url: string, el: HTMLElement) => {
     setLightbox({ src: url, rect: el.getBoundingClientRect() });
+  };
+
+  const handlePrimaryPhotoClick = (el: HTMLElement) => {
+    if (hasMultiplePhotos) {
+      setAlbumOpen(true);
+    } else if (photo) {
+      handleOpenPhoto(photo.url, el);
+    }
   };
 
   return (
@@ -266,7 +279,7 @@ export default function TimelineStage({
       <article
         className={`${styles.stage} ${isCurrent ? styles.stageCurrent : ''} ${
           isPending ? styles.stagePending : ''
-        }`}
+        } ${isJustAdvanced ? styles.stageJustAdvanced : ''}`}
       >
         <div className={styles.stageMeta}>
           <div
@@ -331,31 +344,83 @@ export default function TimelineStage({
                   Live Update
                 </span>
               )}
+
+              {/* Multi-Photo Editorial Collage vs Single Photo */}
               <div
                 className={styles.photoInteractiveWrap}
-                onClick={(e) => handleOpenPhoto(photo.url, e.currentTarget)}
+                onClick={(e) => handlePrimaryPhotoClick(e.currentTarget)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleOpenPhoto(photo.url, e.currentTarget);
+                    handlePrimaryPhotoClick(e.currentTarget);
                   }
                 }}
-                aria-label={`View full size photo of ${CLIENT_STAGE_HEADLINES[status]}`}
+                aria-label={
+                  hasMultiplePhotos
+                    ? `Open ${CLIENT_STAGE_HEADLINES[status]} album (${photos.length} photos)`
+                    : `View full size photo of ${CLIENT_STAGE_HEADLINES[status]}`
+                }
               >
-                <Image
-                  src={photo.url}
-                  alt={`Your garment during ${CLIENT_STAGE_HEADLINES[status]}`}
-                  width={800}
-                  height={600}
-                  className={styles.stagePhoto}
-                />
+                {hasMultiplePhotos ? (
+                  <div
+                    className={
+                      photos.length === 2
+                        ? styles.stageAlbumDuo
+                        : styles.stageAlbumCollage
+                    }
+                  >
+                    <div className={styles.stageAlbumLead}>
+                      <Image
+                        src={photos[photos.length - 1].url}
+                        alt={`${CLIENT_STAGE_HEADLINES[status]} lead photo`}
+                        width={700}
+                        height={520}
+                        className={styles.stageAlbumImg}
+                      />
+                    </div>
+                    <div className={styles.stageAlbumSide}>
+                      {photos
+                        .slice(0, -1)
+                        .slice(-2)
+                        .reverse()
+                        .map((p, idx) => (
+                          <div key={idx} className={styles.stageAlbumSideCell}>
+                            <Image
+                              src={p.url}
+                              alt={`${CLIENT_STAGE_HEADLINES[status]} photo ${idx + 2}`}
+                              width={360}
+                              height={260}
+                              className={styles.stageAlbumImg}
+                            />
+                            {idx === 1 && photos.length > 3 && (
+                              <div className={styles.stageAlbumMoreOverlay}>
+                                +{photos.length - 3} more
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Image
+                    src={photo.url}
+                    alt={`Your garment during ${CLIENT_STAGE_HEADLINES[status]}`}
+                    width={800}
+                    height={600}
+                    className={styles.stagePhoto}
+                  />
+                )}
+
                 <span className={styles.photoZoomBadge}>
-                  <Symbol name="visibility" size={14} />
-                  <span>Tap to expand</span>
+                  <Symbol name={hasMultiplePhotos ? 'photo_library' : 'visibility'} size={14} />
+                  <span>
+                    {hasMultiplePhotos ? `View Album (${photos.length} photos)` : 'Tap to expand'}
+                  </span>
                 </span>
               </div>
+
               <div className={styles.photoCaption}>
                 <p className={styles.captionTitle}>{STAGE_STORIES[status]}</p>
                 {isCurrent && assignedToName && (
@@ -364,26 +429,6 @@ export default function TimelineStage({
                   </p>
                 )}
               </div>
-              {photos.length > 1 && (
-                <div className={styles.photoStrip}>
-                  {photos.slice(0, -1).map((p, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={styles.photoStripThumb}
-                      onClick={(e) => handleOpenPhoto(p.url, e.currentTarget)}
-                      aria-label={`View earlier progress photo ${i + 1}`}
-                    >
-                      <Image
-                        src={p.url}
-                        alt={`${CLIENT_STAGE_HEADLINES[status]} progress ${i + 1}`}
-                        width={72}
-                        height={72}
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             /* Rich Architectural Blueprint Card when no photo is uploaded yet */
@@ -414,6 +459,43 @@ export default function TimelineStage({
           )}
         </div>
       </article>
+
+      {/* Stage Album Modal when a stage has multiple progress photos */}
+      <BottomSheet
+        isOpen={albumOpen}
+        onClose={() => setAlbumOpen(false)}
+        title={`${CLIENT_STAGE_HEADLINES[status]} (${photos.length} Photos)`}
+        variant="modal"
+      >
+        <div className={styles.stageAlbumModalGrid}>
+          {photos
+            .slice()
+            .reverse()
+            .map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className={styles.stageAlbumModalItem}
+                onClick={(e) => handleOpenPhoto(p.url, e.currentTarget)}
+              >
+                <Image
+                  src={p.url}
+                  alt={`${CLIENT_STAGE_HEADLINES[status]} photo ${idx + 1}`}
+                  width={600}
+                  height={600}
+                  className={styles.stageAlbumModalImg}
+                />
+                <span className={styles.stageAlbumModalMeta}>
+                  Photo {photos.length - idx} ·{' '}
+                  {new Date(p.uploadedAt).toLocaleDateString('en-NG', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </span>
+              </button>
+            ))}
+        </div>
+      </BottomSheet>
 
       {lightbox && (
         <PhotoLightbox
