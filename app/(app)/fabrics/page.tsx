@@ -92,9 +92,12 @@ export default function FabricsPage() {
     if (!cuttingSlipOrder) return null;
     const found = customers.find(
       (c) =>
-        c.id === cuttingSlipOrder.customerId ||
-        (c.fullName &&
-          c.fullName.toLowerCase() === cuttingSlipOrder.customerName?.toLowerCase())
+        c && (
+          c.id === cuttingSlipOrder.customerId ||
+          (c.fullName &&
+            cuttingSlipOrder.customerName &&
+            c.fullName.toLowerCase() === cuttingSlipOrder.customerName.toLowerCase())
+        )
     );
     if (found) return found;
 

@@ -196,7 +196,7 @@ export default function OrderDetailPage() {
 
   const stageEntry = useMemo(() => {
     if (!order) return null;
-    const entries = order.statusHistory.filter((h) => h.to === order.status);
+    const entries = (order.statusHistory || []).filter((h) => h.to === order.status);
     return entries.length > 0 ? entries[entries.length - 1] : null;
   }, [order]);
 
@@ -1790,7 +1790,7 @@ export default function OrderDetailPage() {
                   </div>
                   <div className={styles.timeline}>
                     {ORDER_STATUSES.map((status) => {
-                      const entry = order.statusHistory.filter((h) => h.to === status).pop();
+                      const entry = (order.statusHistory || []).filter((h) => h.to === status).pop();
                       const currentIndex = ORDER_STATUSES.indexOf(order.status);
                       const stepIndex = ORDER_STATUSES.indexOf(status);
                       const isTerminal = status === 'Delivered' && order.status === 'Delivered';

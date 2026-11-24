@@ -69,7 +69,11 @@ export default function BottomSheet({
         <Drawer.Content className={`${styles.content} ${isModal ? styles.contentModal : ''}`}>
           <div className={styles.handle} />
           <div className={styles.header}>
-            {title && <Drawer.Title className={styles.title}>{title}</Drawer.Title>}
+            {title ? (
+              <Drawer.Title className={styles.title}>{title}</Drawer.Title>
+            ) : (
+              <Drawer.Title className="sr-only">Details</Drawer.Title>
+            )}
             <button className={styles.closeBtn} onClick={onClose} aria-label="Close details">
               <Symbol name="close" />
             </button>

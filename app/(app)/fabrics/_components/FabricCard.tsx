@@ -15,12 +15,23 @@ const STATUS_LABELS: Record<string, string> = {
 
 function isOverdue(order: Order): boolean {
   if (!order.dueDate || order.status === 'Delivered') return false;
-  return new Date(order.dueDate) < new Date();
+  try {
+    const d = new Date(order.dueDate);
+    if (isNaN(d.getTime())) return false;
+    return d < new Date();
+  } catch {
+    return false;
+  }
 }
 
 function formatDueDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  } catch {
+    return dateStr;
+  }
 }
 
 interface FabricCardProps {
@@ -37,17 +48,24 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
   const isUrgent = order.priority === 'urgent';
   const hasPriority = isRush || isUrgent;
   const isClientFabric = order.materialSuppliedBy === 'customer';
-  const orderTag = `#${order.id.slice(0, 4).toUpperCase()}`;
+  const orderTag = `#${(order.id || '').slice(0, 4).toUpperCase()}`;
 
   // Extract yardage from orderDetails if mentioned (e.g. "4.0 yds", "7.0 yards")
   const yardageMatch = order.orderDetails?.match(/(\d+(?:\.\d+)?)\s*(?:yds?|yards?)/i);
   const yardage = yardageMatch ? `${yardageMatch[1]} yds` : null;
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       className={styles.card}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       aria-label={`View fabric for ${order.customerName || 'order'}`}
     >
       {/* 1. Photo Area */}
@@ -130,6 +148,6 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
