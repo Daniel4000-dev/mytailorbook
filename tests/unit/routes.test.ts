@@ -219,27 +219,36 @@ describe('findByIdOrSlug resolution', () => {
 });
 
 describe('getCanonicalPublicUrl environment isolation (Staging vs Production)', () => {
-  it('resolves Production hostnames (app.mystitchbook.com and mystitchbook.com) strictly to clean apex https://mystitchbook.com', () => {
+  it('resolves Production hostnames (both mystitchbooks.com and mystitchbook.com) strictly to their clean root domain', () => {
+    expect(getCanonicalPublicUrl('/track/order-123', 'app.mystitchbooks.com')).toBe(
+      'https://mystitchbooks.com/track/order-123'
+    );
+    expect(getCanonicalPublicUrl('/track/order-123', 'mystitchbooks.com')).toBe(
+      'https://mystitchbooks.com/track/order-123'
+    );
     expect(getCanonicalPublicUrl('/track/order-123', 'app.mystitchbook.com')).toBe(
       'https://mystitchbook.com/track/order-123'
     );
     expect(getCanonicalPublicUrl('/track/order-123', 'mystitchbook.com')).toBe(
       'https://mystitchbook.com/track/order-123'
     );
-    expect(getCanonicalPublicUrl('/studio/baans-fashion', 'app.mystitchbook.com')).toBe(
-      'https://mystitchbook.com/studio/baans-fashion'
+    expect(getCanonicalPublicUrl('/studio/baans-fashion', 'app.mystitchbooks.com')).toBe(
+      'https://mystitchbooks.com/studio/baans-fashion'
     );
   });
 
-  it('preserves Staging/Dev hostnames (dev.app.mystitchbook.com, dev.mystitchbook.com, staging.*, *.vercel.app) so staging links stay on staging', () => {
+  it('preserves Staging/Dev hostnames (dev.app.mystitchbooks.com, dev.app.mystitchbook.com, staging.*, *.vercel.app) so staging links stay on staging', () => {
+    expect(getCanonicalPublicUrl('/track/order-123', 'dev.app.mystitchbooks.com')).toBe(
+      'https://dev.app.mystitchbooks.com/track/order-123'
+    );
     expect(getCanonicalPublicUrl('/track/order-123', 'dev.app.mystitchbook.com')).toBe(
       'https://dev.app.mystitchbook.com/track/order-123'
     );
     expect(getCanonicalPublicUrl('/track/order-123', 'dev.mystitchbook.com')).toBe(
       'https://dev.mystitchbook.com/track/order-123'
     );
-    expect(getCanonicalPublicUrl('/receipt/order-123', 'staging.mystitchbook.com')).toBe(
-      'https://staging.mystitchbook.com/receipt/order-123'
+    expect(getCanonicalPublicUrl('/receipt/order-123', 'staging.mystitchbooks.com')).toBe(
+      'https://staging.mystitchbooks.com/receipt/order-123'
     );
     expect(getCanonicalPublicUrl('/track/order-123', 'mytailorbook-git-staging.vercel.app')).toBe(
       'https://mytailorbook-git-staging.vercel.app/track/order-123'

@@ -72,26 +72,27 @@ import { APP_CONFIG } from './config';
  * Resolves the canonical public URL for external customer-facing links
  * (tracking, receipts, studio storefronts, catalogues, invite referrals).
  *
- * Environment separation rules:
+ * Smartly derives the public domain directly from the active Vercel domain:
  * 1. Local dev (`localhost` / `127.0.0.1`): preserves local origin (`http://localhost:3000`).
- * 2. Staging / Dev (`dev.app.mystitchbook.com`, `dev.mystitchbook.com`, `staging.*`, `*.vercel.app`):
- *    preserves the staging origin (`https://dev.app.mystitchbook.com`) so staging links hit the staging DB.
- * 3. Production (`app.mystitchbook.com` or `mystitchbook.com`):
- *    always resolves to the clean apex production domain (`https://mystitchbook.com`),
- *    stripping `app.` and never allowing a `dev.` prefix in production customer links.
+ * 2. Staging / Preview (`dev.app.mystitchbooks.com`, `dev.*`, `staging.*`, `*.vercel.app`):
+ *    preserves the exact staging domain (`https://dev.app.mystitchbooks.com`) so staging links hit the staging DB.
+ * 3. Production (`app.mystitchbooks.com` -> `mystitchbooks.com`, or `app.mystitchbook.com` -> `mystitchbook.com`):
+ *    strips the `app.` or `www.` subdomain from the current production domain so public links always use the clean root domain.
  */
 export function getCanonicalPublicUrl(path: string, hostnameOverride?: string): string {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const host =
+  const rawHost =
     hostnameOverride ??
     (typeof window !== 'undefined' ? window.location.hostname : undefined);
 
-  if (host) {
+  if (rawHost) {
+    const host = rawHost.replace(/:\d+$/, '');
+
     if (host === 'localhost' || host === '127.0.0.1') {
       const origin =
         !hostnameOverride && typeof window !== 'undefined'
           ? window.location.origin
-          : `http://${host}`;
+          : `http://${rawHost}`;
       return `${origin}${cleanPath}`;
     }
 
@@ -103,7 +104,10 @@ export function getCanonicalPublicUrl(path: string, hostnameOverride?: string): 
       return `https://${host}${cleanPath}`;
     }
 
-    return `https://${APP_CONFIG.apexDomain}${cleanPath}`;
+    // Production domain: dynamically strip only the leading `app.` or `www.` from the current Vercel domain
+    // (e.g. `app.mystitchbooks.com` -> `mystitchbooks.com`, `mystitchbooks.com` -> `mystitchbooks.com`)
+    const cleanProdDomain = host.replace(/^(app\.|www\.)/, '');
+    return `https://${cleanProdDomain}${cleanPath}`;
   }
 
   return `${APP_CONFIG.baseUrl}${cleanPath}`;

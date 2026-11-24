@@ -3,23 +3,39 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { APP_CONFIG } from '@/lib/config';
 import { ROUTES, isPublicPath, isAppPath, MARKETING_PATHS } from '@/lib/routes';
 
-const ROOT_DOMAIN = APP_CONFIG.domain.replace(/^(dev\.app\.|app\.|dev\.)/, '');
-const APP_DOMAIN = `app.${ROOT_DOMAIN}`;
+const CONFIG_ROOT_DOMAIN = APP_CONFIG.domain.replace(/^(dev\.app\.|app\.|dev\.)/, '');
 
 // Keeps app.<domain> and the bare marketing domain each showing only their
-// own half of the site. Only fires when the host is exactly one of our two
-// production hostnames, so localhost/preview deployments are unaffected.
+// own half of the site. Dynamically adapts to whichever production domain
+// is assigned in Vercel (e.g. mystitchbooks.com or mystitchbook.com) while
+// leaving dev.app.* (staging) and localhost/preview deployments untouched.
 function crossDomainRedirect(request: NextRequest): NextResponse | null {
-  const host = request.headers.get('host');
+  const rawHost = request.headers.get('host');
   const { pathname, search } = request.nextUrl;
 
-  if (!host || host.startsWith('dev.')) return null;
+  if (!rawHost) return null;
+  const host = rawHost.replace(/:\d+$/, '');
 
-  if (host === ROOT_DOMAIN && isAppPath(pathname)) {
-    return NextResponse.redirect(new URL(`https://${APP_DOMAIN}${pathname}${search}`), 308);
+  if (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.startsWith('dev.') ||
+    host.startsWith('staging.') ||
+    host.endsWith('.vercel.app')
+  ) {
+    return null;
   }
-  if (host === APP_DOMAIN && !isAppPath(pathname)) {
-    return NextResponse.redirect(new URL(`https://${ROOT_DOMAIN}${pathname}${search}`), 308);
+
+  // Derive the root and app domains directly from the incoming Vercel production host
+  // (or fall back to CONFIG_ROOT_DOMAIN if needed).
+  const rootDomain = host.replace(/^app\./, '') || CONFIG_ROOT_DOMAIN;
+  const appDomain = `app.${rootDomain}`;
+
+  if (host === rootDomain && isAppPath(pathname)) {
+    return NextResponse.redirect(new URL(`https://${appDomain}${pathname}${search}`), 308);
+  }
+  if (host === appDomain && !isAppPath(pathname)) {
+    return NextResponse.redirect(new URL(`https://${rootDomain}${pathname}${search}`), 308);
   }
   return null;
 }
