@@ -11,7 +11,7 @@ import {
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
-import { getTierForXp } from '@/lib/xp';
+import { getTierForXp, isXpSystemEnabled } from '@/lib/xp';
 import type { OrderStatus, OrderPhoto, StatusChange } from '@/lib/types';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -244,7 +244,7 @@ export default async function TrackOrderPage({
                 <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
                 Verified Tailor
               </span>
-              {shop && shop.xp !== undefined && shop.xp > 0 && (
+              {isXpSystemEnabled() && shop && shop.xp !== undefined && shop.xp > 0 && (
                 <span
                   style={{
                     display: 'inline-flex',
@@ -588,31 +588,6 @@ export default async function TrackOrderPage({
               </p>
             )}
           </div>
-
-          {shop?.phone && (
-            <div
-              style={{
-                marginTop: '16px',
-                paddingTop: '16px',
-                borderTop: '1px solid var(--sf-border-light)',
-              }}
-            >
-              <a
-                href={getWhatsAppLink(
-                  shop.phone,
-                  `Hello ${shop.name}, I am checking in on my order #${order.id
-                    .slice(0, 4)
-                    .toUpperCase()} (${order.orderDetails}).`
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.shopContactBtn}
-              >
-                <WhatsappIcon size={16} />
-                <span>Chat with {shop.name}</span>
-              </a>
-            </div>
-          )}
         </section>
 
         {/* Courtesy workshop check-in — active only before delivery */}

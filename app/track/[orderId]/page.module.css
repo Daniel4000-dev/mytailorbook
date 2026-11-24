@@ -287,15 +287,21 @@
   left: 23px;
   top: 24px;
   bottom: 56px;
-  width: 2px;
+  width: 2.5px;
   border-radius: var(--sf-radius-full);
-  background: linear-gradient(
-    to bottom,
-    var(--sf-accent-emerald-light) 0%,
-    var(--sf-accent-emerald-light) 55%,
-    var(--sf-border) 55%,
-    var(--sf-border) 100%
-  );
+  background: var(--sf-border-light, #E2E8F0);
+  overflow: hidden;
+}
+
+:global([data-theme='dark']) .timelineRail {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.timelineRailFill {
+  width: 100%;
+  background: #4338CA;
+  border-radius: var(--sf-radius-full);
+  transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .stage {
@@ -1364,44 +1370,68 @@
   color: var(--sf-text-primary);
 }
 
-.liveHeroMetaRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.liveHeroMetaChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
+.liveHeroStyleSub {
+  margin: 2px 0 0;
+  font-size: 13.5px;
   font-weight: 550;
   color: var(--sf-text-secondary);
+}
+
+.liveHeroFactsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sf-border-light);
+}
+
+:global([data-theme='dark']) .liveHeroFactsGrid {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.liveHeroFactCell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 14px;
   background: var(--sf-bg-surface-sunken, #F8FAFC);
   border: 1px solid var(--sf-border-light);
-  padding: 4px 10px;
-  border-radius: 999px;
+  min-width: 0;
 }
 
-:global([data-theme='dark']) .liveHeroMetaChip {
-  background: rgba(255, 255, 255, 0.04);
+:global([data-theme='dark']) .liveHeroFactCell {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.07);
 }
 
-.liveHeroMetaHighlight {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
+.liveHeroFactLabel {
+  font-size: 10px;
   font-weight: 650;
-  color: #4338CA;
-  background: rgba(67, 56, 202, 0.08);
-  padding: 4px 10px;
-  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sf-text-tertiary);
 }
 
-:global([data-theme='dark']) .liveHeroMetaHighlight {
-  background: rgba(99, 102, 241, 0.18);
+.liveHeroFactValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.liveHeroFactValueAccent {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4338CA;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:global([data-theme='dark']) .liveHeroFactValueAccent {
   color: #A5B4FC;
 }
 

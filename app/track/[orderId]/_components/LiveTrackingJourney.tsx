@@ -11,22 +11,6 @@ import styles from '../page.module.css';
 
 const PRODUCTION_STAGES: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready'];
 
-const SHORT_LABELS: Record<OrderStatus, string> = {
-  Documented: 'Confirmed',
-  Cutting: 'Cutting',
-  Sewing: 'Sewing',
-  Ready: 'Ready',
-  Delivered: 'Delivered',
-};
-
-const STAGE_ICONS: Record<OrderStatus, string> = {
-  Documented: 'verified',
-  Cutting: 'content_cut',
-  Sewing: 'apparel',
-  Ready: 'checkroom',
-  Delivered: 'check_circle',
-};
-
 export interface StageTimelineData {
   status: OrderStatus;
   dateIso: string | null;
@@ -69,96 +53,55 @@ export default function LiveTrackingJourney({
   specsCount,
 }: LiveTrackingJourneyProps) {
   const isDelivered = actualStatus === 'Delivered';
-  const targetStepIndex = isDelivered
+  const currentStepIndex = isDelivered
     ? PRODUCTION_STAGES.length - 1
     : Math.max(0, PRODUCTION_STAGES.indexOf(actualStatus));
 
-  const [displayIndex, setDisplayIndex] = useState<number>(targetStepIndex);
-  const [transitionBanner, setTransitionBanner] = useState<{
-    from: OrderStatus;
-    to: OrderStatus;
-  } | null>(null);
-  const [isAnimatingAdvance, setIsAnimatingAdvance] = useState(false);
+  const [railExpanded, setRailExpanded] = useState(false);
   const [heroLightbox, setHeroLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
 
-  // Live Story Replay: If the customer last visited when the order was at an earlier stage,
-  // start from that exact stage and animate forward step-by-step to the new current stage.
+  // Instant Truth + Smooth Progress Rail Sweep (450ms):
+  // The text status and active stage card render immediately at their true current stage,
+  // while the vertical timeline rail and active node glide smoothly into place on mount.
   useEffect(() => {
-    if (isDelivered || typeof window === 'undefined') return;
-    const storageKey = `mtb_last_seen_stage_${orderId}`;
-    let savedIndex: number | null = null;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw !== null) {
-        const parsed = parseInt(raw, 10);
-        if (!Number.isNaN(parsed) && parsed >= 0 && parsed < PRODUCTION_STAGES.length) {
-          savedIndex = parsed;
-        }
-      }
-      localStorage.setItem(storageKey, String(targetStepIndex));
-    } catch {
-      // ignore storage errors
-    }
+    const id = requestAnimationFrame(() => {
+      setRailExpanded(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
 
-    if (savedIndex !== null && savedIndex < targetStepIndex) {
-      const fromStage = PRODUCTION_STAGES[savedIndex];
-      const toStage = PRODUCTION_STAGES[targetStepIndex];
-      setDisplayIndex(savedIndex);
-      setIsAnimatingAdvance(true);
-      setTransitionBanner({ from: fromStage, to: toStage });
-
-      const timers: ReturnType<typeof setTimeout>[] = [];
-      let stepCursor = savedIndex;
-
-      const stepForward = () => {
-        stepCursor += 1;
-        setDisplayIndex(stepCursor);
-        if (stepCursor < targetStepIndex) {
-          timers.push(setTimeout(stepForward, 700));
-        } else {
-          timers.push(
-            setTimeout(() => {
-              setIsAnimatingAdvance(false);
-            }, 900)
-          );
-        }
-      };
-
-      timers.push(setTimeout(stepForward, 650));
-      return () => timers.forEach(clearTimeout);
-    }
-  }, [orderId, targetStepIndex, isDelivered]);
-
-  const activeStageStatus = isDelivered
-    ? 'Delivered'
-    : PRODUCTION_STAGES[displayIndex] || actualStatus;
   const heroVisualUrl = latestPhotoUrl || outfitReferenceUrl;
+  const formattedDueDate = dueDate
+    ? new Date(dueDate).toLocaleDateString('en-NG', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      })
+    : null;
+  const formattedCompletedDate = completedDateIso
+    ? new Date(completedDateIso).toLocaleDateString('en-NG', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
+  const railFillPercentage = isDelivered
+    ? 100
+    : Math.round(((currentStepIndex + 0.35) / PRODUCTION_STAGES.length) * 100);
 
   return (
     <>
-      {/* ── 1. Clean Apple-Inspired Live Activity Hero Card ── */}
+      {/* ── 1. Clean Order Dossier Hero Card (No Progress Bar — Pure Identity, Outfit & Key Facts) ── */}
       <section className={styles.liveHeroCard}>
-        {/* Animated Story Catch-Up Pill when stage has advanced since customer's last visit */}
-        {transitionBanner && (
-          <div className={styles.storyCatchupBanner} role="status" aria-live="polite">
-            <div className={styles.storyCatchupPulse}>
-              <Symbol name="auto_awesome" size={14} />
-            </div>
-            <span className={styles.storyCatchupText}>
-              Moved from <strong>{CLIENT_STAGE_HEADLINES[transitionBanner.from]}</strong> to{' '}
-              <strong>{CLIENT_STAGE_HEADLINES[transitionBanner.to]}</strong> since your last visit
-            </span>
-          </div>
-        )}
-
         <div className={styles.liveHeroTopBar}>
           <div className={styles.liveHeroBadges}>
             <span className={styles.liveHeroStatusPill}>
               <span className={styles.liveHeroPulseDot} />
-              <span>{CLIENT_STAGE_HEADLINES[activeStageStatus]}</span>
+              <span>{CLIENT_STAGE_HEADLINES[actualStatus]}</span>
             </span>
             <span className={styles.liveHeroOrderRef}>
-              #{orderId.slice(0, 4).toUpperCase()}
+              Order #{orderId.slice(0, 4).toUpperCase()}
             </span>
           </div>
 
@@ -184,35 +127,9 @@ export default function LiveTrackingJourney({
               Prepared for {customerName || 'Valued Client'}
             </span>
             <h1 className={styles.liveHeroTitle}>{orderTitle}</h1>
-            <div className={styles.liveHeroMetaRow}>
-              {styleName && styleName !== orderTitle && (
-                <span className={styles.liveHeroMetaChip}>
-                  <Symbol name="checkroom" size={13} />
-                  <span>{styleName}</span>
-                </span>
-              )}
-              {dueDate && !isDelivered && (
-                <span className={styles.liveHeroMetaChip}>
-                  <Symbol name="event" size={13} />
-                  <span>
-                    Ready by{' '}
-                    {new Date(dueDate).toLocaleDateString('en-NG', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </span>
-              )}
-              {daysRemainingLabel && !isDelivered && (
-                <span className={styles.liveHeroMetaHighlight}>{daysRemainingLabel}</span>
-              )}
-              {!daysRemainingLabel && specsCount > 0 && !isDelivered && (
-                <span className={styles.liveHeroMetaChip}>
-                  <Symbol name="straighten" size={13} />
-                  <span>{specsCount} Fit Measurements</span>
-                </span>
-              )}
-            </div>
+            {styleName && styleName !== orderTitle && (
+              <p className={styles.liveHeroStyleSub}>{styleName}</p>
+            )}
           </div>
 
           {/* Outfit Thumbnail Frame right inside Hero */}
@@ -231,12 +148,12 @@ export default function LiveTrackingJourney({
               <Image
                 src={heroVisualUrl}
                 alt={orderTitle}
-                width={160}
-                height={160}
+                width={176}
+                height={176}
                 className={styles.liveHeroMediaImg}
               />
               <span className={styles.liveHeroMediaTag}>
-                {latestPhotoUrl ? 'Latest' : 'Outfit'}
+                {latestPhotoUrl ? 'Latest Photo' : 'Reference'}
               </span>
             </button>
           ) : (
@@ -247,56 +164,52 @@ export default function LiveTrackingJourney({
           )}
         </div>
 
-        {/* Animated 4-Stage Apple Live Activity Progress Stepper */}
-        <div className={styles.liveStepperWrap}>
-          <div className={styles.liveStepperTrack}>
-            <div
-              className={styles.liveStepperFill}
-              style={{
-                width: isDelivered
-                  ? '100%'
-                  : `${(displayIndex / (PRODUCTION_STAGES.length - 1)) * 100}%`,
-              }}
-            />
+        {/* 3 Key Facts Strip: Target Ready Date · Countdown / Status · Documented Fit Specs */}
+        <div className={styles.liveHeroFactsGrid}>
+          <div className={styles.liveHeroFactCell}>
+            <span className={styles.liveHeroFactLabel}>
+              {isDelivered ? 'Delivered On' : 'Target Ready Date'}
+            </span>
+            <span className={styles.liveHeroFactValue}>
+              {isDelivered
+                ? formattedCompletedDate || 'Completed'
+                : formattedDueDate || 'Scheduled'}
+            </span>
           </div>
 
-          <div className={styles.liveStepperNodes}>
-            {PRODUCTION_STAGES.map((stage, idx) => {
-              const isDone = isDelivered || idx < displayIndex;
-              const isNow = !isDelivered && idx === displayIndex;
-              return (
-                <div
-                  key={stage}
-                  className={`${styles.liveStepItem} ${
-                    isDone ? styles.liveStepDone : isNow ? styles.liveStepNow : ''
-                  }`}
-                >
-                  <div
-                    className={`${styles.liveStepDot} ${
-                      isNow && isAnimatingAdvance ? styles.liveStepDotMorph : ''
-                    }`}
-                  >
-                    <Symbol
-                      name={isDone ? 'check' : STAGE_ICONS[stage]}
-                      size={13}
-                    />
-                  </div>
-                  <span className={styles.liveStepLabel}>{SHORT_LABELS[stage]}</span>
-                </div>
-              );
-            })}
+          <div className={styles.liveHeroFactCell}>
+            <span className={styles.liveHeroFactLabel}>Schedule</span>
+            <span className={styles.liveHeroFactValueAccent}>
+              {isDelivered
+                ? 'Received'
+                : daysRemainingLabel || 'In Workshop'}
+            </span>
+          </div>
+
+          <div className={styles.liveHeroFactCell}>
+            <span className={styles.liveHeroFactLabel}>Fit Profile</span>
+            <span className={styles.liveHeroFactValue}>
+              {specsCount > 0 ? `${specsCount} Measurements` : 'Confirmed'}
+            </span>
           </div>
         </div>
       </section>
 
-      {/* ── 2. Craftsmanship Timeline (Synced with Live Story Replay) ── */}
+      {/* ── 2. Craftsmanship Timeline with Instant Status + Smooth Rail Sweep ── */}
       {!isDelivered && (
         <section className={styles.timeline}>
-          <div className={styles.timelineRail} aria-hidden="true" />
+          <div className={styles.timelineRail} aria-hidden="true">
+            <div
+              className={styles.timelineRailFill}
+              style={{
+                height: railExpanded ? `${railFillPercentage}%` : '0%',
+              }}
+            />
+          </div>
           {stages.map((stageItem, index) => {
-            const isCompleted = index < displayIndex;
-            const isCurrent = index === displayIndex;
-            const isPending = index > displayIndex;
+            const isCompleted = index < currentStepIndex;
+            const isCurrent = index === currentStepIndex;
+            const isPending = index > currentStepIndex;
 
             return (
               <TimelineStage
@@ -305,7 +218,7 @@ export default function LiveTrackingJourney({
                 isCompleted={isCompleted}
                 isCurrent={isCurrent}
                 isPending={isPending}
-                isJustAdvanced={isCurrent && isAnimatingAdvance}
+                isJustAdvanced={isCurrent && railExpanded}
                 date={stageItem.dateIso ? new Date(stageItem.dateIso) : null}
                 photos={stageItem.photos}
                 dueDate={dueDate}
@@ -327,4 +240,3 @@ export default function LiveTrackingJourney({
     </>
   );
 }
-
