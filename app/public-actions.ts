@@ -165,6 +165,7 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
         id: shopRow.id,
         slug: shopRow.slug,
         name: shopRow.name,
+        currency: shopRow.currency || undefined,
         phone: shopRow.phone || undefined,
         address: shopRow.address || undefined,
         ownerUid: shopRow.owner_id,
@@ -175,6 +176,7 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
         portfolioTemplate: shopRow.portfolio_template || 'modern',
         portfolioAccent: shopRow.portfolio_accent || 'indigo',
         portfolioSettings: shopRow.portfolio_settings || {},
+        bankDetails: shopRow.bank_details || shopRow.portfolio_settings?.bankDetails || undefined,
         // Resolved at the org level (not this branch shop's own column —
         // see lib/subscription.ts) purely to drive the "Powered by" badge
         // on this public page; no other billing detail is exposed here.

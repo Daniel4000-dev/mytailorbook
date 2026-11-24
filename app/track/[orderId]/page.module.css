@@ -1204,3 +1204,483 @@
   transform: scale(0.98);
 }
 
+
+
+/* ── Apple Wallet-Style Sartorial Commission Pass Hero ───────── */
+.commissionPass {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 22px 20px 18px;
+  background-color: #1E1B4B;
+  background-image:
+    radial-gradient(ellipse 75% 55% at 85% -10%, rgba(129, 140, 248, 0.28), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 10% 110%, rgba(67, 56, 202, 0.35), transparent 65%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.022) 0px,
+      rgba(255, 255, 255, 0.022) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.016) 0px,
+      rgba(255, 255, 255, 0.016) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
+    linear-gradient(155deg, #1E1B4B 0%, #312E81 52%, #4338CA 100%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.26),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.45),
+    0 16px 38px rgba(30, 27, 75, 0.3);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.passStitchBorder {
+  position: absolute;
+  inset: 6px;
+  border-radius: 19px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.passTopRow {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.passChipGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.passOrderChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.passStyleChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(12, 10, 36, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.passBody {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.passClientOverline {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.passTitle {
+  margin: 0;
+  font-family: var(--sf-font-heading);
+  font-size: clamp(22px, 4.5vw, 30px);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.passSubtitle {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+  max-width: 58ch;
+}
+
+.passProgressSection {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.passProgressMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.passProgressStage {
+  font-weight: 650;
+  color: #ffffff;
+}
+
+.passProgressStepCount {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  font-variant-numeric: tabular-nums;
+}
+
+.passSegmentsTrack {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.passSegmentCol {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.passSegmentBar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+  position: relative;
+}
+
+.passSegmentFilled {
+  background: #ffffff;
+}
+
+.passSegmentActive {
+  background: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.75);
+}
+
+.passSegmentLabel {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.52);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.passSegmentLabelLit {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 650;
+}
+
+.passFooterDeck {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: rgba(12, 10, 36, 0.48);
+  border-radius: 14px;
+  padding: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
+}
+
+.passDeckCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+.passDeckLabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.passDeckValue {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Sartorial SVG Blueprint Card for Photo-less Stages ─────── */
+.blueprintCard {
+  position: relative;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 8px 24px -6px rgba(67, 56, 202, 0.08);
+}
+
+:global([data-theme='dark']) .blueprintCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.blueprintCanvas {
+  position: relative;
+  padding: 14px 16px 8px;
+  background-color: #F8F8FE;
+  background-image:
+    linear-gradient(to right, rgba(67, 56, 202, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(67, 56, 202, 0.055) 1px, transparent 1px);
+  background-size: 18px 18px;
+  border-bottom: 1px solid var(--sf-border-light);
+}
+
+:global([data-theme='dark']) .blueprintCanvas {
+  background-color: #111522;
+  background-image:
+    linear-gradient(to right, rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+}
+
+.blueprintTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.blueprintCode {
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sf-text-secondary);
+}
+
+.blueprintActivePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(67, 56, 202, 0.1);
+  color: #4338CA;
+  font-size: 10.5px;
+  font-weight: 650;
+}
+
+.blueprintSvg {
+  width: 100%;
+  height: 112px;
+  display: block;
+}
+
+.blueprintFooter {
+  padding: 14px 16px;
+}
+
+/* ── Compact Upcoming Milestone Card (Replaces 128px empty dashed box) ── */
+.pendingMilestoneCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--sf-bg-surface);
+  border: 1px solid var(--sf-border-light);
+}
+
+:global([data-theme='dark']) .pendingMilestoneCard {
+  background: #161B26;
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+.pendingMilestoneLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pendingStepBadge {
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--sf-text-tertiary);
+}
+
+.pendingMilestoneText {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--sf-text-secondary);
+}
+
+/* ── Documented Fit Profile Grid ────────────────────────────── */
+.fitHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.fitTitleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fitSubtitle {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--sf-text-secondary);
+}
+
+.fitSpecsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.fitSpecChip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
+}
+
+.fitSpecLabel {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--sf-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fitSpecVal {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Settlement Progress & Bank Transfer Pass ───────────────── */
+.settlementMeterWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.settlementMeterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.settlementMeterLabel {
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+}
+
+.settlementMeterPct {
+  font-weight: 650;
+  color: #4338CA;
+  font-variant-numeric: tabular-nums;
+}
+
+.settlementTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--sf-bg-surface-sunken, #F1F5F9);
+  border: 1px solid var(--sf-border-light);
+  overflow: hidden;
+}
+
+.settlementFill {
+  height: 100%;
+  border-radius: 999px;
+  background: #4338CA;
+  transition: width 0.4s ease;
+}
+
+.bankTransferBox {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--sf-bg-surface-sunken, #F8FAFC);
+  border: 1px solid var(--sf-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bankTransferHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #4338CA;
+}
+
+.bankTransferGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.bankFieldLabel {
+  display: block;
+  font-size: 10.5px;
+  color: var(--sf-text-tertiary);
+}
+
+.bankFieldVal {
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--sf-text-primary);
+  font-variant-numeric: tabular-nums;
+}

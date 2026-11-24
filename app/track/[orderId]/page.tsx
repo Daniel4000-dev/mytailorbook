@@ -2,7 +2,12 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getPublicOrderView, getPublicBatchSiblings, hasOrderRatingAction, getPublicOrderEvents } from '@/app/public-actions';
+import {
+  getPublicOrderView,
+  getPublicBatchSiblings,
+  hasOrderRatingAction,
+  getPublicOrderEvents,
+} from '@/app/public-actions';
 import { getBalanceOwed } from '@/lib/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/formatters';
 import { APP_CONFIG } from '@/lib/config';
@@ -19,8 +24,12 @@ import ShareTrackButton from './_components/ShareTrackButton';
 import { ROUTES } from '@/lib/routes';
 import styles from './page.module.css';
 
-// Dynamic OpenGraph metadata for luxury social & WhatsApp message previews
-export async function generateMetadata({ params }: { params: Promise<{ orderId: string }> }): Promise<Metadata> {
+// Dynamic OpenGraph metadata for social & WhatsApp message previews
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ orderId: string }>;
+}): Promise<Metadata> {
   const { orderId } = await params;
   const view = await getPublicOrderView(orderId);
   if (!view) {
@@ -58,13 +67,30 @@ export async function generateMetadata({ params }: { params: Promise<{ orderId: 
 export const revalidate = 60;
 
 const STATUS_ORDER: OrderStatus[] = ['Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'];
+const PASS_SEGMENTS: { status: OrderStatus; shortLabel: string }[] = [
+  { status: 'Documented', shortLabel: 'Confirmed' },
+  { status: 'Cutting', shortLabel: 'Cutting' },
+  { status: 'Sewing', shortLabel: 'Sewing' },
+  { status: 'Ready', shortLabel: 'Ready' },
+];
 
 function stageDate(history: StatusChange[], status: OrderStatus): Date | null {
   const entries = history.filter((h) => h.to === status);
   return entries.length > 0 ? new Date(entries[entries.length - 1].timestamp) : null;
 }
 
-export default async function TrackOrderPage({ params }: { params: Promise<{ orderId: string }> }) {
+function formatMeasurementKey(rawKey: string): string {
+  return rawKey
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export default async function TrackOrderPage({
+  params,
+}: {
+  params: Promise<{ orderId: string }>;
+}) {
   const { orderId } = await params;
   const view = await getPublicOrderView(orderId);
 
@@ -75,7 +101,8 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <Symbol name="search" size={40} className={styles.errorIcon} />
           <h2 className={styles.errorTitle}>Order Not Found</h2>
           <p className={styles.errorText}>
-            We could not locate this order. Please check the tracking link sent by your tailor or contact them directly.
+            We could not locate this order. Please check the tracking link sent by your tailor or
+            contact them directly.
           </p>
           <Link href="/" className={styles.ctaButton} style={{ marginTop: '16px' }}>
             Go to Homepage
@@ -94,11 +121,9 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
   ]);
   const currentStepIndex = STATUS_ORDER.indexOf(order.status);
 
-  // We only show future appointments to the customer (e.g. Fittings)
   const todayStr = new Date().toISOString().split('T')[0];
-  const upcomingAppointments = events.filter(e =>
-    e.date >= todayStr &&
-    (e.type === 'fitting' || e.type === 'meeting')
+  const upcomingAppointments = events.filter(
+    (e) => e.date >= todayStr && (e.type === 'fitting' || e.type === 'meeting')
   );
 
   // eslint-disable-next-line react-hooks/purity
@@ -110,34 +135,60 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
     daysRemaining === null
       ? null
       : daysRemaining > 1
-        ? `${daysRemaining} days to go`
-        : daysRemaining === 1
-          ? 'Target tomorrow'
-          : daysRemaining === 0
-            ? 'Target today'
-            : 'Final touches in progress';
+      ? `${daysRemaining} days to go`
+      : daysRemaining === 1
+      ? 'Target tomorrow'
+      : daysRemaining === 0
+      ? 'Target today'
+      : 'Final touches in progress';
 
-  const visibleStages = STATUS_ORDER.filter(
-    (s, i) => s !== 'Delivered' || i <= currentStepIndex
-  );
+  const visibleStages = STATUS_ORDER.filter((s, i) => s !== 'Delivered' || i <= currentStepIndex);
 
   const photosFor = (status: OrderStatus): OrderPhoto[] =>
     (order.images || []).filter((p) => p.stage === status);
 
   const balanceOwed = getBalanceOwed(order);
-  const latestPhoto = (order.images && order.images.length > 0)
-    ? order.images[order.images.length - 1].url
-    : (order.inspirationImages?.[0] || customer?.fabrics?.[0]?.url || null);
+  const latestPhoto =
+    order.images && order.images.length > 0
+      ? order.images[order.images.length - 1].url
+      : order.inspirationImages?.[0] || customer?.fabrics?.[0]?.url || null;
   const deliveredDate = stageDate(order.statusHistory, 'Delivered');
+
+  // Extract documented fit measurements (either on order or customer profile)
+  const rawMeasurements =
+    order.measurements && Object.keys(order.measurements).length > 0
+      ? order.measurements
+      : customer?.measurements || {};
+  const measurementEntries = Object.entries(rawMeasurements).filter(
+    ([key, val]) =>
+      val !== undefined &&
+      val !== null &&
+      String(val).trim() !== '' &&
+      String(val) !== '0' &&
+      !key.startsWith('_')
+  );
+
+  const paidPercent =
+    order.totalBill > 0
+      ? Math.min(100, Math.max(0, Math.round((order.depositPaid / order.totalBill) * 100)))
+      : 100;
+
+  const activePassStep = isDelivered ? 4 : Math.min(4, Math.max(1, currentStepIndex + 1));
 
   return (
     <div className={styles.page}>
-      {/* Atelier-first header celebrating the tailoring studio */}
+      {/* Sticky Frosted Glass Studio Header */}
       <header className={styles.header}>
         <div className={styles.atelierBlock}>
           {shop?.logoUrl ? (
             <div className={styles.atelierLogoWrap}>
-              <Image src={shop.logoUrl} alt={shop.name} width={38} height={38} className={styles.atelierLogo} />
+              <Image
+                src={shop.logoUrl}
+                alt={shop.name}
+                width={38}
+                height={38}
+                className={styles.atelierLogo}
+              />
             </div>
           ) : (
             <div className={styles.atelierMonogram}>
@@ -158,7 +209,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                     alignItems: 'center',
                     gap: '4px',
                     fontSize: '11px',
-                    fontWeight: 700,
+                    fontWeight: 650,
                     padding: '2px 8px',
                     borderRadius: '100px',
                     backgroundColor: `${getTierForXp(shop.xp).color}1A`,
@@ -178,7 +229,12 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         <div className={styles.headerActions}>
           {shop?.phone && (
             <a
-              href={getWhatsAppLink(shop.phone, `Hello ${shop.name}, I am tracking my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}
+              href={getWhatsAppLink(
+                shop.phone,
+                `Hello ${shop.name}, I am tracking my order #${order.id
+                  .slice(0, 4)
+                  .toUpperCase()} (${order.orderDetails}).`
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.headerChatBtn}
@@ -196,13 +252,21 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
       </header>
 
       <main className={styles.main}>
-        {/* Hero */}
-        <section className={styles.hero}>
-          <div className={styles.heroTopRow}>
-            <span className={styles.orderChip}>
-              <Symbol name="verified" size={16} className={styles.orderChipIcon} />
-              Order #{order.id.slice(0, 4).toUpperCase()}
-            </span>
+        {/* ── 1. Apple Wallet-Style Sartorial Commission Pass Hero ── */}
+        <section className={styles.commissionPass}>
+          <div className={styles.passStitchBorder} aria-hidden="true" />
+
+          <div className={styles.passTopRow}>
+            <div className={styles.passChipGroup}>
+              <span className={styles.passOrderChip}>
+                <Symbol name="verified" size={14} />
+                <span>Order #{order.id.slice(0, 4).toUpperCase()}</span>
+              </span>
+              {order.styleName && (
+                <span className={styles.passStyleChip}>{order.styleName}</span>
+              )}
+            </div>
+
             <ShareTrackButton
               orderId={order.id}
               orderTitle={order.orderDetails}
@@ -217,39 +281,102 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
               isDelivered={isDelivered}
             />
           </div>
-          <h2 className={styles.heroTitle}>
-            {isDelivered
-              ? `Your ${order.orderDetails} is complete`
-              : `Tracking your ${order.orderDetails}`}
-          </h2>
-          <p className={styles.heroSub}>
-            {isDelivered
-              ? `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — thank you for trusting ${shop ? shop.name : 'our workshop'}! Your custom piece has been completed and received. You can review the full craft journey of your garment below.`
-              : `Hello ${order.customerName ? order.customerName.split(' ')[0] : 'there'} — watch your piece come to life${shop ? ` at ${shop.name}` : ''}. Every milestone of your garment is documented here.`}
-          </p>
-          {isDelivered ? (
-            <div className={styles.dueRow}>
-              <Symbol name="check_circle" size={18} className={styles.dueIcon} />
-              <span>
-                Completed & Received
-                {stageDate(order.statusHistory, 'Delivered') &&
-                  ` on ${stageDate(order.statusHistory, 'Delivered')?.toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric' })}`}
+
+          <div className={styles.passBody}>
+            <span className={styles.passClientOverline}>
+              Prepared for {order.customerName || 'Valued Client'}
+            </span>
+            <h1 className={styles.passTitle}>{order.orderDetails}</h1>
+            <p className={styles.passSubtitle}>
+              {isDelivered
+                ? `Completed and delivered by ${shop ? shop.name : 'your tailor'}. Thank you for your patronage.`
+                : `Crafted to your individual measurements${
+                    shop ? ` at ${shop.name}` : ''
+                  }. Follow each tailoring milestone below.`}
+            </p>
+          </div>
+
+          {/* 4-Step Illuminated Progress Rail inside Pass */}
+          <div className={styles.passProgressSection}>
+            <div className={styles.passProgressMeta}>
+              <span className={styles.passProgressStage}>
+                {CLIENT_STAGE_HEADLINES[order.status]}
+              </span>
+              <span className={styles.passProgressStepCount}>
+                {isDelivered ? 'Completed (100%)' : `Step ${activePassStep} of 4`}
               </span>
             </div>
-          ) : order.dueDate ? (
-            <div className={styles.dueRow}>
-              <Symbol name="event" size={18} className={styles.dueIcon} />
-              <span>
-                Target Completion:{' '}
-                {new Date(order.dueDate).toLocaleDateString('en-NG', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </span>
-              {daysRemainingLabel && (
-                <span className={`${styles.daysBadge} ${daysRemaining !== null && daysRemaining <= 0 ? styles.daysBadgeActive : ''}`}>
-                  {daysRemainingLabel}
-                </span>
-              )}
+
+            <div className={styles.passSegmentsTrack} role="progressbar" aria-valuenow={activePassStep} aria-valuemin={1} aria-valuemax={4}>
+              {PASS_SEGMENTS.map((seg, idx) => {
+                const segFilled = isDelivered || idx < currentStepIndex;
+                const segActive = !isDelivered && idx === currentStepIndex;
+                return (
+                  <div key={seg.status} className={styles.passSegmentCol}>
+                    <div
+                      className={`${styles.passSegmentBar} ${
+                        segFilled
+                          ? styles.passSegmentFilled
+                          : segActive
+                          ? styles.passSegmentActive
+                          : ''
+                      }`}
+                    />
+                    <span
+                      className={`${styles.passSegmentLabel} ${
+                        segFilled || segActive ? styles.passSegmentLabelLit : ''
+                      }`}
+                    >
+                      {seg.shortLabel}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-          ) : null}
+          </div>
+
+          {/* Recessed Pass Telemetry Deck */}
+          <div className={styles.passFooterDeck}>
+            <div className={styles.passDeckCell}>
+              <span className={styles.passDeckLabel}>Status</span>
+              <span className={styles.passDeckValue}>
+                {CLIENT_STAGE_HEADLINES[order.status]}
+              </span>
+            </div>
+
+            <div className={styles.passDeckCell}>
+              <span className={styles.passDeckLabel}>
+                {isDelivered ? 'Delivered On' : 'Target Date'}
+              </span>
+              <span className={styles.passDeckValue}>
+                {isDelivered && deliveredDate
+                  ? deliveredDate.toLocaleDateString('en-NG', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : order.dueDate
+                  ? new Date(order.dueDate).toLocaleDateString('en-NG', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : 'Scheduled'}
+              </span>
+            </div>
+
+            <div className={styles.passDeckCell}>
+              <span className={styles.passDeckLabel}>Timeline</span>
+              <span className={styles.passDeckValue}>
+                {isDelivered
+                  ? 'Received'
+                  : daysRemainingLabel ||
+                    (measurementEntries.length > 0
+                      ? `${measurementEntries.length} fit specs`
+                      : 'In production')}
+              </span>
+            </div>
+          </div>
         </section>
 
         {/* Selected design & fabric reference card */}
@@ -258,15 +385,21 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           fabrics={customer?.fabrics}
         />
 
-        {/* Visual progress story — rating shown first on delivery, but full story preserved */}
+        {/* Rating shown first on delivery */}
         {isDelivered && (
-          <RatingForm orderId={order.id} shopName={shop?.name || APP_CONFIG.name} alreadyRated={alreadyRated} />
+          <RatingForm
+            orderId={order.id}
+            shopName={shop?.name || APP_CONFIG.name}
+            alreadyRated={alreadyRated}
+          />
         )}
 
+        {/* ── 2. Craftsmanship Timeline with Sartorial SVG Blueprints ── */}
         <section className={styles.timeline}>
           <div className={styles.timelineRail} aria-hidden="true" />
           {visibleStages.map((status, index) => {
-            const isCompleted = index < currentStepIndex || (index === currentStepIndex && status === 'Delivered');
+            const isCompleted =
+              index < currentStepIndex || (index === currentStepIndex && status === 'Delivered');
             const isCurrent = index === currentStepIndex && status !== 'Delivered';
             const isPending = index > currentStepIndex;
 
@@ -286,57 +419,120 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           })}
         </section>
 
-        {/* Customer Appointments / Fitting Sessions */}
-        {(!isDelivered || batchSiblings.some(s => s.status !== 'Delivered')) && upcomingAppointments.length > 0 && (
+        {/* ── 3. Documented Fit Profile Card (Makes Photo-less Orders Look Rich & Personal) ── */}
+        {measurementEntries.length > 0 && (
           <section className={styles.card}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-              <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Try-On & Fitting Session</h3>
-              <span className={styles.fittingBadge}>Scheduled</span>
-            </div>
-            <div className={styles.siblingList}>
-              {upcomingAppointments.map(evt => {
-                const dateObj = new Date(evt.date);
-                const isToday = evt.date === todayStr;
-                return (
-                  <div key={evt.id} className={styles.siblingRow} style={{ flexWrap: 'wrap' }}>
-                    <div className={styles.siblingDetails}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Symbol name="calendar_month" size={16} />
-                        <strong>{evt.title}</strong>
-                      </div>
-                      <div style={{ fontSize: '13px', color: 'var(--sf-text-secondary)', marginTop: '4px' }}>
-                        {isToday ? 'Today' : dateObj.toLocaleDateString('en-NG', { weekday: 'long', month: 'short', day: 'numeric' })}
-                        {evt.startTime && ` • ${evt.startTime}`}
-                      </div>
-                    </div>
-                    {evt.type === 'fitting' && (
-                      <span className={styles.siblingStatus} style={{ background: 'var(--sf-accent-purple-light)', color: 'var(--sf-accent-purple)' }}>
-                        Fitting
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {shop?.address && (
-              <div className={styles.studioLocationBlock}>
-                <div className={styles.studioLocationInfo}>
-                  <Symbol name="location_on" size={16} className={styles.locationIcon} />
-                  <span className={styles.studioLocationText}>{shop.address}</span>
+            <div className={styles.fitHeaderRow}>
+              <div className={styles.fitTitleGroup}>
+                <Symbol name="straighten" size={18} className={styles.referenceIcon} />
+                <div>
+                  <h3 className={styles.sectionTitle} style={{ margin: 0 }}>
+                    Documented Fit Profile
+                  </h3>
+                  <p className={styles.fitSubtitle}>
+                    Bespoke measurements recorded for {order.customerName || 'this commission'}
+                  </p>
                 </div>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${shop.name} ${shop.address}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.mapLinkBtn}
-                >
-                  <span>Get Directions</span>
-                  <Symbol name="arrow_forward" size={14} />
-                </a>
               </div>
-            )}
+              <span className={styles.referenceBadge}>
+                {measurementEntries.length} Specs
+              </span>
+            </div>
+
+            <div className={styles.fitSpecsGrid}>
+              {measurementEntries.slice(0, 12).map(([key, val]) => (
+                <div key={key} className={styles.fitSpecChip}>
+                  <span className={styles.fitSpecLabel}>{formatMeasurementKey(key)}</span>
+                  <span className={styles.fitSpecVal}>{String(val)}&quot;</span>
+                </div>
+              ))}
+            </div>
           </section>
         )}
+
+        {/* Customer Appointments / Fitting Sessions */}
+        {(!isDelivered || batchSiblings.some((s) => s.status !== 'Delivered')) &&
+          upcomingAppointments.length > 0 && (
+            <section className={styles.card}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginBottom: '12px',
+                }}
+              >
+                <h3 className={styles.sectionTitle} style={{ margin: 0 }}>
+                  Try-On &amp; Fitting Session
+                </h3>
+                <span className={styles.fittingBadge}>Scheduled</span>
+              </div>
+              <div className={styles.siblingList}>
+                {upcomingAppointments.map((evt) => {
+                  const dateObj = new Date(evt.date);
+                  const isToday = evt.date === todayStr;
+                  return (
+                    <div key={evt.id} className={styles.siblingRow} style={{ flexWrap: 'wrap' }}>
+                      <div className={styles.siblingDetails}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Symbol name="calendar_month" size={16} />
+                          <strong>{evt.title}</strong>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            color: 'var(--sf-text-secondary)',
+                            marginTop: '4px',
+                          }}
+                        >
+                          {isToday
+                            ? 'Today'
+                            : dateObj.toLocaleDateString('en-NG', {
+                                weekday: 'long',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                          {evt.startTime && ` • ${evt.startTime}`}
+                        </div>
+                      </div>
+                      {evt.type === 'fitting' && (
+                        <span
+                          className={styles.siblingStatus}
+                          style={{
+                            background: 'var(--sf-accent-purple-light)',
+                            color: 'var(--sf-accent-purple)',
+                          }}
+                        >
+                          Fitting
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {shop?.address && (
+                <div className={styles.studioLocationBlock}>
+                  <div className={styles.studioLocationInfo}>
+                    <Symbol name="location_on" size={16} className={styles.locationIcon} />
+                    <span className={styles.studioLocationText}>{shop.address}</span>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${shop.name} ${shop.address}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.mapLinkBtn}
+                  >
+                    <span>Get Directions</span>
+                    <Symbol name="arrow_forward" size={14} />
+                  </a>
+                </div>
+              )}
+            </section>
+          )}
 
         {/* Other pieces in this order */}
         {batchSiblings.length > 0 && (
@@ -346,40 +542,79 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
               {batchSiblings.map((sibling) => (
                 <Link
                   key={sibling.id}
-                  href={ROUTES.track({ id: sibling.id, customerName: order.customerName, orderDetails: sibling.orderDetails })}
+                  href={ROUTES.track({
+                    id: sibling.id,
+                    customerName: order.customerName,
+                    orderDetails: sibling.orderDetails,
+                  })}
                   className={styles.siblingRow}
                 >
                   <span className={styles.siblingDetails}>
-                    {sibling.orderDetails.length > 60 ? sibling.orderDetails.slice(0, 60) + '…' : sibling.orderDetails}
+                    {sibling.orderDetails.length > 60
+                      ? sibling.orderDetails.slice(0, 60) + '…'
+                      : sibling.orderDetails}
                   </span>
-                  <span className={styles.siblingStatus}>{CLIENT_STAGE_HEADLINES[sibling.status]}</span>
+                  <span className={styles.siblingStatus}>
+                    {CLIENT_STAGE_HEADLINES[sibling.status]}
+                  </span>
                 </Link>
               ))}
             </div>
           </section>
         )}
 
-        {/* Order summary & financials */}
+        {/* ── 4. Order Summary, Payment Progress & Bank Transfer Pass ── */}
         <section className={styles.card}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-            <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Order Summary</h3>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
+            <h3 className={styles.sectionTitle} style={{ margin: 0 }}>
+              Order Summary
+            </h3>
             <Link href={ROUTES.receipt(order)} className={styles.receiptLink}>
               <Symbol name="receipt_long" size={15} />
               <span>Digital Receipt</span>
             </Link>
           </div>
           <div className={styles.infoBlock} style={{ marginTop: '12px' }}>
-            <span className={styles.infoLabel}>Outfit Details</span>
+            <span className={styles.infoLabel}>Commission Details</span>
             <p className={styles.infoValue}>{order.orderDetails}</p>
           </div>
+
+          {/* Visual Settlement Progress Bar */}
+          {order.totalBill > 0 && (
+            <div className={styles.settlementMeterWrap}>
+              <div className={styles.settlementMeterHeader}>
+                <span className={styles.settlementMeterLabel}>Payment Progress</span>
+                <span className={styles.settlementMeterPct}>{paidPercent}% settled</span>
+              </div>
+              <div className={styles.settlementTrack}>
+                <div
+                  className={styles.settlementFill}
+                  style={{ width: `${paidPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className={styles.billGrid}>
             <div className={styles.billItem}>
               <span className={styles.billLabel}>Total Price</span>
-              <span className={styles.billVal}>{formatCurrency(order.totalBill, shop?.currency)}</span>
+              <span className={styles.billVal}>
+                {formatCurrency(order.totalBill, shop?.currency)}
+              </span>
             </div>
             <div className={styles.billItem}>
               <span className={styles.billLabel}>Deposit Paid</span>
-              <span className={styles.billVal}>{formatCurrency(order.depositPaid, shop?.currency)}</span>
+              <span className={styles.billVal}>
+                {formatCurrency(order.depositPaid, shop?.currency)}
+              </span>
             </div>
             <div className={`${styles.billItem} ${styles.balanceItem}`}>
               <span className={styles.billLabel}>Balance Due</span>
@@ -389,10 +624,45 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
                   <span>Paid in Full</span>
                 </span>
               ) : (
-                <span className={styles.balanceVal}>{formatCurrency(balanceOwed, shop?.currency)}</span>
+                <span className={styles.balanceVal}>
+                  {formatCurrency(balanceOwed, shop?.currency)}
+                </span>
               )}
             </div>
           </div>
+
+          {/* Bank Settlement Box if Balance Due & Shop Bank Details Configured */}
+          {balanceOwed > 0 &&
+            (shop?.bankDetails?.bankName || shop?.bankDetails?.accountNumber) && (
+              <div className={styles.bankTransferBox}>
+                <div className={styles.bankTransferHeader}>
+                  <Symbol name="account_balance" size={15} />
+                  <span>Bank Transfer Details</span>
+                </div>
+                <div className={styles.bankTransferGrid}>
+                  {shop.bankDetails.bankName && (
+                    <div>
+                      <span className={styles.bankFieldLabel}>Bank</span>
+                      <span className={styles.bankFieldVal}>{shop.bankDetails.bankName}</span>
+                    </div>
+                  )}
+                  {shop.bankDetails.accountNumber && (
+                    <div>
+                      <span className={styles.bankFieldLabel}>Account Number</span>
+                      <span className={styles.bankFieldVal}>
+                        {shop.bankDetails.accountNumber}
+                      </span>
+                    </div>
+                  )}
+                  {shop.bankDetails.accountName && (
+                    <div>
+                      <span className={styles.bankFieldLabel}>Account Name</span>
+                      <span className={styles.bankFieldVal}>{shop.bankDetails.accountName}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
           <div className={styles.balanceNotice}>
             {balanceOwed > 0 ? (
@@ -403,15 +673,28 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
             ) : (
               <p className={styles.paidNoticeText}>
                 <Symbol name="verified" size={16} className={styles.paidNoticeIcon} />
-                <span>Your order is fully settled. No further payment required upon collection.</span>
+                <span>
+                  Your order is fully settled. No further payment required upon collection.
+                </span>
               </p>
             )}
           </div>
 
           {shop?.phone && (
-            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sf-border-light)' }}>
+            <div
+              style={{
+                marginTop: '16px',
+                paddingTop: '16px',
+                borderTop: '1px solid var(--sf-border-light)',
+              }}
+            >
               <a
-                href={getWhatsAppLink(shop.phone, `Hello ${shop.name}, I am checking in on my order #${order.id.slice(0, 4).toUpperCase()} (${order.orderDetails}).`)}
+                href={getWhatsAppLink(
+                  shop.phone,
+                  `Hello ${shop.name}, I am checking in on my order #${order.id
+                    .slice(0, 4)
+                    .toUpperCase()} (${order.orderDetails}).`
+                )}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.shopContactBtn}
@@ -433,9 +716,15 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
           <Symbol name="auto_awesome" size={32} className={styles.ctaIcon} />
           <h3 className={styles.ctaTitle}>Are you a tailor or fashion designer?</h3>
           <p className={styles.ctaText}>
-            Give your own customers this exact world-class live tracking experience. Manage orders, sizes, and payments effortlessly.
+            Give your own customers this exact world-class live tracking experience. Manage orders,
+            sizes, and payments effortlessly.
           </p>
-          <a href={APP_CONFIG.baseUrl} target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
+          <a
+            href={APP_CONFIG.baseUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaButton}
+          >
             Get {APP_CONFIG.name}
             <Symbol name="arrow_forward" size={16} />
           </a>
@@ -446,7 +735,9 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ ord
         <p>
           Crafted with care at {shop?.name || APP_CONFIG.name}
           <span className={styles.footerDivider}>•</span>
-          <span>Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span></span>
+          <span>
+            Powered by <span className={styles.footerBrand}>{APP_CONFIG.name}</span>
+          </span>
         </p>
       </footer>
     </div>
