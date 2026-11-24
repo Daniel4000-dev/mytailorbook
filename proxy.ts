@@ -92,18 +92,27 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Set a parent-domain marker cookie (`.mystitchbooks.com` / `.mystitchbook.com`) when a tailor/staff member
-  // is authenticated so public `/track/...` pages on the root domain know this browser belongs to a tailor
-  // and will never trigger a false "Client Opened Live Tracker" notification when the tailor previews links.
+  // Set a permanent parent-domain device marker cookie (`mtb_staff_device`, 10-year maxAge, never cleared on logout)
+  // whenever a tailor or staff member uses the app on this device. This guarantees the same device is recognized
+  // as a workshop device even if the tailor/staff logs out before opening a `/track/...` link.
   if (user) {
     const rawHost = request.headers.get('host')?.replace(/:\d+$/, '') || '';
     const isLocal = rawHost === 'localhost' || rawHost === '127.0.0.1';
     const rootDomain = rawHost.replace(/^(dev\.app\.|app\.|dev\.|staging\.)/, '');
+    const domainOpt = isLocal || rawHost.endsWith('.vercel.app') ? {} : { domain: `.${rootDomain}` };
+    const tenYears = 60 * 60 * 24 * 365 * 10;
+
     response.cookies.set('mtb_tailor_uid', user.id, {
       path: '/',
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: tenYears,
       sameSite: 'lax',
-      ...(isLocal || rawHost.endsWith('.vercel.app') ? {} : { domain: `.${rootDomain}` }),
+      ...domainOpt,
+    });
+    response.cookies.set('mtb_staff_device', '1', {
+      path: '/',
+      maxAge: tenYears,
+      sameSite: 'lax',
+      ...domainOpt,
     });
   }
 

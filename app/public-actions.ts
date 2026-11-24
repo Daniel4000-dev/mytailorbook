@@ -144,16 +144,39 @@ export async function getPublicOrderView(
 
   // Automated Customer Receipt & Verification Ping:
   // Only runs when explicitly requested by the actual page body (`options?.recordView === true`,
-  // never during generateMetadata or link unfurling), and ONLY when the visitor is NOT the tailor
-  // or a staff member of the workshop.
+  // never during generateMetadata or link unfurling), and ONLY when the physical device does NOT
+  // belong to the tailor or any staff member of that shop (even if logged out).
   const orderMetadata = (row.metadata as Record<string, unknown>) || {};
+  const isDeactivatedAfterReview =
+    row.status === 'Delivered' &&
+    Boolean(orderMetadata.ratingSubmitted) &&
+    !Boolean(orderMetadata.trackingReactivated);
+
+  // If the order is Delivered and the customer's review has already been collected
+  // (and the link has not been manually reactivated by the tailor), short-circuit immediately
+  // without querying `customers`, `shops`, or `organizations` — zero extra DB load.
+  if (isDeactivatedAfterReview) {
+    return { order, customer: null, shop: null };
+  }
+
   if (options?.recordView && !orderMetadata.clientViewedAt && row.shop_id) {
     (async () => {
       try {
-        // 1. Check if this browser belongs to an authenticated tailor/staff member
+        // 1. Check persistent device cookies (`mtb_shop_devices`, `mtb_staff_device`, `mtb_tailor_uid`)
+        //    and any active Supabase session. These device cookies have a 10-year max-age and are NEVER
+        //    cleared on logout, so the tailor's or staff member's phone/laptop is always recognized.
+        let isShopOrTailorDevice = false;
         let viewerUid: string | null = null;
         try {
           const cookieStore = await cookies();
+          const shopDevicesRaw = cookieStore.get('mtb_shop_devices')?.value || '';
+          const shopDevices = decodeURIComponent(shopDevicesRaw).split(',').filter(Boolean);
+          if (shopDevices.includes(row.shop_id)) {
+            isShopOrTailorDevice = true;
+          }
+          if (cookieStore.get('mtb_staff_device')?.value === '1') {
+            isShopOrTailorDevice = true;
+          }
           viewerUid = cookieStore.get('mtb_tailor_uid')?.value || null;
           if (!viewerUid) {
             const serverSupabase = await createClient();
@@ -164,9 +187,11 @@ export async function getPublicOrderView(
           // No session/cookies available
         }
 
+        if (isShopOrTailorDevice) {
+          return;
+        }
+
         if (viewerUid) {
-          // If the viewer is a registered tailor/staff in `profiles` (especially of this shop/org)
-          // or is the shop owner, skip firing the customer view notification.
           const { data: viewerProfile } = await admin
             .from('profiles')
             .select('id, shop_id')
@@ -445,6 +470,20 @@ export async function submitOrderRatingAction(
     if (insertError.code === '23505') return { success: false, error: 'You already left a review for this order.' };
     return { success: false, error: insertError.message };
   }
+
+  // Stamp `ratingSubmitted: true` and `trackingDeactivatedAt` directly into `orders.metadata`
+  // so future visits to `/track/...` short-circuit immediately without extra database queries.
+  const existingMeta = (order.metadata as Record<string, unknown>) || {};
+  await admin
+    .from('orders')
+    .update({
+      metadata: {
+        ...existingMeta,
+        ratingSubmitted: true,
+        trackingDeactivatedAt: new Date().toISOString(),
+      },
+    })
+    .eq('id', orderId);
 
   createAtelierNotification({
     shopId: order.shop_id,

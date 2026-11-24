@@ -1484,6 +1484,32 @@ export default function OrderDetailPage() {
                     <h3 className={styles.sectionTitle}>Client Live Tracking</h3>
                     <span className={styles.measureSubtitle}>Share real-time progress portal with client</span>
                   </div>
+                  {order.status === 'Delivered' && Boolean(order.metadata?.ratingSubmitted) && (
+                    <button
+                      type="button"
+                      className={styles.actionPillBtn}
+                      onClick={async () => {
+                        const nextState = !Boolean(order.metadata?.trackingReactivated);
+                        await updateOrder(order.id, {
+                          metadata: {
+                            ...(order.metadata || {}),
+                            trackingReactivated: nextState,
+                          },
+                        });
+                        showToast(
+                          nextState
+                            ? 'Tracking link reactivated for customer'
+                            : 'Tracking link deactivated (Completed view)',
+                          'success'
+                        );
+                      }}
+                    >
+                      <Symbol name={order.metadata?.trackingReactivated ? 'lock' : 'lock_open'} size={14} />
+                      <span>
+                        {order.metadata?.trackingReactivated ? 'Deactivate Link' : 'Reactivate Link'}
+                      </span>
+                    </button>
+                  )}
                 </div>
                 <div className={styles.trackBlock}>
                   <span className={styles.capsLabel}>Public Tracking Link</span>
