@@ -30,7 +30,6 @@ interface LiveTrackingJourneyProps {
   latestPhotoUrl: string | null;
   outfitReferenceUrl: string | null;
   stages: StageTimelineData[];
-  specsCount: number;
 }
 
 export default function LiveTrackingJourney({
@@ -48,7 +47,6 @@ export default function LiveTrackingJourney({
   latestPhotoUrl,
   outfitReferenceUrl,
   stages,
-  specsCount,
 }: LiveTrackingJourneyProps) {
   const isDelivered = actualStatus === 'Delivered';
   const currentStepIndex = isDelivered
@@ -91,11 +89,8 @@ export default function LiveTrackingJourney({
     <>
       {/* ── 1. Borderless Hero Dossier (Pure Typographic Flow on Page Canvas) ── */}
       <section className={styles.liveHeroSection}>
-        {/* Unified Badge Row: Status Pill, Order Ref & Share Button on One Single Line */}
+        {/* Order Ref & Share Button justified between at both ends on mobile */}
         <div className={styles.liveHeroBadgesRow}>
-          <span className={styles.liveHeroStatusPill}>
-            {CLIENT_STAGE_HEADLINES[actualStatus]}
-          </span>
           <span className={styles.liveHeroOrderRef}>
             Order #{orderId.slice(0, 4).toUpperCase()}
           </span>
