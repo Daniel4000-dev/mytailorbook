@@ -108,15 +108,15 @@ export default function OrderDetailPage() {
   const [alterationNotes, setAlterationNotes] = useState('');
   const [targetAlterationStage, setTargetAlterationStage] = useState<OrderStatus>('Sewing');
   const [savingAlteration, setSavingAlteration] = useState(false);
-  
+
   const [loggingException, setLoggingException] = useState(false);
   const [exceptionReason, setExceptionReason] = useState('');
   const [savingException, setSavingException] = useState(false);
 
-  const orderExceptions = useMemo(() => exceptions.filter((e) => e.orderId === resolvedOrderId), [exceptions, resolvedOrderId]);
+  const orderExceptions = useMemo(() => (exceptions || []).filter((e) => e && e.orderId === resolvedOrderId), [exceptions, resolvedOrderId]);
   const activeException = useMemo(() => {
     const now = new Date();
-    return orderExceptions.find((e) => !e.endDate || new Date(e.endDate) > now);
+    return (orderExceptions || []).find((e) => e && (!e.endDate || new Date(e.endDate) > now));
   }, [orderExceptions]);
 
   const handleLogException = async () => {
@@ -172,14 +172,14 @@ export default function OrderDetailPage() {
     getOrderCommentsAction(order.id).then((result) => {
       if (!result || 'error' in result) return;
       setComments(result);
-    }).catch(() => {});
+    }).catch(() => { });
   }, [order?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Opening the page counts as reading any new customer comments —
   // clears the unread badge on the board/dashboard.
   useEffect(() => {
     if (order && hasUnreadComment(order)) {
-      updateOrder(order.id, { commentsSeenAt: new Date().toISOString() }).catch(() => {});
+      updateOrder(order.id, { commentsSeenAt: new Date().toISOString() }).catch(() => { });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.id, order?.lastCommentAt]);
@@ -191,12 +191,12 @@ export default function OrderDetailPage() {
     fetchSiblings.then((result) => {
       if (!result || 'error' in result) return;
       setBatchSiblings(result);
-    }).catch(() => {});
+    }).catch(() => { });
   }, [order?.batchId, order?.id]);
 
   const stageEntry = useMemo(() => {
     if (!order) return null;
-    const entries = (order.statusHistory || []).filter((h) => h.to === order.status);
+    const entries = (order.statusHistory || []).filter((h) => h && h.to === order.status);
     return entries.length > 0 ? entries[entries.length - 1] : null;
   }, [order]);
 
@@ -214,7 +214,7 @@ export default function OrderDetailPage() {
 
   const next = getNextStatus(order.status);
   const balanceOwed = getBalanceOwed(order);
-  const orderRef = order.id.slice(0, 4).toUpperCase();
+  const orderRef = (order.id || '').slice(0, 4).toUpperCase();
   // Always the canonical production domain, not whatever host this
   // request happened to come in on (e.g. a Vercel preview deployment) —
   // this link goes straight into a WhatsApp message sent to the customer.
@@ -223,13 +223,13 @@ export default function OrderDetailPage() {
   const includeTrackingLink = order.includeTrackingLink ?? currentShop?.defaultTrackingLinkEnabled ?? true;
   const whatsAppMessage = customer
     ? getOrderProgressMessage({
-        customerName: customer.fullName,
-        shopName: currentShop?.name || 'us',
-        status: order.status,
-        trackingUrl,
-        customTemplate: currentShop?.stageMessageTemplates?.[order.status],
-        includeTrackingLink,
-      })
+      customerName: customer.fullName,
+      shopName: currentShop?.name || 'us',
+      status: order.status,
+      trackingUrl,
+      customTemplate: currentShop?.stageMessageTemplates?.[order.status],
+      includeTrackingLink,
+    })
     : undefined;
 
   const handleToggleTrackingLink = (checked: boolean) => {
@@ -502,7 +502,7 @@ export default function OrderDetailPage() {
   const handleSaveEdit = async () => {
     setSavingEdit(true);
     try {
-      const assignee = staffMembers.find((s) => s.uid === editAssignedTo);
+      const assignee = (staffMembers || []).find((s) => s && s.uid === editAssignedTo);
       updateOrder(order.id, {
         // Pass '' rather than undefined for "cleared" fields — the update
         // mapper treats undefined as "leave unchanged", so undefined here
@@ -698,8 +698,8 @@ export default function OrderDetailPage() {
 
   const staffOptions = [
     { value: '', label: 'Unassigned' },
-    ...staffMembers
-      .filter((s) => s.active !== false || s.uid === order.assignedTo)
+    ...(staffMembers || [])
+      .filter((s) => s && (s.active !== false || s.uid === order.assignedTo))
       .map((s) => ({ value: s.uid, label: s.uid === user?.uid ? `${s.name} (You)` : s.name })),
   ];
 
@@ -722,8 +722,8 @@ export default function OrderDetailPage() {
   const measurementEntries = usingOrderMeasurements
     ? orderMeasurementEntries
     : Object.entries(customer?.measurements || {}).filter(
-        ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
-      );
+      ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+    );
 
   const BASELINE_KEYS = [
     'chest', 'bust', 'waist', 'hips', 'shoulder', 'dressLength',
@@ -746,8 +746,8 @@ export default function OrderDetailPage() {
   const latestProgressPhoto = latestPending
     ? { url: latestPending.previewUrl, stage: latestPending.stage, isPending: true, status: latestPending.status, id: latestPending.id }
     : progressPhotos.length > 0
-    ? { ...progressPhotos[progressPhotos.length - 1], isPending: false }
-    : null;
+      ? { ...progressPhotos[progressPhotos.length - 1], isPending: false }
+      : null;
 
   const handleCopyMeasurements = () => {
     if (measurementEntries.length === 0) return;
@@ -835,14 +835,14 @@ export default function OrderDetailPage() {
                 type="button"
                 className={styles.stageDropdownBtn}
                 onClick={() => setStagePickerOpen(true)}
-                aria-label={`Change stage from ${STATUS_CONFIG[order.status].label}`}
+                aria-label={`Change stage from ${STATUS_CONFIG[order.status]?.label || order.status}`}
                 title="Tap to change stage"
               >
                 <span
                   className={styles.stageDot}
-                  style={{ background: STATUS_CONFIG[order.status].color }}
+                  style={{ background: STATUS_CONFIG[order.status]?.color || 'var(--color-primary)' }}
                 />
-                <span className={styles.stageDropdownLabel}>{STATUS_CONFIG[order.status].label}</span>
+                <span className={styles.stageDropdownLabel}>{STATUS_CONFIG[order.status]?.label || order.status}</span>
                 <Symbol name="expand_more" size={14} />
               </button>
             </div>
@@ -883,7 +883,7 @@ export default function OrderDetailPage() {
                   {next && (
                     <button type="button" className={styles.heroAdvanceBtn} onClick={handleAdvance} disabled={advancing}>
                       {advancing ? <Symbol name="progress_activity" className="global-spinner" /> : <Symbol name={next === 'Cutting' ? 'content_cut' : 'arrow_forward'} size={14} />}
-                      <span>Move to {STATUS_CONFIG[next].label}</span>
+                      <span>Move to {STATUS_CONFIG[next]?.label || next}</span>
                     </button>
                   )}
                 </>
@@ -898,7 +898,7 @@ export default function OrderDetailPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.heroWhatsappBtn}
-                        aria-label={`Send 1-tap ${STATUS_CONFIG[order.status].label} update to ${customer.fullName}`}
+                        aria-label={`Send 1-tap ${STATUS_CONFIG[order.status]?.label || order.status} update to ${customer.fullName}`}
                         title="Send WhatsApp update directly in 1 tap"
                       >
                         <WhatsappIcon size={14} />
@@ -969,7 +969,7 @@ export default function OrderDetailPage() {
                     type="button"
                     className={`${styles.stageStep} ${isCurrent ? styles.stageStepCurrent : ''} ${isPast ? styles.stageStepPast : ''}`}
                     onClick={() => handleSelectStage(status)}
-                    title={`Switch to ${STATUS_CONFIG[status].label}`}
+                    title={`Switch to ${STATUS_CONFIG[status]?.label || status}`}
                   >
                     <div className={styles.stageStepCircle}>
                       {isPast ? (
@@ -978,7 +978,7 @@ export default function OrderDetailPage() {
                         <span>{idx + 1}</span>
                       )}
                     </div>
-                    <span className={styles.stageStepText}>{STATUS_CONFIG[status].label}</span>
+                    <span className={styles.stageStepText}>{STATUS_CONFIG[status]?.label || status}</span>
                   </button>
                 );
               })}
@@ -1066,7 +1066,7 @@ export default function OrderDetailPage() {
                       onClick={(e) => setLightbox({ src: fabricPhotoUrl, rect: e.currentTarget.getBoundingClientRect() })}
                       title="Tap to view full fabric photo"
                     >
-                      <Image src={fabricPhotoUrl} alt="Fabric swatch" width={220} height={220} className={styles.visualGlanceImg} />
+                      <Image src={fabricPhotoUrl} alt="Fabric swatch" width={220} height={220} className={styles.visualGlanceImg} unoptimized />
                       <span className={styles.visualGlanceBadge}>
                         <Symbol name="texture" size={11} /> Fabric Swatch
                       </span>
@@ -1085,7 +1085,7 @@ export default function OrderDetailPage() {
                       onClick={(e) => setLightbox({ src: primaryInspoUrl, rect: e.currentTarget.getBoundingClientRect() })}
                       title="Tap to view design reference"
                     >
-                      <Image src={primaryInspoUrl} alt="Style reference" width={220} height={220} className={styles.visualGlanceImg} />
+                      <Image src={primaryInspoUrl} alt="Style reference" width={220} height={220} className={styles.visualGlanceImg} unoptimized />
                       <span className={styles.visualGlanceBadge}>
                         <Symbol name="photo_library" size={11} /> Design Inspo
                       </span>
@@ -1110,7 +1110,7 @@ export default function OrderDetailPage() {
                         width={220}
                         height={220}
                         className={styles.visualGlanceImg}
-                        unoptimized={Boolean((latestProgressPhoto as any).isPending)}
+                        unoptimized
                       />
                       <span className={`${styles.visualGlanceBadge} ${styles.visualGlanceBadgeProgress}`}>
                         <Symbol name="checkroom" size={11} /> {latestProgressPhoto.stage} Progress
@@ -1285,6 +1285,7 @@ export default function OrderDetailPage() {
                           height={400}
                           onClick={(e) => setLightbox({ src: url, rect: e.currentTarget.getBoundingClientRect() })}
                           style={{ cursor: 'zoom-in' }}
+                          unoptimized
                         />
                         <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemoveInspo(i)} aria-label="Remove inspiration photo">
                           <Symbol name="close" size={14} />
@@ -1349,10 +1350,10 @@ export default function OrderDetailPage() {
                           className={styles.batchPillActionBtn}
                           onClick={() => handleBatchAdvance(next)}
                           disabled={advancingBatch}
-                          title={`Advance entire batch to ${STATUS_CONFIG[next].label}`}
+                          title={`Advance entire batch to ${STATUS_CONFIG[next]?.label || next}`}
                         >
                           <Symbol name="arrow_forward" size={13} />
-                          <span>{advancingBatch ? 'Advancing…' : `Advance All to ${STATUS_CONFIG[next].label}`}</span>
+                          <span>{advancingBatch ? 'Advancing…' : `Advance All to ${STATUS_CONFIG[next]?.label || next}`}</span>
                         </button>
                       )}
                       {batchSiblings.some((s) => s.status !== order.status) && (
@@ -1361,10 +1362,10 @@ export default function OrderDetailPage() {
                           className={styles.copySpecBtn}
                           onClick={() => handleBatchAdvance(order.status)}
                           disabled={advancingBatch}
-                          title={`Sync all batch garments to ${STATUS_CONFIG[order.status].label}`}
+                          title={`Sync all batch garments to ${STATUS_CONFIG[order.status]?.label || order.status}`}
                         >
                           <Symbol name="layers" size={13} />
-                          <span>Sync to {STATUS_CONFIG[order.status].label}</span>
+                          <span>Sync to {STATUS_CONFIG[order.status]?.label || order.status}</span>
                         </button>
                       )}
                     </div>
@@ -1373,7 +1374,7 @@ export default function OrderDetailPage() {
                     {batchSiblings.map((sibling) => (
                       <Link key={sibling.id} href={ROUTES.productionOrder(sibling)} className={styles.batchRow}>
                         <span className={styles.batchDetails}>{sibling.orderDetails}</span>
-                        <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status].bgColor }}>
+                        <span className={styles.stageChipSm} style={{ background: STATUS_CONFIG[sibling.status]?.bgColor || 'transparent' }}>
                           {sibling.status}
                         </span>
                       </Link>
@@ -1490,6 +1491,7 @@ export default function OrderDetailPage() {
                               alt={`${group.stage} progress`}
                               width={400}
                               height={400}
+                              unoptimized
                             />
                             {isAlbum && (
                               <span className={styles.albumCountPill}>
@@ -1622,7 +1624,7 @@ export default function OrderDetailPage() {
             <div className={styles.tabContentGroup}>
               {/* Payment summary (owner view) */}
               {isOwnerView && !order.isInternalBatch && order.customerId && (
-                <OrderPayments 
+                <OrderPayments
                   orderId={order.id}
                   customerId={order.customerId}
                   walletBalance={customer?.wallet_balance || 0}
@@ -1729,7 +1731,7 @@ export default function OrderDetailPage() {
                   <div className={styles.metaItem}>
                     <span className={styles.metaLabel}>Current Stage Entry</span>
                     <span className={styles.metaValue}>
-                      {stageEntry ? `Entered ${STATUS_CONFIG[order.status].label} on ${formatDate(stageEntry.timestamp)}` : '—'}
+                      {stageEntry ? `Entered ${STATUS_CONFIG[order.status]?.label || order.status} on ${formatDate(stageEntry.timestamp)}` : '—'}
                     </span>
                   </div>
                 </div>
@@ -2048,11 +2050,10 @@ export default function OrderDetailPage() {
         onClose={() => setActiveStageAlbum(null)}
         title={
           activeStageAlbum
-            ? `${
-                activeStageAlbum === 'Delivered'
-                  ? 'Client Event Photos'
-                  : `${STATUS_CONFIG[activeStageAlbum]?.label || activeStageAlbum} Album`
-              }`
+            ? `${activeStageAlbum === 'Delivered'
+              ? 'Client Event Photos'
+              : `${STATUS_CONFIG[activeStageAlbum]?.label || activeStageAlbum} Album`
+            }`
             : 'Stage Album'
         }
         variant="modal"

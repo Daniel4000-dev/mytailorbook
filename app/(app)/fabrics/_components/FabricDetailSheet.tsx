@@ -284,7 +284,7 @@ export default function FabricDetailSheet({
         <div className={styles.sheetHeaderInfo}>
           <div className={styles.sheetTitleRow}>
             <span className={styles.chalkTagBadge}>
-              {`#${order.id.slice(0, 4).toUpperCase()}`}
+              {`#${(order.id || '').slice(0, 4).toUpperCase()}`}
             </span>
             <span className={styles.sheetCustomerName}>{clientName}</span>
             {hasPriority && (
