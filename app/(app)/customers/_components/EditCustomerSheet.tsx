@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { GARMENT_STYLES } from '@/lib/constants';
 import { isValidPhone, formatPhone, normalizePhone } from '@/lib/formatters';
+import { validatePhoneNumber } from '@/lib/phoneValidation';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import type { Customer } from '@/lib/types';
@@ -78,8 +79,9 @@ export default function EditCustomerSheet({ isOpen, onClose, customer }: EditCus
       setError("Enter the client's name and phone number to continue.");
       return;
     }
-    if (!isValidPhone(phone)) {
-      setError('Enter a valid phone number.');
+    const phoneCheck = validatePhoneNumber(phone);
+    if (!phoneCheck.isValid) {
+      setError(phoneCheck.error || 'Enter a valid phone number with complete digits.');
       return;
     }
     const normalizedNewPhone = normalizePhone(phone);

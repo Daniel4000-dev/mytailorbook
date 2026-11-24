@@ -25,15 +25,24 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
 
   if (!order) return null;
 
-  const orderMeasurementEntries = Object.entries(order.measurements || {}).filter(
+  const orderMeasurementEntries = (
+    order.measurements && typeof order.measurements === 'object'
+      ? Object.entries(order.measurements)
+      : []
+  ).filter(
     ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
   );
   const usingOrderMeasurements = orderMeasurementEntries.length > 0;
+  const customerMeasurementEntries = (
+    customer?.measurements && typeof customer.measurements === 'object'
+      ? Object.entries(customer.measurements)
+      : []
+  ).filter(
+    ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
+  );
   const measurementEntries = usingOrderMeasurements
     ? orderMeasurementEntries
-    : Object.entries(customer?.measurements || {}).filter(
-        ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
-      );
+    : customerMeasurementEntries;
 
   const fabricMatch = order.orderDetails?.match(/\[Fabric:\s*([^\]]+)\]/i);
   const fabricNote = fabricMatch ? fabricMatch[1] : null;
@@ -62,13 +71,20 @@ export default function CuttingSlipModal({ isOpen, onClose, order, customer }: C
       `===============================`,
       `WORKSHOP CUTTING SLIP`,
       `===============================`,
-      `Ref: #${order.id.slice(0, 4).toUpperCase()} | ${order.styleName || 'Custom Garment'}`,
+      `Ref: #${(order.id || '').slice(0, 4).toUpperCase()} | ${order.styleName || 'Custom Garment'}`,
       `Client: ${customerName}`,
       customerPhone ? `Contact: ${formatPhone(customerPhone)}` : null,
       fabricNote ? `Fabric: ${fabricNote}` : null,
       yardage ? `Yardage: ${yardage}` : null,
       isClientFabric ? `Material Source: Client Provided` : isShopFabric ? `Material Source: Shop Stock` : null,
-      order.dueDate ? `Due Date: ${new Date(order.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : null,
+      order.dueDate ? `Due Date: ${(() => {
+        try {
+          const d = new Date(order.dueDate);
+          return isNaN(d.getTime()) ? order.dueDate : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch {
+          return order.dueDate;
+        }
+      })()}` : null,
       hasPriority ? `Priority: ${isRush ? 'RUSH DELIVERY' : 'URGENT WORKSHOP'}` : null,
       order.assignedToName ? `Assigned Tailor: ${order.assignedToName}` : null,
       ``,

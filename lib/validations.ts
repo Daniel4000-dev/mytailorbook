@@ -35,9 +35,19 @@ export const updatePasswordSchema = z.object({
 
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
 
+import { validatePhoneNumber } from './phoneValidation';
+
 export const customerSchema = z.object({
   fullName: z.string().min(2, 'Client name must be at least 2 characters'),
-  phone: z.string().regex(/^\+?\d{7,15}$/, 'Enter a valid international or local phone number'),
+  phone: z.string().superRefine((val, ctx) => {
+    const res = validatePhoneNumber(val);
+    if (!res.isValid) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: res.error || 'Enter a valid phone number with complete required digits',
+      });
+    }
+  }),
   address: z.string().optional(),
   gender: z.enum(['male', 'female']),
   preferredStyles: z.array(z.string()).optional(),

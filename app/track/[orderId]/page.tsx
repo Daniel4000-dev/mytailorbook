@@ -79,13 +79,6 @@ function stageDate(history: StatusChange[], status: OrderStatus): Date | null {
   return entries.length > 0 ? new Date(entries[entries.length - 1].timestamp) : null;
 }
 
-function formatMeasurementKey(rawKey: string): string {
-  return rawKey
-    .replace(/_/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 export default async function TrackOrderPage({
   params,
 }: {
@@ -198,20 +191,6 @@ export default async function TrackOrderPage({
     };
   });
 
-  // Extract documented fit measurements (either on order or customer profile)
-  const rawMeasurements =
-    order.measurements && Object.keys(order.measurements).length > 0
-      ? order.measurements
-      : customer?.measurements || {};
-  const measurementEntries = Object.entries(rawMeasurements).filter(
-    ([key, val]) =>
-      val !== undefined &&
-      val !== null &&
-      String(val).trim() !== '' &&
-      String(val) !== '0' &&
-      !key.startsWith('_')
-  );
-
   const paidPercent =
     order.totalBill > 0
       ? Math.min(100, Math.max(0, Math.round((order.depositPaid / order.totalBill) * 100)))
@@ -306,7 +285,6 @@ export default async function TrackOrderPage({
           latestPhotoUrl={latestProgressPhoto}
           outfitReferenceUrl={outfitReferenceUrl}
           stages={stagesPayload}
-          specsCount={measurementEntries.length}
         />
 
         {/* Selected design & fabric reference card */}
@@ -322,37 +300,6 @@ export default async function TrackOrderPage({
             shopName={shop?.name || APP_CONFIG.name}
             alreadyRated={alreadyRated}
           />
-        )}
-
-        {/* ── 3. Documented Fit Profile Card (Makes Photo-less Orders Look Rich & Personal) ── */}
-        {measurementEntries.length > 0 && (
-          <section className={styles.card}>
-            <div className={styles.fitHeaderRow}>
-              <div className={styles.fitTitleGroup}>
-                <Symbol name="straighten" size={18} className={styles.referenceIcon} />
-                <div>
-                  <h3 className={styles.sectionTitle} style={{ margin: 0 }}>
-                    Documented Fit Profile
-                  </h3>
-                  <p className={styles.fitSubtitle}>
-                    Bespoke measurements recorded for {order.customerName || 'this commission'}
-                  </p>
-                </div>
-              </div>
-              <span className={styles.referenceBadge}>
-                {measurementEntries.length} Specs
-              </span>
-            </div>
-
-            <div className={styles.fitSpecsGrid}>
-              {measurementEntries.slice(0, 12).map(([key, val]) => (
-                <div key={key} className={styles.fitSpecChip}>
-                  <span className={styles.fitSpecLabel}>{formatMeasurementKey(key)}</span>
-                  <span className={styles.fitSpecVal}>{String(val)}&quot;</span>
-                </div>
-              ))}
-            </div>
-          </section>
         )}
 
         {/* Customer Appointments / Fitting Sessions */}

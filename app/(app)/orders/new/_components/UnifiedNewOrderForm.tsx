@@ -14,6 +14,7 @@ import { withNetworkTimeout } from '@/lib/offline/outbox';
 import { formatNumber, formatPhone, getCurrencySymbol, getShopCurrency, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
+import { validatePhoneNumber } from '@/lib/phoneValidation';
 import { GARMENT_STYLES, STYLE_MEASUREMENTS, resolveCanonicalStyleName, type StyleMeasurePoint } from '@/lib/constants';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import Avatar from '@/components/ui/Avatar/Avatar';
@@ -727,6 +728,57 @@ export default function UnifiedNewOrderForm() {
   } | null>(null);
   const [receiptSheetOpen, setReceiptSheetOpen] = useState(false);
   const [cuttingSlipOpen, setCuttingSlipOpen] = useState(false);
+  const [sharingReceiptImage, setSharingReceiptImage] = useState(false);
+
+  const handleShareReceiptImage = async () => {
+    const node = document.getElementById('order-created-receipt-card');
+    if (!node) {
+      showToast('Receipt card not found', 'error');
+      return;
+    }
+    setSharingReceiptImage(true);
+    const root = document.documentElement;
+    const priorTheme = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', 'light');
+    try {
+      const { toBlob } = await import('html-to-image');
+      const blob = await toBlob(node, { pixelRatio: 2, backgroundColor: '#ffffff' });
+      if (!blob) throw new Error('Could not render receipt image');
+
+      const refId = completedBatch?.firstOrderId ? completedBatch.firstOrderId.slice(-6).toUpperCase() : 'ORDER';
+      const fileName = `receipt-${refId}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: `Order Receipt #${refId}`,
+            text: `Official order receipt for ${selectedCustomer?.fullName || 'Client'} from ${currentShop?.name || APP_CONFIG.name}.`,
+            files: [file],
+          });
+          showToast('Receipt image shared!', 'success');
+          return;
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') return;
+        }
+      }
+
+      // Browser download fallback
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Receipt image downloaded! You can attach it to WhatsApp.', 'success');
+    } catch {
+      showToast('Failed to create receipt image', 'error');
+    } finally {
+      if (priorTheme) root.setAttribute('data-theme', priorTheme);
+      else root.removeAttribute('data-theme');
+      setSharingReceiptImage(false);
+    }
+  };
 
   const handleCreateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -736,6 +788,11 @@ export default function UnifiedNewOrderForm() {
     }
     if (!newCustomerPhone.trim()) {
       showToast('Please enter a WhatsApp number', 'error');
+      return;
+    }
+    const phoneCheck = validatePhoneNumber(newCustomerPhone);
+    if (!phoneCheck.isValid) {
+      showToast(phoneCheck.error || 'Please enter a valid phone number with complete digits.', 'error');
       return;
     }
 
@@ -782,6 +839,11 @@ export default function UnifiedNewOrderForm() {
   const handleCreateOrder = async () => {
     let activeCustomer = selectedCustomer;
     if (!activeCustomer && newCustomerName.trim() && newCustomerPhone.trim()) {
+      const phoneCheck = validatePhoneNumber(newCustomerPhone);
+      if (!phoneCheck.isValid) {
+        showToast(phoneCheck.error || 'Please enter a valid phone number with complete digits.', 'error');
+        return;
+      }
       try {
         setSavingCustomer(true);
         const created = await addCustomer({
@@ -2137,11 +2199,34 @@ export default function UnifiedNewOrderForm() {
                 : `${completedBatch.garments[0]?.styleName} for ${selectedCustomer.fullName} has been saved and sent to production.`}
             </p>
 
-            <div className={styles.receiptSummaryCard}>
+            <div className={styles.receiptSummaryCard} id="order-created-receipt-card">
+              <div className={styles.receiptBrandRow}>
+                <div className={styles.receiptBrandInfo}>
+                  <span className={styles.receiptShopName}>{currentShop?.name || APP_CONFIG.name}</span>
+                  {currentShop?.phone && (
+                    <span className={styles.receiptShopPhone}>{formatPhone(currentShop.phone)}</span>
+                  )}
+                </div>
+                <div className={styles.receiptRefBadge}>
+                  <span className={styles.receiptRefLabel}>Receipt</span>
+                  <span className={styles.receiptRefId}>#{completedBatch.firstOrderId.slice(-6).toUpperCase()}</span>
+                </div>
+              </div>
+
+              <div className={styles.receiptDividerDashed} />
+
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Customer</span>
                 <span className={styles.receiptBold}>{selectedCustomer.fullName}</span>
               </div>
+              {selectedCustomer.whatsappNumber && (
+                <div className={styles.receiptRow}>
+                  <span className={styles.receiptMuted}>Phone</span>
+                  <span className={styles.receiptBold}>{formatPhone(selectedCustomer.whatsappNumber)}</span>
+                </div>
+              )}
+
+              <div className={styles.receiptDividerDashed} />
 
               {completedBatch.garments.length > 1 ? (
                 <div className={styles.receiptGarmentsList}>
@@ -2159,6 +2244,8 @@ export default function UnifiedNewOrderForm() {
                   <span className={styles.receiptBold}>{completedBatch.garments[0]?.styleName}</span>
                 </div>
               )}
+
+              <div className={styles.receiptDividerDashed} />
 
               <div className={styles.receiptRow}>
                 <span className={styles.receiptMuted}>Total Bill</span>
@@ -2184,30 +2271,48 @@ export default function UnifiedNewOrderForm() {
                   {formatSafeDate(completedBatch.dueDate)}
                 </span>
               </div>
+
+              <div className={styles.receiptCardFooter}>
+                <Symbol name="verified" size={13} className={styles.receiptFooterCheck} />
+                <span>Verified by {APP_CONFIG.name} · Digital Tracking Enabled</span>
+              </div>
             </div>
 
-            {/* 1-Tap WhatsApp Receipt Button */}
-            {selectedCustomer.whatsappNumber ? (
-              <a
-                href={getWhatsAppLink(selectedCustomer.whatsappNumber, getWhatsAppReceiptText())}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.whatsappReceiptBtn}
-              >
-                <WhatsappIcon size={20} />
-                <span>Send Receipt via WhatsApp</span>
-              </a>
-            ) : (
+            {/* Actions: Image Share as primary, plus WhatsApp text, Cutting Slip, View Order */}
+            <div className={styles.receiptActionsGroup}>
               <button
                 type="button"
-                className={styles.whatsappReceiptBtn}
-                disabled
-                style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                className={styles.shareImageReceiptBtn}
+                onClick={handleShareReceiptImage}
+                disabled={sharingReceiptImage}
               >
-                <WhatsappIcon size={20} />
-                <span>No WhatsApp on File</span>
+                <Symbol name="image" size={18} />
+                <span>{sharingReceiptImage ? 'Generating Image…' : 'Share Receipt Image'}</span>
               </button>
-            )}
+
+              {selectedCustomer.whatsappNumber && (
+                <a
+                  href={getWhatsAppLink(selectedCustomer.whatsappNumber, getWhatsAppReceiptText())}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.whatsappTextBtn}
+                >
+                  <WhatsappIcon size={16} />
+                  <span>Send Text via WhatsApp</span>
+                </a>
+              )}
+            </div>
+
+            {/* View Full Digital Receipt Link */}
+            <a
+              href={ROUTES.receipt(completedBatch.firstOrderId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.viewDigitalReceiptBtn}
+            >
+              <Symbol name="receipt_long" size={18} />
+              <span>View Full Digital Receipt</span>
+            </a>
 
             {/* Workshop Cutting Slip Action */}
             <button

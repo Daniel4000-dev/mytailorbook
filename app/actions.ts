@@ -17,6 +17,7 @@ const STAGE_BADGE_ICON: Record<OrderStatus, string> = {
   Delivered: 'inventory_2',
 };
 import { formatCurrency } from '@/lib/formatters';
+import { validatePhoneNumber } from '@/lib/phoneValidation';
 import { resolveCanonicalStyleName } from '@/lib/constants';
 import type { Order, Customer, OrderStatus, Measurements, User, Shop, OrderComment, StylePhotoSubmission, OutreachLogEntry, PortfolioPhotoOverride, AuditLogEntry, ShopException, InventoryItem, CalendarEvent, CalendarEventType } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
@@ -837,6 +838,13 @@ export async function addCustomerAction(
   orgId: string,
   customer: Omit<Customer, 'id' | 'shopId' | 'createdAt'>
 ) {
+  if (customer.whatsappNumber) {
+    const phoneCheck = validatePhoneNumber(customer.whatsappNumber);
+    if (!phoneCheck.isValid) {
+      return { error: phoneCheck.error || 'Incomplete phone number' };
+    }
+  }
+
   const supabase = await createClient();
   const customerMeta: Record<string, unknown> = {};
   if (customer.secondaryPhone) customerMeta.secondaryPhone = customer.secondaryPhone;
@@ -1008,6 +1016,13 @@ export async function updateCustomerProfileAction(
   updates: Partial<Pick<Customer, 'fullName' | 'whatsappNumber' | 'gender' | 'preferredStyles' | 'address' | 'measurementNotes' | 'fabrics' | 'birthdate' | 'secondaryPhone' | 'payerName'>>,
   orgId: string
 ) {
+  if (updates.whatsappNumber !== undefined && updates.whatsappNumber.trim()) {
+    const phoneCheck = validatePhoneNumber(updates.whatsappNumber);
+    if (!phoneCheck.isValid) {
+      return { error: phoneCheck.error || 'Incomplete phone number' };
+    }
+  }
+
   const supabase = await createClient();
   const row: Record<string, unknown> = {};
   if (updates.fullName !== undefined) row.full_name = updates.fullName;

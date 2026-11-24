@@ -5,6 +5,7 @@ import BottomSheet from '@/components/ui/BottomSheet/BottomSheet';
 import Button from '@/components/ui/Button/Button';
 import Symbol from '@/components/ui/Symbol/Symbol';
 import { isValidPhone, formatPhone, normalizePhone } from '@/lib/formatters';
+import { validatePhoneNumber } from '@/lib/phoneValidation';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/contexts/ToastContext';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
@@ -52,8 +53,9 @@ export default function AddCustomerSheet({ isOpen, onClose, onCustomerCreated, i
       setError("Enter the client's name and phone number to continue.");
       return;
     }
-    if (!isValidPhone(phone)) {
-      setError('Enter a valid phone number.');
+    const phoneCheck = validatePhoneNumber(phone);
+    if (!phoneCheck.isValid) {
+      setError(phoneCheck.error || 'Enter a valid phone number with complete digits.');
       return;
     }
 

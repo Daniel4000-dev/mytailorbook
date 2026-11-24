@@ -26,16 +26,28 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
 function isOverdue(order: Order): boolean {
   if (!order.dueDate || order.status === 'Delivered') return false;
-  return new Date(order.dueDate) < new Date();
+  try {
+    const d = new Date(order.dueDate);
+    if (isNaN(d.getTime())) return false;
+    return d < new Date();
+  } catch {
+    return false;
+  }
 }
 
 interface FabricDetailSheetProps {
@@ -71,14 +83,16 @@ export default function FabricDetailSheet({
     return (
       customers.find(
         (c) =>
-          c.id === order.customerId ||
-          (c.fullName && c.fullName.toLowerCase() === order.customerName?.toLowerCase())
+          c && (
+            c.id === order.customerId ||
+            (c.fullName && order.customerName && c.fullName.toLowerCase() === order.customerName.toLowerCase())
+          )
       ) || null
     );
   }, [customers, order]);
 
   const orderMeasurementEntries = useMemo(() => {
-    if (!order?.measurements) return [];
+    if (!order?.measurements || typeof order.measurements !== 'object') return [];
     return Object.entries(order.measurements).filter(
       ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
     );
@@ -87,7 +101,7 @@ export default function FabricDetailSheet({
   const usingOrderMeasurements = orderMeasurementEntries.length > 0;
   const measurementEntries = useMemo(() => {
     if (usingOrderMeasurements) return orderMeasurementEntries;
-    if (!customer?.measurements) return [];
+    if (!customer?.measurements || typeof customer.measurements !== 'object') return [];
     return Object.entries(customer.measurements).filter(
       ([key, value]) => key !== 'notes' && value !== undefined && value !== null && value !== ''
     );
@@ -114,7 +128,7 @@ export default function FabricDetailSheet({
   const whatsappLink = useMemo(() => {
     if (!clientPhone || !order) return null;
     const garmentStyle = order.styleName || 'bespoke order';
-    const text = `Good day ${clientName}, this is ${shopName}. We are preparing to cut the fabric for your ${garmentStyle} order (#${order.id.slice(0, 4).toUpperCase()}) and wanted to quickly confirm the details with you.`;
+    const text = `Good day ${clientName}, this is ${shopName}. We are preparing to cut the fabric for your ${garmentStyle} order (#${(order.id || '').slice(0, 4).toUpperCase()}) and wanted to quickly confirm the details with you.`;
     return getWhatsAppLink(clientPhone, text);
   }, [clientPhone, clientName, order, shopName]);
 
@@ -203,7 +217,12 @@ export default function FabricDetailSheet({
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} noPadding>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title={order ? `#${(order.id || '').slice(0, 4).toUpperCase()} - ${order.customerName || 'Client'}` : 'Fabric Details'}
+      noPadding
+    >
       {/* Hidden file input for in-place photo capture */}
       <input
         type="file"

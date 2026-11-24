@@ -89,12 +89,13 @@ export function formatPhone(phone: string): string {
   return `+${normalized}`;
 }
 
+import { validatePhoneNumber } from './phoneValidation';
+
 /**
- * Validates that a phone number has the correct Nigerian format.
+ * Validates that a phone number has the correct country format and complete digits.
  */
 export function isValidPhone(phone: string): boolean {
-  const normalized = normalizePhone(phone);
-  return normalized.length >= 7 && normalized.length <= 15;
+  return validatePhoneNumber(phone).isValid;
 }
 
 /**
