@@ -11,6 +11,7 @@
     "test:unit": "vitest run tests/unit",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
     "cap:sync": "cap sync",
     "cap:copy": "cap copy",
     "cap:ios": "cap sync ios",
