@@ -162,7 +162,7 @@ export async function POST(req: Request) {
     // 3. Referral Proof-of-Work Bonus (+100 XP each)
     // -------------------------------------------------------------
     let referralBonusAwarded = false;
-    if (shop.referred_by_shop_id && !shop.referral_reward_claimed && baseReward > 0) {
+    if (xpEnabled && shop.referred_by_shop_id && !shop.referral_reward_claimed && baseReward > 0) {
       // Award 100 XP to this shop and 100 XP to referrer
       earnedXp += 100;
       referralBonusAwarded = true;
@@ -277,7 +277,7 @@ export async function POST(req: Request) {
               buddy_last_active_at: now.toISOString(),
             }).eq('id', wb.id);
 
-            if (peerXpReward > 0) {
+            if (xpEnabled && peerXpReward > 0) {
               const { data: bFresh } = await admin.from('shops').select('xp').eq('id', wb.id).single();
               if (bFresh) {
                 await admin.from('shops').update({ xp: (bFresh.xp || 0) + peerXpReward }).eq('id', wb.id);

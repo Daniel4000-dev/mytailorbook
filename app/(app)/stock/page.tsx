@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, getCanonicalPublicUrl } from '@/lib/routes';
 import PageLayout from '@/components/layout/PageLayout/PageLayout';
 import TopBar from '@/components/layout/TopBar/TopBar';
 import EmptyState from '@/components/ui/EmptyState/EmptyState';
@@ -530,8 +530,7 @@ function StockContent() {
 
   const handleShareReceiptWhatsApp = () => {
     if (!completedSale) return;
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const receiptUrl = `${origin}${ROUTES.receipt(completedSale.orderId)}`;
+    const receiptUrl = getCanonicalPublicUrl(ROUTES.receipt(completedSale.orderId));
     const recipient = completedSale.customerName === 'Retail Walk-In' ? 'valued customer' : completedSale.customerName;
     const msg = `Hello ${recipient}, thank you for your purchase at ${currentShop?.name || 'our boutique'}! Here is your official e-receipt: ${receiptUrl}`;
 
@@ -550,9 +549,8 @@ function StockContent() {
 
   const handleShareShowroom = async () => {
     if (!currentShop) return;
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const slug = currentShop.slug || currentShop.id;
-    const showroomUrl = `${origin}/catalogue/${slug}?view=rack`;
+    const showroomUrl = getCanonicalPublicUrl(`/catalogue/${slug}?view=rack`);
     const shareText = `Browse in-stock Ready-to-Wear pieces and accessories on our live rack at ${currentShop.name}: ${showroomUrl}`;
 
     if (typeof navigator.canShare === 'function' && navigator.canShare({ url: showroomUrl })) {

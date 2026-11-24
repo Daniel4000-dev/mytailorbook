@@ -1,0 +1,11 @@
+#!/bin/sh
+# -----------------------------------------------------------------------------
+# Pre-Push CI Pipeline Hook
+# Last line of defense before code leaves the local machine.
+# Runs full unit tests and Next.js build matching Vercel's deployment build.
+# -----------------------------------------------------------------------------
+
+set -e
+
+echo "Running Pre-Push CI build check (npm run build)..."
+npm run build

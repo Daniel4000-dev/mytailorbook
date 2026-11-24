@@ -6,11 +6,12 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const supabase = await createClient();
   const { data: shopRow } = await supabase
     .from('shops')
     .select('name, logo_url')
-    .or(`slug.eq.${slug},id.eq.${slug}`)
+    .eq(isUuid ? 'id' : 'slug', slug)
     .maybeSingle();
 
   const formattedSlug = slug
@@ -42,11 +43,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PublicCataloguePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const supabase = await createClient();
   const { data: shopRow } = await supabase
     .from('shops')
     .select('id, name, logo_url, phone, currency, slug')
-    .or(`slug.eq.${slug},id.eq.${slug}`)
+    .eq(isUuid ? 'id' : 'slug', slug)
     .maybeSingle();
 
   const formattedSlug = slug

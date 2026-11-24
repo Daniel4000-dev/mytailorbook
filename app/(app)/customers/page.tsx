@@ -26,7 +26,7 @@ import { getCataloguesAction } from '@/app/actions/catalogues';
 import { shareStylePhoto } from '@/lib/share-outreach';
 import CustomersSkeleton from './_components/CustomersSkeleton';
 import AddCustomerSheet from './_components/AddCustomerSheet';
-import { ROUTES } from '@/lib/routes';
+import { ROUTES, getCanonicalPublicUrl } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './page.module.css';
 
@@ -125,9 +125,8 @@ export default function CustomersPage() {
   // Derive matching public lookbook album URL
   const matchingAlbumUrl = useMemo(() => {
     if (!matchingAlbum || !currentShop) return null;
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const slug = currentShop.slug || 'studio';
-    return `${origin}/catalogue/${slug}?album=${matchingAlbum.id}`;
+    return getCanonicalPublicUrl(`/catalogue/${slug}?album=${matchingAlbum.id}`);
   }, [matchingAlbum, currentShop]);
 
   useEffect(() => {

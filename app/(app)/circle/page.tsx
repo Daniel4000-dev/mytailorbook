@@ -15,6 +15,7 @@ import styles from './page.module.css';
 import { COUNTRIES } from '@/components/ui/PhoneInput/countries';
 import { PhoneInput } from '@/components/ui/PhoneInput/PhoneInput';
 import { detectCountryAndCurrencyFromPhone } from '@/lib/currency';
+import { isXpSystemEnabled } from '@/lib/xp';
 import {
   getCircleHubDataAction,
   linkStudioBuddyAction,
@@ -686,9 +687,14 @@ function AtelierCircleContent() {
                     <div className={styles.incomingShopInfo}>
                       <span className={styles.incomingShopName}>{req.senderShopName}</span>
                       <span className={styles.incomingShopMeta}>
-                        {req.senderShopSlug ? `@${req.senderShopSlug} · ` : ''}
-                        {req.senderStreakCount > 0 ? `${req.senderStreakCount}d streak · ` : ''}
-                        <span style={{ color: req.senderTierColor }}>{req.senderTierName}</span>
+                        {req.senderShopSlug ? `@${req.senderShopSlug}` : ''}
+                        {req.senderStreakCount > 0 ? `${req.senderShopSlug ? ' · ' : ''}${req.senderStreakCount}d streak` : ''}
+                        {isXpSystemEnabled() && (
+                          <>
+                            {' · '}
+                            <span style={{ color: req.senderTierColor }}>{req.senderTierName}</span>
+                          </>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -831,8 +837,20 @@ function AtelierCircleContent() {
                     <div
                       className={`${styles.avatarRing} ${isTodayActive ? styles.avatarRingActive : ''
                         }`}
-                      style={{ borderColor: isTodayActive ? '#10B981' : buddy.tierColor }}
-                      title={`Tier: ${buddy.tierName}${isTodayActive ? ' · Active Today' : ''}`}
+                      style={{
+                        borderColor: isTodayActive
+                          ? '#10B981'
+                          : isXpSystemEnabled()
+                          ? buddy.tierColor
+                          : 'var(--sf-brand-indigo, #4338CA)',
+                      }}
+                      title={
+                        isXpSystemEnabled()
+                          ? `Tier: ${buddy.tierName}${isTodayActive ? ' · Active Today' : ''}`
+                          : isTodayActive
+                          ? 'Active Today'
+                          : buddy.name
+                      }
                     >
                       <div className={styles.avatarInner}>
                         {buddy.logoUrl ? (
@@ -1241,12 +1259,14 @@ function AtelierCircleContent() {
                 <span className={styles.profileStatVal}>{selectedBuddy.streakCount}d</span>
                 <span className={styles.profileStatLbl}>Streak</span>
               </div>
-              <div className={styles.profileStatBox}>
-                <span className={styles.profileStatVal} style={{ color: selectedBuddy.tierColor }}>
-                  {selectedBuddy.tierName.split(' ')[0]}
-                </span>
-                <span className={styles.profileStatLbl}>Tier</span>
-              </div>
+              {isXpSystemEnabled() && (
+                <div className={styles.profileStatBox}>
+                  <span className={styles.profileStatVal} style={{ color: selectedBuddy.tierColor }}>
+                    {selectedBuddy.tierName.split(' ')[0]}
+                  </span>
+                  <span className={styles.profileStatLbl}>Tier</span>
+                </div>
+              )}
               <div className={styles.profileStatBox}>
                 <span className={styles.profileStatVal}>
                   {selectedBuddy.status === 'sabbatical'
@@ -1410,9 +1430,14 @@ function AtelierCircleContent() {
                     <div className={styles.colleagueInfo}>
                       <span className={styles.colleagueName}>{colleague.name}</span>
                       <span className={styles.colleagueMeta}>
-                        {colleague.slug ? `@${colleague.slug} · ` : ''}
-                        {colleague.streakCount > 0 ? `${colleague.streakCount}d streak · ` : ''}
-                        <span style={{ color: colleague.tierColor }}>{colleague.tierName}</span>
+                        {colleague.slug ? `@${colleague.slug}` : ''}
+                        {colleague.streakCount > 0 ? `${colleague.slug ? ' · ' : ''}${colleague.streakCount}d streak` : ''}
+                        {isXpSystemEnabled() && (
+                          <>
+                            {' · '}
+                            <span style={{ color: colleague.tierColor }}>{colleague.tierName}</span>
+                          </>
+                        )}
                       </span>
                       <div className={styles.colleagueDetailTags}>
                         <span className={styles.colleagueLocationTag}>

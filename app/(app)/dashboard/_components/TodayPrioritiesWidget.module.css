@@ -5,7 +5,7 @@
   border-radius: 20px;
   padding: 16px 18px;
   margin-bottom: var(--sf-space-md, 16px);
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(67, 56, 202, 0.04),
     0 8px 24px -4px rgba(27, 27, 34, 0.06),
     0 16px 36px -8px rgba(67, 56, 202, 0.05);
@@ -372,11 +372,13 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   }
+
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .loopRow:hover {
       background: rgba(255, 255, 255, 0.07);
     }
   }
+
   :global([data-theme='dark']) .loopRow:hover {
     background: rgba(255, 255, 255, 0.07);
   }

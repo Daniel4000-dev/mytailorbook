@@ -397,6 +397,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // revalidation (isValidating) keeps showing the last-known-good data.
   const isLoaded = isDemoMode ? true : !!data;
 
+  // Permanently stamp this browser/device with the current shop ID (`mtb_shop_devices`)
+  // across the parent domain (10-year max-age, never cleared on logout) and record the
+  // device's IP on the shop so neither the owner's device nor any staff device of this
+  // shop is ever counted as a "Client Opened Live Tracker" view.
+  useEffect(() => {
+    if (!currentShop?.id || typeof document === 'undefined') return;
+    try {
+      const match = document.cookie.match(/(?:^|; )mtb_shop_devices=([^;]*)/);
+      const existing = match
+        ? decodeURIComponent(match[1])
+            .split(',')
+            .filter(Boolean)
+        : [];
+      const merged = Array.from(new Set([currentShop.id, ...existing])).slice(0, 20).join(',');
+      const host = window.location.hostname;
+      const isLocal = host === 'localhost' || host === '127.0.0.1';
+      const rootDomain = host.replace(/^(dev\.app\.|app\.|dev\.|staging\.)/, '');
+      const tenYears = 60 * 60 * 24 * 365 * 10;
+
+      document.cookie = `mtb_shop_devices=${encodeURIComponent(merged)}; path=/; max-age=${tenYears}; SameSite=Lax`;
+      document.cookie = `mtb_staff_device=1; path=/; max-age=${tenYears}; SameSite=Lax`;
+      if (!isLocal && !host.endsWith('.vercel.app')) {
+        document.cookie = `mtb_shop_devices=${encodeURIComponent(merged)}; path=/; domain=.${rootDomain}; max-age=${tenYears}; SameSite=Lax`;
+        document.cookie = `mtb_staff_device=1; path=/; domain=.${rootDomain}; max-age=${tenYears}; SameSite=Lax`;
+      }
+    } catch {
+      // ignore cookie error
+    }
+  }, [currentShop?.id]);
+
   // Daily Streak Auto Check-in on Login / App Open (runs standalone for bespoke tailor shops)
   useEffect(() => {
     const shopMode =

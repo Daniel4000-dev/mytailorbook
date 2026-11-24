@@ -198,6 +198,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resetAnalytics();
       // Clear offline SWR cache so another user on this device does not see it.
       localStorage.removeItem('mtb-swr-cache');
+      // Intentionally DO NOT clear `mtb_staff_device`, `mtb_shop_devices`, or `mtb_tailor_uid` cookies on logout
+      // so this physical device stays permanently marked as a tailor/staff device and never triggers a false
+      // "Client Opened Live Tracker" notification even if the tailor/staff views a tracking link while logged out.
       // Direct hard redirect to /login ensures all memory/state/service-worker
       // caches are cleanly flushed and lands on the login page immediately.
       window.location.href = ROUTES.login;

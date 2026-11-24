@@ -70,19 +70,46 @@ import { APP_CONFIG } from './config';
 
 /**
  * Resolves the canonical public URL for external customer-facing links
- * (tracking, studio storefronts, catalogues, invite referrals).
- * In local dev, preserves localhost:port for engineering convenience.
- * In staging and production, guarantees the clean apex production domain
- * (https://mystitchbook.com) so customers never receive dev/staging links.
+ * (tracking, receipts, studio storefronts, catalogues, invite referrals).
+ *
+ * Smartly derives the public domain directly from the active Vercel domain:
+ * 1. Local dev (`localhost` / `127.0.0.1`): preserves local origin (`http://localhost:3000`).
+ * 2. Staging / Preview (`dev.app.mystitchbooks.com`, `dev.*`, `staging.*`, `*.vercel.app`):
+ *    preserves the exact staging domain (`https://dev.app.mystitchbooks.com`) so staging links hit the staging DB.
+ * 3. Production (`app.mystitchbooks.com` -> `mystitchbooks.com`, or `app.mystitchbook.com` -> `mystitchbook.com`):
+ *    strips the `app.` or `www.` subdomain from the current production domain so public links always use the clean root domain.
  */
-export function getCanonicalPublicUrl(path: string): string {
+export function getCanonicalPublicUrl(path: string, hostnameOverride?: string): string {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  if (
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ) {
-    return `${window.location.origin}${cleanPath}`;
+  const rawHost =
+    hostnameOverride ??
+    (typeof window !== 'undefined' ? window.location.hostname : undefined);
+
+  if (rawHost) {
+    const host = rawHost.replace(/:\d+$/, '');
+
+    if (host === 'localhost' || host === '127.0.0.1') {
+      const origin =
+        !hostnameOverride && typeof window !== 'undefined'
+          ? window.location.origin
+          : `http://${rawHost}`;
+      return `${origin}${cleanPath}`;
+    }
+
+    if (
+      host.startsWith('dev.') ||
+      host.startsWith('staging.') ||
+      host.endsWith('.vercel.app')
+    ) {
+      return `https://${host}${cleanPath}`;
+    }
+
+    // Production domain: dynamically strip only the leading `app.` or `www.` from the current Vercel domain
+    // (e.g. `app.mystitchbooks.com` -> `mystitchbooks.com`, `mystitchbooks.com` -> `mystitchbooks.com`)
+    const cleanProdDomain = host.replace(/^(app\.|www\.)/, '');
+    return `https://${cleanProdDomain}${cleanPath}`;
   }
+
   return `${APP_CONFIG.baseUrl}${cleanPath}`;
 }
 

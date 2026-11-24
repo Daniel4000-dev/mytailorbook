@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
 import { isOrgPremium } from '@/lib/subscription';
 import { isOwnerLikeRole, type AtelierCraftRole } from '@/lib/types';
-import { recordServerXpLedger } from '@/lib/xp';
+import { isXpSystemEnabled, recordServerXpLedger } from '@/lib/xp';
 
 /**
  * Runs for every first-time sign-in, Google or email — neither gives us a
@@ -87,7 +87,7 @@ export async function completeOnboarding(
     weekly_capacity: weeklyCapacity ? parseInt(weeklyCapacity, 10) : null,
     rtw_sourcing_method: rtwSourcingMethod || null,
     monthly_revenue_target: monthlyRevenueTarget && monthlyRevenueTarget > 0 ? monthlyRevenueTarget : null,
-    xp: isBespoke ? 50 : 0, // Welcome craft bonus is reserved strictly for bespoke tailoring
+    xp: isBespoke && isXpSystemEnabled() ? 50 : 0, // Welcome craft bonus is reserved strictly for bespoke tailoring
   };
 
   if (referredByShopId) {

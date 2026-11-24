@@ -75,6 +75,7 @@ export default function OrderDetailPage() {
   const [publishingPortfolio, setPublishingPortfolio] = useState(false);
   const [uploadingInspo, setUploadingInspo] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
+  const [activeStageAlbum, setActiveStageAlbum] = useState<OrderStatus | null>(null);
   const [showAmendmentPrompt, setShowAmendmentPrompt] = useState(false);
   const [handoverSheetOpen, setHandoverSheetOpen] = useState(false);
   const [editingNotes, setEditingNotes] = useState(false);
@@ -1394,7 +1395,7 @@ export default function OrderDetailPage() {
                     <span className={styles.measureSubtitle}>Stage-stamped snapshots as garment is crafted</span>
                   </div>
                   <div className={styles.sectionActions}>
-                    {order.images && order.images.length > 0 && (
+                    {(order.status === 'Ready' || order.status === 'Delivered') && order.images && order.images.length > 0 && (
                       <button
                         type="button"
                         className={styles.featurePortfolioBtn}
@@ -1456,23 +1457,78 @@ export default function OrderDetailPage() {
                         )}
                       </div>
                     ))}
-                    {(order.images || []).map((photo, i) => (
-                      <div key={i} className={styles.galleryThumb}>
-                        <Image src={photo.url} alt={`${photo.stage} progress`} width={400} height={400} />
-                        <div className={styles.glassCaption}>
-                          {photo.stage === 'Delivered' ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <Symbol name="auto_awesome" size={11} /> Client Event · Lookbook
-                            </span>
-                          ) : (
-                            `${photo.stage} · ${new Date(photo.uploadedAt).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
-                          )}
-                        </div>
-                        <button type="button" className={styles.photoRemoveBtn} onClick={() => handleRemovePhoto(i)} aria-label="Remove photo">
-                          <Symbol name="close" size={14} />
-                        </button>
-                      </div>
-                    ))}
+                    {/* Group workshop photos by stage so stages with >1 photo render as a single clean album card */}
+                    {(['Documented', 'Cutting', 'Sewing', 'Ready', 'Delivered'] as OrderStatus[])
+                      .map((stage) => ({
+                        stage,
+                        items: (order.images || [])
+                          .map((photo, originalIndex) => ({ photo, originalIndex }))
+                          .filter((entry) => entry.photo.stage === stage),
+                      }))
+                      .filter((group) => group.items.length > 0)
+                      .map((group) => {
+                        const isAlbum = group.items.length > 1;
+                        const coverEntry = group.items[group.items.length - 1];
+                        const coverPhoto = coverEntry.photo;
+                        return (
+                          <div
+                            key={group.stage}
+                            className={`${styles.galleryThumb} ${isAlbum ? styles.galleryAlbumCard : ''}`}
+                            onClick={(e) => {
+                              if (isAlbum) {
+                                setActiveStageAlbum(group.stage);
+                              } else {
+                                setLightbox({
+                                  src: coverPhoto.url,
+                                  rect: e.currentTarget.getBoundingClientRect(),
+                                });
+                              }
+                            }}
+                          >
+                            <Image
+                              src={coverPhoto.url}
+                              alt={`${group.stage} progress`}
+                              width={400}
+                              height={400}
+                            />
+                            {isAlbum && (
+                              <span className={styles.albumCountPill}>
+                                <Symbol name="photo_library" size={12} />
+                                <span>{group.items.length} Photos</span>
+                              </span>
+                            )}
+                            <div className={styles.glassCaption}>
+                              {group.stage === 'Delivered' ? (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  <Symbol name="auto_awesome" size={11} />
+                                  {isAlbum
+                                    ? `Client Event Album (${group.items.length})`
+                                    : 'Client Event · Lookbook'}
+                                </span>
+                              ) : isAlbum ? (
+                                `${STATUS_CONFIG[group.stage]?.label || group.stage} Album · ${group.items.length} photos`
+                              ) : (
+                                `${STATUS_CONFIG[group.stage]?.label || group.stage} · ${new Date(
+                                  coverPhoto.uploadedAt
+                                ).toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}`
+                              )}
+                            </div>
+                            {!isAlbum && (
+                              <button
+                                type="button"
+                                className={styles.photoRemoveBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemovePhoto(coverEntry.originalIndex);
+                                }}
+                                aria-label="Remove photo"
+                              >
+                                <Symbol name="close" size={14} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                   </div>
                 )}
               </section>
@@ -1484,6 +1540,32 @@ export default function OrderDetailPage() {
                     <h3 className={styles.sectionTitle}>Client Live Tracking</h3>
                     <span className={styles.measureSubtitle}>Share real-time progress portal with client</span>
                   </div>
+                  {order.status === 'Delivered' && Boolean(order.metadata?.ratingSubmitted) && (
+                    <button
+                      type="button"
+                      className={styles.actionPillBtn}
+                      onClick={async () => {
+                        const nextState = !Boolean(order.metadata?.trackingReactivated);
+                        await updateOrder(order.id, {
+                          metadata: {
+                            ...(order.metadata || {}),
+                            trackingReactivated: nextState,
+                          },
+                        });
+                        showToast(
+                          nextState
+                            ? 'Tracking link reactivated for customer'
+                            : 'Tracking link deactivated (Completed view)',
+                          'success'
+                        );
+                      }}
+                    >
+                      <Symbol name={order.metadata?.trackingReactivated ? 'lock' : 'lock_open'} size={14} />
+                      <span>
+                        {order.metadata?.trackingReactivated ? 'Deactivate Link' : 'Reactivate Link'}
+                      </span>
+                    </button>
+                  )}
                 </div>
                 <div className={styles.trackBlock}>
                   <span className={styles.capsLabel}>Public Tracking Link</span>
@@ -1953,12 +2035,74 @@ export default function OrderDetailPage() {
             router.push(ROUTES.customerDetail(customer || order.customerId));
           }
         }}
-        title="Any Fit Amendments?"
-        description="Since you're delivering this order, did you make any final adjustments to the garment? You can record them now so the customer's next outfit fits perfectly from the start."
-        confirmLabel="Record Amendments"
-        cancelLabel="No, Fits Perfectly"
+        title="Any Fit Changes?"
+        description="Did you make any final size adjustments during fitting? Save them now so their next outfit fits right away."
+        confirmLabel="Update Fit"
+        cancelLabel="No, All Good"
         destructive={false}
       />
+
+      {/* Stage Album Modal for Workshop Progress Photos */}
+      <BottomSheet
+        isOpen={!!activeStageAlbum}
+        onClose={() => setActiveStageAlbum(null)}
+        title={
+          activeStageAlbum
+            ? `${
+                activeStageAlbum === 'Delivered'
+                  ? 'Client Event Photos'
+                  : `${STATUS_CONFIG[activeStageAlbum]?.label || activeStageAlbum} Album`
+              }`
+            : 'Stage Album'
+        }
+        variant="modal"
+      >
+        {activeStageAlbum && (
+          <div className={styles.workshopAlbumModalGrid}>
+            {(order.images || [])
+              .map((photo, originalIndex) => ({ photo, originalIndex }))
+              .filter((entry) => entry.photo.stage === activeStageAlbum)
+              .map((entry, idx) => (
+                <div
+                  key={entry.originalIndex}
+                  className={styles.workshopAlbumModalItem}
+                  onClick={(e) =>
+                    setLightbox({
+                      src: entry.photo.url,
+                      rect: e.currentTarget.getBoundingClientRect(),
+                    })
+                  }
+                >
+                  <Image
+                    src={entry.photo.url}
+                    alt={`${activeStageAlbum} photo ${idx + 1}`}
+                    width={500}
+                    height={500}
+                    className={styles.workshopAlbumModalImg}
+                  />
+                  <div className={styles.glassCaption}>
+                    Photo {idx + 1} ·{' '}
+                    {new Date(entry.photo.uploadedAt).toLocaleDateString('en-NG', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.photoRemoveBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemovePhoto(entry.originalIndex);
+                    }}
+                    aria-label="Remove photo from album"
+                  >
+                    <Symbol name="close" size={14} />
+                  </button>
+                </div>
+              ))}
+          </div>
+        )}
+      </BottomSheet>
 
       <PhotoLightbox
         src={lightbox?.src ?? null}

@@ -7,6 +7,10 @@ export interface NotificationPreferences {
   mute_circle_nudges?: boolean;
   /** When true, suppresses automated morning workshop kickstart and streak reminders */
   mute_daily_kickstarts?: boolean;
+  /** When true, internal staff handoffs (cutting, sewing, ironing) are in-app only, skipping mobile lockscreen push vibrations */
+  mute_staff_push?: boolean;
+  /** When true, holds non-emergency push notifications during quiet night hours (10:00 PM - 7:00 AM) */
+  quiet_hours_enabled?: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -14,6 +18,8 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   mute_stagnant_alerts: false,
   mute_circle_nudges: false,
   mute_daily_kickstarts: false,
+  mute_staff_push: false,
+  quiet_hours_enabled: false,
 };
 
 /**
@@ -28,5 +34,7 @@ export function getShopNotificationPreferences(
     mute_stagnant_alerts: Boolean(prefs.mute_stagnant_alerts),
     mute_circle_nudges: Boolean(prefs.mute_circle_nudges),
     mute_daily_kickstarts: Boolean(prefs.mute_daily_kickstarts),
+    mute_staff_push: Boolean(prefs.mute_staff_push),
+    quiet_hours_enabled: Boolean(prefs.quiet_hours_enabled),
   };
 }

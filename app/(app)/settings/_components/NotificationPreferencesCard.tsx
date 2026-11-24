@@ -121,6 +121,42 @@ export default function NotificationPreferencesCard() {
           <span className={styles.slider} />
         </label>
       </div>
+
+      <div className={styles.prefItem}>
+        <div className={styles.prefText}>
+          <span className={styles.prefLabel}>In-App Only for Staff Handoffs</span>
+          <span className={styles.prefDesc}>
+            Keep internal stage progress (cutting, sewing, ironing) inside your in-app notification bell. Prevents constant mobile push vibrations when your team is busy.
+          </span>
+        </div>
+        <label className={styles.switch}>
+          <input
+            type="checkbox"
+            checked={Boolean(prefs.mute_staff_push)}
+            disabled={savingKey === 'mute_staff_push'}
+            onChange={() => handleToggle('mute_staff_push')}
+          />
+          <span className={styles.slider} />
+        </label>
+      </div>
+
+      <div className={styles.prefItem}>
+        <div className={styles.prefText}>
+          <span className={styles.prefLabel}>Quiet Hours (10:00 PM – 7:00 AM)</span>
+          <span className={styles.prefDesc}>
+            Hold non-urgent lockscreen notifications during evening and night hours so your phone rests until morning workshop opening.
+          </span>
+        </div>
+        <label className={styles.switch}>
+          <input
+            type="checkbox"
+            checked={Boolean(prefs.quiet_hours_enabled)}
+            disabled={savingKey === 'quiet_hours_enabled'}
+            onChange={() => handleToggle('quiet_hours_enabled')}
+          />
+          <span className={styles.slider} />
+        </label>
+      </div>
     </div>
   );
 }

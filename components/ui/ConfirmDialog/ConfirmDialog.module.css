@@ -46,8 +46,22 @@
 
 .actions {
   display: flex;
-  gap: var(--sf-space-md);
+  gap: var(--sf-space-sm);
   margin-top: var(--sf-space-sm);
+}
+
+.actions > button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 12px;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
 }
 
 @keyframes fadeIn {

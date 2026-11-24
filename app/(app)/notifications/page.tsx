@@ -266,7 +266,7 @@ export default function NotificationsPage() {
               onClick={() => setActiveTab('unread')}
             >
               <span>Unread</span>
-              <span className={styles.filterBadge}>{unreadCount}</span>
+              <span className={styles.filterBadge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
             </button>
           )}
 
@@ -298,6 +298,16 @@ export default function NotificationsPage() {
             onClick={() => setActiveTab('payments')}
           >
             <span>Payments</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'system'}
+            className={`${styles.filterPill} ${activeTab === 'system' ? styles.filterPillActive : ''}`}
+            onClick={() => setActiveTab('system')}
+          >
+            <span>Announcements</span>
           </button>
         </div>
 

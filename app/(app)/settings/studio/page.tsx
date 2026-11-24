@@ -228,12 +228,6 @@ export default function StudioSettingsPage() {
     }
   };
 
-  const handleCopyBankDetails = async () => {
-    const bankString = `Bank: ${draftBankName || currentShop?.bankDetails?.bankName || 'GTBank'}\nAccount: ${draftAccountNumber || currentShop?.bankDetails?.accountNumber || '0123456789'}\nName: ${draftAccountName || currentShop?.bankDetails?.accountName || currentShop?.name || 'Studio Bespoke'}`;
-    await navigator.clipboard.writeText(bankString);
-    showToast('Bank details copied to clipboard', 'success');
-  };
-
   const handleOpenSocial = (type: 'instagram' | 'tiktok' | 'website') => {
     let url = '';
     if (type === 'instagram') {
@@ -324,8 +318,8 @@ export default function StudioSettingsPage() {
   return (
     <PageLayout width="narrow" header={<TopBar title="Profile" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <div className={styles.container}>
-        {/* WhatsApp iOS Style Centered Avatar Hero */}
-        <section className={styles.avatarSection} aria-label="Studio Photo">
+        {/* Centered Shop Logo Hero */}
+        <section className={styles.avatarSection} aria-label="Shop Logo">
           <input
             ref={fileInputRef}
             type="file"
@@ -335,14 +329,14 @@ export default function StudioSettingsPage() {
           />
           <button
             type="button"
-            className={styles.avatarWrap}
+            className={`${styles.avatarWrap} ${!currentShop?.logoUrl ? styles.avatarWrapEmpty : ''}`}
             onClick={() => fileInputRef.current?.click()}
-            title="Tap to change studio crest"
+            title={currentShop?.logoUrl ? 'Tap to change shop logo' : 'Tap to upload shop logo'}
           >
             {currentShop?.logoUrl ? (
               <Image
                 src={currentShop.logoUrl}
-                alt={currentShop.name || 'Studio Crest'}
+                alt={currentShop.name || 'Shop Logo'}
                 width={104}
                 height={104}
                 className={styles.avatarImg}
@@ -350,8 +344,12 @@ export default function StudioSettingsPage() {
             ) : (
               <div className={styles.avatarPlaceholder}>
                 <span className={styles.avatarCrestLetter}>{initial}</span>
+                <span className={styles.avatarLogoTag}>Shop Logo</span>
               </div>
             )}
+            <span className={styles.avatarCameraBadge} aria-hidden="true">
+              <Symbol name="add_a_photo" size={14} />
+            </span>
           </button>
           <div className={styles.avatarActions}>
             <button
@@ -360,7 +358,11 @@ export default function StudioSettingsPage() {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingLogo}
             >
-              {uploadingLogo ? 'Uploading...' : 'Edit photo'}
+              {uploadingLogo
+                ? 'Uploading...'
+                : currentShop?.logoUrl
+                ? 'Change shop logo'
+                : 'Upload shop logo'}
             </button>
             {currentShop?.logoUrl && (
               <button
@@ -372,6 +374,9 @@ export default function StudioSettingsPage() {
               </button>
             )}
           </div>
+          <span className={styles.avatarHint}>
+            Shown on your receipts, quotes, and lookbook
+          </span>
         </section>
 
         {/* WhatsApp iOS Style Grouped Card 1: Core Studio Profile Info */}
@@ -943,7 +948,7 @@ export default function StudioSettingsPage() {
           )}
 
           <p className={styles.sheetHelp}>
-            Used to auto-populate the {'{instagram}'} variable in client messages (e.g. event photo requests) and displayed on your public lookbook.
+            Displayed on your public lookbook and shared with customers.
           </p>
 
           <div className={styles.sheetActions}>
@@ -986,32 +991,8 @@ export default function StudioSettingsPage() {
             placeholder="e.g. House of Savile Bespoke Ltd"
           />
 
-          {(draftBankName || draftAccountNumber) && (
-            <div style={{ marginTop: '4px' }}>
-              <button
-                type="button"
-                onClick={handleCopyBankDetails}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '999px',
-                  border: '1px solid var(--sf-border-light)',
-                  background: 'var(--sf-bg-surface-sunken)',
-                  color: 'var(--sf-text-primary)',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <Symbol name="content_copy" size={14} /> Test Copy Bank Details
-              </button>
-            </div>
-          )}
-
           <p className={styles.sheetHelp}>
-            Auto-injected into quotes, receipts, invoices, and WhatsApp deposit payment reminders via the {'{bank_details}'} tag.
+            Shown on quotes, receipts, and payment reminders so customers can pay you easily.
           </p>
 
           <div className={styles.sheetActions}>
@@ -1029,8 +1010,8 @@ export default function StudioSettingsPage() {
         isOpen={confirmRemoveLogo}
         onClose={() => setConfirmRemoveLogo(false)}
         onConfirm={handleRemoveLogo}
-        title="Remove your studio crest?"
-        description="Receipts and your public portfolio will display your studio name in text instead."
+        title="Remove shop logo?"
+        description="Receipts and your public lookbook will show your shop name instead."
         confirmLabel="Remove"
       />
     </PageLayout>
