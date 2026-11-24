@@ -318,8 +318,8 @@ export default function StudioSettingsPage() {
   return (
     <PageLayout width="narrow" header={<TopBar title="Profile" showBack={!isDesktop} onBack={() => router.push(ROUTES.settings)} />}>
       <div className={styles.container}>
-        {/* WhatsApp iOS Style Centered Avatar Hero */}
-        <section className={styles.avatarSection} aria-label="Studio Photo">
+        {/* Centered Shop Logo Hero */}
+        <section className={styles.avatarSection} aria-label="Shop Logo">
           <input
             ref={fileInputRef}
             type="file"
@@ -329,14 +329,14 @@ export default function StudioSettingsPage() {
           />
           <button
             type="button"
-            className={styles.avatarWrap}
+            className={`${styles.avatarWrap} ${!currentShop?.logoUrl ? styles.avatarWrapEmpty : ''}`}
             onClick={() => fileInputRef.current?.click()}
-            title="Tap to change studio crest"
+            title={currentShop?.logoUrl ? 'Tap to change shop logo' : 'Tap to upload shop logo'}
           >
             {currentShop?.logoUrl ? (
               <Image
                 src={currentShop.logoUrl}
-                alt={currentShop.name || 'Studio Crest'}
+                alt={currentShop.name || 'Shop Logo'}
                 width={104}
                 height={104}
                 className={styles.avatarImg}
@@ -344,8 +344,12 @@ export default function StudioSettingsPage() {
             ) : (
               <div className={styles.avatarPlaceholder}>
                 <span className={styles.avatarCrestLetter}>{initial}</span>
+                <span className={styles.avatarLogoTag}>Shop Logo</span>
               </div>
             )}
+            <span className={styles.avatarCameraBadge} aria-hidden="true">
+              <Symbol name="add_a_photo" size={14} />
+            </span>
           </button>
           <div className={styles.avatarActions}>
             <button
@@ -354,7 +358,11 @@ export default function StudioSettingsPage() {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingLogo}
             >
-              {uploadingLogo ? 'Uploading...' : 'Edit photo'}
+              {uploadingLogo
+                ? 'Uploading...'
+                : currentShop?.logoUrl
+                ? 'Change shop logo'
+                : 'Upload shop logo'}
             </button>
             {currentShop?.logoUrl && (
               <button
@@ -366,6 +374,9 @@ export default function StudioSettingsPage() {
               </button>
             )}
           </div>
+          <span className={styles.avatarHint}>
+            Shown on your receipts, quotes, and lookbook
+          </span>
         </section>
 
         {/* WhatsApp iOS Style Grouped Card 1: Core Studio Profile Info */}
@@ -999,8 +1010,8 @@ export default function StudioSettingsPage() {
         isOpen={confirmRemoveLogo}
         onClose={() => setConfirmRemoveLogo(false)}
         onConfirm={handleRemoveLogo}
-        title="Remove your studio crest?"
-        description="Receipts and your public portfolio will display your studio name in text instead."
+        title="Remove shop logo?"
+        description="Receipts and your public lookbook will show your shop name instead."
         confirmLabel="Remove"
       />
     </PageLayout>
