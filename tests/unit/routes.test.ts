@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ROUTES, PUBLIC_PATHS, MARKETING_PATHS, APP_PREFIXES, SEARCH_DISALLOW, isPublicPath, isAppPath } from '@/lib/routes';
+import { ROUTES, PUBLIC_PATHS, MARKETING_PATHS, APP_PREFIXES, SEARCH_DISALLOW, isPublicPath, isAppPath, getCanonicalPublicUrl } from '@/lib/routes';
 import { findByIdOrSlug, toCustomerSlug, toOrderSlug, toCatalogueSlug } from '@/lib/slugs';
 
 // This file exists because getting a route's classification wrong has
@@ -215,5 +215,40 @@ describe('findByIdOrSlug resolution', () => {
 
     const uuidCatSlug = toCatalogueSlug(sampleCatalogues[1]);
     expect(findByIdOrSlug(sampleCatalogues, uuidCatSlug, (c) => c.title)?.id).toBe('7c9e6679-7425-40de-944b-e07fc1f90ae7');
+  });
+});
+
+describe('getCanonicalPublicUrl environment isolation (Staging vs Production)', () => {
+  it('resolves Production hostnames (app.mystitchbook.com and mystitchbook.com) strictly to clean apex https://mystitchbook.com', () => {
+    expect(getCanonicalPublicUrl('/track/order-123', 'app.mystitchbook.com')).toBe(
+      'https://mystitchbook.com/track/order-123'
+    );
+    expect(getCanonicalPublicUrl('/track/order-123', 'mystitchbook.com')).toBe(
+      'https://mystitchbook.com/track/order-123'
+    );
+    expect(getCanonicalPublicUrl('/studio/baans-fashion', 'app.mystitchbook.com')).toBe(
+      'https://mystitchbook.com/studio/baans-fashion'
+    );
+  });
+
+  it('preserves Staging/Dev hostnames (dev.app.mystitchbook.com, dev.mystitchbook.com, staging.*, *.vercel.app) so staging links stay on staging', () => {
+    expect(getCanonicalPublicUrl('/track/order-123', 'dev.app.mystitchbook.com')).toBe(
+      'https://dev.app.mystitchbook.com/track/order-123'
+    );
+    expect(getCanonicalPublicUrl('/track/order-123', 'dev.mystitchbook.com')).toBe(
+      'https://dev.mystitchbook.com/track/order-123'
+    );
+    expect(getCanonicalPublicUrl('/receipt/order-123', 'staging.mystitchbook.com')).toBe(
+      'https://staging.mystitchbook.com/receipt/order-123'
+    );
+    expect(getCanonicalPublicUrl('/track/order-123', 'mytailorbook-git-staging.vercel.app')).toBe(
+      'https://mytailorbook-git-staging.vercel.app/track/order-123'
+    );
+  });
+
+  it('preserves localhost for local development', () => {
+    expect(getCanonicalPublicUrl('/track/order-123', 'localhost')).toBe(
+      'http://localhost/track/order-123'
+    );
   });
 });
