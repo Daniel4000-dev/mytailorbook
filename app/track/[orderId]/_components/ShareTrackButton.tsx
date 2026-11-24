@@ -199,10 +199,10 @@ export default function ShareTrackButton({
           setIsOpen(true);
           setErrorMessage(null);
         }}
-        aria-label="Share progress card image"
+        aria-label="Share progress card"
       >
-        <Symbol name="share" size={15} />
-        <span>Share Image</span>
+        <Symbol name="share" size={14} />
+        <span>Share</span>
       </button>
 
       {/* Share Progress Card Modal */}
@@ -230,21 +230,9 @@ export default function ShareTrackButton({
               <div className={styles.cardPreviewWrapper}>
                 {/* Captured Story Card Node */}
                 <div ref={cardRef} className={styles.storyCard}>
-                  {/* Co-Branded Top Eyebrow Bar: MyStitchBook discovery header */}
-                  <div className={styles.cardEyebrowBar}>
-                    <div className={styles.cardEyebrowLive}>
-                      <span className={styles.cardLiveDot} />
-                      <span>LIVE CRAFT JOURNEY</span>
-                    </div>
-                    <div className={styles.cardEyebrowBrand}>
-                      <Symbol name="auto_awesome" size={11} className={styles.cardBrandSparkle} />
-                      <span>Powered by {APP_CONFIG.name}</span>
-                    </div>
-                  </div>
-
-                  {/* Atelier Header: Dominant focus celebrating the Tailor */}
-                  <div className={styles.cardAtelierRow}>
-                    <div className={styles.cardAtelierBlock}>
+                  {/* Luxury Workshop Header */}
+                  <div className={styles.cardHeaderRow}>
+                    <div className={styles.cardShopIdentity}>
                       {shopLogoUrl ? (
                         <div className={styles.cardLogoWrap}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -260,18 +248,18 @@ export default function ShareTrackButton({
                           {shopName.charAt(0).toUpperCase()}
                         </div>
                       )}
-                      <div className={styles.cardAtelierText}>
-                        <span className={styles.cardAtelierName}>{shopName}</span>
-                        <span className={styles.cardAtelierBadge}>Bespoke Workshop</span>
+                      <div className={styles.cardShopMeta}>
+                        <span className={styles.cardShopName}>{shopName}</span>
+                        <span className={styles.cardShopTagline}>Bespoke Craft</span>
                       </div>
                     </div>
 
-                    <div className={styles.cardOrderCode}>
+                    <div className={styles.cardOrderBadge}>
                       #{orderShortCode}
                     </div>
                   </div>
 
-                  {/* Centerpiece Image Frame */}
+                  {/* Centerpiece Image Frame (Editorial Aspect) */}
                   <div className={styles.cardVisualFrame}>
                     {photoUrl && !imgError ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -285,7 +273,7 @@ export default function ShareTrackButton({
                     ) : (
                       <div className={styles.cardArtPlaceholder}>
                         <div className={styles.cardArtIconWrap}>
-                          <Symbol name={STAGE_ICON_MAP[status] || 'apparel'} size={38} className={styles.cardArtIcon} />
+                          <Symbol name={STAGE_ICON_MAP[status] || 'checkroom'} size={32} className={styles.cardArtIcon} />
                         </div>
                         <span className={styles.cardArtTitle}>{stageHeadline}</span>
                         <span className={styles.cardArtSub}>Craftsmanship in progress</span>
@@ -295,26 +283,27 @@ export default function ShareTrackButton({
 
                   {/* Garment Identification */}
                   <div className={styles.cardGarmentBlock}>
+                    <span className={styles.cardClientLabel}>
+                      {customerFirstName ? `Handcrafted for ${customerFirstName}` : 'Bespoke Commission'}
+                    </span>
                     <h4 className={styles.cardGarmentTitle}>{orderTitle}</h4>
-                    <p className={styles.cardClientLabel}>
-                      {customerFirstName ? `Handcrafted for ${customerFirstName}` : 'Handcrafted Bespoke Piece'}
-                    </p>
                   </div>
 
                   {/* Milestone Progress Capsule */}
                   <div className={styles.cardMilestoneCapsule}>
                     <div className={styles.cardMilestoneIcon}>
-                      <Symbol name={STAGE_ICON_MAP[status] || 'verified'} size={15} />
+                      <Symbol name={STAGE_ICON_MAP[status] || 'verified'} size={14} />
                     </div>
                     <div className={styles.cardMilestoneInfo}>
                       <span className={styles.cardMilestoneHeadline}>{stageHeadline}</span>
+                      <span className={styles.cardMilestoneDot}>•</span>
                       <span className={styles.cardMilestoneDate}>{formattedDate}</span>
                     </div>
                   </div>
 
-                  {/* Card Luxury Footer: Balances Atelier credit and Platform URL */}
+                  {/* Card Luxury Footer */}
                   <div className={styles.cardFooter}>
-                    <span className={styles.cardFooterShop}>Crafted at {shopName}</span>
+                    <span className={styles.cardFooterShop}>Tailored by {shopName}</span>
                     <span className={styles.cardFooterBrandLink}>{APP_CONFIG.domain}</span>
                   </div>
                 </div>

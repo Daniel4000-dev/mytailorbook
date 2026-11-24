@@ -11,6 +11,7 @@ import { canSendReminder } from '@/lib/types';
 import { isOrgPremiumByOrgId } from '@/lib/subscription';
 import { extractCanonicalId, toOrderSlug } from '@/lib/slugs';
 import { FEATURE_FLAGS } from '@/lib/featureFlags';
+import { isXpSystemEnabled } from '@/lib/xp';
 
 // A real customer refreshing their own tracking page a few times is
 // normal; a scraper hitting many different order/shop IDs from one IP in
@@ -219,7 +220,7 @@ export async function getPublicOrderView(
         };
         await admin.from('orders').update({ metadata: updatedMeta }).eq('id', row.id);
 
-        if (FEATURE_FLAGS.xpSystem) {
+        if (isXpSystemEnabled()) {
           const { data: currentShop } = await admin.from('shops').select('xp').eq('id', row.shop_id).single();
           if (currentShop) {
             await admin.from('shops').update({ xp: (currentShop.xp || 0) + 15 }).eq('id', row.shop_id);

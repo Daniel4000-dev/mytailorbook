@@ -239,12 +239,8 @@ export default async function TrackOrderPage({
           )}
           <div className={styles.atelierText}>
             <span className={styles.atelierName}>{shop?.name || APP_CONFIG.name}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <span className={styles.atelierBadge}>
-                <Symbol name="verified" size={13} className={styles.atelierBadgeIcon} />
-                Verified Tailor
-              </span>
-              {isXpSystemEnabled() && shop && shop.xp !== undefined && shop.xp > 0 && (
+            {isXpSystemEnabled() && shop && shop.xp !== undefined && shop.xp > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                 <span
                   style={{
                     display: 'inline-flex',
@@ -263,8 +259,8 @@ export default async function TrackOrderPage({
                   <Symbol name="workspace_premium" size={12} />
                   {getTierForXp(shop.xp).name}
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -474,22 +470,10 @@ export default async function TrackOrderPage({
 
         {/* ── 4. Order Summary, Payment Progress & Bank Transfer Pass ── */}
         <section className={styles.card}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '8px',
-            }}
-          >
+          <div>
             <h3 className={styles.sectionTitle} style={{ margin: 0 }}>
               Order Summary
             </h3>
-            <Link href={ROUTES.receipt(order)} className={styles.receiptLink}>
-              <Symbol name="receipt_long" size={15} />
-              <span>Digital Receipt</span>
-            </Link>
           </div>
           <div className={styles.infoBlock} style={{ marginTop: '12px' }}>
             <span className={styles.infoLabel}>Commission Details</span>

@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Symbol from '@/components/ui/Symbol/Symbol';
-import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import TimelineStage, { CLIENT_STAGE_HEADLINES } from './TimelineStage';
 import ShareTrackButton from './ShareTrackButton';
 import type { OrderStatus, OrderPhoto } from '@/lib/types';
@@ -58,7 +56,6 @@ export default function LiveTrackingJourney({
     : Math.max(0, PRODUCTION_STAGES.indexOf(actualStatus));
 
   const [railExpanded, setRailExpanded] = useState(false);
-  const [heroLightbox, setHeroLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
 
   // Instant Truth + Smooth Progress Rail Sweep (450ms):
   // The text status and active stage card render immediately at their true current stage,
@@ -92,19 +89,16 @@ export default function LiveTrackingJourney({
 
   return (
     <>
-      {/* ── 1. Clean Order Dossier Hero Card (No Progress Bar — Pure Identity, Outfit & Key Facts) ── */}
-      <section className={styles.liveHeroCard}>
-        <div className={styles.liveHeroTopBar}>
-          <div className={styles.liveHeroBadges}>
-            <span className={styles.liveHeroStatusPill}>
-              <span className={styles.liveHeroPulseDot} />
-              <span>{CLIENT_STAGE_HEADLINES[actualStatus]}</span>
-            </span>
-            <span className={styles.liveHeroOrderRef}>
-              Order #{orderId.slice(0, 4).toUpperCase()}
-            </span>
-          </div>
-
+      {/* ── 1. Borderless Hero Dossier (Pure Typographic Flow on Page Canvas) ── */}
+      <section className={styles.liveHeroSection}>
+        {/* Unified Badge Row: Status Pill, Order Ref & Share Button on One Single Line */}
+        <div className={styles.liveHeroBadgesRow}>
+          <span className={styles.liveHeroStatusPill}>
+            {CLIENT_STAGE_HEADLINES[actualStatus]}
+          </span>
+          <span className={styles.liveHeroOrderRef}>
+            Order #{orderId.slice(0, 4).toUpperCase()}
+          </span>
           <ShareTrackButton
             orderId={orderId}
             orderTitle={orderTitle}
@@ -120,78 +114,40 @@ export default function LiveTrackingJourney({
           />
         </div>
 
-        {/* Main Garment Identity + Outfit Visual Preview */}
-        <div className={styles.liveHeroBody}>
-          <div className={styles.liveHeroCopy}>
-            <span className={styles.liveHeroClientTag}>
-              Prepared for {customerName || 'Valued Client'}
-            </span>
-            <h1 className={styles.liveHeroTitle}>{orderTitle}</h1>
-            {styleName && styleName !== orderTitle && (
-              <p className={styles.liveHeroStyleSub}>{styleName}</p>
-            )}
-          </div>
-
-          {/* Outfit Thumbnail Frame right inside Hero */}
-          {heroVisualUrl ? (
-            <button
-              type="button"
-              className={styles.liveHeroMediaFrame}
-              onClick={(e) =>
-                setHeroLightbox({
-                  src: heroVisualUrl,
-                  rect: e.currentTarget.getBoundingClientRect(),
-                })
-              }
-              aria-label="View outfit photo"
-            >
-              <Image
-                src={heroVisualUrl}
-                alt={orderTitle}
-                width={176}
-                height={176}
-                className={styles.liveHeroMediaImg}
-              />
-              <span className={styles.liveHeroMediaTag}>
-                {latestPhotoUrl ? 'Latest Photo' : 'Reference'}
-              </span>
-            </button>
-          ) : (
-            <div className={styles.liveHeroSilhouetteFrame} aria-hidden="true">
-              <Symbol name="checkroom" size={28} />
-              <span>Custom Fit</span>
-            </div>
+        {/* Main Garment Identity */}
+        <div className={styles.liveHeroHeader}>
+          <span className={styles.liveHeroClientTag}>
+            Prepared for {customerName || 'Valued Client'}
+          </span>
+          <h1 className={styles.liveHeroTitle}>{orderTitle}</h1>
+          {styleName && styleName !== orderTitle && (
+            <p className={styles.liveHeroStyleSub}>{styleName}</p>
           )}
         </div>
 
-        {/* 3 Key Facts Strip: Target Ready Date · Countdown / Status · Documented Fit Specs */}
-        <div className={styles.liveHeroFactsGrid}>
-          <div className={styles.liveHeroFactCell}>
-            <span className={styles.liveHeroFactLabel}>
-              {isDelivered ? 'Delivered On' : 'Target Ready Date'}
+        {/* Typographic Delivery Strip: Pure Flow, No Cards */}
+        <div className={styles.liveHeroMetaBar}>
+          <div className={styles.liveHeroMetaGroup}>
+            <span className={styles.liveHeroMetaLabel}>
+              {isDelivered ? 'Delivered' : 'To Be Delivered'}
             </span>
-            <span className={styles.liveHeroFactValue}>
+            <span className={styles.liveHeroMetaValue}>
               {isDelivered
                 ? formattedCompletedDate || 'Completed'
                 : formattedDueDate || 'Scheduled'}
             </span>
           </div>
 
-          <div className={styles.liveHeroFactCell}>
-            <span className={styles.liveHeroFactLabel}>Schedule</span>
-            <span className={styles.liveHeroFactValueAccent}>
-              {isDelivered
-                ? 'Received'
-                : daysRemainingLabel || 'In Workshop'}
-            </span>
-          </div>
-
-          <div className={styles.liveHeroFactCell}>
-            <span className={styles.liveHeroFactLabel}>Fit Profile</span>
-            <span className={styles.liveHeroFactValue}>
-              {specsCount > 0 ? `${specsCount} Measurements` : 'Confirmed'}
-            </span>
-          </div>
+          {!isDelivered && daysRemainingLabel && (
+            <>
+              <span className={styles.liveHeroMetaDot} aria-hidden="true">•</span>
+              <div className={styles.liveHeroMetaGroup}>
+                <span className={styles.liveHeroMetaAccent}>
+                  {daysRemainingLabel}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -227,15 +183,6 @@ export default function LiveTrackingJourney({
             );
           })}
         </section>
-      )}
-
-      {heroLightbox && (
-        <PhotoLightbox
-          src={heroLightbox.src}
-          originRect={heroLightbox.rect}
-          alt={orderTitle}
-          onClose={() => setHeroLightbox(null)}
-        />
       )}
     </>
   );

@@ -1395,7 +1395,7 @@ export default function OrderDetailPage() {
                     <span className={styles.measureSubtitle}>Stage-stamped snapshots as garment is crafted</span>
                   </div>
                   <div className={styles.sectionActions}>
-                    {order.images && order.images.length > 0 && (
+                    {(order.status === 'Ready' || order.status === 'Delivered') && order.images && order.images.length > 0 && (
                       <button
                         type="button"
                         className={styles.featurePortfolioBtn}
