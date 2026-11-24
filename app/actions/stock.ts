@@ -646,13 +646,14 @@ export async function getPublicShowroomStockAction(
     }
 
     const cleanParam = slugOrShopId.trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanParam);
     const supabase = await createClient();
 
-    // Query shop by slug or ID
+    // Query shop by UUID id or by text slug (avoids Postgres invalid uuid syntax when slug is text)
     const { data: shopRow, error: shopErr } = await supabase
       .from('shops')
       .select('id, name, slug, logo_url, phone, currency, address')
-      .or(`slug.eq.${cleanParam},id.eq.${cleanParam}`)
+      .eq(isUuid ? 'id' : 'slug', cleanParam)
       .maybeSingle();
 
     if (shopErr || !shopRow) {

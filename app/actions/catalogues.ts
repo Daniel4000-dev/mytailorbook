@@ -140,11 +140,12 @@ export async function getPublicCataloguesAction(slug: string): Promise<StyleCata
   try {
     if (!slug || !slug.trim()) return [];
     const cleanParam = slug.trim();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanParam);
     const supabase = await createClient();
     const { data: shopRow, error: shopErr } = await supabase
       .from('shops')
       .select('id')
-      .or(`slug.eq.${cleanParam},id.eq.${cleanParam}`)
+      .eq(isUuid ? 'id' : 'slug', cleanParam)
       .maybeSingle();
 
     if (shopErr || !shopRow) return [];

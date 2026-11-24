@@ -25,6 +25,79 @@ const WRITE_LIMIT = { limit: 5, windowSeconds: 3600 };
  * only ever used for an exact single-order lookup by ID — never a list or
  * search — which keeps the exposure limited to "if you have the link."
  */
+/**
+ * Resolves any public order URL identifier (`orderIdOrSlug`) to its canonical database row:
+ * 1. Canonical 36-char UUID or 32-char compact UUID suffix (`adebayo-senator-550e8400e29b41d4a716446655440000`)
+ *    -> matches `id = uuid` OR `batch_id = uuid`.
+ * 2. Stored `slug` column match (`orders.slug = orderIdOrSlug`).
+ * 3. Direct non-UUID `id` match (`orders.id = orderId`).
+ * 4. Short 6-to-12-char hex tail fallback (`adebayo-senator-550e84`)
+ *    -> if an in-app short slug was ever shared as a public tracking link, matches the UUID prefix.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function resolvePublicOrderRow(admin: ReturnType<typeof createAdminClient>, orderIdOrSlug: string): Promise<any | null> {
+  const orderId = extractCanonicalId(orderIdOrSlug);
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+
+  if (isUuid) {
+    const { data: rows } = await admin
+      .from('orders')
+      .select('*')
+      .or(`id.eq.${orderId},batch_id.eq.${orderId}`)
+      .order('created_at', { ascending: true })
+      .limit(1);
+    if (rows?.[0]) return rows[0];
+  }
+
+  // Try stored `slug` column first (from migration 0067)
+  const { data: slugRows } = await admin
+    .from('orders')
+    .select('*')
+    .eq('slug', orderIdOrSlug)
+    .limit(1);
+  if (slugRows?.[0]) return slugRows[0];
+
+  // Fallback to exact non-UUID id match
+  if (!isUuid) {
+    const { data: idRows } = await admin
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .limit(1);
+    if (idRows?.[0]) return idRows[0];
+  }
+
+  // Fallback for 6-to-12-char short hex tail slugs (e.g. `chief-adebayo-senator-550e84`)
+  const shortHexMatch = decodeURIComponent(orderIdOrSlug).trim().match(/-([0-9a-f]{6,12})$/i);
+  if (shortHexMatch) {
+    const shortHex = shortHexMatch[1].toLowerCase();
+    // If at least 8 hex chars, we can construct a UUID prefix range query directly
+    if (shortHex.length === 8) {
+      const lowerUuid = `${shortHex}-0000-0000-0000-000000000000`;
+      const upperUuid = `${shortHex}-ffff-ffff-ffff-ffffffffffff`;
+      const { data: rangeRows } = await admin
+        .from('orders')
+        .select('*')
+        .gte('id', lowerUuid)
+        .lte('id', upperUuid)
+        .limit(1);
+      if (rangeRows?.[0]) return rangeRows[0];
+    } else if (shortHex.length === 6) {
+      const lowerUuid = `${shortHex}00-0000-0000-0000-000000000000`;
+      const upperUuid = `${shortHex}ff-ffff-ffff-ffff-ffffffffffff`;
+      const { data: rangeRows } = await admin
+        .from('orders')
+        .select('*')
+        .gte('id', lowerUuid)
+        .lte('id', upperUuid)
+        .limit(1);
+      if (rangeRows?.[0]) return rangeRows[0];
+    }
+  }
+
+  return null;
+}
+
 export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
   order: Order;
   customer: Customer | null;
@@ -35,36 +108,7 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
   if (!allowed) return null;
 
   const admin = createAdminClient();
-  const orderId = extractCanonicalId(orderIdOrSlug);
-
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let row: any = null;
-  if (isUuid) {
-    const { data: rows } = await admin
-      .from('orders')
-      .select('*')
-      .or(`id.eq.${orderId},batch_id.eq.${orderId}`)
-      .order('created_at', { ascending: true })
-      .limit(1);
-    row = rows?.[0];
-  } else {
-    // Try stored `slug` column first (from migration 0067), fallback to id match
-    const { data: slugRows } = await admin
-      .from('orders')
-      .select('*')
-      .eq('slug', orderIdOrSlug)
-      .limit(1);
-    row = slugRows?.[0];
-    if (!row) {
-      const { data: idRows } = await admin
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .limit(1);
-      row = idRows?.[0];
-    }
-  }
+  const row = await resolvePublicOrderRow(admin, orderIdOrSlug);
 
   if (!row) return null;
 
@@ -194,8 +238,9 @@ export async function getPublicOrderView(orderIdOrSlug: string): Promise<{
 /** Comments a customer has left on their order, for display on the public
  *  tracking page (read-back of what they've written so far). */
 export async function getPublicOrderComments(orderIdOrSlug: string): Promise<OrderComment[]> {
-  const orderId = extractCanonicalId(orderIdOrSlug);
   const admin = createAdminClient();
+  const resolved = await resolvePublicOrderRow(admin, orderIdOrSlug);
+  const orderId = resolved?.id || extractCanonicalId(orderIdOrSlug);
   const { data, error } = await admin
     .from('order_comments')
     .select('*')
@@ -219,7 +264,6 @@ export async function getPublicOrderComments(orderIdOrSlug: string): Promise<Ord
  * reply happens over WhatsApp, same as everywhere else in this app).
  */
 export async function submitOrderComment(orderIdOrSlug: string, message: string): Promise<{ success: boolean; error?: string }> {
-  const orderId = extractCanonicalId(orderIdOrSlug);
   const trimmed = message.trim();
   if (!trimmed) return { success: false, error: 'Comment cannot be empty.' };
   if (trimmed.length > 1000) return { success: false, error: 'Comment is too long.' };
@@ -229,9 +273,9 @@ export async function submitOrderComment(orderIdOrSlug: string, message: string)
   if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
 
   const admin = createAdminClient();
-
-  const { data: order, error: fetchError } = await admin.from('orders').select('id, shop_id, status, customer_name').eq('id', orderId).single();
-  if (fetchError || !order) return { success: false, error: 'Order not found.' };
+  const order = await resolvePublicOrderRow(admin, orderIdOrSlug);
+  if (!order) return { success: false, error: 'Order not found.' };
+  const orderId = order.id;
 
   const { error: insertError } = await admin.from('order_comments').insert({
     order_id: orderId,
@@ -271,15 +315,14 @@ export async function submitOrderComment(orderIdOrSlug: string, message: string)
  * feedback, not the real guard) rather than trusting the caller.
  */
 export async function submitOrderReminder(orderIdOrSlug: string): Promise<{ success: boolean; error?: string; lastReminderAt?: string }> {
-  const orderId = extractCanonicalId(orderIdOrSlug);
   const ip = await getRequestIp();
   const { allowed } = await checkRateLimit(`reminder:${ip}`, WRITE_LIMIT);
   if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
 
   const admin = createAdminClient();
-
-  const { data: order, error: fetchError } = await admin.from('orders').select('id, shop_id, status, customer_name, last_reminder_at').eq('id', orderId).single();
-  if (fetchError || !order) return { success: false, error: 'Order not found.' };
+  const order = await resolvePublicOrderRow(admin, orderIdOrSlug);
+  if (!order) return { success: false, error: 'Order not found.' };
+  const orderId = order.id;
 
   if (!canSendReminder({ lastReminderAt: order.last_reminder_at || undefined })) {
     return { success: false, error: 'You can send another reminder tomorrow.' };
@@ -332,7 +375,6 @@ export async function submitOrderRatingAction(
   rating: number,
   comment?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const orderId = extractCanonicalId(orderIdOrSlug);
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return { success: false, error: 'Rating must be between 1 and 5 stars.' };
   }
@@ -346,13 +388,9 @@ export async function submitOrderRatingAction(
   if (!allowed) return { success: false, error: 'Too many requests — please try again in a few minutes.' };
 
   const admin = createAdminClient();
-
-  const { data: order, error: fetchError } = await admin
-    .from('orders')
-    .select('id, shop_id, status, customer_name')
-    .eq('id', orderId)
-    .single();
-  if (fetchError || !order) return { success: false, error: 'Order not found.' };
+  const order = await resolvePublicOrderRow(admin, orderIdOrSlug);
+  if (!order) return { success: false, error: 'Order not found.' };
+  const orderId = order.id;
   if (order.status !== 'Delivered') {
     return { success: false, error: 'You can leave a review once your order is complete.' };
   }
@@ -508,12 +546,13 @@ export const getPublicShopPortfolio = cache(async (slug: string): Promise<Public
   if (!allowed) return null;
 
   const admin = createAdminClient();
+  const isShopUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
 
   const { data: shopRow, error: shopErr } = await admin
     .from('shops')
     .select('id, slug, name, phone, address, logo_url, portfolio_accent, portfolio_settings, org_id, currency, xp, streak_current')
-    .eq('slug', slug)
-    .single();
+    .eq(isShopUuid ? 'id' : 'slug', slug)
+    .maybeSingle();
   if (shopErr || !shopRow) return null;
 
   // Every subsequent query is scoped by the real shop id, not the slug.
