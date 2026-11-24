@@ -278,6 +278,11 @@ function shopFromRow(row: any): Shop {
     portfolioTemplate: row.portfolio_template || 'modern',
     portfolioAccent: row.portfolio_accent || 'indigo',
     portfolioSettings: row.portfolio_settings || {},
+    country: row.country || row.portfolio_settings?.country || undefined,
+    countryCode: row.country_code || row.portfolio_settings?.countryCode || undefined,
+    eventPhotoTemplate: row.event_photo_template || row.portfolio_settings?.eventPhotoTemplate || undefined,
+    socialLinks: row.social_links || row.portfolio_settings?.socialLinks || undefined,
+    bankDetails: row.bank_details || row.portfolio_settings?.bankDetails || undefined,
     paystackCustomerCode: row.paystack_customer_code || undefined,
     paystackSubscriptionCode: row.paystack_subscription_code || undefined,
     subscriptionPlan: row.subscription_plan || undefined,
@@ -1081,6 +1086,53 @@ export async function updateShopAction(shopId: string, updates: Partial<Shop>) {
   if (updates.dailyCapacity !== undefined) row.daily_capacity = updates.dailyCapacity;
   if (updates.monthlyRevenueTarget !== undefined) row.monthly_revenue_target = updates.monthlyRevenueTarget;
   if (updates.businessMode !== undefined) row.business_mode = updates.businessMode;
+
+  const hasExtendedSettings =
+    updates.bankDetails !== undefined ||
+    updates.socialLinks !== undefined ||
+    updates.country !== undefined ||
+    updates.countryCode !== undefined ||
+    updates.eventPhotoTemplate !== undefined;
+
+  if (hasExtendedSettings) {
+    let baseSettings: Record<string, unknown> =
+      (row.portfolio_settings as Record<string, unknown>) || {};
+    if (!row.portfolio_settings) {
+      const { data: currentRow } = await supabase
+        .from('shops')
+        .select('portfolio_settings')
+        .eq('id', shopId)
+        .maybeSingle();
+      baseSettings =
+        ((currentRow?.portfolio_settings as Record<string, unknown>) &&
+          typeof currentRow?.portfolio_settings === 'object'
+          ? { ...(currentRow.portfolio_settings as Record<string, unknown>) }
+          : {});
+    } else {
+      baseSettings = { ...baseSettings };
+    }
+
+    if (updates.bankDetails !== undefined) baseSettings.bankDetails = updates.bankDetails;
+    if (updates.socialLinks !== undefined) baseSettings.socialLinks = updates.socialLinks;
+    if (updates.country !== undefined) baseSettings.country = updates.country;
+    if (updates.countryCode !== undefined) baseSettings.countryCode = updates.countryCode;
+    if (updates.eventPhotoTemplate !== undefined) {
+      baseSettings.eventPhotoTemplate = updates.eventPhotoTemplate;
+    }
+
+    row.portfolio_settings = baseSettings;
+  }
+
+  if (Object.keys(row).length === 0) {
+    const { data: existing, error: fetchErr } = await supabase
+      .from('shops')
+      .select()
+      .eq('id', shopId)
+      .single();
+    if (fetchErr) return { error: fetchErr.message };
+    return shopFromRow(existing);
+  }
+
   let { data, error } = await supabase.from('shops').update(row).eq('id', shopId).select().single();
   if (error && error.message.includes('monthly_revenue_target')) {
     delete row.monthly_revenue_target;

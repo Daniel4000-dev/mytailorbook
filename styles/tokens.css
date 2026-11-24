@@ -232,8 +232,8 @@
    --sf-z-modal: 300;
    --sf-z-sheet: 400;
    --sf-z-fab: 500;
-   --sf-z-toast: 600;
    --sf-z-overlay: 700;
+   --sf-z-toast: 800;
 
    /* ── Layout ──────────────────────────────────────────── */
    --sf-max-width: 480px;

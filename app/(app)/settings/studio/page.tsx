@@ -228,12 +228,6 @@ export default function StudioSettingsPage() {
     }
   };
 
-  const handleCopyBankDetails = async () => {
-    const bankString = `Bank: ${draftBankName || currentShop?.bankDetails?.bankName || 'GTBank'}\nAccount: ${draftAccountNumber || currentShop?.bankDetails?.accountNumber || '0123456789'}\nName: ${draftAccountName || currentShop?.bankDetails?.accountName || currentShop?.name || 'Studio Bespoke'}`;
-    await navigator.clipboard.writeText(bankString);
-    showToast('Bank details copied to clipboard', 'success');
-  };
-
   const handleOpenSocial = (type: 'instagram' | 'tiktok' | 'website') => {
     let url = '';
     if (type === 'instagram') {
@@ -985,30 +979,6 @@ export default function StudioSettingsPage() {
             onChange={(e) => setDraftAccountName(e.target.value)}
             placeholder="e.g. House of Savile Bespoke Ltd"
           />
-
-          {(draftBankName || draftAccountNumber) && (
-            <div style={{ marginTop: '4px' }}>
-              <button
-                type="button"
-                onClick={handleCopyBankDetails}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '999px',
-                  border: '1px solid var(--sf-border-light)',
-                  background: 'var(--sf-bg-surface-sunken)',
-                  color: 'var(--sf-text-primary)',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <Symbol name="content_copy" size={14} /> Test Copy Bank Details
-              </button>
-            </div>
-          )}
 
           <p className={styles.sheetHelp}>
             Auto-injected into quotes, receipts, invoices, and WhatsApp deposit payment reminders via the {'{bank_details}'} tag.

@@ -1,6 +1,6 @@
 .viewport {
   position: fixed;
-  z-index: var(--sf-z-modal, 300);
+  z-index: var(--sf-z-toast, 800);
   display: flex;
   flex-direction: column;
   gap: 8px;
