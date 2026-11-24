@@ -381,16 +381,6 @@
 .cardFooterShop {
   color: #94a3b8;
   font-weight: 600;
-}
-
-.cardFooterBrandLink {
-  color: #64748b;
-}
-  font-weight: 500;
-}
-
-.cardFooterShop {
-  color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

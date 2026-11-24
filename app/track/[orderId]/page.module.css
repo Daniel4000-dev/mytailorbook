@@ -1342,13 +1342,6 @@
   background: rgba(99, 102, 241, 0.16);
   border-color: rgba(99, 102, 241, 0.28);
 }
-  flex-shrink: 0;
-}
-
-:global([data-theme='dark']) .liveHeroSilhouetteFrame {
-  background: rgba(255, 255, 255, 0.04);
-  color: #A5B4FC;
-}
 
 /* ── Animated 4-Stage Apple Live Activity Progress Bar ──────── */
 .liveStepperWrap {
