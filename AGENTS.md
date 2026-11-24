@@ -128,5 +128,5 @@ Every interactive surface in this catalog must be covered by integration tests s
 - **No Emojis:** Do NOT use emojis anywhere in source code, component copy, commit messages, or replies (unless explicitly instructed for a specific system reminder header). Keep all UI clean, professional, and refined.
 - **Forbidden Terminology:** Never use the words "atelier" or "specialist embellishment" in copy, code, or documentation. Use "workshop", "tailor shop", "craft room", or "beading / embroidery artisan".
 - **Git Branch Target:** Always commit and push exclusively to the `staging` branch (`git push origin staging`). NEVER merge directly into `main`.
-- **Pre-Commit Verification:** Run `npx tsc --noEmit` and `npm run test:unit` before committing any code changes. Ensure zero type errors and zero test failures.
+- **Pre-Commit Verification:** Run `npx tsc --noEmit`, `npm run lint`, and `npm run test` before committing any code changes. Ensure zero type errors, zero lint errors, and zero test failures.
 

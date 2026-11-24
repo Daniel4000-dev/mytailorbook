@@ -22,4 +22,4 @@
 - Zero Emojis in code, commits, and UI copy.
 - Never use the words "atelier" or "specialist embellishment".
 - Push exclusively to `origin staging`. Never merge to `main`.
-- Ensure `npx tsc --noEmit` and `npm run test:unit` pass cleanly.
+- Ensure `npx tsc --noEmit`, `npm run lint`, and `npm run test` pass cleanly.

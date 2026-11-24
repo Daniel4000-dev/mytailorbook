@@ -16,12 +16,22 @@ import WebSocket from 'ws';
 // doesn't exist (gitignored) — the same vars arrive as real env vars from
 // GitHub Actions secrets instead, so there's nothing to load.
 if (existsSync('.env.staging.local')) config({ path: '.env.staging.local' });
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+
+const hasRequiredEnv = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL &&
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+  process.env.RLS_TENANT_A_EMAIL &&
+  process.env.RLS_TENANT_A_PASSWORD &&
+  process.env.RLS_TENANT_B_EMAIL &&
+  process.env.RLS_TENANT_B_PASSWORD
+);
+
+if (!hasRequiredEnv) {
   console.warn('Skipping RLS tests missing DB env variables');
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 const A = {
   email: process.env.RLS_TENANT_A_EMAIL!,
@@ -48,11 +58,12 @@ async function signedInClient(email: string, password: string): Promise<Supabase
   return client;
 }
 
-describe('RLS tenant isolation', () => {
+describe.skipIf(!hasRequiredEnv)('RLS tenant isolation', () => {
   let clientA: SupabaseClient;
   let clientB: SupabaseClient;
 
   beforeAll(async () => {
+    if (!hasRequiredEnv) return;
     [clientA, clientB] = await Promise.all([
       signedInClient(A.email, A.password),
       signedInClient(B.email, B.password),
