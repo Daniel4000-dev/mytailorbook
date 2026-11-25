@@ -53,8 +53,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Re-seed E2E fixtures (fresh known state)
+        if: env.NEXT_PUBLIC_SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
         run: node scripts/seed-e2e-fixture.mjs
 
       - name: E2E smoke tests
+        if: env.NEXT_PUBLIC_SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
         # playwright.config.ts's webServer builds and starts the app itself
         run: npm run test:e2e

@@ -244,7 +244,7 @@ export default function FabricsPage() {
                 <FabricCard
                   key={order.id}
                   order={order}
-                  onClick={() => setSelectedOrder(order)}
+                  onClick={() => router.push(ROUTES.productionOrder(order))}
                   onOpenSlip={(o) => setCuttingSlipOrder(o)}
                 />
               ))}
@@ -283,19 +283,19 @@ export default function FabricsPage() {
                   search
                     ? { label: 'Clear Search', onClick: () => setSearch('') }
                     : stageFilter === 'uncut' && cuttingCount > 0
+                      ? {
+                        label: 'View Cutting Queue',
+                        onClick: () => setStageFilter('cutting'),
+                      }
+                      : stageFilter !== 'all' && allCount > 0
                         ? {
-                          label: 'View Cutting Queue',
-                          onClick: () => setStageFilter('cutting'),
+                          label: 'View All Orders',
+                          onClick: () => setStageFilter('all'),
                         }
-                        : stageFilter !== 'all' && allCount > 0
-                          ? {
-                            label: 'View All Orders',
-                            onClick: () => setStageFilter('all'),
-                          }
-                          : {
-                            label: 'Create New Order',
-                            onClick: () => router.push(ROUTES.orderNew),
-                          }
+                        : {
+                          label: 'Create New Order',
+                          onClick: () => router.push(ROUTES.orderNew),
+                        }
                 }
               />
             </div>

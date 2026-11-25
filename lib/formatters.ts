@@ -7,6 +7,7 @@
 import { PHONE_PREFIX } from './constants';
 import { APP_CONFIG } from './config';
 import type { OrderStatus, Order, Customer } from './types';
+import { validatePhoneNumber } from './phoneValidation';
 export {
   getShopCurrency,
   detectCountryAndCurrencyFromPhone,
@@ -89,8 +90,6 @@ export function formatPhone(phone: string): string {
   return `+${normalized}`;
 }
 
-import { validatePhoneNumber } from './phoneValidation';
-
 /**
  * Validates that a phone number has the correct country format and complete digits.
  */
@@ -134,22 +133,28 @@ export function getInitials(name: string): string {
  * Example: "2025-06-21T10:00:00Z" → "Today, 10:00 AM" or "Jun 21"
  */
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
+  if (!dateString) return '—';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
 
-  if (diffHours < 1) {
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    return diffMins <= 1 ? 'Just now' : `${diffMins}m ago`;
+    if (diffHours < 1) {
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      return diffMins <= 1 ? 'Just now' : `${diffMins}m ago`;
+    }
+    if (diffHours < 24) {
+      return `${Math.floor(diffHours)}h ago`;
+    }
+    if (diffHours < 48) {
+      return 'Yesterday';
+    }
+    return date.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
+  } catch {
+    return dateString || '—';
   }
-  if (diffHours < 24) {
-    return `${Math.floor(diffHours)}h ago`;
-  }
-  if (diffHours < 48) {
-    return 'Yesterday';
-  }
-  return date.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
 }
 
 /**

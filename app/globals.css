@@ -166,26 +166,23 @@ svg {
   max-width: 100%;
 }
 
-/* ── Scrollbar (WebKit) ────────────────────────────────────── */
+/* ── Mobile App UI Simulation: Hide scrollbars globally ───── */
+/* Preserves native touch, momentum, mousewheel, and trackpad scrolling without desktop scrollbars */
+html,
+body,
+* {
+  scrollbar-width: none;
+  /* Modern standard: Firefox, Safari 18.2+, Chrome 121+ */
+  -ms-overflow-style: none;
+  /* IE, Edge */
+}
+
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-::-webkit-scrollbar-track {
+  display: none;
+  /* WebKit, Blink, iOS WebView, Android WebView */
+  width: 0;
+  height: 0;
   background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--sf-border);
-  border-radius: var(--sf-radius-full);
-}
-
-@media (hover: hover) and (pointer: fine) {
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--sf-text-tertiary);
-  }
 }
 
 /* ── Selection ─────────────────────────────────────────────── */
@@ -412,6 +409,7 @@ body.no-scroll {
 }
 
 @media (prefers-color-scheme: dark) {
+
   :root:not([data-theme='light']) [class*="kpiCard"],
   :root:not([data-theme='light']) [class*="customerRow"],
   :root:not([data-theme='light']) [class*="searchBarPill"],

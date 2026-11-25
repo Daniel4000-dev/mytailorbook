@@ -69,7 +69,7 @@ export default function FabricCard({ order, onClick, onOpenSlip }: FabricCardPro
       aria-label={`View fabric for ${order.customerName || 'order'}`}
     >
       {/* 1. Photo Area */}
-      <div className={styles.photoWrap}>
+      <div className={styles.photoWrap} style={{ position: 'relative' }}>
         {photo ? (
           <Image
             src={photo}

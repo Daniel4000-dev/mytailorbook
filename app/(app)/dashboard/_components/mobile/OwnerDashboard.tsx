@@ -597,16 +597,19 @@ export default function OwnerDashboard({
                       {isRtw ? (
                         <div className={styles.teamBadges}>
                           <span className={styles.teamActiveBadge}>
-                            {staff.craftRole === 'general' ? 'Store Staff' : (CRAFT_ROLE_LABELS[staff.craftRole || 'general'] || 'Store Staff')}
+                            <span className={styles.badgeDot} />
+                            {staff.active !== false ? 'Active' : 'Inactive'}
                           </span>
                         </div>
                       ) : (
                         <div className={styles.teamBadges}>
                           <span className={styles.teamActiveBadge}>
+                            <span className={styles.badgeDot} />
                             {active} Active
                           </span>
                           {overdue > 0 && (
                             <span className={styles.teamOverdueBadge}>
+                              <span className={styles.badgeAlertDot} />
                               {overdue} Overdue
                             </span>
                           )}

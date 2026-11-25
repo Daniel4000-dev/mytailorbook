@@ -1,0 +1,25 @@
+# MyTailorBook Cursor Rules
+
+## Mandatory Component Mount & Integration Testing
+- Whenever developing or fixing features in MyTailorBook, write Vitest + happy-dom + @testing-library/react component tests.
+- Pure unit tests of isolated logic functions alone are forbidden as sole verification for UI features.
+- Test Rich, Sparse, and Edge-Case data states.
+- Verify user clicks, inputs, and state changes.
+
+## Verification Catalog Scope (62 Routes across 10 Domains)
+- Tailoring Workshop Core: /dashboard, /fabrics, /orders/new, /production, /production/[orderId], /customers, /customers/[id], /calendar
+- Stockroom & Inventory: /inventory, /stock
+- Financials & Reports: /reconciliation, /reports, /collections, /quotes
+- Portfolio & Catalogues: /portfolio, /catalogues, /catalogues/[catalogueId], /styles, /styles/[styleName]
+- Settings & Configuration: /settings, /settings/account, /settings/activity, /settings/billing, /settings/messages, /settings/portfolio, /settings/reports, /settings/size-charts, /settings/staff, /settings/studio, /settings/styles
+- Administration: /admin, /admin/active-users, /admin/activity, /admin/affiliates, /admin/broadcasts, /admin/organizations, /admin/organizations/[id], /admin/settings
+- Operational Utilities: /circle, /notes, /notifications
+- Storefronts & Client Portals: /studio/[slug], /catalogue/[slug], /track/[orderId], /receipt/[orderId], /portfolio-examples, /blog, /blog/[slug]
+- Auth & Onboarding: /login, /signup, /forgot-password, /reset-password, /onboarding
+- Marketing & Static: /, /about, /contact, /features, /pricing, /privacy, /terms, /offline, /test-suite
+
+## Development Constraints
+- Zero Emojis in code, commits, and UI copy.
+- Never use the words "atelier" or "specialist embellishment".
+- Push exclusively to `origin staging`. Never merge to `main`.
+- Ensure `npx tsc --noEmit`, `npm run lint`, and `npm run test` pass cleanly.

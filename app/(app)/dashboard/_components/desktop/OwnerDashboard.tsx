@@ -68,8 +68,8 @@ export default function OwnerDashboard({
   const isDayOne = isRtw
     ? orders.length === 0 && showroomMetrics.totalPieces === 0
     : isHybrid
-    ? orders.length === 0 && showroomMetrics.totalPieces === 0
-    : orders.length === 0;
+      ? orders.length === 0 && showroomMetrics.totalPieces === 0
+      : orders.length === 0;
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -590,16 +590,19 @@ export default function OwnerDashboard({
                         {isRtw ? (
                           <div className={pageStyles.teamBadges}>
                             <span className={pageStyles.teamActiveBadge}>
-                              {staff.craftRole === 'general' ? 'Store Staff' : (CRAFT_ROLE_LABELS[staff.craftRole || 'general'] || 'Store Staff')}
+                              <span className={pageStyles.badgeDot} />
+                              {staff.active !== false ? 'Active' : 'Inactive'}
                             </span>
                           </div>
                         ) : (
                           <div className={pageStyles.teamBadges}>
                             <span className={pageStyles.teamActiveBadge}>
+                              <span className={pageStyles.badgeDot} />
                               {active} Active
                             </span>
                             {overdue > 0 && (
                               <span className={pageStyles.teamOverdueBadge}>
+                                <span className={pageStyles.badgeAlertDot} />
                                 {overdue} Overdue
                               </span>
                             )}

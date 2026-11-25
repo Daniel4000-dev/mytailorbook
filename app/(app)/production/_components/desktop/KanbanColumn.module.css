@@ -109,12 +109,13 @@
   flex: 1;
   min-height: 0;
   padding-bottom: var(--sf-space-sm);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+  scrollbar-width: none;
 }
 
 .columnBody::-webkit-scrollbar {
-  width: 4px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .columnBody::-webkit-scrollbar-thumb {
