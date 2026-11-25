@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/compressImage';
 import { savePendingPhoto } from '@/lib/offline/mediaStore';
 import { withNetworkTimeout } from '@/lib/offline/outbox';
-import { formatNumber, formatPhone, getCurrencySymbol, getShopCurrency, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
+import { formatNumber, formatPhone, getCurrencySymbol, getOrderProgressMessage, getShopCurrency, getWhatsAppLink, normalizePhone, parseMeasurementValue } from '@/lib/formatters';
 import { ROUTES } from '@/lib/routes';
 import { APP_CONFIG } from '@/lib/config';
 import { validatePhoneNumber } from '@/lib/phoneValidation';
@@ -742,7 +742,11 @@ export default function UnifiedNewOrderForm() {
     root.setAttribute('data-theme', 'light');
     try {
       const { toBlob } = await import('html-to-image');
-      const blob = await toBlob(node, { pixelRatio: 2, backgroundColor: '#ffffff' });
+      const blob = await toBlob(node, {
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        width: 380,
+      });
       if (!blob) throw new Error('Could not render receipt image');
 
       const refId = completedBatch?.firstOrderId ? completedBatch.firstOrderId.slice(-6).toUpperCase() : 'ORDER';
@@ -1057,29 +1061,22 @@ export default function UnifiedNewOrderForm() {
     if (!completedBatch || !selectedCustomer) return '';
     const shopName = currentShop?.name || APP_CONFIG.name;
     const trackingUrl = ROUTES.publicTrackUrl(completedBatch.firstOrderId);
-    const formattedDate = formatSafeDate(completedBatch.dueDate);
 
-    const garmentLines =
-      completedBatch.garments.length > 1
-        ? completedBatch.garments.map((g, i) => `  ${i + 1}. ${g.styleName} (${currencySymbol}${formatNumber(g.price)})`).join('\n')
-        : `• *Garment:* ${completedBatch.garments[0]?.styleName || 'Custom Outfit'}`;
-
-    return [
-      `Hello ${selectedCustomer.fullName.split(' ')[0]}!`,
-      `Thank you for placing your order with *${shopName}*.`,
-      ``,
-      `*Order Summary:*`,
-      garmentLines,
-      `• *Total:* ${currencySymbol}${formatNumber(completedBatch.totalBill)}`,
-      `• *Deposit Paid:* ${currencySymbol}${formatNumber(completedBatch.depositPaid)}`,
-      `• *Balance Due:* ${currencySymbol}${formatNumber(completedBatch.balanceDue)}`,
-      `• *Ready By:* ${formattedDate}`,
-      ``,
-      `Track your order's progress here:`,
+    // Use shop's customized Documented stage template or the system default
+    const customTemplate = currentShop?.stageMessageTemplates?.['Documented'];
+    return getOrderProgressMessage({
+      customerName: selectedCustomer.fullName,
+      shopName,
+      status: 'Documented',
       trackingUrl,
-      ``,
-      `Thank you for your business!`,
-    ].join('\n');
+      customTemplate,
+      includeTrackingLink: true,
+      orderId: completedBatch.firstOrderId,
+      instagram: currentShop?.socialLinks?.instagram,
+      tiktok: currentShop?.socialLinks?.tiktok,
+      website: currentShop?.socialLinks?.website,
+      bankDetails: currentShop?.bankDetails,
+    });
   };
 
   const getCuttingSlipText = () => {
@@ -2202,10 +2199,20 @@ export default function UnifiedNewOrderForm() {
             <div className={styles.receiptSummaryCard} id="order-created-receipt-card">
               <div className={styles.receiptBrandRow}>
                 <div className={styles.receiptBrandInfo}>
-                  <span className={styles.receiptShopName}>{currentShop?.name || APP_CONFIG.name}</span>
-                  {currentShop?.phone && (
-                    <span className={styles.receiptShopPhone}>{formatPhone(currentShop.phone)}</span>
+                  {currentShop?.logoUrl && (
+                    <img
+                      src={currentShop.logoUrl}
+                      alt={currentShop?.name || 'Studio Logo'}
+                      className={styles.receiptShopLogo}
+                      crossOrigin="anonymous"
+                    />
                   )}
+                  <div className={styles.receiptBrandText}>
+                    <span className={styles.receiptShopName}>{currentShop?.name || APP_CONFIG.name}</span>
+                    {currentShop?.phone && (
+                      <span className={styles.receiptShopPhone}>{formatPhone(currentShop.phone)}</span>
+                    )}
+                  </div>
                 </div>
                 <div className={styles.receiptRefBadge}>
                   <span className={styles.receiptRefLabel}>Receipt</span>
@@ -2272,13 +2279,27 @@ export default function UnifiedNewOrderForm() {
                 </span>
               </div>
 
+              {/* Seamless digital tracking preview link directly on the receipt card */}
+              <a
+                href={ROUTES.receipt(completedBatch.firstOrderId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.receiptTrackingPreview}
+              >
+                <div className={styles.receiptTrackingLeft}>
+                  <Symbol name="qr_code_2" size={16} />
+                  <span>View Online Receipt</span>
+                </div>
+                <span className={styles.receiptTrackingHint}>Live tracking & details →</span>
+              </a>
+
               <div className={styles.receiptCardFooter}>
                 <Symbol name="verified" size={13} className={styles.receiptFooterCheck} />
                 <span>Verified by {APP_CONFIG.name} · Digital Tracking Enabled</span>
               </div>
             </div>
 
-            {/* Actions: Image Share as primary, plus WhatsApp text, Cutting Slip, View Order */}
+            {/* Streamlined Actions: Hero Share Receipt, Secondary WhatsApp text, Operational Exit */}
             <div className={styles.receiptActionsGroup}>
               <button
                 type="button"
@@ -2286,8 +2307,8 @@ export default function UnifiedNewOrderForm() {
                 onClick={handleShareReceiptImage}
                 disabled={sharingReceiptImage}
               >
-                <Symbol name="image" size={18} />
-                <span>{sharingReceiptImage ? 'Generating Image…' : 'Share Receipt Image'}</span>
+                <Symbol name="share" size={18} />
+                <span>{sharingReceiptImage ? 'Generating Image…' : 'Share Receipt'}</span>
               </button>
 
               {selectedCustomer.whatsappNumber && (
@@ -2298,54 +2319,22 @@ export default function UnifiedNewOrderForm() {
                   className={styles.whatsappTextBtn}
                 >
                   <WhatsappIcon size={16} />
-                  <span>Send Text via WhatsApp</span>
+                  <span>Send via WhatsApp</span>
                 </a>
               )}
+
+              <button
+                type="button"
+                className={styles.viewOrderBtn}
+                onClick={() => {
+                  setReceiptSheetOpen(false);
+                  router.push(ROUTES.productionOrder(completedBatch.firstOrderId));
+                }}
+              >
+                <Symbol name="arrow_forward" size={16} />
+                <span>View Order Details</span>
+              </button>
             </div>
-
-            {/* View Full Digital Receipt Link */}
-            <a
-              href={ROUTES.receipt(completedBatch.firstOrderId)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.viewDigitalReceiptBtn}
-            >
-              <Symbol name="receipt_long" size={18} />
-              <span>View Full Digital Receipt</span>
-            </a>
-
-            {/* Workshop Cutting Slip Action */}
-            <button
-              type="button"
-              className={styles.cuttingSlipBtn}
-              onClick={() => setCuttingSlipOpen(true)}
-            >
-              <Symbol name="content_cut" size={18} />
-              <span>Print / View Cutting Slip</span>
-            </button>
-
-            <button
-              type="button"
-              className={styles.viewOrderBtn}
-              onClick={() => {
-                setReceiptSheetOpen(false);
-                router.push(ROUTES.productionOrder(completedBatch.firstOrderId));
-              }}
-            >
-              <Symbol name="visibility" size={18} />
-              <span>View Order #{completedBatch.firstOrderId.slice(-6).toUpperCase()} Details</span>
-            </button>
-
-            <button
-              type="button"
-              className={styles.finishBtn}
-              onClick={() => {
-                setReceiptSheetOpen(false);
-                router.replace(ROUTES.production);
-              }}
-            >
-              View Active Orders
-            </button>
           </div>
         )}
       </BottomSheet>

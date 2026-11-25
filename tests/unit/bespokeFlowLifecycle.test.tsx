@@ -250,6 +250,28 @@ describe('Bespoke Flow Lifecycle & Component Mount Suite', () => {
       expect(formatCurrency(250, 'USD')).toContain('250');
       expect(formatCurrency(180, 'GBP')).toContain('180');
     });
+
+    it('generates customized WhatsApp message with tracking link without leaking raw order breakdown', () => {
+      const shopWithTemplate: Shop = {
+        ...mockShop,
+        stageMessageTemplates: {
+          Documented: 'Hello {name}! Your bespoke order is logged with {shop}. Track here: {link}',
+        },
+      };
+
+      const msg = getOrderProgressMessage({
+        customerName: mockCustomer.fullName,
+        shopName: shopWithTemplate.name,
+        status: 'Documented',
+        trackingUrl: 'https://mytailorbook.com/track/ord-uuid-01',
+        customTemplate: shopWithTemplate.stageMessageTemplates?.['Documented'],
+        includeTrackingLink: true,
+      });
+
+      expect(msg).toBe('Hello Chief! Your bespoke order is logged with Crown Tailors. Track here: https://mytailorbook.com/track/ord-uuid-01');
+      expect(msg).not.toContain('Total Bill');
+      expect(msg).not.toContain('Deposit Paid');
+    });
   });
 });
 
