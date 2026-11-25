@@ -1,17 +1,17 @@
 /* Floating glassmorphic pill bottom nav — Apple iOS Optics */
 .nav {
   position: fixed;
-  bottom: max(4px, calc(2px + env(safe-area-inset-bottom, 0px)));
-  left: 12px;
-  right: 12px;
-  width: calc(100% - 24px);
+  bottom: max(0px, env(safe-area-inset-bottom, 0px));
+  left: 8px;
+  right: 8px;
+  width: calc(100% - 16px);
   max-width: 440px;
-  height: 56px;
+  height: 52px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 4px;
   background: var(--sf-glass-gradient, var(--sf-glass-bg));
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
