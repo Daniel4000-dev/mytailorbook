@@ -71,8 +71,13 @@ export async function POST(req: Request) {
     const lastCountedStrInitial = shop.streak_last_counted_at 
       ? new Date(shop.streak_last_counted_at).toISOString().split('T')[0]
       : null;
-    if (action === 'daily_login' && lastCountedStrInitial === todayStr) {
-      baseReward = 0;
+    if (action === 'daily_login') {
+      // Check-in counts as active workshop attendance
+      if (lastCountedStrInitial === todayStr) {
+        baseReward = 0;
+      } else {
+        baseReward = 10;
+      }
     }
 
     // Daily Status Share (once per calendar day)

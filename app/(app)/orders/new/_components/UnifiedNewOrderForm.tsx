@@ -1909,7 +1909,7 @@ export default function UnifiedNewOrderForm() {
           onClick={handleAddGarment}
         >
           <Symbol name="add" size={20} />
-          <span>+ Add Another Outfit for {selectedCustomer?.fullName || 'this Order'}</span>
+          <span>Add Another Outfit for {selectedCustomer?.fullName || 'this Order'}</span>
         </button>
 
         {/* ── CARD 5: BILLING & DELIVERY SCHEDULE ── */}
