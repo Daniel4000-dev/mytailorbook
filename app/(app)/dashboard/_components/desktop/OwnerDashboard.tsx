@@ -68,8 +68,8 @@ export default function OwnerDashboard({
   const isDayOne = isRtw
     ? orders.length === 0 && showroomMetrics.totalPieces === 0
     : isHybrid
-    ? orders.length === 0 && showroomMetrics.totalPieces === 0
-    : orders.length === 0;
+      ? orders.length === 0 && showroomMetrics.totalPieces === 0
+      : orders.length === 0;
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 

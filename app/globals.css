@@ -171,12 +171,15 @@ svg {
 html,
 body,
 * {
-  scrollbar-width: none; /* Modern standard: Firefox, Safari 18.2+, Chrome 121+ */
-  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none;
+  /* Modern standard: Firefox, Safari 18.2+, Chrome 121+ */
+  -ms-overflow-style: none;
+  /* IE, Edge */
 }
 
 ::-webkit-scrollbar {
-  display: none; /* WebKit, Blink, iOS WebView, Android WebView */
+  display: none;
+  /* WebKit, Blink, iOS WebView, Android WebView */
   width: 0;
   height: 0;
   background: transparent;
@@ -406,6 +409,7 @@ body.no-scroll {
 }
 
 @media (prefers-color-scheme: dark) {
+
   :root:not([data-theme='light']) [class*="kpiCard"],
   :root:not([data-theme='light']) [class*="customerRow"],
   :root:not([data-theme='light']) [class*="searchBarPill"],
