@@ -1,51 +1,51 @@
-/* Floating glassmorphic pill bottom nav — Apple iOS Optics */
+/* Floating glassmorphic pill bottom nav — Instagram/iOS Optics Reference */
 .nav {
   position: fixed;
-  bottom: max(0px, env(safe-area-inset-bottom, 0px));
-  left: 8px;
-  right: 8px;
-  width: calc(100% - 16px);
-  max-width: 440px;
+  bottom: max(16px, calc(12px + env(safe-area-inset-bottom, 0px)));
+  left: 50%;
+  right: auto;
+  transform: translate3d(-50%, 0, 0) scale(1);
+  width: calc(100% - 48px);
+  max-width: 336px;
   height: 52px;
-  margin: 0 auto;
+  margin: 0;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   align-items: center;
-  padding: 0 4px;
+  padding: 0 10px;
   background: var(--sf-glass-gradient, var(--sf-glass-bg));
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border-radius: var(--sf-radius-full, 9999px);
   border: var(--sf-glass-border);
-  box-shadow: var(--sf-glass-shadow-floating);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
   z-index: var(--sf-z-sticky);
   opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center bottom;
   will-change: transform, opacity;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, background-color 0.2s ease, box-shadow 0.28s ease;
 }
 
 .nav.navCompact {
-  transform: translate3d(0, 6px, 0) scale(0.88);
-  opacity: 0.88;
+  transform: translate3d(-50%, 6px, 0) scale(0.92);
+  opacity: 0.92;
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.06),
-    0 1px 4px rgba(0, 0, 0, 0.03);
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .nav.navCompact:hover {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(-50%, 0, 0) scale(1);
     opacity: 1;
-    box-shadow: var(--sf-glass-shadow-floating);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
   }
 }
 
 .nav.navCompact:active {
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translate3d(-50%, 0, 0) scale(1);
   opacity: 1;
-  box-shadow: var(--sf-glass-shadow-floating);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 :global([data-theme='dark']) .nav {
@@ -53,14 +53,14 @@
   backdrop-filter: var(--sf-glass-backdrop);
   -webkit-backdrop-filter: var(--sf-glass-backdrop);
   border: var(--sf-glass-border);
-  box-shadow: var(--sf-glass-shadow-floating);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
   opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translate3d(-50%, 0, 0) scale(1);
 }
 
 :global([data-theme='dark']) .nav.navCompact {
-  transform: translate3d(0, 6px, 0) scale(0.88);
-  opacity: 0.88;
+  transform: translate3d(-50%, 6px, 0) scale(0.92);
+  opacity: 0.92;
   box-shadow:
     0 6px 20px rgba(0, 0, 0, 0.35),
     0 1px 4px rgba(0, 0, 0, 0.2);
@@ -68,7 +68,7 @@
 
 :global([data-theme='dark']) .nav.navCompact:hover,
 :global([data-theme='dark']) .nav.navCompact:active {
-  transform: translate3d(0, 0, 0) scale(1);
+  transform: translate3d(-50%, 0, 0) scale(1);
   opacity: 1;
 }
 
@@ -78,14 +78,14 @@
     backdrop-filter: var(--sf-glass-backdrop);
     -webkit-backdrop-filter: var(--sf-glass-backdrop);
     border: var(--sf-glass-border);
-    box-shadow: var(--sf-glass-shadow-floating);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(-50%, 0, 0) scale(1);
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact {
-    transform: translate3d(0, 6px, 0) scale(0.88);
-    opacity: 0.88;
+    transform: translate3d(-50%, 6px, 0) scale(0.92);
+    opacity: 0.92;
     box-shadow:
       0 6px 20px rgba(0, 0, 0, 0.35),
       0 1px 4px rgba(0, 0, 0, 0.2);
@@ -93,7 +93,7 @@
 
   :global(:root:not([data-theme="light"])) .nav.navCompact:hover,
   :global(:root:not([data-theme="light"])) .nav.navCompact:active {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(-50%, 0, 0) scale(1);
     opacity: 1;
   }
 }
@@ -114,10 +114,10 @@
   color: var(--sf-text-secondary);
   opacity: 0.75;
   text-decoration: none;
-  height: 44px;
+  height: 40px;
   flex: 1;
-  max-width: 68px;
-  min-width: 44px;
+  max-width: 58px;
+  min-width: 38px;
   border-radius: var(--sf-radius-pill, 9999px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
