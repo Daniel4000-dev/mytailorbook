@@ -28,6 +28,7 @@ import {
 import SettingsSkeleton from '../_components/SettingsSkeleton';
 import { ROUTES } from '@/lib/routes';
 import { isXpSystemEnabled } from '@/lib/xp';
+import PhotoLightbox from '@/components/ui/PhotoLightbox/PhotoLightbox';
 import styles from './page.module.css';
 
 type EditableField = 'name' | 'username' | 'about' | 'phone' | 'address' | 'currency' | 'country' | null;
@@ -49,6 +50,7 @@ export default function StudioSettingsPage() {
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [confirmRemoveLogo, setConfirmRemoveLogo] = useState(false);
+  const [logoLightbox, setLogoLightbox] = useState<{ src: string; rect: DOMRect } | null>(null);
 
   // Field editor modal/sheet state
   const [activeField, setActiveField] = useState<EditableField>(null);
@@ -330,8 +332,17 @@ export default function StudioSettingsPage() {
           <button
             type="button"
             className={`${styles.avatarWrap} ${!currentShop?.logoUrl ? styles.avatarWrapEmpty : ''}`}
-            onClick={() => fileInputRef.current?.click()}
-            title={currentShop?.logoUrl ? 'Tap to change shop logo' : 'Tap to upload shop logo'}
+            onClick={(e) => {
+              if (currentShop?.logoUrl) {
+                setLogoLightbox({
+                  src: currentShop.logoUrl,
+                  rect: e.currentTarget.getBoundingClientRect(),
+                });
+              } else {
+                fileInputRef.current?.click();
+              }
+            }}
+            title={currentShop?.logoUrl ? 'Tap to view full logo' : 'Tap to upload shop logo'}
           >
             {currentShop?.logoUrl ? (
               <Image
@@ -347,7 +358,15 @@ export default function StudioSettingsPage() {
                 <span className={styles.avatarLogoTag}>Shop Logo</span>
               </div>
             )}
-            <span className={styles.avatarCameraBadge} aria-hidden="true">
+            <span
+              className={styles.avatarCameraBadge}
+              aria-hidden="true"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+              title="Change logo"
+            >
               <Symbol name="add_a_photo" size={14} />
             </span>
           </button>
@@ -1013,6 +1032,14 @@ export default function StudioSettingsPage() {
         title="Remove shop logo?"
         description="Receipts and your public lookbook will show your shop name instead."
         confirmLabel="Remove"
+      />
+
+      {/* Full-view Lightbox for Studio Logo */}
+      <PhotoLightbox
+        src={logoLightbox?.src || null}
+        originRect={logoLightbox?.rect || null}
+        alt={currentShop?.name || 'Studio Logo'}
+        onClose={() => setLogoLightbox(null)}
       />
     </PageLayout>
   );

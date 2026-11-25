@@ -198,6 +198,13 @@ export default function OfflineSyncManager() {
       aria-label="Offline sync status"
       role="status"
       aria-live="polite"
+      onClick={() => {
+        if (isOnline && !isSyncing) {
+          triggerSync();
+        }
+      }}
+      style={{ cursor: isOnline && !isSyncing ? 'pointer' : 'default', pointerEvents: 'auto' }}
+      title={isOnline && !isSyncing ? 'Tap to retry sync now' : undefined}
     >
       <div className={styles.pillIcon}>
         {isSyncing ? (

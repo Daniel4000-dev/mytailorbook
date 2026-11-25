@@ -133,14 +133,31 @@ export async function replayOfflineQueue(
         // Failed: increment retry count
         mutation.retryCount = (mutation.retryCount || 0) + 1;
         failedCount++;
-        // If it failed due to bad payload after 5 tries, discard to prevent queue blockage
-        if (mutation.retryCount >= 5) {
+        // If it failed due to bad payload after 5 tries, or if error indicates invalid payload/record,
+        // discard to prevent blocking the entire queue forever
+        const isTerminalError =
+          mutation.retryCount >= 5 ||
+          res.error?.includes('not found') ||
+          res.error?.includes('PGRST116') ||
+          res.error?.includes('foreign key') ||
+          res.error?.includes('23503');
+
+        if (isTerminalError) {
           dequeueOfflineMutation(mutation.id);
+        } else {
+          // Persist the incremented retryCount to localStorage
+          try {
+            const current = getPendingMutations();
+            const updated = current.map((m) => (m.id === mutation.id ? mutation : m));
+            localStorage.setItem(OUTBOX_STORAGE_KEY, JSON.stringify(updated));
+          } catch {
+            // ignore
+          }
         }
       }
     } catch {
       failedCount++;
-      break; // Network still disconnected, abort remaining replay
+      break; // Network still disconnected or thrown, abort remaining replay
     }
   }
 
