@@ -1742,7 +1742,6 @@
   border-color: var(--sf-brand-indigo, #6366F1);
   transform: translateY(-1px);
 }
-}
 
 .finishBtn:hover {
   background: var(--sf-bg-surface-secondary);
