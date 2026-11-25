@@ -756,6 +756,26 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badgeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4338CA;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.badgeAlertDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #DC2626;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .teamActiveBadge {
@@ -768,6 +788,9 @@
   border: 1px solid rgba(67, 56, 202, 0.15);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -777,10 +800,18 @@
     border-color: rgba(99, 102, 241, 0.3);
   }
 
+  :global(:root:not([data-theme="light"])) .badgeDot {
+    background: #818CF8;
+  }
+
   :global(:root:not([data-theme="light"])) .teamOverdueBadge {
     background: rgba(220, 38, 38, 0.2);
     color: #F87171;
     border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  :global(:root:not([data-theme="light"])) .badgeAlertDot {
+    background: #F87171;
   }
 }
 
@@ -790,10 +821,18 @@
   border-color: rgba(99, 102, 241, 0.3);
 }
 
+:global([data-theme='dark']) .badgeDot {
+  background: #818CF8;
+}
+
 :global([data-theme='dark']) .teamOverdueBadge {
   background: rgba(220, 38, 38, 0.2);
   color: #F87171;
   border-color: rgba(220, 38, 38, 0.3);
+}
+
+:global([data-theme='dark']) .badgeAlertDot {
+  background: #F87171;
 }
 
 .teamOverdueBadge {
@@ -806,6 +845,39 @@
   border: 1px solid rgba(220, 38, 38, 0.2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 480px) {
+  .teamCard {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .teamCardLeft {
+    gap: 8px;
+  }
+
+  .teamBadges {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+
+  .teamActiveBadge,
+  .teamOverdueBadge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .craftBadge {
+    font-size: 9px;
+    padding: 1px 5px;
+    max-width: 95px;
+  }
 }
 
 :global([data-theme='dark']) .teamOverdueBadge {
