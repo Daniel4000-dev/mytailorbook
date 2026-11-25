@@ -1,24 +1,24 @@
 /* Floating glassmorphic pill bottom nav — Instagram/iOS Optics Reference */
 .nav {
   position: fixed;
-  bottom: max(16px, calc(12px + env(safe-area-inset-bottom, 0px)));
+  bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) * 0.35 + 4px));
   left: 50%;
   right: auto;
   transform: translate3d(-50%, 0, 0) scale(1);
-  width: calc(100% - 48px);
-  max-width: 336px;
-  height: 52px;
+  width: calc(100% - 24px);
+  max-width: 420px;
+  height: 58px;
   margin: 0;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  padding: 0 10px;
-  background: var(--sf-glass-gradient, var(--sf-glass-bg));
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
+  padding: 4px 6px;
+  background: var(--sf-glass-gradient, rgba(232, 234, 237, 0.94));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-radius: var(--sf-radius-full, 9999px);
-  border: var(--sf-glass-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.08);
   z-index: var(--sf-z-sticky);
   opacity: 1;
   transform-origin: center bottom;
@@ -27,43 +27,43 @@
 }
 
 .nav.navCompact {
-  transform: translate3d(-50%, 6px, 0) scale(0.92);
-  opacity: 0.92;
+  transform: translate3d(-50%, 4px, 0) scale(0.94);
+  opacity: 0.94;
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.15),
-    0 1px 4px rgba(0, 0, 0, 0.08);
+    0 4px 16px rgba(0, 0, 0, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .nav.navCompact:hover {
     transform: translate3d(-50%, 0, 0) scale(1);
     opacity: 1;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.08);
   }
 }
 
 .nav.navCompact:active {
   transform: translate3d(-50%, 0, 0) scale(1);
   opacity: 1;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 :global([data-theme='dark']) .nav {
-  background: var(--sf-glass-gradient, var(--sf-glass-bg));
-  backdrop-filter: var(--sf-glass-backdrop);
-  -webkit-backdrop-filter: var(--sf-glass-backdrop);
-  border: var(--sf-glass-border);
-  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: rgba(28, 28, 32, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
   opacity: 1;
   transform: translate3d(-50%, 0, 0) scale(1);
 }
 
 :global([data-theme='dark']) .nav.navCompact {
-  transform: translate3d(-50%, 6px, 0) scale(0.92);
-  opacity: 0.92;
+  transform: translate3d(-50%, 4px, 0) scale(0.94);
+  opacity: 0.94;
   box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.35),
-    0 1px 4px rgba(0, 0, 0, 0.2);
+    0 4px 18px rgba(0, 0, 0, 0.35),
+    0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 :global([data-theme='dark']) .nav.navCompact:hover,
@@ -74,21 +74,21 @@
 
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-theme="light"])) .nav {
-    background: var(--sf-glass-gradient, var(--sf-glass-bg));
-    backdrop-filter: var(--sf-glass-backdrop);
-    -webkit-backdrop-filter: var(--sf-glass-backdrop);
-    border: var(--sf-glass-border);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+    background: rgba(28, 28, 32, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
     opacity: 1;
     transform: translate3d(-50%, 0, 0) scale(1);
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact {
-    transform: translate3d(-50%, 6px, 0) scale(0.92);
-    opacity: 0.92;
+    transform: translate3d(-50%, 4px, 0) scale(0.94);
+    opacity: 0.94;
     box-shadow:
-      0 6px 20px rgba(0, 0, 0, 0.35),
-      0 1px 4px rgba(0, 0, 0, 0.2);
+      0 4px 18px rgba(0, 0, 0, 0.35),
+      0 1px 3px rgba(0, 0, 0, 0.18);
   }
 
   :global(:root:not([data-theme="light"])) .nav.navCompact:hover,
@@ -105,47 +105,65 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Nav Item (Apple iOS floating pill with inner active capsule) */
+/* Nav Item (Generous slot coverage matching Instagram reference) */
 .item {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sf-text-secondary);
-  opacity: 0.75;
+  color: var(--sf-text-secondary, #4B5563);
+  opacity: 0.85;
   text-decoration: none;
-  height: 40px;
-  flex: 1;
-  max-width: 58px;
-  min-width: 38px;
-  border-radius: var(--sf-radius-pill, 9999px);
+  height: 100%;
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: none;
+  border-radius: var(--sf-radius-full, 9999px);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  padding: 0 4px;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .item:hover {
     opacity: 1;
-    background-color: var(--sf-glass-active-pill);
+    background-color: rgba(0, 0, 0, 0.05);
   }
 }
 
 .item:active {
-  transform: scale(0.92);
+  transform: scale(0.94);
   transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Active state: Subtle frosted highlight pill matching Apple / Bible app reference */
+/* Active state: Pill fills the available slot space generously */
 .active {
-  background-color: var(--sf-glass-active-pill) !important;
-  color: var(--sf-text-primary);
+  background-color: rgba(0, 0, 0, 0.09) !important;
+  color: #000000 !important;
   opacity: 1;
 }
 
 :global([data-theme='dark']) .active {
-  background-color: var(--sf-glass-active-pill) !important;
-  color: var(--sf-text-primary);
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  color: #FFFFFF !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .active {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    color: #FFFFFF !important;
+  }
+}
+
+:global([data-theme='dark']) .item {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-theme="light"])) .item {
+    color: rgba(255, 255, 255, 0.7);
+  }
 }
 
 .iconWrapper {
