@@ -7,5 +7,8 @@
 
 set -e
 
+echo "Running Pre-Push test suite (npm run test)..."
+npm run test
+
 echo "Running Pre-Push CI build check (npm run build)..."
 npm run build
