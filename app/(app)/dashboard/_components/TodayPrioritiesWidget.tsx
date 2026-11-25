@@ -165,10 +165,16 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
                     {isCompleted && <Symbol name="check" size={14} />}
                   </button>
                   <div className={styles.itemMeta}>
-                    <span className={`${styles.itemTitle} ${isCompleted ? styles.itemTitleDone : ''}`}>
+                    <span
+                      className={`${styles.itemTitle} ${isCompleted ? styles.itemTitleDone : ''}`}
+                      title={evt.title}
+                    >
                       {evt.title}
                     </span>
-                    <span className={styles.itemSub}>
+                    <span
+                      className={styles.itemSub}
+                      title={`${evt.startTime ? `${evt.startTime} · ` : ''}Client Fitting`}
+                    >
                       {evt.startTime ? `${evt.startTime} · ` : ''}Client Fitting
                     </span>
                   </div>
@@ -226,8 +232,14 @@ export default function TodayPrioritiesWidget({ loops, onNavigate }: TodayPriori
                   />
                 </div>
                 <div className={styles.itemMeta}>
-                  <span className={styles.itemTitle}>{loop.title}</span>
-                  {loop.subtitle && <span className={styles.itemSub}>{loop.subtitle}</span>}
+                  <span className={styles.itemTitle} title={loop.title}>
+                    {loop.title}
+                  </span>
+                  {loop.subtitle && (
+                    <span className={styles.itemSub} title={loop.subtitle}>
+                      {loop.subtitle}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className={styles.itemRight}>

@@ -1455,15 +1455,17 @@
 
 .receiptSummaryCard {
   width: 100%;
+  max-width: 380px;
+  margin: 0 auto 20px auto;
   background: var(--sf-bg-surface, #FFFFFF);
   border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
   border-radius: 18px;
-  padding: 18px;
+  padding: clamp(14px, 4vw, 20px);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 22px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
 }
 
 :global([data-theme='dark']) .receiptSummaryCard {
@@ -1476,22 +1478,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 13.5px;
+  gap: 8px;
 }
 
 .receiptMuted {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--sf-text-secondary);
+  flex-shrink: 0;
 }
 
 .receiptBold {
   font-weight: 700;
   color: var(--sf-text-primary);
+  text-align: right;
+  word-break: break-word;
 }
 
 .receiptHighlight {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: #059669;
@@ -1500,27 +1506,50 @@
 .receiptBrandRow {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
   padding-bottom: 4px;
+  gap: 12px;
 }
 
 .receiptBrandInfo {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.receiptShopLogo {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.08));
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.receiptBrandText {
+  display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .receiptShopName {
   font-family: var(--font-fraunces), Georgia, serif;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--sf-text-primary);
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .receiptShopPhone {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--sf-text-secondary);
 }
@@ -1530,10 +1559,11 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .receiptRefLabel {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1542,22 +1572,71 @@
 
 .receiptRefId {
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--sf-text-primary);
   background: var(--sf-bg-surface-secondary, rgba(0, 0, 0, 0.05));
   padding: 2px 7px;
   border-radius: 6px;
+  letter-spacing: 0.02em;
 }
 
 .receiptDividerDashed {
   width: 100%;
   border-bottom: 1.5px dashed var(--sf-border-light, rgba(0, 0, 0, 0.12));
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 :global([data-theme='dark']) .receiptDividerDashed {
   border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.receiptGarmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.receiptGarmentSubRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--sf-text-primary);
+  gap: 8px;
+}
+
+.receiptTrackingPreview {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: var(--sf-bg-surface-secondary, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--sf-border-light, rgba(0, 0, 0, 0.06));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.receiptTrackingPreview:hover {
+  background: var(--sf-brand-indigo-glow, rgba(99, 102, 241, 0.08));
+  border-color: var(--sf-brand-indigo, #6366F1);
+}
+
+.receiptTrackingLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sf-brand-indigo, #6366F1);
+}
+
+.receiptTrackingHint {
+  font-size: 10.5px;
+  color: var(--sf-text-secondary);
 }
 
 .receiptCardFooter {
@@ -1565,8 +1644,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding-top: 6px;
-  font-size: 11px;
+  padding-top: 4px;
+  font-size: 10.5px;
   font-weight: 500;
   color: var(--sf-text-secondary);
 }
@@ -1577,15 +1656,16 @@
 
 .receiptActionsGroup {
   width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
 }
 
 .shareImageReceiptBtn {
   width: 100%;
-  padding: 15px 18px;
+  padding: 14px 18px;
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: #fff;
   border: none;
@@ -1640,94 +1720,27 @@
   color: #128C7E;
 }
 
-.viewDigitalReceiptBtn {
-  width: 100%;
-  padding: 13px;
-  background: var(--sf-brand-indigo);
-  color: #fff;
-  border: none;
-  border-radius: var(--sf-radius-md);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-decoration: none;
-  box-shadow: 0 4px 14px var(--sf-brand-indigo-glow);
-  margin-bottom: 8px;
-  transition: all 0.15s ease;
-}
-
-.viewDigitalReceiptBtn:hover {
-  background: #3730A3;
-  transform: translateY(-1px);
-}
-
-.whatsappReceiptBtn {
-  width: 100%;
-  padding: 16px 20px;
-  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-  color: #fff;
-  border: none;
-  border-radius: 16px;
-  font-size: 15.5px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  text-decoration: none;
-  box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.4);
-  transition: all 0.2s ease;
-}
-
-.whatsappReceiptBtn:hover {
-  background: linear-gradient(135deg, #22bf5b 0%, #0f7a6e 100%);
-  transform: translateY(-1px);
-}
-
-.whatsappReceiptBtn:active {
-  transform: scale(0.98);
-}
-
 .viewOrderBtn {
   width: 100%;
-  padding: 13px;
-  background: var(--sf-brand-indigo);
-  color: #fff;
-  border: none;
-  border-radius: var(--sf-radius-md);
-  font-size: 14.5px;
-  font-weight: 700;
+  padding: 12px 16px;
+  background: transparent;
+  color: var(--sf-brand-indigo, #6366F1);
+  border: 1px solid var(--sf-brand-indigo-glow, rgba(99, 102, 241, 0.2));
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px var(--sf-brand-indigo-glow);
-  margin-bottom: 8px;
   transition: all 0.15s ease;
 }
 
 .viewOrderBtn:hover {
-  background: #3730A3;
+  background: var(--sf-brand-indigo-glow, rgba(99, 102, 241, 0.08));
+  border-color: var(--sf-brand-indigo, #6366F1);
   transform: translateY(-1px);
-}
-
-.finishBtn {
-  width: 100%;
-  padding: 12px;
-  background: transparent;
-  border: 1px solid var(--sf-border-light);
-  border-radius: var(--sf-radius-md);
-  color: var(--sf-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .finishBtn:hover {

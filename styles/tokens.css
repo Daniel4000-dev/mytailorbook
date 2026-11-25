@@ -240,7 +240,7 @@
    --sf-max-width-tablet: 768px;
    --sf-max-width-desktop: 1280px;
    /* mockup max-w-7xl */
-   --sf-bottom-nav-height: 84px;
+   --sf-bottom-nav-height: 60px;
    --sf-top-bar-height: 56px;
    --sf-fab-size: 56px;
    --sf-safe-area-top: env(safe-area-inset-top, 0px);
@@ -260,18 +260,14 @@
    --sf-glass-backdrop: blur(var(--sf-glass-blur)) saturate(var(--sf-glass-saturate)) contrast(var(--sf-glass-contrast)) brightness(var(--sf-glass-brightness));
 
    --sf-glass-bg: rgba(255, 255, 255, 0.32);
-   --sf-glass-gradient: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.48) 0%,
-      rgba(255, 255, 255, 0.26) 45%,
-      rgba(255, 255, 255, 0.22) 85%,
-      rgba(255, 255, 255, 0.35) 100%
-   );
-   --sf-glass-bg-sheet: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.70) 0%,
-      rgba(255, 255, 255, 0.55) 100%
-   );
+   --sf-glass-gradient: linear-gradient(180deg,
+         rgba(255, 255, 255, 0.48) 0%,
+         rgba(255, 255, 255, 0.26) 45%,
+         rgba(255, 255, 255, 0.22) 85%,
+         rgba(255, 255, 255, 0.35) 100%);
+   --sf-glass-bg-sheet: linear-gradient(180deg,
+         rgba(255, 255, 255, 0.70) 0%,
+         rgba(255, 255, 255, 0.55) 100%);
    --sf-glass-bg-dark-pill: rgba(20, 20, 25, 0.72);
    --sf-glass-border: 0.5px solid rgba(255, 255, 255, 0.60);
    --sf-glass-border-subtle: 0.5px solid rgba(255, 255, 255, 0.35);
@@ -310,19 +306,19 @@
       --sf-surface-variant: rgba(99, 102, 241, 0.14);
       --sf-sand: rgba(99, 102, 241, 0.08);
 
-   /* ── Semantic Background & Surface Aliases (Dark) ─── */
-   --sf-bg-canvas: #0A0910;
-   --sf-bg-page: #0A0910;
-   --sf-bg-card: #161526;
-   --sf-bg-secondary: #1F1E33;
-   --sf-bg-tertiary: #2A2840;
-   --sf-bg-elevated: #1F1E33;
-   --sf-bg-hover: rgba(99, 102, 241, 0.10);
-   --sf-bg-subtle: rgba(99, 102, 241, 0.06);
-   --sf-bg-sunken: #100F1C;
-   --sf-bg-surface-secondary: #1C1B2E;
-   --sf-bg-surface-sunken: #100F1C;
-   --sf-bg-surface-pressed: rgba(99, 102, 241, 0.16);
+      /* ── Semantic Background & Surface Aliases (Dark) ─── */
+      --sf-bg-canvas: #0A0910;
+      --sf-bg-page: #0A0910;
+      --sf-bg-card: #161526;
+      --sf-bg-secondary: #1F1E33;
+      --sf-bg-tertiary: #2A2840;
+      --sf-bg-elevated: #1F1E33;
+      --sf-bg-hover: rgba(99, 102, 241, 0.10);
+      --sf-bg-subtle: rgba(99, 102, 241, 0.06);
+      --sf-bg-sunken: #100F1C;
+      --sf-bg-surface-secondary: #1C1B2E;
+      --sf-bg-surface-sunken: #100F1C;
+      --sf-bg-surface-pressed: rgba(99, 102, 241, 0.16);
 
       /* ── Semantic Background & Surface Aliases (Dark) ─── */
       --sf-bg-canvas: #0A0910;
@@ -415,18 +411,14 @@
 
       /* ── Apple & Instagram Liquid Glass Tokens (Dark Mode) ── */
       --sf-glass-bg: rgba(22, 22, 30, 0.45);
-      --sf-glass-gradient: linear-gradient(
-         180deg,
-         rgba(42, 40, 56, 0.58) 0%,
-         rgba(24, 23, 34, 0.40) 45%,
-         rgba(20, 19, 28, 0.34) 85%,
-         rgba(34, 33, 46, 0.50) 100%
-      );
-      --sf-glass-bg-sheet: linear-gradient(
-         180deg,
-         rgba(34, 33, 46, 0.75) 0%,
-         rgba(20, 19, 28, 0.60) 100%
-      );
+      --sf-glass-gradient: linear-gradient(180deg,
+            rgba(42, 40, 56, 0.58) 0%,
+            rgba(24, 23, 34, 0.40) 45%,
+            rgba(20, 19, 28, 0.34) 85%,
+            rgba(34, 33, 46, 0.50) 100%);
+      --sf-glass-bg-sheet: linear-gradient(180deg,
+            rgba(34, 33, 46, 0.75) 0%,
+            rgba(20, 19, 28, 0.60) 100%);
       --sf-glass-bg-dark-pill: rgba(15, 14, 20, 0.78);
       --sf-glass-border: 0.5px solid rgba(255, 255, 255, 0.18);
       --sf-glass-border-subtle: 0.5px solid rgba(255, 255, 255, 0.10);
@@ -543,18 +535,14 @@
 
    /* ── Apple & Instagram Liquid Glass Tokens (Dark Mode) ── */
    --sf-glass-bg: rgba(22, 22, 30, 0.45);
-   --sf-glass-gradient: linear-gradient(
-      180deg,
-      rgba(42, 40, 56, 0.58) 0%,
-      rgba(24, 23, 34, 0.40) 45%,
-      rgba(20, 19, 28, 0.34) 85%,
-      rgba(34, 33, 46, 0.50) 100%
-   );
-   --sf-glass-bg-sheet: linear-gradient(
-      180deg,
-      rgba(34, 33, 46, 0.75) 0%,
-      rgba(20, 19, 28, 0.60) 100%
-   );
+   --sf-glass-gradient: linear-gradient(180deg,
+         rgba(42, 40, 56, 0.58) 0%,
+         rgba(24, 23, 34, 0.40) 45%,
+         rgba(20, 19, 28, 0.34) 85%,
+         rgba(34, 33, 46, 0.50) 100%);
+   --sf-glass-bg-sheet: linear-gradient(180deg,
+         rgba(34, 33, 46, 0.75) 0%,
+         rgba(20, 19, 28, 0.60) 100%);
    --sf-glass-bg-dark-pill: rgba(15, 14, 20, 0.78);
    --sf-glass-border: 0.5px solid rgba(255, 255, 255, 0.18);
    --sf-glass-border-subtle: 0.5px solid rgba(255, 255, 255, 0.10);
