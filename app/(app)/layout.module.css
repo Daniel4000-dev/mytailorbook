@@ -49,7 +49,7 @@
 
 .main {
   flex: 1;
-  padding-bottom: calc(var(--sf-bottom-nav-height) + var(--sf-safe-area-bottom));
+  padding-bottom: calc(var(--sf-bottom-nav-height) + 14px);
   overflow-y: auto;
   overflow-x: clip;
   overscroll-behavior-y: contain;
