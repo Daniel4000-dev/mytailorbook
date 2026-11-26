@@ -43,6 +43,39 @@ function isIOS(): boolean {
   return /iPhone|iPad|iPod/.test(window.navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
 }
 
+const DEFAULT_VAPID_PUBLIC_KEY =
+  'BN9WicPA4RvCFc77qA6zMf3iNSy8xcnzJ6aUohFL_D94leTxEy4lf5A6TAHb2xGW_RMrgh4T87zkRL-eJ1OR9aY';
+
+async function getServiceWorkerForPush(timeoutMs = 6000): Promise<ServiceWorkerRegistration> {
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('Push notifications are not supported on this browser.');
+  }
+
+  // 1. Fast path: check existing registration
+  let reg = await navigator.serviceWorker.getRegistration();
+
+  // 2. If not registered yet, register now
+  if (!reg) {
+    reg = await navigator.serviceWorker.register('/sw.js');
+  }
+
+  // If pushManager is already accessible on reg, return it immediately without hanging on ready
+  if (reg && 'pushManager' in reg) {
+    return reg;
+  }
+
+  // 3. Fallback: race against ready with a strict timeout
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<ServiceWorkerRegistration>((resolve, reject) =>
+      setTimeout(() => {
+        if (reg) resolve(reg);
+        else reject(new Error('Notification service setup timed out. Please try again.'));
+      }, timeoutMs)
+    ),
+  ]);
+}
+
 export default function NotificationPrompt() {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -89,15 +122,22 @@ export default function NotificationPrompt() {
       const permission = await Notification.requestPermission();
 
       if (permission === 'granted') {
-        const registration = await navigator.serviceWorker.ready;
-        const vapidKey =
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-          'BN9WicPA4RvCFc77qA6zMf3iNSy8xcnzJ6aUohFL_D94leTxEy4lf5A6TAHb2xGW_RMrgh4T87zkRL-eJ1OR9aY';
+        const registration = await getServiceWorkerForPush();
+        if (!registration || !registration.pushManager) {
+          throw new Error('Push notification service is not supported on this device.');
+        }
 
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidKey),
-        });
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
+
+        const subscription = await Promise.race([
+          registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidKey),
+          }),
+          new Promise<PushSubscription>((_, reject) =>
+            setTimeout(() => reject(new Error('Device registration timed out. Please check your connection and try again.')), 8000)
+          ),
+        ]);
 
         const { error } = await savePushSubscriptionAction(
           subscription.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } }
@@ -108,15 +148,23 @@ export default function NotificationPrompt() {
         } else {
           showToast('Notifications enabled for this device', 'success');
         }
+        setVisible(false);
       } else if (permission === 'denied') {
+        showToast('Notifications are blocked in your browser settings.', 'error');
+        dismiss();
+        return;
+      } else {
+        showToast('Notification permission was not granted', 'error');
         dismiss();
         return;
       }
     } catch (err) {
       console.error('Failed to enable push notifications:', err);
+      const message = err instanceof Error ? err.message : 'Failed to enable notifications';
+      showToast(message, 'error');
+      setVisible(false);
     } finally {
       setEnabling(false);
-      setVisible(false);
     }
   };
 
