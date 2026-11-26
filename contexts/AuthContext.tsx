@@ -12,7 +12,6 @@ import {
 import type { User } from '@/lib/types';
 import { isOwnerLikeRole } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
-import { identifyUser, resetAnalytics } from '@/lib/analytics';
 import { ROUTES } from '@/lib/routes';
 
 interface AuthContextValue {
@@ -90,10 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // A real session with a profile means we're logged in, not logging
         // out — clears the overlay for the next time this user lands in (app).
         setIsLoggingOut(false);
-        // Ties subsequent analytics events to this person — deliberately
-        // only identity/role/org fields, never customer data or anything
-        // else that lives in our own database.
-        identifyUser(profile.uid, { email: profile.email, role: profile.role, shop_id: profile.shopId, org_id: profile.orgId });
       } else {
         // Authenticated with Supabase, but no shop/profile exists yet.
         setUser(null);
@@ -193,9 +188,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setNeedsOnboarding(false);
       setGoogleUserInfo(null);
-      // Otherwise the next person to use this device/browser would get
-      // folded into the previous user's identity.
-      resetAnalytics();
       // Clear offline SWR cache so another user on this device does not see it.
       localStorage.removeItem('mtb-swr-cache');
       // Intentionally DO NOT clear `mtb_staff_device`, `mtb_shop_devices`, or `mtb_tailor_uid` cookies on logout

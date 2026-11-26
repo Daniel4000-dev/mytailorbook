@@ -7,7 +7,6 @@ import PressFeedback from '@/components/system/PressFeedback/PressFeedback';
 import ReferralCapture from '@/components/system/ReferralCapture/ReferralCapture';
 import AppSWRConfig from '@/components/pwa/AppSWRConfig/AppSWRConfig';
 import NetworkMonitor from '@/components/pwa/NetworkMonitor/NetworkMonitor';
-import AnalyticsProvider from '@/components/analytics/AnalyticsProvider';
 import JsonLd from '@/components/seo/JsonLd';
 import { inter, fraunces, manrope } from '@/lib/fonts';
 import { APP_CONFIG } from '@/lib/config';
@@ -121,7 +120,6 @@ export default function RootLayout({
         <ServiceWorkerRegistrar />
         <PressFeedback />
         <ReferralCapture />
-        <AnalyticsProvider />
         <ThemeProvider>
           <ToastProvider>
             <NetworkMonitor />

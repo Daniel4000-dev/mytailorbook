@@ -19,7 +19,6 @@ import {
   pauseSubscriptionAction,
   resumeSubscriptionAction,
 } from '@/app/actions/payments';
-import { trackEvent } from '@/lib/analytics';
 import {
   PREMIUM_MONTHLY_PRICE_NGN,
   PREMIUM_YEARLY_PRICE_NGN,
@@ -108,7 +107,6 @@ export default function BillingSettingsPage() {
     confirmSubscriptionPayment(reference)
       .then(() => {
         showToast('Payment successful — you\'re now on Premium', 'success');
-        trackEvent('subscription_upgraded');
         refreshShop();
       })
       .catch((err) => {
@@ -132,7 +130,6 @@ export default function BillingSettingsPage() {
     confirmFreeTrial(reference)
       .then(() => {
         showToast('Your free 30-day trial has started!', 'success');
-        trackEvent('trial_started');
         refreshShop();
       })
       .catch((err) => {
@@ -144,7 +141,6 @@ export default function BillingSettingsPage() {
 
   const handleUpgrade = (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
-    trackEvent('upgrade_checkout_started', { interval });
     initializeSubscription(interval)
       .then(({ authorizationUrl }) => {
         window.location.href = authorizationUrl;
@@ -157,7 +153,6 @@ export default function BillingSettingsPage() {
 
   const handleStartTrial = (interval: 'monthly' | 'yearly' = 'monthly') => {
     setUpgrading(true);
-    trackEvent('trial_checkout_started', { interval });
     startFreeTrial(interval)
       .then(({ authorizationUrl }) => {
         window.location.href = authorizationUrl;
@@ -181,7 +176,6 @@ export default function BillingSettingsPage() {
         showToast(result.error, 'error');
         return;
       }
-      trackEvent('subscription_canceled', { reason: cancelReason || 'not_given' });
       const until = result.accessUntil ? new Date(result.accessUntil).toLocaleDateString('en-NG', { month: 'long', day: 'numeric' }) : null;
       showToast(
         until ? `Subscription canceled — Premium stays active until ${until}` : 'Subscription canceled',
@@ -212,7 +206,6 @@ export default function BillingSettingsPage() {
         showToast(result.error, 'error');
         return;
       }
-      trackEvent('subscription_paused', { months: pauseMonths, reason: pauseReason });
       const resumeDate = new Date(result.pauseEndsAt).toLocaleDateString('en-NG', {
         month: 'long',
         day: 'numeric',
@@ -242,7 +235,6 @@ export default function BillingSettingsPage() {
         return;
       }
       showToast('Welcome back! Your subscription has resumed successfully.', 'success');
-      trackEvent('subscription_resumed');
       refreshShop();
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Could not resume subscription', 'error');

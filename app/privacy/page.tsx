@@ -86,11 +86,8 @@ export default function PrivacyPolicyPage() {
         <p>
           Like most web applications, our hosting provider (Vercel) automatically logs standard
           technical data for security and reliability — IP address, browser type, and request
-          timestamps. We also use PostHog, a product analytics tool, to understand how the app is
-          used — which pages and features people visit, and where people drop off during signup or
-          checkout — so we can improve it. This is product analytics, not advertising: we don&apos;t run
-          ad trackers, and we don&apos;t send PostHog your customers&apos; names, phone numbers,
-          measurements, or any other data you&apos;ve entered about them.
+          timestamps. We do not run third-party advertising trackers, and we do not sell or monetize
+          your activity or your customers&apos; data.
         </p>
 
         <h2>3. How We Use Information</h2>
@@ -119,7 +116,6 @@ export default function PrivacyPolicyPage() {
           <li><strong>Supabase</strong> — our database and authentication provider. All account data, studio data, customer records, and order information is stored here.</li>
           <li><strong>Vercel</strong> — hosts the application itself.</li>
           <li><strong>Paystack</strong> — processes Premium subscription payments. We never see or store your card details ourselves.</li>
-          <li><strong>PostHog</strong> — product analytics, described in Section 2.4. Receives usage events (pages visited, features used) tied to your account id, never your customers&apos; data.</li>
           <li><strong>Resend</strong> — sends account-related emails (e.g., password resets), where configured.</li>
           <li><strong>Google</strong> — if you choose &quot;Sign in with Google,&quot; Google authenticates your identity for us.</li>
         </ul>
@@ -179,9 +175,8 @@ export default function PrivacyPolicyPage() {
 
         <h2>11. Cookies &amp; Sessions</h2>
         <p>
-          We use an essential cookie to keep you signed in securely between visits, and PostHog (see
-          Section 2.4) sets its own cookie/local storage to recognize repeat visits from the same
-          browser for analytics. We don&apos;t use cookies for advertising or cross-site tracking.
+          We use essential first-party cookies and secure session tokens to keep you signed in securely
+          between visits. We don&apos;t use cookies for advertising or cross-site tracking.
         </p>
 
         <h2>12. Age Eligibility &amp; Children&apos;s Privacy</h2>
