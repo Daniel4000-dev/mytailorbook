@@ -8,7 +8,7 @@ import Symbol from '@/components/ui/Symbol/Symbol';
 import styles from './NotificationPrompt.module.css';
 
 const DISMISS_KEY = 'mtb_notif_prompt_dismissed_at';
-const RESHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const RESHOW_AFTER_MS = 2 * 24 * 60 * 60 * 1000; // 2 days (re-prompts every couple of days until registered)
 const SHOW_DELAY_MS = 2400;
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -111,29 +111,46 @@ export default function NotificationPrompt() {
   const [enabling, setEnabling] = useState(false);
 
   useEffect(() => {
-    try {
-      // Only prompt authenticated users who haven't dismissed recently
-      if (!user) return;
-      if (typeof window === 'undefined') return;
-      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    let cancelled = false;
 
-      // If permission has already been determined (granted or denied), never prompt
-      if (!window.Notification || window.Notification.permission !== 'default') return;
+    async function checkSubscriptionAndPrompt() {
+      try {
+        if (!user || typeof window === 'undefined') return;
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
 
-      if (isDismissedRecently()) return;
+        // On iOS, Web Push is only supported once added to Home Screen (standalone mode)
+        if (isIOS() && !isStandalone()) return;
 
-      // On iOS, Web Push is only supported once added to Home Screen (standalone mode)
-      if (isIOS() && !isStandalone()) return;
+        // 1. As long as this device is already registered to receive push notifications, never prompt
+        if ('PushManager' in window) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          const existingSub = await reg?.pushManager?.getSubscription();
+          if (existingSub) {
+            return;
+          }
+        }
 
-      // Delay slightly after page mount so it feels smooth and natural
-      const timer = window.setTimeout(() => {
-        setVisible(true);
-      }, SHOW_DELAY_MS);
+        // 2. If user dismissed recently within 2 days, respect the couple-of-days rest interval
+        if (isDismissedRecently()) return;
 
-      return () => window.clearTimeout(timer);
-    } catch {
-      // Gracefully ignore notification check failures in restricted webviews
+        if (cancelled) return;
+
+        // 3. Delay slightly after page mount so it feels smooth and natural
+        const timer = window.setTimeout(() => {
+          if (!cancelled) setVisible(true);
+        }, SHOW_DELAY_MS);
+
+        return () => window.clearTimeout(timer);
+      } catch {
+        // Gracefully ignore notification check failures in restricted webviews
+      }
     }
+
+    checkSubscriptionAndPrompt();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const dismiss = useCallback(() => {

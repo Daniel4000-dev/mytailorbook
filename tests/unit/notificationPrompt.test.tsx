@@ -113,6 +113,9 @@ describe('Notification Prompt & Push Toggle Component Suite', () => {
     );
 
     await act(async () => {
+      // Let async subscription check microtasks resolve
+      await Promise.resolve();
+      await Promise.resolve();
       vi.advanceTimersByTime(2500);
     });
 
@@ -133,14 +136,59 @@ describe('Notification Prompt & Push Toggle Component Suite', () => {
     expect(mockShowToast).toHaveBeenCalledWith('Notifications enabled for this device', 'success');
   });
 
-  it('State 2 (Sparse / Minimal Data): handles dismissed state without rendering', () => {
-    window.localStorage.setItem('mtb_notif_prompt_dismissed_at', String(Date.now()));
+  it('State 2 (Sparse / Minimal Data): handles dismissed state without rendering within 48 hours', () => {
+    // Dismissed 1 hour ago
+    window.localStorage.setItem('mtb_notif_prompt_dismissed_at', String(Date.now() - 3600 * 1000));
 
     render(
       <ToastProvider>
         <NotificationPrompt />
       </ToastProvider>
     );
+
+    expect(screen.queryByRole('dialog', { name: /enable notifications/i })).toBeNull();
+  });
+
+  it('State 2b: re-prompts user after 48 hours if device is still not registered', async () => {
+    vi.useFakeTimers();
+
+    // Dismissed 3 days ago (72 hours ago > 48 hours)
+    window.localStorage.setItem('mtb_notif_prompt_dismissed_at', String(Date.now() - 72 * 3600 * 1000));
+
+    render(
+      <ToastProvider>
+        <NotificationPrompt />
+      </ToastProvider>
+    );
+
+    await act(async () => {
+      // Let async subscription check microtasks resolve
+      await Promise.resolve();
+      await Promise.resolve();
+      vi.advanceTimersByTime(2500);
+    });
+
+    expect(screen.getByRole('dialog', { name: /enable notifications/i })).toBeTruthy();
+    expect(screen.getByText(/Turn on notifications/i)).toBeTruthy();
+  });
+
+  it('State 2c: does not prompt if device already has an active push subscription', async () => {
+    vi.useFakeTimers();
+
+    // Mock existing active subscription
+    mockPushManager.getSubscription.mockResolvedValueOnce({
+      endpoint: 'https://fcm.googleapis.com/fcm/send/existing-token',
+    });
+
+    render(
+      <ToastProvider>
+        <NotificationPrompt />
+      </ToastProvider>
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(3000);
+    });
 
     expect(screen.queryByRole('dialog', { name: /enable notifications/i })).toBeNull();
   });
@@ -156,6 +204,9 @@ describe('Notification Prompt & Push Toggle Component Suite', () => {
     );
 
     await act(async () => {
+      // Let async subscription check microtasks resolve
+      await Promise.resolve();
+      await Promise.resolve();
       vi.advanceTimersByTime(2500);
     });
 
@@ -188,6 +239,9 @@ describe('Notification Prompt & Push Toggle Component Suite', () => {
     );
 
     await act(async () => {
+      // Let async subscription check microtasks resolve
+      await Promise.resolve();
+      await Promise.resolve();
       vi.advanceTimersByTime(2500);
     });
 
