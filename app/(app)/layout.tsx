@@ -84,17 +84,18 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
   }, [authLoading, needsOnboarding, router]);
 
   // Heartbeat tracking for admin analytics
-  // Sends a lightweight ping every 5 minutes to track "Currently Online" users
+  // Sends a lightweight ping every 10 minutes when the tab is actively visible
   useEffect(() => {
     if (authLoading || needsOnboarding) return;
 
     const ping = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
       // Fire-and-forget
       fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
     };
 
     ping(); // Immediate ping on app load/focus
-    const id = setInterval(ping, 5 * 60 * 1000);
+    const id = setInterval(ping, 10 * 60 * 1000);
     return () => clearInterval(id);
   }, [authLoading, needsOnboarding]);
 
