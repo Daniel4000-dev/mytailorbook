@@ -56,7 +56,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
   const [activeTab, setActiveTab] = useState<TabType>('live');
   const [modeFilter, setModeFilter] = useState<'all' | 'bespoke' | 'rtw' | 'hybrid'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(15);
+  const [refreshInterval, setRefreshInterval] = useState<RefreshInterval>(0);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date(initialData.lastRefreshedAt));
   const [isRefreshing, startRefreshTransition] = useTransition();
 
@@ -449,7 +449,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
             </span>
             <span>
               Updated {lastUpdated.toLocaleTimeString()} (
-              {refreshInterval > 0 ? `Auto-refreshing every ${refreshInterval}s` : 'Paused'})
+              {refreshInterval > 0 ? `Auto-refreshing every ${refreshInterval}s` : 'Manual Refresh Only'})
             </span>
           </div>
         </div>
@@ -742,7 +742,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                               <Symbol name="send" size={12} />
                               <span>Nudge</span>
                             </button>
-                            <Link href={`/admin/organizations/${item.orgId}`} className={styles.manageLink}>
+                            <Link href={`/admin/organizations/${item.orgId}`} prefetch={false} className={styles.manageLink}>
                               <Symbol name="tune" size={12} />
                               <span>Inspect</span>
                             </Link>
@@ -824,7 +824,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                               <Symbol name="campaign" size={13} />
                               <span>Send Push Nudge</span>
                             </button>
-                            <Link href={`/admin/organizations/${shop.orgId}`} className={styles.manageLink}>
+                            <Link href={`/admin/organizations/${shop.orgId}`} prefetch={false} className={styles.manageLink}>
                               <Symbol name="tune" size={12} />
                               <span>Manage Shop</span>
                             </Link>
@@ -1108,7 +1108,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                               <Symbol name="favorite" size={12} />
                               <span>Cheer</span>
                             </button>
-                            <Link href={`/admin/organizations/${champ.orgId}`} className={styles.manageLink}>
+                            <Link href={`/admin/organizations/${champ.orgId}`} prefetch={false} className={styles.manageLink}>
                               <Symbol name="tune" size={12} />
                               <span>Inspect</span>
                             </Link>
@@ -1485,7 +1485,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                           </span>
                         </td>
                         <td>
-                          <Link href={`/admin/organizations/${entry.orgId}`} className={styles.manageLink}>
+                          <Link href={`/admin/organizations/${entry.orgId}`} prefetch={false} className={styles.manageLink}>
                             <Symbol name="tune" size={12} />
                             <span>Shop</span>
                           </Link>
@@ -1599,7 +1599,7 @@ export default function EngagementClient({ initialData }: EngagementClientProps)
                               <Symbol name="send" size={12} />
                               <span>Nudge</span>
                             </button>
-                            <Link href={`/admin/organizations/${pw.orgId}`} className={styles.manageLink}>
+                            <Link href={`/admin/organizations/${pw.orgId}`} prefetch={false} className={styles.manageLink}>
                               <Symbol name="tune" size={12} />
                               <span>Inspect</span>
                             </Link>
