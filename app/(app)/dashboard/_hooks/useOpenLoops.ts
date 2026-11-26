@@ -27,7 +27,7 @@ export function computeOpenLoops(
   shopName?: string
 ): OpenLoop[] {
   const loops: OpenLoop[] = [];
-  
+
   // Filter out orders with active exceptions
   const now = new Date();
   const activeExceptionOrderIds = new Set(
@@ -87,10 +87,10 @@ export function computeOpenLoops(
     // Overdue or Due Today
     if (isOverdue(o)) return true;
     if (o.dueDate && new Date(o.dueDate).toISOString().split('T')[0] === todayStr) return true;
-    
+
     // Stale (No status change in 3 days)
     const lastStatus = o.statusHistory && o.statusHistory.length > 0 ? o.statusHistory[o.statusHistory.length - 1] : null;
-    const lastUpdate = lastStatus ? new Date(lastStatus.timestamp).getTime() : Date.now(); 
+    const lastUpdate = lastStatus ? new Date(lastStatus.timestamp).getTime() : Date.now();
     return lastUpdate < staleLimit;
   });
 
@@ -126,7 +126,7 @@ export function computeOpenLoops(
       title,
       subtitle,
       actionText: 'View Order',
-      href: topOrder ? ROUTES.productionOrder(topOrder) : ROUTES.production,
+      href: topOrder ? `${ROUTES.productionOrder(topOrder)}?from=dashboard` : ROUTES.production,
       urgency: 'high',
       amountAtStake: cashAtStake,
     });
@@ -143,7 +143,7 @@ export function computeOpenLoops(
 
     const requiredKeys = styleSpec.points.map(p => p.key);
     const measurements = o.measurements || {};
-    
+
     // Check if any required key is missing or empty
     return requiredKeys.some(key => !measurements[key as keyof typeof measurements]);
   });
@@ -152,7 +152,7 @@ export function computeOpenLoops(
     const firstCustomerOrder = customersMissingMeasurements[0];
     const customer = customers.find(c => c.id === firstCustomerOrder.customerId);
     const missingCount = customersMissingMeasurements.length;
-    
+
     let whatsappUrl: string | undefined;
     if (customer?.whatsappNumber) {
       const clientFirst = (customer.fullName || 'there').trim().split(' ')[0];
@@ -164,7 +164,7 @@ export function computeOpenLoops(
     loops.push({
       id: 'loop-measurements',
       category: 'measurements',
-      title: missingCount === 1 
+      title: missingCount === 1
         ? `${customer?.fullName || 'Customer'} is missing measurements`
         : `${missingCount} active clients are missing body measurements`,
       subtitle: `Needed before cutting ${firstCustomerOrder.styleName || 'garment'}`,
@@ -193,7 +193,7 @@ export function computeOpenLoops(
         : `Cut ${clientName}'s ${topUncut.styleName || 'fabric'} next (${uncutOrders.length} waiting)`,
       subtitle: 'Next up on cutting table',
       actionText: 'Cut Now',
-      href: ROUTES.productionOrder(topUncut),
+      href: `${ROUTES.productionOrder(topUncut)}?from=dashboard`,
       urgency: 'medium',
     });
   }

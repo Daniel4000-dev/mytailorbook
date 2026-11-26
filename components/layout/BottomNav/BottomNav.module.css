@@ -1,7 +1,7 @@
 /* Floating glassmorphic pill bottom nav — Instagram/iOS Optics Reference */
 .nav {
   position: fixed;
-  bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) * 0.35 + 4px));
+  bottom: max(6px, calc(env(safe-area-inset-bottom, 0px) * 0.25 + 4px));
   left: 50%;
   right: auto;
   transform: translate3d(-50%, 0, 0) scale(1);

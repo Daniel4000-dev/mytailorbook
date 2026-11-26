@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import WhatsappIcon from '@/components/ui/WhatsappIcon/WhatsappIcon';
@@ -54,6 +54,7 @@ type DetailTab = 'spec' | 'feed' | 'ledger';
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const userRole = user?.role || 'Staff';
   const isOwnerView = isOwnerLikeRole(userRole);
@@ -762,13 +763,43 @@ export default function OrderDetailPage() {
     showToast('Measurements copied to clipboard', 'success');
   };
 
+  const handleSmartBack = () => {
+    const fromParam = searchParams.get('from');
+    if (fromParam === 'fabrics') {
+      router.push(ROUTES.fabrics);
+      return;
+    }
+    if (fromParam === 'dashboard') {
+      router.push(ROUTES.dashboard);
+      return;
+    }
+    if (fromParam === 'customer' || fromParam === 'customers') {
+      if (customer) {
+        router.push(ROUTES.customerDetail(customer));
+      } else {
+        router.push(ROUTES.customers);
+      }
+      return;
+    }
+    if (fromParam && fromParam.startsWith('/')) {
+      router.push(fromParam);
+      return;
+    }
+
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(ROUTES.production);
+    }
+  };
+
   return (
     <PageLayout
       header={
         <TopBar
           title={`Order #${orderRef}`}
           showBack
-          onBack={() => router.push(ROUTES.production)}
+          onBack={handleSmartBack}
           rightAction={
             <>
               {/* Desktop counterpart to the mobile WhatsApp FAB below — a
