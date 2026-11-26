@@ -904,7 +904,7 @@ function CustomerProfileContent({
                     key={o.id}
                     className={styles.orderCard}
                     style={{ animationDelay: `${i * 0.05}s` }}
-                    onClick={() => router.push(ROUTES.productionOrder(o))}
+                    onClick={() => router.push(`${ROUTES.productionOrder(o)}?from=customer`)}
                   >
                     <div className={styles.orderHeader}>
                       <div className={styles.orderMeta}>

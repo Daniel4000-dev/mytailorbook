@@ -244,7 +244,7 @@ export default function FabricsPage() {
                 <FabricCard
                   key={order.id}
                   order={order}
-                  onClick={() => router.push(ROUTES.productionOrder(order))}
+                  onClick={() => router.push(`${ROUTES.productionOrder(order)}?from=fabrics`)}
                   onOpenSlip={(o) => setCuttingSlipOrder(o)}
                 />
               ))}
