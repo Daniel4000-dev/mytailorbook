@@ -149,7 +149,6 @@ export default function OrderListCard({
   const isHorizontalSwipe = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    handleCardPrefetch();
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     isVerticalScroll.current = false;

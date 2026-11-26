@@ -212,6 +212,13 @@
   box-shadow: none !important;
 }
 
+/* ── Standalone PWA Optics ─────────────────────────────────── */
+@media (display-mode: standalone) {
+  .nav {
+    bottom: max(6px, calc(env(safe-area-inset-bottom, 0px) * 0.2 + 3px));
+  }
+}
+
 /* ── Desktop Layout ────────────────────────────────────────── */
 @media (min-width: 1024px) {
   .nav {
