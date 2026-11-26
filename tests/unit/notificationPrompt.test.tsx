@@ -201,7 +201,7 @@ describe('Notification Prompt & Push Toggle Component Suite', () => {
     });
 
     expect(mockShowToast).toHaveBeenCalledWith(
-      expect.stringMatching(/timed out|not supported/i),
+      expect.stringMatching(/initializing|timed out|not supported/i),
       'error'
     );
     expect(screen.queryByRole('dialog', { name: /enable notifications/i })).toBeNull();

@@ -2257,36 +2257,73 @@ function rollup(orders: any[], expenses: any[]): Omit<FinancialReportBranch, 'sh
 // ----------------------------------------------------------------------
 
 export async function savePushSubscriptionAction(subscription: { endpoint: string; keys: { p256dh: string; auth: string } }): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData?.user) return { error: 'Not signed in' };
+  try {
+    const supabase = await createClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) return { error: 'Not signed in' };
 
-  const admin = createAdminClient();
-  const { error } = await admin.from('push_subscriptions').upsert(
-    {
-      profile_id: authData.user.id,
-      endpoint: subscription.endpoint,
-      keys: subscription.keys,
-    },
-    { onConflict: 'endpoint' }
-  );
-  if (error) return { error: error.message };
-  return {};
+    // Try authenticated client first (RLS allows profiles to manage their own subscriptions)
+    const { error: userClientError } = await supabase.from('push_subscriptions').upsert(
+      {
+        profile_id: authData.user.id,
+        endpoint: subscription.endpoint,
+        keys: subscription.keys,
+      },
+      { onConflict: 'endpoint' }
+    );
+
+    if (!userClientError) return {};
+
+    // Fallback to admin client if service role is available
+    try {
+      const admin = createAdminClient();
+      const { error: adminError } = await admin.from('push_subscriptions').upsert(
+        {
+          profile_id: authData.user.id,
+          endpoint: subscription.endpoint,
+          keys: subscription.keys,
+        },
+        { onConflict: 'endpoint' }
+      );
+      if (adminError) return { error: adminError.message };
+      return {};
+    } catch {
+      return { error: userClientError.message };
+    }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to save notification subscription' };
+  }
 }
 
 export async function removePushSubscriptionAction(endpoint: string): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData?.user) return { error: 'Not signed in' };
+  try {
+    const supabase = await createClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) return { error: 'Not signed in' };
 
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from('push_subscriptions')
-    .delete()
-    .eq('endpoint', endpoint)
-    .eq('profile_id', authData.user.id);
-  if (error) return { error: error.message };
-  return {};
+    const { error: userClientError } = await supabase
+      .from('push_subscriptions')
+      .delete()
+      .eq('endpoint', endpoint)
+      .eq('profile_id', authData.user.id);
+
+    if (!userClientError) return {};
+
+    try {
+      const admin = createAdminClient();
+      const { error: adminError } = await admin
+        .from('push_subscriptions')
+        .delete()
+        .eq('endpoint', endpoint)
+        .eq('profile_id', authData.user.id);
+      if (adminError) return { error: adminError.message };
+      return {};
+    } catch {
+      return { error: userClientError.message };
+    }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to remove notification subscription' };
+  }
 }
 
 export async function sendTestPushAction(delaySeconds = 3): Promise<{ error?: string; success?: boolean; sentCount?: number }> {

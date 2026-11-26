@@ -51,29 +51,57 @@ async function getServiceWorkerForPush(timeoutMs = 6000): Promise<ServiceWorkerR
     throw new Error('Push notifications are not supported on this browser.');
   }
 
-  // 1. Fast path: check existing registration
+  // 1. Check existing registration
   let reg = await navigator.serviceWorker.getRegistration();
 
-  // 2. If not registered yet, register now
+  // 2. If not registered yet, initiate registration
   if (!reg) {
     reg = await navigator.serviceWorker.register('/sw.js');
   }
 
-  // If pushManager is already accessible on reg, return it immediately without hanging on ready
-  if (reg && 'pushManager' in reg) {
+  // 3. If already active, return immediately
+  if (reg?.active) {
     return reg;
   }
 
-  // 3. Fallback: race against ready with a strict timeout
-  return Promise.race([
-    navigator.serviceWorker.ready,
-    new Promise<ServiceWorkerRegistration>((resolve, reject) =>
-      setTimeout(() => {
-        if (reg) resolve(reg);
-        else reject(new Error('Notification service setup timed out. Please try again.'));
-      }, timeoutMs)
-    ),
-  ]);
+  // 4. Wait for activation with a reliable timeout race
+  return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      if (reg?.active || reg?.pushManager) {
+        resolve(reg);
+      } else {
+        reject(new Error('Notification service is initializing. Please try again in a moment.'));
+      }
+    }, timeoutMs);
+
+    navigator.serviceWorker.ready.then((readyReg) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(readyReg);
+    }).catch(() => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (reg) resolve(reg);
+      else reject(new Error('Failed to initialize notification service.'));
+    });
+
+    const worker = reg?.installing || reg?.waiting;
+    if (worker) {
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'activated' && !settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(reg!);
+        }
+      });
+    }
+  });
 }
 
 export default function NotificationPrompt() {
@@ -160,7 +188,16 @@ export default function NotificationPrompt() {
       }
     } catch (err) {
       console.error('Failed to enable push notifications:', err);
-      const message = err instanceof Error ? err.message : 'Failed to enable notifications';
+      let message = 'Failed to enable notifications';
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          message = 'Notifications are blocked in your system or browser settings.';
+        } else if (err.message.includes('no active Service Worker')) {
+          message = 'Service worker is still activating. Please try again in a few seconds.';
+        } else {
+          message = err.message;
+        }
+      }
       showToast(message, 'error');
       setVisible(false);
     } finally {
