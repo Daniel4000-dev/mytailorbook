@@ -19,6 +19,31 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
+async function getServiceWorkerForPush(timeoutMs = 6000): Promise<ServiceWorkerRegistration> {
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('Push notifications are not supported on this browser.');
+  }
+
+  let reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) {
+    reg = await navigator.serviceWorker.register('/sw.js');
+  }
+
+  if (reg && 'pushManager' in reg) {
+    return reg;
+  }
+
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise<ServiceWorkerRegistration>((resolve, reject) =>
+      setTimeout(() => {
+        if (reg) resolve(reg);
+        else reject(new Error('Notification service setup timed out. Please try again.'));
+      }, timeoutMs)
+    ),
+  ]);
+}
+
 export default function PushNotificationToggle() {
   const { showToast } = useToast();
   const [supported, setSupported] = useState(false);
@@ -38,7 +63,7 @@ export default function PushNotificationToggle() {
       } else {
         setSubscribed(false);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const handleEnable = async () => {
@@ -46,11 +71,6 @@ export default function PushNotificationToggle() {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'denied') {
-        // Browsers only ever show the system permission prompt once per
-        // site — after a denial, requestPermission() silently resolves to
-        // 'denied' again with no UI at all, so retrying this button can
-        // never re-show it. The only way back is the browser's own site
-        // settings, not anything this app can trigger.
         showToast(
           'Notifications are blocked for this site. To enable them, open your browser\'s site settings (tap the icon next to the address bar) and allow Notifications, then try again.',
           'error'
@@ -61,12 +81,20 @@ export default function PushNotificationToggle() {
         showToast('Notification permission was not granted', 'error');
         return;
       }
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await getServiceWorkerForPush();
+      if (!registration || !registration.pushManager) {
+        throw new Error('Push notification service is not supported on this device.');
+      }
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
+      const subscription = await Promise.race([
+        registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        }),
+        new Promise<PushSubscription>((_, reject) =>
+          setTimeout(() => reject(new Error('Device registration timed out. Please check your connection and try again.')), 8000)
+        ),
+      ]);
       const { error } = await savePushSubscriptionAction(subscription.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } });
       if (error) {
         showToast(error, 'error');
@@ -74,6 +102,10 @@ export default function PushNotificationToggle() {
       }
       setSubscribed(true);
       showToast('Notifications enabled', 'success');
+    } catch (err) {
+      console.error('Failed to enable push notifications:', err);
+      const message = err instanceof Error ? err.message : 'Failed to enable notifications';
+      showToast(message, 'error');
     } finally {
       setWorking(false);
     }
@@ -82,7 +114,7 @@ export default function PushNotificationToggle() {
   const handleDisable = async () => {
     setWorking(true);
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await getServiceWorkerForPush();
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         await removePushSubscriptionAction(subscription.endpoint);
@@ -90,6 +122,10 @@ export default function PushNotificationToggle() {
       }
       setSubscribed(false);
       showToast('Notifications disabled', 'success');
+    } catch (err) {
+      console.error('Failed to disable push notifications:', err);
+      const message = err instanceof Error ? err.message : 'Failed to disable notifications';
+      showToast(message, 'error');
     } finally {
       setWorking(false);
     }
