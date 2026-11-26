@@ -195,17 +195,7 @@ export default function ProductionBoard({ userRole }: ProductionBoardProps) {
     }
   }, [isLoaded, searchParams, userRole, router, orders, staffFilterId]);
 
-  // Order cards are plain divs (not <Link>), since each also hosts nested
-  // interactive controls (reassign select, move back/forward buttons) that
-  // can't sit inside a real anchor — so Next never gets a chance to
-  // prefetch these routes automatically. Warm the active (non-Completed)
-  // orders' detail pages as soon as the board loads instead, capped so a
-  // very large board doesn't fire off an unbounded burst of requests.
-  useEffect(() => {
-    if (!isLoaded) return;
-    const active = orders.filter((o) => o.status !== 'Delivered').slice(0, 40);
-    active.forEach((o) => router.prefetch(ROUTES.productionOrder(o)));
-  }, [isLoaded, orders, router]);
+
 
   const performDelivery = useCallback(async (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);

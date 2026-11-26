@@ -228,11 +228,7 @@ export default function CustomersPage() {
     return stats;
   }, [customers, orders]);
 
-  // Pre-fetch top 10 visible customer profile routes without flooding cellular bandwidth
-  useEffect(() => {
-    if (!isLoaded) return;
-    customers.slice(0, 10).forEach((c) => router.prefetch(ROUTES.customerDetail(c)));
-  }, [isLoaded, customers, router]);
+
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setVisibleCount(PAGE_SIZE), [deferredSearch, clientFilter, styleFilter]);

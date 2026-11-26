@@ -189,9 +189,7 @@ function CustomerProfileContent({
   const hasActiveOrder = useMemo(() => custOrders.some((o) => o.status !== 'Delivered'), [custOrders]);
   const hasReadyOrder = useMemo(() => custOrders.some((o) => o.status === 'Ready'), [custOrders]);
 
-  useEffect(() => {
-    custOrders.slice(0, 30).forEach((o) => router.prefetch(ROUTES.productionOrder(o)));
-  }, [custOrders, router]);
+
 
   const stylePhotos = useMemo(() => getStylePhotos(GARMENT_STYLES), []);
   const profileEntries = useMemo(
